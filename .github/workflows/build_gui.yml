@@ -26,19 +26,22 @@ jobs:
       - name: Work out the version
         id: version
         run: |
-          # v2.3.0 -> 2.3.0, commits after it -> 2.3.0-dev.N; no tag at all -> 0.0.0-dev
+          # v2.3.0 -> 2.3.0, commits after it -> 2.3.0-dev.N; no tag at all -> 0.0.0-dev.<all commits>
           # code is the Android versionCode: MMmmpp + commits, so every build installs over the last
           desc=$(git describe --tags --match 'v*.*' 2>/dev/null || true)
           if [[ $desc =~ ^v([0-9]+)\.([0-9]+)(\.([0-9]+))?(-([0-9]+)-g[0-9a-f]+)?$ ]]; then
             major=${BASH_REMATCH[1]} minor=${BASH_REMATCH[2]} patch=${BASH_REMATCH[4]:-0} commits=${BASH_REMATCH[6]:-0}
           else
-            major=0 minor=0 patch=0 commits=0
+            major=0 minor=0 patch=0 commits=$(git rev-list --count HEAD)
           fi
           version=$major.$minor.$patch
           [[ $commits != 0 || -z $desc ]] && version=$version-dev.$commits
           (( commits > 99 )) && commits=99
+          code=$(( major * 1000000 + minor * 10000 + patch * 100 + commits ))
+          # Android rejects a versionCode below 1
+          (( code < 1 )) && code=1
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "code=$(( major * 1000000 + minor * 10000 + patch * 100 + commits ))" >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
 
   build_desktop:
     name: Build GUI (${{ matrix.rid }})
