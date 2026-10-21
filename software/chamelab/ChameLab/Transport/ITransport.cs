@@ -67,5 +67,12 @@ public interface ITransportScanner
 
     Task<System.Collections.Generic.IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default);
 
+    /// <summary>
+    /// Scans for the reason given by <paramref name="trigger"/> (<see cref="AutoScan.Never"/> is an
+    /// explicit Rescan). Lets a scanner do something only a user action allows, e.g. open a chooser.
+    /// </summary>
+    Task<System.Collections.Generic.IReadOnlyList<TransportCandidate>> ScanAsync(AutoScan trigger, CancellationToken ct = default) =>
+        ScanAsync(ct);
+
     ITransport Create(TransportCandidate candidate);
 }

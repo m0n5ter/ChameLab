@@ -54,7 +54,7 @@ public sealed class DeviceService
         foreach (var scanner in _scanners)
         {
             if (scanner.AutoScan < trigger) continue;
-            try { all.AddRange(await scanner.ScanAsync(ct)); }
+            try { all.AddRange(await scanner.ScanAsync(trigger, ct)); }
             catch (Exception ex) { Console.WriteLine($"[Scan] {scanner.DisplayName} failed: {ex}"); }
         }
         return all;

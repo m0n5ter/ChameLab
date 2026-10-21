@@ -37,7 +37,7 @@
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
               <TextBlock Text="Detected devices" Classes="h2" />
-              <TextBlock Classes="caption" Text="Plugged-in devices appear here automatically." />
+              <TextBlock Classes="caption" Text="{Binding ScanHint}" TextWrapping="Wrap" />
             </StackPanel>
             <Button Grid.Column="1" Command="{Binding ScanCommand}" ToolTip.Tip="Scan again">
               <StackPanel Orientation="Horizontal" Spacing="6">
@@ -83,7 +83,7 @@
                         HorizontalAlignment="Center" />
               <TextBlock Text="No devices detected" FontWeight="SemiBold" HorizontalAlignment="Center" />
               <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="320"
-                         Text="Plug the Chameleon in and wake it up — it will show up here on its own." />
+                         Text="{Binding EmptyHint}" TextWrapping="Wrap" />
             </StackPanel>
           </Border>
 
