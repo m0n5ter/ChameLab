@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Input;
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +17,11 @@ public sealed class MainViewModel : ViewModelBase
     private bool _isOffline;
     private bool _isPaneOpen = true;
     private string _deviceSummary = "Not connected";
+    private bool _isExitHintVisible;
+    private DateTime _exitHintShownAt;
+
+    /// <summary>How long a second Back press still counts as confirming the exit.</summary>
+    private static readonly TimeSpan ExitConfirmWindow = TimeSpan.FromSeconds(2);
 
     public MainViewModel(DeviceService device, CardLibrary cards, DictionaryLibrary dictionaries,
         FirmwareUpdateService firmware)
@@ -129,6 +135,48 @@ public sealed class MainViewModel : ViewModelBase
     {
         get => _deviceSummary;
         private set => this.RaiseAndSetIfChanged(ref _deviceSummary, value);
+    }
+
+    /// <summary>"Press Back again to exit", shown after a Back press on the start page.</summary>
+    public bool IsExitHintVisible
+    {
+        get => _isExitHintVisible;
+        private set => this.RaiseAndSetIfChanged(ref _isExitHintVisible, value);
+    }
+
+    /// <summary>The page Back returns to before leaving the app: where the current session starts.</summary>
+    private PageViewModelBase StartPage => IsConnected ? Dashboard : IsOffline ? Cards : _connect;
+
+    /// <summary>
+    /// Steps back inside the shell for the system Back button: closes the overlaid navigation
+    /// pane, else returns to the start page. False when already there, so the app may close.
+    /// </summary>
+    public bool TryGoBack()
+    {
+        if (IsCompact && IsPaneOpen)
+        {
+            IsPaneOpen = false;
+            return true;
+        }
+        if (ReferenceEquals(CurrentPage, StartPage)) return false;
+        _ = NavigateAsync(StartPage);
+        return true;
+    }
+
+    /// <summary>
+    /// The first Back on the start page only shows a hint; a second one within a couple of
+    /// seconds is let through and closes the app.
+    /// </summary>
+    public bool ConfirmExit()
+    {
+        if (IsExitHintVisible && DateTime.UtcNow - _exitHintShownAt < ExitConfirmWindow) return true;
+        var shownAt = _exitHintShownAt = DateTime.UtcNow;
+        IsExitHintVisible = true;
+        Avalonia.Threading.DispatcherTimer.RunOnce(() =>
+        {
+            if (_exitHintShownAt == shownAt) IsExitHintVisible = false;
+        }, ExitConfirmWindow);
+        return false;
     }
 
     public ICommand NavigateCommand { get; }

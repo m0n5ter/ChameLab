@@ -279,7 +279,8 @@
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,Auto,*">
             <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
-                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list">
+                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
+                    b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
             <Button Grid.Column="1" Classes="colorpick" Margin="0,0,12,0" ToolTip.Tip="Card color">
@@ -390,7 +391,8 @@
             <StackPanel Spacing="14">
               <Grid ColumnDefinitions="Auto,*,Auto">
                 <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
-                        Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list">
+                        Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
+                        b:DialogKeys.IsBack="True">
                   <PathIcon Data="{StaticResource Icon.back}" />
                 </Button>
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">

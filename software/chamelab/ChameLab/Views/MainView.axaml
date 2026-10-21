@@ -10,7 +10,7 @@
              x:Class="ChameLab.Views.MainView"
              x:DataType="vm:MainViewModel">
 
-  <Grid RowDefinitions="Auto,*">
+  <Grid x:Name="Root" RowDefinitions="Auto,*">
 
     <!-- ==================== Top app bar ==================== -->
     <Border Grid.Row="0" Padding="10,8,12,8" Background="{actipro:ThemeResource Container1BackgroundBrush}"
@@ -193,5 +193,15 @@
         </StackPanel>
       </Border>
     </Panel>
+
+    <!-- ==================== Exit hint ==================== -->
+    <!-- After Back on the start page; a second Back within a moment closes the app. -->
+    <Border Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+            Margin="16,0,16,24" Padding="16,9" CornerRadius="18" IsHitTestVisible="False"
+            Background="{actipro:ThemeResource Container3BackgroundBrush}"
+            BorderBrush="{actipro:ThemeResource Container3BorderBrush}" BorderThickness="1"
+            BoxShadow="0 6 18 0 #40000000" IsVisible="{Binding IsExitHintVisible}">
+      <TextBlock Text="Press Back again to exit" FontSize="13" />
+    </Border>
   </Grid>
 </UserControl>
