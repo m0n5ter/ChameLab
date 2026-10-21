@@ -9,11 +9,16 @@ export function isSupported() {
     return typeof navigator !== "undefined" && "serial" in navigator;
 }
 
-// List ports the user has already granted this origin (no prompt).
+// List ports the user has already granted this origin (no prompt). Returns the
+// comma-separated indices of the ports currently available. New ports are appended
+// and none are removed, so an index stays valid while the app is polling.
 export async function listGranted() {
-    if (!isSupported()) return 0;
-    ports = await navigator.serial.getPorts();
-    return ports.length;
+    if (!isSupported()) return "";
+    const granted = await navigator.serial.getPorts();
+    for (const p of granted) {
+        if (!ports.includes(p)) ports.push(p);
+    }
+    return granted.map(p => ports.indexOf(p)).join(",");
 }
 
 // Prompt the user to pick a port. Must be called from a user gesture.

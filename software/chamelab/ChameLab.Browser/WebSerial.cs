@@ -26,8 +26,9 @@ internal static partial class WebSerialInterop
     [JSImport("isSupported", "serial")]
     public static partial bool IsSupported();
 
+    /// <summary>Comma-separated indices of the granted ports that are currently available.</summary>
     [JSImport("listGranted", "serial")]
-    public static partial Task<int> ListGranted();
+    public static partial Task<string> ListGranted();
 
     [JSImport("requestPort", "serial")]
     public static partial Task<int> RequestPort();
@@ -113,26 +114,30 @@ public sealed class WebSerialTransport : ITransport
 }
 
 /// <summary>
-/// Scans for Web Serial ports. Lists ports the user has already granted; if none
-/// are granted yet it opens the browser's port chooser (which requires the user
-/// gesture that the Rescan/Connect button provides).
+/// Scans for Web Serial ports. Automatic scans silently list the ports the user has
+/// already granted this page, so a known Chameleon shows up on its own once plugged
+/// in. Only an explicit Rescan (a user gesture) may open the browser's port chooser,
+/// which it does when no granted Chameleon is present.
 /// </summary>
 [SupportedOSPlatform("browser")]
 public sealed class WebSerialScanner : ITransportScanner
 {
     public TransportKind Kind => TransportKind.Serial;
     public string DisplayName => "Web Serial";
-    // Opening the port chooser needs a user gesture, so only scan on Rescan.
-    public AutoScan AutoScan => AutoScan.Never;
+    // Listing granted ports is cheap and needs no prompt, so it can be polled.
+    public AutoScan AutoScan => AutoScan.Poll;
 
-    public async Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default)
+    public Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default) =>
+        ScanAsync(AutoScan.Never, ct);
+
+    public async Task<IReadOnlyList<TransportCandidate>> ScanAsync(AutoScan trigger, CancellationToken ct = default)
     {
         await WebSerialInterop.EnsureModuleAsync();
         if (!WebSerialInterop.IsSupported())
             return Array.Empty<TransportCandidate>();
 
         var list = await ListChameleonsAsync();
-        if (list.Count == 0)
+        if (list.Count == 0 && trigger == AutoScan.Never)
         {
             // No Chameleon among the granted ports (none granted yet, or only other
             // devices): prompt the chooser. A cancelled dialog simply yields no device.
@@ -144,15 +149,16 @@ public sealed class WebSerialScanner : ITransportScanner
 
     private static async Task<List<TransportCandidate>> ListChameleonsAsync()
     {
-        var count = await WebSerialInterop.ListGranted();
-        var list = new List<TransportCandidate>(count);
-        for (var i = 0; i < count; i++)
+        var indices = await WebSerialInterop.ListGranted();
+        var list = new List<TransportCandidate>();
+        foreach (var part in indices.Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
+            var i = int.Parse(part);
             var info = WebSerialInterop.PortInfo(i);
             if (!info.Contains("26728")) continue; // USB VID 0x6868 = Chameleon
             list.Add(new TransportCandidate(
                 TransportKind.Serial,
-                i.ToString(),
+                part,
                 $"Chameleon (port {i})",
                 "Web Serial"));
         }

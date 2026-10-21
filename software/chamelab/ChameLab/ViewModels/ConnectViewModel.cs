@@ -49,6 +49,16 @@ public sealed class ConnectViewModel : PageViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _hasCandidates, value);
     }
 
+    // A web page may only open a serial port the user picked in the browser's chooser,
+    // which opens on Rescan; after that the device shows up on its own like on desktop.
+    public string ScanHint => OperatingSystem.IsBrowser()
+        ? "Press Rescan to pick your Chameleon once; after that it appears here automatically."
+        : "Plugged-in devices appear here automatically.";
+
+    public string EmptyHint => OperatingSystem.IsBrowser()
+        ? "Plug the Chameleon in, then press Rescan and allow this page to use it (Chrome or Edge)."
+        : "Plug the Chameleon in and wake it up — it will show up here on its own.";
+
     public string ManualEndpoint
     {
         get => _manualEndpoint;
