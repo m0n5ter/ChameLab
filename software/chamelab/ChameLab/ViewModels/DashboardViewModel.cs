@@ -49,12 +49,11 @@ public sealed class DashboardViewModel : PageViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _activeSlot, value);
             foreach (var slot in Slots) slot.IsActive = slot.Index == value;
-            this.RaisePropertyChanged(nameof(ActiveSummary));
+            this.RaisePropertyChanged(nameof(ActiveItem));
         }
     }
 
-    public string ActiveSummary =>
-        Slots.FirstOrDefault(s => s.Index == ActiveSlot) is { } slot ? $"Slot {slot.Index} · {slot.Summary}" : "–";
+    public SlotItemViewModel? ActiveItem => Slots.FirstOrDefault(s => s.Index == ActiveSlot);
 
     public ICommand PrevSlotCommand { get; }
     public ICommand NextSlotCommand { get; }

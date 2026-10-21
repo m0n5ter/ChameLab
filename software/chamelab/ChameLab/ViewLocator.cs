@@ -1,34 +1,30 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using ChameLab.ViewModels;
+using ChameLab.Views;
 
 namespace ChameLab;
 
 /// <summary>
 /// Given a view model, returns the corresponding view if possible.
+/// Uses an explicit map instead of reflection so the views survive trimming
+/// (the browser/WASM build is trimmed, and <c>Type.GetType</c> then returns null).
 /// </summary>
-[RequiresUnreferencedCode(
-    "Default implementation of ViewLocator involves reflection which may be trimmed away.",
-    Url = "https://docs.avaloniaui.net/docs/concepts/view-locator")]
 public class ViewLocator : IDataTemplate
 {
-    public Control? Build(object? param)
+    public Control? Build(object? param) => param switch
     {
-        if (param is null)
-            return null;
-
-        var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-        var type = Type.GetType(name);
-
-        if (type != null)
-        {
-            return (Control)Activator.CreateInstance(type)!;
-        }
-
-        return new TextBlock { Text = "Not Found: " + name };
-    }
+        null => null,
+        MainViewModel => new MainView(),
+        ConnectViewModel => new ConnectView(),
+        DashboardViewModel => new DashboardView(),
+        SlotsViewModel => new SlotsView(),
+        CardsViewModel => new CardsView(),
+        DictionariesViewModel => new DictionariesView(),
+        ToolsViewModel => new ToolsView(),
+        SettingsViewModel => new SettingsView(),
+        _ => new TextBlock { Text = "Not Found: " + param.GetType().FullName!.Replace("ViewModel", "View") },
+    };
 
     public bool Match(object? data)
     {
