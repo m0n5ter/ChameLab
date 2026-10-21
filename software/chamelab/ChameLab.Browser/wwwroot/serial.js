@@ -21,7 +21,8 @@ export async function listGranted() {
 export async function requestPort() {
     if (!isSupported()) return -1;
     try {
-        const port = await navigator.serial.requestPort();
+        // Only offer Chameleons (USB VID 0x6868) in the chooser.
+        const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x6868 }] });
         const existing = ports.indexOf(port);
         if (existing >= 0) return existing;
         ports.push(port);
