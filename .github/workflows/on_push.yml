@@ -1,0 +1,153 @@
+name: Push handler
+
+on:
+  push:
+
+concurrency:
+  group: push-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  firmware_pipeline:
+    name: Build Firmware
+    permissions:
+      packages: write
+      contents: read
+    uses: ./.github/workflows/build_firmware.yml
+  client_pipeline:
+    name: Build Client
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build_client.yml
+  gui_pipeline:
+    name: Build GUI
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build_gui.yml
+    # The Android signing key (ANDROID_KEYSTORE_*) lives in the repository secrets
+    secrets: inherit
+  create_dev_release:
+    permissions:
+      contents: write
+    name: Create dev pre-release with artifacts
+    runs-on: ubuntu-latest
+    # The CLI build is optional: hosted macOS runners are sometimes not available at all
+    if: always() && github.ref == 'refs/heads/main' && needs.firmware_pipeline.result == 'success' && needs.gui_pipeline.result == 'success'
+    needs:
+      - firmware_pipeline
+      - client_pipeline
+      - gui_pipeline
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+      - name: Download release artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-artifacts-*
+          merge-multiple: true
+          path: release-artifacts
+      - name: Drop the previous dev release
+        # Uploading only adds and replaces files, so renamed or dropped ones would linger
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete dev --yes || true
+      - name: Upload to dev release
+        uses: softprops/action-gh-release@v3
+        with:
+          body: |
+            Auto-Generated DFU packages from latest `main` commit.
+            For development purposes only. 
+            These are not tested, here be dragons.
+            Built from commit ${{ github.sha }}
+          tag_name: dev
+          name: Development release
+          draft: false
+          prerelease: true
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: release-artifacts/*
+      - name: Fix up release tag
+        run: |
+          git tag -f dev
+          git push origin refs/tags/dev --force
+  deploy_site:
+    name: Deploy the download page and web GUI to GitHub Pages
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: gui_pipeline
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Download the web GUI
+        uses: actions/download-artifact@v8
+        with:
+          name: gui-browser
+          path: _site/app
+      - name: Add the download page
+        run: cp -r website/. _site/
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v5
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+  create_release:
+    permissions:
+      contents: write
+    name: Create tagged release with artifacts
+    runs-on: ubuntu-latest
+    if: always() && startsWith(github.ref, 'refs/tags/v') && needs.firmware_pipeline.result == 'success' && needs.gui_pipeline.result == 'success'
+    needs:
+      - firmware_pipeline
+      - client_pipeline
+      - gui_pipeline
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Download release artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-artifacts-*
+          merge-multiple: true
+          path: release-artifacts
+      - name: Upload to tagged release
+        uses: softprops/action-gh-release@v3
+        with:
+          body: |
+            Firmware DFU packages, ChameLab and CLI for Release ${{ github.ref_name }}
+            - `ultra-dfu-app.zip` / `lite-dfu-app.zip`: firmware update (ChameLab installs it from the Dashboard)
+            - `chamelab-<os>.zip`: ChameLab for desktop
+            - `chamelab-android.apk`: ChameLab for Android (BLE)
+            - `client-<os>.zip`: command line client
+            Built from commit ${{ github.sha }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          append_body: true
+          files: release-artifacts/*
+
+  start_feature_freeze:
+    name: Start the next PR review cycle
+    # Upstream's review process; forks don't run it
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'RfidResearchGroup/ChameleonUltra'
+    needs: create_release
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/pr_review_cycle.yml
+    with:
+      start_feature_freeze: true

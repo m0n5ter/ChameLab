@@ -1,0 +1,726 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:c="using:ChameLab.Controls"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui">
+
+  <!-- ==================== Shell ==================== -->
+
+  <!-- The theme shows the light-dismiss layer by an :overlay:open animation and hides it only on
+       :closed, so switching Overlay -> Inline with the pane open leaves it over the content,
+       invisible but swallowing every click. Inline modes never light-dismiss. -->
+  <Style Selector="SplitView:inline /template/ Rectangle#LightDismissLayer,
+                   SplitView:compactinline /template/ Rectangle#LightDismissLayer">
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+
+  <!-- ==================== Surfaces ==================== -->
+
+  <!-- Card surface used across pages. -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="20" />
+  </Style>
+
+  <!-- Collapsible card: the whole section folds under its header. -->
+  <Style Selector="Expander.card">
+    <Setter Property="CornerRadius" Value="14" />
+    <!-- Same inset as Border.card, so headers and content line up with the other cards. -->
+    <Setter Property="Padding" Value="20,0,20,20" />
+  </Style>
+  <Style Selector="Expander.card /template/ ToggleButton#ExpanderHeader">
+    <Setter Property="Padding" Value="20,14" />
+  </Style>
+
+  <!-- Inset tile inside a card (stat values, empty states). -->
+  <Style Selector="Border.inset">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="14,10" />
+  </Style>
+
+  <!-- Rounded square that holds an icon. -->
+  <Style Selector="Border.iconwell">
+    <Setter Property="Width" Value="40" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+    <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+  </Style>
+  <Style Selector="Border.iconwell.green">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+    <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+  </Style>
+  <Style Selector="Border.iconwell.blue">
+    <Setter Property="Background" Value="{DynamicResource BrandBlueSoftBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource BrandBlueBrush}" />
+  </Style>
+  <Style Selector="Border.iconwell.amber">
+    <Setter Property="Background" Value="{DynamicResource BrandAmberSoftBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource BrandAmberBrush}" />
+  </Style>
+  <Style Selector="Border.iconwell > PathIcon">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="20" />
+  </Style>
+
+  <!-- Small pill label (HF / LF / ACTIVE). -->
+  <Style Selector="Border.chip">
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="7,2" />
+    <Setter Property="MinWidth" Value="30" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.chip > TextBlock">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+  <!-- Band labels read a little larger than the other pills. -->
+  <Style Selector="Border.chip.hf, Border.chip.lf">
+    <Setter Property="Padding" Value="8,3" />
+    <Setter Property="MinWidth" Value="34" />
+  </Style>
+  <Style Selector="Border.chip.hf > TextBlock, Border.chip.lf > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Border.chip.hf">
+    <Setter Property="Background" Value="{DynamicResource BrandBlueSoftBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource BrandBlueBrush}" />
+  </Style>
+  <Style Selector="Border.chip.lf">
+    <Setter Property="Background" Value="{DynamicResource BrandAmberSoftBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource BrandAmberBrush}" />
+  </Style>
+  <Style Selector="Border.chip.active">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+    <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidSuccess}" />
+  </Style>
+
+  <!-- ==================== Typography ==================== -->
+
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="24" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.h2">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.caption">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.overline">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="0.6" />
+  </Style>
+  <Style Selector="TextBlock.mono, SelectableTextBlock.mono">
+    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,monospace" />
+  </Style>
+  <Style Selector="TextBlock.value">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector=":is(Control).dim">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+
+  <!-- ==================== Page layout ==================== -->
+
+  <Style Selector="StackPanel.page">
+    <Setter Property="Margin" Value="28,24,28,88" />
+    <Setter Property="Spacing" Value="12" />
+    <Setter Property="MaxWidth" Value="980" />
+  </Style>
+  <!-- Grid variant for pages that fit the viewport instead of scrolling (rows flex). -->
+  <Style Selector="Grid.page">
+    <!-- Fits the viewport and scrolls inside, so no room is kept for the status banner. -->
+    <Setter Property="Margin" Value="28,24,28,24" />
+    <Setter Property="RowSpacing" Value="12" />
+  </Style>
+  <!-- Columns of a split page (list / details) stack their blocks with the same gap as a page. -->
+  <Style Selector="Grid.panestack">
+    <Setter Property="RowSpacing" Value="12" />
+  </Style>
+  <Style Selector="StackPanel.panestack">
+    <Setter Property="Spacing" Value="12" />
+  </Style>
+  <Style Selector="UniformGrid.cols2">
+    <Setter Property="Columns" Value="2" />
+    <Setter Property="ColumnSpacing" Value="16" />
+    <Setter Property="RowSpacing" Value="16" />
+  </Style>
+  <Style Selector="UniformGrid.cols3">
+    <Setter Property="Columns" Value="3" />
+    <Setter Property="ColumnSpacing" Value="12" />
+    <Setter Property="RowSpacing" Value="12" />
+  </Style>
+
+  <!-- ==================== Buttons ==================== -->
+
+  <Style Selector="Button">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="Button > StackPanel > PathIcon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+  </Style>
+
+  <!-- Compact icon-only button. -->
+  <Style Selector="Button.icon">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Width" Value="36" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.icon > PathIcon">
+    <Setter Property="Width" Value="18" />
+    <Setter Property="Height" Value="18" />
+  </Style>
+  <Style Selector="Button.icon.small">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+  </Style>
+  <Style Selector="Button.icon.small > PathIcon">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="14" />
+  </Style>
+
+  <!-- Primary / accent action. -->
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="16,9" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccentPointerOver}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="Button.accent:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccentPressed}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="Button.accent:disabled /template/ ContentPresenter">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
+  <!-- Quiet destructive action: red text, red fill on hover. -->
+  <Style Selector="Button.danger">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.danger.solid">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+
+  <!-- Bar questions (declared after accent / danger so it wins): every answer button the same height, with or without an icon or accent. -->
+  <Style Selector="c|ActionBar > Button">
+    <Setter Property="Height" Value="36" />
+    <Setter Property="Padding" Value="14,0" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <!-- Large clickable tile (scan buttons). -->
+  <Style Selector="Button.tile">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="18" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.tile:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+
+  <!-- Read-only value field that copies itself on click (looks like an inset). -->
+  <Style Selector="Button.copycell">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.copycell:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
+
+  <!-- Dump block strip (drawn control); colors match the legend cells below. -->
+  <Style Selector="c|BlockStrip">
+    <Setter Property="PendingBrush" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="ReadingBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="ReadBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+    <Setter Property="ReadErrorBrush" Value="{DynamicResource BrandAmberBrush}" />
+    <Setter Property="NoKeyBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
+
+  <!-- Legend cells for the dump block strip, colored by read state. -->
+  <Style Selector="Border.blockcell">
+    <Setter Property="Height" Value="14" />
+    <Setter Property="Margin" Value="1" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
+  <Style Selector="Border.blockcell.reading">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="Border.blockcell.read">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+  </Style>
+  <Style Selector="Border.blockcell.readerror">
+    <Setter Property="Background" Value="{DynamicResource BrandAmberBrush}" />
+  </Style>
+  <Style Selector="Border.blockcell.nokey">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
+  <Style Selector="Border.blocklegend">
+    <Setter Property="Width" Value="10" />
+    <Setter Property="Height" Value="10" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- Slot card button: strip default chrome so the inner Border shows. -->
+  <Style Selector="Button.slot">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.slot /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.slot:pointerover /template/ ContentPresenter, Button.slot:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Border.slotcard">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Button.slot:pointerover Border.slotcard">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container3BorderBrush}" />
+  </Style>
+  <Style Selector="Border.slotcard.active, Button.slot:pointerover Border.slotcard.active">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="Border.slotnum">
+    <Setter Property="Width" Value="36" />
+    <Setter Property="Height" Value="36" />
+    <Setter Property="CornerRadius" Value="18" />
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
+  <Style Selector="Border.slotnum.active">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
+  </Style>
+
+  <!-- Segmented two-way switch built from radio buttons. -->
+  <Style Selector="Border.segmented">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="4" />
+  </Style>
+  <Style Selector="RadioButton.segment">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Bg" Background="Transparent" CornerRadius="7" Padding="12,8">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+  </Style>
+  <Style Selector="RadioButton.segment:pointerover /template/ Border#PART_Bg">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
+  <Style Selector="RadioButton.segment:checked">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="RadioButton.segment:checked /template/ Border#PART_Bg">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="RadioButton.segment PathIcon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+  </Style>
+
+  <!-- ==================== Navigation ==================== -->
+
+  <Style Selector="ListBox.nav">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="0,2" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Border.navbar">
+    <Setter Property="Width" Value="3" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+
+  <!-- ==================== Card rows (saved cards, dictionaries, write) ==================== -->
+
+  <Style Selector="ListBox.cards">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <!-- Never scroll sideways: rows take the list's width and long names trim instead. -->
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <!-- A wide list wraps into several columns. -->
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <c:TileGrid MinItemWidth="280" ColumnSpacing="8" RowSpacing="8" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ListBox.cards ListBoxItem">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Border.cardrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="CornerRadius" Value="12" />
+  </Style>
+  <Style Selector="ListBoxItem:selected Border.cardrow">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <!-- Clips the colour stripe to the inner edge of the frame (12 - 1.5) so it never paints over it. -->
+  <Style Selector="Border.cardrow > Border.cardclip">
+    <Setter Property="CornerRadius" Value="10.5" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="Padding" Value="0,0,14,0" />
+  </Style>
+
+  <!-- The row being dragged into place (see ListReorder). -->
+  <Style Selector="ListBox.cards ListBoxItem.dragging">
+    <Setter Property="Opacity" Value="0.85" />
+    <Setter Property="ZIndex" Value="1" />
+    <!-- The item and its presenter must not clip the shadow. -->
+    <Setter Property="ClipToBounds" Value="False" />
+  </Style>
+  <Style Selector="ListBox.cards ListBoxItem.dragging /template/ ContentPresenter">
+    <Setter Property="ClipToBounds" Value="False" />
+  </Style>
+  <!-- Shadow only below and to the sides; the list leaves room for it (see the list's ScrollViewer). -->
+  <Style Selector="ListBox.cards ListBoxItem.dragging Border.cardrow">
+    <Setter Property="BoxShadow" Value="0 4 14 -2 #80000000" />
+  </Style>
+  <!-- Thick frame drawn over the row's own edge, inwards, so the tile keeps its size. -->
+  <Style Selector="Border.dragframe">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="BorderThickness" Value="3" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="ListBox.cards ListBoxItem.dragging Border.dragframe">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <!-- The row a dragged one would be dropped onto (drop-onto lists, e.g. swapping slots). -->
+  <Style Selector="ListBox.cards ListBoxItem.droptarget Border.dragframe">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="ListBox.cards ListBoxItem.droptarget Border.cardrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+  </Style>
+
+  <!-- ==================== Library pages (list + details: cards, slots, dictionaries) ==================== -->
+
+  <!-- Wide: list on the left, details on the right (SplitLayout sizes the column).
+       Narrow ("single"): one at a time; "open" means the details are in use. -->
+  <Style Selector="Grid.cardsplit > :is(Control).detailpane">
+    <!-- Column is set here, not on the element, so the single style can move it. -->
+    <Setter Property="Grid.Column" Value="1" />
+    <Setter Property="Margin" Value="18,0,0,0" />
+  </Style>
+  <!-- Both panes share the star column; the Auto column would let the pane grow unbounded. -->
+  <Style Selector="Grid.cardsplit.single > :is(Control).detailpane">
+    <Setter Property="Grid.Column" Value="0" />
+    <Setter Property="Margin" Value="0" />
+  </Style>
+  <Style Selector="Grid.cardsplit.single.open > :is(Control).listpane">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="Grid.cardsplit.single:not(.open) > :is(Control).detailpane">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="Button.backonly">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="Grid.cardsplit.single Button.backonly">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+
+  <!-- Colour palette (a ListBox of swatches, usually in a flyout). -->
+  <Style Selector="Border.swatch">
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="CornerRadius" Value="13" />
+  </Style>
+  <!-- Breathing room between the swatches and the flyout edge. -->
+  <Style Selector="ListBox.swatches">
+    <Setter Property="Padding" Value="8" />
+  </Style>
+  <Style Selector="ListBox.swatches ListBoxItem">
+    <Setter Property="Padding" Value="3" />
+    <Setter Property="CornerRadius" Value="16" />
+  </Style>
+  <Style Selector="ListBox.swatches ListBoxItem:selected Border.swatch">
+    <Setter Property="BorderBrush" Value="White" />
+    <Setter Property="BorderThickness" Value="2.5" />
+  </Style>
+  <!-- Header color strip: opens the palette. -->
+  <Style Selector="Button.colorpick">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.colorpick > Border">
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="44" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="Button.colorpick:pointerover > Border">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+    <Setter Property="BorderThickness" Value="2" />
+  </Style>
+  <!-- Header name: reads as a title, turns into a field on hover / focus. -->
+  <Style Selector="TextBox.titlebox">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="Margin" Value="-7,0,0,0" />
+    <Setter Property="MinHeight" Value="0" />
+  </Style>
+  <Style Selector="TextBox.titlebox:pointerover">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+  </Style>
+  <Style Selector="TextBox.titlebox:focus-within">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <!-- Actions short of room: icon only (the tooltip names the action). Only the label in the
+       button's content: a plain descendant selector would also blank the tooltip's text. -->
+  <Style Selector="c|ActionRow > :is(Control).iconic > StackPanel > TextBlock">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <!-- Save / discard bar under the details. -->
+  <Style Selector="Border.savebar">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="14,10" />
+    <Setter Property="Margin" Value="0,12,0,0" />
+  </Style>
+  <!-- A question floating over the dimmed details instead of sitting in the bar. -->
+  <Style Selector="Border.savebar.dialog">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="MaxWidth" Value="440" />
+    <Setter Property="Margin" Value="16" />
+    <Setter Property="Padding" Value="18,14" />
+    <Setter Property="BoxShadow" Value="0 6 18 0 #40000000" />
+  </Style>
+  <Style Selector="Border.lightbox">
+    <Setter Property="Background" Value="#73000000" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.lightbox.on">
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="IsHitTestVisible" Value="True" />
+  </Style>
+  <!-- List filter beside the combos: shorter than they are, then stretched to their height,
+       so it never makes the row (and the combos) taller. -->
+  <Style Selector="Border.segmented.filter">
+    <Setter Property="Padding" Value="2" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Border.segmented.filter RadioButton.segment /template/ Border#PART_Bg">
+    <Setter Property="Padding" Value="10,0" />
+  </Style>
+
+  <!-- ==================== Status banner ==================== -->
+
+  <Style Selector="Border.banner">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="14,8,6,8" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="{actipro:ThemeResource InfoBarBackgroundBrushSuccess}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+    <Setter Property="BoxShadow" Value="0 6 18 0 #40000000" />
+  </Style>
+  <Style Selector="Border.banner PathIcon.state">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+  </Style>
+  <Style Selector="Border.banner.error">
+    <Setter Property="Background" Value="{actipro:ThemeResource InfoBarBackgroundBrushError}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
+  <Style Selector="Border.banner.error PathIcon.state">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
+
+  <!-- ==================== Compact (phone-width) overrides ==================== -->
+  <!-- MainView adds the "compact" class to itself below its width threshold. -->
+
+  <Style Selector=".compact StackPanel.page">
+    <Setter Property="Margin" Value="8,10,8,88" />
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+  <Style Selector=".compact Grid.page">
+    <Setter Property="Margin" Value="8,10,8,8" />
+    <Setter Property="RowSpacing" Value="8" />
+  </Style>
+  <Style Selector=".compact Grid.panestack">
+    <Setter Property="RowSpacing" Value="8" />
+  </Style>
+  <Style Selector=".compact StackPanel.panestack">
+    <Setter Property="Spacing" Value="8" />
+  </Style>
+  <Style Selector=".compact Border.card">
+    <Setter Property="Padding" Value="14" />
+  </Style>
+  <Style Selector=".compact Expander.card">
+    <Setter Property="Padding" Value="14,0,14,14" />
+  </Style>
+  <Style Selector=".compact Expander.card /template/ ToggleButton#ExpanderHeader">
+    <Setter Property="Padding" Value="14,10" />
+  </Style>
+  <!-- Scroll bars float over the content as a thin strip instead of taking a column. -->
+  <Style Selector=".compact ScrollViewer">
+    <!-- Actipro's default theme always reserves a column for the bar; the overlay theme doesn't. -->
+    <Setter Property="Theme" Value="{actipro:ControlTheme ScrollViewerOverlay}" />
+    <Setter Property="AllowAutoHide" Value="True" />
+  </Style>
+  <Style Selector=".compact ScrollBar">
+    <Setter Property="actipro:ThemeProperties.ScrollBarHasLineButtons" Value="False" />
+  </Style>
+  <Style Selector=".compact ScrollBar:vertical">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="MinWidth" Value="0" />
+  </Style>
+  <Style Selector=".compact ScrollBar:horizontal">
+    <Setter Property="Height" Value="8" />
+    <Setter Property="MinHeight" Value="0" />
+  </Style>
+  <Style Selector=".compact UniformGrid.cols2, .compact UniformGrid.cols3">
+    <Setter Property="Columns" Value="1" />
+  </Style>
+  <Style Selector=".compact :is(Control).wide-only">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <!-- ==================== Hex editing ==================== -->
+
+  <Style Selector="TextBox.hex">
+    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,monospace" />
+  </Style>
+  <Style Selector="TextBox.hex TextBlock.hexcount">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Margin" Value="6,0,10,0" />
+  </Style>
+  <Style Selector="TextBox.hex:invalid TextBlock.hexcount">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
+  </Style>
+  <Style Selector="TextBox.hex:invalid:not(:focus-within)">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
+  </Style>
+
+  <Style Selector="c|HexEditor">
+    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,monospace" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrush}" />
+    <Setter Property="LabelBrush" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+    <Setter Property="DimBrush" Value="{actipro:ThemeResource DefaultForegroundBrushDisabled}" />
+    <Setter Property="ChangedBrush" Value="{DynamicResource BrandRedBrush}" />
+    <Setter Property="ManufacturerBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+    <Setter Property="KeyABrush" Value="{DynamicResource BrandBlueBrush}" />
+    <Setter Property="AccessBitsBrush" Value="{DynamicResource BrandAmberBrush}" />
+    <Setter Property="KeyBBrush" Value="{DynamicResource HexKeyBBrush}" />
+    <Setter Property="CaretBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="CaretCellBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource BrandBlueSoftBrush}" />
+    <Setter Property="ActiveRowBrush" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="SeparatorBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+  </Style>
+
+  <Style Selector="WrapPanel.hexlegend">
+    <Setter Property="ItemSpacing" Value="12" />
+    <Setter Property="LineSpacing" Value="2" />
+  </Style>
+  <Style Selector="WrapPanel.hexlegend > TextBlock">
+    <Setter Property="FontSize" Value="11" />
+  </Style>
+  <Style Selector="WrapPanel.hexlegend > TextBlock.manufacturer">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+  </Style>
+  <Style Selector="WrapPanel.hexlegend > TextBlock.keya">
+    <Setter Property="Foreground" Value="{DynamicResource BrandBlueBrush}" />
+  </Style>
+  <Style Selector="WrapPanel.hexlegend > TextBlock.access">
+    <Setter Property="Foreground" Value="{DynamicResource BrandAmberBrush}" />
+  </Style>
+  <Style Selector="WrapPanel.hexlegend > TextBlock.keyb">
+    <Setter Property="Foreground" Value="{DynamicResource HexKeyBBrush}" />
+  </Style>
+  <Style Selector="WrapPanel.hexlegend > TextBlock.changed">
+    <Setter Property="Foreground" Value="{DynamicResource BrandRedBrush}" />
+  </Style>
+
+</Styles>

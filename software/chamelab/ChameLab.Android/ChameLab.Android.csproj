@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ApplicationId>io.github.m0n5ter.chamelab</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AndroidResource Include="Icon.png">
+      <Link>Resources\drawable\Icon.png</Link>
+    </AndroidResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+    <PackageReference Include="Plugin.BLE" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared Nordic-UART BLE transport, compiled into each mobile head. -->
+    <Compile Include="..\Mobile\BleTransport.cs" Link="BleTransport.cs" />
+    <Compile Include="..\Mobile\BleDfu.cs" Link="BleDfu.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
+  </ItemGroup>
+</Project>

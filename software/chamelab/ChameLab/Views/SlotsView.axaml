@@ -1,0 +1,400 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:b="using:ChameLab.Behaviors"
+             xmlns:c="using:ChameLab.Controls"
+             xmlns:conv="using:ChameLab.Converters"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             x:Class="ChameLab.Views.SlotsView"
+             x:DataType="vm:SlotsViewModel">
+
+  <!-- Laid out like the Cards page; the shared styles are under "Library pages" in ControlStyles. -->
+  <UserControl.Styles>
+    <!-- The colour the slot LED shows for a card. -->
+    <Style Selector="Ellipse.led">
+      <Setter Property="Width" Value="10" />
+      <Setter Property="Height" Value="10" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- Round LED swatch that opens the palette (the header colour strip is Button.colorpick). -->
+    <Style Selector="Button.ledpick">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="13" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.ledpick:pointerover > Border.swatch">
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <!-- Slot number in the list rows and the editor header. -->
+    <Style Selector="Border.slotnum.small">
+      <Setter Property="Width" Value="30" />
+      <Setter Property="Height" Value="30" />
+      <Setter Property="CornerRadius" Value="15" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Classes="page cardsplit" ColumnDefinitions="*,Auto" Classes.open="{Binding HasPane}"
+        b:SplitLayout.DetailWidth="400,460">
+
+    <!-- ==================== Slot list ==================== -->
+    <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,*">
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
+        <StackPanel Grid.Column="0" Spacing="2">
+          <TextBlock Text="Emulation slots" Classes="h1" TextTrimming="CharacterEllipsis" />
+          <TextBlock Classes="caption" Text="{Binding CountText}" />
+        </StackPanel>
+        <Button Grid.Column="1" Command="{Binding RefreshCommand}" Margin="8,0,8,0"
+                VerticalAlignment="Center" ToolTip.Tip="Reload slots from the device">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.refresh}" />
+            <TextBlock Text="Refresh" Classes="wide-only" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="2" Classes="accent" Command="{Binding SaveCommand}"
+                VerticalAlignment="Center" ToolTip.Tip="Persist the slot configuration (and the active slot) to flash">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.save}" />
+            <TextBlock Text="Save to flash" Classes="wide-only" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <!-- No device / not read yet -->
+      <Border Grid.Row="1" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
+        <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
+          <PathIcon Data="{StaticResource Icon.slots}" Width="40" Height="40" Opacity="0.4"
+                    HorizontalAlignment="Center" />
+          <TextBlock Text="No slots to show" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360" TextWrapping="Wrap"
+                     Text="Connect a Chameleon to see and edit its eight emulation slots." />
+        </StackPanel>
+      </Border>
+
+      <!-- Opened by a click (ListReorder, see SlotsView.axaml.cs); the slots keep the device's order,
+           and a slot dropped onto another swaps contents with it. Reaches past the column by as much
+           as the list is padded, like the Cards list, so a dragged row's shadow is not clipped. -->
+      <ScrollViewer Grid.Row="1" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
+        <ListBox Name="SlotList" Classes="cards" ItemsSource="{Binding Slots}" Padding="12,0,12,16"
+                 SelectedItem="{Binding Selected}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:SlotItemViewModel">
+              <Panel>
+                <Border Classes="cardrow" ToolTip.Tip="{Binding Summary}"><Border Classes="cardclip">
+                  <Grid ColumnDefinitions="8,Auto,*,Auto" ColumnSpacing="12">
+                    <!-- The LED colours of the slot's cards, HF above LF. -->
+                    <UniformGrid Grid.Column="0" Columns="1">
+                      <Border IsVisible="{Binding HasHf}"
+                              Background="{Binding HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                      <Border IsVisible="{Binding HasLf}"
+                              Background="{Binding LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                    </UniformGrid>
+                    <Border Grid.Column="1" Classes="slotnum small" Classes.active="{Binding IsActive}"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Index}" FontWeight="Bold"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="2" Margin="0,10" Spacing="0">
+                      <TextBlock Text="{Binding Header}" FontWeight="SemiBold" FontSize="15"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="caption" Text="Empty" IsVisible="{Binding IsEmpty}" />
+                      <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding HasHf}">
+                        <Run Text="HF" FontWeight="Bold" />
+                        <Run Text="{Binding HfLabel}" />
+                      </TextBlock>
+                      <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding HasLf}">
+                        <Run Text="LF" FontWeight="Bold" />
+                        <Run Text="{Binding LfLabel}" />
+                      </TextBlock>
+                    </StackPanel>
+                    <Border Grid.Column="3" Classes="chip active" IsVisible="{Binding IsActive}">
+                      <TextBlock Text="ACTIVE" />
+                    </Border>
+                  </Grid>
+                </Border></Border>
+                <Border Classes="dragframe" />
+              </Panel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ==================== Slot editor ==================== -->
+    <Grid Classes="detailpane" RowDefinitions="Auto,*,Auto">
+      <!-- Header + actions (stays in view); disabled under the lightbox so Tab can't reach it. -->
+      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding HasPane}"
+              IsEnabled="{Binding !IsAsking}">
+        <StackPanel Spacing="14">
+          <Grid ColumnDefinitions="Auto,Auto,*">
+            <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
+                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list">
+              <PathIcon Data="{StaticResource Icon.back}" />
+            </Button>
+            <Border Grid.Column="1" Classes="slotnum" Classes.active="{Binding Selected?.IsActive, TargetNullValue=False}"
+                    Margin="0,0,12,0" VerticalAlignment="Center">
+              <TextBlock Text="{Binding Selected?.Index}" FontWeight="Bold" FontSize="15"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="0">
+              <TextBlock Text="{Binding Selected?.Header}" Classes="h2" />
+              <TextBlock Text="{Binding Selected?.Summary}" Classes="caption" TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+
+          <c:ActionRow>
+            <Button Command="{Binding SaveToLibraryCommand}"
+                    ToolTip.Tip="Save this slot's cards to Saved cards">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.cards}" />
+                <TextBlock Text="Save to cards" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding Editor?.ResetDefaultCommand}" c:ActionRow.Priority="1"
+                    ToolTip.Tip="Replace the slot's card data with the firmware's blank card of the same type">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.refresh}" />
+                <TextBlock Text="Reset data" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </c:ActionRow>
+        </StackPanel>
+      </Border>
+
+      <!-- Nothing open (desktop only) -->
+      <Border Grid.Row="1" Classes="card" VerticalAlignment="Top" IsVisible="{Binding !HasPane}">
+        <StackPanel Spacing="8" HorizontalAlignment="Center" Margin="0,20">
+          <PathIcon Data="{StaticResource Icon.slots}" Width="34" Height="34" Opacity="0.4"
+                    HorizontalAlignment="Center" />
+          <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="280" TextWrapping="Wrap"
+                     Text="Select a slot to make it active and edit it." />
+        </StackPanel>
+      </Border>
+
+      <ScrollViewer Grid.Row="1" IsVisible="{Binding HasPane}" IsEnabled="{Binding !IsAsking}">
+        <StackPanel Classes="panestack" DataContext="{Binding Editor}" x:DataType="vm:SlotEditorViewModel">
+
+          <!-- ===================== HF ===================== -->
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <Border Classes="chip hf"><TextBlock Text="HF" /></Border>
+                <TextBlock Grid.Column="1" Text="13.56 MHz" Classes="caption" VerticalAlignment="Center" />
+                <CheckBox Grid.Column="2" Content="Enabled" IsChecked="{Binding HfEnabled}"
+                          ToolTip.Tip="A disabled card stays in the slot but is not emulated" />
+              </Grid>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Tag type" Classes="caption" />
+                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{x:Static vm:SlotEditorViewModel.HfTypes}"
+                          SelectedItem="{Binding HfType}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Nickname" Classes="caption" />
+                <TextBox Text="{Binding HfNick}" PlaceholderText="Optional" MaxLength="32" />
+              </StackPanel>
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                <Button Classes="ledpick" ToolTip.Tip="LED colour of the HF card">
+                  <Border Classes="swatch" Background="{Binding HfLedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                  <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                      <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
+                               SelectedItem="{Binding HfColor}" Background="Transparent" BorderThickness="0"
+                               Tapped="OnSwatchTapped">
+                        <ListBox.ItemsPanel>
+                          <ItemsPanelTemplate><UniformGrid Columns="6" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                          <DataTemplate>
+                            <Border Classes="swatch" Background="{Binding Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                          </DataTemplate>
+                        </ListBox.ItemTemplate>
+                      </ListBox>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                  <TextBlock Text="LED colour" />
+                  <TextBlock Text="Firmware default" Classes="caption"
+                             IsVisible="{Binding HfColor, Converter={x:Static ObjectConverters.IsNull}}" />
+                </StackPanel>
+                <Button Grid.Column="2" Content="Default" VerticalAlignment="Center"
+                        IsVisible="{Binding HfColor, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Command="{Binding ResetHfColorCommand}" ToolTip.Tip="Use the firmware's default HF colour" />
+                <Button Grid.Column="3" Classes="danger" VerticalAlignment="Center"
+                        Command="{Binding ClearHfCommand}" ToolTip.Tip="Remove the HF card from the slot (saved at once)">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.delete}" />
+                    <TextBlock Text="Clear" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== LF ===================== -->
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <Border Classes="chip lf"><TextBlock Text="LF" /></Border>
+                <TextBlock Grid.Column="1" Text="125 kHz" Classes="caption" VerticalAlignment="Center" />
+                <CheckBox Grid.Column="2" Content="Enabled" IsChecked="{Binding LfEnabled}"
+                          ToolTip.Tip="A disabled card stays in the slot but is not emulated" />
+              </Grid>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Tag type" Classes="caption" />
+                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{x:Static vm:SlotEditorViewModel.LfTypes}"
+                          SelectedItem="{Binding LfType}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Nickname" Classes="caption" />
+                <TextBox Text="{Binding LfNick}" PlaceholderText="Optional" MaxLength="32" />
+              </StackPanel>
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                <Button Classes="ledpick" ToolTip.Tip="LED colour of the LF card">
+                  <Border Classes="swatch" Background="{Binding LfLedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                  <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                      <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
+                               SelectedItem="{Binding LfColor}" Background="Transparent" BorderThickness="0"
+                               Tapped="OnSwatchTapped">
+                        <ListBox.ItemsPanel>
+                          <ItemsPanelTemplate><UniformGrid Columns="6" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                          <DataTemplate>
+                            <Border Classes="swatch" Background="{Binding Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                          </DataTemplate>
+                        </ListBox.ItemTemplate>
+                      </ListBox>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                  <TextBlock Text="LED colour" />
+                  <TextBlock Text="Firmware default" Classes="caption"
+                             IsVisible="{Binding LfColor, Converter={x:Static ObjectConverters.IsNull}}" />
+                </StackPanel>
+                <Button Grid.Column="2" Content="Default" VerticalAlignment="Center"
+                        IsVisible="{Binding LfColor, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Command="{Binding ResetLfColorCommand}" ToolTip.Tip="Use the firmware's default LF colour" />
+                <Button Grid.Column="3" Classes="danger" VerticalAlignment="Center"
+                        Command="{Binding ClearLfCommand}" ToolTip.Tip="Remove the LF card from the slot (saved at once)">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.delete}" />
+                    <TextBlock Text="Clear" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== MIFARE Classic emulator settings ===================== -->
+          <Border Classes="card" IsVisible="{Binding ShowMfcSettings}">
+            <StackPanel Spacing="10">
+              <TextBlock Text="MIFARE CLASSIC EMULATOR" Classes="overline" />
+              <CheckBox Content="Gen1A magic mode" IsChecked="{Binding Gen1a}" />
+              <CheckBox Content="Gen2 magic mode" IsChecked="{Binding Gen2}" />
+              <CheckBox Content="Use UID/SAK/ATQA from block 0" IsChecked="{Binding BlockAntiColl}" />
+              <CheckBox Content="Collect nonces (mfkey32 detection)" IsChecked="{Binding MfcDetection}" />
+              <CheckBox Content="Reset on field off" IsChecked="{Binding FieldOffReset}" />
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <TextBlock Text="Write mode" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                          ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding MfcWriteMode}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <TextBlock Text="PRNG type" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                          ItemsSource="{x:Static vm:SlotEditorViewModel.PrngTypes}" SelectedItem="{Binding Prng}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+              <Button Content="Save emulator settings" HorizontalAlignment="Right"
+                      Command="{Binding ApplyEmulatorCommand}" />
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== Ultralight / NTAG emulator settings ===================== -->
+          <Border Classes="card" IsVisible="{Binding ShowUlSettings}">
+            <StackPanel Spacing="10">
+              <TextBlock Text="ULTRALIGHT / NTAG EMULATOR" Classes="overline" />
+              <CheckBox Content="UID magic mode" IsChecked="{Binding UlUidMagic}" />
+              <CheckBox Content="Password detection" IsChecked="{Binding UlDetection}" />
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <TextBlock Text="Write mode" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                          ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding UlWriteMode}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+              <Button Content="Save emulator settings" HorizontalAlignment="Right"
+                      Command="{Binding ApplyEmulatorCommand}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Lightbox: dims and blocks the editor while a question waits for an answer. -->
+      <Border Grid.Row="0" Grid.RowSpan="2" Classes="lightbox" Classes.on="{Binding IsAsking}" CornerRadius="12" />
+
+      <!-- ===================== Save bar (stays in view) ===================== -->
+      <!-- Appears only once something changed. -->
+      <Border Grid.Row="2" Classes="savebar">
+        <Border.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsDirty" />
+            <Binding Path="!IsConfirmingLeave" />
+          </MultiBinding>
+        </Border.IsVisible>
+        <c:ActionBar>
+          <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+          <Button Content="Discard" Command="{Binding DiscardCommand}" />
+          <Button Classes="accent" Command="{Binding SaveSlotCommand}"
+                  ToolTip.Tip="Write the slot to the device and save it to flash">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.save}" />
+              <TextBlock Text="Save slot" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionBar>
+      </Border>
+      <!-- Switching slot, closing or reloading with unsaved edits: save, drop them, or stay. -->
+      <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsConfirmingLeave}">
+        <c:ActionBar>
+          <TextBlock Text="{Binding LeaveText}" VerticalAlignment="Center"
+                     FontWeight="SemiBold" TextWrapping="Wrap" />
+          <Button Content="Cancel" Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
+                  ToolTip.Tip="Keep editing this slot" />
+          <Button Content="Discard" Command="{Binding DiscardAndLeaveCommand}" />
+          <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}" b:DialogKeys.IsDefault="True">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.save}" />
+              <TextBlock Text="Save" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionBar>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -1,0 +1,993 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:conv="using:ChameLab.Converters"
+             xmlns:b="using:ChameLab.Behaviors"
+             xmlns:c="using:ChameLab.Controls"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             x:Class="ChameLab.Views.CardsView"
+             x:DataType="vm:CardsViewModel">
+
+  <UserControl.Styles>
+    <!-- Wide: list on the left, add / edit pane on the right (SplitLayout sizes the column).
+         Narrow ("single"): one at a time. -->
+    <Style Selector="Grid.cardsplit > :is(Control).detailpane">
+      <!-- Column is set here, not on the element, so the single style can move it. -->
+      <Setter Property="Grid.Column" Value="1" />
+      <Setter Property="Margin" Value="18,0,0,0" />
+    </Style>
+    <!-- Both panes share the star column; the Auto column would let the pane grow unbounded. -->
+    <Style Selector="Grid.cardsplit.single > :is(Control).detailpane">
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style Selector="Grid.cardsplit.single.open > :is(Control).listpane">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Grid.cardsplit.single:not(.open) > :is(Control).detailpane">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Button.backonly">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Grid.cardsplit.single Button.backonly">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- Compact source tiles in the add pane: icon beside a label and a one-line hint. -->
+    <Style Selector="Button.tile.source">
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style Selector="Button.tile.source Border.iconwell">
+      <Setter Property="Width" Value="32" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.tile.source Border.iconwell > PathIcon">
+      <Setter Property="Width" Value="16" />
+      <Setter Property="Height" Value="16" />
+    </Style>
+
+    <Style Selector="Border.swatch">
+      <Setter Property="Width" Value="26" />
+      <Setter Property="Height" Value="26" />
+      <Setter Property="CornerRadius" Value="13" />
+    </Style>
+    <!-- Palette flyout: breathing room between the swatches and the flyout edge. -->
+    <Style Selector="ListBox.swatches">
+      <Setter Property="Padding" Value="8" />
+    </Style>
+    <Style Selector="ListBox.swatches ListBoxItem">
+      <Setter Property="Padding" Value="3" />
+      <Setter Property="CornerRadius" Value="16" />
+    </Style>
+    <Style Selector="ListBox.swatches ListBoxItem:selected Border.swatch">
+      <Setter Property="BorderBrush" Value="White" />
+      <Setter Property="BorderThickness" Value="2.5" />
+    </Style>
+    <!-- Header color strip: opens the palette. -->
+    <Style Selector="Button.colorpick">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.colorpick > Border">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="44" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.colorpick:pointerover > Border">
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <!-- Header name: reads as a title, turns into a field on hover / focus. -->
+    <Style Selector="TextBox.titlebox">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Padding" Value="6,4" />
+      <Setter Property="Margin" Value="-7,0,0,0" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+    <Style Selector="TextBox.titlebox:pointerover">
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    </Style>
+    <Style Selector="TextBox.titlebox:focus-within">
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    </Style>
+    <!-- Frequency filter beside the combos: shorter than they are, then stretched to their height,
+         so it never makes the row (and the combos) taller. -->
+    <Style Selector="Border.segmented.filter">
+      <Setter Property="Padding" Value="2" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Border.segmented.filter RadioButton.segment /template/ Border#PART_Bg">
+      <Setter Property="Padding" Value="10,0" />
+    </Style>
+    <!-- The card being dragged into place. -->
+    <Style Selector="ListBox.cards ListBoxItem.dragging">
+      <Setter Property="Opacity" Value="0.85" />
+      <Setter Property="ZIndex" Value="1" />
+    </Style>
+    <!-- Shadow only below and to the sides; the list leaves room for it (see ListScroll). -->
+    <Style Selector="ListBox.cards ListBoxItem.dragging Border.cardrow">
+      <Setter Property="BoxShadow" Value="0 4 14 -2 #80000000" />
+    </Style>
+    <!-- The item and its presenter must not clip the shadow. -->
+    <Style Selector="ListBox.cards ListBoxItem.dragging">
+      <Setter Property="ClipToBounds" Value="False" />
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem.dragging /template/ ContentPresenter">
+      <Setter Property="ClipToBounds" Value="False" />
+    </Style>
+    <!-- Thick frame drawn over the row's own edge, inwards, so the tile keeps its size. -->
+    <Style Selector="Border.dragframe">
+      <Setter Property="IsVisible" Value="False" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="BorderThickness" Value="3" />
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem.dragging Border.dragframe">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Button.slottarget">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="10,8" />
+    </Style>
+    <!-- Card actions short of room: icon only (the tooltip names the action). Only the label in the
+         button's content: a plain descendant selector would also blank the tooltip's text. -->
+    <Style Selector="c|ActionRow > :is(Control).iconic > StackPanel > TextBlock">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Border.savebar">
+      <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="14,10" />
+      <Setter Property="Margin" Value="0,12,0,0" />
+    </Style>
+    <Style Selector="Border.lightbox">
+      <Setter Property="Background" Value="#73000000" />
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.lightbox.on">
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="IsHitTestVisible" Value="True" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- 600 is what the memory editor needs for 16 bytes per line plus the ASCII column. -->
+  <Grid Classes="page cardsplit" ColumnDefinitions="*,Auto" Classes.open="{Binding HasPane}"
+        b:SplitLayout.DetailWidth="460,600">
+
+    <!-- ==================== Card list ==================== -->
+    <!-- Locked while a new card is open: save it or cancel to get back to the list. -->
+    <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,Auto,*"
+          IsEnabled="{Binding !ListLocked}">
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="2">
+          <TextBlock Text="Cards" Classes="h1" />
+          <TextBlock Classes="caption" Text="{Binding CountText}" />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="accent" Command="{Binding AddCommand}" VerticalAlignment="Center"
+                ToolTip.Tip="Scan, import or enter a new card">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.add}" />
+            <TextBlock Text="Add card" Classes="wide-only" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <StackPanel Grid.Row="1" Spacing="8" IsVisible="{Binding !IsEmpty}">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <TextBox Grid.Column="0" Text="{Binding Filter}" PlaceholderText="Search by name, type or UID">
+            <TextBox.InnerLeftContent>
+              <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+          <Button Grid.Column="1" Classes="icon" Command="{Binding ResetFiltersCommand}"
+                  VerticalAlignment="Center" ToolTip.Tip="Clear search and filters">
+            <PathIcon Data="{StaticResource Icon.close}" />
+          </Button>
+        </Grid>
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+          <Border Grid.Column="0" Classes="segmented filter">
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandAll}"
+                           ToolTip.Tip="Cards of both frequencies">
+                <TextBlock Text="All" FontWeight="SemiBold" />
+              </RadioButton>
+              <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandHf}"
+                           ToolTip.Tip="13.56 MHz cards only">
+                <TextBlock Text="HF" FontWeight="SemiBold" />
+              </RadioButton>
+              <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandLf}"
+                           ToolTip.Tip="125 kHz cards only">
+                <TextBlock Text="LF" FontWeight="SemiBold" />
+              </RadioButton>
+            </StackPanel>
+          </Border>
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                    ItemsSource="{Binding TypeOptions}" SelectedItem="{Binding TypeFilter}"
+                    ToolTip.Tip="Card type">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:CardTypeOption">
+                <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <ComboBox Grid.Column="2" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="Order of the list. In Manual, drag cards to arrange them.">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </Grid>
+      </StackPanel>
+
+      <!-- Empty library -->
+      <Border Grid.Row="2" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
+        <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
+          <PathIcon Data="{StaticResource Icon.cards}" Width="40" Height="40" Opacity="0.4"
+                    HorizontalAlignment="Center" />
+          <TextBlock Text="No cards yet" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360" TextWrapping="Wrap"
+                     Text="Press + to scan a card, import a file or enter one by hand. Saved cards can be emulated in any slot or written to a tag." />
+        </StackPanel>
+      </Border>
+
+      <TextBlock Grid.Row="2" Classes="caption" Text="No cards match the search and filters."
+                 IsVisible="{Binding NoMatches}" VerticalAlignment="Top" />
+
+      <!-- In manual order the cards can be dragged into place (see CardsView.axaml.cs). -->
+      <!-- Reaches past the column by as much as the list is padded, so the shadow of a
+           dragged card is not clipped at the sides and bottom; the cards stay in place. -->
+      <ScrollViewer Grid.Row="2" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
+        <ListBox Name="CardList" Classes="cards" ItemsSource="{Binding Cards}" Padding="12,0,12,16"
+                 SelectedItem="{Binding Selected}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:CardItemViewModel">
+              <Panel>
+                <Border Classes="cardrow"><Border Classes="cardclip">
+                  <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
+                    <Border Grid.Column="0" Background="{Binding ColorBrush}" />
+                    <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Panel Grid.Column="2" VerticalAlignment="Center">
+                      <Border Classes="chip hf" IsVisible="{Binding IsHf}"><TextBlock Text="HF" /></Border>
+                      <Border Classes="chip lf" IsVisible="{Binding IsLf}"><TextBlock Text="LF" /></Border>
+                      <Border Classes="chip" IsVisible="{Binding IsUnknownType}"
+                              Background="{actipro:ThemeResource Container3BackgroundBrush}">
+                        <TextBlock Text="?" />
+                      </Border>
+                    </Panel>
+                  </Grid>
+                </Border></Border>
+                <Border Classes="dragframe" />
+              </Panel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ==================== Add / edit pane ==================== -->
+    <Grid Classes="detailpane" RowDefinitions="Auto,*,Auto">
+      <!-- ===================== Card header + actions (saved or new card; stays in view) ===================== -->
+      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowCardHeader}">
+        <StackPanel Spacing="14">
+          <Grid ColumnDefinitions="Auto,Auto,*">
+            <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
+                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list">
+              <PathIcon Data="{StaticResource Icon.back}" />
+            </Button>
+            <Button Grid.Column="1" Classes="colorpick" Margin="0,0,12,0" ToolTip.Tip="Card color">
+              <Border Background="{Binding Form?.Color, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+              <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedLeft">
+                  <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
+                           SelectedItem="{Binding Form?.Color}" Background="Transparent" BorderThickness="0"
+                           Tapped="OnSwatchTapped">
+                    <ListBox.ItemsPanel>
+                      <ItemsPanelTemplate><UniformGrid Columns="6" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Border Classes="swatch" Background="{Binding Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </Flyout>
+              </Button.Flyout>
+            </Button>
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="0">
+              <TextBox Classes="titlebox" Text="{Binding Form?.Name}" MaxLength="64" PlaceholderText="Card name" />
+              <TextBlock Text="{Binding FormSource}" Classes="caption" TextWrapping="Wrap"
+                         IsVisible="{Binding IsEditingNew}" />
+              <TextBlock Text="{Binding Selected?.Summary}" Classes="caption" TextWrapping="Wrap"
+                         IsVisible="{Binding IsCardOpen}" />
+            </StackPanel>
+          </Grid>
+
+          <!-- One line; when it gets tight, Delete and Duplicate drop their labels first, then Export,
+               then Assign / Write (tooltips name them). -->
+          <c:ActionRow IsVisible="{Binding !IsWriteOpen}">
+            <Button Command="{Binding DuplicateCommand}" IsVisible="{Binding IsCardOpen}"
+                    ToolTip.Tip="Save a copy of this card">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.copy}" />
+                <TextBlock Text="Duplicate" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <!-- JSON only: a plain button; with a MIFARE Classic dump the dump formats join a menu. -->
+            <Button Command="{Binding ExportCommand}" IsEnabled="{Binding CanUseFiles}"
+                    IsVisible="{Binding !CanExportDump}" c:ActionRow.Priority="1"
+                    ToolTip.Tip="Save as JSON (compatible with the Flutter app)">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.export}" />
+                <TextBlock Text="Export" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <DropDownButton IsEnabled="{Binding CanUseFiles}" IsVisible="{Binding CanExportDump}"
+                            c:ActionRow.Priority="1" ToolTip.Tip="Save the card to a file">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.export}" />
+                <TextBlock Text="Export" VerticalAlignment="Center" />
+              </StackPanel>
+              <DropDownButton.Flyout>
+                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                  <MenuItem Header="JSON" Command="{Binding ExportCommand}"
+                            ToolTip.Tip="Card file, compatible with the Flutter app" />
+                  <MenuItem Header=".bin dump" Command="{Binding ExportBinCommand}"
+                            ToolTip.Tip="Raw memory dump, readable by most MIFARE tools" />
+                  <MenuItem Header=".eml dump" Command="{Binding ExportEmlCommand}"
+                            ToolTip.Tip="Proxmark3 .eml dump (hex text)" />
+                </MenuFlyout>
+              </DropDownButton.Flyout>
+            </DropDownButton>
+            <Button Command="{Binding AssignCommand}" Classes.accent="{Binding IsSlotsOpen}" c:ActionRow.Priority="2"
+                    ToolTip.Tip="Emulate this card in one of the device's slots">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.slots}" />
+                <TextBlock Text="Assign to slot" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding WriteCommand}" Classes.accent="{Binding IsWriteOpen}" c:ActionRow.Priority="2"
+                    ToolTip.Tip="Write onto a T55xx tag (LF), a magic card (MIFARE Classic) or the user pages of an Ultralight / NTAG card">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.upload}" />
+                <TextBlock Text="Write" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="danger" Command="{Binding DeleteCommand}" IsVisible="{Binding IsCardOpen}"
+                    ToolTip.Tip="Delete this card">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" />
+                <TextBlock Text="Delete" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </c:ActionRow>
+        </StackPanel>
+      </Border>
+
+      <ScrollViewer x:Name="PaneScroll" Grid.Row="1">
+        <StackPanel Classes="panestack">
+
+          <!-- Nothing open (desktop only) -->
+          <Border Classes="card" IsVisible="{Binding !HasPane}">
+            <StackPanel Spacing="8" HorizontalAlignment="Center" Margin="0,20">
+              <PathIcon Data="{StaticResource Icon.card}" Width="34" Height="34" Opacity="0.4"
+                        HorizontalAlignment="Center" />
+              <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="280" TextWrapping="Wrap"
+                         Text="Select a card to edit, emulate or write it, or press + to add one." />
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== Add a card ===================== -->
+          <!-- Choosing a source; once a card is scanned or imported the editor below replaces it. -->
+          <Border Classes="card" IsVisible="{Binding IsPickingSource}">
+            <StackPanel Spacing="14">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
+                        Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list">
+                  <PathIcon Data="{StaticResource Icon.back}" />
+                </Button>
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="Add a card" Classes="h2" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="Hold a tag against the device and scan it, import a file, or enter the card by hand." />
+                </StackPanel>
+                <Button Grid.Column="2" Classes="icon" Command="{Binding CloseCommand}"
+                        ToolTip.Tip="Cancel" VerticalAlignment="Top">
+                  <PathIcon Data="{StaticResource Icon.close}" />
+                </Button>
+              </Grid>
+
+              <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
+                <Button Classes="tile source" Command="{Binding ScanHfCommand}" IsVisible="{Binding IsConnected}"
+                        ToolTip.Tip="Scan an ISO14443-A tag; the device switches to reader mode">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell blue" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.scan}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="Scan HF" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="13.56 MHz" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+                <Button Classes="tile source" Command="{Binding ScanLfCommand}" IsVisible="{Binding IsConnected}"
+                        ToolTip.Tip="Scan a 125 kHz tag of the protocol chosen below">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell amber" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.scan}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="Scan LF" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="125 kHz" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+                <Button Classes="tile source" Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
+                        ToolTip.Tip="Import JSON, Flipper .nfc/.rfid, Proxmark3 JSON, MCT, .bin or .eml">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell green" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.import}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="Import file" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="JSON, .nfc, .bin, .eml…" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+                <Button Classes="tile source" Command="{Binding ManualCommand}"
+                        ToolTip.Tip="Create a card by entering its type and UID / ID">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.edit}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="Enter manually" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="Type and UID by hand" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+              </UniformGrid>
+
+              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ScanMissText}"
+                         Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                         IsVisible="{Binding ScanMissText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+              <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
+                         Text="Connect a Chameleon to scan tags." />
+
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding IsConnected}">
+                <TextBlock Grid.Column="0" Text="LF protocol" Classes="caption" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding LfProtocols}" SelectedItem="{Binding LfProtocol}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== Assign to slot / write (below the fixed header) ===================== -->
+          <Border Classes="card">
+            <Border.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding Path="IsSlotsOpen" />
+                <Binding Path="IsWriteOpen" />
+              </MultiBinding>
+            </Border.IsVisible>
+            <StackPanel>
+              <!-- Assign to slot -->
+              <StackPanel Spacing="10" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding IsSlotsOpen}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="ASSIGN TO SLOT" Classes="overline" />
+                    <TextBlock Classes="caption" TextWrapping="Wrap"
+                               Text="The card replaces the slot's current content, the slot becomes active and is saved to flash." />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="icon" Command="{Binding RefreshSlotsCommand}"
+                          IsVisible="{Binding IsConnected}" ToolTip.Tip="Reload slots" VerticalAlignment="Top">
+                    <PathIcon Data="{StaticResource Icon.refresh}" />
+                  </Button>
+                </Grid>
+                <TextBlock Classes="caption" IsVisible="{Binding !IsConnected}"
+                           Text="Connect a Chameleon to load this card into a slot." />
+                <TextBlock Classes="caption" IsVisible="{Binding Selected?.IsUnknownType, TargetNullValue=False}" TextWrapping="Wrap"
+                           Text="This card has no tag type. Choose one below and save before emulating." />
+                <ItemsControl ItemsSource="{Binding SlotTargets}" IsVisible="{Binding IsConnected}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SlotTargetViewModel">
+                      <Button Classes="slottarget"
+                              Command="{Binding $parent[ItemsControl].((vm:CardsViewModel)DataContext).LoadToSlotCommand}"
+                              CommandParameter="{Binding}">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                          <Border Classes="slotnum" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14">
+                            <TextBlock Text="{Binding Index}" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                          </Border>
+                          <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                                     TextTrimming="CharacterEllipsis" Classes.dim="{Binding IsEmpty}" />
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Classes="caption" Text="{Binding ProgressText}"
+                           b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding ProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              </StackPanel>
+
+              <!-- Write to a physical tag (replaces the editor; the list is locked) -->
+              <StackPanel Spacing="12" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding IsWriteOpen}">
+                <TextBlock Text="{Binding WriteKind}" FontWeight="SemiBold" />
+
+                <!-- MIFARE Classic: pick the magic generation, or let the device detect it -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsMifareWrite}">
+                  <TextBlock Text="MAGIC GENERATION" Classes="overline" />
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <ComboBox Grid.Column="0" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding MagicGenerations}"
+                              SelectedItem="{Binding SelectedGeneration}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Command="{Binding DetectCommand}" IsEnabled="{Binding IsConnected}"
+                            ToolTip.Tip="Probe the card on the reader and pick its generation">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.scan}" />
+                        <TextBlock Text="Detect" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+                </StackPanel>
+
+                <!-- Ultralight / NTAG: optional password of the target card -->
+                <StackPanel Spacing="4" IsVisible="{Binding IsUltralightWrite}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <TextBlock Text="Password" Classes="caption" VerticalAlignment="Center" />
+                    <c:HexBox Grid.Column="1" Text="{Binding WritePassword}" ByteLengths="4"
+                              PlaceholderText="Optional"
+                              ToolTip.Tip="PWD (4 bytes) of the target card, when its pages are write-protected" />
+                  </Grid>
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WritePasswordError}"
+                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                             IsVisible="{Binding WritePasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </StackPanel>
+
+                <Border Classes="inset">
+                  <TextBlock Text="{Binding WriteWarning}" TextWrapping="Wrap" />
+                </Border>
+                <TextBlock Classes="caption" IsVisible="{Binding !IsConnected}"
+                           Text="Connect a Chameleon to write cards." />
+                <TextBlock Classes="caption" Text="{Binding ProgressText}"
+                           b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding ProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                  <Button Content="Cancel" Command="{Binding CloseActionCommand}" />
+                  <Button Classes="accent" Command="{Binding WriteNowCommand}" IsEnabled="{Binding IsConnected}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.upload}" />
+                      <TextBlock Text="Write" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== Card details (add + edit) ===================== -->
+          <Border Classes="card" IsVisible="{Binding ShowEditor}">
+            <StackPanel Spacing="10">
+              <TextBlock Text="CARD DETAILS" Classes="overline" />
+
+              <!-- Tag type and UID share a row when the UID's longest value fits beside the type
+                   (HexBox sizes to it); otherwise, e.g. on phones, the UID wraps below. -->
+              <c:FlowGrid MinItemWidth="200" ColumnSpacing="10" RowSpacing="10">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Tag type" Classes="caption" />
+                  <ComboBox ItemsSource="{Binding Form?.TagChoices}" SelectedItem="{Binding Form?.Tag}"
+                            IsEnabled="{Binding Form?.CanChangeTag, TargetNullValue=False}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding Form?.UidLabel}" Classes="caption" />
+                  <c:HexBox Text="{Binding Form?.Uid}" ByteLengths="{Binding Form?.UidLengths}" PlaceholderText="{Binding Form?.UidHint}" />
+                </StackPanel>
+              </c:FlowGrid>
+
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         IsVisible="{Binding Form?.IsTypeRestricted, TargetNullValue=False}"
+                         Text="Only types that keep this card's data valid are offered. To use another type, add a new card." />
+
+              <!-- Decoded from the ID as it is typed; click a value to copy it. -->
+              <ItemsControl ItemsSource="{Binding Form?.LfFields}"
+                            IsVisible="{Binding Form?.HasLfFields, TargetNullValue=False}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><c:FlowGrid MinItemWidth="90" ColumnSpacing="8" RowSpacing="8" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ScanResultRow">
+                    <Button Classes="copycell" b:CopyToClipboard.Text="{Binding Value}" ToolTip.Tip="Click to copy">
+                      <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding Field}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Value}" Classes="mono" FontSize="14" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <UniformGrid Columns="3" ColumnSpacing="10" IsVisible="{Binding Form?.IsHf, TargetNullValue=False}">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="SAK" Classes="caption" />
+                  <c:HexBox Text="{Binding Form?.Sak}" ByteLengths="1" PlaceholderText="08" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="ATQA" Classes="caption" />
+                  <c:HexBox Text="{Binding Form?.Atqa}" ByteLengths="2" PlaceholderText="00 04" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="ATS" Classes="caption" />
+                  <c:HexBox Text="{Binding Form?.Ats}" PlaceholderText="optional" />
+                </StackPanel>
+              </UniformGrid>
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== New card: memory dump (MIFARE Classic / Ultralight scan) ===================== -->
+          <Border Classes="card">
+            <Border.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="IsEditingNew" />
+                <Binding Path="CanDump" />
+                <Binding Path="!IsWriteOpen" />
+              </MultiBinding>
+            </Border.IsVisible>
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="2">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <TextBlock Text="DUMP" Classes="overline" VerticalAlignment="Center" />
+                  <!-- Measured by the scan; decides which key attacks can work. -->
+                  <TextBlock Grid.Column="1" Classes="caption" VerticalAlignment="Center"
+                             ToolTip.Tip="The card's random number generator, measured by the scan"
+                             IsVisible="{Binding Prng, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Run Text="PRNG" />
+                    <Run Text="{Binding Prng}" FontWeight="SemiBold" />
+                  </TextBlock>
+                </Grid>
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpHint}" />
+              </StackPanel>
+              <StackPanel Spacing="8">
+                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
+                  <!-- While a dump runs, its button turns into Stop. -->
+                  <Button Command="{Binding DumpCommand}" VerticalAlignment="Center"
+                          Classes.accent="{Binding NeedsDump}"
+                          IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}"
+                          ToolTip.Tip="Read the whole card memory">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.dump}" />
+                      <TextBlock Text="Dump memory" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding CancelDumpCommand}" VerticalAlignment="Center"
+                          IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}"
+                          ToolTip.Tip="Stop the dump; what was read so far is discarded">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.close}" />
+                      <TextBlock Text="Stop dump" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                  <!-- Which dictionaries the dump tries; the count is unique keys across the checked ones. -->
+                  <Button Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding !IsUltralightDump}"
+                          IsEnabled="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}"
+                          ToolTip.Tip="{Binding DumpKeyCountText}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
+                      <TextBlock Text="{Binding DumpKeyCount}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Button.Flyout>
+                      <Flyout Placement="BottomEdgeAlignedLeft">
+                        <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="8,6">
+                          <TextBlock Text="KEY DICTIONARIES" Classes="overline" />
+                          <ItemsControl ItemsSource="{Binding DumpKeySources}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
+                                <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Stretch"
+                                          Padding="8,0,0,0" Margin="0,2">
+                                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" />
+                                  </Grid>
+                                </CheckBox>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                          <Separator Margin="0,2" />
+                          <TextBlock Text="{Binding DumpKeyCountText}" FontWeight="SemiBold" />
+                        </StackPanel>
+                      </Flyout>
+                    </Button.Flyout>
+                  </Button>
+                  <TextBlock Grid.Column="2" Classes="caption" Text="{Binding DumpProgressText}"
+                             VerticalAlignment="Center" HorizontalAlignment="Right"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                             IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </Grid>
+
+                <!-- Ultralight / NTAG: optional password for the protected pages. -->
+                <StackPanel Spacing="4" IsVisible="{Binding IsUltralightDump}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <TextBlock Text="Password" Classes="caption" VerticalAlignment="Center" />
+                    <c:HexBox Grid.Column="1" Text="{Binding DumpPassword}" ByteLengths="4,16"
+                              IsEnabled="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}"
+                              PlaceholderText="Optional"
+                              ToolTip.Tip="PWD (4 bytes) for NTAG / Ultralight EV1, or the 3DES key (16 bytes) for Ultralight C" />
+                  </Grid>
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpPasswordError}"
+                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                             IsVisible="{Binding DumpPasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="The password is tried once. Wrong attempts count towards the card's limit (AUTHLIM) and can lock it for good." />
+                </StackPanel>
+
+                <!-- Block strip: one cell per block, drawn as one control spanning the full width. -->
+                <StackPanel Spacing="4" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpBlocks}">
+                  <c:BlockStrip States="{Binding DumpBlockStates}" Unit="{Binding DumpUnit}"
+                                LockedText="{Binding DumpLockedText}" HorizontalAlignment="Stretch" />
+                  <WrapPanel ItemSpacing="14" LineSpacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend reading" Margin="0" />
+                      <TextBlock Text="Reading" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend read" Margin="0" />
+                      <TextBlock Text="Read" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend readerror" Margin="0" />
+                      <TextBlock Text="Read error" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend nokey" Margin="0" />
+                      <TextBlock Text="{Binding DumpLockedText}" Classes="caption" />
+                    </StackPanel>
+                  </WrapPanel>
+                </StackPanel>
+
+                <!-- Summary of the last dump. -->
+                <Border Classes="inset" Padding="14,8" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpStats}">
+                  <ItemsControl ItemsSource="{Binding DumpStats}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ScanResultRow">
+                        <Grid ColumnDefinitions="110,*" Margin="0,2">
+                          <TextBlock Text="{Binding Field}" Classes="caption" VerticalAlignment="Center" />
+                          <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap"
+                                               VerticalAlignment="Center" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Border>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== No memory yet (entered by hand / UID only) ===================== -->
+          <Border Classes="card" IsVisible="{Binding ShowMemoryEditor}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+              <StackPanel Spacing="2" VerticalAlignment="Center">
+                <TextBlock Text="MEMORY" Classes="overline" />
+                <TextBlock Classes="caption" TextWrapping="Wrap"
+                           Text="Identity only. The device emulates its own blank card; create one here to see and edit it." />
+              </StackPanel>
+              <Button Grid.Column="1" Command="{Binding Form?.CreateMemoryCommand}" VerticalAlignment="Center"
+                      ToolTip.Tip="Blank card memory: block 0 / UID pages from the fields above, default keys">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.add}" />
+                  <TextBlock Text="Create blank memory" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </Grid>
+          </Border>
+
+          <!-- ===================== Memory (dump) ===================== -->
+          <!-- Open while adding, or right after blank memory was created. -->
+          <Expander x:Name="MemoryCard" Classes="card" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                    IsVisible="{Binding Form?.HasData, TargetNullValue=False}">
+            <Expander.IsExpanded>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}" Mode="OneWay">
+                <Binding Path="IsAdding" />
+                <Binding Path="Form?.ExpandMemory" TargetNullValue="False" />
+              </MultiBinding>
+            </Expander.IsExpanded>
+            <Expander.Header>
+              <StackPanel Margin="12,0">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                      <TextBlock Text="MEMORY" Classes="overline" />
+                      <TextBlock Text="{Binding Form?.DataSummary}" Classes="caption"/>
+                  </StackPanel>
+                <TextBlock Classes="caption" Text="{Binding Form?.MemoryWarning}" TextWrapping="Wrap" Margin="0,4,0,0"
+                           Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                           IsVisible="{Binding Form?.MemoryWarning, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
+              </StackPanel>
+            </Expander.Header>
+            <StackPanel>
+              <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsMifareClassic, TargetNullValue=False}" Margin="0,6,0,0">
+                <TextBlock Classes="manufacturer" Text="■ Block 0" />
+                <TextBlock Classes="keya" Text="■ Key A" />
+                <TextBlock Classes="access" Text="■ Access bits" />
+                <TextBlock Classes="keyb" Text="■ Key B" />
+                <TextBlock Classes="changed" Text="■ Modified" />
+              </WrapPanel>
+              <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsUltralight, TargetNullValue=False}" Margin="0,6,0,0">
+                <TextBlock Classes="manufacturer" Text="■ UID" />
+                <TextBlock Classes="access" Text="■ Lock bytes" />
+                <TextBlock Classes="keya" Text="■ Config"
+                           IsVisible="{Binding Form?.HasUltralightConfig, TargetNullValue=False}" />
+                <TextBlock Classes="keyb" Text="{Binding Form?.UltralightKeyLegend}"
+                           IsVisible="{Binding Form?.HasUltralightConfig, TargetNullValue=False}" />
+                <TextBlock Classes="changed" Text="■ Modified" />
+              </WrapPanel>
+              <!-- Fixed-width position/value part, then the meaning. One TextBlock keeps both on
+                   the same baseline; trimming eats the meaning first so it stays on one line. -->
+              <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding #MemoryEditor.StatusDetail}"
+                         IsVisible="{Binding #MemoryEditor.StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Run FontFamily="Cascadia Code,Consolas,Menlo,monospace" Text="{Binding #MemoryEditor.StatusText}" />
+                <Run Text="  " />
+                <Run Text="{Binding #MemoryEditor.StatusDetail}" />
+              </TextBlock>
+              <!-- Own scroll, sized to the pane (code-behind), so the legend and status above stay
+                   in view; the hint scrolls away. -->
+              <ScrollViewer x:Name="MemoryScroll" HorizontalScrollBarVisibility="Disabled" Margin="0,6,0,0">
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="Tap a byte and type hex to overwrite it. Shift+arrows select; Ctrl+C / Ctrl+V copy and paste; Ctrl+Z undoes; right-click for more." />
+                  <Border Classes="inset" Padding="8,6">
+                    <c:HexEditor x:Name="MemoryEditor" Buffer="{Binding Form?.Memory}" />
+                  </Border>
+                </StackPanel>
+              </ScrollViewer>
+            </StackPanel>
+          </Expander>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Lightbox: dims and blocks the editor while a question in the bar waits for an answer. -->
+      <Border Grid.Row="0" Grid.RowSpan="2" Classes="lightbox" Classes.on="{Binding IsAsking}" CornerRadius="12" />
+
+      <!-- ===================== Save bar (stays in view) ===================== -->
+      <!-- Adding: offered as soon as there is a new card; Discard drops it and unlocks the list. -->
+      <Border Grid.Row="2" Classes="savebar">
+        <Border.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsEditingNew" />
+            <Binding Path="!IsConfirmingLeave" />
+          </MultiBinding>
+        </Border.IsVisible>
+        <c:ActionBar>
+          <TextBlock Classes="caption" VerticalAlignment="Center" TextWrapping="Wrap"
+                     Text="Dump the card first to save its memory too." IsVisible="{Binding NeedsDump}" />
+          <Button Content="Discard" Command="{Binding CancelAddCommand}" />
+          <Button Classes.accent="{Binding !NeedsDump}" Command="{Binding SaveCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.save}" />
+              <TextBlock Text="{Binding AddSaveLabel}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionBar>
+      </Border>
+      <!-- Saved card: appears only once something changed. -->
+      <Border Grid.Row="2" Classes="savebar">
+        <Border.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsCardDirty" />
+            <Binding Path="!IsConfirmingLeave" />
+            <Binding Path="!IsConfirmingDelete" />
+          </MultiBinding>
+        </Border.IsVisible>
+        <c:ActionBar>
+          <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+          <Button Content="Discard" Command="{Binding DiscardCommand}" />
+          <Button Classes="accent" Command="{Binding SaveCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.save}" />
+              <TextBlock Text="Save" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionBar>
+      </Border>
+      <!-- Switching card, closing or adding with unsaved work: save, drop it, or stay. -->
+      <Border Grid.Row="2" Classes="savebar" IsVisible="{Binding IsConfirmingLeave}">
+        <c:ActionBar>
+          <TextBlock Text="{Binding LeaveText}" VerticalAlignment="Center"
+                     FontWeight="SemiBold" TextWrapping="Wrap" />
+          <Button Content="Cancel" Command="{Binding StayCommand}"
+                  ToolTip.Tip="Keep editing this card" />
+          <Button Content="Discard" Command="{Binding DiscardAndLeaveCommand}" />
+          <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.save}" />
+              <TextBlock Text="Save" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionBar>
+      </Border>
+      <!-- Saved a card that is loaded in slots: optionally push the new version to the device. -->
+      <Border Grid.Row="2" Classes="savebar">
+        <Border.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsAskingSlotUpdate" />
+            <Binding Path="!IsConfirmingDelete" />
+          </MultiBinding>
+        </Border.IsVisible>
+        <c:ActionBar>
+          <TextBlock Text="{Binding SlotUpdateText}" VerticalAlignment="Center"
+                     FontWeight="SemiBold" TextWrapping="Wrap" />
+          <Button Content="Not now" Command="{Binding SkipSlotUpdateCommand}"
+                  ToolTip.Tip="Keep the old version in the slots" />
+          <Button Classes="accent" Content="Update" Command="{Binding UpdateSlotsCommand}"
+                  ToolTip.Tip="Upload the saved card to these slots" />
+        </c:ActionBar>
+      </Border>
+      <!-- Delete: asked here like the other questions, and wins over the save bar while open. -->
+      <Border Grid.Row="2" Classes="savebar">
+        <Border.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsConfirmingDelete" />
+            <Binding Path="!IsConfirmingLeave" />
+          </MultiBinding>
+        </Border.IsVisible>
+        <c:ActionBar>
+          <TextBlock Text="Delete this card permanently?" VerticalAlignment="Center"
+                     FontWeight="SemiBold" TextWrapping="Wrap" />
+          <Button Content="Cancel" Command="{Binding CloseActionCommand}" />
+          <Button Classes="danger solid" Command="{Binding ConfirmDeleteCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.delete}" />
+              <TextBlock Text="Delete" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionBar>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

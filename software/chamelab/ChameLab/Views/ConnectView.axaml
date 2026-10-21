@@ -1,0 +1,130 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:t="using:ChameLab.Transport"
+             xmlns:conv="using:ChameLab.Converters"
+             x:Class="ChameLab.Views.ConnectView"
+             x:DataType="vm:ConnectViewModel">
+
+  <!-- As the window gets shorter, the device list gives up height first (it scrolls by itself),
+       then the hero shrinks and puts the device beside the title (code-behind); only after that
+       does the page scroll. -->
+  <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
+  <Grid x:Name="Page" Classes="page" MaxWidth="540" VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto">
+
+      <!-- Hero: device above the title, or beside it on short windows. -->
+      <Grid x:Name="Hero" Grid.Row="0" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto"
+            HorizontalAlignment="Center" Margin="0,8,0,4">
+        <Image x:Name="HeroImage" Grid.ColumnSpan="2" Source="/Assets/chameleon-ultra.png" Height="120"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               RenderOptions.BitmapInterpolationMode="HighQuality">
+          <Image.Effect>
+            <DropShadowEffect OffsetX="0" OffsetY="8" BlurRadius="24" Color="#59000000" />
+          </Image.Effect>
+        </Image>
+        <StackPanel x:Name="HeroText" Grid.Row="1" Grid.ColumnSpan="2" Spacing="8" Margin="0,16,0,0"
+                    VerticalAlignment="Center">
+          <TextBlock x:Name="HeroTitle" Text="Connect your Chameleon" Classes="h1" HorizontalAlignment="Center" />
+          <TextBlock x:Name="HeroCaption" Classes="caption" HorizontalAlignment="Center" TextAlignment="Center"
+                     MaxWidth="380" TextWrapping="Wrap"
+                     Text="Plug the device in over USB, or press a button on it to wake it up for Bluetooth, then pick it below." />
+        </StackPanel>
+      </Grid>
+
+      <!-- Detected devices -->
+      <Border Grid.Row="1" Classes="card">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="14">
+          <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+              <TextBlock Text="Detected devices" Classes="h2" />
+              <TextBlock Classes="caption" Text="Plugged-in devices appear here automatically." />
+            </StackPanel>
+            <Button Grid.Column="1" Command="{Binding ScanCommand}" ToolTip.Tip="Scan again">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.refresh}" />
+                <TextBlock Text="Rescan" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </Grid>
+
+          <ListBox Grid.Row="1" x:Name="DeviceList" Classes="nav"
+                   ItemsSource="{Binding Candidates}" SelectedItem="{Binding Selected}"
+                   MaxHeight="260" IsVisible="{Binding HasCandidates}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="t:TransportCandidate">
+                <Grid ColumnDefinitions="Auto,Auto,*" Margin="0,6,10,6">
+                  <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
+                          Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
+                  <!-- Every listed candidate is a Chameleon, so show the device rather than a port glyph. -->
+                  <Panel Grid.Column="1" Width="36" Height="44" Margin="0,0,12,0">
+                    <Image Source="/Assets/chameleon-ultra.png" Height="42"
+                           RenderOptions.BitmapInterpolationMode="HighQuality" />
+                    <Border Classes="iconwell" Width="20" Height="20" CornerRadius="10" Padding="0"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-6,-2">
+                      <PathIcon Width="11" Height="11"
+                                Data="{Binding Kind, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                    </Border>
+                  </Panel>
+                  <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="NoWrap"
+                               TextTrimming="CharacterEllipsis"
+                               IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <!-- Empty state -->
+          <Border Grid.Row="1" Classes="inset" Padding="18" IsVisible="{Binding !HasCandidates}">
+            <StackPanel Spacing="6" HorizontalAlignment="Center">
+              <PathIcon Data="{StaticResource Icon.serial}" Width="28" Height="28" Opacity="0.5"
+                        HorizontalAlignment="Center" />
+              <TextBlock Text="No devices detected" FontWeight="SemiBold" HorizontalAlignment="Center" />
+              <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="320"
+                         Text="Plug the Chameleon in and wake it up — it will show up here on its own." />
+            </StackPanel>
+          </Border>
+
+          <Button Grid.Row="2" Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  Command="{Binding ConnectCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="5">
+              <PathIcon Data="{StaticResource Icon.link}" Width="24" Height="24" />
+              <TextBlock Text="Connect" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
+
+      <!-- Manual TCP endpoint, tucked away as an advanced option. -->
+      <Expander Grid.Row="2" HorizontalAlignment="Stretch" CornerRadius="14">
+        <Expander.Header>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <PathIcon Data="{StaticResource Icon.tcp}" Width="16" Height="16" />
+            <TextBlock Text="Network bridge (TCP)" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </StackPanel>
+        </Expander.Header>
+        <StackPanel Spacing="10">
+          <TextBlock Classes="caption"
+                     Text="Connect through a USB-serial → TCP bridge or a simulator." />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Grid.Column="0" Text="{Binding ManualEndpoint}" PlaceholderText="host:port"
+                     Classes="mono" />
+            <Button Grid.Column="1" Content="Connect" Command="{Binding ConnectManualCommand}" />
+          </Grid>
+        </StackPanel>
+      </Expander>
+
+      <!-- Offline mode: browse saved cards, dictionaries and app settings without a device. -->
+      <Button Grid.Row="3" HorizontalAlignment="Center" Margin="0,10,0,0"
+              Command="{Binding ContinueOfflineCommand}"
+              ToolTip.Tip="Work with saved cards, dictionaries and app settings without a device">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <PathIcon Data="{StaticResource Icon.cards}" Width="16" Height="16" />
+          <TextBlock Text="Continue without device" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+  </Grid>
+  </ScrollViewer>
+</UserControl>

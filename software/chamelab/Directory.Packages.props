@@ -1,0 +1,32 @@
+<Project>
+    <!-- https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management -->
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <!-- Keep the whole Avalonia stack on one version. -->
+        <AvaloniaVersion>12.1.4</AvaloniaVersion>
+    </PropertyGroup>
+    <ItemGroup>
+        <!-- Avalonia -->
+        <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="Avalonia.iOS" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="Avalonia.Browser" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.0" />
+
+        <!-- Reactive stack -->
+        <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.6" />
+        <PackageVersion Include="System.Reactive" Version="6.0.1" />
+
+        <!-- Actipro modern theme + controls -->
+        <PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="26.2.0" />
+
+        <!-- Transports -->
+        <PackageVersion Include="System.IO.Ports" Version="10.0.0" />
+        <PackageVersion Include="Plugin.BLE" Version="3.2.1" />
+
+        <!-- Android splash -->
+        <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
+    </ItemGroup>
+</Project>

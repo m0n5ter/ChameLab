@@ -1,0 +1,11 @@
+﻿<Solution>
+  <Project Path="ChameLab.Android/ChameLab.Android.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="ChameLab.Browser/ChameLab.Browser.csproj" />
+  <Project Path="ChameLab.Desktop/ChameLab.Desktop.csproj" />
+  <Project Path="ChameLab.iOS/ChameLab.iOS.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="ChameLab/ChameLab.csproj" />
+</Solution>

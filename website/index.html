@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChameLab</title>
+  <link rel="icon" href="favicon.ico">
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #fff; --text: #1c1f24; --muted: #5d6571;
+      --line: #e1e4e8; --accent: #2563eb; --accent-text: #fff; --warn: #9a6700;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111418; --card: #1a1e24; --text: #e6e8eb; --muted: #9aa3ae;
+        --line: #2b313a; --accent: #3b82f6; --accent-text: #fff; --warn: #d4a72c;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 880px; margin: 0 auto; padding: 32px 16px 48px; }
+    header { text-align: center; margin-bottom: 32px; }
+    header img { height: 120px; width: auto; }
+    header h1 { margin: 8px 0 0; font-size: 2.5rem; letter-spacing: -.02em; }
+    header p { color: var(--muted); margin: 8px 0 0; }
+    a { color: var(--accent); }
+    section {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 20px;
+    }
+    h2 { margin: 0 0 4px; font-size: 1.25rem; }
+    h3 { margin: 18px 0 6px; font-size: 1rem; }
+    .meta { color: var(--muted); font-size: .9rem; margin: 0 0 8px; }
+    .button {
+      display: inline-block; background: var(--accent); color: var(--accent-text);
+      padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;
+      margin: 8px 0;
+    }
+    .note { color: var(--warn); font-size: .9rem; }
+    ul.assets { list-style: none; margin: 0; padding: 0; }
+    ul.assets li {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 6px 0; border-top: 1px solid var(--line);
+    }
+    ul.assets li:first-child { border-top: 0; }
+    ul.assets a { overflow-wrap: anywhere; }
+    ul.assets span { color: var(--muted); white-space: nowrap; font-size: .9rem; }
+    footer { text-align: center; color: var(--muted); font-size: .9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="chameleon-ultra.png" alt="">
+    <h1>ChameLab</h1>
+    <p>Desktop, mobile and web app for ChameleonUltra and ChameleonLite, with their firmware and command line client.</p>
+  </header>
+
+  <section>
+    <h2>Try it in the browser</h2>
+    <p class="meta">ChameLab running as WebAssembly, built from the latest <code>main</code> commit.
+      It talks to the device over USB through Web Serial.</p>
+    <a class="button" href="app/">Open ChameLab in the browser</a>
+    <p class="note">Needs Chrome or Edge on a desktop: Firefox and Safari do not support Web Serial.</p>
+  </section>
+
+  <section id="stable">
+    <h2>Latest release</h2>
+    <p class="meta">Loading…</p>
+  </section>
+
+  <section id="dev">
+    <h2>Development build</h2>
+    <p class="meta">Loading…</p>
+  </section>
+
+  <footer>
+    <p>Free software under the GNU GPL v3:
+      <a href="https://github.com/m0n5ter/ChameLab">source code</a> ·
+      <a href="https://github.com/m0n5ter/ChameLab/releases">all releases</a></p>
+  </footer>
+</main>
+
+<script>
+  const repo = 'm0n5ter/ChameLab';
+  const releasesUrl = `https://github.com/${repo}/releases`;
+
+  // Asset name -> group, in display order
+  const groups = [
+    ['Firmware (DFU)', /-dfu-/],
+    ['ChameLab', /^chamelab-/],
+    ['Command line client', /^client-/],
+  ];
+
+  function sizeOf(bytes) {
+    return bytes >= 1 << 20 ? `${(bytes / (1 << 20)).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
+  }
+
+  function el(tag, props, ...children) {
+    const e = Object.assign(document.createElement(tag), props);
+    e.append(...children);
+    return e;
+  }
+
+  function render(section, release, title) {
+    section.replaceChildren(el('h2', {}, title));
+    if (!release) {
+      section.append(el('p', { className: 'meta' }, 'Nothing published yet.'));
+      return;
+    }
+    const date = new Date(release.published_at || release.created_at).toLocaleDateString();
+    section.append(el('p', { className: 'meta' },
+      el('a', { href: release.html_url }, release.name || release.tag_name), ` · ${date}`));
+
+    const rest = [...release.assets];
+    for (const [name, pattern] of [...groups, ['Other', /./]]) {
+      const assets = rest.filter(a => pattern.test(a.name));
+      if (!assets.length) continue;
+      rest.splice(0, rest.length, ...rest.filter(a => !assets.includes(a)));
+      section.append(el('h3', {}, name), el('ul', { className: 'assets' },
+        ...assets.sort((a, b) => a.name.localeCompare(b.name)).map(a =>
+          el('li', {}, el('a', { href: a.browser_download_url }, a.name), el('span', {}, sizeOf(a.size))))));
+    }
+  }
+
+  function fail(section, title) {
+    section.replaceChildren(el('h2', {}, title), el('p', { className: 'meta' },
+      'Could not load the release list. ', el('a', { href: releasesUrl }, 'Open the releases on GitHub')));
+  }
+
+  const stable = document.getElementById('stable');
+  const dev = document.getElementById('dev');
+  fetch(`https://api.github.com/repos/${repo}/releases?per_page=30`)
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(releases => {
+      render(stable, releases.find(r => !r.prerelease && !r.draft), 'Latest release');
+      render(dev, releases.find(r => r.tag_name === 'dev'), 'Development build');
+    })
+    .catch(() => { fail(stable, 'Latest release'); fail(dev, 'Development build'); });
+</script>
+</body>
+</html>

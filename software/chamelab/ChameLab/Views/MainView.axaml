@@ -1,0 +1,197 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:b="using:ChameLab.Behaviors"
+             xmlns:conv="using:ChameLab.Converters"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="ChameLab.Views.MainView"
+             x:DataType="vm:MainViewModel">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- ==================== Top app bar ==================== -->
+    <Border Grid.Row="0" Padding="10,8,12,8" Background="{actipro:ThemeResource Container1BackgroundBrush}"
+            BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+        <Button Grid.Column="0" Classes="icon" Command="{Binding TogglePaneCommand}"
+                IsVisible="{Binding HasNavigation}" ToolTip.Tip="Toggle navigation" Margin="0,0,6,0">
+          <PathIcon Data="{StaticResource Icon.menu}" />
+        </Button>
+
+        <!-- Brand mark: the device itself. -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center"
+                    Margin="4,0,0,0">
+          <Image Source="/Assets/chameleon-ultra.png" Height="36"
+                 RenderOptions.BitmapInterpolationMode="HighQuality" />
+          <StackPanel VerticalAlignment="Center" Spacing="-2">
+            <TextBlock Text="ChameLab" FontSize="16" FontWeight="SemiBold" />
+            <TextBlock Text="FOR CHAMELEON ULTRA" Classes="overline wide-only" />
+          </StackPanel>
+        </StackPanel>
+
+        <TextBlock Grid.Column="2" Classes="caption wide-only" Text="{Binding DeviceSummary}"
+                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                   VerticalAlignment="Center" HorizontalAlignment="Right" Margin="16,0" />
+
+        <!-- Connection pill -->
+        <Border Grid.Column="3" VerticalAlignment="Center" Margin="0,0,8,0"
+                CornerRadius="12" Padding="10,4"
+                Background="{actipro:ThemeResource Container2BackgroundBrush}">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                     Fill="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" IsVisible="{Binding IsConnected}" />
+            <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                     Fill="{actipro:ThemeResource DefaultForegroundBrushTertiary}" IsVisible="{Binding !IsConnected}" />
+            <TextBlock Text="Online" FontSize="12" IsVisible="{Binding IsConnected}" VerticalAlignment="Center" />
+            <TextBlock Text="Offline" FontSize="12" IsVisible="{Binding !IsConnected}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+        <actipro:ToggleThemeButton Grid.Column="4" Margin="0,0,6,0" VerticalAlignment="Center"
+                                   ToolTip.Tip="Toggle light / dark theme" />
+
+        <Button Grid.Column="5" Classes="danger" Command="{Binding DisconnectCommand}"
+                IsVisible="{Binding IsConnected}" ToolTip.Tip="Disconnect from the device">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.power}" />
+            <TextBlock Text="Disconnect" Classes="wide-only" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- ==================== Body ==================== -->
+    <SplitView Grid.Row="1" x:Name="Shell"
+               IsPaneOpen="{Binding IsPaneOpen}"
+               DisplayMode="Inline" OpenPaneLength="232" CompactPaneLength="0"
+               PaneBackground="{actipro:ThemeResource Container1BackgroundBrush}">
+
+      <SplitView.Pane>
+        <Border BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,1,0">
+          <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding HasNavigation}">
+            <TextBlock Grid.Row="0" Text="NAVIGATION" Classes="overline" Margin="20,18,0,6" />
+
+            <ListBox Grid.Row="1" Classes="nav" Margin="10,0"
+                     ItemsSource="{Binding NavPages}"
+                     SelectedItem="{Binding SelectedNavPage}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:PageViewModelBase">
+                  <Grid ColumnDefinitions="Auto,Auto,*" Height="40">
+                    <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
+                            Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
+                    <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
+                              Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                    <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Border Grid.Row="2" Classes="inset" Margin="12,8,12,14">
+              <StackPanel Spacing="2">
+                <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding !IsOffline}" />
+                <TextBlock Text="OFFLINE MODE" Classes="overline" IsVisible="{Binding IsOffline}" />
+                <TextBlock Text="{Binding DeviceSummary}" FontSize="12" TextWrapping="Wrap"
+                           IsVisible="{Binding !IsOffline}" />
+                <TextBlock FontSize="12" TextWrapping="Wrap" IsVisible="{Binding IsOffline}"
+                           Text="No device. Open Connect to attach one." />
+              </StackPanel>
+            </Border>
+          </Grid>
+        </Border>
+      </SplitView.Pane>
+
+      <SplitView.Content>
+        <Panel>
+          <TransitioningContentControl Content="{Binding CurrentPage}">
+            <TransitioningContentControl.PageTransition>
+              <CrossFade Duration="0:0:0.15" />
+            </TransitioningContentControl.PageTransition>
+          </TransitioningContentControl>
+
+          <!-- Thin activity bar while the current page talks to the device. -->
+          <ProgressBar VerticalAlignment="Top" IsIndeterminate="True" Height="3" MinHeight="3"
+                       CornerRadius="0" Foreground="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" Background="Transparent"
+                       IsVisible="{Binding CurrentPage.IsBusy}" />
+
+          <!-- Status banner for the current page (errors stay until dismissed). -->
+          <Border Classes="banner" Classes.error="{Binding CurrentPage.StatusIsError}"
+                  VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                  Margin="16,0,16,18" MaxWidth="640"
+                  IsVisible="{Binding CurrentPage.Status, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Panel Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                <PathIcon Classes="state" Width="18" Height="18" Data="{StaticResource Icon.success}"
+                          IsVisible="{Binding !CurrentPage.StatusIsError}" />
+                <PathIcon Classes="state" Width="18" Height="18" Data="{StaticResource Icon.error}"
+                          IsVisible="{Binding CurrentPage.StatusIsError}" />
+              </Panel>
+              <SelectableTextBlock Grid.Column="1" Text="{Binding CurrentPage.Status}"
+                                   TextWrapping="Wrap" VerticalAlignment="Center" />
+              <Button Grid.Column="2" Classes="icon small" Margin="8,0,0,0" ToolTip.Tip="Dismiss"
+                      Command="{Binding CurrentPage.DismissStatusCommand}">
+                <PathIcon Data="{StaticResource Icon.close}" />
+              </Button>
+            </Grid>
+          </Border>
+        </Panel>
+      </SplitView.Content>
+    </SplitView>
+
+    <!-- ==================== Firmware install dialog ==================== -->
+    <!-- Over the whole shell: the device disconnects while it restarts into the bootloader. -->
+    <Panel Grid.Row="0" Grid.RowSpan="2" Background="#80000000"
+           DataContext="{Binding Firmware}" IsVisible="{Binding IsDialogOpen}" x:DataType="vm:FirmwareUpdateViewModel">
+      <Border Classes="card" MaxWidth="520" Margin="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock Text="{Binding InstallTitle}" Classes="h2" TextWrapping="Wrap" />
+
+          <!-- Confirm -->
+          <StackPanel Spacing="10" IsVisible="{Binding IsConfirming}">
+            <TextBlock TextWrapping="Wrap"
+                       Text="The device restarts into its bootloader, gets the new firmware over USB and reconnects. Slots and settings are kept. Keep it plugged in until it is done." />
+            <ScrollViewer MaxHeight="220" IsVisible="{Binding InstallNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <Border Classes="inset">
+                <SelectableTextBlock Text="{Binding InstallNotes}" TextWrapping="Wrap" FontSize="12" />
+              </Border>
+            </ScrollViewer>
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+              <Button Content="Cancel" Command="{Binding CloseCommand}" b:DialogKeys.IsCancel="True" />
+              <Button Classes="accent" Content="Install" Command="{Binding ConfirmCommand}" b:DialogKeys.IsDefault="True" />
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Installing -->
+          <StackPanel Spacing="10" IsVisible="{Binding IsInstalling}">
+            <TextBlock Text="{Binding StepText}" TextWrapping="Wrap" />
+            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}"
+                         IsIndeterminate="{Binding !ProgressKnown}" />
+            <TextBlock Classes="caption" Text="Don't unplug the device." />
+          </StackPanel>
+
+          <!-- Done -->
+          <StackPanel Spacing="10" IsVisible="{Binding IsDone}">
+            <TextBlock Text="{Binding StepText}" TextWrapping="Wrap" />
+            <Button Classes="accent" Content="Close" HorizontalAlignment="Right" Command="{Binding CloseCommand}"
+                    b:DialogKeys.IsDefault="True" b:DialogKeys.IsCancel="True" />
+          </StackPanel>
+
+          <!-- Failed -->
+          <StackPanel Spacing="10" IsVisible="{Binding IsFailed}">
+            <SelectableTextBlock Text="{Binding Error}" TextWrapping="Wrap" />
+            <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding CanRetry}"
+                       Text="If the device stays in its bootloader (LEDs 4 and 5 blink), Retry installs the firmware again." />
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+              <Button Content="Close" Command="{Binding CloseCommand}" b:DialogKeys.IsCancel="True" />
+              <Button Classes="accent" Content="Retry" Command="{Binding RetryCommand}" IsVisible="{Binding CanRetry}"
+                      b:DialogKeys.IsDefault="True" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+  </Grid>
+</UserControl>

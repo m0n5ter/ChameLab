@@ -1,0 +1,239 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:conv="using:ChameLab.Converters"
+             xmlns:b="using:ChameLab.Behaviors"
+             x:Class="ChameLab.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+  <UserControl.Styles>
+    <!-- Empty slots are faded in the slot strip. -->
+    <Style Selector="Border.slotnum.empty:not(.active)">
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel Classes="page">
+
+      <!-- Header -->
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="2">
+          <TextBlock Text="Dashboard" Classes="h1" />
+          <TextBlock Classes="caption" Text="Device overview and status." />
+        </StackPanel>
+        <Button Grid.Column="1" Command="{Binding RefreshCommand}" VerticalAlignment="Center"
+                ToolTip.Tip="Reload device information">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.refresh}" />
+            <TextBlock Text="Refresh" Classes="wide-only" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <!-- Hero: battery + mode -->
+      <UniformGrid Classes="cols2">
+        <Border Classes="card">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+            <!-- Ring gauge -->
+            <Panel Grid.Column="0" Width="96" Height="96" VerticalAlignment="Center">
+              <Ellipse StrokeThickness="9" Stroke="{actipro:ThemeResource Container3BackgroundBrush}" />
+              <Arc StartAngle="-90" StrokeThickness="9" StrokeLineCap="Round"
+                   SweepAngle="{Binding Battery?.Percent, Converter={x:Static conv:PercentToSweepConverter.Instance}}"
+                   Stroke="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                   IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26"
+                        Foreground="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                        IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26" Opacity="0.35"
+                        IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+            </Panel>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+              <TextBlock Text="BATTERY" Classes="overline" />
+              <TextBlock Text="{Binding Battery?.Percent, StringFormat='{}{0}%'}"
+                         FontSize="34" FontWeight="Bold"
+                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock Classes="caption"
+                         Text="{Binding Battery?.Volts, StringFormat='{}{0:F2} V'}"
+                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock Text="Not available" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"
+                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+              <TextBlock Text="This model has no battery gauge." Classes="caption"
+                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="OPERATING MODE" Classes="overline" />
+            <Border Classes="segmented">
+              <UniformGrid Columns="2">
+                <RadioButton Classes="segment" GroupName="DeviceMode"
+                             IsChecked="{Binding ReaderMode, Converter={x:Static conv:InverseBoolConverter.Instance}}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <PathIcon Data="{StaticResource Icon.card}" />
+                    <TextBlock Text="Emulator" FontWeight="SemiBold" VerticalAlignment="Center" />
+                  </StackPanel>
+                </RadioButton>
+                <RadioButton Classes="segment" GroupName="DeviceMode" IsChecked="{Binding ReaderMode}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <PathIcon Data="{StaticResource Icon.scan}" />
+                    <TextBlock Text="Reader" FontWeight="SemiBold" VerticalAlignment="Center" />
+                  </StackPanel>
+                </RadioButton>
+              </UniformGrid>
+            </Border>
+            <TextBlock Classes="caption" IsVisible="{Binding !ReaderMode}"
+                       Text="The device presents the active slot to readers as a card." />
+            <TextBlock Classes="caption" IsVisible="{Binding ReaderMode}"
+                       Text="The device scans external cards and tags." />
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <!-- Active slot: the eight slots with their LED colours; arrows step through the filled ones -->
+      <Border Classes="card">
+        <StackPanel Spacing="14">
+          <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+            <Border Grid.Column="0" Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.slots}" /></Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+              <TextBlock Text="ACTIVE SLOT" Classes="overline" />
+              <TextBlock Text="{Binding ActiveSummary}" Classes="caption" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Button Grid.Column="2" Classes="icon" Command="{Binding PrevSlotCommand}" VerticalAlignment="Center"
+                    ToolTip.Tip="Previous filled slot">
+              <PathIcon Data="{StaticResource Icon.back}" />
+            </Button>
+            <Button Grid.Column="3" Classes="icon" Command="{Binding NextSlotCommand}" VerticalAlignment="Center"
+                    ToolTip.Tip="Next filled slot">
+              <PathIcon Data="{StaticResource Icon.back}" RenderTransform="scaleX(-1)" />
+            </Button>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding Slots}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><UniformGrid Columns="8" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SlotItemViewModel">
+                <Button Classes="slot" Margin="3" ToolTip.Tip="{Binding Summary}"
+                        Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).SelectSlotCommand}"
+                        CommandParameter="{Binding}">
+                  <Border Classes="slotcard" Classes.active="{Binding IsActive}" Padding="4,8">
+                    <StackPanel Spacing="6" HorizontalAlignment="Center">
+                      <Border Classes="slotnum" Classes.active="{Binding IsActive}" Classes.empty="{Binding IsEmpty}" Width="30" Height="30"
+                              CornerRadius="15" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding Index}" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                      <!-- The LED colours of the slot's cards, HF then LF. -->
+                      <StackPanel Orientation="Horizontal" Spacing="4" Height="8" HorizontalAlignment="Center">
+                        <Ellipse Width="8" Height="8" IsVisible="{Binding HasHf}"
+                                 Fill="{Binding HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                        <Ellipse Width="8" Height="8" IsVisible="{Binding HasLf}"
+                                 Fill="{Binding LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Device identity -->
+      <Border Classes="card">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Border Classes="iconwell green">
+              <PathIcon Data="{StaticResource Icon.info}" />
+            </Border>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="{Binding Info?.ModelName, TargetNullValue='Device'}" Classes="h2" />
+              <TextBlock Classes="caption" Text="Hardware and firmware identity" />
+            </StackPanel>
+          </StackPanel>
+
+          <UniformGrid Classes="cols2">
+            <Border Classes="inset">
+              <StackPanel Spacing="2">
+                <TextBlock Text="FIRMWARE" Classes="overline" />
+                <TextBlock Text="{Binding Info?.FirmwareVersion, TargetNullValue='—'}" Classes="value" />
+              </StackPanel>
+            </Border>
+            <Border Classes="inset">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="GIT VERSION" Classes="overline" />
+                  <TextBlock Text="{Binding Info?.GitVersion, TargetNullValue='—'}" Classes="value mono" />
+                </StackPanel>
+                <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
+                        b:CopyToClipboard.Text="{Binding Info?.GitVersion}">
+                  <PathIcon Data="{StaticResource Icon.copy}" />
+                </Button>
+              </Grid>
+            </Border>
+            <Border Classes="inset">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="CHIP ID" Classes="overline" />
+                  <TextBlock Text="{Binding Info?.ChipId, TargetNullValue='—'}" Classes="value mono" />
+                </StackPanel>
+                <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
+                        b:CopyToClipboard.Text="{Binding Info?.ChipId}">
+                  <PathIcon Data="{StaticResource Icon.copy}" />
+                </Button>
+              </Grid>
+            </Border>
+            <Border Classes="inset">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="BLE ADDRESS" Classes="overline" />
+                  <TextBlock Text="{Binding Info?.Address, TargetNullValue='—'}" Classes="value mono" />
+                </StackPanel>
+                <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
+                        b:CopyToClipboard.Text="{Binding Info?.Address}">
+                  <PathIcon Data="{StaticResource Icon.copy}" />
+                </Button>
+              </Grid>
+            </Border>
+          </UniformGrid>
+        </StackPanel>
+      </Border>
+
+      <!-- Firmware updates -->
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+            <Border Grid.Column="0" Classes="iconwell blue" VerticalAlignment="Center">
+              <PathIcon Data="{StaticResource Icon.upload}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+              <TextBlock Text="FIRMWARE UPDATE" Classes="overline" />
+              <TextBlock Text="{Binding Firmware.CurrentVersion, StringFormat='Installed: {0}'}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Firmware.CheckMessage}" Classes="caption" TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="2" Classes="icon" VerticalAlignment="Center"
+                    Command="{Binding Firmware.CheckCommand}" ToolTip.Tip="Check GitHub for a newer release">
+              <PathIcon Data="{StaticResource Icon.refresh}" />
+            </Button>
+          </Grid>
+          <WrapPanel ItemSpacing="8" LineSpacing="8">
+            <Button Classes="accent" Command="{Binding Firmware.InstallLatestCommand}"
+                    IsVisible="{Binding Firmware.CanInstallLatest}">
+              <TextBlock Text="{Binding Firmware.Latest?.Tag, StringFormat='Update to {0}'}" />
+            </Button>
+            <Button Content="Release notes" Command="{Binding Firmware.OpenReleaseCommand}"
+                    IsVisible="{Binding Firmware.IsUpdateAvailable}" />
+            <Button Content="Install from file…" Command="{Binding Firmware.InstallFromFileCommand}"
+                    IsVisible="{Binding Firmware.CanInstall}"
+                    ToolTip.Tip="Install a DFU package (ultra-dfu-app.zip / lite-dfu-app.zip)" />
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
