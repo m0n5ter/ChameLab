@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
+using Android.Views;
 using Avalonia.Android;
 
 namespace ChameLab.Android;
@@ -12,7 +13,14 @@ namespace ChameLab.Android;
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
-    ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
+    // Before Android 15 the window shrinks above the keyboard instead of panning; from 15 the app
+    // draws under it and MainView keeps clear of it itself.
+    WindowSoftInputMode = SoftInput.AdjustResize,
+    // Rotation, split screen and a keyboard coming or going resize the view instead of recreating
+    // the activity, which would drop the connection and whatever is open.
+    ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode
+                           | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize
+                           | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden | ConfigChanges.Navigation)]
 public class MainActivity : AvaloniaMainActivity
 {
     private const int BlePermissionRequest = 1001;
