@@ -15,8 +15,13 @@ internal static partial class WebSerialInterop
     private static Task? _import;
 
     public static Task EnsureModuleAsync() =>
-        // Resolve from the app root; the runtime's module base is "/_framework/".
-        _import ??= JSHost.ImportAsync("serial", "/serial.js");
+        // Resolve against the page, not the site root: the app may be hosted in a
+        // sub-path (GitHub Pages serves it from /ChameLab/app/), and a relative URL
+        // would resolve against the runtime's "_framework/" folder instead.
+        _import ??= JSHost.ImportAsync("serial", new Uri(new Uri(PageBaseUri()), "serial.js").AbsoluteUri);
+
+    private static string PageBaseUri() =>
+        JSHost.GlobalThis.GetPropertyAsJSObject("document")!.GetPropertyAsString("baseURI")!;
 
     [JSImport("isSupported", "serial")]
     public static partial bool IsSupported();
@@ -126,14 +131,20 @@ public sealed class WebSerialScanner : ITransportScanner
         if (!WebSerialInterop.IsSupported())
             return Array.Empty<TransportCandidate>();
 
-        var count = await WebSerialInterop.ListGranted();
-        if (count == 0)
+        var list = await ListChameleonsAsync();
+        if (list.Count == 0)
         {
-            // Prompt the chooser; a cancelled dialog simply yields no device.
+            // No Chameleon among the granted ports (none granted yet, or only other
+            // devices): prompt the chooser. A cancelled dialog simply yields no device.
             await WebSerialInterop.RequestPort();
-            count = await WebSerialInterop.ListGranted();
+            list = await ListChameleonsAsync();
         }
+        return list;
+    }
 
+    private static async Task<List<TransportCandidate>> ListChameleonsAsync()
+    {
+        var count = await WebSerialInterop.ListGranted();
         var list = new List<TransportCandidate>(count);
         for (var i = 0; i < count; i++)
         {
