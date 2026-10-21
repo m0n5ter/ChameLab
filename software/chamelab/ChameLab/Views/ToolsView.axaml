@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:b="using:ChameLab.Behaviors"
+             x:Class="ChameLab.Views.ToolsView"
+             x:DataType="vm:ToolsViewModel">
+
+  <ScrollViewer>
+    <StackPanel Classes="page" MaxWidth="860">
+
+      <StackPanel Spacing="2">
+        <TextBlock Text="Tools" Classes="h1" />
+        <TextBlock Classes="caption" Text="Recover MIFARE Classic keys from a reader with mfkey32." />
+      </StackPanel>
+
+      <!-- mfkey32 -->
+      <Border Classes="card">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Border Classes="iconwell amber"><PathIcon Data="{StaticResource Icon.key}" /></Border>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="mfkey32" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" TextWrapping="Wrap" MaxWidth="620"
+                         Text="Emulate a MIFARE Classic card, let a reader try to authenticate, then recover the key from the captured nonces." />
+            </StackPanel>
+          </StackPanel>
+
+          <Border Classes="inset">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Collect nonces" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Enable detection on the active slot, then present it to the reader." />
+              </StackPanel>
+              <ToggleSwitch Grid.Column="1" IsChecked="{Binding DetectionEnabled}" />
+            </Grid>
+          </Border>
+
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="accent" Command="{Binding RefreshCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.refresh}" /><TextBlock Text="Refresh nonces" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding ClearCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" /><TextBlock Text="Clear" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+          <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="Wrap" />
+
+          <ItemsControl ItemsSource="{Binding Groups}" IsVisible="{Binding HasGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:NonceGroupViewModel">
+                <Border Classes="inset" Margin="0,4">
+                  <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{Binding Header}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Status}" Classes="caption" />
+                      </StackPanel>
+                      <Button Grid.Column="1" Classes="accent" VerticalAlignment="Center"
+                              IsVisible="{Binding HasEnough}" b:CopyToClipboard.Text="{Binding Command}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <PathIcon Data="{StaticResource Icon.copy}" />
+                          <TextBlock Text="Copy mfkey32v2" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </Button>
+                    </Grid>
+                    <SelectableTextBlock Text="{Binding Command}" Classes="mono" FontSize="12"
+                                         TextWrapping="Wrap" IsVisible="{Binding HasEnough}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <Border Classes="inset" IsVisible="{Binding HasGroups}">
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="Run the copied command with the recovery tool in software/src (mfkey32v2) or in Proxmark to get the key, then add it to a dictionary." />
+          </Border>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

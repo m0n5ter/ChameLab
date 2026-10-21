@@ -1,0 +1,170 @@
+name: GUI build
+
+on:
+  workflow_call:
+    inputs:
+      checkout-sha:
+        required: false
+        type: string
+
+jobs:
+  version:
+    name: Work out the GUI version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      code: ${{ steps.version.outputs.code }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Work out the version
+        id: version
+        run: |
+          # v2.3.0 -> 2.3.0, commits after it -> 2.3.0-dev.N; no tag at all -> 0.0.0-dev
+          # code is the Android versionCode: MMmmpp + commits, so every build installs over the last
+          desc=$(git describe --tags --match 'v*.*' 2>/dev/null || true)
+          if [[ $desc =~ ^v([0-9]+)\.([0-9]+)(\.([0-9]+))?(-([0-9]+)-g[0-9a-f]+)?$ ]]; then
+            major=${BASH_REMATCH[1]} minor=${BASH_REMATCH[2]} patch=${BASH_REMATCH[4]:-0} commits=${BASH_REMATCH[6]:-0}
+          else
+            major=0 minor=0 patch=0 commits=0
+          fi
+          version=$major.$minor.$patch
+          [[ $commits != 0 || -z $desc ]] && version=$version-dev.$commits
+          (( commits > 99 )) && commits=99
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "code=$(( major * 1000000 + minor * 10000 + patch * 100 + commits ))" >> "$GITHUB_OUTPUT"
+
+  build_desktop:
+    name: Build GUI (${{ matrix.rid }})
+    runs-on: ubuntu-latest
+    needs: version
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        rid: [win-x64, linux-x64, osx-arm64, osx-x64]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish
+        run: >
+          dotnet publish software/chamelab/ChameLab.Desktop/ChameLab.Desktop.csproj
+          -c Release -r ${{ matrix.rid }} --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:Version=${{ needs.version.outputs.version }}
+          -o publish
+      - name: Zip up GUI for release
+        # The assembly can't be called ChameLab (that's the shared library), so only the
+        # single-file executable is renamed
+        run: |
+          for f in publish/ChameLab.Desktop publish/ChameLab.Desktop.exe; do
+            [[ -e $f ]] && mv "$f" "${f/ChameLab.Desktop/ChameLab}"
+          done
+          (cd publish && zip -r "$OLDPWD/chamelab-${{ matrix.rid }}.zip" . -x '*.pdb')
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-artifacts-gui-${{ matrix.rid }}
+          path: chamelab-${{ matrix.rid }}.zip
+
+  build_browser:
+    name: Build GUI (browser)
+    runs-on: ubuntu-latest
+    needs: version
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install the WebAssembly workload
+        # Links SkiaSharp's native assets into the WASM output
+        run: dotnet workload install wasm-tools
+      - name: Publish
+        run: >
+          dotnet publish software/chamelab/ChameLab.Browser/ChameLab.Browser.csproj
+          -c Release
+          -p:Version=${{ needs.version.outputs.version }}
+          -o publish
+      - name: Upload the web app
+        uses: actions/upload-artifact@v7
+        with:
+          name: gui-browser
+          path: publish/wwwroot
+
+  build_android:
+    name: Build GUI (android)
+    runs-on: ubuntu-latest
+    needs: version
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install the Android workload
+        run: dotnet workload install android
+      - name: Prepare the signing key
+        id: signing
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          # Without the secrets the APK gets the SDK's throwaway debug key: it installs,
+          # but can't be updated in place by an APK signed on another runner.
+          if [[ -n $KEYSTORE ]]; then
+            echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            {
+              echo "args=-p:AndroidKeyStore=true -p:AndroidSigningKeyStore=$RUNNER_TEMP/release.keystore -p:AndroidSigningKeyAlias=$KEY_ALIAS -p:AndroidSigningKeyPass=env:KEYSTORE_PASSWORD -p:AndroidSigningStorePass=env:KEYSTORE_PASSWORD"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 is not set, the APK is signed with a debug key"
+          fi
+      - name: Publish
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: >
+          dotnet publish software/chamelab/ChameLab.Android/ChameLab.Android.csproj
+          -c Release -f net10.0-android
+          -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }}
+          -p:ApplicationVersion=${{ needs.version.outputs.code }}
+          ${{ steps.signing.outputs.args }}
+          -o publish
+      - name: Name the APK for release
+        run: cp publish/*-Signed.apk chamelab-android.apk
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-artifacts-gui-android
+          path: chamelab-android.apk

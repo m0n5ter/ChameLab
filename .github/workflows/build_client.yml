@@ -1,0 +1,62 @@
+# This is just a placeholder while the whole PyInstaller thing gets figured out
+name: Client build
+
+on:
+  workflow_call:
+    inputs:
+      checkout-sha:
+        required: false
+        type: string
+
+jobs:
+  build_client:
+    name: Build client
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        # Hosted macOS runners are often not available at all, so macOS is only built for tagged releases
+        name: ${{ fromJSON(startsWith(github.ref, 'refs/tags/v') && '["windows", "linux", "macos"]' || '["windows", "linux"]') }}
+    runs-on: ${{ matrix.name == 'linux' && 'ubuntu' || matrix.name }}-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install PyInstaller and client dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r software/script/requirements.txt
+      - name: Compile native code
+        run: |
+          cd software/src
+          mkdir out
+          cd out
+          cmake ..
+          cmake --build . --config Release
+      - name: Run PyInstaller
+        run: |
+          cd software
+          pyinstaller pyinstaller.spec
+      - name: Upload built client
+        uses: actions/upload-artifact@v7
+        with:
+          name: client-${{ matrix.name }}
+          path: software/dist/*
+      - name: Zip up client for release
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path software\dist\* -DestinationPath client-windows.zip
+      - name: Zip up client for release
+        if: runner.os != 'Windows'
+        run: (cd software/dist && zip -r "$OLDPWD/client-${{ matrix.name }}.zip" .)
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-artifacts-${{ matrix.name }}
+          path: client-${{ matrix.name }}.zip

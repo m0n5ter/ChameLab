@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ChameLab.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:ChameLab.Views"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
+        x:Class="ChameLab.Views.MainWindow"
+        Icon="/Assets/chameleon.ico"
+        Width="1280" Height="760" MinWidth="380" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        Title="ChameLab">
+        <views:MainView />
+</Window>

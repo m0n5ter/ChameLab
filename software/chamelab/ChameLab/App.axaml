@@ -1,0 +1,46 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             xmlns:generation="using:ActiproSoftware.UI.Avalonia.Themes.Generation"
+             xmlns:local="clr-namespace:ChameLab"
+             x:Class="ChameLab.App"
+             Name="ChameLab"
+             RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <actipro:ModernTheme>
+            <actipro:ModernTheme.Definition>
+                <generation:ThemeDefinition AccentColorRampName="Emerald" />
+            </actipro:ModernTheme.Definition>
+        </actipro:ModernTheme>
+        <StyleInclude Source="avares://ChameLab/Styles/ControlStyles.axaml" />
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://ChameLab/Styles/Icons.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Fixed brand colours (HF blue, LF amber, red); the main accent comes from the Actipro theme. Soft variants are translucent so
+                 they sit well on both light and dark surfaces. -->
+            <Color x:Key="BrandBlue">#3DA9FC</Color>
+            <Color x:Key="BrandAmber">#F6A623</Color>
+            <Color x:Key="BrandRed">#E5484D</Color>
+            <SolidColorBrush x:Key="BrandBlueBrush" Color="{StaticResource BrandBlue}" />
+            <SolidColorBrush x:Key="BrandAmberBrush" Color="{StaticResource BrandAmber}" />
+            <SolidColorBrush x:Key="BrandRedBrush" Color="{StaticResource BrandRed}" />
+            <SolidColorBrush x:Key="BrandBlueSoftBrush" Color="#2E3DA9FC" />
+            <SolidColorBrush x:Key="BrandAmberSoftBrush" Color="#2EF6A623" />
+            <SolidColorBrush x:Key="HexKeyBBrush" Color="#B07CF5" />
+            <LinearGradientBrush x:Key="BrandLogoBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0" Color="#3BE08A" />
+                <GradientStop Offset="1" Color="#17A2B8" />
+            </LinearGradientBrush>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
