@@ -25,7 +25,7 @@ public sealed class SlotItemViewModel : ViewModelBase
         foreach (var name in new[]
                  {
                      nameof(Info), nameof(HfNick), nameof(LfNick), nameof(HfType), nameof(LfType),
-                     nameof(HasHf), nameof(HasLf), nameof(IsEmpty), nameof(HfLed), nameof(LfLed),
+                     nameof(HasHf), nameof(HasLf), nameof(IsEmpty), nameof(HfLed), nameof(LfLed), nameof(LedLeft), nameof(LedRight),
                      nameof(HfLabel), nameof(LfLabel), nameof(Summary),
                  })
             this.RaisePropertyChanged(name);
@@ -48,6 +48,10 @@ public sealed class SlotItemViewModel : ViewModelBase
     /// <summary>The LED colour the device shows for each card (#RRGGBB), null when the frequency is empty.</summary>
     public string? HfLed => SlotColors.Effective(_info, HasHf, HasLf).Hf;
     public string? LfLed => SlotColors.Effective(_info, HasHf, HasLf).Lf;
+
+    /// <summary>The two halves of a split LED dot: HF left, LF right; a single card fills both.</summary>
+    public string? LedLeft => HfLed ?? LfLed;
+    public string? LedRight => LfLed ?? HfLed;
 
     public string HfLabel => HasHf
         ? (!string.IsNullOrEmpty(_info.HfNick) ? _info.HfNick : _info.HfType.DisplayName())
