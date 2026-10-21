@@ -146,28 +146,6 @@
     <Style Selector="c|ActionRow > :is(Control).iconic > StackPanel > TextBlock">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector="Border.savebar">
-      <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="12" />
-      <Setter Property="Padding" Value="14,10" />
-      <Setter Property="Margin" Value="0,12,0,0" />
-    </Style>
-    <Style Selector="Border.lightbox">
-      <Setter Property="Background" Value="#73000000" />
-      <Setter Property="Opacity" Value="0" />
-      <Setter Property="IsHitTestVisible" Value="False" />
-      <Setter Property="Transitions">
-        <Transitions>
-          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-        </Transitions>
-      </Setter>
-    </Style>
-    <Style Selector="Border.lightbox.on">
-      <Setter Property="Opacity" Value="1" />
-      <Setter Property="IsHitTestVisible" Value="True" />
-    </Style>
   </UserControl.Styles>
 
   <!-- 600 is what the memory editor needs for 16 bytes per line plus the ASCII column. -->
@@ -295,7 +273,9 @@
     <!-- ==================== Add / edit pane ==================== -->
     <Grid Classes="detailpane" RowDefinitions="Auto,*,Auto">
       <!-- ===================== Card header + actions (saved or new card; stays in view) ===================== -->
-      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowCardHeader}">
+      <!-- Disabled under the lightbox so Tab can't reach it. -->
+      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowCardHeader}"
+              IsEnabled="{Binding !IsAsking}">
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,Auto,*">
             <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
@@ -391,7 +371,7 @@
         </StackPanel>
       </Border>
 
-      <ScrollViewer x:Name="PaneScroll" Grid.Row="1">
+      <ScrollViewer x:Name="PaneScroll" Grid.Row="1" IsEnabled="{Binding !IsAsking}">
         <StackPanel Classes="panestack">
 
           <!-- Nothing open (desktop only) -->
@@ -891,7 +871,7 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Lightbox: dims and blocks the editor while a question in the bar waits for an answer. -->
+      <!-- Lightbox: dims and blocks the editor while a question waits for an answer. -->
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="lightbox" Classes.on="{Binding IsAsking}" CornerRadius="12" />
 
       <!-- ===================== Save bar (stays in view) ===================== -->
@@ -936,14 +916,14 @@
         </c:ActionBar>
       </Border>
       <!-- Switching card, closing or adding with unsaved work: save, drop it, or stay. -->
-      <Border Grid.Row="2" Classes="savebar" IsVisible="{Binding IsConfirmingLeave}">
+      <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsConfirmingLeave}">
         <c:ActionBar>
           <TextBlock Text="{Binding LeaveText}" VerticalAlignment="Center"
                      FontWeight="SemiBold" TextWrapping="Wrap" />
-          <Button Content="Cancel" Command="{Binding StayCommand}"
+          <Button Content="Cancel" Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
                   ToolTip.Tip="Keep editing this card" />
           <Button Content="Discard" Command="{Binding DiscardAndLeaveCommand}" />
-          <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}">
+          <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}" b:DialogKeys.IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.save}" />
               <TextBlock Text="Save" VerticalAlignment="Center" />
@@ -952,7 +932,7 @@
         </c:ActionBar>
       </Border>
       <!-- Saved a card that is loaded in slots: optionally push the new version to the device. -->
-      <Border Grid.Row="2" Classes="savebar">
+      <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog">
         <Border.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">
             <Binding Path="IsAskingSlotUpdate" />
@@ -962,14 +942,14 @@
         <c:ActionBar>
           <TextBlock Text="{Binding SlotUpdateText}" VerticalAlignment="Center"
                      FontWeight="SemiBold" TextWrapping="Wrap" />
-          <Button Content="Not now" Command="{Binding SkipSlotUpdateCommand}"
+          <Button Content="Not now" Command="{Binding SkipSlotUpdateCommand}" b:DialogKeys.IsCancel="True"
                   ToolTip.Tip="Keep the old version in the slots" />
-          <Button Classes="accent" Content="Update" Command="{Binding UpdateSlotsCommand}"
+          <Button Classes="accent" Content="Update" Command="{Binding UpdateSlotsCommand}" b:DialogKeys.IsDefault="True"
                   ToolTip.Tip="Upload the saved card to these slots" />
         </c:ActionBar>
       </Border>
-      <!-- Delete: asked here like the other questions, and wins over the save bar while open. -->
-      <Border Grid.Row="2" Classes="savebar">
+      <!-- Delete: asked like the other questions, and wins over the save bar while open. -->
+      <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog">
         <Border.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">
             <Binding Path="IsConfirmingDelete" />
@@ -979,8 +959,8 @@
         <c:ActionBar>
           <TextBlock Text="Delete this card permanently?" VerticalAlignment="Center"
                      FontWeight="SemiBold" TextWrapping="Wrap" />
-          <Button Content="Cancel" Command="{Binding CloseActionCommand}" />
-          <Button Classes="danger solid" Command="{Binding ConfirmDeleteCommand}">
+          <Button Content="Cancel" Command="{Binding CloseActionCommand}" b:DialogKeys.IsCancel="True" />
+          <Button Classes="danger solid" Command="{Binding ConfirmDeleteCommand}" b:DialogKeys.IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.delete}" />
               <TextBlock Text="Delete" VerticalAlignment="Center" />
