@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Avalonia.Media;
+using ChameLab.Converters;
 using ChameLab.Models;
 using ChameLab.Protocol;
 
@@ -25,8 +26,7 @@ public sealed class CardItemViewModel : ViewModelBase
     public string AtqaHex => Card.Atqa.Length == 0 ? "-" : Hex.Spaced(Card.Atqa);
     public string AtsHex => Card.Ats.Length == 0 ? "-" : Hex.Spaced(Card.Ats);
 
-    public IBrush ColorBrush =>
-        Color.TryParse(Card.Color, out var c) ? new SolidColorBrush(c) : Brushes.OrangeRed;
+    public IBrush ColorBrush => HexBrushConverter.Brush(Card.Color) ?? Brushes.OrangeRed;
 
     public bool HasData => Card.Data.Any(d => d.Length > 0);
 

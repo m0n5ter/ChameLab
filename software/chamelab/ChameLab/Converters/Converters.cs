@@ -3,6 +3,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Transport;
 using ChameLab.ViewModels;
@@ -108,13 +109,18 @@ public sealed class BatteryBrushConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary><c>#RRGGBB</c> string → solid brush (card colour swatches).</summary>
+/// <summary>
+/// <c>#RRGGBB</c> card / LED colour → solid brush, toned down the way the app shows card
+/// colours (<see cref="SlotColors.Muted"/>); the device gets the colour itself.
+/// </summary>
 public sealed class HexBrushConverter : IValueConverter
 {
     public static readonly HexBrushConverter Instance = new();
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is string s && Color.TryParse(s, out var c) ? new SolidColorBrush(c) : null;
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => Brush(value as string);
+
+    public static IBrush? Brush(string? color) =>
+        color is not null && Color.TryParse(SlotColors.Muted(color), out var c) ? new SolidColorBrush(c) : null;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
