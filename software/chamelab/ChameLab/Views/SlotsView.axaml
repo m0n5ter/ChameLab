@@ -157,12 +157,13 @@
         <Button Classes="cardtile" IsVisible="{Binding HasMatch}" Command="{Binding OpenCardCommand}"
                 ToolTip.Tip="Open this card in Cards">
           <Border Classes="cardclip">
-            <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
-              <Border Grid.Column="0" Background="{Binding Match.ColorBrush, FallbackValue={x:Null}}" />
+            <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14"
+                  DataContext="{Binding Match}" x:DataType="vm:CardItemViewModel">
+              <Border Grid.Column="0" Background="{Binding ColorBrush}" />
               <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-                <TextBlock Text="{Binding Match.Name, FallbackValue={x:Null}}" FontWeight="SemiBold" FontSize="15"
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
                            TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding Match.Summary, FallbackValue={x:Null}}" Classes="caption" TextWrapping="NoWrap"
+                <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
                            TextTrimming="CharacterEllipsis" />
               </StackPanel>
               <PathIcon Grid.Column="2" Data="{StaticResource Icon.edit}" Width="16" Height="16" Opacity="0.6"
@@ -434,9 +435,8 @@
       </Border>
       <!-- Choosing a saved card for a frequency: search, then click one. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Name="PickerDialog" Classes="savebar dialog picker"
-              IsVisible="{Binding Editor.IsPicking, FallbackValue=False}">
-        <Grid DataContext="{Binding Editor}" x:DataType="vm:SlotEditorViewModel"
-              RowDefinitions="Auto,Auto,*" RowSpacing="10">
+              DataContext="{Binding Editor}" x:DataType="vm:SlotEditorViewModel" IsVisible="{Binding IsPicking}">
+        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="{Binding PickerTitle}" FontWeight="SemiBold" VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis" />
