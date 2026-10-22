@@ -28,6 +28,8 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     private SlotEditorViewModel? _editor;
     private bool _isConnected;
     private bool _rebuilding;
+    private bool _isSinglePane;
+    private bool _autoOpened;
     private string? _progressText;
 
     // Page margins 56 + list 280 + gap 18 + details 420 (see SlotsView).
@@ -149,9 +151,10 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         }
     }
 
-    private void SetSelected(SlotItemViewModel? value)
+    private void SetSelected(SlotItemViewModel? value, bool auto = false)
     {
         if (ReferenceEquals(value, _selected)) return;
+        _autoOpened = auto && value is not null;
         this.RaiseAndSetIfChanged(ref _selected, value, nameof(Selected));
         if (value is null) Editor = null;
         else OpenEditor(value);
@@ -200,10 +203,31 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             }
             RaiseListState();
             if (reopen && _selected is { } open) OpenEditor(open);
-            // Nothing open yet: start on the slot the device has active.
-            else if (_selected is null && Slots.FirstOrDefault(s => s.IsActive) is { } active) SetSelected(active);
+            else OpenActiveIfIdle();
         });
     });
+
+    // Nothing open yet: start on the slot the device has active. Only beside the list; on a
+    // narrow screen the details would cover it, so the list comes first there.
+    private void OpenActiveIfIdle()
+    {
+        if (_selected is null && !_isSinglePane && Slots.FirstOrDefault(s => s.IsActive) is { } active)
+            SetSelected(active, auto: true);
+    }
+
+    /// <summary>The list and the details show one at a time (set by the view from its layout).</summary>
+    public bool IsSinglePane
+    {
+        get => _isSinglePane;
+        set
+        {
+            if (value == _isSinglePane) return;
+            _isSinglePane = value;
+            // A slot the page opened by itself would now hide the list: close it, unless it is being edited.
+            if (value && _autoOpened && _editor?.IsDirty != true) SetSelected(null);
+            else if (!value) OpenActiveIfIdle();
+        }
+    }
 
     // The editor saved something: show it in the list, keep the editor as it is.
     private void OnSlotChanged() => _ = LoadAsync(reopen: false);

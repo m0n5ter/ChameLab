@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using ChameLab.Behaviors;
+using ChameLab.ViewModels;
 
 namespace ChameLab.Views;
 
@@ -19,6 +20,14 @@ public partial class SlotsView : UserControl
             if (e.Property == IsVisibleProperty && PickerDialog.IsVisible)
                 Dispatcher.UIThread.Post(() => PickerSearch.Focus(), DispatcherPriority.Background);
         };
+        // The page only opens a slot by itself while the list and the details fit side by side.
+        Split.Classes.CollectionChanged += (_, _) => SyncSinglePane();
+        DataContextChanged += (_, _) => SyncSinglePane();
+    }
+
+    private void SyncSinglePane()
+    {
+        if (DataContext is SlotsViewModel vm) vm.IsSinglePane = Split.Classes.Contains("single");
     }
 
     // Picking a swatch closes the palette flyout it lives in.
