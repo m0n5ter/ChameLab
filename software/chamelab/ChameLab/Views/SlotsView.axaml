@@ -170,7 +170,7 @@
           <Border Grid.Column="2" Classes="segmented ledmode">
             <StackPanel Orientation="Horizontal">
               <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
-                           ToolTip.Tip="The firmware's own HF / LF colour">
+                           ToolTip.Tip="The firmware's own colour: green for HF, blue for LF, red for a slot with both">
                 <TextBlock Text="Default" FontWeight="SemiBold" />
               </RadioButton>
               <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"

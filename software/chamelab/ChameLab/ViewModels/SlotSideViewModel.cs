@@ -215,7 +215,18 @@ public sealed class SlotSideViewModel : ViewModelBase
     public string? EffectiveColor => ColorOf(_colorMode, _customColor);
 
     /// <summary>The colour the slot LED shows for the card.</summary>
-    public string LedPreview => EffectiveColor ?? (IsHf ? SlotColors.DefaultHf : SlotColors.DefaultLf);
+    public string LedPreview => EffectiveColor
+        ?? (Partner is { } other && IsLit && other.IsLit && other.EffectiveColor is null ? SlotColors.DefaultDual
+            : IsHf ? SlotColors.DefaultHf : SlotColors.DefaultLf);
+
+    /// <summary>The other frequency of the slot: two cards without colours of their own light the LED red.</summary>
+    public SlotSideViewModel? Partner { get; set; }
+
+    // The firmware counts a card for the LED only while it is enabled.
+    private bool IsLit => HasCard && _enabled;
+
+    /// <summary>The other frequency changed, which may change this one's default colour.</summary>
+    public void RaiseLed() => this.RaisePropertyChanged(nameof(LedPreview));
 
     private string? ColorOf(SlotColorMode mode, string custom) => mode switch
     {
