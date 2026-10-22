@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project uses the changelog in accordance with [keepchangelog](http://keepachangelog.com/). Please use this to write notable changes, which is not the same as git commit log...
 
 ## [unreleased][unreleased]
+
+## [v2.3.0][2026-10-23]
  - Fix wrong data reported by hf 14a sniff on frames containing more than 7 parity bits (@DidierA)
  - Added MIFARE Ultralight C authentication and emulation (@Foxushka)
  - Added per-card slot LED colors: the RGB lines are driven by PWM to show any color, a slot holding an HF and an LF card alternates between their colors; new `DATA_CMD_SET_SLOT_COLOR` / `DATA_CMD_GET_ALL_SLOT_COLORS` and `hw slot color`
