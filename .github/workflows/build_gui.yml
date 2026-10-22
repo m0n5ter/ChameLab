@@ -36,7 +36,8 @@ jobs:
           fi
           version=$major.$minor.$patch
           [[ $commits != 0 || -z $desc ]] && version=$version-dev.$commits
-          (( commits > 99 )) && commits=99
+          # After a tag the commits only fill the pp slot; untagged, they are the whole code
+          [[ -n $desc ]] && (( commits > 99 )) && commits=99
           code=$(( major * 1000000 + minor * 10000 + patch * 100 + commits ))
           # Android rejects a versionCode below 1
           (( code < 1 )) && code=1
