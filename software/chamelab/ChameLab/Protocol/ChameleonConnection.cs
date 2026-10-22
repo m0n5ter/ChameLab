@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Transport;
@@ -24,6 +25,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
     private readonly ConcurrentDictionary<Command, TaskCompletionSource<ChameleonFrame>> _pending = new();
     private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly ConcurrentDictionary<Command, SemaphoreSlim> _commandLocks = new();
     private Task? _readLoop;
 
     public ChameleonConnection(ITransport transport) => _transport = transport;
@@ -79,29 +81,41 @@ public sealed class ChameleonConnection : IAsyncDisposable
         Command cmd, byte[]? data = null, ushort status = 0,
         int timeoutMs = 3000, CancellationToken ct = default)
     {
-        var tcs = new TaskCompletionSource<ChameleonFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pending[cmd] = tcs; // replaces any stale entry, as the reference client does
-
-        var frame = FrameCodec.Encode(cmd, data ?? Array.Empty<byte>(), status);
-        await _writeLock.WaitAsync(ct);
+        // Responses carry only the command id, so two callers sending the same command at once
+        // would get each other's answer (or one would wait forever): they take turns.
+        var turn = _commandLocks.GetOrAdd(cmd, _ => new SemaphoreSlim(1, 1));
+        await turn.WaitAsync(ct);
         try
         {
-            await _transport.WriteAsync(frame, ct);
+            var tcs = new TaskCompletionSource<ChameleonFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _pending[cmd] = tcs;
+
+            var frame = FrameCodec.Encode(cmd, data ?? Array.Empty<byte>(), status);
+            await _writeLock.WaitAsync(ct);
+            try
+            {
+                await _transport.WriteAsync(frame, ct);
+            }
+            finally
+            {
+                _writeLock.Release();
+            }
+
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(timeoutMs);
+            await using var reg = timeoutCts.Token.Register(() =>
+            {
+                // Only this request's entry: a later one for the same command must not be failed.
+                _pending.TryRemove(new KeyValuePair<Command, TaskCompletionSource<ChameleonFrame>>(cmd, tcs));
+                tcs.TrySetException(new TimeoutException($"Command {cmd} timed out after {timeoutMs} ms."));
+            });
+
+            return await tcs.Task;
         }
         finally
         {
-            _writeLock.Release();
+            turn.Release();
         }
-
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeoutCts.CancelAfter(timeoutMs);
-        await using var reg = timeoutCts.Token.Register(() =>
-        {
-            if (_pending.TryRemove(cmd, out var t))
-                t.TrySetException(new TimeoutException($"Command {cmd} timed out after {timeoutMs} ms."));
-        });
-
-        return await tcs.Task;
     }
 
     /// <summary>Send a command and require one of the accepted statuses.</summary>

@@ -17,6 +17,23 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 {
     public ChameleonConnection Connection => conn;
 
+    private readonly SemaphoreSlim _slotLock = new(1, 1);
+
+    /// <summary>
+    /// Runs <paramref name="work"/> alone among callers of this method. Commands act on the active
+    /// slot, so a sequence that switches it and then reads or writes must not have another switch
+    /// it midway. Not reentrant.
+    /// </summary>
+    public Task WithSlotLockAsync(Func<Task> work, CancellationToken ct = default) =>
+        WithSlotLockAsync(async () => { await work(); return true; }, ct);
+
+    public async Task<T> WithSlotLockAsync<T>(Func<Task<T>> work, CancellationToken ct = default)
+    {
+        await _slotLock.WaitAsync(ct);
+        try { return await work(); }
+        finally { _slotLock.Release(); }
+    }
+
     // ---- Device info ---------------------------------------------------
 
     public async Task<string> GetAppVersionAsync(CancellationToken ct = default)
