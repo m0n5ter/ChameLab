@@ -65,7 +65,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
         var colors = device.DeviceInfo?.SupportsSlotColors == true;
         Hf = new SlotSideViewModel(TagSenseType.Hf, info, library, colors, OnHfChanged, OpenPicker, SaveToLibraryAsync, openCard);
-        Lf = new SlotSideViewModel(TagSenseType.Lf, info, library, colors, RaiseDirty, OpenPicker, SaveToLibraryAsync, openCard);
+        Lf = new SlotSideViewModel(TagSenseType.Lf, info, library, colors, OnLfChanged, OpenPicker, SaveToLibraryAsync, openCard);
+        Hf.Partner = Lf;
+        Lf.Partner = Hf;
         SetEmulator(Emulator.Defaults);
 
         ClosePickerCommand = ReactiveCommand.Create(ClosePicker);
@@ -124,8 +126,15 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     public bool ShowMfcSettings => ShownKind == EmulatorKind.Mfc;
     public bool ShowUlSettings => ShownKind == EmulatorKind.Ul;
 
+    private void OnLfChanged()
+    {
+        Hf.RaiseLed();
+        RaiseDirty();
+    }
+
     private void OnHfChanged()
     {
+        Lf.RaiseLed();
         // Another kind of card starts from the firmware's defaults; the saved kind gets the slot's settings back.
         var kind = TypeKind;
         if (kind != _fieldsKind)
