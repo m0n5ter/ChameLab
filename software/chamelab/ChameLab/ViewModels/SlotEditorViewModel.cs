@@ -181,8 +181,11 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     {
         var client = _device.Client;
         if (client is null) return;
-        await client.SetActiveSlotAsync(_slot);
-        await LoadEmulatorAsync(client);
+        await client.WithSlotLockAsync(async () =>
+        {
+            await client.SetActiveSlotAsync(_slot);
+            await LoadEmulatorAsync(client);
+        });
     });
 
     private async Task LoadEmulatorAsync(ChameleonClient client)
@@ -239,22 +242,25 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             var emulator = CurrentEmulator;
             var progress = new Progress<MifareProgress>(p => SetStatus($"Uploading {p.Done}/{p.Total}…"));
 
-            await client.SetActiveSlotAsync(_slot);
-            await Hf.WriteAsync(client, _slot, progress);
-            await Lf.WriteAsync(client, _slot, progress);
-            if (kind != EmulatorKind.None)
+            await client.WithSlotLockAsync(async () =>
             {
                 await client.SetActiveSlotAsync(_slot);
-                await client.ApplyEmulatorSettingsAsync(new SlotEmulatorSettings(
-                    kind == EmulatorKind.Mfc
-                        ? new Mf1EmulatorSettings(emulator.Gen1a, emulator.Gen2, emulator.BlockAntiColl,
-                            emulator.MfcDetection, emulator.MfcWriteMode, emulator.Prng, emulator.FieldOffReset)
-                        : null,
-                    kind == EmulatorKind.Ul
-                        ? new Mf0EmulatorSettings(emulator.UlUidMagic, emulator.UlWriteMode, emulator.UlDetection)
-                        : null));
-            }
-            await client.SaveSlotConfigAsync();
+                await Hf.WriteAsync(client, _slot, progress);
+                await Lf.WriteAsync(client, _slot, progress);
+                if (kind != EmulatorKind.None)
+                {
+                    await client.SetActiveSlotAsync(_slot);
+                    await client.ApplyEmulatorSettingsAsync(new SlotEmulatorSettings(
+                        kind == EmulatorKind.Mfc
+                            ? new Mf1EmulatorSettings(emulator.Gen1a, emulator.Gen2, emulator.BlockAntiColl,
+                                emulator.MfcDetection, emulator.MfcWriteMode, emulator.Prng, emulator.FieldOffReset)
+                            : null,
+                        kind == EmulatorKind.Ul
+                            ? new Mf0EmulatorSettings(emulator.UlUidMagic, emulator.UlWriteMode, emulator.UlDetection)
+                            : null));
+                }
+                await client.SaveSlotConfigAsync();
+            });
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
@@ -278,7 +284,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         var info = side.IsHf
             ? new SlotInfo { Index = _slot, HfType = side.SavedType, HfNick = side.SavedNick, HfColor = side.SavedColor }
             : new SlotInfo { Index = _slot, LfType = side.SavedType, LfNick = side.SavedNick, LfColor = side.SavedColor };
-        var card = await client.ReadCardFromSlotAsync(info, side.Sense);
+        var card = await client.WithSlotLockAsync(() => client.ReadCardFromSlotAsync(info, side.Sense));
 
         // A slot without a nick is matched to the card by the name the card got.
         var nick = ChameleonClient.SlotNickFor(card);

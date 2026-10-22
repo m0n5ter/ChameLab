@@ -317,33 +317,37 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         var (ia, ib) = (a.Index, b.Index);
         try
         {
-            var active = await client.GetActiveSlotAsync();
-            SetProgress($"Reading slot {ia}…");
-            var first = await client.ReadSlotContentAsync(a.Info, Progress($"Reading slot {ia}"));
-            SetProgress($"Reading slot {ib}…");
-            var second = await client.ReadSlotContentAsync(b.Info, Progress($"Reading slot {ib}"));
+            // An editor opening a slot meanwhile would switch the active slot under the writes.
+            await client.WithSlotLockAsync(async () =>
+            {
+                var active = await client.GetActiveSlotAsync();
+                SetProgress($"Reading slot {ia}…");
+                var first = await client.ReadSlotContentAsync(a.Info, Progress($"Reading slot {ia}"));
+                SetProgress($"Reading slot {ib}…");
+                var second = await client.ReadSlotContentAsync(b.Info, Progress($"Reading slot {ib}"));
 
-            SetProgress($"Writing slot {ib}…");
-            await client.WriteSlotContentAsync(ib, first, Progress($"Writing slot {ib}"));
-            try
-            {
-                SetProgress($"Writing slot {ia}…");
-                await client.WriteSlotContentAsync(ia, second, Progress($"Writing slot {ia}"));
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                // Slot b now holds a's content and a is half written: put b back as it was.
-                try { await client.WriteSlotContentAsync(ib, second); }
-                catch { /* the error below still tells what happened */ }
-                throw new InvalidOperationException(
-                    $"Could not write slot {ia} ({ex.Message}). Slot {ib} was restored; check slot {ia}.");
-            }
+                SetProgress($"Writing slot {ib}…");
+                await client.WriteSlotContentAsync(ib, first, Progress($"Writing slot {ib}"));
+                try
+                {
+                    SetProgress($"Writing slot {ia}…");
+                    await client.WriteSlotContentAsync(ia, second, Progress($"Writing slot {ia}"));
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    // Slot b now holds a's content and a is half written: put b back as it was.
+                    try { await client.WriteSlotContentAsync(ib, second); }
+                    catch { /* the error below still tells what happened */ }
+                    throw new InvalidOperationException(
+                        $"Could not write slot {ia} ({ex.Message}). Slot {ib} was restored; check slot {ia}.");
+                }
 
-            if (active is >= 1 and <= 8)
-            {
-                await client.SetActiveSlotAsync(active);
-                await client.SaveSlotConfigAsync();
-            }
+                if (active is >= 1 and <= 8)
+                {
+                    await client.SetActiveSlotAsync(active);
+                    await client.SaveSlotConfigAsync();
+                }
+            });
             SetStatus($"Swapped slots {ia} and {ib}.");
         }
         finally { SetProgress(null); }
@@ -351,6 +355,13 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     private void SetProgress(string? text) => Avalonia.Threading.Dispatcher.UIThread.Post(() => ProgressText = text);
 
+    // Reported in line and posted like SetProgress, so no late report can land after the final SetProgress(null)
+    // (a Progress<T> made off the UI thread reports on the thread pool, in no particular order).
     private IProgress<MifareProgress> Progress(string label) =>
-        new Progress<MifareProgress>(p => ProgressText = $"{label}: {p.Done}/{p.Total}…");
+        new InlineProgress(p => SetProgress($"{label}: {p.Done}/{p.Total}…"));
+
+    private sealed class InlineProgress(Action<MifareProgress> report) : IProgress<MifareProgress>
+    {
+        public void Report(MifareProgress value) => report(value);
+    }
 }
