@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -11,75 +12,69 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>
-/// Editor for one emulation slot: HF / LF tag type and nick, enable toggles,
-/// clear / reset, and (for the active slot) the MIFARE Classic and Ultralight
-/// emulator settings. All firmware calls act on the active slot, so the editor
-/// activates its slot before reading or writing anything. Type, nick, enable
-/// and colour edits are held until <see cref="SaveAsync"/> (see <see cref="IsDirty"/>).
+/// Editor for one emulation slot: the HF and LF card (a saved card picked from the library,
+/// or cleared), their enable flags and LED colours, and the MIFARE Classic / Ultralight
+/// emulator settings of the HF card. All firmware calls act on the active slot, so the editor
+/// activates its slot before reading or writing anything. Every edit is held until
+/// <see cref="SaveAsync"/> writes the slot to the device (see <see cref="IsDirty"/>).
 /// </summary>
 public sealed class SlotEditorViewModel : PageViewModelBase
 {
     private readonly DeviceService _device;
+    private readonly CardLibrary _library;
     private readonly int _slot;
     private readonly Action _onChanged;
 
-    private TagSpecificType _hfType;
-    private TagSpecificType _lfType;
-    private string _hfNick = string.Empty;
-    private string _lfNick = string.Empty;
-    private bool _hfEnabled;
-    private bool _lfEnabled;
-    private string? _hfColor;
-    private string? _lfColor;
+    /// <summary>The HF card's emulator settings; compared against what the slot holds.</summary>
+    private sealed record Emulator(
+        bool Gen1a, bool Gen2, bool BlockAntiColl, bool MfcDetection, bool FieldOffReset,
+        EmulatorWriteMode MfcWriteMode, MifareClassicPrngType Prng,
+        bool UlUidMagic, bool UlDetection, EmulatorWriteMode UlWriteMode)
+    {
+        // What the firmware gives a fresh card (see nfc_mf1.c / nfc_mf0_ntag.c).
+        public static readonly Emulator Defaults = new(
+            false, false, false, false, false, EmulatorWriteMode.Normal, MifareClassicPrngType.Weak,
+            false, false, EmulatorWriteMode.Normal);
+    }
 
-    /// <summary>What the slot holds on the device; the edits are compared against it.</summary>
-    private sealed record Snapshot(
-        TagSpecificType HfType, TagSpecificType LfType, string HfNick, string LfNick,
-        bool HfEnabled, bool LfEnabled, string? HfColor, string? LfColor);
+    /// <summary>Which emulator settings an HF type has.</summary>
+    private enum EmulatorKind { None, Mfc, Ul }
 
-    private Snapshot _saved;
+    private Emulator _savedEmulator = Emulator.Defaults;
+    // The kind of HF card the saved settings were read from, and of the one the fields are for.
+    private EmulatorKind _savedKind;
+    private EmulatorKind _fieldsKind;
 
-    private bool _showMfcSettings;
-    private bool _showUlSettings;
     private bool _gen1a, _gen2, _blockAntiColl, _mfcDetection, _fieldOffReset;
     private EmulatorWriteMode _mfcWriteMode;
     private MifareClassicPrngType _prng;
     private bool _ulUidMagic, _ulDetection;
     private EmulatorWriteMode _ulWriteMode;
 
-    public SlotEditorViewModel(DeviceService device, SlotInfo info, Action onChanged)
+    private SlotSideViewModel? _pickerSide;
+    private string? _pickerFilter;
+
+    public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
+        Action onChanged, Action<CardSave> openCard)
         : base($"Slot {info.Index}", "slots")
     {
         _device = device;
+        _library = library;
         _slot = info.Index;
         _onChanged = onChanged;
 
-        _hfType = info.HfType;
-        _lfType = info.LfType;
-        _hfNick = info.HfNick;
-        _lfNick = info.LfNick;
-        _hfEnabled = info.HfEnabled;
-        _lfEnabled = info.LfEnabled;
-        _hfColor = info.HfColor is { } hf ? SlotColors.SnapToPalette(hf) : null;
-        _lfColor = info.LfColor is { } lf ? SlotColors.SnapToPalette(lf) : null;
-        _saved = Current;
+        var colors = device.DeviceInfo?.SupportsSlotColors == true;
+        Hf = new SlotSideViewModel(TagSenseType.Hf, info, library, colors, OnHfChanged, OpenPicker, SaveToLibraryAsync, openCard);
+        Lf = new SlotSideViewModel(TagSenseType.Lf, info, library, colors, RaiseDirty, OpenPicker, SaveToLibraryAsync, openCard);
+        SetEmulator(Emulator.Defaults);
 
-        ApplyCommand = ReactiveCommand.CreateFromTask(SaveAsync);
-        ClearHfCommand = ReactiveCommand.CreateFromTask(() => ClearAsync(TagSenseType.Hf));
-        ClearLfCommand = ReactiveCommand.CreateFromTask(() => ClearAsync(TagSenseType.Lf));
-        ResetDefaultCommand = ReactiveCommand.CreateFromTask(ResetDefaultAsync);
-        ApplyEmulatorCommand = ReactiveCommand.CreateFromTask(ApplyEmulatorAsync);
-        ResetHfColorCommand = ReactiveCommand.Create(() => SetColor(TagSenseType.Hf, null));
-        ResetLfColorCommand = ReactiveCommand.Create(() => SetColor(TagSenseType.Lf, null));
+        ClosePickerCommand = ReactiveCommand.Create(ClosePicker);
     }
 
     public int SlotIndex => _slot;
 
-    public static IReadOnlyList<TagSpecificType> HfTypes { get; } =
-        new[] { TagSpecificType.Undefined }.Concat(TagTypeExtensions.HfTypes()).ToArray();
-
-    public static IReadOnlyList<TagSpecificType> LfTypes { get; } =
-        new[] { TagSpecificType.Undefined }.Concat(TagTypeExtensions.LfTypes()).ToArray();
+    public SlotSideViewModel Hf { get; }
+    public SlotSideViewModel Lf { get; }
 
     public static IReadOnlyList<EmulatorWriteMode> WriteModes { get; } = new[]
     {
@@ -92,75 +87,86 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         MifareClassicPrngType.Static, MifareClassicPrngType.Weak, MifareClassicPrngType.Hard,
     };
 
-    public TagSpecificType HfType { get => _hfType; set { this.RaiseAndSetIfChanged(ref _hfType, value); RaiseDirty(); } }
-    public TagSpecificType LfType { get => _lfType; set { this.RaiseAndSetIfChanged(ref _lfType, value); RaiseDirty(); } }
-    public string HfNick { get => _hfNick; set { this.RaiseAndSetIfChanged(ref _hfNick, value); RaiseDirty(); } }
-    public string LfNick { get => _lfNick; set { this.RaiseAndSetIfChanged(ref _lfNick, value); RaiseDirty(); } }
-    public bool HfEnabled { get => _hfEnabled; set { this.RaiseAndSetIfChanged(ref _hfEnabled, value); RaiseDirty(); } }
-    public bool LfEnabled { get => _lfEnabled; set { this.RaiseAndSetIfChanged(ref _lfEnabled, value); RaiseDirty(); } }
+    /// <summary>Anything differs from what the slot holds (drives the save bar).</summary>
+    public bool IsDirty => Hf.IsDirty || Lf.IsDirty || IsEmulatorDirty;
 
-    private Snapshot Current => new(_hfType, _lfType, _hfNick, _lfNick, _hfEnabled, _lfEnabled, _hfColor, _lfColor);
-
-    /// <summary>Type, nick, enable or colour differ from what the slot holds (drives the save bar).</summary>
-    public bool IsDirty => Current != _saved;
+    private bool IsEmulatorDirty => ShownKind != EmulatorKind.None && CurrentEmulator != _savedEmulator;
 
     private void RaiseDirty() => this.RaisePropertyChanged(nameof(IsDirty));
 
-    /// <summary>Puts the fields back to what the slot holds.</summary>
+    /// <summary>Puts every field back to what the slot holds.</summary>
     public void Discard()
     {
-        HfType = _saved.HfType; LfType = _saved.LfType;
-        HfNick = _saved.HfNick; LfNick = _saved.LfNick;
-        HfEnabled = _saved.HfEnabled; LfEnabled = _saved.LfEnabled;
-        SetColor(TagSenseType.Hf, _saved.HfColor);
-        SetColor(TagSenseType.Lf, _saved.LfColor);
+        Hf.Discard();
+        Lf.Discard();
+        SetEmulator(_savedEmulator);
     }
 
-    // The swatch list deselects (and writes null) when the colour isn't in the palette, so null only comes from Reset.
-    public string? HfColor { get => _hfColor; set { if (!string.IsNullOrWhiteSpace(value)) SetColor(TagSenseType.Hf, value); } }
-    public string? LfColor { get => _lfColor; set { if (!string.IsNullOrWhiteSpace(value)) SetColor(TagSenseType.Lf, value); } }
-
-    /// <summary>The colour the slot LED shows for each card: its own, or the firmware default.</summary>
-    public string HfLedPreview => _hfColor ?? SlotColors.DefaultHf;
-    public string LfLedPreview => _lfColor ?? SlotColors.DefaultLf;
-
-    private void SetColor(TagSenseType sense, string? color)
+    /// <summary>The library changed: the sides re-match their cards, the open picker its list.</summary>
+    public void OnLibraryChanged()
     {
-        if (sense == TagSenseType.Hf)
+        Hf.OnLibraryChanged();
+        Lf.OnLibraryChanged();
+        if (IsPicking) RebuildPicker();
+    }
+
+    // ---- Emulator settings (HF) ----------------------------------------
+
+    /// <summary>The emulator settings the HF card's type has.</summary>
+    private EmulatorKind TypeKind =>
+        Hf.Type.IsMifareClassic() ? EmulatorKind.Mfc
+        : Hf.Type.IsUltralight() ? EmulatorKind.Ul
+        : EmulatorKind.None;
+
+    /// <summary>The settings shown (and saved): only for an enabled HF card.</summary>
+    private EmulatorKind ShownKind => Hf.Enabled ? TypeKind : EmulatorKind.None;
+
+    public bool ShowMfcSettings => ShownKind == EmulatorKind.Mfc;
+    public bool ShowUlSettings => ShownKind == EmulatorKind.Ul;
+
+    private void OnHfChanged()
+    {
+        // Another kind of card starts from the firmware's defaults; the saved kind gets the slot's settings back.
+        var kind = TypeKind;
+        if (kind != _fieldsKind)
         {
-            this.RaiseAndSetIfChanged(ref _hfColor, color, nameof(HfColor));
-            this.RaisePropertyChanged(nameof(HfLedPreview));
+            _fieldsKind = kind;
+            SetEmulator(kind == _savedKind ? _savedEmulator : Emulator.Defaults);
         }
-        else
-        {
-            this.RaiseAndSetIfChanged(ref _lfColor, color, nameof(LfColor));
-            this.RaisePropertyChanged(nameof(LfLedPreview));
-        }
+        this.RaisePropertyChanged(nameof(ShowMfcSettings));
+        this.RaisePropertyChanged(nameof(ShowUlSettings));
         RaiseDirty();
     }
 
-    public bool ShowMfcSettings { get => _showMfcSettings; private set => this.RaiseAndSetIfChanged(ref _showMfcSettings, value); }
-    public bool ShowUlSettings { get => _showUlSettings; private set => this.RaiseAndSetIfChanged(ref _showUlSettings, value); }
+    private Emulator CurrentEmulator => new(
+        _gen1a, _gen2, _blockAntiColl, _mfcDetection, _fieldOffReset, _mfcWriteMode, _prng,
+        _ulUidMagic, _ulDetection, _ulWriteMode);
 
-    public bool Gen1a { get => _gen1a; set => this.RaiseAndSetIfChanged(ref _gen1a, value); }
-    public bool Gen2 { get => _gen2; set => this.RaiseAndSetIfChanged(ref _gen2, value); }
-    public bool BlockAntiColl { get => _blockAntiColl; set => this.RaiseAndSetIfChanged(ref _blockAntiColl, value); }
-    public bool MfcDetection { get => _mfcDetection; set => this.RaiseAndSetIfChanged(ref _mfcDetection, value); }
-    public bool FieldOffReset { get => _fieldOffReset; set => this.RaiseAndSetIfChanged(ref _fieldOffReset, value); }
-    public EmulatorWriteMode MfcWriteMode { get => _mfcWriteMode; set => this.RaiseAndSetIfChanged(ref _mfcWriteMode, value); }
-    public MifareClassicPrngType Prng { get => _prng; set => this.RaiseAndSetIfChanged(ref _prng, value); }
+    private void SetEmulator(Emulator e)
+    {
+        Gen1a = e.Gen1a; Gen2 = e.Gen2; BlockAntiColl = e.BlockAntiColl; MfcDetection = e.MfcDetection;
+        FieldOffReset = e.FieldOffReset; MfcWriteMode = e.MfcWriteMode; Prng = e.Prng;
+        UlUidMagic = e.UlUidMagic; UlDetection = e.UlDetection; UlWriteMode = e.UlWriteMode;
+    }
 
-    public bool UlUidMagic { get => _ulUidMagic; set => this.RaiseAndSetIfChanged(ref _ulUidMagic, value); }
-    public bool UlDetection { get => _ulDetection; set => this.RaiseAndSetIfChanged(ref _ulDetection, value); }
-    public EmulatorWriteMode UlWriteMode { get => _ulWriteMode; set => this.RaiseAndSetIfChanged(ref _ulWriteMode, value); }
+    private void SetField<T>(ref T field, T value, string name)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
+        this.RaiseAndSetIfChanged(ref field, value, name);
+        RaiseDirty();
+    }
 
-    public ICommand ApplyCommand { get; }
-    public ICommand ClearHfCommand { get; }
-    public ICommand ClearLfCommand { get; }
-    public ICommand ResetDefaultCommand { get; }
-    public ICommand ApplyEmulatorCommand { get; }
-    public ICommand ResetHfColorCommand { get; }
-    public ICommand ResetLfColorCommand { get; }
+    public bool Gen1a { get => _gen1a; set => SetField(ref _gen1a, value, nameof(Gen1a)); }
+    public bool Gen2 { get => _gen2; set => SetField(ref _gen2, value, nameof(Gen2)); }
+    public bool BlockAntiColl { get => _blockAntiColl; set => SetField(ref _blockAntiColl, value, nameof(BlockAntiColl)); }
+    public bool MfcDetection { get => _mfcDetection; set => SetField(ref _mfcDetection, value, nameof(MfcDetection)); }
+    public bool FieldOffReset { get => _fieldOffReset; set => SetField(ref _fieldOffReset, value, nameof(FieldOffReset)); }
+    public EmulatorWriteMode MfcWriteMode { get => _mfcWriteMode; set => SetField(ref _mfcWriteMode, value, nameof(MfcWriteMode)); }
+    public MifareClassicPrngType Prng { get => _prng; set => SetField(ref _prng, value, nameof(Prng)); }
+
+    public bool UlUidMagic { get => _ulUidMagic; set => SetField(ref _ulUidMagic, value, nameof(UlUidMagic)); }
+    public bool UlDetection { get => _ulDetection; set => SetField(ref _ulDetection, value, nameof(UlDetection)); }
+    public EmulatorWriteMode UlWriteMode { get => _ulWriteMode; set => SetField(ref _ulWriteMode, value, nameof(UlWriteMode)); }
 
     public override Task OnActivatedAsync() => RunAsync(async () =>
     {
@@ -172,48 +178,45 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private async Task LoadEmulatorAsync(ChameleonClient client)
     {
-        var mfc = _hfType.IsMifareClassic() && _hfEnabled;
-        var ul = _hfType.IsUltralight() && _hfEnabled;
-
-        if (mfc)
+        // Read whether or not the card is enabled, so enabling it shows what the slot holds.
+        var kind = TypeKind;
+        var e = Emulator.Defaults;
+        try
         {
-            try
+            if (kind == EmulatorKind.Mfc)
             {
                 var cfg = await client.GetMf1EmulatorConfigAsync();
-                var prng = await client.GetMf1PrngTypeAsync();
+                var prng = e.Prng;
                 var fieldReset = false;
-                try { fieldReset = await client.GetMf1FieldOffDoResetAsync(); } catch { }
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                try { prng = await client.GetMf1PrngTypeAsync(); } catch (ChameleonException) { }
+                try { fieldReset = await client.GetMf1FieldOffDoResetAsync(); } catch (ChameleonException) { }
+                e = e with
                 {
-                    Gen1a = cfg.Gen1a; Gen2 = cfg.Gen2; BlockAntiColl = cfg.BlockAntiColl;
-                    MfcDetection = cfg.Detection; MfcWriteMode = cfg.WriteMode;
-                    Prng = prng; FieldOffReset = fieldReset;
-                });
+                    Gen1a = cfg.Gen1a, Gen2 = cfg.Gen2, BlockAntiColl = cfg.BlockAntiColl,
+                    MfcDetection = cfg.Detection, MfcWriteMode = cfg.WriteMode, Prng = prng, FieldOffReset = fieldReset,
+                };
             }
-            catch { mfc = false; }
-        }
-        else if (ul)
-        {
-            try
+            else if (kind == EmulatorKind.Ul)
             {
                 var uid = await client.GetMf0UidMagicModeAsync();
                 var wm = await client.GetMf0WriteModeAsync();
                 var det = false;
-                try { det = await client.GetMf0DetectionEnableAsync(); } catch { }
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    UlUidMagic = uid; UlWriteMode = wm; UlDetection = det;
-                });
+                try { det = await client.GetMf0DetectionEnableAsync(); } catch (ChameleonException) { }
+                e = e with { UlUidMagic = uid, UlWriteMode = wm, UlDetection = det };
             }
-            catch { ul = false; }
         }
+        catch (ChameleonException) { /* the firmware defaults are shown */ }
 
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            ShowMfcSettings = mfc;
-            ShowUlSettings = ul;
+            _savedEmulator = e;
+            _savedKind = _fieldsKind = kind;
+            SetEmulator(e);
+            RaiseDirty();
         });
     }
+
+    // ---- Saving --------------------------------------------------------
 
     /// <returns>False when the slot could not be saved (the edits stay).</returns>
     public async Task<bool> SaveAsync()
@@ -223,100 +226,136 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         {
             var client = _device.Client;
             if (client is null) return;
-            var edits = Current;
+            var kind = ShownKind;
+            var emulator = CurrentEmulator;
+            var progress = new Progress<MifareProgress>(p => SetStatus($"Uploading {p.Done}/{p.Total}…"));
+
             await client.SetActiveSlotAsync(_slot);
-
-            await ApplyFrequencyAsync(client, TagSenseType.Hf, edits.HfType, edits.HfEnabled, edits.HfNick, edits.HfColor);
-            await ApplyFrequencyAsync(client, TagSenseType.Lf, edits.LfType, edits.LfEnabled, edits.LfNick, edits.LfColor);
-
+            await Hf.WriteAsync(client, _slot, progress);
+            await Lf.WriteAsync(client, _slot, progress);
+            if (kind != EmulatorKind.None)
+            {
+                await client.SetActiveSlotAsync(_slot);
+                await client.ApplyEmulatorSettingsAsync(new SlotEmulatorSettings(
+                    kind == EmulatorKind.Mfc
+                        ? new Mf1EmulatorSettings(emulator.Gen1a, emulator.Gen2, emulator.BlockAntiColl,
+                            emulator.MfcDetection, emulator.MfcWriteMode, emulator.Prng, emulator.FieldOffReset)
+                        : null,
+                    kind == EmulatorKind.Ul
+                        ? new Mf0EmulatorSettings(emulator.UlUidMagic, emulator.UlWriteMode, emulator.UlDetection)
+                        : null));
+            }
             await client.SaveSlotConfigAsync();
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => { _saved = edits; RaiseDirty(); });
-            await LoadEmulatorAsync(client);
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                Hf.MarkSaved();
+                Lf.MarkSaved();
+                _savedEmulator = emulator;
+                _savedKind = _fieldsKind = TypeKind;
+                RaiseDirty();
+            });
             _onChanged();
             saved = true;
-        }, "Slot saved to flash.");
+        }, "Slot saved.");
         return saved;
     }
 
-    /// <summary>Sets one frequency's tag type, default data, enable flag, nick and LED colour.</summary>
-    private async Task ApplyFrequencyAsync(
-        ChameleonClient client, TagSenseType sense, TagSpecificType type, bool enabled, string nick, string? color)
-    {
-        if (type == TagSpecificType.Undefined)
-        {
-            // No tag on this frequency: just make sure it is disabled.
-            await client.SetSlotEnableAsync(_slot, sense, enabled: false);
-            return;
-        }
-
-        await client.SetSlotTagTypeAsync(_slot, type);
-        await client.SetSlotEnableAsync(_slot, sense, enabled);
-
-        if (!string.IsNullOrWhiteSpace(nick))
-            await client.SetSlotNickAsync(_slot, sense, nick.Trim());
-        else
-            try { await client.DeleteSlotNickAsync(_slot, sense); } catch { /* no nick to delete */ }
-
-        try { await client.SetSlotColorAsync(_slot, sense, color); }
-        catch (ChameleonException) { /* older firmware: no per-card LED colours */ }
-    }
-
-    private Task ClearAsync(TagSenseType sense) => RunAsync(async () =>
+    /// <summary>Copies the card a frequency holds on the device into Saved cards.</summary>
+    private Task SaveToLibraryAsync(SlotSideViewModel side) => RunAsync(async () =>
     {
         var client = _device.Client;
-        if (client is null) return;
-        await client.SetActiveSlotAsync(_slot);
-        await client.DeleteSlotSenseTypeAsync(_slot, sense);
-        await client.SaveSlotConfigAsync();
+        if (client is null || side.SavedType == TagSpecificType.Undefined) return;
+        var info = side.IsHf
+            ? new SlotInfo { Index = _slot, HfType = side.SavedType, HfNick = side.SavedNick, HfColor = side.SavedColor }
+            : new SlotInfo { Index = _slot, LfType = side.SavedType, LfNick = side.SavedNick, LfColor = side.SavedColor };
+        var card = await client.ReadCardFromSlotAsync(info, side.Sense);
+
+        // A slot without a nick is matched to the card by the name the card got.
+        var nick = ChameleonClient.SlotNickFor(card);
+        if (nick != side.SavedNick)
+        {
+            await client.SetSlotNickAsync(_slot, side.Sense, nick);
+            await client.SaveSlotConfigAsync();
+            _onChanged();
+        }
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            _saved = sense == TagSenseType.Hf
-                ? _saved with { HfType = TagSpecificType.Undefined, HfEnabled = false, HfNick = string.Empty, HfColor = null }
-                : _saved with { LfType = TagSpecificType.Undefined, LfEnabled = false, LfNick = string.Empty, LfColor = null };
-            if (sense == TagSenseType.Hf) { HfType = TagSpecificType.Undefined; HfEnabled = false; HfNick = string.Empty; }
-            else { LfType = TagSpecificType.Undefined; LfEnabled = false; LfNick = string.Empty; }
-            SetColor(sense, null); // the firmware drops the colour together with the card
+            side.Renamed(nick);
+            _library.Add(card);
         });
-        _onChanged();
-    }, "Frequency cleared.");
+        SetStatus($"Saved “{card.Name}” to Saved cards.");
+    });
 
-    private Task ResetDefaultAsync() => RunAsync(async () =>
+    // ---- Choosing a saved card -----------------------------------------
+
+    /// <summary>The dialog listing the saved cards of one frequency is open.</summary>
+    public bool IsPicking => _pickerSide is not null;
+
+    public string PickerTitle => $"Choose a saved {_pickerSide?.Label} card";
+
+    public string? PickerFilter
     {
-        var client = _device.Client;
-        if (client is null) return;
-        await client.SetActiveSlotAsync(_slot);
-        // The types the slot holds, not unsaved edits of them.
-        if (_saved.HfType != TagSpecificType.Undefined)
-            await client.SetSlotDataDefaultAsync(_slot, _saved.HfType);
-        if (_saved.LfType != TagSpecificType.Undefined)
-            await client.SetSlotDataDefaultAsync(_slot, _saved.LfType);
-        await client.SaveSlotConfigAsync();
-        _onChanged();
-    }, "Slot data reset to defaults.");
+        get => _pickerFilter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _pickerFilter, value);
+            RebuildPicker();
+        }
+    }
 
-    private Task ApplyEmulatorAsync() => RunAsync(async () =>
+    public ObservableCollection<CardItemViewModel> PickerCards { get; } = new();
+
+    public bool PickerHasNoCards => IsPicking && PickerCards.Count == 0;
+
+    public string PickerEmptyText => _library.Cards.Any(c => c.Sense == _pickerSide?.Sense)
+        ? "No cards match the search."
+        : $"No {_pickerSide?.Label} cards saved yet.";
+
+    /// <summary>Picking a card in the dialog puts it into the frequency.</summary>
+    public CardItemViewModel? PickerSelected
     {
-        var client = _device.Client;
-        if (client is null) return;
-        await client.SetActiveSlotAsync(_slot);
-
-        if (ShowMfcSettings)
+        get => null;
+        set
         {
-            await client.SetMf1Gen1aModeAsync(Gen1a);
-            await client.SetMf1Gen2ModeAsync(Gen2);
-            await client.SetMf1BlockAntiCollModeAsync(BlockAntiColl);
-            await client.SetMf1DetectionEnableAsync(MfcDetection);
-            await client.SetMf1WriteModeAsync(MfcWriteMode);
-            try { await client.SetMf1FieldOffDoResetAsync(FieldOffReset); } catch { }
-            try { await client.SetMf1PrngTypeAsync(Prng); } catch { }
+            if (value is null || _pickerSide is not { } side) return;
+            // The list is still committing the selection: emptying it now would break that.
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (!ReferenceEquals(_pickerSide, side)) return;
+                ClosePicker();
+                side.Pick(value.Card);
+            });
         }
-        else if (ShowUlSettings)
-        {
-            await client.SetMf0UidMagicModeAsync(UlUidMagic);
-            await client.SetMf0WriteModeAsync(UlWriteMode);
-            await client.SetMf0DetectionEnableAsync(UlDetection);
-        }
+    }
 
-        await client.SaveSlotConfigAsync();
-    }, "Emulator settings saved.");
+    public ICommand ClosePickerCommand { get; }
+
+    private void OpenPicker(SlotSideViewModel side)
+    {
+        _pickerSide = side;
+        _pickerFilter = null;
+        this.RaisePropertyChanged(nameof(PickerFilter));
+        this.RaisePropertyChanged(nameof(PickerTitle));
+        RebuildPicker();
+        this.RaisePropertyChanged(nameof(IsPicking));
+    }
+
+    private void ClosePicker()
+    {
+        _pickerSide = null;
+        PickerCards.Clear();
+        this.RaisePropertyChanged(nameof(IsPicking));
+        this.RaisePropertyChanged(nameof(PickerHasNoCards));
+    }
+
+    private void RebuildPicker()
+    {
+        PickerCards.Clear();
+        if (_pickerSide is not { } side) return;
+        foreach (var card in _library.Cards.Where(c => c.Sense == side.Sense).Select(c => new CardItemViewModel(c)))
+            if (card.Matches(_pickerFilter)) PickerCards.Add(card);
+        this.RaisePropertyChanged(nameof(PickerHasNoCards));
+        this.RaisePropertyChanged(nameof(PickerEmptyText));
+    }
 }

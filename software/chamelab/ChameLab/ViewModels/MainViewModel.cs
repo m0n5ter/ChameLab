@@ -48,6 +48,7 @@ public sealed class MainViewModel : ViewModelBase
         DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync);
         TogglePaneCommand = ReactiveCommand.Create(() => { IsPaneOpen = !IsPaneOpen; });
 
+        Slots.OpenCardRequested += card => _ = OpenCardAsync(card.Id);
         _device.StateChanged += OnStateChanged;
         _connect.OfflineRequested += () => _ = EnterOfflineAsync();
         _connect.StartWatching();
@@ -189,6 +190,12 @@ public sealed class MainViewModel : ViewModelBase
         CurrentPage = page;
         if (IsCompact) IsPaneOpen = false;
         await page.OnActivatedAsync();
+    }
+
+    private async Task OpenCardAsync(string id)
+    {
+        await NavigateAsync(Cards);
+        Cards.OpenCard(id);
     }
 
     private Task DisconnectAsync() => _device.DisconnectAsync();

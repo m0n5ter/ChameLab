@@ -92,6 +92,9 @@ public sealed class ChameleonClient
         string addr;
         try { addr = await GetAddressAsync(ct); } catch { addr = "-"; }
         var mode = await GetDeviceModeAsync(ct);
+        var colors = false;
+        try { colors = (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.SetSlotColor); }
+        catch { /* older firmware */ }
         return new DeviceInfo
         {
             FirmwareVersion = fw,
@@ -100,6 +103,7 @@ public sealed class ChameleonClient
             ChipId = chip,
             Address = addr,
             Mode = mode,
+            SupportsSlotColors = colors,
         };
     }
 

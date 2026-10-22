@@ -29,6 +29,9 @@ public static class SlotColors
         return Palette.FirstOrDefault(p => Quantize(p) == key) ?? CardSave.NormalizeColor(color);
     }
 
+    /// <summary>The two colours end up the same on the LED (the firmware keeps 5 bits per channel).</summary>
+    public static bool SameLed(string a, string b) => Quantize(a) == Quantize(b);
+
     /// <summary>The LED colours a slot shows for its HF and LF cards (null for an absent frequency).</summary>
     public static (string? Hf, string? Lf) Effective(SlotInfo slot, bool hasHf, bool hasLf)
     {
