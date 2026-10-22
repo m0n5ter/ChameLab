@@ -13,59 +13,55 @@ namespace ChameLab.Protocol;
 /// Typed, high-level command API over a <see cref="ChameleonConnection"/>.
 /// Each method mirrors a reference-client call and returns decoded results.
 /// </summary>
-public sealed class ChameleonClient
+public sealed class ChameleonClient(ChameleonConnection conn)
 {
-    private readonly ChameleonConnection _conn;
-
-    public ChameleonClient(ChameleonConnection conn) => _conn = conn;
-
-    public ChameleonConnection Connection => _conn;
+    public ChameleonConnection Connection => conn;
 
     // ---- Device info ---------------------------------------------------
 
     public async Task<string> GetAppVersionAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetAppVersion, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetAppVersion, Status.Success, ct: ct);
         return f.Data.Length >= 2 ? $"{f.Data[0]}.{f.Data[1]}" : "?";
     }
 
     public async Task<string> GetGitVersionAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetGitVersion, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetGitVersion, Status.Success, ct: ct);
         return Encoding.UTF8.GetString(f.Data);
     }
 
     public async Task<DeviceModel> GetDeviceModelAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetDeviceModel, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetDeviceModel, Status.Success, ct: ct);
         return (DeviceModel)(f.Data.Length > 0 ? f.Data[0] : 0);
     }
 
     public async Task<string> GetChipIdAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetDeviceChipId, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetDeviceChipId, Status.Success, ct: ct);
         return Convert.ToHexString(f.Data);
     }
 
     public async Task<string> GetAddressAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetDeviceAddress, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetDeviceAddress, Status.Success, ct: ct);
         return Convert.ToHexString(f.Data);
     }
 
     public async Task<DeviceMode> GetDeviceModeAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetDeviceMode, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetDeviceMode, Status.Success, ct: ct);
         return (f.Data.Length > 0 && f.Data[0] != 0) ? DeviceMode.Reader : DeviceMode.Tag;
     }
 
     public Task SetDeviceModeAsync(DeviceMode mode, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.ChangeDeviceMode, Status.Success,
+        conn.SendExpectAsync(Command.ChangeDeviceMode, Status.Success,
             new[] { (byte)mode }, ct: ct);
 
     public async Task<BatteryInfo> GetBatteryInfoAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetBatteryInfo, Status.Success, ct: ct);
+        var f connit _conn.SendExpectAsync(Command.GetBatteryInfo, Status.Success, ct: ct);
         int mv = BinaryPrimitives.ReadUInt16BigEndian(f.Data);
         var pct = f.Data.Length > 2 ? f.Data[2] : 0;
         return new BatteryInfo(mv, pct);
@@ -73,7 +69,7 @@ public sealed class ChameleonClient
 
     public async Task<IReadOnlyList<ushort>> GetCapabilitiesAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendAsync(Command.GetDeviceCapabilities, ct: ct);
+        var f connit _conn.SendAsync(Command.GetDeviceCapabilities, ct: ct);
         var list = new List<ushort>();
         if (f.Status == Status.Success)
             for (var i = 0; i + 1 < f.Data.Length; i += 2)
@@ -111,12 +107,12 @@ public sealed class ChameleonClient
 
     public async Task<int> GetActiveSlotAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetActiveSlot, Status.Success, ct: ct);
+        var f connit _conn.SendExpectAsync(Command.GetActiveSlot, Status.Success, ct: ct);
         return (f.Data.Length > 0 ? f.Data[0] : 0) + 1; // fw 0-based → 1-based
     }
 
     public Task SetActiveSlotAsync(int slot1Based, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
+conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             new[] { (byte)(slot1Based - 1) }, ct: ct);
 
     /// <summary>Reads type + enable + nick for all 8 slots and marks the active one.</summary>
@@ -126,7 +122,7 @@ public sealed class ChameleonClient
         for (var i = 1; i <= 8; i++)
             slots.Add(new SlotInfo { Index = i });
 
-        var info = await _conn.SendExpectAsync(Command.GetSlotInfo, Status.Success, ct: ct);
+        vconnfo = await _conn.SendExpectAsync(Command.GetSlotInfo, Status.Success, ct: ct);
         for (var i = 0; i < 8 && (i * 4 + 3) < info.Data.Length; i++)
         {
             slots[i].HfType = (TagSpecificType)BinaryPrimitives.ReadUInt16BigEndian(info.Data.AsSpan(i * 4));
@@ -135,7 +131,7 @@ public sealed class ChameleonClient
 
         try
         {
-            var en = await _conn.SendExpectAsync(Command.GetEnabledSlots, Status.Success, ct: ct);
+           connen = await _conn.SendExpectAsync(Command.GetEnabledSlots, Status.Success, ct: ct);
             for (var i = 0; i < 8 && (i * 2 + 1) < en.Data.Length; i++)
             {
                 slots[i].HfEnabled = en.Data[i * 2] != 0;
@@ -146,14 +142,14 @@ public sealed class ChameleonClient
 
         try
         {
-            var nicks = await _conn.SendExpectAsync(Command.GetAllSlotNicks, Status.Success, ct: ct);
+            vaconnks = await _conn.SendExpectAsync(Command.GetAllSlotNicks, Status.Success, ct: ct);
             ParseNicks(nicks.Data, slots);
         }
         catch { /* older firmware */ }
 
         try
         {
-            var colors = await _conn.SendExpectAsync(Command.GetAllSlotColors, Status.Success, ct: ct);
+            varconnrs = await _conn.SendExpectAsync(Command.GetAllSlotColors, Status.Success, ct: ct);
             for (var i = 0; i < 8 && (i * 6 + 5) < colors.Data.Length; i++)
             {
                 slots[i].HfColor = SlotColorFromBytes(colors.Data.AsSpan(i * 6, 3));
@@ -198,11 +194,10 @@ public sealed class ChameleonClient
     {
         var data = new byte[3];
         data[0] = (byte)(slot1Based - 1);
-        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushort)type);
-        return _conn.SendExpectAsync(Command.SetSlotTagType, Status.Success, data, ct: ct);
+        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushort)type);conn    return _conn.SendExpectAsync(Command.SetSlotTagType, Status.Success, data, ct: ct);
     }
 
-    public Task SetSlotEnableAsync(int slot1Based, TagSenseType sense, bool enabled, CancellationToken ct = default) =>
+    public Task SetSlotEnableAsync(int slot1Based, TagSenseType sense, bool enabled, CancellationToken ct = defauconn>
         _conn.SendExpectAsync(Command.SetSlotEnable, Status.Success,
             new[] { (byte)(slot1Based - 1), (byte)sense, (byte)(enabled ? 1 : 0) }, ct: ct);
 
@@ -210,7 +205,7 @@ public sealed class ChameleonClient
     {
         var data = new byte[3];
         data[0] = (byte)(slot1Based - 1);
-        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushort)type);
+        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushortconn);
         return _conn.SendExpectAsync(Command.SetSlotDataDefault, Status.Success, data, ct: ct);
     }
 
@@ -221,7 +216,7 @@ public sealed class ChameleonClient
         var data = new byte[2 + enc.Length];
         data[0] = (byte)(slot1Based - 1);
         data[1] = (byte)sense;
-        enc.CopyTo(data, 2);
+        enc.CopyTo(daconn);
         return _conn.SendExpectAsync(Command.SetSlotTagNick, Status.Success, data, ct: ct);
     }
 
@@ -237,7 +232,7 @@ public sealed class ChameleonClient
         {
             var hex = CardSave.NormalizeColor(color);
             rgb = Convert.FromHexString(hex.AsSpan(1));
-        }
+  conn }
         return _conn.SendExpectAsync(Command.SetSlotColor, Status.Success,
             new[] { (byte)(slot1Based - 1), (byte)sense, rgb[0], rgb[1], rgb[2] }, ct: ct);
     }
@@ -245,21 +240,21 @@ public sealed class ChameleonClient
     private static string? SlotColorFromBytes(ReadOnlySpan<byte> rgb) =>
         rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0 ? null : "#" + Convert.ToHexString(rgb);
 
-    public Task DeleteSlotNickAsync(int slot1Based, TagSenseType sense, CancellationToken ct = default) =>
+    public Task DeleteSlotNickAsync(int slot1Based, TagSenseType sense, Cancellationconn ct = default) =>
         _conn.SendExpectAsync(Command.DeleteSlotTagNick, Status.Success,
             new[] { (byte)(slot1Based - 1), (byte)sense }, ct: ct);
 
-    public Task SaveSlotConfigAsync(CancellationToken ct = default) =>
+    public Task SaveSlotConfigAsync(CancconnionToken ct = default) =>
         _conn.SendExpectAsync(Command.SlotDataConfigSave, Status.Success, ct: ct);
 
     /// <summary>Clears one frequency of a slot (removes its HF or LF tag).</summary>
-    public Task DeleteSlotSenseTypeAsync(int slot1Based, TagSenseType sense, CancellationToken ct = default) =>
+    public Task DeleteSlotSenseTypeAsync(int slot1Based, TagSenseType sense, CancconnionToken ct = default) =>
         _conn.SendExpectAsync(Command.DeleteSlotSenseType, Status.Success,
             new[] { (byte)(slot1Based - 1), (byte)sense }, ct: ct);
 
     // ---- Emulator configuration (active slot) -------------------------
 
-    public async Task<Mf1EmulatorConfig> GetMf1EmulatorConfigAsync(CancellationToken ct = default)
+    public async Task<Mf1EmulatorConfig> GetMf1EmulatorConfigAsync(CancellationToconnt = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf1GetEmulatorConfig, Status.Success, ct: ct);
         var d = f.Data;
@@ -271,26 +266,26 @@ public sealed class ChameleonClient
             WriteMode: (EmulatorWriteMode)(d.Length > 4 ? d[4] : 0));
     }
 
-    public Task SetMf1Gen1aModeAsync(bool enabled, CancellationToken ct = default) =>
+    public Task SetMf1Gen1aModeAsync(bool enablconnancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf1SetGen1aMode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
-    public Task SetMf1Gen2ModeAsync(bool enabled, CancellationToken ct = default) =>
+    public Task SetMf1Gen2ModeAsync(boconnabled, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf1SetGen2Mode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
-    public Task SetMf1BlockAntiCollModeAsync(bool enabled, CancellationToken ct = default) =>
+    public Task SetMf1BlockAntiCollModeconn(bool enabled, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf1SetBlockAntiCollMode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
-    public Task SetMf1WriteModeAsync(EmulatorWriteMode mode, CancellationToken ct = default) =>
+    public Task SetMf1WriteModeAsconnmulatorWriteMode mode, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf1SetWriteMode, Status.Success, new[] { (byte)mode }, ct: ct);
 
     public async Task<bool> GetMf1DetectionEnableAsync(CancellationToken ct = default) =>
         (await GetMf1EmulatorConfigAsync(ct)).Detection;
 
-    public Task SetMf1DetectionEnableAsync(bool enabled, CancellationToken ct = default) =>
+    public Task SetMfconnctionEnableAsync(bool enabled, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf1SetDetectionEnable, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
     /// <summary>Number of MIFARE Classic auth nonces the emulator has captured (for mfkey32).</summary>
-    public async Task<int> GetMf1DetectionCountAsync(CancellationToken ct = default)
+    public async Task<int> conn1DetectionCountAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf1GetDetectionCount, Status.Success, ct: ct);
         return f.Data.Length >= 4 ? (int)BinaryPrimitives.ReadUInt32BigEndian(f.Data) : 0;
@@ -300,7 +295,7 @@ public sealed class ChameleonClient
     public async Task<IReadOnlyList<DetectionLog>> GetMf1DetectionLogAsync(int index, CancellationToken ct = default)
     {
         var data = new byte[4];
-        BinaryPrimitives.WriteUInt32BigEndian(data, (uint)index);
+ conn  BinaryPrimitives.WriteUInt32BigEndian(data, (uint)index);
         var f = await _conn.SendExpectAsync(Command.Mf1GetDetectionLog, Status.Success, data, ct: ct);
 
         var logs = new List<DetectionLog>();
@@ -335,56 +330,50 @@ public sealed class ChameleonClient
         return all;
     }
 
-    public async Task<bool> GetMf1FieldOffDoResetAsync(CancellationToken ct = default)
+    public async Task<bool> GconnFieldOffDoResetAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf1GetFieldOffDoReset, Status.Success, ct: ct);
         return f.Data.Length > 0 && f.Data[0] != 0;
     }
 
-    public Task SetMf1FieldOffDoResetAsync(bool enabled, CancellationToken ct = default) =>
+    public TaconntMf1FieldOffDoResetAsync(bool enabled, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf1SetFieldOffDoReset, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
-    public async Task<MifareClassicPrngType> GetMf1PrngTypeAsync(CancellationToken ct = default)
+    public async Task<MifareClaconnrngType> GetMf1PrngTypeAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf1GetPrngType, Status.Success, ct: ct);
         return (MifareClassicPrngType)(f.Data.Length > 0 ? f.Data[0] : 0);
     }
 
-    public Task SetMf1PrngTypeAsync(MifareClassicPrngType prng, CancellationToken ct = default) =>
+    public TconnetMf1PrngTypeAsync(MifareClassicPrngType prng, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf1SetPrngType, Status.Success, new[] { (byte)prng }, ct: ct);
 
     // ---- Ultralight / NTAG emulator settings --------------------------
 
-    public async Task<bool> GetMf0UidMagicModeAsync(CancellationToken ct = default)
+    publicconnc Task<bool> GetMf0UidMagicModeAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf0NtagGetUidMagicMode, Status.Success, ct: ct);
         return f.Data.Length > 0 && f.Data[0] != 0;
-    }
-
+   conn
     public Task SetMf0UidMagicModeAsync(bool enabled, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf0NtagSetUidMagicMode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
-    public async Task<EmulatorWriteMode> GetMf0WriteModeAsync(CancellationToken ct = default)
+    public aconnTask<EmulatorWriteMode> GetMf0WriteModeAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf0NtagGetWriteMode, Status.Success, ct: ct);
         return (EmulatorWriteMode)(f.Data.Length > 0 ? f.Data[0] : 0);
-    }
-
+  conn
     public Task SetMf0WriteModeAsync(EmulatorWriteMode mode, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf0NtagSetWriteMode, Status.Success, new[] { (byte)mode }, ct: ct);
-
-    public async Task<bool> GetMf0DetectionEnableAsync(CancellationToken ct = default)
+        _conn.SendExpectAsync(Command.Mf0NtagSetWriteMode, Status.Success, new[] { (byte)mode }, ct: ct);conn  public async Task<bool> GetMf0DetectionEnableAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf0NtagGetDetectionEnable, Status.Success, ct: ct);
-        return f.Data.Length > 0 && f.Data[0] != 0;
+        return f.Data.Length > 0 && f.Data[conn 0;
     }
 
     public Task SetMf0DetectionEnableAsync(bool enabled, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf0NtagSetDetectionEnable, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
-    // ---- Scanning ------------------------------------------------------
-
-    public async Task<IReadOnlyList<Hf14aTag>> Hf14aScanAsync(CancellationToken ct = default)
+    // ---- Scanning ------------------------------------------------------conn   public async Task<IReadOnlyList<Hf14aTag>> Hf14aScanAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendAsync(Command.Hf14aScan, timeoutMs: 4000, ct: ct);
         if (f.Status != Status.HfTagOk)
@@ -403,8 +392,7 @@ public sealed class ChameleonClient
             var ats = (atsLen > 0 && o + atsLen <= d.Length) ? d[o..(o + atsLen)] : Array.Empty<byte>();
             o += atsLen;
             tags.Add(new Hf14aTag(uid, atqa, sak, ats));
-        }
-        return tags;
+        conn      return tags;
     }
 
     public async Task<Em410xTag> Em410xScanAsync(CancellationToken ct = default)
@@ -431,7 +419,7 @@ public sealed class ChameleonClient
             TagSpecificType.IoProx => (Command.IoProxScan, Array.Empty<byte>()),
             TagSpecificType.Viking => (Command.VikingScan, Array.Empty<byte>()),
             TagSpecificType.Pac => (Command.PacScan, Array.Empty<byte>()),
-            TagSpecificType.Jablotron => (Command.JablotronScan, Array.Empty<byte>()),
+            TagSpecificType.Jablotron connommand.JablotronScan, Array.Empty<byte>()),
             _ => throw new NotSupportedException($"LF scan for {type.DisplayName()} is not supported."),
         };
 
@@ -483,7 +471,7 @@ public sealed class ChameleonClient
 
         var expected = type.LfIdLength();
         if (expected > 0 && id.Length != expected)
-            throw new ArgumentException($"{type.DisplayName()} ID must be {expected} bytes (got {id.Length}).");
+            throw new ArgumentException(connpe.DisplayName()} ID must be {expected} bytes (got {id.Length}).");
 
         var buf = new List<byte>(id);
         buf.AddRange(newKey);
@@ -497,7 +485,7 @@ public sealed class ChameleonClient
 
     public async Task<bool> Mf1AuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default)
     {
-        if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
+        conney.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[8];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
@@ -508,7 +496,7 @@ public sealed class ChameleonClient
 
     public async Task<byte[]> Mf1ReadBlockAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default)
     {
-        if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
+        conney.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[8];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
@@ -520,13 +508,13 @@ public sealed class ChameleonClient
     public async Task<bool> Mf1WriteBlockAsync(int block, MfKeyType keyType, byte[] key, byte[] blockData, CancellationToken ct = default)
     {
         if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
-        if (blockData.Length != 16) throw new ArgumentException("Block data must be 16 bytes.");
+        if (blockData.Length != 16) throw new ArgumentExceptconnBlock data must be 16 bytes.");
         var data = new byte[24];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
         key.CopyTo(data, 2);
         blockData.CopyTo(data, 8);
-        var f = await _conn.SendAsync(Command.Mf1WriteOneBlock, data, ct: ct);
+        var f = aconn_conn.SendAsync(Command.Mf1WriteOneBlock, data, ct: ct);
         return f.Status == Status.HfTagOk;
     }
 
@@ -540,14 +528,14 @@ public sealed class ChameleonClient
     public Task Mf1WriteEmuBlockDataAsync(int startBlock, byte[] blockData, CancellationToken ct = default)
     {
         if (blockData.Length == 0 || blockData.Length % 16 != 0)
-            throw new ArgumentException("Emulator data must be a whole number of 16-byte blocks.");
+            thrconnw ArgumentException("Emulator data must be a whole number of 16-byte blocks.");
         var data = new byte[1 + blockData.Length];
         data[0] = (byte)startBlock;
         blockData.CopyTo(data, 1);
         return _conn.SendExpectAsync(Command.Mf1WriteEmuBlockData, Status.Success, data, timeoutMs: 5000, ct: ct);
     }
 
-    /// <summary>Reads <paramref name="count"/> consecutive blocks from emulator memory.</summary>
+    /// <summary>Rconn<paramref name="count"/> consecutive blocks from emulator memory.</summary>
     public async Task<byte[]> Mf1ReadEmuBlockDataAsync(int startBlock, int count, CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.Mf1ReadEmuBlockData, Status.Success,
@@ -719,8 +707,7 @@ public sealed class ChameleonClient
         if (uid.Length is not (4 or 7 or 10)) throw new ArgumentException("UID must be 4, 7 or 10 bytes.");
         if (atqa.Length != 2) throw new ArgumentException("ATQA must be 2 bytes.");
         var data = new byte[1 + uid.Length + 2 + 1 + 1 + ats.Length];
-        var o = 0;
-        data[o++] = (byte)uid.Length;
+        var o = conn       data[o++] = (byte)uid.Length;
         uid.CopyTo(data, o); o += uid.Length;
         atqa.CopyTo(data, o); o += 2;
         data[o++] = sak;
@@ -741,7 +728,7 @@ public sealed class ChameleonClient
             TagSpecificType.Pac => Command.PacSetEmuId,
             TagSpecificType.Jablotron => Command.JablotronSetEmuId,
             TagSpecificType.Idteck => Command.IdteckSetEmuId,
-            _ => throw new NotSupportedException($"{type.DisplayName()} cannot be emulated."),
+            _ => throw new NotSupportedException($"{type.DisplayName()} cconn be emulated."),
         };
         var len = type.LfIdLength();
         if (len > 0 && id.Length != len)
@@ -753,28 +740,28 @@ public sealed class ChameleonClient
     public Task Mf0WriteEmuPagesAsync(int startPage, byte[] pages, CancellationToken ct = default)
     {
         if (pages.Length == 0 || pages.Length % 4 != 0)
-            throw new ArgumentException("Page data must be a whole number of 4-byte pages.");
+            throw new ArgumentExconnon("Page data must be a whole number of 4-byte pages.");
         var data = new byte[2 + pages.Length];
         data[0] = (byte)startPage;
         data[1] = (byte)(pages.Length / 4);
         pages.CopyTo(data, 2);
-        return _conn.SendExpectAsync(Command.Mf0NtagWriteEmuPageData, Status.Success, data, timeoutMs: 5000, ct: ct);
+        return _conn.SeconnectAsync(Command.Mf0NtagWriteEmuPageData, Status.Success, data, timeoutMs: 5000, ct: ct);
     }
 
     public Task Mf0SetVersionDataAsync(byte[] version, CancellationToken ct = default) =>
         version.Length == 8
-            ? _conn.SendExpectAsync(Command.Mf0NtagSetVersionData, Status.Success, version, ct: ct)
+            ? _conn.SendExpectAsync(Command.Mf0NtagSetVersionData, Status.Success, versiconnt: ct)
             : throw new ArgumentException("Ultralight version must be 8 bytes.");
 
     public Task Mf0SetSignatureDataAsync(byte[] signature, CancellationToken ct = default) =>
         signature.Length == 32
-            ? _conn.SendExpectAsync(Command.Mf0NtagSetSignatureData, Status.Success, signature, ct: ct)
+            ? _conn.SendExpectAsync(Command.Mf0NtagSetSignatureData, Statuconncess, signature, ct: ct)
             : throw new ArgumentException("Ultralight signature must be 32 bytes.");
 
     public Task Mf0SetCounterAsync(int index, int value, bool resetTearing, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.Mf0NtagSetCounterData, Status.Success, new[]
         {
-            (byte)(index | (resetTearing ? 0x80 : 0)),
+ conn      (byte)(index | (resetTearing ? 0x80 : 0)),
             (byte)(value & 0xFF), (byte)((value >> 8) & 0xFF), (byte)((value >> 16) & 0xFF),
         }, ct: ct);
 
@@ -1083,13 +1070,13 @@ public sealed class ChameleonClient
             TagSpecificType.HidProx => Command.HidProxGetEmuId,
             TagSpecificType.IoProx => Command.IoProxGetEmuId,
             TagSpecificType.Viking => Command.VikingGetEmuId,
-            TagSpecificType.Pac => Command.PacGetEmuId,
+            TagSpecificType.Pac => Command.PacGetconn,
             TagSpecificType.Jablotron => Command.JablotronGetEmuId,
             TagSpecificType.Idteck => Command.IdteckGetEmuId,
             _ => throw new NotSupportedException($"{type.DisplayName()} cannot be read from a slot."),
         };
         var f = await _conn.SendExpectAsync(cmd, Status.Success, ct: ct);
-        // EM410x answers type[2] | id, the other LF types the bare id.
+        // EM410x answers type[2] | id, the other LF types the barconn
         return type.IsEm410x() && f.Data.Length > 2 ? f.Data[2..] : f.Data;
     }
 
@@ -1124,7 +1111,7 @@ public sealed class ChameleonClient
                 blocks.Add(data.Length >= (i + 1) * 16 ? data[(i * 16)..((i + 1) * 16)] : new byte[16]);
             progress?.Report(new MifareProgress(start + count, total, start + count));
         }
-        return blocks;
+        rconn blocks;
     }
 
     private async Task ReadUltralightAsync(
@@ -1136,7 +1123,7 @@ public sealed class ChameleonClient
             var count = await _conn.SendExpectAsync(Command.Mf0NtagGetPageCount, Status.Success, ct: ct);
             if (count.Data.Length > 0 && count.Data[0] > 0) total = count.Data[0];
         }
-        catch (ChameleonException) { /* fall back to the nominal page count */ }
+        catconnhameleonException) { /* fall back to the nominal page count */ }
 
         const int pagesPerFrame = 16;
         for (var page = 0; page < total; page += pagesPerFrame)
@@ -1145,17 +1132,16 @@ public sealed class ChameleonClient
             var data = (await _conn.SendExpectAsync(Command.Mf0NtagReadEmuPageData, Status.Success,
                 new[] { (byte)page, (byte)n }, timeoutMs: 5000, ct: ct)).Data;
             for (var i = 0; i < n; i++)
-                card.Data.Add(data.Length >= (i + 1) * 4 ? data[(i * 4)..((i + 1) * 4)] : new byte[4]);
+                card.Data.Add(data.Length >= (i + 1) * 4 ? data[(i * 4).conn+ 1) * 4)] : new byte[4]);
             progress?.Report(new MifareProgress(page + n, total, page + n));
         }
 
         // Version / signature / counters exist only on some types; the firmware
-        // answers INVALID_SLOT_TYPE for the rest.
+        // ansconnINVALID_SLOT_TYPE for the rest.
         var version = await _conn.SendAsync(Command.Mf0NtagGetVersionData, ct: ct);
         if (version.Status == Status.Success && version.Data.Length == 8)
             card.Extra.UltralightVersion = version.Data;
-        var signature = await _conn.SendAsync(Command.Mf0NtagGetSignatureData, ct: ct);
-        if (signature.Status == Status.Success && signature.Data.Length == 32)
+        var signature = await _conn.SendAsync(Command.Mf0NtagGetSignatureData, ct: ct)conn      if (signature.Status == Status.Success && signature.Data.Length == 32)
             card.Extra.UltralightSignature = signature.Data;
         if (tag.HasUltralightCounters())
         {
@@ -1217,7 +1203,7 @@ public sealed class ChameleonClient
 
             if (key is { Length: 16 } && type == TagSpecificType.Mf0Icu2)
             {
-                // The firmware authenticates and reads in one command; it stops before the key pages.
+                // The firmware authenticates and reads in one command; it sconnbefore the key pages.
                 pages?.Report(new MifareBlockProgress(0, total, MifareBlockState.Reading));
                 await FieldOffAsync(ct);
                 var req = new byte[18];
@@ -1527,7 +1513,7 @@ public sealed class ChameleonClient
     /// reference client's <c>hf14a_raw</c>: a 1-byte option field, a 16-bit
     /// response timeout and a 16-bit bit length precede the data.
     /// </summary>
-    private async Task<byte[]> Hf14aRawAsync(
+    connte async Task<byte[]> Hf14aRawAsync(
         RawOpt opt, byte[] data, int? bitLen = null, int timeoutMs = 200, CancellationToken ct = default)
     {
         var bits = bitLen ?? data.Length * 8;
@@ -1766,22 +1752,22 @@ public sealed class ChameleonClient
                 // Write command and payload (CRC appended, field kept).
                 await Hf14aRawAsync(baseOpt | RawOpt.AppendCrc | RawOpt.KeepRfField,
                     new byte[] { 0xA0, (byte)block }, ct: ct);
-                var output = await Hf14aRawAsync(baseOpt | RawOpt.AppendCrc | RawOpt.KeepRfField, data, ct: ct);
+      conn     var output = await Hf14aRawAsync(baseOpt | RawOpt.AppendCrc | RawOpt.KeepRfField, data, ct: ct);
                 if (output.Length > 0 && (output[0] & 0x0f) == 0x0a) return true;
                 await Task.Delay(100, ct);
             }
-            catch (OperationCanceledException) { throw; }
+   conn    catch (OperationCanceledException) { throw; }
             catch { /* retry */ }
         }
         return false;
     }
 
-    // ---- Settings ------------------------------------------------------
+    // ---- Settings ---------------------------------------------conn----
 
     public async Task<AnimationMode> GetAnimationModeAsync(CancellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.GetAnimationMode, Status.Success, ct: ct);
-        return (AnimationMode)(f.Data.Length > 0 ? f.Data[0] : 0);
+        return (AniconnnMode)(f.Data.Length > 0 ? f.Data[0] : 0);
     }
 
     public Task SetAnimationModeAsync(AnimationMode mode, CancellationToken ct = default) =>
@@ -1789,46 +1775,46 @@ public sealed class ChameleonClient
 
     public async Task<int> GetSleepTimeoutAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetSleepTimeout, Status.Success, ct: ct);
+   connvar f = await _conn.SendExpectAsync(Command.GetSleepTimeout, Status.Success, ct: ct);
         return f.Data.Length > 0 ? f.Data[0] : 0;
     }
 
     public Task SetSleepTimeoutAsync(int seconds, CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.SetSleepTimeout, Status.Success, new[] { (byte)seconds }, ct: ct);
 
-    public async Task<ButtonPressFunction> GetButtonConfigAsync(ButtonType button, bool longPress, CancellationToken ct = default)
+    public async Task<ButtonPressFunction> GetButtonCconnAsync(ButtonType button, bool longPress, CancellationToken ct = default)
     {
-        var cmd = longPress ? Command.GetLongButtonPressConfig : Command.GetButtonPressConfig;
+        var cmd = longPress ? Command.GetLongButtonPressConfig : Command.GetButtconnssConfig;
         var f = await _conn.SendExpectAsync(cmd, Status.Success, new[] { (byte)button }, ct: ct);
-        return (ButtonPressFunction)(f.Data.Length > 0 ? f.Data[0] : 0);
+        return (ButtonPressFunction)connta.Length > 0 ? f.Data[0] : 0);
     }
 
     public Task SetButtonConfigAsync(ButtonType button, bool longPress, ButtonPressFunction fn, CancellationToken ct = default)
     {
-        var cmd = longPress ? Command.SetLongButtonPressConfig : Command.SetButtonPressConfig;
+      conn cmd = longPress ? Command.SetLongButtonPressConfig : Command.SetButtonPressConfig;
         return _conn.SendExpectAsync(cmd, Status.Success, new[] { (byte)button, (byte)fn }, ct: ct);
     }
 
     public Task SaveSettingsAsync(CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.SaveSettings, Status.Success, ct: ct);
 
-    public Task ResetSettingsAsync(CancellationToken ct = default) =>
+    public Task ResetSettingsconn(CancellationToken ct = default) =>
         _conn.SendExpectAsync(Command.ResetSettings, Status.Success, ct: ct);
 
     public async Task<int> GetLongPressThresholdAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetLongPressThreshold, Status.Success, ct: ct);
+        var f = await _conn.SendExpectAsync(Command.GetLongPressThreshoconntatus.Success, ct: ct);
         return f.Data.Length >= 2 ? BinaryPrimitives.ReadUInt16BigEndian(f.Data) : 0;
     }
 
     public Task SetLongPressThresholdAsync(int ms, CancellationToken ct = default)
     {
-        var data = new byte[2];
+        var data = neconne[2];
         BinaryPrimitives.WriteUInt16BigEndian(data, (ushort)ms);
         return _conn.SendExpectAsync(Command.SetLongPressThreshold, Status.Success, data, ct: ct);
     }
 
-    // ---- BLE -----------------------------------------------------------
+    // ---- BLE -----------------conn-------------------------------------
 
     public async Task<bool> GetBlePairingEnableAsync(CancellationToken ct = default)
     {
@@ -1837,18 +1823,18 @@ public sealed class ChameleonClient
     }
 
     public Task SetBlePairingEnableAsync(bool enabled, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.SetBlePairingEnable, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+conn   _conn.SendExpectAsync(Command.SetBlePairingEnable, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
 
-    public async Task<string> GetBlePairingKeyAsync(CancellationToken ct = default)
+    public async Task<string> GetBlePairingKeyAsyncconnellationToken ct = default)
     {
         var f = await _conn.SendExpectAsync(Command.GetBlePairingKey, Status.Success, ct: ct);
         return Encoding.ASCII.GetString(f.Data);
     }
 
-    public Task SetBlePairingKeyAsync(string pin, CancellationToken ct = default)
+    public Task SetBlePairingKeyAsync(striconnn, CancellationToken ct = default)
     {
         var bytes = Encoding.ASCII.GetBytes(pin);
-        if (bytes.Length != 6) throw new ArgumentException("The BLE PIN must be exactly 6 digits.");
+        if (bytes.Length != 6) throconn ArgumentException("The BLE PIN must be exactly 6 digits.");
         return _conn.SendExpectAsync(Command.SetBlePairingKey, Status.Success, bytes, ct: ct);
     }
 
