@@ -61,9 +61,9 @@ public sealed class SlotItemViewModel : ViewModelBase
         ? (!string.IsNullOrEmpty(_info.LfNick) ? _info.LfNick : _info.LfType.DisplayName())
         : "—";
 
-    /// <summary>Type of each card, under its name in the slot tile; empty when the frequency is empty.</summary>
-    public string HfTypeLabel => HasHf ? _info.HfType.DisplayName() : "";
-    public string LfTypeLabel => HasLf ? _info.LfType.DisplayName() : "";
+    /// <summary>Type of each card, under its name in the slot tile; a dash (hidden) when the frequency is empty.</summary>
+    public string HfTypeLabel => HasHf ? _info.HfType.DisplayName() : "—";
+    public string LfTypeLabel => HasLf ? _info.LfType.DisplayName() : "—";
 
     public string Summary => IsEmpty
         ? "Empty slot"

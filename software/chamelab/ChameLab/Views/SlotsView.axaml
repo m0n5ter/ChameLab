@@ -39,6 +39,15 @@
     <Style Selector="Border.chip.off">
       <Setter Property="Opacity" Value="0.4" />
     </Style>
+    <!-- The hidden name and type lines of an empty frequency: they only hold its height. -->
+    <Style Selector="StackPanel.ghost">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <!-- Line between the HF and LF cards of a slot tile. -->
+    <Style Selector="Border.tilesep">
+      <Setter Property="Height" Value="1" />
+      <Setter Property="Background" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    </Style>
     <!-- A saved card in the editor: the Cards list row, as a button that opens the card. -->
     <Style Selector="Button.cardtile">
       <Setter Property="Padding" Value="0" />
@@ -95,11 +104,12 @@
       </Border></Border>
     </DataTemplate>
 
-    <!-- A slot: its number, then the HF card above the LF card (name, type below). The list rows and
-         the editor header; every slot is the same height, filled or not. -->
+    <!-- A slot: its number, then the HF card above the LF card (name, type below), a line between them.
+         The list rows and the editor header. An empty frequency keeps its two lines, hidden, so every
+         slot is the same height; "Empty" sits centered over them. -->
     <DataTemplate x:Key="SlotTile" x:DataType="vm:SlotItemViewModel">
-      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="8">
-        <Border Grid.Column="0" Grid.RowSpan="2" Classes="slotnum small" Classes.active="{Binding IsActive}"
+      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="14" RowSpacing="2">
+        <Border Grid.Column="0" Grid.RowSpan="3" Classes="slotnum small" Classes.active="{Binding IsActive}"
                 VerticalAlignment="Center">
           <TextBlock Text="{Binding Index}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
@@ -107,25 +117,28 @@
           <Border Classes="chip hf" Classes.off="{Binding !HasHf}" VerticalAlignment="Center">
             <TextBlock Text="HF" />
           </Border>
-          <StackPanel Grid.Column="1" VerticalAlignment="Center">
-            <TextBlock Text="{Binding HfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                       IsVisible="{Binding HasHf}" />
-            <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !HasHf}" />
-            <TextBlock Text="{Binding HfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
-                       TextTrimming="CharacterEllipsis" />
-          </StackPanel>
+          <Panel Grid.Column="1">
+            <StackPanel Classes.ghost="{Binding !HasHf}">
+              <TextBlock Text="{Binding HfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding HfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <TextBlock Text="Empty" Classes="caption" VerticalAlignment="Center" IsVisible="{Binding !HasHf}" />
+          </Panel>
         </Grid>
-        <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+        <Border Grid.Row="1" Grid.Column="1" Classes="tilesep" />
+        <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
           <Border Classes="chip lf" Classes.off="{Binding !HasLf}" VerticalAlignment="Center">
             <TextBlock Text="LF" />
           </Border>
-          <StackPanel Grid.Column="1" VerticalAlignment="Center">
-            <TextBlock Text="{Binding LfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                       IsVisible="{Binding HasLf}" />
-            <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !HasLf}" />
-            <TextBlock Text="{Binding LfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
-                       TextTrimming="CharacterEllipsis" />
-          </StackPanel>
+          <Panel Grid.Column="1">
+            <StackPanel Classes.ghost="{Binding !HasLf}">
+              <TextBlock Text="{Binding LfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding LfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <TextBlock Text="Empty" Classes="caption" VerticalAlignment="Center" IsVisible="{Binding !HasLf}" />
+          </Panel>
         </Grid>
       </Grid>
     </DataTemplate>
