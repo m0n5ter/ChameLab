@@ -7,9 +7,11 @@ using ChameLab.Protocol;
 namespace ChameLab.ViewModels;
 
 /// <summary>One saved card in the Cards list.</summary>
-public sealed class CardItemViewModel(CardSave card) : ViewModelBase
+public sealed class CardItemViewModel : ViewModelBase
 {
-    public CardSave Card { get; } = card;
+    public CardItemViewModel(CardSave card) => Card = card;
+
+    public CardSave Card { get; }
 
     public string Name => string.IsNullOrWhiteSpace(Card.Name) ? "No name" : Card.Name;
     public string TypeLabel => Card.Tag.DisplayName();

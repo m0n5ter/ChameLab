@@ -57,11 +57,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     public Task SetDeviceModeAsync(DeviceMode mode, CancellationToken ct = default) =>
         conn.SendExpectAsync(Command.ChangeDeviceMode, Status.Success,
-            new[] { (byte)mode }, ct: ct);
+            [(byte)mode], ct: ct);
 
     public async Task<BatteryInfo> GetBatteryInfoAsync(CancellationToken ct = default)
     {
-        var f connit _conn.SendExpectAsync(Command.GetBatteryInfo, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetBatteryInfo, Status.Success, ct: ct);
         int mv = BinaryPrimitives.ReadUInt16BigEndian(f.Data);
         var pct = f.Data.Length > 2 ? f.Data[2] : 0;
         return new BatteryInfo(mv, pct);
@@ -69,7 +69,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     public async Task<IReadOnlyList<ushort>> GetCapabilitiesAsync(CancellationToken ct = default)
     {
-        var f connit _conn.SendAsync(Command.GetDeviceCapabilities, ct: ct);
+        var f = await conn.SendAsync(Command.GetDeviceCapabilities, ct: ct);
         var list = new List<ushort>();
         if (f.Status == Status.Success)
             for (var i = 0; i + 1 < f.Data.Length; i += 2)
@@ -107,13 +107,13 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     public async Task<int> GetActiveSlotAsync(CancellationToken ct = default)
     {
-        var f connit _conn.SendExpectAsync(Command.GetActiveSlot, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetActiveSlot, Status.Success, ct: ct);
         return (f.Data.Length > 0 ? f.Data[0] : 0) + 1; // fw 0-based → 1-based
     }
 
     public Task SetActiveSlotAsync(int slot1Based, CancellationToken ct = default) =>
-conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
-            new[] { (byte)(slot1Based - 1) }, ct: ct);
+        conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
+            [(byte)(slot1Based - 1)], ct: ct);
 
     /// <summary>Reads type + enable + nick for all 8 slots and marks the active one.</summary>
     public async Task<IReadOnlyList<SlotInfo>> GetAllSlotsAsync(CancellationToken ct = default)
@@ -122,7 +122,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         for (var i = 1; i <= 8; i++)
             slots.Add(new SlotInfo { Index = i });
 
-        vconnfo = await _conn.SendExpectAsync(Command.GetSlotInfo, Status.Success, ct: ct);
+        var info = await conn.SendExpectAsync(Command.GetSlotInfo, Status.Success, ct: ct);
         for (var i = 0; i < 8 && (i * 4 + 3) < info.Data.Length; i++)
         {
             slots[i].HfType = (TagSpecificType)BinaryPrimitives.ReadUInt16BigEndian(info.Data.AsSpan(i * 4));
@@ -131,7 +131,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
 
         try
         {
-           connen = await _conn.SendExpectAsync(Command.GetEnabledSlots, Status.Success, ct: ct);
+            var en = await conn.SendExpectAsync(Command.GetEnabledSlots, Status.Success, ct: ct);
             for (var i = 0; i < 8 && (i * 2 + 1) < en.Data.Length; i++)
             {
                 slots[i].HfEnabled = en.Data[i * 2] != 0;
@@ -142,14 +142,14 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
 
         try
         {
-            vaconnks = await _conn.SendExpectAsync(Command.GetAllSlotNicks, Status.Success, ct: ct);
+            var nicks = await conn.SendExpectAsync(Command.GetAllSlotNicks, Status.Success, ct: ct);
             ParseNicks(nicks.Data, slots);
         }
         catch { /* older firmware */ }
 
         try
         {
-            varconnrs = await _conn.SendExpectAsync(Command.GetAllSlotColors, Status.Success, ct: ct);
+            var colors = await conn.SendExpectAsync(Command.GetAllSlotColors, Status.Success, ct: ct);
             for (var i = 0; i < 8 && (i * 6 + 5) < colors.Data.Length; i++)
             {
                 slots[i].HfColor = SlotColorFromBytes(colors.Data.AsSpan(i * 6, 3));
@@ -194,19 +194,20 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     {
         var data = new byte[3];
         data[0] = (byte)(slot1Based - 1);
-        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushort)type);conn    return _conn.SendExpectAsync(Command.SetSlotTagType, Status.Success, data, ct: ct);
+        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushort)type);
+        return conn.SendExpectAsync(Command.SetSlotTagType, Status.Success, data, ct: ct);
     }
 
-    public Task SetSlotEnableAsync(int slot1Based, TagSenseType sense, bool enabled, CancellationToken ct = defauconn>
-        _conn.SendExpectAsync(Command.SetSlotEnable, Status.Success,
-            new[] { (byte)(slot1Based - 1), (byte)sense, (byte)(enabled ? 1 : 0) }, ct: ct);
+    public Task SetSlotEnableAsync(int slot1Based, TagSenseType sense, bool enabled, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.SetSlotEnable, Status.Success,
+            [(byte)(slot1Based - 1), (byte)sense, (byte)(enabled ? 1 : 0)], ct: ct);
 
     public Task SetSlotDataDefaultAsync(int slot1Based, TagSpecificType type, CancellationToken ct = default)
     {
         var data = new byte[3];
         data[0] = (byte)(slot1Based - 1);
-        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushortconn);
-        return _conn.SendExpectAsync(Command.SetSlotDataDefault, Status.Success, data, ct: ct);
+        BinaryPrimitives.WriteUInt16BigEndian(data.AsSpan(1), (ushort)type);
+        return conn.SendExpectAsync(Command.SetSlotDataDefault, Status.Success, data, ct: ct);
     }
 
     public Task SetSlotNickAsync(int slot1Based, TagSenseType sense, string name, CancellationToken ct = default)
@@ -216,8 +217,8 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         var data = new byte[2 + enc.Length];
         data[0] = (byte)(slot1Based - 1);
         data[1] = (byte)sense;
-        enc.CopyTo(daconn);
-        return _conn.SendExpectAsync(Command.SetSlotTagNick, Status.Success, data, ct: ct);
+        enc.CopyTo(data, 2);
+        return conn.SendExpectAsync(Command.SetSlotTagNick, Status.Success, data, ct: ct);
     }
 
     /// <summary>
@@ -232,31 +233,31 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         {
             var hex = CardSave.NormalizeColor(color);
             rgb = Convert.FromHexString(hex.AsSpan(1));
-  conn }
-        return _conn.SendExpectAsync(Command.SetSlotColor, Status.Success,
-            new[] { (byte)(slot1Based - 1), (byte)sense, rgb[0], rgb[1], rgb[2] }, ct: ct);
+        }
+        return conn.SendExpectAsync(Command.SetSlotColor, Status.Success,
+            [(byte)(slot1Based - 1), (byte)sense, rgb[0], rgb[1], rgb[2]], ct: ct);
     }
 
     private static string? SlotColorFromBytes(ReadOnlySpan<byte> rgb) =>
         rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0 ? null : "#" + Convert.ToHexString(rgb);
 
-    public Task DeleteSlotNickAsync(int slot1Based, TagSenseType sense, Cancellationconn ct = default) =>
-        _conn.SendExpectAsync(Command.DeleteSlotTagNick, Status.Success,
-            new[] { (byte)(slot1Based - 1), (byte)sense }, ct: ct);
+    public Task DeleteSlotNickAsync(int slot1Based, TagSenseType sense, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.DeleteSlotTagNick, Status.Success,
+            [(byte)(slot1Based - 1), (byte)sense], ct: ct);
 
-    public Task SaveSlotConfigAsync(CancconnionToken ct = default) =>
-        _conn.SendExpectAsync(Command.SlotDataConfigSave, Status.Success, ct: ct);
+    public Task SaveSlotConfigAsync(CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.SlotDataConfigSave, Status.Success, ct: ct);
 
     /// <summary>Clears one frequency of a slot (removes its HF or LF tag).</summary>
-    public Task DeleteSlotSenseTypeAsync(int slot1Based, TagSenseType sense, CancconnionToken ct = default) =>
-        _conn.SendExpectAsync(Command.DeleteSlotSenseType, Status.Success,
-            new[] { (byte)(slot1Based - 1), (byte)sense }, ct: ct);
+    public Task DeleteSlotSenseTypeAsync(int slot1Based, TagSenseType sense, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.DeleteSlotSenseType, Status.Success,
+            [(byte)(slot1Based - 1), (byte)sense], ct: ct);
 
     // ---- Emulator configuration (active slot) -------------------------
 
-    public async Task<Mf1EmulatorConfig> GetMf1EmulatorConfigAsync(CancellationToconnt = default)
+    public async Task<Mf1EmulatorConfig> GetMf1EmulatorConfigAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf1GetEmulatorConfig, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf1GetEmulatorConfig, Status.Success, ct: ct);
         var d = f.Data;
         return new Mf1EmulatorConfig(
             Detection: d.Length > 0 && d[0] != 0,
@@ -266,28 +267,28 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             WriteMode: (EmulatorWriteMode)(d.Length > 4 ? d[4] : 0));
     }
 
-    public Task SetMf1Gen1aModeAsync(bool enablconnancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf1SetGen1aMode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+    public Task SetMf1Gen1aModeAsync(bool enabled, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf1SetGen1aMode, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
-    public Task SetMf1Gen2ModeAsync(boconnabled, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf1SetGen2Mode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+    public Task SetMf1Gen2ModeAsync(bool enabled, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf1SetGen2Mode, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
-    public Task SetMf1BlockAntiCollModeconn(bool enabled, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf1SetBlockAntiCollMode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+    public Task SetMf1BlockAntiCollModeAsync(bool enabled, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf1SetBlockAntiCollMode, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
-    public Task SetMf1WriteModeAsconnmulatorWriteMode mode, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf1SetWriteMode, Status.Success, new[] { (byte)mode }, ct: ct);
+    public Task SetMf1WriteModeAsync(EmulatorWriteMode mode, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf1SetWriteMode, Status.Success, [(byte)mode], ct: ct);
 
     public async Task<bool> GetMf1DetectionEnableAsync(CancellationToken ct = default) =>
         (await GetMf1EmulatorConfigAsync(ct)).Detection;
 
-    public Task SetMfconnctionEnableAsync(bool enabled, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf1SetDetectionEnable, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+    public Task SetMf1DetectionEnableAsync(bool enabled, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf1SetDetectionEnable, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
     /// <summary>Number of MIFARE Classic auth nonces the emulator has captured (for mfkey32).</summary>
-    public async Task<int> conn1DetectionCountAsync(CancellationToken ct = default)
+    public async Task<int> GetMf1DetectionCountAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf1GetDetectionCount, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf1GetDetectionCount, Status.Success, ct: ct);
         return f.Data.Length >= 4 ? (int)BinaryPrimitives.ReadUInt32BigEndian(f.Data) : 0;
     }
 
@@ -295,8 +296,8 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     public async Task<IReadOnlyList<DetectionLog>> GetMf1DetectionLogAsync(int index, CancellationToken ct = default)
     {
         var data = new byte[4];
- conn  BinaryPrimitives.WriteUInt32BigEndian(data, (uint)index);
-        var f = await _conn.SendExpectAsync(Command.Mf1GetDetectionLog, Status.Success, data, ct: ct);
+        BinaryPrimitives.WriteUInt32BigEndian(data, (uint)index);
+        var f = await conn.SendExpectAsync(Command.Mf1GetDetectionLog, Status.Success, data, ct: ct);
 
         var logs = new List<DetectionLog>();
         const int entry = 18; // block + bitfield + uid(4) + nt(4) + nr(4) + ar(4)
@@ -330,52 +331,58 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         return all;
     }
 
-    public async Task<bool> GconnFieldOffDoResetAsync(CancellationToken ct = default)
+    public async Task<bool> GetMf1FieldOffDoResetAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf1GetFieldOffDoReset, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf1GetFieldOffDoReset, Status.Success, ct: ct);
         return f.Data.Length > 0 && f.Data[0] != 0;
     }
 
-    public TaconntMf1FieldOffDoResetAsync(bool enabled, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf1SetFieldOffDoReset, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+    public Task SetMf1FieldOffDoResetAsync(bool enabled, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf1SetFieldOffDoReset, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
-    public async Task<MifareClaconnrngType> GetMf1PrngTypeAsync(CancellationToken ct = default)
+    public async Task<MifareClassicPrngType> GetMf1PrngTypeAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf1GetPrngType, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf1GetPrngType, Status.Success, ct: ct);
         return (MifareClassicPrngType)(f.Data.Length > 0 ? f.Data[0] : 0);
     }
 
-    public TconnetMf1PrngTypeAsync(MifareClassicPrngType prng, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf1SetPrngType, Status.Success, new[] { (byte)prng }, ct: ct);
+    public Task SetMf1PrngTypeAsync(MifareClassicPrngType prng, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf1SetPrngType, Status.Success, [(byte)prng], ct: ct);
 
     // ---- Ultralight / NTAG emulator settings --------------------------
 
-    publicconnc Task<bool> GetMf0UidMagicModeAsync(CancellationToken ct = default)
+    public async Task<bool> GetMf0UidMagicModeAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf0NtagGetUidMagicMode, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf0NtagGetUidMagicMode, Status.Success, ct: ct);
         return f.Data.Length > 0 && f.Data[0] != 0;
-   conn
-    public Task SetMf0UidMagicModeAsync(bool enabled, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf0NtagSetUidMagicMode, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+    }
 
-    public aconnTask<EmulatorWriteMode> GetMf0WriteModeAsync(CancellationToken ct = default)
+    public Task SetMf0UidMagicModeAsync(bool enabled, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Mf0NtagSetUidMagicMode, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
+
+    public async Task<EmulatorWriteMode> GetMf0WriteModeAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf0NtagGetWriteMode, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf0NtagGetWriteMode, Status.Success, ct: ct);
         return (EmulatorWriteMode)(f.Data.Length > 0 ? f.Data[0] : 0);
-  conn
+    }
+
     public Task SetMf0WriteModeAsync(EmulatorWriteMode mode, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf0NtagSetWriteMode, Status.Success, new[] { (byte)mode }, ct: ct);conn  public async Task<bool> GetMf0DetectionEnableAsync(CancellationToken ct = default)
+        conn.SendExpectAsync(Command.Mf0NtagSetWriteMode, Status.Success, [(byte)mode], ct: ct);
+
+    public async Task<bool> GetMf0DetectionEnableAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf0NtagGetDetectionEnable, Status.Success, ct: ct);
-        return f.Data.Length > 0 && f.Data[conn 0;
+        var f = await conn.SendExpectAsync(Command.Mf0NtagGetDetectionEnable, Status.Success, ct: ct);
+        return f.Data.Length > 0 && f.Data[0] != 0;
     }
 
     public Task SetMf0DetectionEnableAsync(bool enabled, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf0NtagSetDetectionEnable, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+        conn.SendExpectAsync(Command.Mf0NtagSetDetectionEnable, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
-    // ---- Scanning ------------------------------------------------------conn   public async Task<IReadOnlyList<Hf14aTag>> Hf14aScanAsync(CancellationToken ct = default)
+    // ---- Scanning ------------------------------------------------------
+
+    public async Task<IReadOnlyList<Hf14aTag>> Hf14aScanAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendAsync(Command.Hf14aScan, timeoutMs: 4000, ct: ct);
+        var f = await conn.SendAsync(Command.Hf14aScan, timeoutMs: 4000, ct: ct);
         if (f.Status != Status.HfTagOk)
             throw new ChameleonException($"No HF tag: {f.Status.Describe()}", f.Status);
         var tags = new List<Hf14aTag>();
@@ -389,15 +396,16 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             var atqa = d[o..(o + 2)]; o += 2;
             var sak = d[o++];
             int atsLen = d[o++];
-            var ats = (atsLen > 0 && o + atsLen <= d.Length) ? d[o..(o + atsLen)] : Array.Empty<byte>();
+            var ats = (atsLen > 0 && o + atsLen <= d.Length) ? d[o..(o + atsLen)] : [];
             o += atsLen;
             tags.Add(new Hf14aTag(uid, atqa, sak, ats));
-        conn      return tags;
+        }
+        return tags;
     }
 
     public async Task<Em410xTag> Em410xScanAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendAsync(Command.Em410xScan, timeoutMs: 4000, ct: ct);
+        var f = await conn.SendAsync(Command.Em410xScan, timeoutMs: 4000, ct: ct);
         if (f.Status != Status.LfTagOk)
             throw new ChameleonException($"No EM410x tag: {f.Status.Describe()}", f.Status);
         var type = (TagSpecificType)BinaryPrimitives.ReadUInt16BigEndian(f.Data);
@@ -415,15 +423,15 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     {
         var (cmd, data) = type switch
         {
-            TagSpecificType.HidProx => (Command.HidProxScan, new byte[] { 0 }), // format 0 = auto-detect
-            TagSpecificType.IoProx => (Command.IoProxScan, Array.Empty<byte>()),
-            TagSpecificType.Viking => (Command.VikingScan, Array.Empty<byte>()),
+            TagSpecificType.HidProx => (Command.HidProxScan, [0]), // format 0 = auto-detect
+            TagSpecificType.IoProx => (Command.IoProxScan, []),
+            TagSpecificType.Viking => (Command.VikingScan, []),
             TagSpecificType.Pac => (Command.PacScan, Array.Empty<byte>()),
-            TagSpecificType.Jablotron connommand.JablotronScan, Array.Empty<byte>()),
+            TagSpecificType.Jablotron => (Command.JablotronScan, Array.Empty<byte>()),
             _ => throw new NotSupportedException($"LF scan for {type.DisplayName()} is not supported."),
         };
 
-        var f = await _conn.SendAsync(cmd, data, timeoutMs: 4000, ct: ct);
+        var f = await conn.SendAsync(cmd, data, timeoutMs: 4000, ct: ct);
         if (f.Status != Status.LfTagOk)
             throw new ChameleonException($"No {type.DisplayName()} tag: {f.Status.Describe()}", f.Status);
 
@@ -434,14 +442,14 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     // ---- LF write (T55xx) ---------------------------------------------
 
     /// <summary>Default T55xx write key used by the firmware (0x20206666).</summary>
-    public static readonly byte[] DefaultT55xxKey = { 0x20, 0x20, 0x66, 0x66 };
+    public static readonly byte[] DefaultT55xxKey = [0x20, 0x20, 0x66, 0x66];
 
     /// <summary>T55xx keys the firmware tries when a tag is password-protected.</summary>
     public static readonly byte[][] DefaultT55xxOldKeys =
-    {
-        new byte[] { 0x51, 0x24, 0x36, 0x48 },
-        new byte[] { 0x19, 0x92, 0x04, 0x27 },
-    };
+    [
+        [0x51, 0x24, 0x36, 0x48],
+        [0x19, 0x92, 0x04, 0x27]
+    ];
 
     /// <summary>
     /// Writes an LF card onto a blank T55xx tag. <paramref name="id"/> is the raw
@@ -471,12 +479,12 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
 
         var expected = type.LfIdLength();
         if (expected > 0 && id.Length != expected)
-            throw new ArgumentException(connpe.DisplayName()} ID must be {expected} bytes (got {id.Length}).");
+            throw new ArgumentException($"{type.DisplayName()} ID must be {expected} bytes (got {id.Length}).");
 
         var buf = new List<byte>(id);
         buf.AddRange(newKey);
         foreach (var k in oldKeys) buf.AddRange(k);
-        var f = await _conn.SendAsync(cmd, buf.ToArray(), timeoutMs: 5000, ct: ct);
+        var f = await conn.SendAsync(cmd, [.. buf], timeoutMs: 5000, ct: ct);
         if (f.Status != Status.LfTagOk)
             throw new ChameleonException($"T55xx write failed: {f.Status.Describe()}", f.Status);
     }
@@ -485,42 +493,42 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
 
     public async Task<bool> Mf1AuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default)
     {
-        conney.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
+        if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[8];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
         key.CopyTo(data, 2);
-        var f = await _conn.SendAsync(Command.Mf1AuthOneKeyBlock, data, ct: ct);
+        var f = await conn.SendAsync(Command.Mf1AuthOneKeyBlock, data, ct: ct);
         return f.Status == Status.HfTagOk;
     }
 
     public async Task<byte[]> Mf1ReadBlockAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default)
     {
-        conney.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
+        if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[8];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
         key.CopyTo(data, 2);
-        var f = await _conn.SendExpectAsync(Command.Mf1ReadOneBlock, Status.HfTagOk, data, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf1ReadOneBlock, Status.HfTagOk, data, ct: ct);
         return f.Data;
     }
 
     public async Task<bool> Mf1WriteBlockAsync(int block, MfKeyType keyType, byte[] key, byte[] blockData, CancellationToken ct = default)
     {
         if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
-        if (blockData.Length != 16) throw new ArgumentExceptconnBlock data must be 16 bytes.");
+        if (blockData.Length != 16) throw new ArgumentException("Block data must be 16 bytes.");
         var data = new byte[24];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
         key.CopyTo(data, 2);
         blockData.CopyTo(data, 8);
-        var f = aconn_conn.SendAsync(Command.Mf1WriteOneBlock, data, ct: ct);
+        var f = await conn.SendAsync(Command.Mf1WriteOneBlock, data, ct: ct);
         return f.Status == Status.HfTagOk;
     }
 
     public async Task<bool> Mf1IsSupportedAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendAsync(Command.Mf1DetectSupport, ct: ct);
+        var f = await conn.SendAsync(Command.Mf1DetectSupport, ct: ct);
         return f.Status == Status.HfTagOk;
     }
 
@@ -528,18 +536,18 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     public Task Mf1WriteEmuBlockDataAsync(int startBlock, byte[] blockData, CancellationToken ct = default)
     {
         if (blockData.Length == 0 || blockData.Length % 16 != 0)
-            thrconnw ArgumentException("Emulator data must be a whole number of 16-byte blocks.");
+            throw new ArgumentException("Emulator data must be a whole number of 16-byte blocks.");
         var data = new byte[1 + blockData.Length];
         data[0] = (byte)startBlock;
         blockData.CopyTo(data, 1);
-        return _conn.SendExpectAsync(Command.Mf1WriteEmuBlockData, Status.Success, data, timeoutMs: 5000, ct: ct);
+        return conn.SendExpectAsync(Command.Mf1WriteEmuBlockData, Status.Success, data, timeoutMs: 5000, ct: ct);
     }
 
-    /// <summary>Rconn<paramref name="count"/> consecutive blocks from emulator memory.</summary>
+    /// <summary>Reads <paramref name="count"/> consecutive blocks from emulator memory.</summary>
     public async Task<byte[]> Mf1ReadEmuBlockDataAsync(int startBlock, int count, CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.Mf1ReadEmuBlockData, Status.Success,
-            new[] { (byte)startBlock, (byte)count }, timeoutMs: 5000, ct: ct);
+        var f = await conn.SendExpectAsync(Command.Mf1ReadEmuBlockData, Status.Success,
+            [(byte)startBlock, (byte)count], timeoutMs: 5000, ct: ct);
         return f.Data;
     }
 
@@ -691,7 +699,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
                 block++;
                 if (block - runStart >= 16) break; // cap frame size
             }
-            await Mf1WriteEmuBlockDataAsync(runStart, run.ToArray(), ct);
+            await Mf1WriteEmuBlockDataAsync(runStart, [.. run], ct);
             written += (block - runStart);
             progress?.Report(new MifareProgress(block, dump.BlockCount, written));
         }
@@ -707,13 +715,14 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         if (uid.Length is not (4 or 7 or 10)) throw new ArgumentException("UID must be 4, 7 or 10 bytes.");
         if (atqa.Length != 2) throw new ArgumentException("ATQA must be 2 bytes.");
         var data = new byte[1 + uid.Length + 2 + 1 + 1 + ats.Length];
-        var o = conn       data[o++] = (byte)uid.Length;
+        var o = 0;
+        data[o++] = (byte)uid.Length;
         uid.CopyTo(data, o); o += uid.Length;
         atqa.CopyTo(data, o); o += 2;
         data[o++] = sak;
         data[o++] = (byte)ats.Length;
         ats.CopyTo(data, o);
-        return _conn.SendExpectAsync(Command.Hf14aSetAntiCollData, Status.Success, data, ct: ct);
+        return conn.SendExpectAsync(Command.Hf14aSetAntiCollData, Status.Success, data, ct: ct);
     }
 
     /// <summary>Sets the ID emulated by the active LF slot for the given LF tag type.</summary>
@@ -728,45 +737,44 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             TagSpecificType.Pac => Command.PacSetEmuId,
             TagSpecificType.Jablotron => Command.JablotronSetEmuId,
             TagSpecificType.Idteck => Command.IdteckSetEmuId,
-            _ => throw new NotSupportedException($"{type.DisplayName()} cconn be emulated."),
+            _ => throw new NotSupportedException($"{type.DisplayName()} cannot be emulated."),
         };
         var len = type.LfIdLength();
         if (len > 0 && id.Length != len)
             throw new ArgumentException($"{type.DisplayName()} ID must be {len} bytes (got {id.Length}).");
-        return _conn.SendExpectAsync(cmd, Status.Success, id, ct: ct);
+        return conn.SendExpectAsync(cmd, Status.Success, id, ct: ct);
     }
 
     /// <summary>Writes whole 4-byte pages into the active Ultralight / NTAG slot.</summary>
     public Task Mf0WriteEmuPagesAsync(int startPage, byte[] pages, CancellationToken ct = default)
     {
         if (pages.Length == 0 || pages.Length % 4 != 0)
-            throw new ArgumentExconnon("Page data must be a whole number of 4-byte pages.");
+            throw new ArgumentException("Page data must be a whole number of 4-byte pages.");
         var data = new byte[2 + pages.Length];
         data[0] = (byte)startPage;
         data[1] = (byte)(pages.Length / 4);
         pages.CopyTo(data, 2);
-        return _conn.SeconnectAsync(Command.Mf0NtagWriteEmuPageData, Status.Success, data, timeoutMs: 5000, ct: ct);
+        return conn.SendExpectAsync(Command.Mf0NtagWriteEmuPageData, Status.Success, data, timeoutMs: 5000, ct: ct);
     }
 
     public Task Mf0SetVersionDataAsync(byte[] version, CancellationToken ct = default) =>
         version.Length == 8
-            ? _conn.SendExpectAsync(Command.Mf0NtagSetVersionData, Status.Success, versiconnt: ct)
+            ? conn.SendExpectAsync(Command.Mf0NtagSetVersionData, Status.Success, version, ct: ct)
             : throw new ArgumentException("Ultralight version must be 8 bytes.");
 
     public Task Mf0SetSignatureDataAsync(byte[] signature, CancellationToken ct = default) =>
         signature.Length == 32
-            ? _conn.SendExpectAsync(Command.Mf0NtagSetSignatureData, Statuconncess, signature, ct: ct)
+            ? conn.SendExpectAsync(Command.Mf0NtagSetSignatureData, Status.Success, signature, ct: ct)
             : throw new ArgumentException("Ultralight signature must be 32 bytes.");
 
     public Task Mf0SetCounterAsync(int index, int value, bool resetTearing, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf0NtagSetCounterData, Status.Success, new[]
-        {
- conn      (byte)(index | (resetTearing ? 0x80 : 0)),
-            (byte)(value & 0xFF), (byte)((value >> 8) & 0xFF), (byte)((value >> 16) & 0xFF),
-        }, ct: ct);
+        conn.SendExpectAsync(Command.Mf0NtagSetCounterData, Status.Success, [
+            (byte)(index | (resetTearing ? 0x80 : 0)),
+            (byte)(value & 0xFF), (byte)((value >> 8) & 0xFF), (byte)((value >> 16) & 0xFF)
+        ], ct: ct);
 
     public Task Mf0ResetAuthCountAsync(CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.Mf0NtagResetAuthCnt, Status.Success, ct: ct);
+        conn.SendExpectAsync(Command.Mf0NtagResetAuthCnt, Status.Success, ct: ct);
 
     /// <summary>
     /// Emulates a saved card in <paramref name="slot1Based"/>: switches to tag
@@ -798,7 +806,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         {
             if (card.Uid.Length > 0)
             {
-                var atqa = card.Atqa.Length == 2 ? card.Atqa : new byte[] { 0x00, 0x04 };
+                var atqa = card.Atqa.Length == 2 ? card.Atqa : [0x00, 0x04];
                 await Hf14aSetAntiCollDataAsync(card.Uid, atqa, card.Sak, card.Ats, ct);
             }
 
@@ -852,7 +860,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             var run = new List<byte>();
             while (block < total && blocks[block].Length == 16 && block - runStart < 16)
                 run.AddRange(blocks[block++]);
-            await Mf1WriteEmuBlockDataAsync(runStart, run.ToArray(), ct);
+            await Mf1WriteEmuBlockDataAsync(runStart, [.. run], ct);
             written += block - runStart;
             progress?.Report(new MifareProgress(block, total, written));
         }
@@ -871,7 +879,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
                 var d = card.Data[p];
                 chunk.AddRange(d.Length == 4 ? d : new byte[4]);
             }
-            await Mf0WriteEmuPagesAsync(page, chunk.ToArray(), ct);
+            await Mf0WriteEmuPagesAsync(page, [.. chunk], ct);
             var done = Math.Min(total, page + pagesPerFrame);
             progress?.Report(new MifareProgress(done, total, done));
         }
@@ -1070,20 +1078,20 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             TagSpecificType.HidProx => Command.HidProxGetEmuId,
             TagSpecificType.IoProx => Command.IoProxGetEmuId,
             TagSpecificType.Viking => Command.VikingGetEmuId,
-            TagSpecificType.Pac => Command.PacGetconn,
+            TagSpecificType.Pac => Command.PacGetEmuId,
             TagSpecificType.Jablotron => Command.JablotronGetEmuId,
             TagSpecificType.Idteck => Command.IdteckGetEmuId,
             _ => throw new NotSupportedException($"{type.DisplayName()} cannot be read from a slot."),
         };
-        var f = await _conn.SendExpectAsync(cmd, Status.Success, ct: ct);
-        // EM410x answers type[2] | id, the other LF types the barconn
+        var f = await conn.SendExpectAsync(cmd, Status.Success, ct: ct);
+        // EM410x answers type[2] | id, the other LF types the bare id.
         return type.IsEm410x() && f.Data.Length > 2 ? f.Data[2..] : f.Data;
     }
 
     private async Task ReadHf14aAntiCollAsync(CardSave card, CancellationToken ct)
     {
         // uidlen[1]|uid[uidlen]|atqa[2]|sak[1]|atslen[1]|ats[atslen]
-        var d = (await _conn.SendExpectAsync(Command.Hf14aGetAntiCollData, Status.Success, ct: ct)).Data;
+        var d = (await conn.SendExpectAsync(Command.Hf14aGetAntiCollData, Status.Success, ct: ct)).Data;
         if (d.Length == 0) return;
         var o = 0;
         int uidLen = d[o++];
@@ -1111,7 +1119,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
                 blocks.Add(data.Length >= (i + 1) * 16 ? data[(i * 16)..((i + 1) * 16)] : new byte[16]);
             progress?.Report(new MifareProgress(start + count, total, start + count));
         }
-        rconn blocks;
+        return blocks;
     }
 
     private async Task ReadUltralightAsync(
@@ -1120,34 +1128,35 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         var total = tag.UltralightPages();
         try
         {
-            var count = await _conn.SendExpectAsync(Command.Mf0NtagGetPageCount, Status.Success, ct: ct);
+            var count = await conn.SendExpectAsync(Command.Mf0NtagGetPageCount, Status.Success, ct: ct);
             if (count.Data.Length > 0 && count.Data[0] > 0) total = count.Data[0];
         }
-        catconnhameleonException) { /* fall back to the nominal page count */ }
+        catch (ChameleonException) { /* fall back to the nominal page count */ }
 
         const int pagesPerFrame = 16;
         for (var page = 0; page < total; page += pagesPerFrame)
         {
             var n = Math.Min(pagesPerFrame, total - page);
-            var data = (await _conn.SendExpectAsync(Command.Mf0NtagReadEmuPageData, Status.Success,
-                new[] { (byte)page, (byte)n }, timeoutMs: 5000, ct: ct)).Data;
+            var data = (await conn.SendExpectAsync(Command.Mf0NtagReadEmuPageData, Status.Success,
+                [(byte)page, (byte)n], timeoutMs: 5000, ct: ct)).Data;
             for (var i = 0; i < n; i++)
-                card.Data.Add(data.Length >= (i + 1) * 4 ? data[(i * 4).conn+ 1) * 4)] : new byte[4]);
+                card.Data.Add(data.Length >= (i + 1) * 4 ? data[(i * 4)..((i + 1) * 4)] : new byte[4]);
             progress?.Report(new MifareProgress(page + n, total, page + n));
         }
 
         // Version / signature / counters exist only on some types; the firmware
-        // ansconnINVALID_SLOT_TYPE for the rest.
-        var version = await _conn.SendAsync(Command.Mf0NtagGetVersionData, ct: ct);
+        // answers INVALID_SLOT_TYPE for the rest.
+        var version = await conn.SendAsync(Command.Mf0NtagGetVersionData, ct: ct);
         if (version.Status == Status.Success && version.Data.Length == 8)
             card.Extra.UltralightVersion = version.Data;
-        var signature = await _conn.SendAsync(Command.Mf0NtagGetSignatureData, ct: ct)conn      if (signature.Status == Status.Success && signature.Data.Length == 32)
+        var signature = await conn.SendAsync(Command.Mf0NtagGetSignatureData, ct: ct);
+        if (signature.Status == Status.Success && signature.Data.Length == 32)
             card.Extra.UltralightSignature = signature.Data;
         if (tag.HasUltralightCounters())
         {
             for (var i = 0; i < 3; i++)
             {
-                var ctr = await _conn.SendAsync(Command.Mf0NtagGetCounterData, new[] { (byte)i }, ct: ct);
+                var ctr = await conn.SendAsync(Command.Mf0NtagGetCounterData, [(byte)i], ct: ct);
                 if (ctr.Status != Status.Success || ctr.Data.Length < 3) break;
                 card.Extra.UltralightCounters.Add(ctr.Data[0] | (ctr.Data[1] << 8) | (ctr.Data[2] << 16));
             }
@@ -1194,7 +1203,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             // An unknown model is read until the card stops answering.
             var total = type?.UltralightPages() ?? 256;
             var data = new byte[total][];
-            for (var i = 0; i < total; i++) data[i] = Array.Empty<byte>();
+            for (var i = 0; i < total; i++) data[i] = [];
             pages?.Report(new MifareBlockProgress(0, total, MifareBlockState.Pending));
 
             bool? keyAccepted = key is null ? null : false;
@@ -1203,13 +1212,13 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
 
             if (key is { Length: 16 } && type == TagSpecificType.Mf0Icu2)
             {
-                // The firmware authenticates and reads in one command; it sconnbefore the key pages.
+                // The firmware authenticates and reads in one command; it stops before the key pages.
                 pages?.Report(new MifareBlockProgress(0, total, MifareBlockState.Reading));
                 await FieldOffAsync(ct);
                 var req = new byte[18];
                 key.CopyTo(req, 0);
                 req[17] = (byte)total;
-                var f = await _conn.SendAsync(Command.Mf0UlcRead, req, timeoutMs: 4000, ct: ct);
+                var f = await conn.SendAsync(Command.Mf0UlcRead, req, timeoutMs: 4000, ct: ct);
                 if (f.Status == Status.HfTagOk && f.Data.Length >= 4)
                 {
                     keyAccepted = readDone = true;
@@ -1265,7 +1274,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
                 && data[cfg0 + 3].Length == 4)
             {
                 data[cfg0 + 2] = (byte[])pwd.Clone();
-                data[cfg0 + 3] = new byte[] { pack[0], pack[1], data[cfg0 + 3][2], data[cfg0 + 3][3] };
+                data[cfg0 + 3] = [pack[0], pack[1], data[cfg0 + 3][2], data[cfg0 + 3][3]];
             }
 
             var read = Array.FindAll(data, d => d.Length > 0).Length;
@@ -1284,13 +1293,13 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
                 Sak = tag.Sak,
                 Atqa = tag.Atqa,
                 Ats = tag.Ats,
-                Data = new List<byte[]>(data),
+                Data = [.. data],
             };
 
             if (version.Length == 8)
             {
                 card.Extra.UltralightVersion = version;
-                var sig = await UltralightCommandAsync(new byte[] { 0x3C, 0x00 }, ct);
+                var sig = await UltralightCommandAsync([0x3C, 0x00], ct);
                 if (sig.Length == 32) card.Extra.UltralightSignature = sig;
 
                 // READ_CNT: EV1 has counters 0–2; NTAG213/215/216 one NFC counter at address 2,
@@ -1303,7 +1312,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
                 };
                 foreach (var index in counters)
                 {
-                    var c = await UltralightCommandAsync(new byte[] { 0x39, index }, ct, pwd: pwd);
+                    var c = await UltralightCommandAsync([0x39, index], ct, pwd: pwd);
                     if (c.Length < 3) break;
                     card.Extra.UltralightCounters.Add(c[0] | (c[1] << 8) | (c[2] << 16));
                 }
@@ -1332,7 +1341,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     private async Task<(TagSpecificType? Type, byte[] Version)> IdentifyUltralightCoreAsync(CancellationToken ct)
     {
         // GET_VERSION is answered by Ultralight EV1 and NTAG21x; storage size is byte 6.
-        var version = await UltralightCommandAsync(new byte[] { 0x60 }, ct);
+        var version = await UltralightCommandAsync([0x60], ct);
         if (version.Length == 8)
         {
             TagSpecificType? type = (version[2], version[6]) switch
@@ -1349,8 +1358,8 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             return (type, version);
         }
         // No GET_VERSION: Ultralight C answers the first 3DES AUTHENTICATE step, Ultralight does not.
-        var auth = await UltralightCommandAsync(new byte[] { 0x1A, 0x00 }, ct);
-        return (auth.Length > 0 ? TagSpecificType.Mf0Icu2 : TagSpecificType.Mf0Icu1, Array.Empty<byte>());
+        var auth = await UltralightCommandAsync([0x1A, 0x00], ct);
+        return (auth.Length > 0 ? TagSpecificType.Mf0Icu2 : TagSpecificType.Mf0Icu1, []);
     }
 
     // ---- Ultralight / NTAG write --------------------------------------
@@ -1434,7 +1443,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
                     // Reselect (and present the password again) before retrying.
                     await FieldOffAsync(ct);
                     if (pwd is null)
-                        await Hf14aRawAsync(opt | RawOpt.AutoSelect | RawOpt.CheckResponseCrc, new byte[] { 0x30, 0x00 }, ct: ct);
+                        await Hf14aRawAsync(opt | RawOpt.AutoSelect | RawOpt.CheckResponseCrc, [0x30, 0x00], ct: ct);
                     else if ((await Hf14aRawAsync(opt | RawOpt.AutoSelect | RawOpt.CheckResponseCrc, PwdAuth(pwd), ct: ct)).Length != 2)
                         continue;
                 }
@@ -1448,7 +1457,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         return false;
     }
 
-    private static byte[] PwdAuth(byte[] pwd) => new byte[] { 0x1B, pwd[0], pwd[1], pwd[2], pwd[3] };
+    private static byte[] PwdAuth(byte[] pwd) => [0x1B, pwd[0], pwd[1], pwd[2], pwd[3]];
 
     /// <summary>
     /// Sends one Ultralight command and returns the reply without CRC; empty on NAK, CRC error
@@ -1466,10 +1475,10 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             await FieldOffAsync(ct);
             if (pwd is null) return await Hf14aRawAsync(opt | RawOpt.AutoSelect, command, ct: ct);
             var pack = await Hf14aRawAsync(opt | RawOpt.AutoSelect, PwdAuth(pwd), ct: ct);
-            return pack.Length == 2 ? await Hf14aRawAsync(opt, command, ct: ct) : Array.Empty<byte>();
+            return pack.Length == 2 ? await Hf14aRawAsync(opt, command, ct: ct) : [];
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-        catch { return Array.Empty<byte>(); }
+        catch { return []; }
     }
 
     /// <summary>READ of four pages from <paramref name="page"/>, retrying transient RF failures; null if refused.</summary>
@@ -1479,7 +1488,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         for (var i = 0; i < RfAttempts; i++)
         {
             ct.ThrowIfCancellationRequested();
-            var r = await UltralightCommandAsync(new byte[] { 0x30, (byte)page }, ct, reselect: !(live && i == 0), pwd);
+            var r = await UltralightCommandAsync([0x30, (byte)page], ct, reselect: !(live && i == 0), pwd);
             if (r.Length == 16) return r;
         }
         return null;
@@ -1488,7 +1497,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     /// <summary>Switches the reader field off (an empty raw frame without keep-field).</summary>
     private async Task FieldOffAsync(CancellationToken ct)
     {
-        try { await Hf14aRawAsync(RawOpt.None, Array.Empty<byte>(), ct: ct); }
+        try { await Hf14aRawAsync(RawOpt.None, [], ct: ct); }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch { /* best effort */ }
     }
@@ -1513,7 +1522,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
     /// reference client's <c>hf14a_raw</c>: a 1-byte option field, a 16-bit
     /// response timeout and a 16-bit bit length precede the data.
     /// </summary>
-    connte async Task<byte[]> Hf14aRawAsync(
+    private async Task<byte[]> Hf14aRawAsync(
         RawOpt opt, byte[] data, int? bitLen = null, int timeoutMs = 200, CancellationToken ct = default)
     {
         var bits = bitLen ?? data.Length * 8;
@@ -1522,7 +1531,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         BinaryPrimitives.WriteUInt16BigEndian(buf.AsSpan(1, 2), (ushort)timeoutMs);
         BinaryPrimitives.WriteUInt16BigEndian(buf.AsSpan(3, 2), (ushort)bits);
         data.CopyTo(buf, 5);
-        var f = await _conn.SendAsync(Command.Hf14aRaw, buf, timeoutMs: timeoutMs + 1500, ct: ct);
+        var f = await conn.SendAsync(Command.Hf14aRaw, buf, timeoutMs: timeoutMs + 1500, ct: ct);
         return f.Data;
     }
 
@@ -1542,7 +1551,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         try
         {
             var r = await Hf14aRawAsync(RawOpt.ActivateRfField | RawOpt.WaitResponse | RawOpt.KeepRfField,
-                new byte[] { 0x40 }, bitLen: 7, ct: ct);
+                [0x40], bitLen: 7, ct: ct);
             if (r.Length > 0 && (r[0] & 0x0f) == 0x0a)
             {
                 await DropFieldAsync(ct);
@@ -1561,7 +1570,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         {
             var r = await Hf14aRawAsync(
                 RawOpt.ActivateRfField | RawOpt.WaitResponse | RawOpt.AppendCrc | RawOpt.AutoSelect,
-                new byte[] { 0x30, 0x00 }, ct: ct);
+                [0x30, 0x00], ct: ct);
             if (r.Length == 18)
                 return MagicGeneration.Gen3;
         }
@@ -1576,7 +1585,7 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
         try
         {
             // HALT (0x50 0x00) with the field released.
-            await Hf14aRawAsync(RawOpt.AppendCrc, new byte[] { 0x50, 0x00 }, ct: ct);
+            await Hf14aRawAsync(RawOpt.AppendCrc, [0x50, 0x00], ct: ct);
         }
         catch { /* best effort */ }
     }
@@ -1745,106 +1754,106 @@ conn   _conn.SendExpectAsync(Command.SetActiveSlot, Status.Success,
             {
                 // Reset / wake the card (default options: field on, auto-select, CRC).
                 await Hf14aRawAsync(baseOpt | RawOpt.AppendCrc | RawOpt.AutoSelect | RawOpt.CheckResponseCrc,
-                    new byte[] { 0x00 }, ct: ct);
+                    [0x00], ct: ct);
                 // Magic wakeup, keeping the field between frames; no CRC, no auto-select.
-                await Hf14aRawAsync(baseOpt | RawOpt.KeepRfField, new byte[] { 0x40 }, bitLen: 7, ct: ct);
-                await Hf14aRawAsync(baseOpt | RawOpt.KeepRfField, new byte[] { 0x43 }, ct: ct);
+                await Hf14aRawAsync(baseOpt | RawOpt.KeepRfField, [0x40], bitLen: 7, ct: ct);
+                await Hf14aRawAsync(baseOpt | RawOpt.KeepRfField, [0x43], ct: ct);
                 // Write command and payload (CRC appended, field kept).
                 await Hf14aRawAsync(baseOpt | RawOpt.AppendCrc | RawOpt.KeepRfField,
-                    new byte[] { 0xA0, (byte)block }, ct: ct);
-      conn     var output = await Hf14aRawAsync(baseOpt | RawOpt.AppendCrc | RawOpt.KeepRfField, data, ct: ct);
+                    [0xA0, (byte)block], ct: ct);
+                var output = await Hf14aRawAsync(baseOpt | RawOpt.AppendCrc | RawOpt.KeepRfField, data, ct: ct);
                 if (output.Length > 0 && (output[0] & 0x0f) == 0x0a) return true;
                 await Task.Delay(100, ct);
             }
-   conn    catch (OperationCanceledException) { throw; }
+            catch (OperationCanceledException) { throw; }
             catch { /* retry */ }
         }
         return false;
     }
 
-    // ---- Settings ---------------------------------------------conn----
+    // ---- Settings ------------------------------------------------------
 
     public async Task<AnimationMode> GetAnimationModeAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetAnimationMode, Status.Success, ct: ct);
-        return (AniconnnMode)(f.Data.Length > 0 ? f.Data[0] : 0);
+        var f = await conn.SendExpectAsync(Command.GetAnimationMode, Status.Success, ct: ct);
+        return (AnimationMode)(f.Data.Length > 0 ? f.Data[0] : 0);
     }
 
     public Task SetAnimationModeAsync(AnimationMode mode, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.SetAnimationMode, Status.Success, new[] { (byte)mode }, ct: ct);
+        conn.SendExpectAsync(Command.SetAnimationMode, Status.Success, [(byte)mode], ct: ct);
 
     public async Task<int> GetSleepTimeoutAsync(CancellationToken ct = default)
     {
-   connvar f = await _conn.SendExpectAsync(Command.GetSleepTimeout, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetSleepTimeout, Status.Success, ct: ct);
         return f.Data.Length > 0 ? f.Data[0] : 0;
     }
 
     public Task SetSleepTimeoutAsync(int seconds, CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.SetSleepTimeout, Status.Success, new[] { (byte)seconds }, ct: ct);
+        conn.SendExpectAsync(Command.SetSleepTimeout, Status.Success, [(byte)seconds], ct: ct);
 
-    public async Task<ButtonPressFunction> GetButtonCconnAsync(ButtonType button, bool longPress, CancellationToken ct = default)
+    public async Task<ButtonPressFunction> GetButtonConfigAsync(ButtonType button, bool longPress, CancellationToken ct = default)
     {
-        var cmd = longPress ? Command.GetLongButtonPressConfig : Command.GetButtconnssConfig;
-        var f = await _conn.SendExpectAsync(cmd, Status.Success, new[] { (byte)button }, ct: ct);
-        return (ButtonPressFunction)connta.Length > 0 ? f.Data[0] : 0);
+        var cmd = longPress ? Command.GetLongButtonPressConfig : Command.GetButtonPressConfig;
+        var f = await conn.SendExpectAsync(cmd, Status.Success, [(byte)button], ct: ct);
+        return (ButtonPressFunction)(f.Data.Length > 0 ? f.Data[0] : 0);
     }
 
     public Task SetButtonConfigAsync(ButtonType button, bool longPress, ButtonPressFunction fn, CancellationToken ct = default)
     {
-      conn cmd = longPress ? Command.SetLongButtonPressConfig : Command.SetButtonPressConfig;
-        return _conn.SendExpectAsync(cmd, Status.Success, new[] { (byte)button, (byte)fn }, ct: ct);
+        var cmd = longPress ? Command.SetLongButtonPressConfig : Command.SetButtonPressConfig;
+        return conn.SendExpectAsync(cmd, Status.Success, [(byte)button, (byte)fn], ct: ct);
     }
 
     public Task SaveSettingsAsync(CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.SaveSettings, Status.Success, ct: ct);
+        conn.SendExpectAsync(Command.SaveSettings, Status.Success, ct: ct);
 
-    public Task ResetSettingsconn(CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.ResetSettings, Status.Success, ct: ct);
+    public Task ResetSettingsAsync(CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.ResetSettings, Status.Success, ct: ct);
 
     public async Task<int> GetLongPressThresholdAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetLongPressThreshoconntatus.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetLongPressThreshold, Status.Success, ct: ct);
         return f.Data.Length >= 2 ? BinaryPrimitives.ReadUInt16BigEndian(f.Data) : 0;
     }
 
     public Task SetLongPressThresholdAsync(int ms, CancellationToken ct = default)
     {
-        var data = neconne[2];
+        var data = new byte[2];
         BinaryPrimitives.WriteUInt16BigEndian(data, (ushort)ms);
-        return _conn.SendExpectAsync(Command.SetLongPressThreshold, Status.Success, data, ct: ct);
+        return conn.SendExpectAsync(Command.SetLongPressThreshold, Status.Success, data, ct: ct);
     }
 
-    // ---- BLE -----------------conn-------------------------------------
+    // ---- BLE -----------------------------------------------------------
 
     public async Task<bool> GetBlePairingEnableAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetBlePairingEnable, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetBlePairingEnable, Status.Success, ct: ct);
         return f.Data.Length > 0 && f.Data[0] != 0;
     }
 
     public Task SetBlePairingEnableAsync(bool enabled, CancellationToken ct = default) =>
-conn   _conn.SendExpectAsync(Command.SetBlePairingEnable, Status.Success, new[] { (byte)(enabled ? 1 : 0) }, ct: ct);
+        conn.SendExpectAsync(Command.SetBlePairingEnable, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
-    public async Task<string> GetBlePairingKeyAsyncconnellationToken ct = default)
+    public async Task<string> GetBlePairingKeyAsync(CancellationToken ct = default)
     {
-        var f = await _conn.SendExpectAsync(Command.GetBlePairingKey, Status.Success, ct: ct);
+        var f = await conn.SendExpectAsync(Command.GetBlePairingKey, Status.Success, ct: ct);
         return Encoding.ASCII.GetString(f.Data);
     }
 
-    public Task SetBlePairingKeyAsync(striconnn, CancellationToken ct = default)
+    public Task SetBlePairingKeyAsync(string pin, CancellationToken ct = default)
     {
         var bytes = Encoding.ASCII.GetBytes(pin);
-        if (bytes.Length != 6) throconn ArgumentException("The BLE PIN must be exactly 6 digits.");
-        return _conn.SendExpectAsync(Command.SetBlePairingKey, Status.Success, bytes, ct: ct);
+        if (bytes.Length != 6) throw new ArgumentException("The BLE PIN must be exactly 6 digits.");
+        return conn.SendExpectAsync(Command.SetBlePairingKey, Status.Success, bytes, ct: ct);
     }
 
     public Task DeleteAllBleBondsAsync(CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.DeleteAllBleBonds, Status.Success, ct: ct);
+        conn.SendExpectAsync(Command.DeleteAllBleBonds, Status.Success, ct: ct);
 
     /// <summary>Factory reset. The device closes the connection afterwards.</summary>
     public Task WipeFdsAsync(CancellationToken ct = default) =>
-        _conn.SendExpectAsync(Command.WipeFds, Status.Success, timeoutMs: 5000, ct: ct);
+        conn.SendExpectAsync(Command.WipeFds, Status.Success, timeoutMs: 5000, ct: ct);
 
     public void EnterBootloader() =>
-        _ = _conn.SendAsync(Command.EnterBootloader, timeoutMs: 500);
+        _ = conn.SendAsync(Command.EnterBootloader, timeoutMs: 500);
 }

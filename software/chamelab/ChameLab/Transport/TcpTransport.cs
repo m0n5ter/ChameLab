@@ -11,19 +11,27 @@ namespace ChameLab.Transport;
 /// Android) and for development against a firmware simulator.
 /// Candidate ids are "host:port".
 /// </summary>
-public sealed class TcpTransport(string host, int port) : ITransport
+public sealed class TcpTransport : ITransport
 {
+    private readonly string _host;
+    private readonly int _port;
     private TcpClient? _client;
     private NetworkStream? _stream;
 
+    public TcpTransport(string host, int port)
+    {
+        _host = host;
+        _port = port;
+    }
+
     public TransportKind Kind => TransportKind.Tcp;
-    public string DisplayName => $"tcp:{host}:{port}";
+    public string DisplayName => $"tcp:{_host}:{_port}";
     public bool IsConnected => _client?.Connected ?? false;
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         _client = new TcpClient { NoDelay = true };
-        await _client.ConnectAsync(host, port, ct);
+        await _client.ConnectAsync(_host, _port, ct);
         _stream = _client.GetStream();
     }
 

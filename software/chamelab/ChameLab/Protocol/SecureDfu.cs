@@ -42,7 +42,10 @@ public sealed record DfuPackage(byte[] InitPacket, byte[] Firmware)
 }
 
 /// <summary>Raised when the bootloader drops the link; expected right after the last object is executed.</summary>
-public sealed class DfuLinkClosedException() : IOException("The connection to the bootloader was lost.");
+public sealed class DfuLinkClosedException : IOException
+{
+    public DfuLinkClosedException() : base("The connection to the bootloader was lost.") { }
+}
 
 /// <summary>
 /// How Secure DFU requests and image data reach the bootloader: SLIP frames over
@@ -69,18 +72,21 @@ public interface IDfuChannel : IAsyncDisposable
 }
 
 /// <summary>Nordic Secure DFU (nRF5 SDK bootloader), independent of the transport.</summary>
-public sealed class SecureDfu(IDfuChannel channel)
+public sealed class SecureDfu
 {
     public const byte OpCreate = 0x01, OpSetPrn = 0x02, OpCrc = 0x03, OpExecute = 0x04,
         OpSelect = 0x06, OpMtu = 0x07, OpWrite = 0x08, OpPing = 0x09, OpResponse = 0x60;
     private const byte ObjCommand = 0x01, ObjData = 0x02;
 
+    private readonly IDfuChannel _channel;
     private int _sinceReceipt;
+
+    public SecureDfu(IDfuChannel channel) => _channel = channel;
 
     /// <summary>Uploads the package; <paramref name="progress"/> gets the fraction of the image written.</summary>
     public async Task FlashAsync(DfuPackage package, IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        var prn = (ushort)channel.PacketReceiptInterval;
+        var prn = (ushort)_channel.PacketReceiptInterval;
         await RequestAsync(ct, OpSetPrn, (byte)prn, (byte)(prn >> 8));
 
         await RequestAsync(ct, OpSelect, ObjCommand);
@@ -109,17 +115,17 @@ public sealed class SecureDfu(IDfuChannel channel)
     /// <summary>Writes one object and checks the device's running CRC of everything sent so far.</summary>
     private async Task StreamAsync(byte[] data, int offset, int length, CancellationToken ct)
     {
-        var prn = channel.PacketReceiptInterval;
-        var chunk = channel.MaxDataSize;
+        var prn = _channel.PacketReceiptInterval;
+        var chunk = _channel.MaxDataSize;
         _sinceReceipt = 0;
         for (var i = 0; i < length; i += chunk)
         {
             var n = Math.Min(chunk, length - i);
-            await channel.WriteDataAsync(data.AsSpan(offset + i, n).ToArray(), ct);
+            await _channel.WriteDataAsync(data.AsSpan(offset + i, n).ToArray(), ct);
             if (prn > 0 && ++_sinceReceipt == prn)
             {
                 _sinceReceipt = 0;
-                Check(achannelannel.ReceiveAsync(ct), OpCrc);
+                Check(await _channel.ReceiveAsync(ct), OpCrc);
             }
         }
 
@@ -131,7 +137,7 @@ public sealed class SecureDfu(IDfuChannel channel)
     }
 
     private async Task<byte[]> RequestAsync(CancellationToken ct, params byte[] request) =>
-        Check(achannelannel.RequestAsync(request, ct), request[0]);
+        Check(await _channel.RequestAsync(request, ct), request[0]);
 
     /// <summary>Validates a response to <paramref name="op"/> and returns its payload.</summary>
     public static byte[] Check(byte[] r, byte op)

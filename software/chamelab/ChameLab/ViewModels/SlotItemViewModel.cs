@@ -6,10 +6,16 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>Row for one of the eight emulation slots.</summary>
-public sealed class SlotItemViewModel(SlotInfo info) : ViewModelBase
+public sealed class SlotItemViewModel : ViewModelBase
 {
-    private SlotInfo _info = info;
-    private bool _isActive = info.IsActive;
+    private SlotInfo _info;
+    private bool _isActive;
+
+    public SlotItemViewModel(SlotInfo info)
+    {
+        _info = info;
+        _isActive = info.IsActive;
+    }
 
     /// <summary>Takes the slot as read back from the device, keeping this row (and the list selection).</summary>
     public void Update(SlotInfo info)

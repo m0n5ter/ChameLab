@@ -12,17 +12,20 @@ using ChameLab.Transport;
 namespace ChameLab.Desktop;
 
 /// <summary>Serial (USB-CDC) transport backed by <see cref="SerialPort"/>.</summary>
-public sealed class SerialTransport(string portName) : ITransport
+public sealed class SerialTransport : ITransport
 {
+    private readonly string _portName;
     private SerialPort? _port;
 
+    public SerialTransport(string portName) => _portName = portName;
+
     public TransportKind Kind => TransportKind.Serial;
-    public string DisplayName => portName;
+    public string DisplayName => _portName;
     public bool IsConnected => _port?.IsOpen ?? false;
 
     public Task ConnectAsync(CancellationToken ct = default)
     {
-        var port = new SerialPort(portName, 115200)
+        var port = new SerialPort(_portName, 115200)
         {
             ReadTimeout = 100,
             WriteTimeout = 1000,
@@ -54,7 +57,7 @@ public sealed class SerialTransport(string portName) : ITransport
         {
             // Windows aborts the pending read (ERROR_OPERATION_ABORTED) when the USB device is
             // unplugged, which surfaces as a cancellation nobody asked for.
-            throw new IOException($"{portName} was disconnected.");
+            throw new IOException($"{_portName} was disconnected.");
         }
     }
 

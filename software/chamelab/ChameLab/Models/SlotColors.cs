@@ -7,11 +7,12 @@ namespace ChameLab.Models;
 /// <summary>Card accent colours and how the device's slot LED shows them.</summary>
 public static class SlotColors
 {
-    /// <summary>Preset accents (Flutter app colour picker defaults).</summary>
+    /// <summary>Preset accents: Material colours around the hue wheel, then darker shades and neutrals.</summary>
     public static IReadOnlyList<string> Palette { get; } = new[]
     {
-        "#FF5722", "#F44336", "#E91E63", "#9C27B0", "#3F51B5", "#2196F3",
-        "#00BCD4", "#009688", "#4CAF50", "#CDDC39", "#FFC107", "#795548",
+        "#FF5722", "#FF9800", "#FFC107", "#FFEB3B", "#CDDC39", "#8BC34A", "#4CAF50", "#009688",
+        "#00BCD4", "#03A9F4", "#2196F3", "#3F51B5", "#673AB7", "#9C27B0", "#E91E63", "#F44336",
+        "#B71C1C", "#795548", "#827717", "#1B5E20", "#006064", "#0D47A1", "#4A148C", "#607D8B",
     };
 
     // What the firmware shows for a card without a colour of its own.

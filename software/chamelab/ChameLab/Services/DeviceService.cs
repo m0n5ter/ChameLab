@@ -16,10 +16,15 @@ public enum ConnectionState { Disconnected, Connecting, Connected }
 /// <see cref="ChameleonConnection"/>/<see cref="ChameleonClient"/> and the set of
 /// platform-provided transport scanners.
 /// </summary>
-public sealed class DeviceService(IEnumerable<ITransportScanner> scanners)
+public sealed class DeviceService
 {
-    private readonly IReadOnlyList<ITransportScanner> _scanners = scanners.ToList();
+    private readonly IReadOnlyList<ITransportScanner> _scanners;
     private ChameleonConnection? _conn;
+
+    public DeviceService(IEnumerable<ITransportScanner> scanners)
+    {
+        _scanners = scanners.ToList();
+    }
 
     public ConnectionState State { get; private set; } = ConnectionState.Disconnected;
     public ChameleonClient? Client { get; private set; }
