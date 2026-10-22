@@ -459,7 +459,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         }
     }
 
-    /// <summary>A card (saved or new) is open: its colour, name and actions stay above the scrolling editor.</summary>
+    /// <summary>A card (saved or new) is open: its color, name and actions stay above the scrolling editor.</summary>
     public bool ShowCardHeader => IsCardOpen || IsEditingNew;
 
     public bool IsAdding => _pane == CardsPane.Add;
@@ -469,7 +469,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
 
     /// <summary>
     /// Adding, and the new card is open in the editor. The list is locked until
-    /// the card is saved or the add is cancelled.
+    /// the card is saved or the add is canceled.
     /// </summary>
     public bool IsEditingNew => _pane == CardsPane.Add && _form is not null;
 
@@ -927,7 +927,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            SetStatus("Dump cancelled.");
+            SetStatus("Dump canceled.");
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 SetDumpBlocks(0, _dumpBlockStates.Count, MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading));
         }
@@ -977,7 +977,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            SetStatus("Dump cancelled.");
+            SetStatus("Dump canceled.");
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 SetDumpBlocks(0, _dumpBlockStates.Count, MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading));
         }
@@ -1015,7 +1015,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
     {
         if (_dumpCts is not { } cts) return;
         try { cts.Cancel(); } catch (ObjectDisposedException) { /* already finished */ }
-        DumpProgressText = "Cancelling…";
+        DumpProgressText = "Canceling…";
     }
 
     // ---- Dump statistics -------------------------------------------------
@@ -1137,7 +1137,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (cards.Count == 1)
             {
-                // A single card is reviewed (name, colour, identity) before it is saved.
+                // A single card is reviewed (name, color, identity) before it is saved.
                 ResetAddState();
                 Form = new CardEditorViewModel(cards[0]);
                 FormSource = $"Imported from {file.Name}";
@@ -1195,7 +1195,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
 
     /// <summary>
     /// After an edit that changes what the device emulates, asks whether to re-upload
-    /// the card to the slots still holding its previous version. A new colour alone
+    /// the card to the slots still holding its previous version. A new color alone
     /// is just the slot LED, so it goes to those slots right away.
     /// </summary>
     private void OfferSlotUpdate(CardSave previous, CardSave saved)
@@ -1218,13 +1218,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
             foreach (var slot in slots)
                 await client.SetSlotColorAsync(slot, card.Sense, card.Color);
         }
-        catch (ChameleonException) { return; /* older firmware: no per-card LED colours */ }
+        catch (ChameleonException) { return; /* older firmware: no per-card LED colors */ }
         await client.SaveSlotConfigAsync();
         var infos = await client.GetAllSlotsAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => { _slotInfos = infos; RebuildTargets(); });
     });
 
-    /// <summary>Everything but the colour needs a full upload (the name becomes the slot nick).</summary>
+    /// <summary>Everything but the color needs a full upload (the name becomes the slot nick).</summary>
     private static bool ChangesEmulation(CardSave a, CardSave b)
     {
         static string Payload(CardSave c)

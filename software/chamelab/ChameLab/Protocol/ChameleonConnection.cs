@@ -58,7 +58,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
         }
         catch (Exception) when (ct.IsCancellationRequested)
         {
-            // Normal shutdown: DisposeAsync cancelled, or closed the transport under a pending read.
+            // Normal shutdown: DisposeAsync canceled, or closed the transport under a pending read.
         }
         catch (Exception ex)
         {

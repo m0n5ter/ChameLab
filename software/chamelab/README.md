@@ -16,7 +16,7 @@ drawer on phones.
 | `ChameLab.iOS` | `net10.0-ios` | Phone/tablet (build on macOS). BLE + TCP |
 | `ChameLab.Browser` | `net10.0-browser` | WebAssembly build. Web Serial + TCP |
 
-Package versions are centralised in [`Directory.Packages.props`](Directory.Packages.props).
+Package versions are centralized in [`Directory.Packages.props`](Directory.Packages.props).
 
 ## Architecture
 
@@ -52,7 +52,7 @@ responses matched to requests by command id.
   MIFARE Classic cards (Mini / 1K / 4K) can then be dumped with a key dictionary,
   edited as hex and loaded into the active slot to emulate them.
 - **Saved cards** — local card library (create / edit / duplicate / delete,
-  search, colour tags). Save straight from **Read**, import Flutter
+  search, color tags). Save straight from **Read**, import Flutter
   ChameleonUltraGUI JSON, Proxmark3 JSON, Flipper `.nfc` / `.rfid`, MCT, `.bin` /
   `.eml`, export to JSON (same format as the Flutter app) and MIFARE Classic
   memory to `.bin` / `.eml`. Load any card into one
@@ -114,4 +114,4 @@ with "Chameleon" or that advertise a 128-bit service UUID.
 
 ## Follow-ups
 
-- Light-theme polish and localisation.
+- Light-theme polish and localization.

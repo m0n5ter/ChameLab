@@ -37,7 +37,7 @@ public sealed class DictionaryItemViewModel : ViewModelBase
 }
 
 /// <summary>
-/// Editable working copy of a dictionary: name, colour and keys, edited in a hex editor with one
+/// Editable working copy of a dictionary: name, color and keys, edited in a hex editor with one
 /// key (6 bytes) per row. <see cref="IsDirty"/> tells whether anything differs from what the
 /// editor was opened with.
 /// </summary>
@@ -65,12 +65,12 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
         {
             CanResize = true,
             RowLabel = row => (row + 1).ToString(),
-            // Repeated keys show in the access-bits colour (see the legend).
+            // Repeated keys show in the access-bits color (see the legend).
             Classify = (row, _) => _repeats.ContainsKey(row) ? HexCellKind.AccessBits : HexCellKind.Data,
             Describe = (row, _) => Describe(row),
         };
-        Keys.Changed += (_, _) => { Analyse(); Touch(); };
-        Analyse();
+        Keys.Changed += (_, _) => { Analyze(); Touch(); };
+        Analyze();
         _baseline = Fingerprint();
     }
 
@@ -81,7 +81,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
         get => _color;
         set
         {
-            // The swatch list deselects (and writes null) when the colour isn't in the palette.
+            // The swatch list deselects (and writes null) when the color isn't in the palette.
             if (string.IsNullOrWhiteSpace(value)) return;
             this.RaiseAndSetIfChanged(ref _color, value);
             Touch();
@@ -122,7 +122,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
             : $"Key {row + 1}";
     }
 
-    private void Analyse()
+    private void Analyze()
     {
         _repeats.Clear();
         _emptyRows = 0;
@@ -186,7 +186,7 @@ public static class DictionarySortExtensions
 
 /// <summary>
 /// Key-dictionary library in one place, laid out like the Cards page: the list of dictionaries
-/// (search, sort, drag into place) and an editor for the open one (name, colour and keys edited
+/// (search, sort, drag into place) and an editor for the open one (name, color and keys edited
 /// in place, saved from the bar below) with duplicate / export / delete actions. Dumps use the
 /// dictionaries (plus the built-in defaults) when recovering a card.
 /// </summary>
@@ -608,7 +608,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         // A fresh id, so a re-import never stands in for the saved original.
         dict.Id = Guid.NewGuid().ToString();
 
-        // Reviewed (name, colour, keys) before it is saved, like a new one.
+        // Reviewed (name, color, keys) before it is saved, like a new one.
         Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenNew(dict, $"Imported from {file.Name}"));
     });
 

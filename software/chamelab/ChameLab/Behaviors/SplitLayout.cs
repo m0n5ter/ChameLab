@@ -5,7 +5,7 @@ using Avalonia.Controls;
 namespace ChameLab.Behaviors;
 
 /// <summary>
-/// Attached behaviour for a list / details page: <c>Grid b:SplitLayout.DetailWidth="460,580"</c>.
+/// Attached behavior for a list / details page: <c>Grid b:SplitLayout.DetailWidth="460,580"</c>.
 /// The grid must have two columns (<c>*,Auto</c>). While the list keeps at least
 /// <see cref="ListMinWidthProperty"/>, the details column gets as much of the rest as it can use
 /// (between the two widths); below that the grid gets the <c>single</c> class and shows one pane at a time.

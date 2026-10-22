@@ -10,13 +10,13 @@
 
   <!-- Laid out like the Cards page; the shared styles are under "Library pages" in ControlStyles. -->
   <UserControl.Styles>
-    <!-- The colour the slot LED shows for a card. -->
+    <!-- The color the slot LED shows for a card. -->
     <Style Selector="Ellipse.led">
       <Setter Property="Width" Value="10" />
       <Setter Property="Height" Value="10" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <!-- Round LED swatch that opens the palette (the header colour strip is Button.colorpick). -->
+    <!-- Round LED swatch that opens the palette (the header color strip is Button.colorpick). -->
     <Style Selector="Button.ledpick">
       <Setter Property="Padding" Value="0" />
       <Setter Property="Background" Value="Transparent" />
@@ -65,7 +65,7 @@
         <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
       </Setter>
     </Style>
-    <!-- LED colour choice: three segments beside the swatch that shows (and, for Custom, picks) it. -->
+    <!-- LED color choice: three segments beside the swatch that shows (and, for Custom, picks) it. -->
     <Style Selector="Border.segmented.ledmode">
       <Setter Property="Padding" Value="2" />
     </Style>
@@ -91,16 +91,14 @@
       </Border></Border>
     </DataTemplate>
 
-    <!-- One frequency of the slot: its card, enable flag, LED colour, and choose / clear. -->
+    <!-- One frequency of the slot: its card, choose / clear, and the LED color. -->
     <DataTemplate x:Key="SlotSide" x:DataType="vm:SlotSideViewModel">
       <StackPanel Spacing="12">
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
           <Border Classes="chip" Classes.hf="{Binding IsHf}" Classes.lf="{Binding IsLf}">
             <TextBlock Text="{Binding Label}" />
           </Border>
           <TextBlock Grid.Column="1" Text="{Binding Band}" Classes="caption" VerticalAlignment="Center" />
-          <CheckBox Grid.Column="2" Content="Enabled" IsChecked="{Binding Enabled}" IsVisible="{Binding HasCard}"
-                    ToolTip.Tip="A disabled card stays in the slot but is not emulated" />
         </Grid>
 
         <!-- A saved card: its tile opens it in Cards. -->
@@ -141,12 +139,45 @@
 
         <TextBlock Classes="caption" Text="No card" IsVisible="{Binding IsEmpty}" />
 
-        <!-- LED colour -->
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
-          <Panel VerticalAlignment="Center">
-            <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="The colour the slot LED shows"
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+          <Button Command="{Binding PickCommand}" ToolTip.Tip="Put one of your saved cards into this frequency">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.cards}" />
+              <TextBlock Text="Choose saved" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Classes="danger" Command="{Binding ClearCommand}" IsVisible="{Binding HasCard}"
+                  ToolTip.Tip="Remove the card from this frequency">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.delete}" />
+              <TextBlock Text="Clear" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+
+        <!-- LED color -->
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
+          <TextBlock Grid.Column="0" Text="LED color" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+          <Border Grid.Column="1" Classes="segmented ledmode">
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
+                           ToolTip.Tip="The firmware's own color: green for HF, blue for LF, red for a slot with both">
+                <TextBlock Text="Default" FontWeight="SemiBold" />
+              </RadioButton>
+              <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"
+                           ToolTip.Tip="The color of the saved card (needs the ChameLab firmware)">
+                <TextBlock Text="Card" FontWeight="SemiBold" />
+              </RadioButton>
+              <RadioButton Classes="segment" IsChecked="{Binding IsColorCustom}" IsEnabled="{Binding SupportsColors}"
+                           ToolTip.Tip="A color of your choice (needs the ChameLab firmware)">
+                <TextBlock Text="Custom" FontWeight="SemiBold" />
+              </RadioButton>
+            </StackPanel>
+          </Border>
+          <Panel Grid.Column="2" VerticalAlignment="Center">
+            <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="The color the slot LED shows"
                     Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-            <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="Pick the LED colour">
+            <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="Pick the LED color">
               <Border Classes="swatch" Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
               <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
@@ -166,40 +197,8 @@
               </Button.Flyout>
             </Button>
           </Panel>
-          <TextBlock Grid.Column="1" Text="LED colour" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-          <Border Grid.Column="2" Classes="segmented ledmode">
-            <StackPanel Orientation="Horizontal">
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
-                           ToolTip.Tip="The firmware's own colour: green for HF, blue for LF, red for a slot with both">
-                <TextBlock Text="Default" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"
-                           ToolTip.Tip="The colour of the saved card (needs the ChameLab firmware)">
-                <TextBlock Text="Card" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorCustom}" IsEnabled="{Binding SupportsColors}"
-                           ToolTip.Tip="A colour of your choice (needs the ChameLab firmware)">
-                <TextBlock Text="Custom" FontWeight="SemiBold" />
-              </RadioButton>
-            </StackPanel>
-          </Border>
         </Grid>
 
-        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-          <Button Command="{Binding PickCommand}" ToolTip.Tip="Put one of your saved cards into this frequency">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.cards}" />
-              <TextBlock Text="Choose saved" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="danger" Command="{Binding ClearCommand}" IsVisible="{Binding HasCard}"
-                  ToolTip.Tip="Remove the card from this frequency">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.delete}" />
-              <TextBlock Text="Clear" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </StackPanel>
       </StackPanel>
     </DataTemplate>
   </UserControl.Resources>
@@ -252,7 +251,7 @@
               <Panel>
                 <Border Classes="cardrow" ToolTip.Tip="{Binding Summary}"><Border Classes="cardclip">
                   <Grid ColumnDefinitions="8,Auto,*,Auto" ColumnSpacing="12">
-                    <!-- The LED colours of the slot's cards, HF above LF. -->
+                    <!-- The LED colors of the slot's cards, HF above LF. -->
                     <UniformGrid Grid.Column="0" Columns="1">
                       <Border IsVisible="{Binding HasHf}"
                               Background="{Binding HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
@@ -343,7 +342,7 @@
                 <CheckBox Content="Use UID/SAK/ATQA from block 0" IsChecked="{Binding BlockAntiColl}" />
                 <CheckBox Content="Collect nonces (mfkey32 detection)" IsChecked="{Binding MfcDetection}" />
                 <CheckBox Content="Reset on field off" IsChecked="{Binding FieldOffReset}" />
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                   <TextBlock Text="Write mode" VerticalAlignment="Center" />
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                             ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding MfcWriteMode}">
@@ -351,10 +350,8 @@
                       <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                </Grid>
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                  <TextBlock Text="PRNG type" VerticalAlignment="Center" />
-                  <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  <TextBlock Grid.Row="1" Text="PRNG type" VerticalAlignment="Center" />
+                  <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
                             ItemsSource="{x:Static vm:SlotEditorViewModel.PrngTypes}" SelectedItem="{Binding Prng}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>

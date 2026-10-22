@@ -7,7 +7,7 @@ using Avalonia.Interactivity;
 namespace ChameLab.Behaviors;
 
 /// <summary>
-/// Attached behaviour: <c>behaviors:DialogKeys.IsDefault="True"</c> presses the button on Enter,
+/// Attached behavior: <c>behaviors:DialogKeys.IsDefault="True"</c> presses the button on Enter,
 /// <c>behaviors:DialogKeys.IsCancel="True"</c> on Esc. Unlike Button.IsDefault / IsCancel it only
 /// fires while the button is effectively visible and enabled, so the buttons of hidden dialogs
 /// (whose IsVisible is turned off on a parent) stay quiet. Keys a focused control handles itself

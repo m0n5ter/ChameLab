@@ -119,7 +119,7 @@
         </Border>
       </UniformGrid>
 
-      <!-- Active slot: the eight slots with their LED colours; arrows step through the filled ones -->
+      <!-- Active slot: the eight slots with their LED colors; arrows step through the filled ones -->
       <Border Classes="card">
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
@@ -149,7 +149,7 @@
                   <StackPanel Spacing="4" Margin="2,0">
                     <Panel Width="36" Height="36">
                       <Ellipse Classes="ledring" Classes.active="{Binding IsActive}" />
-                      <!-- HF colour on the left, LF on the right; one card fills both halves. -->
+                      <!-- HF color on the left, LF on the right; one card fills both halves. -->
                       <Border Classes="led" Classes.active="{Binding IsActive}" Width="24" Height="24" CornerRadius="12"
                               ClipToBounds="True" IsVisible="{Binding !IsEmpty}">
                         <Grid ColumnDefinitions="*,*">

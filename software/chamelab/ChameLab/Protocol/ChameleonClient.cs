@@ -1012,7 +1012,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         }
     }
 
-    /// <summary>Reads everything a slot holds (both cards with their nick, LED colour and enable flag, and the emulator settings).</summary>
+    /// <summary>Reads everything a slot holds (both cards with their nick, LED color and enable flag, and the emulator settings).</summary>
     public async Task<SlotContent> ReadSlotContentAsync(
         SlotInfo slot, IProgress<MifareProgress>? progress = null, CancellationToken ct = default)
     {
@@ -1034,7 +1034,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     /// <summary>
     /// Replaces what <paramref name="slot1Based"/> holds with <paramref name="content"/> (read from
-    /// another slot): each card is uploaded with its own nick, LED colour and enable flag, an empty
+    /// another slot): each card is uploaded with its own nick, LED color and enable flag, an empty
     /// side is cleared, and the HF emulator settings follow the card. Saves to flash; the slot is
     /// left active.
     /// </summary>
@@ -1051,7 +1051,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             }
 
             await LoadCardToSlotAsync(side.Card, slot1Based, progress, ct);
-            // The upload names and colours the slot after the card; put back what the slot had.
+            // The upload names and colors the slot after the card; put back what the slot had.
             if (string.IsNullOrEmpty(side.Nick))
                 try { await DeleteSlotNickAsync(slot1Based, sense, ct); } catch (ChameleonException) { }
             else

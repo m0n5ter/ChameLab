@@ -26,7 +26,7 @@ public static class StorageService
         TopLevelAccessor?.Invoke()?.StorageProvider
         ?? throw new InvalidOperationException("No window is available for file access.");
 
-    /// <summary>Shows an open dialog and returns the chosen file's bytes, or null if cancelled.</summary>
+    /// <summary>Shows an open dialog and returns the chosen file's bytes, or null if canceled.</summary>
     public static async Task<PickedFile?> OpenAsync(string title, params string[] extensions)
     {
         var files = await Provider.OpenFilePickerAsync(new FilePickerOpenOptions

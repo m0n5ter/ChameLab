@@ -9,12 +9,12 @@ using Avalonia.Styling;
 
 namespace ChameLab.Services;
 
-/// <summary>One choosable Actipro accent colour ramp, with a swatch for the picker.</summary>
+/// <summary>One choosable Actipro accent color ramp, with a swatch for the picker.</summary>
 public sealed record AccentOption(string Name, IBrush Swatch);
 
 /// <summary>
 /// App-side appearance preferences (not device settings). The accent is an
-/// Actipro colour ramp name, applied by regenerating the ModernTheme resources.
+/// Actipro color ramp name, applied by regenerating the ModernTheme resources.
 /// The light / dark choice is the application's requested theme variant.
 /// </summary>
 public static class AppearanceService
@@ -25,7 +25,7 @@ public static class AppearanceService
 
     private static IReadOnlyList<AccentOption>? _accents;
 
-    /// <summary>Every Actipro hue, with its mid (500) shade as the swatch colour.</summary>
+    /// <summary>Every Actipro hue, with its mid (500) shade as the swatch color.</summary>
     public static IReadOnlyList<AccentOption> Accents => _accents ??= BuildAccents();
 
     private static IReadOnlyList<AccentOption> BuildAccents()

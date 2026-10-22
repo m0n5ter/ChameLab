@@ -74,7 +74,7 @@ public sealed class SettingsViewModel : PageViewModelBase
 
     public IReadOnlyList<AccentOption> Accents => AppearanceService.Accents;
 
-    /// <summary>App accent colour; applied and remembered as soon as it changes.</summary>
+    /// <summary>App accent color; applied and remembered as soon as it changes.</summary>
     public AccentOption Accent
     {
         get => _accent;

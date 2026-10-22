@@ -11,7 +11,7 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>
-/// Editable working copy of a card: name, colour, identity and memory. Used
+/// Editable working copy of a card: name, color, identity and memory. Used
 /// both for a card being added and for a saved card; <see cref="IsDirty"/>
 /// tells whether anything differs from what the editor was opened with.
 /// </summary>
@@ -70,7 +70,7 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     public bool CanChangeTag => TagChoices.Count > 1;
 
-    /// <summary>Preset accents (Flutter app colour picker defaults).</summary>
+    /// <summary>Preset accents (Flutter app color picker defaults).</summary>
     public static IReadOnlyList<string> Palette => SlotColors.Palette;
 
     public string Name { get => _name; set { this.RaiseAndSetIfChanged(ref _name, value); Touch(); } }
@@ -79,7 +79,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         get => _color;
         set
         {
-            // The swatch list deselects (and writes null) when the card's colour isn't in the palette.
+            // The swatch list deselects (and writes null) when the card's color isn't in the palette.
             if (string.IsNullOrWhiteSpace(value)) return;
             this.RaiseAndSetIfChanged(ref _color, value);
             Touch();
@@ -373,7 +373,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         return $"{sector} trailer · {part}";
     }
 
-    // Ultralight colours reuse the MIFARE Classic ones: UID = manufacturer, lock bytes = access
+    // Ultralight colors reuse the MIFARE Classic ones: UID = manufacturer, lock bytes = access
     // bits, configuration = key A, PWD / PACK (Ultralight C: 3DES key) = key B.
     private static HexCellKind UltralightCellKind(TagSpecificType tag, int page, int col)
     {
@@ -438,12 +438,12 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// <summary>The Ultralight type has configuration pages (EV1 / NTAG21x / Ultralight C).</summary>
     public bool HasUltralightConfig => _tag.UltralightCfg0Page() > 0 || _tag == TagSpecificType.Mf0Icu2;
 
-    /// <summary>Legend of the key-coloured pages: the password or, on Ultralight C, the 3DES key.</summary>
+    /// <summary>Legend of the key-colored pages: the password or, on Ultralight C, the 3DES key.</summary>
     public string UltralightKeyLegend => _tag == TagSpecificType.Mf0Icu2 ? "■ 3DES key" : "■ PWD/PACK";
 
     /// <summary>
     /// Replaces identity and memory with freshly read data (e.g. a dump of the
-    /// scanned card) while keeping the name and colour the user picked.
+    /// scanned card) while keeping the name and color the user picked.
     /// </summary>
     public void ReplaceContent(CardSave card)
     {

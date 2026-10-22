@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ChameLab.Controls;
 
-/// <summary>What a byte means, so the editor can colour it.</summary>
+/// <summary>What a byte means, so the editor can color it.</summary>
 public enum HexCellKind
 {
     Data,
@@ -57,7 +57,7 @@ public sealed class HexBuffer
     /// <summary>Row label shown in the gutter (defaults to the row number).</summary>
     public Func<int, string> RowLabel { get; init; } = row => row.ToString("D3");
 
-    /// <summary>Colour class of a byte.</summary>
+    /// <summary>Color class of a byte.</summary>
     public Func<int, int, HexCellKind> Classify { get; init; } = (_, _) => HexCellKind.Data;
 
     /// <summary>A separator is drawn above rows for which this returns true (sector starts).</summary>

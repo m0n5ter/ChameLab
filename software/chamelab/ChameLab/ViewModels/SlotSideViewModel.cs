@@ -9,21 +9,22 @@ using ReactiveUI;
 
 namespace ChameLab.ViewModels;
 
-/// <summary>Where the slot LED takes a card's colour from.</summary>
+/// <summary>Where the slot LED takes a card's color from.</summary>
 public enum SlotColorMode
 {
-    /// <summary>The firmware's own HF / LF colour (the only choice on the original firmware).</summary>
+    /// <summary>The firmware's own HF / LF color (the only choice on the original firmware).</summary>
     Default,
-    /// <summary>The colour of the saved card the frequency holds.</summary>
+    /// <summary>The color of the saved card the frequency holds.</summary>
     Card,
-    /// <summary>A colour picked for the slot.</summary>
+    /// <summary>A color picked for the slot.</summary>
     Custom,
 }
 
 /// <summary>
 /// One frequency (HF or LF) of the slot editor. The card it holds is shown as the saved card
-/// it matches (same type and name), or by name and type with an offer to save it. Picking a
-/// saved card, clearing, the enable flag and the LED colour are edits held until the slot is saved.
+/// it matches (same type and name), or by name and type with an offer to save it. A card in the
+/// slot is always emulated (saving enables it). Picking a saved card, clearing and the LED color
+/// are edits held until the slot is saved.
 /// </summary>
 public sealed class SlotSideViewModel : ViewModelBase
 {
@@ -33,17 +34,15 @@ public sealed class SlotSideViewModel : ViewModelBase
     // What the frequency holds on the device; the edits are compared against it.
     private TagSpecificType _savedType;
     private string _savedNick;
-    private bool _savedEnabled;
     private SlotColorMode _savedMode;
     private string _savedCustom;
 
     private CardSave? _pending;
     private bool _cleared;
-    private bool _enabled;
     private SlotColorMode _colorMode;
     private string _customColor;
     private CardItemViewModel? _match;
-    // The colour of the last matched card, kept for Card mode if the card goes away meanwhile.
+    // The color of the last matched card, kept for Card mode if the card goes away meanwhile.
     private string _cardColor = CardSave.DefaultColor;
 
     public SlotSideViewModel(
@@ -58,8 +57,6 @@ public sealed class SlotSideViewModel : ViewModelBase
         var hf = sense == TagSenseType.Hf;
         _savedType = hf ? info.HfType : info.LfType;
         _savedNick = hf ? info.HfNick : info.LfNick;
-        _savedEnabled = hf ? info.HfEnabled : info.LfEnabled;
-        _enabled = _savedEnabled;
         FindMatch();
 
         var color = (hf ? info.HfColor : info.LfColor) is { } c ? SlotColors.SnapToPalette(c) : null;
@@ -78,7 +75,7 @@ public sealed class SlotSideViewModel : ViewModelBase
     public string Label => IsHf ? "HF" : "LF";
     public string Band => IsHf ? "13.56 MHz" : "125 kHz";
 
-    /// <summary>The firmware takes per-card LED colours (ChameLab firmware).</summary>
+    /// <summary>The firmware takes per-card LED colors (ChameLab firmware).</summary>
     public bool SupportsColors { get; }
 
     // ---- The card ------------------------------------------------------
@@ -119,18 +116,11 @@ public sealed class SlotSideViewModel : ViewModelBase
         RaiseCard();
     }
 
-    public bool Enabled
-    {
-        get => _enabled;
-        set { this.RaiseAndSetIfChanged(ref _enabled, value); _changed(); }
-    }
-
-    /// <summary>Puts <paramref name="card"/> into the frequency (on save), coloured like the card where the firmware can.</summary>
+    /// <summary>Puts <paramref name="card"/> into the frequency (on save), colored like the card where the firmware can.</summary>
     public void Pick(CardSave card)
     {
         _pending = card;
         _cleared = false;
-        _enabled = true;
         FindMatch();
         _colorMode = SupportsColors ? SlotColorMode.Card : SlotColorMode.Default;
         RaiseAll();
@@ -149,7 +139,6 @@ public sealed class SlotSideViewModel : ViewModelBase
     {
         _pending = null;
         _cleared = false;
-        _enabled = _savedEnabled;
         FindMatch();
         (_colorMode, _customColor) = (_savedMode, _savedCustom);
         RaiseAll();
@@ -179,9 +168,9 @@ public sealed class SlotSideViewModel : ViewModelBase
         && ChameleonClient.SlotTypeFor(card.Tag) == _savedType
         && ChameleonClient.SlotNickFor(card) == _savedNick;
 
-    // ---- LED colour ----------------------------------------------------
+    // ---- LED color ----------------------------------------------------
 
-    /// <summary>The card's own colour can be used: our firmware and a saved card to take it from.</summary>
+    /// <summary>The card's own color can be used: our firmware and a saved card to take it from.</summary>
     public bool CanUseCardColor => SupportsColors && HasMatch;
 
     public SlotColorMode ColorMode
@@ -199,7 +188,7 @@ public sealed class SlotSideViewModel : ViewModelBase
     public bool IsColorCard { get => _colorMode == SlotColorMode.Card; set { if (value) ColorMode = SlotColorMode.Card; } }
     public bool IsColorCustom { get => _colorMode == SlotColorMode.Custom; set { if (value) ColorMode = SlotColorMode.Custom; } }
 
-    // The swatch list deselects (and writes null) when the colour isn't in the palette.
+    // The swatch list deselects (and writes null) when the color isn't in the palette.
     public string CustomColor
     {
         get => _customColor;
@@ -211,21 +200,21 @@ public sealed class SlotSideViewModel : ViewModelBase
         }
     }
 
-    /// <summary>The colour written to the device; null is the firmware default.</summary>
+    /// <summary>The color written to the device; null is the firmware default.</summary>
     public string? EffectiveColor => ColorOf(_colorMode, _customColor);
 
-    /// <summary>The colour the slot LED shows for the card.</summary>
+    /// <summary>The color the slot LED shows for the card.</summary>
     public string LedPreview => EffectiveColor
         ?? (Partner is { } other && IsLit && other.IsLit && other.EffectiveColor is null ? SlotColors.DefaultDual
             : IsHf ? SlotColors.DefaultHf : SlotColors.DefaultLf);
 
-    /// <summary>The other frequency of the slot: two cards without colours of their own light the LED red.</summary>
+    /// <summary>The other frequency of the slot: two cards without colors of their own light the LED red.</summary>
     public SlotSideViewModel? Partner { get; set; }
 
-    // The firmware counts a card for the LED only while it is enabled.
-    private bool IsLit => HasCard && _enabled;
+    // Saving enables every card, so a card the slot holds will light the LED.
+    private bool IsLit => HasCard;
 
-    /// <summary>The other frequency changed, which may change this one's default colour.</summary>
+    /// <summary>The other frequency changed, which may change this one's default color.</summary>
     public void RaiseLed() => this.RaisePropertyChanged(nameof(LedPreview));
 
     private string? ColorOf(SlotColorMode mode, string custom) => mode switch
@@ -235,7 +224,7 @@ public sealed class SlotSideViewModel : ViewModelBase
         _ => null,
     };
 
-    /// <summary>Which choice the colour read from the device stands for.</summary>
+    /// <summary>Which choice the color read from the device stands for.</summary>
     private (SlotColorMode, string) InferColor(string? color)
     {
         var custom = color ?? _match?.Card.Color ?? SlotColors.Palette[0];
@@ -246,19 +235,18 @@ public sealed class SlotSideViewModel : ViewModelBase
 
     // ---- Saving --------------------------------------------------------
 
-    /// <summary>The card, enable flag or colour differ from what the frequency holds.</summary>
+    /// <summary>The card or color differ from what the frequency holds.</summary>
     public bool IsDirty =>
         IsEmpty
             ? _cleared
             : _pending is not null
-              || _enabled != _savedEnabled
               || _colorMode != _savedMode
               || (_colorMode == SlotColorMode.Custom && _customColor != _savedCustom);
 
     /// <summary>Writes the edits to <paramref name="slot"/> (not yet to flash).</summary>
     public async Task WriteAsync(ChameleonClient client, int slot, IProgress<MifareProgress>? progress)
     {
-        var (pending, cleared, hasCard, enabled, color) = (_pending, _cleared, HasCard, _enabled, EffectiveColor);
+        var (pending, cleared, hasCard, color) = (_pending, _cleared, HasCard, EffectiveColor);
         if (cleared)
         {
             await client.DeleteSlotSenseTypeAsync(slot, Sense);
@@ -266,7 +254,7 @@ public sealed class SlotSideViewModel : ViewModelBase
         }
         if (!hasCard) return;
         if (pending is not null) await client.LoadCardToSlotAsync(pending, slot, progress);
-        await client.SetSlotEnableAsync(slot, Sense, enabled);
+        await client.SetSlotEnableAsync(slot, Sense, enabled: true);
         if (SupportsColors) await client.SetSlotColorAsync(slot, Sense, color);
     }
 
@@ -275,7 +263,6 @@ public sealed class SlotSideViewModel : ViewModelBase
     {
         _savedType = Type;
         _savedNick = Nick;
-        _savedEnabled = _enabled;
         _savedMode = IsEmpty ? SlotColorMode.Default : _colorMode;
         _savedCustom = _customColor;
         _pending = null;
@@ -313,7 +300,6 @@ public sealed class SlotSideViewModel : ViewModelBase
 
     private void RaiseAll()
     {
-        this.RaisePropertyChanged(nameof(Enabled));
         RaiseCard();
         RaiseColor();
     }

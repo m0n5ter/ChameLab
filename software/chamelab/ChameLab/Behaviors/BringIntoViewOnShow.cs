@@ -5,7 +5,7 @@ using Avalonia.Threading;
 namespace ChameLab.Behaviors;
 
 /// <summary>
-/// Attached behaviour: <c>behaviors:BringIntoViewOnShow.IsEnabled="True"</c> scrolls the
+/// Attached behavior: <c>behaviors:BringIntoViewOnShow.IsEnabled="True"</c> scrolls the
 /// enclosing ScrollViewer so the control is visible whenever it turns visible
 /// (a progress strip, a dump result, a prompt that appears below the fold).
 /// </summary>
