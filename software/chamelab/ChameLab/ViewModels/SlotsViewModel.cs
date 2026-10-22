@@ -16,8 +16,8 @@ namespace ChameLab.ViewModels;
 
 /// <summary>
 /// The device's eight emulation slots, laid out like the Cards page: the list of slots on the
-/// left and an editor for the open one on the right (type, nick, LED colour and enable flag of
-/// each frequency, saved from the bar below, plus the HF emulator settings). Opening a slot makes
+/// left and an editor for the open one on the right (the saved card, LED colour and enable flag of
+/// each frequency plus the HF emulator settings, saved from the bar below). Opening a slot makes
 /// it the active one, since the firmware reads and writes only the active slot. Dropping a slot
 /// onto another swaps what the two hold.
 /// </summary>
@@ -52,10 +52,8 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             ResolveLeave(run: _editor is not { } e || await e.SaveAsync()));
         DiscardAndLeaveCommand = ReactiveCommand.Create(() => ResolveLeave(run: true));
         StayCommand = ReactiveCommand.Create(() => ResolveLeave(run: false));
-        SaveToLibraryCommand = ReactiveCommand.CreateFromTask(
-            () => _selected is { } s ? SaveToLibraryAsync(s) : Task.CompletedTask,
-            this.WhenAnyValue(x => x.Selected, x => x.IsConnected, (s, online) => s is not null && online));
 
+        _cards.Changed += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => _editor?.OnLibraryChanged());
         _device.StateChanged += s => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             IsConnected = s == ConnectionState.Connected;
@@ -168,7 +166,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>A fresh editor on what the slot holds; activates the slot on the device.</summary>
     private void OpenEditor(SlotItemViewModel slot)
     {
-        var editor = new SlotEditorViewModel(_device, slot.Info, OnSlotChanged);
+        var editor = new SlotEditorViewModel(_device, _cards, slot.Info, OnSlotChanged, OpenCard);
         Editor = editor;
         foreach (var s in Slots) s.IsActive = s.Index == slot.Index;
         this.RaisePropertyChanged(nameof(CountText));
@@ -211,8 +209,14 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         });
     });
 
-    // The editor saved or cleared something: show it in the list, keep the editor as it is.
+    // The editor saved something: show it in the list, keep the editor as it is.
     private void OnSlotChanged() => _ = LoadAsync(reopen: false);
+
+    /// <summary>Asks for a saved card to be opened in the Cards page (MainViewModel goes there).</summary>
+    public event Action<CardSave>? OpenCardRequested;
+
+    // Leaving for the card editor asks first about unsaved slot edits.
+    private void OpenCard(CardSave card) => LeaveThen(() => OpenCardRequested?.Invoke(card));
 
     // ---- Editor ----------------------------------------------------------
 
@@ -226,6 +230,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             if (_editor is not null) _editor.PropertyChanged += OnEditorPropertyChanged;
             this.RaisePropertyChanged(nameof(HasPane));
             this.RaisePropertyChanged(nameof(IsDirty));
+            this.RaisePropertyChanged(nameof(IsAsking));
         }
     }
 
@@ -235,6 +240,9 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         {
             case nameof(SlotEditorViewModel.IsDirty):
                 this.RaisePropertyChanged(nameof(IsDirty));
+                break;
+            case nameof(SlotEditorViewModel.IsPicking):
+                this.RaisePropertyChanged(nameof(IsAsking));
                 break;
             // The editor's messages show in this page's banner (read once its error flag is set too).
             case nameof(Status) when sender is SlotEditorViewModel editor:
@@ -257,7 +265,6 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     public ICommand CloseCommand { get; }
     public ICommand SaveSlotCommand { get; }
     public ICommand DiscardCommand { get; }
-    public ICommand SaveToLibraryCommand { get; }
 
     // ---- Leaving unsaved edits -------------------------------------------
 
@@ -287,8 +294,8 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     public string LeaveText => $"Save changes to slot {_selected?.Index}?";
 
-    /// <summary>A question waits for an answer; the editor is dimmed until then.</summary>
-    public bool IsAsking => IsConfirmingLeave;
+    /// <summary>A question or the card picker waits for an answer; the editor is dimmed until then.</summary>
+    public bool IsAsking => IsConfirmingLeave || _editor?.IsPicking == true;
 
     public ICommand SaveAndLeaveCommand { get; }
     public ICommand DiscardAndLeaveCommand { get; }
@@ -356,24 +363,4 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         if (client is null) return;
         await client.SaveSlotConfigAsync();
     }, "Slot configuration saved to flash.");
-
-    /// <summary>Copies the HF and/or LF card emulated by a slot into Saved cards.</summary>
-    private Task SaveToLibraryAsync(SlotItemViewModel slot) => RunAsync(async () =>
-    {
-        var client = _device.Client;
-        if (client is null) return;
-        if (slot.IsEmpty)
-        {
-            SetStatus($"Slot {slot.Index} is empty — nothing to save.", isError: true);
-            return;
-        }
-
-        var saved = new List<CardSave>();
-        if (slot.HasHf) saved.Add(await client.ReadCardFromSlotAsync(slot.Info, TagSenseType.Hf));
-        if (slot.HasLf) saved.Add(await client.ReadCardFromSlotAsync(slot.Info, TagSenseType.Lf));
-        _cards.AddRange(saved);
-
-        var names = string.Join(", ", saved.Select(c => $"“{c.Name}”"));
-        SetStatus($"Saved {names} from slot {slot.Index} to Saved cards.");
-    });
 }

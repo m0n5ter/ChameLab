@@ -17,6 +17,9 @@ public sealed record DeviceInfo
     public required string Address { get; init; }
     public DeviceMode Mode { get; init; }
 
+    /// <summary>The firmware takes per-card slot LED colours (ChameLab firmware, not the original one).</summary>
+    public bool SupportsSlotColors { get; init; }
+
     public string ModelName => Model == DeviceModel.Lite ? "Chameleon Lite" : "Chameleon Ultra";
 }
 

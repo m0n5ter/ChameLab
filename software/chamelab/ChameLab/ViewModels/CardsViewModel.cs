@@ -328,6 +328,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         }
     }
 
+    /// <summary>Opens a saved card in the editor (asked from another page), clearing filters that hide it.</summary>
+    public void OpenCard(string id) => LeaveThen(() =>
+    {
+        if (_library.Cards.All(c => c.Id != id)) return;
+        if (Cards.All(c => c.Card.Id != id)) ResetFilters();
+        SetSelected(Cards.FirstOrDefault(c => c.Card.Id == id));
+    });
+
     private void SetSelected(CardItemViewModel? value)
     {
         if (ReferenceEquals(value, _selected)) return;
