@@ -27,15 +27,28 @@
     <Style Selector="Button.slot:pointerover Border.led, Border.led.active">
       <Setter Property="Opacity" Value="1" />
     </Style>
+    <!-- The number sits on the LED: white with a shadow over a color, plain text over an empty slot. -->
     <Style Selector="TextBlock.lednum">
-      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="TextBlock.lednum.lit">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Effect">
+        <DropShadowEffect OffsetX="0" OffsetY="0" BlurRadius="3" Color="Black" Opacity="0.8" />
+      </Setter>
     </Style>
     <Style Selector="TextBlock.lednum.active">
       <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="Opacity" Value="1" />
-      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    </Style>
+    <!-- An empty frequency of the active slot: its chip dimmed. -->
+    <Style Selector="Border.chip.off">
+      <Setter Property="Opacity" Value="0.4" />
     </Style>
   </UserControl.Styles>
 
@@ -126,7 +139,7 @@
             <Border Grid.Column="0" Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.slots}" /></Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
               <TextBlock Text="ACTIVE SLOT" Classes="overline" />
-              <TextBlock Text="{Binding ActiveItem.Header, FallbackValue='–'}" Classes="caption" />
+              <TextBlock Text="{Binding ActiveHeader}" Classes="caption" />
             </StackPanel>
             <Button Grid.Column="2" Classes="icon" Command="{Binding PrevSlotCommand}" VerticalAlignment="Center"
                     ToolTip.Tip="Previous filled slot">
@@ -137,61 +150,72 @@
               <PathIcon Data="{StaticResource Icon.back}" RenderTransform="scaleX(-1)" />
             </Button>
           </Grid>
-          <ItemsControl ItemsSource="{Binding Slots}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate><UniformGrid Columns="8" /></ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:SlotItemViewModel">
-                <Button Classes="slot" HorizontalAlignment="Center" ToolTip.Tip="{Binding Summary}"
-                        Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).SelectSlotCommand}"
-                        CommandParameter="{Binding}">
-                  <StackPanel Spacing="4" Margin="2,0">
+          <!-- Laid out at a fixed size and scaled as a whole, so the strip keeps its proportions. -->
+          <Viewbox Stretch="Uniform" MaxHeight="75">
+            <ItemsControl ItemsSource="{Binding Slots}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="2" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SlotItemViewModel">
+                  <Button Classes="slot" ToolTip.Tip="{Binding Summary}"
+                          Command="{Binding $parent[ItemsControl].((vm:DashboardViewModel)DataContext).SelectSlotCommand}"
+                          CommandParameter="{Binding}">
                     <Panel Width="36" Height="36">
                       <Ellipse Classes="ledring" Classes.active="{Binding IsActive}" />
                       <!-- HF color on the left, LF on the right; one card fills both halves. -->
-                      <Border Classes="led" Classes.active="{Binding IsActive}" Width="24" Height="24" CornerRadius="12"
+                      <Border Classes="led" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14"
                               ClipToBounds="True" IsVisible="{Binding !IsEmpty}">
                         <Grid ColumnDefinitions="*,*">
                           <Border Grid.Column="0" Background="{Binding LedLeft, Converter={x:Static conv:HexBrushConverter.Instance}}" />
                           <Border Grid.Column="1" Background="{Binding LedRight, Converter={x:Static conv:HexBrushConverter.Instance}}" />
                         </Grid>
                       </Border>
-                      <Ellipse Width="24" Height="24" StrokeThickness="1.5" StrokeDashArray="2,2"
+                      <Ellipse Width="28" Height="28" StrokeThickness="1.5" StrokeDashArray="2,2"
                                Stroke="{actipro:ThemeResource Container3BorderBrush}" IsVisible="{Binding IsEmpty}" />
+                      <TextBlock Classes="lednum" Classes.active="{Binding IsActive}" Classes.lit="{Binding !IsEmpty}"
+                                 Text="{Binding Index}" />
                     </Panel>
-                    <TextBlock Classes="lednum" Classes.active="{Binding IsActive}" Text="{Binding Index}" />
-                  </StackPanel>
-                </Button>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Viewbox>
 
           <!-- The cards of the active slot. -->
           <Border BorderThickness="0,1,0,0" BorderBrush="{actipro:ThemeResource Container1BorderBrush}" Padding="0,12,0,0"
                   IsVisible="{Binding ActiveItem, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <WrapPanel ItemSpacing="20" LineSpacing="6">
+            <!-- Scoped to the slot so the bindings below never walk through a null ActiveItem. -->
+            <WrapPanel ItemSpacing="20" LineSpacing="6" HorizontalAlignment="Center"
+                       DataContext="{Binding ActiveItem}" x:DataType="vm:SlotItemViewModel">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding ActiveItem.HasHf, FallbackValue=False}"
-                         Fill="{Binding ActiveItem.HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-                <TextBlock Text="HF" FontWeight="SemiBold" VerticalAlignment="Center" />
-                <TextBlock VerticalAlignment="Center" IsVisible="{Binding ActiveItem.HasHf, FallbackValue=False}"
-                           Text="{Binding ActiveItem.HfType, Converter={x:Static conv:EnumLabelConverter.Instance}}" />
-                <TextBlock Classes="caption" VerticalAlignment="Center" IsVisible="{Binding ActiveItem.HasHf, FallbackValue=False}"
-                           Text="{Binding ActiveItem.HfNick}" />
-                <TextBlock Classes="caption" Text="empty" VerticalAlignment="Center"
-                           IsVisible="{Binding !ActiveItem.HasHf, FallbackValue=False}" />
+                <Border Classes="chip hf" Classes.off="{Binding !HasHf}">
+                  <TextBlock Text="HF" />
+                </Border>
+                <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasHf}"
+                         Fill="{Binding HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                <!-- Name and type as runs of one line, so they share a baseline. -->
+                <TextBlock VerticalAlignment="Center" IsVisible="{Binding HasHf}">
+                  <Run Text="{Binding HfNick}" FontWeight="Bold" />
+                  <Run Text="{Binding HfTypeLabel}" FontSize="12"
+                       Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+                </TextBlock>
+                <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center"
+                           IsVisible="{Binding !HasHf}" />
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding ActiveItem.HasLf, FallbackValue=False}"
-                         Fill="{Binding ActiveItem.LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-                <TextBlock Text="LF" FontWeight="SemiBold" VerticalAlignment="Center" />
-                <TextBlock VerticalAlignment="Center" IsVisible="{Binding ActiveItem.HasLf, FallbackValue=False}"
-                           Text="{Binding ActiveItem.LfType, Converter={x:Static conv:EnumLabelConverter.Instance}}" />
-                <TextBlock Classes="caption" VerticalAlignment="Center" IsVisible="{Binding ActiveItem.HasLf, FallbackValue=False}"
-                           Text="{Binding ActiveItem.LfNick}" />
-                <TextBlock Classes="caption" Text="empty" VerticalAlignment="Center"
-                           IsVisible="{Binding !ActiveItem.HasLf, FallbackValue=False}" />
+                <Border Classes="chip lf" Classes.off="{Binding !HasLf}">
+                  <TextBlock Text="LF" />
+                </Border>
+                <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasLf}"
+                         Fill="{Binding LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                <TextBlock VerticalAlignment="Center" IsVisible="{Binding HasLf}">
+                  <Run Text="{Binding LfNick}" FontWeight="Bold" />
+                  <Run Text="{Binding LfTypeLabel}" FontSize="12"
+                       Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+                </TextBlock>
+                <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center"
+                           IsVisible="{Binding !HasLf}" />
               </StackPanel>
             </WrapPanel>
           </Border>

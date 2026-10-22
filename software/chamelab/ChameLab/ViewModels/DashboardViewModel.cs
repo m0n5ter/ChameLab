@@ -50,10 +50,13 @@ public sealed class DashboardViewModel : PageViewModelBase
             this.RaiseAndSetIfChanged(ref _activeSlot, value);
             foreach (var slot in Slots) slot.IsActive = slot.Index == value;
             this.RaisePropertyChanged(nameof(ActiveItem));
+            this.RaisePropertyChanged(nameof(ActiveHeader));
         }
     }
 
     public SlotItemViewModel? ActiveItem => Slots.FirstOrDefault(s => s.Index == ActiveSlot);
+
+    public string ActiveHeader => ActiveItem?.Header ?? "–";
 
     public ICommand PrevSlotCommand { get; }
     public ICommand NextSlotCommand { get; }
