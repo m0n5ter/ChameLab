@@ -24,7 +24,7 @@ public readonly record struct FirmwareUpdateProgress(FirmwareUpdateStep Step, do
 /// Checks GitHub releases for newer firmware and installs a DFU package: restarts
 /// the device into its bootloader, flashes it over USB serial or BLE and reconnects.
 /// </summary>
-public sealed class FirmwareUpdateService
+public sealed class FirmwareUpdateService(DeviceService device, IReadOnlyList<IDfuLocator> locators)
 {
     /// <summary>Where releases (with <c>ultra-dfu-app.zip</c> / <c>lite-dfu-app.zip</c>) are published.</summary>
     public const string Repository = "m0n5ter/ChameLab";
@@ -34,17 +34,8 @@ public sealed class FirmwareUpdateService
 
     private static readonly HttpClient Http = CreateHttp();
 
-    private readonly DeviceService _device;
-    private readonly IReadOnlyList<IDfuLocator> _locators;
-
-    public FirmwareUpdateService(DeviceService device, IReadOnlyList<IDfuLocator> locators)
-    {
-        _device = device;
-        _locators = locators;
-    }
-
     /// <summary>Whether firmware can be installed to a device connected over <paramref name="kind"/>.</summary>
-    public bool CanInstall(TransportKind? kind) => _locators.Any(l => l.Kind == kind);
+    public bool CanInstall(TransportKind? kind) => locators.Any(l => l.Kind == kind);
 
     public static string PackageName(DeviceModel model) =>
         model == DeviceModel.Lite ? "lite-dfu-app.zip" : "ultra-dfu-app.zip";
@@ -107,10 +98,10 @@ public sealed class FirmwareUpdateService
     /// </summary>
     public IDfuTarget PrepareTarget()
     {
-        var device = _device.Candidate;
-        var locator = _locators.FirstOrDefault(l => l.Kind == device?.Kind)
+        var device1 = device.Candidate;
+        var locator = locators.FirstOrDefault(l => l.Kind == device1?.Kind)
             ?? throw new NotSupportedException("Firmware can be installed over USB from the desktop app, or over Bluetooth from the phone app.");
-        return locator.Prepare(device);
+        return locator.Prepare(device1);
     }
 
     /// <summary>
@@ -121,14 +112,14 @@ public sealed class FirmwareUpdateService
         DfuPackage package, IDfuTarget target,
         IProgress<FirmwareUpdateProgress> progress, CancellationToken ct = default)
     {
-        var previous = _device.Candidate;
+        var previous = device.Candidate;
 
-        if (_device.Client is { } client)
+        if (device.Client is { } client)
         {
             progress.Report(new(FirmwareUpdateStep.Restarting));
             client.EnterBootloader();
             await Task.Delay(300, ct); // let the command go out before the port closes
-            await _device.DisconnectAsync();
+            await device.DisconnectAsync();
         }
 
         progress.Report(new(FirmwareUpdateStep.WaitingForBootloader));
@@ -147,9 +138,9 @@ public sealed class FirmwareUpdateService
         // A port is listed (a peripheral advertises) a moment before it accepts a connection, so keep trying.
         _ = await PollAsync(async () =>
         {
-            var found = await _device.ScanAsync(previous.Kind, ct);
+            var found = await device.ScanAsync(previous.Kind, ct);
             if ((found.FirstOrDefault(c => c.Id == previous?.Id) ?? found.FirstOrDefault()) is not { } candidate) return null;
-            await _device.ConnectAsync(candidate, ct);
+            await device.ConnectAsync(candidate, ct);
             return candidate;
         }, ReconnectTimeout, ct) ?? throw new TimeoutException("The firmware was installed, but the device did not come back. Reconnect it from the Connect page.");
     }
