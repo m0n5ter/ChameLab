@@ -4,6 +4,10 @@ This project uses the changelog in accordance with [keepchangelog](http://keepac
 
 ## [unreleased][unreleased]
 
+## [v2.3.1][2026-10-23]
+ - ChameLab: the slot's card is matched to Saved cards by UID; the active slot no longer opens by itself on narrow screens
+ - ChameLab: compact Dashboard slot strip with the numbers inside the LEDs, and a cleaner active slot line
+
 ## [v2.3.0][2026-10-23]
  - Fix wrong data reported by hf 14a sniff on frames containing more than 7 parity bits (@DidierA)
  - Added MIFARE Ultralight C authentication and emulation (@Foxushka)
