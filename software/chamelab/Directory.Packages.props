@@ -24,5 +24,8 @@
     <PackageVersion Include="Plugin.BLE" Version="3.3.0-beta.2" />
     <!-- Android splash -->
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
+    <!-- Keep Core.Ktx in step with Core: the Kotlin extensions moved into Core, and mismatched
+         versions both ship them, so D8 fails with "Type ... is defined multiple times". -->
+    <PackageVersion Include="Xamarin.AndroidX.Core.Core.Ktx" Version="1.19.0.1" />
   </ItemGroup>
 </Project>
