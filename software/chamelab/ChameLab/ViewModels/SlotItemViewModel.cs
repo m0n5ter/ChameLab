@@ -26,7 +26,7 @@ public sealed class SlotItemViewModel : ViewModelBase
                  {
                      nameof(Info), nameof(HfNick), nameof(LfNick), nameof(HfType), nameof(LfType),
                      nameof(HasHf), nameof(HasLf), nameof(IsEmpty), nameof(HfLed), nameof(LfLed), nameof(LedLeft), nameof(LedRight),
-                     nameof(HfLabel), nameof(LfLabel), nameof(Summary),
+                     nameof(HfLabel), nameof(LfLabel), nameof(HfTypeLabel), nameof(LfTypeLabel), nameof(Summary),
                  })
             this.RaisePropertyChanged(name);
     }
@@ -60,6 +60,10 @@ public sealed class SlotItemViewModel : ViewModelBase
     public string LfLabel => HasLf
         ? (!string.IsNullOrEmpty(_info.LfNick) ? _info.LfNick : _info.LfType.DisplayName())
         : "—";
+
+    /// <summary>Type of each card, under its name in the slot tile; empty when the frequency is empty.</summary>
+    public string HfTypeLabel => HasHf ? _info.HfType.DisplayName() : "";
+    public string LfTypeLabel => HasLf ? _info.LfType.DisplayName() : "";
 
     public string Summary => IsEmpty
         ? "Empty slot"

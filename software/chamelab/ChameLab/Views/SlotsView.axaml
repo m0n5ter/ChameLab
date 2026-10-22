@@ -35,6 +35,10 @@
       <Setter Property="Height" Value="30" />
       <Setter Property="CornerRadius" Value="15" />
     </Style>
+    <!-- A frequency without a card: its tile and "Empty" fade back. -->
+    <Style Selector="Border.chip.off">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
     <!-- A saved card in the editor: the Cards list row, as a button that opens the card. -->
     <Style Selector="Button.cardtile">
       <Setter Property="Padding" Value="0" />
@@ -89,6 +93,40 @@
           </StackPanel>
         </Grid>
       </Border></Border>
+    </DataTemplate>
+
+    <!-- A slot: its number, then the HF and LF cards side by side (name, type below). The list rows and
+         the editor header; every slot is two lines tall, filled or not. -->
+    <DataTemplate x:Key="SlotTile" x:DataType="vm:SlotItemViewModel">
+      <Grid ColumnDefinitions="Auto,*,*" ColumnSpacing="14">
+        <Border Grid.Column="0" Classes="slotnum small" Classes.active="{Binding IsActive}" VerticalAlignment="Center">
+          <TextBlock Text="{Binding Index}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+        <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+          <Border Classes="chip hf" Classes.off="{Binding !HasHf}" VerticalAlignment="Center">
+            <TextBlock Text="HF" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock Text="{Binding HfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                       IsVisible="{Binding HasHf}" />
+            <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !HasHf}" />
+            <TextBlock Text="{Binding HfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
+                       TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Grid>
+        <Grid Grid.Column="2" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+          <Border Classes="chip lf" Classes.off="{Binding !HasLf}" VerticalAlignment="Center">
+            <TextBlock Text="LF" />
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock Text="{Binding LfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                       IsVisible="{Binding HasLf}" />
+            <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !HasLf}" />
+            <TextBlock Text="{Binding LfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
+                       TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+        </Grid>
+      </Grid>
     </DataTemplate>
 
     <!-- One frequency of the slot: its card, choose / clear, and the LED color. -->
@@ -208,26 +246,10 @@
 
     <!-- ==================== Slot list ==================== -->
     <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,*">
-      <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
-        <StackPanel Grid.Column="0" Spacing="2">
-          <TextBlock Text="Emulation slots" Classes="h1" TextTrimming="CharacterEllipsis" />
-          <TextBlock Classes="caption" Text="{Binding CountText}" />
-        </StackPanel>
-        <Button Grid.Column="1" Command="{Binding RefreshCommand}" Margin="8,0,8,0"
-                VerticalAlignment="Center" ToolTip.Tip="Reload slots from the device">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.refresh}" />
-            <TextBlock Text="Refresh" Classes="wide-only" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
-        <Button Grid.Column="2" Classes="accent" Command="{Binding SaveCommand}"
-                VerticalAlignment="Center" ToolTip.Tip="Persist the slot configuration (and the active slot) to flash">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.save}" />
-            <TextBlock Text="Save to flash" Classes="wide-only" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
-      </Grid>
+      <StackPanel Grid.Row="0" Spacing="2">
+        <TextBlock Text="Emulation slots" Classes="h1" TextTrimming="CharacterEllipsis" />
+        <TextBlock Classes="caption" Text="{Binding CountText}" />
+      </StackPanel>
 
       <!-- No device / not read yet -->
       <Border Grid.Row="1" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
@@ -250,7 +272,7 @@
             <DataTemplate x:DataType="vm:SlotItemViewModel">
               <Panel>
                 <Border Classes="cardrow" ToolTip.Tip="{Binding Summary}"><Border Classes="cardclip">
-                  <Grid ColumnDefinitions="8,Auto,*,Auto" ColumnSpacing="12">
+                  <Grid ColumnDefinitions="8,*" ColumnSpacing="12">
                     <!-- The LED colors of the slot's cards, HF above LF. -->
                     <UniformGrid Grid.Column="0" Columns="1">
                       <Border IsVisible="{Binding HasHf}"
@@ -258,29 +280,8 @@
                       <Border IsVisible="{Binding HasLf}"
                               Background="{Binding LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
                     </UniformGrid>
-                    <Border Grid.Column="1" Classes="slotnum small" Classes.active="{Binding IsActive}"
-                            VerticalAlignment="Center">
-                      <TextBlock Text="{Binding Index}" FontWeight="Bold"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="2" Margin="0,10" Spacing="0">
-                      <TextBlock Text="{Binding Header}" FontWeight="SemiBold" FontSize="15"
-                                 TextTrimming="CharacterEllipsis" />
-                      <TextBlock Classes="caption" Text="Empty" IsVisible="{Binding IsEmpty}" />
-                      <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                 IsVisible="{Binding HasHf}">
-                        <Run Text="HF" FontWeight="Bold" />
-                        <Run Text="{Binding HfLabel}" />
-                      </TextBlock>
-                      <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                 IsVisible="{Binding HasLf}">
-                        <Run Text="LF" FontWeight="Bold" />
-                        <Run Text="{Binding LfLabel}" />
-                      </TextBlock>
-                    </StackPanel>
-                    <Border Grid.Column="3" Classes="chip active" IsVisible="{Binding IsActive}">
-                      <TextBlock Text="ACTIVE" />
-                    </Border>
+                    <ContentControl Grid.Column="1" Margin="0,10" Content="{Binding}"
+                                    ContentTemplate="{StaticResource SlotTile}" />
                   </Grid>
                 </Border></Border>
                 <Border Classes="dragframe" />
@@ -297,21 +298,13 @@
       <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding HasPane}"
               IsEnabled="{Binding !IsAsking}">
         <StackPanel>
-          <Grid ColumnDefinitions="Auto,Auto,*">
+          <Grid ColumnDefinitions="Auto,*">
             <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
                     Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
-            <Border Grid.Column="1" Classes="slotnum" Classes.active="{Binding Selected?.IsActive, TargetNullValue=False}"
-                    Margin="0,0,12,0" VerticalAlignment="Center">
-              <TextBlock Text="{Binding Selected?.Index}" FontWeight="Bold" FontSize="15"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="0">
-              <TextBlock Text="{Binding Selected?.Header}" Classes="h2" />
-              <TextBlock Text="{Binding Selected?.Summary}" Classes="caption" TextWrapping="Wrap" />
-            </StackPanel>
+            <ContentControl Grid.Column="1" Content="{Binding Selected}" ContentTemplate="{StaticResource SlotTile}" />
           </Grid>
         </StackPanel>
       </Border>
@@ -409,7 +402,7 @@
           </Button>
         </c:ActionBar>
       </Border>
-      <!-- Switching slot, closing or reloading with unsaved edits: save, drop them, or stay. -->
+      <!-- Switching slot, closing or swapping with unsaved edits: save, drop them, or stay. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsConfirmingLeave}">
         <c:ActionBar>
           <TextBlock Text="{Binding LeaveText}" VerticalAlignment="Center"
