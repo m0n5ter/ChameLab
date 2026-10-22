@@ -4,67 +4,315 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChameLab</title>
+  <meta name="description" content="ChameLab: desktop, mobile and web app for ChameleonUltra and ChameleonLite, with firmware and a command line client.">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" href="favicon.ico">
   <style>
     :root {
       --bg: #f6f7f9; --card: #fff; --text: #1c1f24; --muted: #5d6571;
-      --line: #e1e4e8; --accent: #2563eb; --accent-text: #fff; --warn: #9a6700;
+      --line: #e1e4e8; --accent: #2563eb; --accent-text: #fff; --accent-soft: #e8efff;
+      --warn: #9a6700; --code: #eef0f3; --new: #1a7f37; --new-soft: #e3f4e7;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #111418; --card: #1a1e24; --text: #e6e8eb; --muted: #9aa3ae;
-        --line: #2b313a; --accent: #3b82f6; --accent-text: #fff; --warn: #d4a72c;
+        --line: #2b313a; --accent: #3b82f6; --accent-text: #fff; --accent-soft: #1c2a44;
+        --warn: #d4a72c; --code: #232830; --new: #4ac26b; --new-soft: #183222;
       }
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 64px; }
     body {
       margin: 0; background: var(--bg); color: var(--text);
-      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
-    main { max-width: 880px; margin: 0 auto; padding: 32px 16px 48px; }
-    header { text-align: center; margin-bottom: 32px; }
-    header img { height: 120px; width: auto; }
-    header h1 { margin: 8px 0 0; font-size: 2.5rem; letter-spacing: -.02em; }
-    header p { color: var(--muted); margin: 8px 0 0; }
     a { color: var(--accent); }
-    section {
-      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-      padding: 20px 24px; margin-bottom: 20px;
+    code {
+      font: .88em ui-monospace, "Cascadia Code", Consolas, monospace;
+      background: var(--code); padding: 1px 5px; border-radius: 4px;
     }
-    h2 { margin: 0 0 4px; font-size: 1.25rem; }
-    h3 { margin: 18px 0 6px; font-size: 1rem; }
-    .meta { color: var(--muted); font-size: .9rem; margin: 0 0 8px; }
+
+    nav {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+    }
+    nav div {
+      max-width: 960px; margin: 0 auto; padding: 0 16px; height: 52px;
+      display: flex; align-items: center; gap: 20px; overflow-x: auto;
+    }
+    nav b { margin-right: auto; white-space: nowrap; }
+    nav a { color: var(--muted); text-decoration: none; white-space: nowrap; font-size: .95rem; }
+    nav a:hover { color: var(--text); }
+
+    main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+    header.hero {
+      display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
+      margin-bottom: 36px;
+    }
+    .hero h1 { margin: 0; font-size: 2.75rem; letter-spacing: -.02em; line-height: 1.1; }
+    .hero p { color: var(--muted); margin: 12px 0 20px; font-size: 1.1rem; max-width: 560px; }
+    .hero img { height: 170px; width: auto; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
     .button {
       display: inline-block; background: var(--accent); color: var(--accent-text);
       padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;
-      margin: 8px 0;
     }
-    .note { color: var(--warn); font-size: .9rem; }
+    .button.secondary { background: var(--card); color: var(--text); border: 1px solid var(--line); }
+    .button:hover { filter: brightness(1.08); }
+    @media (max-width: 640px) {
+      header.hero { grid-template-columns: 1fr; text-align: center; }
+      .hero img { height: 120px; grid-row: 1; justify-self: center; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .actions { justify-content: center; }
+      .hero h1 { font-size: 2.2rem; }
+    }
+
+    section {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+      padding: 22px 24px; margin-bottom: 20px;
+    }
+    @media (max-width: 640px) { section { padding: 18px 16px; } }
+    h2 { margin: 0 0 4px; font-size: 1.35rem; }
+    h3 { margin: 20px 0 6px; font-size: 1.02rem; }
+    .meta { color: var(--muted); font-size: .92rem; margin: 0 0 12px; }
+    .note { color: var(--warn); font-size: .9rem; margin: 10px 0 0; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .tile { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+    .tile h3 { margin: 0 0 4px; }
+    .tile p { margin: 0; color: var(--muted); font-size: .93rem; }
+
+    .badge {
+      display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .03em;
+      text-transform: uppercase; padding: 2px 7px; border-radius: 999px; vertical-align: 2px;
+      background: var(--new-soft); color: var(--new); margin-left: 6px;
+    }
+    .badge.fix { background: var(--accent-soft); color: var(--accent); }
+
+    .release-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    .release-head h3 { margin: 0; font-size: 1.1rem; }
+    .release-head span { color: var(--muted); font-size: .9rem; }
+    ul.changes { margin: 8px 0 0; padding-left: 20px; }
+    ul.changes li { margin: 6px 0; }
+    ul.changes li b { font-weight: 600; }
+
+    .leds { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 6px; }
+    .led { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .78rem; color: var(--muted); }
+    .led i {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--c1);
+      box-shadow: 0 0 10px var(--c1); display: block;
+    }
+    .led.dual i { animation: dual 2s steps(1) infinite; }
+    @keyframes dual { 0% { background: var(--c1); box-shadow: 0 0 10px var(--c1); }
+                      50% { background: var(--c2); box-shadow: 0 0 10px var(--c2); } }
+    @media (prefers-reduced-motion: reduce) {
+      .led.dual i { animation: none; background: linear-gradient(90deg, var(--c1) 50%, var(--c2) 50%); }
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+    th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; }
+    td.y { color: var(--new); font-weight: 700; }
+    td.n { color: var(--muted); }
+
+    ol.steps { padding-left: 20px; margin: 8px 0 0; }
+    ol.steps li { margin: 6px 0; }
+
     ul.assets { list-style: none; margin: 0; padding: 0; }
     ul.assets li {
-      display: flex; justify-content: space-between; gap: 12px;
-      padding: 6px 0; border-top: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+      padding: 7px 0; border-top: 1px solid var(--line);
     }
     ul.assets li:first-child { border-top: 0; }
+    ul.assets li div { min-width: 0; }
     ul.assets a { overflow-wrap: anywhere; }
+    ul.assets small { display: block; color: var(--muted); font-size: .85rem; }
     ul.assets span { color: var(--muted); white-space: nowrap; font-size: .9rem; }
-    footer { text-align: center; color: var(--muted); font-size: .9rem; }
+    ul.assets li.mine a { font-weight: 700; }
+    ul.assets li.mine small::after { content: " · for this device"; color: var(--new); }
+    details.notes { margin-top: 14px; }
+    details.notes summary { cursor: pointer; color: var(--accent); }
+    details.notes pre {
+      white-space: pre-wrap; font: .88rem/1.5 ui-monospace, Consolas, monospace;
+      background: var(--code); padding: 12px; border-radius: 8px; margin: 8px 0 0;
+    }
+
+    footer { text-align: center; color: var(--muted); font-size: .9rem; margin-top: 28px; }
   </style>
 </head>
 <body>
+<nav><div>
+  <b>ChameLab</b>
+  <a href="#app">App</a>
+  <a href="#why">Why</a>
+  <a href="#firmware">Firmware</a>
+  <a href="#stable">Download</a>
+  <a href="https://github.com/m0n5ter/ChameLab">GitHub</a>
+</div></nav>
+
 <main>
-  <header>
-    <img src="chameleon-ultra.png" alt="">
-    <h1>ChameLab</h1>
-    <p>Desktop, mobile and web app for ChameleonUltra and ChameleonLite, with their firmware and command line client.</p>
+  <header class="hero">
+    <div>
+      <h1>ChameLab</h1>
+      <p>Desktop, mobile and web app for ChameleonUltra and ChameleonLite, together with
+        an extended firmware and the command line client.</p>
+      <div class="actions">
+        <a class="button" href="app/">Open in the browser</a>
+        <a class="button secondary" href="#stable">Download</a>
+      </div>
+    </div>
+    <img src="chameleon-ultra.png" alt="ChameleonUltra">
   </header>
 
-  <section>
-    <h2>Try it in the browser</h2>
-    <p class="meta">ChameLab running as WebAssembly, built from the latest <code>main</code> commit.
-      It talks to the device over USB through Web Serial.</p>
-    <a class="button" href="app/">Open ChameLab in the browser</a>
-    <p class="note">Needs Chrome or Edge on a desktop: Firefox and Safari do not support Web Serial.</p>
+  <section id="app">
+    <h2>The app</h2>
+    <p class="meta">One app for Windows, macOS, Linux, Android and the browser. USB on desktop and in
+      the browser, Bluetooth on phones, TCP everywhere.</p>
+    <div class="grid">
+      <div class="tile"><h3>Slots</h3>
+        <p>All eight slots at a glance, with each card's name and LED color. Drag to reorder,
+          tap to activate, edit HF and LF separately.</p></div>
+      <div class="tile"><h3>Read and dump</h3>
+        <p>ISO14443-A and LF scans. MIFARE Classic Mini, 1K and 4K dumps with your key
+          dictionaries, edited as hex and emulated in one tap.</p></div>
+      <div class="tile"><h3>Saved cards</h3>
+        <p>A card library with search and color tags. Imports ChameleonUltraGUI, Proxmark3,
+          Flipper <code>.nfc</code>/<code>.rfid</code>, MCT, <code>.bin</code> and <code>.eml</code>.</p></div>
+      <div class="tile"><h3>Cloning</h3>
+        <p>Write LF IDs to T55xx and MIFARE Classic to Gen1a / Gen2 magic cards.</p></div>
+      <div class="tile"><h3>Emulator settings</h3>
+        <p>Gen1a / Gen2 modes, write modes, nonce detection for mfkey32, Ultralight / NTAG
+          version, signature and counters.</p></div>
+      <div class="tile"><h3>Device settings</h3>
+        <p>LED animation, button actions, long-press threshold, sleep timeout, BLE pairing and
+          factory reset.</p></div>
+    </div>
+    <p class="note">The web version needs Chrome or Edge on a desktop: Firefox and Safari do not
+      support Web Serial.</p>
+  </section>
+
+  <section id="why">
+    <h2>Why ChameLab</h2>
+    <p class="meta">How it compares with the official Python CLI and the Flutter ChameleonUltraGUI.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>ChameLab</th><th>ChameleonUltraGUI</th><th>Official CLI</th></tr></thead>
+        <tbody>
+          <tr><td>Graphical interface</td><td class="y">✓</td><td class="y">✓</td><td class="n">terminal</td></tr>
+          <tr><td>Runs in the browser, nothing to install</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
+          <tr><td>Per-card slot LED colors</td><td class="y">✓</td><td class="n">–</td><td class="y">✓ (with this firmware)</td></tr>
+          <tr><td>Import Proxmark3, Flipper, MCT, .bin / .eml</td><td class="y">✓</td><td class="n">partly</td><td class="n">partly</td></tr>
+          <tr><td>Key recovery (darkside, nested, hardnested)</td><td class="n">not yet</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>Firmware update from the app</td><td class="n">not yet</td><td class="y">✓</td><td class="n">via scripts</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="changes">
+      <li><b>One codebase, five targets.</b> Windows, macOS, Linux, Android and WebAssembly share
+        the same views and protocol code, so a fix lands everywhere at once.</li>
+      <li><b>The firmware moves with the app.</b> Features like slot colors are added on both sides
+        together and shipped in the same release, with no waiting for an upstream merge.</li>
+      <li><b>Adaptive layout.</b> Side navigation on a desktop, a drawer on a phone, and the
+        keyboard and system Back button handled properly on Android.</li>
+      <li><b>Cards first.</b> Read a card, save it to the library, put it into any slot, and the
+        slot shows which saved card it holds, matched by UID.</li>
+    </ul>
+    <p class="note">Not there yet: key recovery, HF / LF sniffing, firmware update from the app,
+      card folders, QR sharing and translations. Use the CLI for those for now.</p>
+  </section>
+
+  <section id="firmware">
+    <h2>Firmware additions</h2>
+    <p class="meta">What the ChameLab firmware adds on top of the ChameleonUltra firmware it is built
+      from. It runs on both ChameleonUltra and ChameleonLite and stays compatible with the
+      official CLI and other apps.</p>
+
+    <div class="release-head"><h3>v2.3.0</h3><span>October 2026</span></div>
+
+    <h3>Slot LED colors <span class="badge">New</span></h3>
+    <p>Each card in a slot can have its own LED color, so you can tell which card is active by
+      looking at the device. The RGB lines are driven by PWM, so any color works, not only the
+      seven primary mixes. A slot that holds both an HF and an LF card alternates between their
+      two colors. Slots without a color keep the familiar HF / LF colors.</p>
+    <div class="leds" aria-label="Example: eight slots with their own colors; slot 3 holds HF and LF cards">
+      <div class="led"><i style="--c1:#ef4444"></i>1</div>
+      <div class="led"><i style="--c1:#f59e0b"></i>2</div>
+      <div class="led dual"><i style="--c1:#22c55e;--c2:#a855f7"></i>3</div>
+      <div class="led"><i style="--c1:#06b6d4"></i>4</div>
+      <div class="led"><i style="--c1:#3b82f6"></i>5</div>
+      <div class="led"><i style="--c1:#ec4899"></i>6</div>
+      <div class="led dual"><i style="--c1:#eab308;--c2:#14b8a6"></i>7</div>
+      <div class="led"><i style="--c1:#f97316"></i>8</div>
+    </div>
+    <p class="meta">Pick a color in the ChameLab slot editor, or from the CLI:
+      <code>hw slot color -s 3 --hf -c FF5722</code>, <code>--default</code> goes back to the
+      standard color. Apps use the new <code>DATA_CMD_SET_SLOT_COLOR</code> (1043) and
+      <code>DATA_CMD_GET_ALL_SLOT_COLORS</code> (1044) commands.</p>
+
+    <h3>Also in this release</h3>
+    <ul class="changes">
+      <li><b>MIFARE Ultralight C</b> <span class="badge">New</span>: 3DES authentication in
+        reader mode (read, write, dump and change the key with <code>hf mfu</code>) and emulation
+        of Ultralight C cards.</li>
+      <li><b>No more full flash after slot switching</b> <span class="badge fix">Fix</span>:
+        flash records stayed open after reading, so they could never be garbage-collected.
+        After enough slot switches, saving failed until a reboot.</li>
+      <li><b>Sniffer</b> <span class="badge fix">Fix</span>: <code>hf 14a sniff</code> reported
+        wrong data for frames with more than seven parity bits.</li>
+    </ul>
+
+    <div class="release-head"><h3>v2.2.0</h3><span>July 2026</span></div>
+    <ul class="changes">
+      <li><b>Four more LF protocols</b>: ioProx, PAC/Stanley, Jablotron and IDTECK. See the table
+        below for what each one supports.</li>
+      <li><b>SEOS</b> credentials support.</li>
+      <li><b>NTAG213/215/216</b>: correct static and dynamic lock bits; CFG0 / CFG1 can be changed
+        again after a password is set; FAST_READ fixed.</li>
+      <li><b>Flipper Zero import</b>: <code>hf mfu nfcimport</code> loads <code>.nfc</code> files
+        into Ultralight / NTAG slots, <code>--amiibo</code> derives PWD / PACK.</li>
+      <li><b>MIFARE Classic</b>: dump and clone commands, the <code>field_off_do_reset</code>
+        emulator option, static nested key recovery fixed, access conditions handled correctly
+        on reset.</li>
+      <li><b>Readers</b>: <code>hf 14a config</code> for badly configured cards; readers that left
+        the device in a strange state no longer do.</li>
+      <li><b>Connectivity</b>: faster USB transfers, correct USB serial number, TCP support in
+        the CLI.</li>
+      <li><b>LEDs</b>: new symmetrical animation, improved minimal mode, LEDs no longer stay on
+        after a battery check.</li>
+    </ul>
+
+    <h3>LF protocols</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Protocol</th><th>Read</th><th>Emulate</th><th>Clone to T55xx</th></tr></thead>
+        <tbody>
+          <tr><td>EM410x</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>HID Prox</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>Viking</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>ioProx <span class="badge">2.2</span></td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>PAC/Stanley <span class="badge">2.2</span></td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>Jablotron <span class="badge">2.2</span></td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>IDTECK <span class="badge">2.2</span></td><td class="n">–</td><td class="y">✓</td><td class="y">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="meta" style="margin-top:8px">LF reading is available on ChameleonUltra only; ChameleonLite
+      emulates.</p>
+
+    <h3>Updating the firmware</h3>
+    <ol class="steps">
+      <li>Download <code>ultra-dfu-app.zip</code> or <code>lite-dfu-app.zip</code> from the release
+        below. The <code>-full</code> packages also contain the bootloader and are only needed for
+        recovery.</li>
+      <li>Put the device into DFU mode: <code>hw dfu</code> in the CLI, or hold button B while
+        plugging in USB.</li>
+      <li>Flash the package with <code>firmware/flash-dfu-app.sh</code>, nRF Connect for mobile
+        or nRF Connect for Desktop.</li>
+    </ol>
+    <p class="meta" style="margin-top:8px">Slots, cards and settings are kept by an application
+      update. See the full <a href="https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md">changelog</a>.</p>
   </section>
 
   <section id="stable">
@@ -80,7 +328,10 @@
   <footer>
     <p>Free software under the GNU GPL v3:
       <a href="https://github.com/m0n5ter/ChameLab">source code</a> ·
-      <a href="https://github.com/m0n5ter/ChameLab/releases">all releases</a></p>
+      <a href="https://github.com/m0n5ter/ChameLab/releases">all releases</a> ·
+      <a href="https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md">changelog</a></p>
+    <p>Based on the <a href="https://github.com/RfidResearchGroup/ChameleonUltra">ChameleonUltra</a>
+      firmware and client by RfidResearchGroup and contributors.</p>
   </footer>
 </main>
 
@@ -90,10 +341,37 @@
 
   // Asset name -> group, in display order
   const groups = [
+    ['ChameLab app', /^chamelab-/],
     ['Firmware (DFU)', /-dfu-/],
-    ['ChameLab', /^chamelab-/],
     ['Command line client', /^client-/],
+    ['Firmware binaries (for SWD flashing)', /-binaries/],
   ];
+
+  // Asset name -> human description
+  const labels = [
+    [/^chamelab-win-x64/, 'Windows, 64-bit'],
+    [/^chamelab-osx-arm64/, 'macOS, Apple Silicon'],
+    [/^chamelab-osx-x64/, 'macOS, Intel'],
+    [/^chamelab-linux-x64/, 'Linux, 64-bit'],
+    [/^chamelab-android/, 'Android'],
+    [/^ultra-dfu-app/, 'ChameleonUltra, application update'],
+    [/^ultra-dfu-full/, 'ChameleonUltra, with bootloader (recovery)'],
+    [/^lite-dfu-app/, 'ChameleonLite, application update'],
+    [/^lite-dfu-full/, 'ChameleonLite, with bootloader (recovery)'],
+    [/^client-windows/, 'Windows'],
+    [/^client-macos/, 'macOS'],
+    [/^client-linux/, 'Linux'],
+    [/^ultra-binaries/, 'ChameleonUltra'],
+    [/^lite-binaries/, 'ChameleonLite'],
+  ];
+
+  // Which asset suffixes fit the visitor's system
+  const ua = navigator.userAgent;
+  const mine = /Android/.test(ua) ? /android/
+    : /Windows/.test(ua) ? /win|windows/
+    : /Mac/.test(ua) ? /osx|macos/
+    : /Linux/.test(ua) ? /linux/
+    : null;
 
   function sizeOf(bytes) {
     return bytes >= 1 << 20 ? `${(bytes / (1 << 20)).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
@@ -103,6 +381,14 @@
     const e = Object.assign(document.createElement(tag), props);
     e.append(...children);
     return e;
+  }
+
+  function asset(a) {
+    const label = labels.find(([p]) => p.test(a.name));
+    const isMine = mine && /^(chamelab|client)-/.test(a.name) && mine.test(a.name);
+    return el('li', { className: isMine ? 'mine' : '' },
+      el('div', {}, el('a', { href: a.browser_download_url }, a.name), el('small', {}, label ? label[1] : '')),
+      el('span', {}, sizeOf(a.size)));
   }
 
   function render(section, release, title) {
@@ -121,8 +407,12 @@
       if (!assets.length) continue;
       rest.splice(0, rest.length, ...rest.filter(a => !assets.includes(a)));
       section.append(el('h3', {}, name), el('ul', { className: 'assets' },
-        ...assets.sort((a, b) => a.name.localeCompare(b.name)).map(a =>
-          el('li', {}, el('a', { href: a.browser_download_url }, a.name), el('span', {}, sizeOf(a.size))))));
+        ...assets.sort((a, b) => a.name.localeCompare(b.name)).map(asset)));
+    }
+
+    if (release.body && release.body.trim()) {
+      section.append(el('details', { className: 'notes' },
+        el('summary', {}, 'Release notes'), el('pre', {}, release.body.trim())));
     }
   }
 
