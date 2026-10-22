@@ -13,7 +13,7 @@ namespace ChameLab.ViewModels;
 
 /// <summary>
 /// Editor for one emulation slot: the HF and LF card (a saved card picked from the library,
-/// or cleared), their enable flags and LED colours, and the MIFARE Classic / Ultralight
+/// or cleared), their LED colors, and the MIFARE Classic / Ultralight
 /// emulator settings of the HF card. All firmware calls act on the active slot, so the editor
 /// activates its slot before reading or writing anything. Every edit is held until
 /// <see cref="SaveAsync"/> writes the slot to the device (see <see cref="IsDirty"/>).
@@ -120,8 +120,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         : Hf.Type.IsUltralight() ? EmulatorKind.Ul
         : EmulatorKind.None;
 
-    /// <summary>The settings shown (and saved): only for an enabled HF card.</summary>
-    private EmulatorKind ShownKind => Hf.Enabled ? TypeKind : EmulatorKind.None;
+    /// <summary>The settings shown (and saved) for the HF card.</summary>
+    private EmulatorKind ShownKind => TypeKind;
 
     public bool ShowMfcSettings => ShownKind == EmulatorKind.Mfc;
     public bool ShowUlSettings => ShownKind == EmulatorKind.Ul;

@@ -8,7 +8,7 @@ using Avalonia.Threading;
 namespace ChameLab.Behaviors;
 
 /// <summary>
-/// Attached behaviour: <c>Button behaviors:CopyToClipboard.Text="{Binding Value}"</c>
+/// Attached behavior: <c>Button behaviors:CopyToClipboard.Text="{Binding Value}"</c>
 /// copies the text when the button is clicked and briefly confirms via tooltip.
 /// </summary>
 public static class CopyToClipboard

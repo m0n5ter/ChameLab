@@ -16,7 +16,7 @@ namespace ChameLab.ViewModels;
 
 /// <summary>
 /// The device's eight emulation slots, laid out like the Cards page: the list of slots on the
-/// left and an editor for the open one on the right (the saved card, LED colour and enable flag of
+/// left and an editor for the open one on the right (the saved card and LED color of
 /// each frequency plus the HF emulator settings, saved from the bar below). Opening a slot makes
 /// it the active one, since the firmware reads and writes only the active slot. Dropping a slot
 /// onto another swaps what the two hold.
@@ -304,7 +304,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     // ---- Actions ---------------------------------------------------------
 
     /// <summary>
-    /// Swaps what two slots hold: both cards of each (with nick, LED colour and enable flag) and the
+    /// Swaps what two slots hold: both cards of each (with nick, LED color and enable flag) and the
     /// HF emulator settings. Both are read first, so a failed write can put the first slot back.
     /// The active slot stays the same number; an open slot reopens on its new content.
     /// </summary>

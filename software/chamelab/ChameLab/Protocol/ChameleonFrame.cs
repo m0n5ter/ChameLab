@@ -62,7 +62,7 @@ public static class FrameCodec
 
 /// <summary>
 /// Incremental parser that turns a byte stream into <see cref="ChameleonFrame"/>s,
-/// tolerating partial reads and resynchronising on corruption.
+/// tolerating partial reads and resynchronizing on corruption.
 /// </summary>
 public sealed class FrameParser
 {

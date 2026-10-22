@@ -45,7 +45,7 @@ public sealed class SlotItemViewModel : ViewModelBase
     public bool HasLf => _info.LfType != TagSpecificType.Undefined && _info.LfEnabled;
     public bool IsEmpty => !HasHf && !HasLf;
 
-    /// <summary>The LED colour the device shows for each card (#RRGGBB), null when the frequency is empty.</summary>
+    /// <summary>The LED color the device shows for each card (#RRGGBB), null when the frequency is empty.</summary>
     public string? HfLed => SlotColors.Effective(_info, HasHf, HasLf).Hf;
     public string? LfLed => SlotColors.Effective(_info, HasHf, HasLf).Lf;
 

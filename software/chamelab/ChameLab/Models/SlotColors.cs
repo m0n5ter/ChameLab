@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace ChameLab.Models;
 
-/// <summary>Card accent colours and how the device's slot LED shows them.</summary>
+/// <summary>Card accent colors and how the device's slot LED shows them.</summary>
 public static class SlotColors
 {
     /// <summary>
-    /// Preset colours: 24 fully saturated hues, 15° apart from red, so the slot LED shows
+    /// Preset colors: 24 fully saturated hues, 15° apart from red, so the slot LED shows
     /// them at full brightness (red, green and blue are the firmware's own defaults).
     /// The app draws them toned down, see <see cref="Muted"/>.
     /// </summary>
@@ -21,8 +21,8 @@ public static class SlotColors
     };
 
     /// <summary>
-    /// How the app draws a card colour: less saturated and nearer mid lightness than the
-    /// LED colour it stands for, so a list of cards doesn't look garish.
+    /// How the app draws a card color: less saturated and nearer mid lightness than the
+    /// LED color it stands for, so a list of cards doesn't look garish.
     /// </summary>
     public static string Muted(string color)
     {
@@ -62,14 +62,14 @@ public static class SlotColors
         return (r + m, g + m, b + m);
     }
 
-    // What the firmware shows for a card without a colour of its own.
+    // What the firmware shows for a card without a color of its own.
     public const string DefaultHf = "#00FF00";
     public const string DefaultLf = "#0000FF";
     public const string DefaultDual = "#FF0000";
 
     /// <summary>
-    /// The firmware keeps 5 bits per channel, so a colour read back from the
-    /// device is slightly off; map it onto the palette colour it was stored from.
+    /// The firmware keeps 5 bits per channel, so a color read back from the
+    /// device is slightly off; map it onto the palette color it was stored from.
     /// </summary>
     public static string SnapToPalette(string color)
     {
@@ -77,10 +77,10 @@ public static class SlotColors
         return Palette.FirstOrDefault(p => Quantize(p) == key) ?? CardSave.NormalizeColor(color);
     }
 
-    /// <summary>The two colours end up the same on the LED (the firmware keeps 5 bits per channel).</summary>
+    /// <summary>The two colors end up the same on the LED (the firmware keeps 5 bits per channel).</summary>
     public static bool SameLed(string a, string b) => Quantize(a) == Quantize(b);
 
-    /// <summary>The LED colours a slot shows for its HF and LF cards (null for an absent frequency).</summary>
+    /// <summary>The LED colors a slot shows for its HF and LF cards (null for an absent frequency).</summary>
     public static (string? Hf, string? Lf) Effective(SlotInfo slot, bool hasHf, bool hasLf)
     {
         if (hasHf && hasLf && slot.HfColor is null && slot.LfColor is null)

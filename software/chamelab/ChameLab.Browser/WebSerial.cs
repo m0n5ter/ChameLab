@@ -140,7 +140,7 @@ public sealed class WebSerialScanner : ITransportScanner
         if (list.Count == 0 && trigger == AutoScan.Never)
         {
             // No Chameleon among the granted ports (none granted yet, or only other
-            // devices): prompt the chooser. A cancelled dialog simply yields no device.
+            // devices): prompt the chooser. A canceled dialog simply yields no device.
             await WebSerialInterop.RequestPort();
             list = await ListChameleonsAsync();
         }

@@ -29,7 +29,7 @@
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel Grid.Column="0" Spacing="2">
           <TextBlock Text="Settings" Classes="h1" />
-          <TextBlock Classes="caption" Text="Device behaviour and controls. Apply sends changes to the device; Save makes them survive a reboot." />
+          <TextBlock Classes="caption" Text="Device behavior and controls. Apply sends changes to the device; Save makes them survive a reboot." />
         </StackPanel>
         <Button Grid.Column="1" Command="{Binding RefreshCommand}" VerticalAlignment="Center"
                 IsVisible="{Binding IsConnected}"
@@ -245,8 +245,8 @@
             <Border Width="16" Height="16" CornerRadius="4" Background="{Binding Accent.Swatch}" />
           </Border>
           <StackPanel Grid.Column="1" VerticalAlignment="Center">
-            <TextBlock Text="Accent colour" FontWeight="SemiBold" />
-            <TextBlock Classes="caption" Text="Colour of buttons, toggles and highlights in this app." />
+            <TextBlock Text="Accent color" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="Color of buttons, toggles and highlights in this app." />
           </StackPanel>
           <ComboBox Grid.Column="2" Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
             <ComboBox.ItemTemplate>

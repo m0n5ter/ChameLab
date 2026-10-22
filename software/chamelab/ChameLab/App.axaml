@@ -26,7 +26,7 @@
                 <ResourceInclude Source="avares://ChameLab/Styles/Icons.axaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Fixed brand colours (HF blue, LF amber, red); the main accent comes from the Actipro theme. Soft variants are translucent so
+            <!-- Fixed brand colors (HF blue, LF amber, red); the main accent comes from the Actipro theme. Soft variants are translucent so
                  they sit well on both light and dark surfaces. -->
             <Color x:Key="BrandBlue">#3DA9FC</Color>
             <Color x:Key="BrandAmber">#F6A623</Color>

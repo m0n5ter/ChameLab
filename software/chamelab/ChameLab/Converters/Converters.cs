@@ -110,8 +110,8 @@ public sealed class BatteryBrushConverter : IValueConverter
 }
 
 /// <summary>
-/// <c>#RRGGBB</c> card / LED colour → solid brush, toned down the way the app shows card
-/// colours (<see cref="SlotColors.Muted"/>); the device gets the colour itself.
+/// <c>#RRGGBB</c> card / LED color → solid brush, toned down the way the app shows card
+/// colors (<see cref="SlotColors.Muted"/>); the device gets the color itself.
 /// </summary>
 public sealed class HexBrushConverter : IValueConverter
 {

@@ -429,7 +429,7 @@
   <Style Selector="ListBoxItem:selected Border.cardrow">
     <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
   </Style>
-  <!-- Clips the colour stripe to the inner edge of the frame (12 - 1.5) so it never paints over it. -->
+  <!-- Clips the color stripe to the inner edge of the frame (12 - 1.5) so it never paints over it. -->
   <Style Selector="Border.cardrow > Border.cardclip">
     <Setter Property="CornerRadius" Value="10.5" />
     <Setter Property="ClipToBounds" Value="True" />
@@ -496,7 +496,7 @@
     <Setter Property="IsVisible" Value="True" />
   </Style>
 
-  <!-- Colour palette (a ListBox of swatches, usually in a flyout). -->
+  <!-- Color palette (a ListBox of swatches, usually in a flyout). -->
   <Style Selector="Border.swatch">
     <Setter Property="Width" Value="26" />
     <Setter Property="Height" Value="26" />
