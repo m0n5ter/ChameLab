@@ -184,9 +184,22 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         await client.WithSlotLockAsync(async () =>
         {
             await client.SetActiveSlotAsync(_slot);
+            await LoadUidAsync(client, Hf);
+            await LoadUidAsync(client, Lf);
             await LoadEmulatorAsync(client);
         });
     });
+
+    // The saved card is matched by the UID the slot emulates, not just its name.
+    private static async Task LoadUidAsync(ChameleonClient client, SlotSideViewModel side)
+    {
+        var type = side.SavedType;
+        if (type == TagSpecificType.Undefined) return;
+        byte[] uid;
+        try { uid = await client.ReadSlotUidAsync(type); }
+        catch (ChameleonException) { return; /* matched by name */ }
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => side.UidRead(type, uid));
+    }
 
     private async Task LoadEmulatorAsync(ChameleonClient client)
     {
@@ -296,7 +309,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         }
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            side.Renamed(nick);
+            side.Renamed(nick, card.Uid);
             _library.Add(card);
         });
         SetStatus($"Saved “{card.Name}” to Saved cards.");

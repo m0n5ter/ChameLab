@@ -960,6 +960,23 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         }
     }
 
+    /// <summary>The UID (HF) or ID (LF) the active slot emulates for <paramref name="type"/>; empty when it can't be read.</summary>
+    public async Task<byte[]> ReadSlotUidAsync(TagSpecificType type, CancellationToken ct = default)
+    {
+        switch (type.SenseType())
+        {
+            case TagSenseType.Hf:
+                var card = new CardSave { Tag = type };
+                await ReadHf14aAntiCollAsync(card, ct);
+                return card.Uid;
+            case TagSenseType.Lf:
+                try { return await GetLfEmulatorIdAsync(type, ct); }
+                catch (NotSupportedException) { return Array.Empty<byte>(); }
+            default:
+                return Array.Empty<byte>();
+        }
+    }
+
     // ---- Whole slots (moving content between slots) ---------------------
 
     /// <summary>

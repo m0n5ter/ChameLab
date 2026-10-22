@@ -22,7 +22,8 @@ public enum SlotColorMode
 
 /// <summary>
 /// One frequency (HF or LF) of the slot editor. The card it holds is shown as the saved card
-/// it matches (same type and name), or by name and type with an offer to save it. A card in the
+/// it matches (same type and UID, the name picking among several), or by name and type with an
+/// offer to save it. A card in the
 /// slot is always emulated (saving enables it). Picking a saved card, clearing and the LED color
 /// are edits held until the slot is saved.
 /// </summary>
@@ -34,6 +35,9 @@ public sealed class SlotSideViewModel : ViewModelBase
     // What the frequency holds on the device; the edits are compared against it.
     private TagSpecificType _savedType;
     private string _savedNick;
+    // Null until read from the device (or when it can't be): the card is then matched by name.
+    private byte[]? _savedUid;
+    private readonly string? _deviceColor;
     private SlotColorMode _savedMode;
     private string _savedCustom;
 
@@ -59,8 +63,8 @@ public sealed class SlotSideViewModel : ViewModelBase
         _savedNick = hf ? info.HfNick : info.LfNick;
         FindMatch();
 
-        var color = (hf ? info.HfColor : info.LfColor) is { } c ? SlotColors.SnapToPalette(c) : null;
-        (_savedMode, _savedCustom) = InferColor(color);
+        _deviceColor = (hf ? info.HfColor : info.LfColor) is { } c ? SlotColors.SnapToPalette(c) : null;
+        (_savedMode, _savedCustom) = InferColor(_deviceColor);
         (_colorMode, _customColor) = (_savedMode, _savedCustom);
 
         PickCommand = ReactiveCommand.Create(() => pick(this));
@@ -93,7 +97,7 @@ public sealed class SlotSideViewModel : ViewModelBase
     public bool HasCard => Type != TagSpecificType.Undefined;
     public bool IsEmpty => !HasCard;
 
-    /// <summary>The saved card the frequency holds (the picked one, or the one with the slot's type and name).</summary>
+    /// <summary>The saved card the frequency holds (the picked one, or the one with the slot's type and UID).</summary>
     public CardItemViewModel? Match => _match;
     public bool HasMatch => _match is not null;
 
@@ -109,11 +113,24 @@ public sealed class SlotSideViewModel : ViewModelBase
     public string? SavedColor => ColorOf(_savedMode, _savedCustom);
 
     /// <summary>Saving the card to the library named it; the slot now carries that name.</summary>
-    public void Renamed(string nick)
+    public void Renamed(string nick, byte[] uid)
     {
         _savedNick = nick;
+        _savedUid = uid.Length > 0 ? uid : null;
         FindMatch();
         RaiseCard();
+    }
+
+    /// <summary>The UID the slot emulates was read for <paramref name="type"/>: the saved card is matched by it.</summary>
+    public void UidRead(TagSpecificType type, byte[] uid)
+    {
+        if (type != _savedType) return;
+        _savedUid = uid.Length > 0 ? uid : null;
+        FindMatch();
+        // Another card may have matched: an untouched color is read again against it.
+        if (_pending is null && !_cleared && _colorMode == _savedMode && _customColor == _savedCustom)
+            (_savedMode, _savedCustom) = (_colorMode, _customColor) = InferColor(_deviceColor);
+        RaiseAll();
     }
 
     /// <summary>Puts <paramref name="card"/> into the frequency (on save), colored like the card where the firmware can.</summary>
@@ -157,16 +174,22 @@ public sealed class SlotSideViewModel : ViewModelBase
     {
         var match = _pending is { } card
             ? _library.Cards.FirstOrDefault(c => c.Id == card.Id) ?? card
-            : HasCard ? _library.Cards.FirstOrDefault(Holds) : null;
+            : HasCard ? FindHeld() : null;
         _match = match is null ? null : new CardItemViewModel(match);
         if (match is not null) _cardColor = match.Color;
     }
 
-    // Matched by type and name, like the Cards page tells which slots hold a card.
-    private bool Holds(CardSave card) =>
-        card.Sense == Sense
-        && ChameleonClient.SlotTypeFor(card.Tag) == _savedType
-        && ChameleonClient.SlotNickFor(card) == _savedNick;
+    // Matched by type and UID, the name picking among cards with the same UID. Until the UID
+    // is read, by type and name, like the Cards page tells which slots hold a card.
+    private CardSave? FindHeld()
+    {
+        var candidates = _library.Cards
+            .Where(c => c.Sense == Sense && ChameleonClient.SlotTypeFor(c.Tag) == _savedType);
+        if (_savedUid is { } uid) candidates = candidates.Where(c => c.Uid.AsSpan().SequenceEqual(uid));
+        var list = candidates.ToList();
+        return list.FirstOrDefault(c => ChameleonClient.SlotNickFor(c) == _savedNick)
+            ?? (_savedUid is null ? null : list.FirstOrDefault());
+    }
 
     // ---- LED color ----------------------------------------------------
 
@@ -261,6 +284,8 @@ public sealed class SlotSideViewModel : ViewModelBase
     /// <summary>The edits are on the device now.</summary>
     public void MarkSaved()
     {
+        if (_pending is { } card) _savedUid = card.Uid.Length > 0 ? card.Uid : null;
+        else if (_cleared) _savedUid = null;
         _savedType = Type;
         _savedNick = Nick;
         _savedMode = IsEmpty ? SlotColorMode.Default : _colorMode;
