@@ -95,11 +95,12 @@
       </Border></Border>
     </DataTemplate>
 
-    <!-- A slot: its number, then the HF and LF cards side by side (name, type below). The list rows and
-         the editor header; every slot is two lines tall, filled or not. -->
+    <!-- A slot: its number, then the HF card above the LF card (name, type below). The list rows and
+         the editor header; every slot is the same height, filled or not. -->
     <DataTemplate x:Key="SlotTile" x:DataType="vm:SlotItemViewModel">
-      <Grid ColumnDefinitions="Auto,*,*" ColumnSpacing="14">
-        <Border Grid.Column="0" Classes="slotnum small" Classes.active="{Binding IsActive}" VerticalAlignment="Center">
+      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="8">
+        <Border Grid.Column="0" Grid.RowSpan="2" Classes="slotnum small" Classes.active="{Binding IsActive}"
+                VerticalAlignment="Center">
           <TextBlock Text="{Binding Index}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
         <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
@@ -114,7 +115,7 @@
                        TextTrimming="CharacterEllipsis" />
           </StackPanel>
         </Grid>
-        <Grid Grid.Column="2" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+        <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
           <Border Classes="chip lf" Classes.off="{Binding !HasLf}" VerticalAlignment="Center">
             <TextBlock Text="LF" />
           </Border>

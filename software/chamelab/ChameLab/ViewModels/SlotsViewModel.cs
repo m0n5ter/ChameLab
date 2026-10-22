@@ -200,6 +200,8 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             }
             RaiseListState();
             if (reopen && _selected is { } open) OpenEditor(open);
+            // Nothing open yet: start on the slot the device has active.
+            else if (_selected is null && Slots.FirstOrDefault(s => s.IsActive) is { } active) SetSelected(active);
         });
     });
 
