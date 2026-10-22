@@ -255,7 +255,7 @@
     </DataTemplate>
   </UserControl.Resources>
 
-  <Grid Classes="page cardsplit" ColumnDefinitions="*,Auto" Classes.open="{Binding HasPane}"
+  <Grid Name="Split" Classes="page cardsplit" ColumnDefinitions="*,Auto" Classes.open="{Binding HasPane}"
         b:SplitLayout.DetailWidth="400,460">
 
     <!-- ==================== Slot list ==================== -->
