@@ -39,7 +39,7 @@ public sealed class CardSave
     /// <summary>Accent colour as <c>#RRGGBB</c>.</summary>
     public string Color { get; set; } = DefaultColor;
 
-    public const string DefaultColor = "#FF5722"; // Flutter Colors.deepOrange
+    public const string DefaultColor = "#FF4000"; // the palette colour nearest Flutter's Colors.deepOrange
 
     public TagSenseType Sense => Tag.SenseType();
 

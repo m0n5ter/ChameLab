@@ -10,6 +10,7 @@ using System.Windows.Input;
 using Avalonia.Media;
 using ChameLab.Behaviors;
 using ChameLab.Controls;
+using ChameLab.Converters;
 using ChameLab.Models;
 using ChameLab.Services;
 using ReactiveUI;
@@ -23,7 +24,7 @@ public sealed class DictionaryItemViewModel : ViewModelBase
     public KeyDictionary Dictionary { get; }
     public string Name => string.IsNullOrWhiteSpace(Dictionary.Name) ? "No name" : Dictionary.Name;
     public string CountLabel => Dictionary.Count == 1 ? "1 key" : $"{Dictionary.Count} keys";
-    public IBrush ColorBrush => Color.TryParse(Dictionary.Color, out var c) ? new SolidColorBrush(c) : Brushes.OrangeRed;
+    public IBrush ColorBrush => HexBrushConverter.Brush(Dictionary.Color) ?? Brushes.OrangeRed;
 
     /// <summary>The name contains the search, or (two hex digits or more) one of the keys does.</summary>
     public bool Matches(string? f)
