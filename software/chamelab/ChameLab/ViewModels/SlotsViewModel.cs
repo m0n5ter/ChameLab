@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ChameLab.Behaviors;
 using ChameLab.Models;
@@ -40,11 +39,6 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         _cards = cards;
         _isConnected = device.State == ConnectionState.Connected;
 
-        var open = this.WhenAnyValue(x => x.Selected).Select(s => s is not null);
-        var connected = this.WhenAnyValue(x => x.IsConnected);
-
-        RefreshCommand = ReactiveCommand.Create(() => LeaveThen(() => _ = LoadAsync(reopen: true)), connected);
-        SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, connected);
         CloseCommand = ReactiveCommand.Create(() => LeaveThen(() => SetSelected(null)));
         SaveSlotCommand = ReactiveCommand.CreateFromTask(async () => { if (_editor is { } e) await e.SaveAsync(); });
         DiscardCommand = ReactiveCommand.Create(() => _editor?.Discard());
@@ -260,8 +254,6 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>The open slot has unsaved edits (drives the save bar).</summary>
     public bool IsDirty => _editor?.IsDirty == true;
 
-    public ICommand RefreshCommand { get; }
-    public ICommand SaveCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand SaveSlotCommand { get; }
     public ICommand DiscardCommand { get; }
@@ -289,7 +281,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         if (run) next?.Invoke();
     }
 
-    /// <summary>Asking whether to save before switching slot, closing or reloading.</summary>
+    /// <summary>Asking whether to save before switching slot, closing or swapping.</summary>
     public bool IsConfirmingLeave => _pendingLeave is not null;
 
     public string LeaveText => $"Save changes to slot {_selected?.Index}?";
@@ -356,11 +348,4 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     private IProgress<MifareProgress> Progress(string label) =>
         new Progress<MifareProgress>(p => ProgressText = $"{label}: {p.Done}/{p.Total}…");
-
-    private Task SaveAsync() => RunAsync(async () =>
-    {
-        var client = _device.Client;
-        if (client is null) return;
-        await client.SaveSlotConfigAsync();
-    }, "Slot configuration saved to flash.");
 }
