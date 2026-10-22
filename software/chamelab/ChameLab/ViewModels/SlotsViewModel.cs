@@ -302,7 +302,15 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// HF emulator settings. Both are read first, so a failed write can put the first slot back.
     /// The active slot stays the same number; an open slot reopens on its new content.
     /// </summary>
-    private Task SwapAsync(SlotItemViewModel a, SlotItemViewModel b) => RunAsync(async () =>
+    private async Task SwapAsync(SlotItemViewModel a, SlotItemViewModel b)
+    {
+        await SwapSlotsAsync(a, b);
+        // Show what the slots hold now, whether or not the swap went through. Posted after the swap
+        // has posted IsBusy = false, or the reload would see the page still busy and skip.
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = LoadAsync(reopen: true));
+    }
+
+    private Task SwapSlotsAsync(SlotItemViewModel a, SlotItemViewModel b) => RunAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
@@ -338,12 +346,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             }
             SetStatus($"Swapped slots {ia} and {ib}.");
         }
-        finally
-        {
-            SetProgress(null);
-            // Show what the slots hold now, whether or not the swap went through.
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = LoadAsync(reopen: true));
-        }
+        finally { SetProgress(null); }
     });
 
     private void SetProgress(string? text) => Avalonia.Threading.Dispatcher.UIThread.Post(() => ProgressText = text);
