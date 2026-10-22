@@ -29,9 +29,11 @@ internal static class NordicUart
 /// on the TX characteristic are buffered into a channel that <see cref="ReadAsync"/>
 /// drains; <see cref="WriteAsync"/> chunks frames to the negotiated MTU on RX.
 /// </summary>
-public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
+public sealed class BleTransport : ITransport
 {
-    private readonly IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
+    private readonly Guid _deviceId;
+    private readonly string _displayName;
+    private readonly IAdapter _adapter;
 
     private IDevice? _device;
     private ICharacteristic? _rx;
@@ -41,16 +43,22 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
     private readonly Channel<byte[]> _incoming =
         Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions { SingleReader = true });
     private byte[] _pending = Array.Empty<byte>();
-    private int.Adapter;
+    private int _pendingOffset;
+
+    public BleTransport(Guid deviceId, string displayName)
+    {
+        _deviceId = deviceId;
+        _displayName = displayName;
+        _adapter = CrossBluetoothLE.Current.Adapter;
     }
 
     public TransportKind Kind => TransportKind.Ble;
-    public strindisplayNamee => _displayName;
+    public string DisplayName => _displayName;
     public bool IsConnected => _device?.State == DeviceState.Connected;
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
-        _device = await _adapter.ConnectTodeviceIdceAsync(_deviceId, ConnectParameters.None, ct);
+        _device = await _adapter.ConnectToKnownDeviceAsync(_deviceId, ConnectParameters.None, ct);
 
         // Larger MTU greatly improves throughput; ignore if unsupported.
         try
@@ -89,7 +97,7 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
 
     private void HandleDrop(IDevice? device)
     {
-        ideviceId?.Id == _deviceId)
+        if (device?.Id == _deviceId)
             _incoming.Writer.TryComplete();
     }
 

@@ -180,10 +180,12 @@ public partial class MainView : UserControl
         vm.IsPaneOpen = !overlay;
     }
 
-    private sealed class AnonymousObserver(Action<Rect> onNext) : IObserver<Rect>
+    private sealed class AnonymousObserver : IObserver<Rect>
     {
+        private readonly Action<Rect> _onNext;
+        public AnonymousObserver(Action<Rect> onNext) => _onNext = onNext;
         public void OnCompleted() { }
         public void OnError(Exception error) { }
-        public void OnNext(Rect value) => onNext(value);
+        public void OnNext(Rect value) => _onNext(value);
     }
 }

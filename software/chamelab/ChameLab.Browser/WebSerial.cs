@@ -54,27 +54,34 @@ internal static partial class WebSerialInterop
 /// Web Serial API. Bytes cross the JS boundary base64-encoded.
 /// </summary>
 [SupportedOSPlatform("browser")]
-public sealed class WebSerialTransport(int index, string name) : ITransport
+public sealed class WebSerialTransport : ITransport
 {
+    private readonly int _index;
+    private readonly string _name;
     private bool _open;
     private byte[] _pending = Array.Empty<byte>();
-    private iname = name;
+    private int _pendingOffset;
+
+    public WebSerialTransport(int index, string name)
+    {
+        _index = index;
+        _name = name;
     }
 
     public TransportKind Kind => TransportKind.Serial;
-    public strinnameplayName => _name;
+    public string DisplayName => _name;
     public bool IsConnected => _open;
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         await WebSerialInterop.EnsureModuleAsync();
-        await WebSeindexterop.Open(_index, 115200);
+        await WebSerialInterop.Open(_index, 115200);
         _open = true;
     }
 
     public async Task WriteAsync(ReadOnlyMemory<byte> data, CancellationToken ct = default)
     {
-        await WebSerialIntindexriteBase64(_index, Convert.ToBase64String(data.Span));
+        await WebSerialInterop.WriteBase64(_index, Convert.ToBase64String(data.Span));
     }
 
     public async Task<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
@@ -82,7 +89,7 @@ public sealed class WebSerialTransport(int index, string name) : ITransport
         if (_pendingOffset < _pending.Length)
             return Drain(buffer);
 
-        var b64 = await WebSerialInindexReadBase64(_index);
+        var b64 = await WebSerialInterop.ReadBase64(_index);
         if (string.IsNullOrEmpty(b64))
             return 0;
 
@@ -102,7 +109,7 @@ public sealed class WebSerialTransport(int index, string name) : ITransport
     public async ValueTask DisposeAsync()
     {
         _open = false;
-        try { await WebSerindexerop.Close(_index); } catch { /* ignore */ }
+        try { await WebSerialInterop.Close(_index); } catch { /* ignore */ }
     }
 }
 

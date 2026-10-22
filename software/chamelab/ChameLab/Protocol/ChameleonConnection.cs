@@ -6,9 +6,10 @@ using ChameLab.Transport;
 
 namespace ChameLab.Protocol;
 
-public sealed class ChameleonException(string message, Status status) : Exception(message)
+public sealed class ChameleonException : Exception
 {
-    public Status Status { get; } = status;
+    public Status Status { get; }
+    public ChameleonException(string message, Status status) : base(message) => Status = status;
 }
 
 /// <summary>
@@ -16,23 +17,26 @@ public sealed class ChameleonException(string message, Status status) : Exceptio
 /// request/response API. Responses are matched to requests by command id,
 /// mirroring the firmware's one-outstanding-request-per-command contract.
 /// </summary>
-public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
+public sealed class ChameleonConnection : IAsyncDisposable
 {
+    private readonly ITransport _transport;
     private readonly FrameParser _parser = new();
     private readonly ConcurrentDictionary<Command, TaskCompletionSource<ChameleonFrame>> _pending = new();
     private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private Task? _readLoop;
 
-    public ITransport Transport => transport;
-    public bool IsConnected => transport.IsConnected;
+    public ChameleonConnection(ITransport transport) => _transport = transport;
+
+    public ITransport Transport => _transport;
+    public bool IsConnected => _transport.IsConnected;
 
     /// <summary>Raised (on a background thread) when the link drops unexpectedly.</summary>
     public event Action<Exception?>? Disconnected;
 
     public async Task OpenAsync(CancellationToken ct = default)
     {
-        await transport.ConnectAsync(ct);
+        await _transport.ConnectAsync(ct);
         _readLoop = Task.Run(() => ReadLoopAsync(_cts.Token));
     }
 
@@ -43,7 +47,7 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
         {
             while (!ct.IsCancellationRequested)
             {
-                var n = await transport.ReadAsync(buffer, ct);
+                var n = await _transport.ReadAsync(buffer, ct);
                 if (n <= 0) continue;
                 foreach (var frame in _parser.Push(buffer.AsMemory(0, n)))
                 {
@@ -82,7 +86,7 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
         await _writeLock.WaitAsync(ct);
         try
         {
-            await transport.WriteAsync(frame, ct);
+            await _transport.WriteAsync(frame, ct);
         }
         finally
         {
@@ -117,7 +121,7 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
         _cts.Cancel();
         // Close the transport before awaiting the read loop: some streams (SerialPort on
         // Windows) ignore the cancellation token, so only closing unblocks a pending read.
-        await transport.DisposeAsync();
+        await _transport.DisposeAsync();
         if (_readLoop is { } loop)
         {
             try { await loop.WaitAsync(TimeSpan.FromSeconds(2)); } catch { /* ignore */ }

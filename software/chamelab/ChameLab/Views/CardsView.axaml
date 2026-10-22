@@ -291,7 +291,7 @@
                            SelectedItem="{Binding Form?.Color}" Background="Transparent" BorderThickness="0"
                            Tapped="OnSwatchTapped">
                     <ListBox.ItemsPanel>
-                      <ItemsPanelTemplate><UniformGrid Columns="6" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
+                      <ItemsPanelTemplate><UniformGrid Columns="8" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                     <ListBox.ItemTemplate>
                       <DataTemplate>

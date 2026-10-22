@@ -15,11 +15,16 @@ public interface IKeyValueStore
 }
 
 /// <summary>Stores each key as a file under the per-user application data folder.</summary>
-public sealed class FileKeyValueStore(string? root = null) : IKeyValueStore
+public sealed class FileKeyValueStore : IKeyValueStore
 {
-    private readonly string _root = root ?? Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "ChameLab");
+    private readonly string _root;
+
+    public FileKeyValueStore(string? root = null)
+    {
+        _root = root ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "ChameLab");
+    }
 
     private string PathFor(string key) => Path.Combine(_root, key + ".json");
 
