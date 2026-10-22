@@ -375,6 +375,7 @@ public sealed class ListReorder
         var entry = model.ReorderItems.Cast<object?>().FirstOrDefault(i => i is not null && model.ReorderKey(i) == key);
         if (entry is null || _list.ContainerFromItem(entry) is not { } item) return;
         item.ZIndex = 1;
-        DispatcherTimer.RunOnce(() => item.ZIndex = 0, SlideTime);
+        // Cleared rather than set to 0: a local value would outrank the dragging style's ZIndex next time.
+        DispatcherTimer.RunOnce(() => item.ClearValue(Visual.ZIndexProperty), SlideTime);
     }
 }
