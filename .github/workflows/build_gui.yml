@@ -6,6 +6,10 @@ on:
       checkout-sha:
         required: false
         type: string
+    outputs:
+      version:
+        description: The app version, e.g. 1.0.7, or 1.0.7-dev.N with N commits after the release
+        value: ${{ jobs.version.outputs.version }}
 
 jobs:
   version:
@@ -26,7 +30,8 @@ jobs:
       - name: Work out the version
         id: version
         run: |
-          # v2.3.0 -> 2.3.0, commits after it -> 2.3.0-dev.N; no tag at all -> 0.0.0-dev.<all commits>
+          # Release tags carry the app version (the firmware has its own in firmware/VERSION):
+          # v1.0.7 -> 1.0.7, commits after it -> 1.0.7-dev.N; no tag at all -> 0.0.0-dev.<all commits>
           # code is the Android versionCode: MMmmpp + commits, so every build installs over the last
           desc=$(git describe --tags --match 'v*.*' 2>/dev/null || true)
           if [[ $desc =~ ^v([0-9]+)\.([0-9]+)(\.([0-9]+))?(-([0-9]+)-g[0-9a-f]+)?$ ]]; then
@@ -39,6 +44,8 @@ jobs:
           # After a tag the commits only fill the pp slot; untagged, they are the whole code
           [[ -n $desc ]] && (( commits > 99 )) && commits=99
           code=$(( major * 1000000 + minor * 10000 + patch * 100 + commits ))
+          # Releases up to v2.3.2 were tagged with the firmware version; keep codes above theirs
+          [[ -n $desc && $major -lt 2 ]] && code=$(( code + 10000000 ))
           # Android rejects a versionCode below 1
           (( code < 1 )) && code=1
           echo "version=$version" >> "$GITHUB_OUTPUT"

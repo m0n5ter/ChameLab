@@ -46,6 +46,8 @@ jobs:
           pattern: release-artifacts-*
           merge-multiple: true
           path: release-artifacts
+      - name: Put the versions into the file names
+        run: bash .github/scripts/name-release-files.sh release-artifacts ${{ needs.gui_pipeline.outputs.version }} ${{ needs.firmware_pipeline.outputs.version }}
       - name: Drop the previous dev release
         # Uploading only adds and replaces files, so renamed or dropped ones would linger
         env:
@@ -54,13 +56,14 @@ jobs:
       - name: Upload to dev release
         uses: softprops/action-gh-release@v3
         with:
+          # The app version counts the commits since the last release (1.0.7-dev.N)
           body: |
-            Auto-Generated DFU packages from latest `main` commit.
-            For development purposes only. 
+            ChameLab v${{ needs.gui_pipeline.outputs.version }} with firmware v${{ needs.firmware_pipeline.outputs.version }}, built from the latest `main` commit.
+            For development purposes only.
             These are not tested, here be dragons.
             Built from commit ${{ github.sha }}
           tag_name: dev
-          name: Development release
+          name: ChameLab v${{ needs.gui_pipeline.outputs.version }} (development)
           draft: false
           prerelease: true
           target_commitish: ${{ github.sha }}
@@ -122,18 +125,23 @@ jobs:
           pattern: release-artifacts-*
           merge-multiple: true
           path: release-artifacts
+      - name: Put the versions into the file names
+        run: bash .github/scripts/name-release-files.sh release-artifacts ${{ needs.gui_pipeline.outputs.version }} ${{ needs.firmware_pipeline.outputs.version }}
       - name: Upload to tagged release
         uses: softprops/action-gh-release@v3
         with:
+          # The tag is the app version; ChameLab reads the firmware version from the first line
           body: |
-            Firmware DFU packages, ChameLab and CLI for Release ${{ github.ref_name }}
-            - `ultra-dfu-app.zip` / `lite-dfu-app.zip`: firmware update (ChameLab installs it from the Dashboard)
-            - `chamelab-<os>.zip`: ChameLab for desktop
-            - `chamelab-android.apk`: ChameLab for Android (BLE)
-            - `client-<os>.zip`: command line client
+            ChameLab ${{ github.ref_name }} with firmware v${{ needs.firmware_pipeline.outputs.version }}
+            - `ultra-dfu-app-<firmware>.zip` / `lite-dfu-app-<firmware>.zip`: firmware update (ChameLab installs it from the Dashboard)
+            - `chamelab-<version>-<os>.zip`: ChameLab for desktop
+            - `chamelab-<version>-android.apk`: ChameLab for Android (BLE)
+            - `client-<version>-<os>.zip`: command line client
             Built from commit ${{ github.sha }}
-          name: Release ${{ github.ref_name }}
+          name: ChameLab ${{ github.ref_name }}
           draft: false
+          # The newest release is the latest, whatever older tags say
+          make_latest: true
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           append_body: true

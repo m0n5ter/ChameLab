@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Models;
@@ -11,7 +12,10 @@ using ChameLab.Transport;
 
 namespace ChameLab.Services;
 
-/// <summary>The newest firmware published on GitHub for one device model.</summary>
+/// <summary>
+/// The newest firmware published on GitHub for one device model. <see cref="Tag"/> is the
+/// release's (ChameLab's) version, <see cref="Version"/> the firmware's own.
+/// </summary>
 public sealed record FirmwareRelease(
     FirmwareVersion Version, string Tag, string Name, string Notes, string PageUrl,
     string? PackageUrl, long PackageSize);
@@ -24,7 +28,7 @@ public readonly record struct FirmwareUpdateProgress(FirmwareUpdateStep Step, do
 /// Checks GitHub releases for newer firmware and installs a DFU package: restarts
 /// the device into its bootloader, flashes it over USB serial or BLE and reconnects.
 /// </summary>
-public sealed class FirmwareUpdateService
+public sealed partial class FirmwareUpdateService
 {
     /// <summary>Where releases (with <c>ultra-dfu-app.zip</c> / <c>lite-dfu-app.zip</c>) are published.</summary>
     public const string Repository = "m0n5ter/ChameLab";
@@ -33,6 +37,10 @@ public sealed class FirmwareUpdateService
     private static readonly TimeSpan ReconnectTimeout = TimeSpan.FromSeconds(40);
 
     private static readonly HttpClient Http = CreateHttp();
+
+    /// <summary>The line releases start with: <c>ChameLab v1.0.7 with firmware v2.3.2-cl</c>.</summary>
+    [GeneratedRegex(@"\bfirmware (v\d+\.\d+\S*)", RegexOptions.IgnoreCase)]
+    private static partial Regex FirmwareLine();
 
     private readonly DeviceService _device;
     private readonly IReadOnlyList<IDfuLocator> _locators;
@@ -46,8 +54,11 @@ public sealed class FirmwareUpdateService
     /// <summary>Whether firmware can be installed to a device connected over <paramref name="kind"/>.</summary>
     public bool CanInstall(TransportKind? kind) => _locators.Any(l => l.Kind == kind);
 
-    public static string PackageName(DeviceModel model) =>
-        model == DeviceModel.Lite ? "lite-dfu-app.zip" : "ultra-dfu-app.zip";
+    /// <summary>Whether a release file is the application package for <paramref name="model"/>: <c>ultra-dfu-app-2.3.2-cl.zip</c>.</summary>
+    public static bool IsPackage(string? name, DeviceModel model) =>
+        name is not null
+        && name.StartsWith(model == DeviceModel.Lite ? "lite-dfu-app" : "ultra-dfu-app", StringComparison.Ordinal)
+        && name.EndsWith(".zip", StringComparison.Ordinal);
 
     /// <summary>The latest (non pre-release) release, with the package for <paramref name="model"/>.</summary>
     public async Task<FirmwareRelease> GetLatestAsync(DeviceModel model, CancellationToken ct = default)
@@ -62,14 +73,16 @@ public sealed class FirmwareUpdateService
         var root = doc.RootElement;
 
         var tag = root.GetProperty("tag_name").GetString() ?? "";
-        if (!FirmwareVersion.TryParse(tag, out var version))
-            throw new InvalidOperationException($"The latest release tag “{tag}” is not a version.");
+        var notes = root.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "";
+        var line = FirmwareLine().Match(notes);
+        if (!line.Success || !FirmwareVersion.TryParse(line.Groups[1].Value, out var version))
+            throw new InvalidOperationException($"Release {tag} names no firmware version.");
 
         string? url = null;
         long size = 0;
         foreach (var asset in root.GetProperty("assets").EnumerateArray())
         {
-            if (asset.GetProperty("name").GetString() != PackageName(model)) continue;
+            if (!IsPackage(asset.GetProperty("name").GetString(), model)) continue;
             url = asset.GetProperty("browser_download_url").GetString();
             size = asset.GetProperty("size").GetInt64();
         }
@@ -77,7 +90,7 @@ public sealed class FirmwareUpdateService
         return new FirmwareRelease(
             version, tag,
             root.TryGetProperty("name", out var n) && n.GetString() is { Length: > 0 } name ? name : tag,
-            root.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "",
+            notes,
             root.GetProperty("html_url").GetString() ?? $"https://github.com/{Repository}/releases",
             url, size);
     }
