@@ -6,6 +6,8 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.7][2026-10-23] · firmware v2.3.2-cl
  - Separate versions: releases carry the ChameLab version, the firmware reports its own (v2.3.2-cl) and only changes it when the firmware changes
  - Release files carry their version in the name (`chamelab-1.0.7-win-x64.zip`, `ultra-dfu-app-2.3.2-cl.zip`); the development build is versioned by the commits since the last release (`1.0.7-dev.N`); the download page shows the release date and time
 
