@@ -302,7 +302,7 @@
           <WrapPanel ItemSpacing="8" LineSpacing="8">
             <Button Classes="accent" Command="{Binding Firmware.InstallLatestCommand}"
                     IsVisible="{Binding Firmware.CanInstallLatest}">
-              <TextBlock Text="{Binding Firmware.Latest?.Tag, StringFormat='Update to {0}'}" />
+              <TextBlock Text="{Binding Firmware.Latest?.Version, StringFormat='Update to {0}'}" />
             </Button>
             <Button Content="Release notes" Command="{Binding Firmware.OpenReleaseCommand}"
                     IsVisible="{Binding Firmware.IsUpdateAvailable}" />

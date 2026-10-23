@@ -11,6 +11,10 @@ on:
         required: false
         type: boolean
         default: true
+    outputs:
+      version:
+        description: The firmware version, e.g. 2.3.2-cl, or 2.3.2-cl-dev.3 with firmware commits after it
+        value: ${{ jobs.build_fw_builder.outputs.version }}
 
 jobs:
   build_fw_builder:
@@ -18,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest # Inherits permissions from caller
     outputs:
       image_ref: ${{ steps.published-image.outputs.image_ref || steps.local-image.outputs.image_ref }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -27,6 +32,22 @@ jobs:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Work out the firmware version
+        id: version
+        # firmware/VERSION is bumped only when the firmware changes; commits to firmware/ after
+        # the bump make a development version. A release must not ship those under the old one.
+        run: |
+          version=$(tr -d '\r\n' < firmware/VERSION)
+          bump=$(git log -1 --format=%H -- firmware/VERSION)
+          changes=$(git rev-list --count "$bump..HEAD" -- firmware)
+          if (( changes > 0 )); then
+            if [[ $GITHUB_REF == refs/tags/v* ]]; then
+              echo "::error::firmware/ has $changes commit(s) since firmware/VERSION ($version) last changed; bump it before releasing"
+              exit 1
+            fi
+            version=$version-dev.$changes
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: ghcr.io login
         if: ${{ inputs.publish-builder }}
         uses: docker/login-action@v4

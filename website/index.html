@@ -229,7 +229,7 @@
       from. It runs on both ChameleonUltra and ChameleonLite and stays compatible with the
       official CLI and other apps.</p>
 
-    <div class="release-head"><h3>v2.3.0</h3><span>October 2026</span></div>
+    <div class="release-head"><h3>v2.3.2-cl</h3><span>October 2026</span></div>
 
     <h3>Slot LED colors <span class="badge">New</span></h3>
     <p>Each card in a slot can have its own LED color, so you can tell which card is active by
@@ -303,7 +303,7 @@
 
     <h3>Updating the firmware</h3>
     <ol class="steps">
-      <li>Download <code>ultra-dfu-app.zip</code> or <code>lite-dfu-app.zip</code> from the release
+      <li>Download <code>ultra-dfu-app-&lt;version&gt;.zip</code> or <code>lite-dfu-app-&lt;version&gt;.zip</code> from the release
         below. The <code>-full</code> packages also contain the bootloader and are only needed for
         recovery.</li>
       <li>Put the device into DFU mode: <code>hw dfu</code> in the CLI, or hold button B while
@@ -347,20 +347,20 @@
     ['Firmware binaries (for SWD flashing)', /-binaries/],
   ];
 
-  // Asset name -> human description
+  // Asset name (with its version: chamelab-1.0.7-win-x64.zip, ultra-dfu-app-2.3.2-cl.zip) -> human description
   const labels = [
-    [/^chamelab-win-x64/, 'Windows, 64-bit'],
-    [/^chamelab-osx-arm64/, 'macOS, Apple Silicon'],
-    [/^chamelab-osx-x64/, 'macOS, Intel'],
-    [/^chamelab-linux-x64/, 'Linux, 64-bit'],
-    [/^chamelab-android/, 'Android'],
+    [/^chamelab-.*win-x64\./, 'Windows, 64-bit'],
+    [/^chamelab-.*osx-arm64\./, 'macOS, Apple Silicon'],
+    [/^chamelab-.*osx-x64\./, 'macOS, Intel'],
+    [/^chamelab-.*linux-x64\./, 'Linux, 64-bit'],
+    [/^chamelab-.*android\./, 'Android'],
     [/^ultra-dfu-app/, 'ChameleonUltra, application update'],
     [/^ultra-dfu-full/, 'ChameleonUltra, with bootloader (recovery)'],
     [/^lite-dfu-app/, 'ChameleonLite, application update'],
     [/^lite-dfu-full/, 'ChameleonLite, with bootloader (recovery)'],
-    [/^client-windows/, 'Windows'],
-    [/^client-macos/, 'macOS'],
-    [/^client-linux/, 'Linux'],
+    [/^client-.*windows\./, 'Windows'],
+    [/^client-.*macos\./, 'macOS'],
+    [/^client-.*linux\./, 'Linux'],
     [/^ultra-binaries/, 'ChameleonUltra'],
     [/^lite-binaries/, 'ChameleonLite'],
   ];
@@ -397,7 +397,8 @@
       section.append(el('p', { className: 'meta' }, 'Nothing published yet.'));
       return;
     }
-    const date = new Date(release.published_at || release.created_at).toLocaleDateString();
+    const date = new Date(release.published_at || release.created_at)
+      .toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
     section.append(el('p', { className: 'meta' },
       el('a', { href: release.html_url }, release.name || release.tag_name), ` · ${date}`));
 

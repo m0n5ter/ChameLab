@@ -202,16 +202,16 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
             if (current is { } c && !(_latest!.Version > c))
             {
                 CheckState = FirmwareCheckState.UpToDate;
-                CheckMessage = $"Up to date (latest release {_latest.Tag})";
+                CheckMessage = $"Up to date (latest {_latest.Version})";
             }
             else
             {
                 CheckState = FirmwareCheckState.Available;
                 CheckMessage = _latest!.PackageUrl is null
-                    ? $"{_latest.Tag} is available, but has no package for this model"
+                    ? $"{_latest.Version} is available, but has no package for this model"
                     : CanInstall
-                        ? $"{_latest.Tag} is available"
-                        : $"{_latest.Tag} is available — connect over USB or Bluetooth to install it";
+                        ? $"{_latest.Version} is available"
+                        : $"{_latest.Version} is available — connect over USB or Bluetooth to install it";
             }
         }
         catch (Exception ex)
@@ -228,7 +228,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
         _pendingFile = null;
         _package = null;
         _target = null;
-        InstallTitle = $"Install firmware {_latest.Tag}?";
+        InstallTitle = $"Install firmware {_latest.Version}?";
         SetTransport();
         Error = null;
         Dialog = FirmwareDialog.Confirm;
@@ -266,7 +266,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     {
         Dialog = FirmwareDialog.Installing;
         Error = null;
-        var name = _pendingRelease?.Tag ?? "the firmware";
+        var name = _pendingRelease?.Version.ToString() ?? "the firmware";
         InstallTitle = $"Installing {name}";
         try
         {

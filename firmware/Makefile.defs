@@ -26,11 +26,23 @@ CHAMELEON_LITE  := lite
 CURRENT_DEVICE_TYPE ?= ${CHAMELEON_ULTRA}
 
 # Versioning information
-GIT_VERSION := $(shell git describe --abbrev=7 --dirty --always --tags --match "v*.*")
-APP_FW_SEMVER := $(subst v,,$(shell git describe --tags --abbrev=0 --match "v*.*" 2>/dev/null))
-# No release tag reachable (fresh fork, shallow clone): build as 0.0 so updaters always see a newer release
+# The firmware has its own version in VERSION, bumped only when the firmware changes (release
+# tags carry the ChameLab app version). Commits to firmware/ after the bump describe like git:
+# v2.3.2-cl-3-gabc1234, plus -dirty for uncommitted firmware changes.
+FW_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+APP_FW_SEMVER := $(shell tr -d '\r\n' < $(FW_DIR)/VERSION 2>/dev/null)
+# No VERSION file: build as 0.0 so updaters always see a newer release
 ifeq ($(APP_FW_SEMVER),)
 APP_FW_SEMVER := 0.0.0
+endif
+GIT_VERSION := v$(APP_FW_SEMVER)
+FW_VER_COMMIT := $(shell git log -1 --format=%H -- $(FW_DIR)/VERSION 2>/dev/null)
+ifneq ($(FW_VER_COMMIT),)
+FW_CHANGES := $(shell git rev-list --count $(FW_VER_COMMIT)..HEAD -- $(FW_DIR))
+ifneq ($(FW_CHANGES),0)
+GIT_VERSION := $(GIT_VERSION)-$(FW_CHANGES)-g$(shell git rev-parse --short=7 HEAD)
+endif
+GIT_VERSION := $(GIT_VERSION)$(shell git diff --quiet HEAD -- $(FW_DIR) || echo -dirty)
 endif
 APP_FW_VER_MAJOR := $(word 1,$(subst ., ,$(APP_FW_SEMVER)))
 APP_FW_VER_MINOR := $(word 2,$(subst ., ,$(APP_FW_SEMVER)))
