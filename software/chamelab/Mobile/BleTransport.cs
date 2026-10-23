@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -164,7 +165,7 @@ public sealed class BleTransport : ITransport
 /// Scans for nearby Chameleon devices advertising over BLE. Matches devices that
 /// advertise the Nordic UART service or whose name begins with "Chameleon".
 /// </summary>
-public sealed class BleScanner : ITransportScanner
+public sealed class BleScanner : ITransportScanner, ITransportWatcher
 {
     private readonly IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
     private readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
@@ -177,16 +178,107 @@ public sealed class BleScanner : ITransportScanner
     private static readonly object Gate = new();
     private static Task<IReadOnlyList<TransportCandidate>>? _running;
 
-    public Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default)
+    /// <summary>Scan window for an explicit Rescan.</summary>
+    private static readonly TimeSpan RescanWindow = TimeSpan.FromSeconds(6);
+
+    // Watching scans in back-to-back windows. Android silently blocks an app that starts more than
+    // five scans in 30 s, so windows are long, with a short pause between them.
+    private static readonly TimeSpan WatchWindow = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan WatchPause = TimeSpan.FromSeconds(1);
+
+    // A watched device stays listed while it was seen in the current or the previous window, so it
+    // drops out about one window after it goes to sleep or out of range.
+    private readonly object _watchGate = new();
+    private CancellationTokenSource? _watch;
+    private Action<IReadOnlyList<TransportCandidate>>? _changed;
+    private Dictionary<Guid, TransportCandidate> _lastWindow = new();
+    private Dictionary<Guid, TransportCandidate> _thisWindow = new();
+
+    public Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default) =>
+        ScanAsync(RescanWindow, ct);
+
+    private Task<IReadOnlyList<TransportCandidate>> ScanAsync(TimeSpan window, CancellationToken ct)
     {
         lock (Gate)
         {
             if (_running is { IsCompleted: false }) return _running;
-            return _running = ScanCoreAsync(ct);
+            return _running = ScanCoreAsync(window, ct);
         }
     }
 
-    private async Task<IReadOnlyList<TransportCandidate>> ScanCoreAsync(CancellationToken ct)
+    public void StartWatching(Action<IReadOnlyList<TransportCandidate>> changed)
+    {
+        lock (_watchGate)
+        {
+            _changed = changed;
+            if (_watch is not null) return;
+            _watch = new CancellationTokenSource();
+            _ = WatchLoopAsync(_watch.Token);
+        }
+    }
+
+    public void StopWatching()
+    {
+        lock (_watchGate)
+        {
+            // Not disposed: the running window may still be linking to its token.
+            _watch?.Cancel();
+            _watch = null;
+            _changed = null;
+            _lastWindow = new();
+            _thisWindow = new();
+        }
+    }
+
+    private async Task WatchLoopAsync(CancellationToken ct)
+    {
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                await ScanAsync(WatchWindow, ct);
+                lock (_watchGate)
+                {
+                    if (ct.IsCancellationRequested) return;
+                    _lastWindow = _thisWindow;
+                    _thisWindow = new();
+                }
+                Report();
+                await Task.Delay(WatchPause, ct);
+            }
+        }
+        catch (OperationCanceledException) { /* stopped */ }
+        catch (Exception ex) { Console.WriteLine($"[BLE] Watch failed: {ex}"); }
+    }
+
+    private void Seen(TransportCandidate candidate, Guid id)
+    {
+        bool isNew;
+        lock (_watchGate)
+        {
+            if (_watch is null) return;
+            isNew = !_lastWindow.ContainsKey(id) && !_thisWindow.ContainsKey(id);
+            _thisWindow[id] = candidate;
+        }
+        if (isNew) Report();
+    }
+
+    private void Report()
+    {
+        Action<IReadOnlyList<TransportCandidate>>? changed;
+        List<TransportCandidate> list;
+        lock (_watchGate)
+        {
+            changed = _changed;
+            if (changed is null) return;
+            var merged = new Dictionary<Guid, TransportCandidate>(_lastWindow);
+            foreach (var (id, c) in _thisWindow) merged[id] = c;
+            list = merged.Values.OrderBy(c => c.DisplayName).ThenBy(c => c.Id).ToList();
+        }
+        changed(list);
+    }
+
+    private async Task<IReadOnlyList<TransportCandidate>> ScanCoreAsync(TimeSpan window, CancellationToken ct)
     {
         var found = new Dictionary<Guid, TransportCandidate>();
         if (!_ble.IsAvailable || !_ble.IsOn)
@@ -196,18 +288,20 @@ public sealed class BleScanner : ITransportScanner
         {
             var d = e.Device;
             if (d is null || !IsChameleon(d)) return;
-            found[d.Id] = new TransportCandidate(
+            var candidate = new TransportCandidate(
                 TransportKind.Ble,
                 d.Id.ToString(),
                 string.IsNullOrWhiteSpace(d.Name) ? "Chameleon (BLE)" : d.Name!,
                 $"BLE · RSSI {d.Rssi}");
+            found[d.Id] = candidate;
+            Seen(candidate, d.Id);
         }
 
         _adapter.DeviceDiscovered += OnDiscovered;
         try
         {
             using var scanCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            scanCts.CancelAfter(TimeSpan.FromSeconds(6));
+            scanCts.CancelAfter(window);
             await _adapter.StartScanningForDevicesAsync(
                 new ScanFilterOptions(),
                 deviceFilter: IsChameleon,

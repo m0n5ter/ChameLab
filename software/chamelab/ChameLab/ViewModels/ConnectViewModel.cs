@@ -49,15 +49,36 @@ public sealed class ConnectViewModel : PageViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _hasCandidates, value);
     }
 
+    private bool HasUsb => _device.Scanners.Any(s => s.Kind == TransportKind.Serial);
+    private bool HasBle => _device.Scanners.Any(s => s.Kind == TransportKind.Ble);
+
+    /// <summary>The transport the empty state pictures: Bluetooth where it's the only way in, else USB.</summary>
+    public TransportKind PrimaryKind => HasBle && !HasUsb ? TransportKind.Ble : TransportKind.Serial;
+
+    // The device wakes by itself when plugged in over USB; over BLE it only advertises while awake.
+    public string IntroHint => (HasUsb, HasBle) switch
+    {
+        (true, true) => "Plug the device in over USB, or press a button on it to wake it up for Bluetooth, then pick it below.",
+        (false, true) => "Press a button on the device to wake it up, then pick it below.",
+        _ => "Plug the device in over USB, then pick it below.",
+    };
+
     // A web page may only open a serial port the user picked in the browser's chooser,
     // which opens on Rescan; after that the device shows up on its own like on desktop.
     public string ScanHint => OperatingSystem.IsBrowser()
         ? "Press Rescan to pick your Chameleon once; after that it appears here automatically."
-        : "Plugged-in devices appear here automatically.";
+        : HasBle && !HasUsb
+            ? "Nearby devices appear here automatically while they're awake."
+            : "Plugged-in devices appear here automatically.";
 
     public string EmptyHint => OperatingSystem.IsBrowser()
         ? "Plug the Chameleon in, then press Rescan and allow this page to use it (Chrome or Edge)."
-        : "Plug the Chameleon in and wake it up — it will show up here on its own.";
+        : (HasUsb, HasBle) switch
+        {
+            (true, true) => "Plug the Chameleon in, or press a button on it to wake it up for Bluetooth — it will show up here on its own.",
+            (false, true) => "Turn Bluetooth on and press a button on the Chameleon to wake it up — it will show up here on its own.",
+            _ => "Plug the Chameleon in — it will show up here on its own.",
+        };
 
     public string ManualEndpoint
     {
@@ -78,7 +99,7 @@ public sealed class ConnectViewModel : PageViewModelBase
 
     /// <summary>
     /// Called while this page is shown and nothing is connected: scans right away, then keeps
-    /// polling the cheap scanners so a device appears without pressing Rescan.
+    /// polling the cheap scanners and runs the watchers so a device appears without pressing Rescan.
     /// </summary>
     public void StartWatching()
     {
@@ -87,12 +108,33 @@ public sealed class ConnectViewModel : PageViewModelBase
         _pollTimer = new DispatcherTimer { Interval = PollInterval };
         _pollTimer.Tick += (_, _) => _ = AutoScanAsync(AutoScan.Poll);
         _pollTimer.Start();
+        StartWatchers();
     }
 
     public void StopWatching()
     {
         _pollTimer?.Stop();
         _pollTimer = null;
+        StopWatchers();
+    }
+
+    private void StartWatchers()
+    {
+        foreach (var scanner in _device.Scanners)
+        {
+            if (scanner is not ITransportWatcher watcher) continue;
+            var kinds = new HashSet<TransportKind> { scanner.Kind };
+            watcher.StartWatching(found => Dispatcher.UIThread.Post(() =>
+            {
+                if (_pollTimer is not null) Apply(found, kinds);
+            }));
+        }
+    }
+
+    private void StopWatchers()
+    {
+        foreach (var watcher in _device.Scanners.OfType<ITransportWatcher>())
+            watcher.StopWatching();
     }
 
     /// <summary>Silent background scan: no busy bar, no status toast, errors ignored.</summary>
@@ -103,7 +145,7 @@ public sealed class ConnectViewModel : PageViewModelBase
         try
         {
             var found = await Task.Run(() => _device.ScanAsync(trigger));
-            Apply(found, trigger);
+            Apply(found, ScannedKinds(trigger));
         }
         catch { /* next tick retries */ }
         finally { _autoScanning = false; }
@@ -112,34 +154,43 @@ public sealed class ConnectViewModel : PageViewModelBase
     private Task ScanAsync() => RunAsync(async () =>
     {
         var found = await _device.ScanAsync();
-        Dispatcher.UIThread.Post(() => Apply(found, AutoScan.Never));
+        Dispatcher.UIThread.Post(() => Apply(found, ScannedKinds(AutoScan.Never)));
         SetStatus(found.Count == 0
             ? "No Chameleon found. Plug it in, or use a network bridge."
             : $"Found {found.Count} device(s).");
     });
 
+    private HashSet<TransportKind> ScannedKinds(AutoScan trigger) =>
+        _device.Scanners.Where(s => DeviceService.RunsOn(s, trigger)).Select(s => s.Kind).ToHashSet();
+
     /// <summary>
     /// Replaces the candidates of the transport kinds that were just scanned, keeping the others
     /// (a quick serial poll mustn't drop BLE devices found earlier) and the current selection.
     /// </summary>
-    private void Apply(IReadOnlyList<TransportCandidate> found, AutoScan trigger)
+    private void Apply(IReadOnlyList<TransportCandidate> found, HashSet<TransportKind> scannedKinds)
     {
-        var scannedKinds = _device.Scanners.Where(s => s.AutoScan >= trigger).Select(s => s.Kind).ToHashSet();
         var next = Candidates.Where(c => !scannedKinds.Contains(c.Kind)).Concat(found).ToList();
         if (next.SequenceEqual(Candidates)) return;
 
+        // Match by id: a rescanned device comes back as a new record (e.g. with a fresh RSSI).
         var keep = Selected;
         Candidates.Clear();
         foreach (var c in next) Candidates.Add(c);
-        Selected = keep is not null && Candidates.Contains(keep) ? keep
-                 : Candidates.Count > 0 ? Candidates[0] : null;
+        Selected = Candidates.FirstOrDefault(c => keep is not null && c.Kind == keep.Kind && c.Id == keep.Id)
+                   ?? (Candidates.Count > 0 ? Candidates[0] : null);
         HasCandidates = Candidates.Count > 0;
     }
 
     private Task ConnectAsync() => RunAsync(async () =>
     {
         if (Selected is null) { SetStatus("Select a device first.", true); return; }
-        await _device.ConnectAsync(Selected);
+        // A BLE connection attempt made while the adapter is scanning may stall or fail.
+        StopWatchers();
+        try { await _device.ConnectAsync(Selected); }
+        finally
+        {
+            if (_pollTimer is not null && _device.State != ConnectionState.Connected) StartWatchers();
+        }
     });
 
     private Task ConnectManualAsync() => RunAsync(async () =>

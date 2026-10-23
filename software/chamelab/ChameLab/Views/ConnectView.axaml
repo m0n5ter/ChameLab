@@ -27,7 +27,7 @@
           <TextBlock x:Name="HeroTitle" Text="Connect your Chameleon" Classes="h1" HorizontalAlignment="Center" />
           <TextBlock x:Name="HeroCaption" Classes="caption" HorizontalAlignment="Center" TextAlignment="Center"
                      MaxWidth="380" TextWrapping="Wrap"
-                     Text="Plug the device in over USB, or press a button on it to wake it up for Bluetooth, then pick it below." />
+                     Text="{Binding IntroHint}" />
         </StackPanel>
       </Grid>
 
@@ -79,7 +79,8 @@
           <!-- Empty state -->
           <Border Grid.Row="1" Classes="inset" Padding="18" IsVisible="{Binding !HasCandidates}">
             <StackPanel Spacing="6" HorizontalAlignment="Center">
-              <PathIcon Data="{StaticResource Icon.serial}" Width="28" Height="28" Opacity="0.5"
+              <PathIcon Data="{Binding PrimaryKind, Converter={x:Static conv:IconGeometryConverter.Instance}}"
+                        Width="28" Height="28" Opacity="0.5"
                         HorizontalAlignment="Center" />
               <TextBlock Text="No devices detected" FontWeight="SemiBold" HorizontalAlignment="Center" />
               <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="320"
