@@ -1,6 +1,5 @@
 using System.Windows.Input;
 using System.Linq;
-using System.Reflection;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChameLab.Protocol;
@@ -31,9 +30,11 @@ public sealed class SettingsViewModel : PageViewModelBase
     private AccentOption _accent =
         AppearanceService.Accents.First(a => a.Name == AppearanceService.LoadAccent());
 
-    public SettingsViewModel(DeviceService device, CardLibrary cards, DictionaryLibrary dictionaries)
+    public SettingsViewModel(DeviceService device, CardLibrary cards, DictionaryLibrary dictionaries,
+        AppUpdateViewModel appUpdate)
         : base("Settings", "settings")
     {
+        AppUpdate = appUpdate;
         _device = device;
         _cards = cards;
         _dictionaries = dictionaries;
@@ -202,11 +203,10 @@ public sealed class SettingsViewModel : PageViewModelBase
     public ICommand FactoryResetCommand { get; }
 
     /// <summary>Application version, from the assembly's informational version.</summary>
-    public string AppVersion =>
-        System.Reflection.Assembly.GetExecutingAssembly()
-            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0]
-        ?? System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString()
-        ?? "dev";
+    public string AppVersion => AppUpdateService.CurrentVersion;
+
+    /// <summary>The app's own update check, shown in the About card.</summary>
+    public AppUpdateViewModel AppUpdate { get; }
 
     public const string TrademarkNotice =
         "MIFARE®, MIFARE® Classic and MIFARE® Ultralight are registered trademarks of NXP B.V. " +

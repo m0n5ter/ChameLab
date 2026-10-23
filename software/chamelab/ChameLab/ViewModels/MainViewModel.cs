@@ -35,7 +35,8 @@ public sealed class MainViewModel : ViewModelBase
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries);
         Tools = new ToolsViewModel(device);
-        Settings = new SettingsViewModel(device, cards, dictionaries);
+        AppUpdate = new AppUpdateViewModel();
+        Settings = new SettingsViewModel(device, cards, dictionaries, AppUpdate);
 
         _connectedPages = new PageViewModelBase[] { Dashboard, Slots, Cards, Dictionaries, Tools, Settings };
         // Without a device only the app-side pages make sense; Connect stays reachable to attach one later.
@@ -52,6 +53,7 @@ public sealed class MainViewModel : ViewModelBase
         _device.StateChanged += OnStateChanged;
         _connect.OfflineRequested += () => _ = EnterOfflineAsync();
         _connect.StartWatching();
+        _ = AppUpdate.CheckInBackgroundAsync();
         // A firmware install looks for the bootloader itself: a Connect page scan running beside
         // it would cut its BLE scan short, so watching resumes only once the install is over.
         Firmware.PropertyChanged += (_, e) =>
@@ -65,6 +67,8 @@ public sealed class MainViewModel : ViewModelBase
     public ConnectViewModel Connect => _connect;
     /// <summary>Version check and install dialog; the dialog overlays the whole shell.</summary>
     public FirmwareUpdateViewModel Firmware { get; }
+    /// <summary>Whether a newer ChameLab is out; shown in the top bar and in Settings.</summary>
+    public AppUpdateViewModel AppUpdate { get; }
     public DashboardViewModel Dashboard { get; }
     public SlotsViewModel Slots { get; }
     public CardsViewModel Cards { get; }

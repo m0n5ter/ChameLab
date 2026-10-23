@@ -16,7 +16,7 @@
     <!-- ==================== Top app bar ==================== -->
     <Border Grid.Row="0" Padding="10,8,12,8" Background="{actipro:ThemeResource Container1BackgroundBrush}"
             BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto">
         <Button Grid.Column="0" Classes="icon" Command="{Binding TogglePaneCommand}"
                 IsVisible="{Binding HasNavigation}" ToolTip.Tip="Toggle navigation" Margin="0,0,6,0">
           <PathIcon Data="{StaticResource Icon.menu}" />
@@ -37,8 +37,18 @@
                    TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                    VerticalAlignment="Center" HorizontalAlignment="Right" Margin="16,0" />
 
+        <!-- A newer ChameLab is out: opens its release page. -->
+        <Button Grid.Column="3" Classes="accent" Margin="0,0,8,0" VerticalAlignment="Center"
+                Command="{Binding AppUpdate.OpenReleaseCommand}" IsVisible="{Binding AppUpdate.IsUpdateAvailable}"
+                ToolTip.Tip="{Binding AppUpdate.Message}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.upload}" />
+            <TextBlock Text="Update" Classes="wide-only" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
         <!-- Connection pill -->
-        <Border Grid.Column="3" VerticalAlignment="Center" Margin="0,0,8,0"
+        <Border Grid.Column="4" VerticalAlignment="Center" Margin="0,0,8,0"
                 CornerRadius="12" Padding="10,4"
                 Background="{actipro:ThemeResource Container2BackgroundBrush}">
           <StackPanel Orientation="Horizontal" Spacing="7">
@@ -51,10 +61,10 @@
           </StackPanel>
         </Border>
 
-        <actipro:ToggleThemeButton Grid.Column="4" Margin="0,0,6,0" VerticalAlignment="Center"
+        <actipro:ToggleThemeButton Grid.Column="5" Margin="0,0,6,0" VerticalAlignment="Center"
                                    ToolTip.Tip="Toggle light / dark theme" />
 
-        <Button Grid.Column="5" Classes="danger" Command="{Binding DisconnectCommand}"
+        <Button Grid.Column="6" Classes="danger" Command="{Binding DisconnectCommand}"
                 IsVisible="{Binding IsConnected}" ToolTip.Tip="Disconnect from the device">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.power}" />
@@ -104,8 +114,16 @@
                 <TextBlock FontSize="12" IsVisible="{Binding IsOffline}"
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                            Text="No device attached" ToolTip.Tip="No device. Open Connect to attach one." />
-                <TextBlock Classes="caption" Margin="0,4,0,0" Text="{Binding Settings.AppVersion, StringFormat='ChameLab {0}'}"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <!-- A newer release shows as a compact Update link beside the version. -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,4,0,0">
+                  <TextBlock Grid.Column="0" Classes="caption" VerticalAlignment="Center"
+                             Text="{Binding Settings.AppVersion, StringFormat='ChameLab {0}'}"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                  <Button Grid.Column="1" Classes="accent" Padding="8,1" MinHeight="0" FontSize="11"
+                          VerticalAlignment="Center" Content="Update"
+                          Command="{Binding AppUpdate.OpenReleaseCommand}" IsVisible="{Binding AppUpdate.IsUpdateAvailable}"
+                          ToolTip.Tip="{Binding AppUpdate.Message}" />
+                </Grid>
               </StackPanel>
             </Border>
           </Grid>
