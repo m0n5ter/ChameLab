@@ -91,14 +91,21 @@
               </ListBox.ItemTemplate>
             </ListBox>
 
+            <!-- Single trimmed lines: wrapped text would change the height while the pane animates its width. -->
             <Border Grid.Row="2" Classes="inset" Margin="12,8,12,14">
               <StackPanel Spacing="2">
-                <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding !IsOffline}" />
-                <TextBlock Text="OFFLINE MODE" Classes="overline" IsVisible="{Binding IsOffline}" />
-                <TextBlock Text="{Binding DeviceSummary}" FontSize="12" TextWrapping="Wrap"
-                           IsVisible="{Binding !IsOffline}" />
-                <TextBlock FontSize="12" TextWrapping="Wrap" IsVisible="{Binding IsOffline}"
-                           Text="No device. Open Connect to attach one." />
+                <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding !IsOffline}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="OFFLINE MODE" Classes="overline" IsVisible="{Binding IsOffline}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding DeviceSummary}" FontSize="12" IsVisible="{Binding !IsOffline}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           ToolTip.Tip="{Binding DeviceSummary}" />
+                <TextBlock FontSize="12" IsVisible="{Binding IsOffline}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Text="No device attached" ToolTip.Tip="No device. Open Connect to attach one." />
+                <TextBlock Classes="caption" Margin="0,4,0,0" Text="{Binding Settings.AppVersion, StringFormat='ChameLab {0}'}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
               </StackPanel>
             </Border>
           </Grid>
