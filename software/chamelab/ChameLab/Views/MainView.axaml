@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:b="using:ChameLab.Behaviors"
+             xmlns:c="using:ChameLab.Controls"
              xmlns:conv="using:ChameLab.Converters"
              xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
@@ -145,19 +146,19 @@
     <!-- Over the whole shell: the device disconnects while it restarts into the bootloader. -->
     <Panel Grid.Row="0" Grid.RowSpan="2" Background="#80000000"
            DataContext="{Binding Firmware}" IsVisible="{Binding IsDialogOpen}" x:DataType="vm:FirmwareUpdateViewModel">
-      <Border Classes="card" MaxWidth="520" Margin="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <!-- Stretched up to MaxWidth (and centered there), so the width doesn't follow the step text. -->
+      <Border Classes="card" MaxWidth="520" Margin="16" VerticalAlignment="Center">
         <StackPanel Spacing="14">
           <TextBlock Text="{Binding InstallTitle}" Classes="h2" TextWrapping="Wrap" />
 
           <!-- Confirm -->
           <StackPanel Spacing="10" IsVisible="{Binding IsConfirming}">
-            <TextBlock TextWrapping="Wrap"
-                       Text="The device restarts into its bootloader, gets the new firmware over USB and reconnects. Slots and settings are kept. Keep it plugged in until it is done." />
-            <ScrollViewer MaxHeight="220" IsVisible="{Binding InstallNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-              <Border Classes="inset">
-                <SelectableTextBlock Text="{Binding InstallNotes}" TextWrapping="Wrap" FontSize="12" />
-              </Border>
-            </ScrollViewer>
+            <TextBlock TextWrapping="Wrap" Text="{Binding InstallHint}" />
+            <Border Classes="inset" Padding="0" IsVisible="{Binding InstallNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <ScrollViewer MaxHeight="260" Padding="14,10">
+                <c:MarkdownView Markdown="{Binding InstallNotes}" TextElement.FontSize="12" />
+              </ScrollViewer>
+            </Border>
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
               <Button Content="Cancel" Command="{Binding CloseCommand}" b:DialogKeys.IsCancel="True" />
               <Button Classes="accent" Content="Install" Command="{Binding ConfirmCommand}" b:DialogKeys.IsDefault="True" />
@@ -169,7 +170,7 @@
             <TextBlock Text="{Binding StepText}" TextWrapping="Wrap" />
             <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}"
                          IsIndeterminate="{Binding !ProgressKnown}" />
-            <TextBlock Classes="caption" Text="Don't unplug the device." />
+            <TextBlock Classes="caption" Text="{Binding KeepConnectedHint}" />
           </StackPanel>
 
           <!-- Done -->
