@@ -254,53 +254,10 @@
 
     <h3>Also in this release</h3>
     <ul class="changes">
-      <li><b>MIFARE Ultralight C</b> <span class="badge">New</span>: 3DES authentication in
-        reader mode (read, write, dump and change the key with <code>hf mfu</code>) and emulation
-        of Ultralight C cards.</li>
       <li><b>No more full flash after slot switching</b> <span class="badge fix">Fix</span>:
         flash records stayed open after reading, so they could never be garbage-collected.
         After enough slot switches, saving failed until a reboot.</li>
-      <li><b>Sniffer</b> <span class="badge fix">Fix</span>: <code>hf 14a sniff</code> reported
-        wrong data for frames with more than seven parity bits.</li>
     </ul>
-
-    <div class="release-head"><h3>v2.2.0</h3><span>July 2026</span></div>
-    <ul class="changes">
-      <li><b>Four more LF protocols</b>: ioProx, PAC/Stanley, Jablotron and IDTECK. See the table
-        below for what each one supports.</li>
-      <li><b>SEOS</b> credentials support.</li>
-      <li><b>NTAG213/215/216</b>: correct static and dynamic lock bits; CFG0 / CFG1 can be changed
-        again after a password is set; FAST_READ fixed.</li>
-      <li><b>Flipper Zero import</b>: <code>hf mfu nfcimport</code> loads <code>.nfc</code> files
-        into Ultralight / NTAG slots, <code>--amiibo</code> derives PWD / PACK.</li>
-      <li><b>MIFARE Classic</b>: dump and clone commands, the <code>field_off_do_reset</code>
-        emulator option, static nested key recovery fixed, access conditions handled correctly
-        on reset.</li>
-      <li><b>Readers</b>: <code>hf 14a config</code> for badly configured cards; readers that left
-        the device in a strange state no longer do.</li>
-      <li><b>Connectivity</b>: faster USB transfers, correct USB serial number, TCP support in
-        the CLI.</li>
-      <li><b>LEDs</b>: new symmetrical animation, improved minimal mode, LEDs no longer stay on
-        after a battery check.</li>
-    </ul>
-
-    <h3>LF protocols</h3>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Protocol</th><th>Read</th><th>Emulate</th><th>Clone to T55xx</th></tr></thead>
-        <tbody>
-          <tr><td>EM410x</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-          <tr><td>HID Prox</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-          <tr><td>Viking</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-          <tr><td>ioProx <span class="badge">2.2</span></td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-          <tr><td>PAC/Stanley <span class="badge">2.2</span></td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-          <tr><td>Jablotron <span class="badge">2.2</span></td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-          <tr><td>IDTECK <span class="badge">2.2</span></td><td class="n">–</td><td class="y">✓</td><td class="y">✓</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="meta" style="margin-top:8px">LF reading is available on ChameleonUltra only; ChameleonLite
-      emulates.</p>
 
     <h3>Updating the firmware</h3>
     <p>The ChameLab app on desktop, Android and iOS updates the firmware for you: it offers the
