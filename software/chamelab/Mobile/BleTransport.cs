@@ -329,8 +329,29 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
         foreach (var record in d.AdvertisementRecords ?? new List<AdvertisementRecord>())
         {
             if (record.Type is AdvertisementRecordType.UuidsComplete128Bit
-                or AdvertisementRecordType.UuidsIncomplete128Bit)
-                return true; // advertises a 128-bit service (NUS); confirmed on connect
+                    or AdvertisementRecordType.UuidsIncomplete128Bit &&
+                ListsNus(record.Data))
+                return true;
+        }
+        return false;
+    }
+
+    // NUS UUID as written in advertising data (little-endian), and in the big-endian order iOS
+    // reports it in after Plugin.BLE rebuilds the records from CBUUIDs.
+    private static readonly byte[] NusLittleEndian =
+        Convert.FromHexString("9ECADC240EE5A9E093F3A3B50100406E");
+    private static readonly byte[] NusBigEndian =
+        Convert.FromHexString("6E400001B5A3F393E0A9E50E24DCCA9E");
+
+    /// <summary>True if a list of 128-bit service UUIDs contains the Nordic UART service.</summary>
+    private static bool ListsNus(byte[]? data)
+    {
+        if (data is null) return false;
+        for (var i = 0; i + 16 <= data.Length; i += 16)
+        {
+            var uuid = data.AsSpan(i, 16);
+            if (uuid.SequenceEqual(NusLittleEndian) || uuid.SequenceEqual(NusBigEndian))
+                return true;
         }
         return false;
     }
