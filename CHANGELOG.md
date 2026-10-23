@@ -7,6 +7,10 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.0.8][2026-10-23] · firmware v2.3.2-cl
+ - ChameLab: checks GitHub for a newer version at startup and shows an Update button in the top bar and beside the version in the navigation pane; Settings › About has Check for updates (not in the web app, which is always current)
+ - ChameLab: the Connect page finds Bluetooth devices on its own while it is open, with hints that follow the platform's transports
+
 ## [v1.0.7][2026-10-23] · firmware v2.3.2-cl
  - Separate versions: releases carry the ChameLab version, the firmware reports its own (v2.3.2-cl) and only changes it when the firmware changes
  - Release files carry their version in the name (`chamelab-1.0.7-win-x64.zip`, `ultra-dfu-app-2.3.2-cl.zip`); the development build is versioned by the commits since the last release (`1.0.7-dev.N`); the download page shows the release date and time
