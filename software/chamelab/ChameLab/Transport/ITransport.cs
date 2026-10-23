@@ -76,3 +76,19 @@ public interface ITransportScanner
 
     ITransport Create(TransportCandidate candidate);
 }
+
+/// <summary>
+/// A scanner that keeps discovering in the background while the connect page is shown and reports
+/// devices as they come and go (e.g. BLE, where a device only advertises while awake). Automatic
+/// scans leave it out; an explicit Rescan still runs it.
+/// </summary>
+public interface ITransportWatcher
+{
+    /// <summary>
+    /// Starts watching (no-op if already watching). <paramref name="changed"/> receives the full
+    /// current list of this scanner's candidates whenever it changes, on any thread.
+    /// </summary>
+    void StartWatching(Action<System.Collections.Generic.IReadOnlyList<TransportCandidate>> changed);
+
+    void StopWatching();
+}
