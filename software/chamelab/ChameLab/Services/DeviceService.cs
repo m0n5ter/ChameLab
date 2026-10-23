@@ -53,16 +53,12 @@ public sealed class DeviceService
         var all = new List<TransportCandidate>();
         foreach (var scanner in _scanners)
         {
-            if (!RunsOn(scanner, trigger)) continue;
+            if (scanner.AutoScan < trigger) continue;
             try { all.AddRange(await scanner.ScanAsync(trigger, ct)); }
             catch (Exception ex) { Console.WriteLine($"[Scan] {scanner.DisplayName} failed: {ex}"); }
         }
         return all;
     }
-
-    /// <summary>Whether a scan for <paramref name="trigger"/> runs <paramref name="scanner"/>; watchers report on their own.</summary>
-    public static bool RunsOn(ITransportScanner scanner, AutoScan trigger) =>
-        trigger == AutoScan.Never || (scanner.AutoScan >= trigger && scanner is not ITransportWatcher);
 
     /// <summary>Scans only the transport of <paramref name="kind"/>, whatever its auto-scan policy.</summary>
     public async Task<IReadOnlyList<TransportCandidate>> ScanAsync(TransportKind kind, CancellationToken ct = default)
