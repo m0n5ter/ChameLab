@@ -25,31 +25,31 @@ internal static class SecureDfuService
 
 /// <summary>
 /// Finds the Chameleon's bootloader over BLE. After <c>ENTER_BOOTLOADER</c> it advertises
-/// the Secure DFU service as "CU" / "CL"; unbonded it uses the application's address + 1,
-/// which pins down the right device where the address is visible (Android).
+/// the Secure DFU service as "CU-xxxx" / "CL-xxxx" from the application's address + 1, and
+/// puts the application's address in its manufacturer data; either pins down the right
+/// device where addresses are visible (Android).
 /// </summary>
 public sealed class BleDfuLocator : IDfuLocator
 {
     public TransportKind Kind => TransportKind.Ble;
 
     public IDfuTarget Prepare(TransportCandidate? device) =>
-        new Target(device is not null && Guid.TryParse(device.Id, out var id) ? BootloaderId(id) : null);
+        new Target(device is not null && Guid.TryParse(device.Id, out var id) ? Address(id) : null);
 
     /// <summary>
-    /// Plugin.BLE on Android builds ids as <c>00000000-0000-0000-0000-{MAC}</c>; the bootloader
-    /// adds 1 to the address's least significant byte (no carry). Elsewhere ids are opaque.
+    /// Plugin.BLE on Android builds ids as <c>00000000-0000-0000-0000-{MAC}</c>, most significant
+    /// byte first. Elsewhere ids are opaque.
     /// </summary>
-    private static Guid? BootloaderId(Guid appId)
+    private static byte[]? Address(Guid id)
     {
-        var hex = appId.ToString("N");
-        if (!hex.StartsWith("00000000000000000000", StringComparison.Ordinal)) return null;
-        var last = (byte)(Convert.ToByte(hex[^2..], 16) + 1);
-        return Guid.ParseExact(hex[..^2] + last.ToString("x2"), "N");
+        var hex = id.ToString("N");
+        return hex.StartsWith("00000000000000000000", StringComparison.Ordinal) ? Convert.FromHexString(hex[^12..]) : null;
     }
 
-    private sealed class Target(Guid? expected) : IDfuTarget
+    private sealed class Target(byte[]? app) : IDfuTarget
     {
-        private static readonly TimeSpan ScanWindow = TimeSpan.FromSeconds(5);
+        // One scan for the whole wait: Android ignores an app's scans after five starts in 30 seconds.
+        private static readonly TimeSpan ScanWindow = TimeSpan.FromSeconds(12);
 
         public async Task<IDfuChannel?> TryOpenAsync(CancellationToken ct)
         {
@@ -57,19 +57,27 @@ public sealed class BleDfuLocator : IDfuLocator
             if (!ble.IsAvailable || !ble.IsOn) throw new InvalidOperationException("Bluetooth is off.");
             var adapter = ble.Adapter;
 
-            // The adapter runs one scan at a time (the Connect page may be scanning for the restarted device).
+            // The adapter runs one scan at a time (a Rescan on the Connect page, say).
             while (adapter.IsScanning) await Task.Delay(250, ct);
 
             var found = new Dictionary<Guid, IDevice>();
+            IDevice? ours = null;
+            using var window = CancellationTokenSource.CreateLinkedTokenSource(ct);
             void OnDiscovered(object? sender, DeviceEventArgs e)
             {
-                if (e.Device is { } d) found[d.Id] = d;
+                if (e.Device is not { } d || !IsBootloader(d)) return;
+                found[d.Id] = d;
+                // This device's bootloader (or, where addresses are hidden, the first one seen): connect right away.
+                if (app is null || IsBootloaderOf(d, app))
+                {
+                    ours ??= d;
+                    window.Cancel();
+                }
             }
 
             adapter.DeviceDiscovered += OnDiscovered;
             try
             {
-                using var window = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 window.CancelAfter(ScanWindow);
                 await adapter.StartScanningForDevicesAsync(
                     new ScanFilterOptions { ServiceUuids = new[] { SecureDfuService.Service } },
@@ -77,24 +85,39 @@ public sealed class BleDfuLocator : IDfuLocator
                     allowDuplicatesKey: false,
                     cancellationToken: window.Token);
             }
-            catch (OperationCanceledException) when (!ct.IsCancellationRequested) { /* scan window elapsed */ }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested) { /* found, or the window elapsed */ }
             finally
             {
                 try { await adapter.StopScanningForDevicesAsync(); } catch { /* ignore */ }
                 adapter.DeviceDiscovered -= OnDiscovered;
             }
 
-            var device = expected is { } id
-                ? found.GetValueOrDefault(id)
-                : found.Values.OrderByDescending(d => d.Rssi).FirstOrDefault();
+            // Not recognized by address: there is rarely more than one bootloader around, take the nearest.
+            var device = ours ?? found.Values.OrderByDescending(d => d.Rssi).FirstOrDefault();
             return device is null ? null : await BleDfuChannel.OpenAsync(adapter, device, ct);
         }
 
         private static bool IsBootloader(IDevice d) =>
-            d.Name is "CU" or "CL" ||
-            (d.AdvertisementRecords ?? new List<AdvertisementRecord>()).Any(r =>
-                r.Type is AdvertisementRecordType.UuidsComplete16Bit or AdvertisementRecordType.UuidsIncomple16Bit /* sic, Plugin.BLE */ &&
+            d.Name is { } name && (name.StartsWith("CU-", StringComparison.Ordinal) || name.StartsWith("CL-", StringComparison.Ordinal)) ||
+            Records(d).Any(r =>
+                r.Type is AdvertisementRecordType.UuidsComplete16Bit or AdvertisementRecordType.UuidsIncomplete16Bit &&
                 r.Data.Length >= 2 && r.Data[0] == 0x59 && r.Data[1] == 0xFE);
+
+        /// <summary>
+        /// The bootloader takes the application's address + 1 (least significant byte, no carry), and
+        /// advertises the application's address after company id 0xFFFF, most significant byte first.
+        /// </summary>
+        private static bool IsBootloaderOf(IDevice d, byte[] app)
+        {
+            var own = Address(d.Id);
+            if (own is not null && own.AsSpan(0, 5).SequenceEqual(app.AsSpan(0, 5)) && own[5] == (byte)(app[5] + 1)) return true;
+            return Records(d).Any(r =>
+                r.Type == AdvertisementRecordType.ManufacturerSpecificData &&
+                r.Data.Length >= 8 && r.Data[0] == 0xFF && r.Data[1] == 0xFF && r.Data.AsSpan(2, 6).SequenceEqual(app));
+        }
+
+        private static IEnumerable<AdvertisementRecord> Records(IDevice d) =>
+            d.AdvertisementRecords ?? (IEnumerable<AdvertisementRecord>)Array.Empty<AdvertisementRecord>();
     }
 }
 
@@ -125,7 +148,8 @@ public sealed class BleDfuChannel : IDfuChannel
         var channel = new BleDfuChannel(adapter, device);
         try
         {
-            await adapter.ConnectToDeviceAsync(device, ConnectParameters.None, ct);
+            // LE explicitly: Android's default transport may try classic Bluetooth on a device it just met (GATT error 133).
+            await adapter.ConnectToDeviceAsync(device, new ConnectParameters(autoConnect: false, forceBleTransport: true), ct);
             adapter.DeviceDisconnected += channel.OnDisconnected;
             adapter.DeviceConnectionLost += channel.OnConnectionLost;
 
