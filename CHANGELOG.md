@@ -4,6 +4,10 @@ This project uses the changelog in accordance with [keepchangelog](http://keepac
 
 ## [unreleased][unreleased]
 
+## [v2.3.2][2026-10-23]
+ - ChameLab: firmware updates over Bluetooth find and connect to the bootloader reliably; a timeout names the last error
+ - ChameLab: the firmware update dialog keeps its width and shows the release notes as Markdown
+
 ## [v2.3.1][2026-10-23]
  - ChameLab: the slot's card is matched to Saved cards by UID; the active slot no longer opens by itself on narrow screens
  - ChameLab: compact Dashboard slot strip with the numbers inside the LEDs, and a cleaner active slot line
