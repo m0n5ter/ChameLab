@@ -4,6 +4,8 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- CI passes the release version; a local build is marked so it doesn't look out of date -->
+    <Version Condition="'$(Version)' == ''">0.0.0-local</Version>
   </PropertyGroup>
 
   <ItemGroup>

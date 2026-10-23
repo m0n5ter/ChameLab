@@ -297,6 +297,22 @@
               <TextBlock Classes="caption" Text="{Binding AppVersion, StringFormat='Version {0}'}" />
             </StackPanel>
           </StackPanel>
+          <!-- App update check: the web app is always current, so it has none. -->
+          <!-- The status gets the full width; the buttons wrap under each other on a narrow screen. -->
+          <StackPanel Spacing="8" IsVisible="{Binding AppUpdate.IsSupported}">
+            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AppUpdate.Message}"
+                       IsVisible="{Binding AppUpdate.Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <WrapPanel ItemSpacing="8" LineSpacing="8">
+              <Button Classes="accent" Content="Download" Command="{Binding AppUpdate.OpenReleaseCommand}"
+                      IsVisible="{Binding AppUpdate.IsUpdateAvailable}" ToolTip.Tip="Open the release page" />
+              <Button Command="{Binding AppUpdate.CheckCommand}"
+                      ToolTip.Tip="Check GitHub for a newer release">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.refresh}" /><TextBlock Text="Check for updates" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </WrapPanel>
+          </StackPanel>
           <TextBlock Classes="caption" TextWrapping="Wrap"
                      Text="Cross-platform client for the Chameleon Ultra, built with Avalonia. Device, firmware and protocol documentation: github.com/RfidResearchGroup/ChameleonUltra" />
           <SelectableTextBlock Classes="caption" TextWrapping="Wrap" FontSize="11" Opacity="0.8"
