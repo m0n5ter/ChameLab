@@ -188,8 +188,8 @@
         <p>Gen1a / Gen2 modes, write modes, nonce detection for mfkey32, Ultralight / NTAG
           version, signature and counters.</p></div>
       <div class="tile"><h3>Device settings</h3>
-        <p>LED animation, button actions, long-press threshold, sleep timeout, BLE pairing and
-          factory reset.</p></div>
+        <p>LED animation, button actions, long-press threshold, sleep timeout, BLE pairing,
+          factory reset and firmware updates over USB or Bluetooth.</p></div>
     </div>
     <p class="note">The web version needs Chrome or Edge on a desktop: Firefox and Safari do not
       support Web Serial.</p>
@@ -207,7 +207,7 @@
           <tr><td>Per-card slot LED colors</td><td class="y">✓</td><td class="n">–</td><td class="y">✓ (with this firmware)</td></tr>
           <tr><td>Import Proxmark3, Flipper, MCT, .bin / .eml</td><td class="y">✓</td><td class="n">partly</td><td class="n">partly</td></tr>
           <tr><td>Key recovery (darkside, nested, hardnested)</td><td class="n">not yet</td><td class="y">✓</td><td class="y">✓</td></tr>
-          <tr><td>Firmware update from the app</td><td class="n">not yet</td><td class="y">✓</td><td class="n">via scripts</td></tr>
+          <tr><td>Firmware update from the app</td><td class="y">✓</td><td class="y">✓</td><td class="n">via scripts</td></tr>
         </tbody>
       </table>
     </div>
@@ -221,8 +221,7 @@
       <li><b>Cards first.</b> Read a card, save it to the library, put it into any slot, and the
         slot shows which saved card it holds, matched by UID.</li>
     </ul>
-    <p class="note">Not there yet: key recovery, HF / LF sniffing, firmware update from the app,
-      card folders, QR sharing and translations. Use the CLI for those for now.</p>
+    <p class="note">Not there yet: key recovery, HF / LF sniffing, card folders, QR sharing and translations. Use the CLI for those for now.</p>
   </section>
 
   <section id="firmware">
@@ -304,6 +303,8 @@
       emulates.</p>
 
     <h3>Updating the firmware</h3>
+    <p>The ChameLab app on desktop, Android and iOS updates the firmware for you: it offers the
+      newest release for your device and flashes it over USB or Bluetooth. To flash by hand:</p>
     <ol class="steps">
       <li>Download <code>ultra-dfu-app-&lt;version&gt;.zip</code> or <code>lite-dfu-app-&lt;version&gt;.zip</code> from the release
         below. The <code>-full</code> packages also contain the bootloader and are only needed for
