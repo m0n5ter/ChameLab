@@ -45,6 +45,8 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     // Kept for Retry: a failed flash leaves the device waiting in its bootloader.
     private DfuPackage? _package;
     private IDfuTarget? _target;
+    // How the device was connected when the dialog opened; it is gone while the bootloader runs.
+    private bool _overBle;
 
     public FirmwareUpdateViewModel(DeviceService device, FirmwareUpdateService service)
     {
@@ -134,7 +136,15 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _installTitle, value);
     }
 
-    /// <summary>Release notes of the version about to be installed (empty for a file).</summary>
+    public string InstallHint => _overBle
+        ? "The device restarts into its bootloader, gets the new firmware over Bluetooth and reconnects. Slots and settings are kept. Keep it close to the phone and this app open until it is done."
+        : "The device restarts into its bootloader, gets the new firmware over USB and reconnects. Slots and settings are kept. Keep it plugged in until it is done.";
+
+    public string KeepConnectedHint => _overBle
+        ? "Keep the device close and this app open."
+        : "Don't unplug the device.";
+
+    /// <summary>Release notes of the version about to be installed, as Markdown (empty for a file).</summary>
     public string InstallNotes => _pendingRelease?.Notes.Trim() ?? string.Empty;
 
     public string StepText
@@ -219,7 +229,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
         _package = null;
         _target = null;
         InstallTitle = $"Install firmware {_latest.Tag}?";
-        this.RaisePropertyChanged(nameof(InstallNotes));
+        SetTransport();
         Error = null;
         Dialog = FirmwareDialog.Confirm;
     }
@@ -247,7 +257,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
         _pendingFile = file.Data;
         _target = null;
         InstallTitle = $"Install firmware from {file.Name}?";
-        this.RaisePropertyChanged(nameof(InstallNotes));
+        SetTransport();
         Error = null;
         Dialog = FirmwareDialog.Confirm;
     }
@@ -295,6 +305,14 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
             Error = ex.Message;
             Dialog = FirmwareDialog.Failed;
         }
+    }
+
+    private void SetTransport()
+    {
+        _overBle = _device.Candidate?.Kind == TransportKind.Ble;
+        this.RaisePropertyChanged(nameof(InstallNotes));
+        this.RaisePropertyChanged(nameof(InstallHint));
+        this.RaisePropertyChanged(nameof(KeepConnectedHint));
     }
 
     private void SetStep(string text, double? fraction = null)

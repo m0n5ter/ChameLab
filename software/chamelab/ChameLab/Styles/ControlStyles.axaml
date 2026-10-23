@@ -120,6 +120,10 @@
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="LetterSpacing" Value="0.6" />
   </Style>
+  <Style Selector="c|MarkdownView">
+    <Setter Property="LinkForeground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+    <Setter Property="CodeBackground" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
   <Style Selector="TextBlock.mono, SelectableTextBlock.mono">
     <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,monospace" />
   </Style>
