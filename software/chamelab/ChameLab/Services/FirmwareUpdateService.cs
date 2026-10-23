@@ -132,8 +132,8 @@ public sealed class FirmwareUpdateService
         }
 
         progress.Report(new(FirmwareUpdateStep.WaitingForBootloader));
-        var channel = await PollAsync(() => target.TryOpenAsync(ct), BootloaderTimeout, ct)
-            ?? throw new TimeoutException("The device did not show up in its bootloader. Unplug it, hold B while plugging it back in, and retry.");
+        var channel = await PollAsync(() => target.TryOpenAsync(ct), BootloaderTimeout, ct,
+            "The device did not show up in its bootloader. Unplug it, hold B while plugging it back in, and retry.");
 
         progress.Report(new(FirmwareUpdateStep.Flashing));
         await using (channel)
@@ -145,18 +145,23 @@ public sealed class FirmwareUpdateService
         progress.Report(new(FirmwareUpdateStep.Reconnecting));
         if (previous is null) return;   // flashed a device that was already waiting in its bootloader
         // A port is listed (a peripheral advertises) a moment before it accepts a connection, so keep trying.
-        _ = await PollAsync(async () =>
+        await PollAsync(async () =>
         {
             var found = await _device.ScanAsync(previous.Kind, ct);
             if ((found.FirstOrDefault(c => c.Id == previous?.Id) ?? found.FirstOrDefault()) is not { } candidate) return null;
             await _device.ConnectAsync(candidate, ct);
             return candidate;
-        }, ReconnectTimeout, ct) ?? throw new TimeoutException("The firmware was installed, but the device did not come back. Reconnect it from the Connect page.");
+        }, ReconnectTimeout, ct, "The firmware was installed, but the device did not come back. Reconnect it from the Connect page.");
     }
 
-    private static async Task<T?> PollAsync<T>(Func<Task<T?>> probe, TimeSpan timeout, CancellationToken ct) where T : class
+    /// <summary>
+    /// Retries <paramref name="probe"/> until it finds something; on timeout the last error it hit
+    /// (a connection that failed, say) is appended to <paramref name="timeoutMessage"/>.
+    /// </summary>
+    private static async Task<T> PollAsync<T>(Func<Task<T?>> probe, TimeSpan timeout, CancellationToken ct, string timeoutMessage) where T : class
     {
         var deadline = DateTime.UtcNow + timeout;
+        Exception? last = null;
         while (DateTime.UtcNow < deadline)
         {
             try
@@ -164,10 +169,10 @@ public sealed class FirmwareUpdateService
                 if (await probe() is { } found) return found;
             }
             catch (OperationCanceledException) { throw; }
-            catch { /* the port list is in flux while USB re-enumerates */ }
+            catch (Exception ex) { last = ex; /* the port list is in flux while USB re-enumerates */ }
             await Task.Delay(300, ct);
         }
-        return null;
+        throw new TimeoutException(last is null ? timeoutMessage : $"{timeoutMessage} (Last error: {last.Message})", last);
     }
 
     private static HttpClient CreateHttp()

@@ -52,6 +52,14 @@ public sealed class MainViewModel : ViewModelBase
         _device.StateChanged += OnStateChanged;
         _connect.OfflineRequested += () => _ = EnterOfflineAsync();
         _connect.StartWatching();
+        // A firmware install looks for the bootloader itself: a Connect page scan running beside
+        // it would cut its BLE scan short, so watching resumes only once the install is over.
+        Firmware.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(FirmwareUpdateViewModel.IsInstalling) && !Firmware.IsInstalling &&
+                _device.State == ConnectionState.Disconnected)
+                _connect.StartWatching();
+        };
     }
 
     public ConnectViewModel Connect => _connect;
@@ -244,7 +252,7 @@ public sealed class MainViewModel : ViewModelBase
                 DeviceSummary = IsOffline ? "Offline mode" : "Not connected";
                 if (!IsOffline) SetNavPages(_connectedPages);
                 CurrentPage = _connect;
-                if (state == ConnectionState.Disconnected) _connect.StartWatching();
+                if (state == ConnectionState.Disconnected && !Firmware.IsInstalling) _connect.StartWatching();
             }
         });
     }
