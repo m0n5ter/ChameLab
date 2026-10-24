@@ -130,6 +130,7 @@ public static class CardTags
         TagSpecificType.Pac => 8,
         TagSpecificType.Jablotron => 5,
         TagSpecificType.Idteck => 8,
+        TagSpecificType.FarpointePyramid => PyramidFrame.Length,
         _ => 0,
     };
 }

@@ -1296,6 +1296,24 @@ class ChameleonCMD:
         return resp
 
     @expect_response(Status.SUCCESS)
+    def pyramid_set_emu_id(self, raw: bytes):
+        """
+        Set the raw 16-byte (128-bit) Farpointe/Pyramid frame to emulate.
+        """
+        if len(raw) != 16:
+            raise ValueError("The Pyramid frame must be 16 bytes")
+        return self.device.send_cmd_sync(Command.PYRAMID_SET_EMU_ID, raw)
+
+    @expect_response(Status.SUCCESS)
+    def pyramid_get_emu_id(self):
+        """
+        Get the emulated raw 16-byte Farpointe/Pyramid frame
+        """
+        resp = self.device.send_cmd_sync(Command.PYRAMID_GET_EMU_ID)
+        resp.parsed = resp.data[:16]
+        return resp
+
+    @expect_response(Status.SUCCESS)
     def mf1_set_detection_enable(self, enabled: bool):
         """
         Set whether to enable the detection of the current card slot.

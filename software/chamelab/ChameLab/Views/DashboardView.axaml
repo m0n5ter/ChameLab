@@ -96,6 +96,10 @@
               <TextBlock Classes="caption"
                          Text="{Binding Battery?.Volts, StringFormat='{}{0:F2} V'}"
                          IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <TextBlock Classes="caption" FontWeight="SemiBold"
+                         Text="{Binding Battery?.ConditionText}"
+                         Foreground="{Binding Battery?.Condition, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                         IsVisible="{Binding Battery?.ConditionText, Converter={x:Static ObjectConverters.IsNotNull}}" />
               <TextBlock Text="Not available" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"
                          IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
               <TextBlock Text="This model has no battery gauge." Classes="caption"

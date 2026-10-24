@@ -216,6 +216,10 @@
 #define DATA_CMD_IDTECK_SET_EMU_ID              (5012)
 #define DATA_CMD_IDTECK_GET_EMU_ID              (5013)
 
+// ChameLab-specific, numbered away from upstream's commands
+#define DATA_CMD_PYRAMID_SET_EMU_ID             (5900)
+#define DATA_CMD_PYRAMID_GET_EMU_ID             (5901)
+
 #define DATA_CMD_EM4X05_SCAN                    (3030)
 #define DATA_CMD_EM4X05_READSNIFF               (3032)
 #define DATA_CMD_LF_SNIFF                       (3031)

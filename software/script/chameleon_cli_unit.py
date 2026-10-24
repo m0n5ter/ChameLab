@@ -7227,6 +7227,74 @@ def pyramid_decode(raw: bytes):
         return fmt_len, None, d2i(81, 16)
 
 
+def pyramid_encode(fc: int, cn: int) -> bytes:
+    """Build the 16-byte (128-bit) Farpointe/Pyramid frame of a 26-bit card.
+
+    Mirrors Proxmark's getPyramidBits: format sentinel, Wiegand 26 with its
+    parity bits, odd parity on every 8-bit group of bits 8..127, then a
+    CRC-8/Maxim of bytes 2..14 as the last byte.
+    """
+    if not 0 <= fc <= 0xFF or not 0 <= cn <= 0xFFFF:
+        raise ValueError("Facility code must be 0-255 and card number 0-65535")
+    wiegand = [(fc >> (7 - i)) & 1 for i in range(8)]
+    wiegand += [(cn >> (15 - i)) & 1 for i in range(16)]
+    dep = [0] * 112
+    dep[71] = 1  # format sentinel
+    dep[72] = sum(wiegand[:12]) & 1  # even parity
+    dep[73:97] = wiegand
+    dep[97] = (sum(wiegand[12:]) & 1) ^ 1  # odd parity
+    bits = [0] * 128
+    for g in range(15):
+        group = dep[g * 7 : g * 7 + 7]
+        bits[8 + g * 8 : 15 + g * 8] = group
+        bits[15 + g * 8] = (sum(group) & 1) ^ 1  # odd parity
+    raw = bytearray(sum(b << (7 - i) for i, b in enumerate(bits[o : o + 8])) for o in range(0, 128, 8))
+    crc = 0
+    for byte in raw[2:15]:
+        crc ^= byte
+        for _ in range(8):
+            crc = (crc >> 1) ^ 0x8C if crc & 1 else crc >> 1
+    raw[15] = crc
+    return bytes(raw)
+
+
+@lf_pyramid.command("econfig")
+class LFPyramidEconfig(SlotIndexArgsAndGoUnit, DeviceRequiredUnit):
+    def args_parser(self) -> ArgumentParserNoExit:
+        parser = ArgumentParserNoExit()
+        parser.description = "Set or get the emulated Farpointe/Pyramid card"
+        self.add_slot_args(parser)
+        parser.add_argument("--raw", type=str, help="Raw 128-bit frame (16 bytes hex)", metavar="<hex>")
+        parser.add_argument("--fc", type=int, help="Facility code (26-bit format)", metavar="<dec>")
+        parser.add_argument("--cn", type=int, help="Card number (26-bit format)", metavar="<dec>")
+        return parser
+
+    def on_exec(self, args: argparse.Namespace):
+        if args.raw is not None:
+            raw = bytes.fromhex(args.raw)
+        elif args.fc is not None and args.cn is not None:
+            raw = pyramid_encode(args.fc, args.cn)
+        elif args.fc is not None or args.cn is not None:
+            print(f"{color_string((CR, 'ERROR'))}: --fc and --cn go together.")
+            return
+        else:
+            raw = self.cmd.pyramid_get_emu_id()
+            fmt_len, fc, card = pyramid_decode(raw)
+            print(" - Get Farpointe/Pyramid tag success.")
+            print(f"Format length: {fmt_len}")
+            if fc is not None:
+                print(f"Facility:      {fc}")
+            print(f"Card number:   {card}")
+            print(f"Raw:           {raw.hex().upper()}")
+            return
+        slotinfo = self.cmd.get_slot_info()
+        selected = SlotNumber.from_fw(self.cmd.get_active_slot())
+        if TagSpecificType(slotinfo[selected - 1]["lf"]) != TagSpecificType.Pyramid:
+            print(f"{color_string((CR, 'WARNING'))}: Slot type not set to Farpointe/Pyramid.")
+        self.cmd.pyramid_set_emu_id(raw)
+        print(f" - Set Farpointe/Pyramid tag success: {raw.hex().upper()}")
+
+
 @lf_pyramid.command("read")
 class LFPyramidRead(ReaderRequiredUnit):
     def args_parser(self) -> ArgumentParserNoExit:

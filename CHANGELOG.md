@@ -6,6 +6,15 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - Merged upstream ChameleonUltra v2.3.0:
+   - Added Farpointe/Pyramid LF protocol support: read and emulate (FSK2a, RF/50); `lf pyramid read`
+   - Battery condition hint (`excellent` … `critical`) in `hw battery` and on the device's battery screen, new `DATA_CMD_GET_BATTERY_INFO_EX`
+   - More robust FSK demodulation on noisy/DC-offset signals (HID Prox, ioProx)
+   - Fix CLI non-interactive help and add one-shot `--command` flag; Python client reformatted with ruff
+ - Slot color commands moved to ChameLab's own range: `DATA_CMD_SET_SLOT_COLOR` 1043 → 1900, `DATA_CMD_GET_ALL_SLOT_COLORS` 1044 → 1901 (1043 is upstream's `GET_BATTERY_INFO_EX`); ChameLab needs the new firmware for slot colors
+ - Farpointe/Pyramid emulation from apps: new `DATA_CMD_PYRAMID_SET_EMU_ID` (5900) / `DATA_CMD_PYRAMID_GET_EMU_ID` (5901) and `lf pyramid econfig` (`--raw` frame or `--fc`/`--cn` for 26-bit cards)
+ - ChameLab: scans Farpointe/Pyramid cards and emulates them in a slot; the card editor builds a 26-bit Pyramid ID from a facility code and card number and shows what an ID decodes to
+ - ChameLab: the Dashboard shows the battery condition (Excellent … Critical) on firmware that reports it
 
 ## [v1.0.8][2026-10-23] · firmware v2.3.2-cl
  - ChameLab: checks GitHub for a newer version at startup and shows an Update button in the top bar and beside the version in the navigation pane; Settings › About has Check for updates (not in the web app, which is always current)

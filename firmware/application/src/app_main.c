@@ -71,7 +71,7 @@ static void battery_status_display_restore_slot(void);
 static void battery_status_display_stop(void);
 static bool battery_status_display_cancel_on_button(void);
 static void battery_status_display_on_button_cancel(void);
-static void play_power_on_animation(uint8_t slot, uint8_t dir, uint8_t color);
+static void play_power_on_animation(uint8_t slot, uint8_t dir, uint32_t color);
 
 // NFC field generator state
 volatile bool m_is_field_on = false;
@@ -481,21 +481,7 @@ static void check_wakeup_src(void) {
         advertising_start(false); // Turn on Bluetooth radio
 
         // Button wake-up boot animation
-        uint8_t animation_config = settings_get_animation_config();
-        if (animation_config == SettingsAnimationModeFull) {
-            rgb_marquee_sweep_to(color, !dir, 11);
-            rgb_marquee_sweep_to(color, dir, 11);
-            rgb_marquee_sweep_to(color, !dir, dir ? slot : 7 - slot);
-        } else if (animation_config == SettingsAnimationModeMinimal) {
-            rgb_marquee_sweep_to(color, !dir, dir ? slot : 7 - slot);
-        } else if (animation_config == SettingsAnimationModeSymmetric) {
-            rgb_marquee_symmetric_out(color, slot);
-        } else {
-            set_slot_light_rgb(color);
-        }
-
-        // The indicator of the current card slot lights up at the end of the animation
-        light_up_by_slot();
+        play_power_on_animation(slot, dir, color);
 
         // If no operation follows, wait for the configured timeout and then deep hibernate
         sleep_timer_start(settings_get_sleep_timeout());
@@ -609,11 +595,11 @@ static void cycle_slot(bool dec) {
 
 static void battery_status_display_restore_slot(void) {
     uint8_t slot = tag_emulation_get_slot();
-    uint8_t color = get_color_by_slot(slot);
+    uint32_t color = get_color_by_slot(slot);
     uint8_t dir = slot > 3 ? 1 : 0;
 
     rgb_marquee_stop();
-    set_slot_light_color(color);
+    set_slot_light_rgb(color);
     uint32_t *led_pins = hw_get_led_array();
     for (int i = m_battery_status_display_leds; i > 0; i--) {
         nrf_gpio_pin_clear(led_pins[i - 1]);
@@ -697,7 +683,7 @@ static void show_battery(void) {
     m_battery_status_display_started_at = app_timer_cnt_get();
 }
 
-static void play_power_on_animation(uint8_t slot, uint8_t dir, uint8_t color) {
+static void play_power_on_animation(uint8_t slot, uint8_t dir, uint32_t color) {
     uint8_t animation_config = settings_get_animation_config();
     if (animation_config == SettingsAnimationModeFull) {
         rgb_marquee_sweep_to(color, !dir, 11);
@@ -707,9 +693,11 @@ static void play_power_on_animation(uint8_t slot, uint8_t dir, uint8_t color) {
         rgb_marquee_sweep_to(color, !dir, dir ? slot : 7 - slot);
     } else if (animation_config == SettingsAnimationModeSymmetric) {
         rgb_marquee_symmetric_out(color, slot);
+    } else {
+        set_slot_light_rgb(color);
     }
 
-    set_slot_light_color(color);
+    // The indicator of the current card slot lights up at the end of the animation
     light_up_by_slot();
 }
 

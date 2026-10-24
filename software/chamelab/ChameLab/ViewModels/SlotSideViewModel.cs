@@ -107,6 +107,11 @@ public sealed class SlotSideViewModel : ViewModelBase
     public string Name => string.IsNullOrEmpty(Nick) ? Type.DisplayName() : Nick;
     public string TypeLabel => Type.DisplayName();
 
+    /// <summary>The type and the UID / ID the slot emulates (once read), for a card not in Saved cards.</summary>
+    public string UnmatchedSummary => _savedUid is { } uid
+        ? $"{TypeLabel} · {(IsLf ? "ID" : "UID")} {Hex.Spaced(uid)} · not in Saved cards"
+        : $"{TypeLabel} · not in Saved cards";
+
     /// <summary>What the slot holds on the device, for reading the card back.</summary>
     public TagSpecificType SavedType => _savedType;
     public string SavedNick => _savedNick;
@@ -306,7 +311,7 @@ public sealed class SlotSideViewModel : ViewModelBase
         foreach (var name in new[]
                  {
                      nameof(Type), nameof(Nick), nameof(HasCard), nameof(IsEmpty), nameof(Match), nameof(HasMatch),
-                     nameof(IsUnmatched), nameof(Name), nameof(TypeLabel), nameof(CanUseCardColor),
+                     nameof(IsUnmatched), nameof(Name), nameof(TypeLabel), nameof(UnmatchedSummary), nameof(CanUseCardColor),
                  })
             this.RaisePropertyChanged(name);
         _changed();

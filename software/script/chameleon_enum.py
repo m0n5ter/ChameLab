@@ -63,8 +63,10 @@ class Command(enum.IntEnum):
 
     GET_LONG_PRESS_THRESHOLD = 1041
     SET_LONG_PRESS_THRESHOLD = 1042
-    SET_SLOT_COLOR = 1043
-    GET_ALL_SLOT_COLORS = 1044
+
+    # ChameLab-specific, numbered away from upstream's commands
+    SET_SLOT_COLOR = 1900
+    GET_ALL_SLOT_COLORS = 1901
 
     HF14A_SCAN = 2000
     MF1_DETECT_SUPPORT = 2001
@@ -187,6 +189,11 @@ class Command(enum.IntEnum):
     JABLOTRON_GET_EMU_ID = 5011
     IDTECK_SET_EMU_ID = 5012
     IDTECK_GET_EMU_ID = 5013
+
+    # ChameLab-specific, numbered away from upstream's commands
+    PYRAMID_SET_EMU_ID = 5900
+    PYRAMID_GET_EMU_ID = 5901
+
     EM4X05_SCAN = 3030
     EM4X05_READSNIFF = 3032
     LF_SNIFF = 3031

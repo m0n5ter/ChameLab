@@ -90,7 +90,7 @@ public sealed class PercentToSweepConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary>Battery percentage → green / amber / red brush.</summary>
+/// <summary>Battery percentage or condition → green / amber / red brush.</summary>
 public sealed class BatteryBrushConverter : IValueConverter
 {
     public static readonly BatteryBrushConverter Instance = new();
@@ -100,6 +100,9 @@ public sealed class BatteryBrushConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
     {
+        BatteryCondition.Critical or BatteryCondition.Low => Low,
+        BatteryCondition.Fair => Fair,
+        BatteryCondition => Good,
         int pct when pct <= 20 => Low,
         int pct when pct <= 50 => Fair,
         _ => Good,

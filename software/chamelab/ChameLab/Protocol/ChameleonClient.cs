@@ -78,6 +78,15 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     public async Task<BatteryInfo> GetBatteryInfoAsync(CancellationToken ct = default)
     {
+        // voltage[2] | percent[1] | condition[1]; older firmware rejects the command.
+        var ex = await conn.SendAsync(Command.GetBatteryInfoEx, ct: ct);
+        if (ex.Status == Status.Success && ex.Data.Length >= 4 && ex.Data[3] <= (byte)BatteryCondition.Excellent)
+        {
+            var millivolts = BinaryPrimitives.ReadUInt16BigEndian(ex.Data);
+            // 0 mV: not measured yet (the first seconds after a reset), not a critical battery.
+            return new BatteryInfo(millivolts, ex.Data[2], millivolts > 0 ? (BatteryCondition)ex.Data[3] : null);
+        }
+
         var f = await conn.SendExpectAsync(Command.GetBatteryInfo, Status.Success, ct: ct);
         int mv = BinaryPrimitives.ReadUInt16BigEndian(f.Data);
         var pct = f.Data.Length > 2 ? f.Data[2] : 0;
@@ -445,6 +454,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Viking => (Command.VikingScan, []),
             TagSpecificType.Pac => (Command.PacScan, Array.Empty<byte>()),
             TagSpecificType.Jablotron => (Command.JablotronScan, Array.Empty<byte>()),
+            TagSpecificType.FarpointePyramid => (Command.PyramidScan, Array.Empty<byte>()),
             _ => throw new NotSupportedException($"LF scan for {type.DisplayName()} is not supported."),
         };
 
@@ -754,6 +764,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Pac => Command.PacSetEmuId,
             TagSpecificType.Jablotron => Command.JablotronSetEmuId,
             TagSpecificType.Idteck => Command.IdteckSetEmuId,
+            TagSpecificType.FarpointePyramid => Command.PyramidSetEmuId,
             _ => throw new NotSupportedException($"{type.DisplayName()} cannot be emulated."),
         };
         var len = type.LfIdLength();
@@ -1115,6 +1126,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Pac => Command.PacGetEmuId,
             TagSpecificType.Jablotron => Command.JablotronGetEmuId,
             TagSpecificType.Idteck => Command.IdteckGetEmuId,
+            TagSpecificType.FarpointePyramid => Command.PyramidGetEmuId,
             _ => throw new NotSupportedException($"{type.DisplayName()} cannot be read from a slot."),
         };
         var f = await conn.SendExpectAsync(cmd, Status.Success, ct: ct);

@@ -615,6 +615,19 @@
                 </StackPanel>
               </c:FlowGrid>
 
+              <!-- Pyramid: build the 128-bit frame from a 26-bit facility code and card number. -->
+              <c:FlowGrid MinItemWidth="140" ColumnSpacing="10" RowSpacing="10"
+                          IsVisible="{Binding Form?.IsPyramid, TargetNullValue=False}">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Facility code (0–255)" Classes="caption" />
+                  <TextBox Text="{Binding Form?.PyramidFacility}" PlaceholderText="26-bit format" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                  <TextBlock Text="Card number (0–65535)" Classes="caption" />
+                  <TextBox Text="{Binding Form?.PyramidCard}" PlaceholderText="26-bit format" />
+                </StackPanel>
+              </c:FlowGrid>
+
               <TextBlock Classes="caption" TextWrapping="Wrap"
                          IsVisible="{Binding Form?.IsTypeRestricted, TargetNullValue=False}"
                          Text="Only types that keep this card's data valid are offered. To use another type, add a new card." />

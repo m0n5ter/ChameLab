@@ -49,8 +49,11 @@ public enum Command : ushort
     SetSleepTimeout = 1040,
     GetLongPressThreshold = 1041,
     SetLongPressThreshold = 1042,
-    SetSlotColor = 1043,
-    GetAllSlotColors = 1044,
+    GetBatteryInfoEx = 1043,
+
+    // ChameLab-specific, numbered away from upstream's commands
+    SetSlotColor = 1900,
+    GetAllSlotColors = 1901,
 
     Hf14aScan = 2000,
     Mf1DetectSupport = 2001,
@@ -96,6 +99,7 @@ public enum Command : ushort
     IdteckWriteToT55xx = 3018,
     JablotronScan = 3019,
     JablotronWriteToT55xx = 3020,
+    PyramidScan = 3021,
     Em4x05Scan = 3030,
     LfSniff = 3031,
     Em4x05ReadSniff = 3032,
@@ -149,4 +153,8 @@ public enum Command : ushort
     JablotronGetEmuId = 5011,
     IdteckSetEmuId = 5012,
     IdteckGetEmuId = 5013,
+
+    // ChameLab-specific, numbered away from upstream's commands
+    PyramidSetEmuId = 5900,
+    PyramidGetEmuId = 5901,
 }

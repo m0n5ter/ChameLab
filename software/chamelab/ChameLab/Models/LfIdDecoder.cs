@@ -12,7 +12,7 @@ namespace ChameLab.Models;
 public static class LfIdDecoder
 {
     /// <summary>
-    /// Decoded fields for protocols whose ID is not readable as is (HID Prox, ioProx, PAC);
+    /// Decoded fields for protocols whose ID is not readable as is (HID Prox, ioProx, PAC, Pyramid);
     /// empty for the others or when <paramref name="id"/> is not the protocol's full length.
     /// </summary>
     public static IReadOnlyList<(string Field, string Value)> Decode(TagSpecificType type, ReadOnlySpan<byte> id)
@@ -23,6 +23,7 @@ public static class LfIdDecoder
             TagSpecificType.HidProx => DecodeHidProx(id),
             TagSpecificType.IoProx => DecodeIoProx(id),
             TagSpecificType.Pac => new[] { ("Card ID (text)", System.Text.Encoding.ASCII.GetString(id)) },
+            TagSpecificType.FarpointePyramid => DecodePyramid(id),
             _ => Array.Empty<(string, string)>(),
         };
     }
@@ -51,5 +52,14 @@ public static class LfIdDecoder
             ("Facility code", id[1].ToString()),
             ("Version", id[0].ToString()),
         };
+    }
+
+    private static List<(string, string)> DecodePyramid(ReadOnlySpan<byte> id)
+    {
+        var (format, fc, cn) = PyramidFrame.Decode(id);
+        var fields = new List<(string, string)> { ("Card number", cn.ToString()) };
+        if (fc is { } facility) fields.Add(("Facility code", facility.ToString()));
+        fields.Add(("Format", $"{format}-bit"));
+        return fields;
     }
 }

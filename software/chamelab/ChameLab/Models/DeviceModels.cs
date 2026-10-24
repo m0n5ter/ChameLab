@@ -23,9 +23,30 @@ public sealed record DeviceInfo
     public string ModelName => Model == DeviceModel.Lite ? "Chameleon Lite" : "Chameleon Ultra";
 }
 
-public sealed record BatteryInfo(int Millivolts, int Percent)
+public sealed record BatteryInfo(int Millivolts, int Percent, BatteryCondition? Condition = null)
 {
     public double Volts => Millivolts / 1000.0;
+
+    /// <summary>“Good condition”…; null when the firmware does not report it (before v2.3.0).</summary>
+    public string? ConditionText => Condition switch
+    {
+        BatteryCondition.Critical => "Critical condition",
+        BatteryCondition.Low => "Low condition",
+        BatteryCondition.Fair => "Fair condition",
+        BatteryCondition.Good => "Good condition",
+        BatteryCondition.Excellent => "Excellent condition",
+        _ => null,
+    };
+}
+
+/// <summary>Battery condition hint the firmware derives from the remaining capacity.</summary>
+public enum BatteryCondition : byte
+{
+    Critical = 0,
+    Low = 1,
+    Fair = 2,
+    Good = 3,
+    Excellent = 4,
 }
 
 /// <summary>Per-slot summary used to render the slot grid.</summary>

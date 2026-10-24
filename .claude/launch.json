@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "browser",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "software/chamelab/ChameLab.Browser", "-c", "Debug", "--launch-profile", "ChameLab.Browser"],
+      "port": 5235
+    }
+  ]
+}

@@ -110,7 +110,7 @@
     <DataTemplate x:Key="SlotTile" x:DataType="vm:SlotItemViewModel">
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="14" RowSpacing="2">
         <Border Grid.Column="0" Grid.RowSpan="3" Classes="slotnum small" Classes.active="{Binding IsActive}"
-                VerticalAlignment="Center">
+                VerticalAlignment="Top">
           <TextBlock Text="{Binding Index}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
         <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
@@ -176,10 +176,7 @@
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding IsUnmatched}">
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-            <TextBlock Classes="caption" TextTrimming="CharacterEllipsis">
-              <Run Text="{Binding TypeLabel}" />
-              <Run Text="· not in Saved cards" />
-            </TextBlock>
+            <TextBlock Classes="caption" Text="{Binding UnmatchedSummary}" TextTrimming="CharacterEllipsis" />
           </StackPanel>
           <Button Grid.Column="1" VerticalAlignment="Center" Command="{Binding SaveToLibraryCommand}"
                   ToolTip.Tip="Read the card from the slot and add it to Saved cards">
@@ -190,23 +187,25 @@
           </Button>
         </Grid>
 
-        <TextBlock Classes="caption" Text="No card" IsVisible="{Binding IsEmpty}" />
-
-        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-          <Button Command="{Binding PickCommand}" ToolTip.Tip="Put one of your saved cards into this frequency">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.cards}" />
-              <TextBlock Text="Choose saved" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-          <Button Classes="danger" Command="{Binding ClearCommand}" IsVisible="{Binding HasCard}"
-                  ToolTip.Tip="Remove the card from this frequency">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.delete}" />
-              <TextBlock Text="Clear" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </StackPanel>
+        <!-- No card: "Empty" on the line of the buttons. -->
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+          <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center" IsVisible="{Binding IsEmpty}" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <Button Command="{Binding PickCommand}" ToolTip.Tip="Put one of your saved cards into this frequency">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.cards}" />
+                <TextBlock Text="Choose saved" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="danger" Command="{Binding ClearCommand}" IsVisible="{Binding HasCard}"
+                    ToolTip.Tip="Remove the card from this frequency">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" />
+                <TextBlock Text="Clear" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Grid>
 
         <!-- LED color -->
         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
@@ -313,14 +312,15 @@
       <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding HasPane}"
               IsEnabled="{Binding !IsAsking}">
         <StackPanel>
-          <Grid ColumnDefinitions="Auto,*">
-            <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
+          <!-- The back arrow sits under the slot number, centered on it (36 wide against 30). -->
+          <Panel>
+            <ContentControl Content="{Binding Selected}" ContentTemplate="{StaticResource SlotTile}" />
+            <Button Classes="icon backonly" Margin="-3,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                     Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
-            <ContentControl Grid.Column="1" Content="{Binding Selected}" ContentTemplate="{StaticResource SlotTile}" />
-          </Grid>
+          </Panel>
         </StackPanel>
       </Border>
 

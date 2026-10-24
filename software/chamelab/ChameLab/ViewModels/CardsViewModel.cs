@@ -650,6 +650,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
     {
         TagSpecificType.Em410x, TagSpecificType.HidProx, TagSpecificType.IoProx,
         TagSpecificType.Viking, TagSpecificType.Pac, TagSpecificType.Jablotron,
+        TagSpecificType.FarpointePyramid,
     };
 
     public TagSpecificType LfProtocol

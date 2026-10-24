@@ -113,6 +113,8 @@ public sealed class CardEditorViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(UltralightKeyLegend));
         this.RaisePropertyChanged(nameof(LfFields));
         this.RaisePropertyChanged(nameof(HasLfFields));
+        this.RaisePropertyChanged(nameof(IsPyramid));
+        RaisePyramidFields();
         RebuildRows();
         Touch();
     }
@@ -218,8 +220,45 @@ public sealed class CardEditorViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _uid, value);
             this.RaisePropertyChanged(nameof(LfFields));
             this.RaisePropertyChanged(nameof(HasLfFields));
+            RaisePyramidFields();
             Touch();
         }
+    }
+
+    /// <summary>Farpointe / Pyramid: the ID can be built from a facility code and card number.</summary>
+    public bool IsPyramid => _tag == TagSpecificType.FarpointePyramid;
+
+    /// <summary>Facility code of a 26-bit Pyramid ID; typing it rebuilds the ID.</summary>
+    public string PyramidFacility
+    {
+        get => Pyramid26()?.Facility.ToString() ?? string.Empty;
+        set
+        {
+            if (byte.TryParse(value, out var fc)) Uid = Hex.Spaced(PyramidFrame.Encode26(fc, Pyramid26()?.Card ?? 0));
+        }
+    }
+
+    /// <summary>Card number of a 26-bit Pyramid ID; typing it rebuilds the ID.</summary>
+    public string PyramidCard
+    {
+        get => Pyramid26()?.Card.ToString() ?? string.Empty;
+        set
+        {
+            if (ushort.TryParse(value, out var cn)) Uid = Hex.Spaced(PyramidFrame.Encode26(Pyramid26()?.Facility ?? 0, cn));
+        }
+    }
+
+    private (byte Facility, ushort Card)? Pyramid26()
+    {
+        if (!IsPyramid || !Hex.TryParse(_uid, out var id) || id.Length != PyramidFrame.Length) return null;
+        var (format, fc, cn) = PyramidFrame.Decode(id);
+        return format == 26 && fc is { } facility ? ((byte)facility, (ushort)cn) : null;
+    }
+
+    private void RaisePyramidFields()
+    {
+        this.RaisePropertyChanged(nameof(PyramidFacility));
+        this.RaisePropertyChanged(nameof(PyramidCard));
     }
 
     /// <summary>What an LF ID encodes (card number, facility code…); empty for HF or an incomplete ID.</summary>
@@ -455,6 +494,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         _atqa = Hex.Spaced(card.Atqa);
         _ats = Hex.Spaced(card.Ats);
         this.RaisePropertyChanged(nameof(Uid));
+        RaisePyramidFields();
         this.RaisePropertyChanged(nameof(Sak));
         this.RaisePropertyChanged(nameof(Atqa));
         this.RaisePropertyChanged(nameof(Ats));

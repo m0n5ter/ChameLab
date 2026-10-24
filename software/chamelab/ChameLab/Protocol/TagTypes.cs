@@ -28,6 +28,7 @@ public enum TagSpecificType : ushort
     Jablotron = 180,
     HidProx = 200,
     IoProx = 201,
+    FarpointePyramid = 202,
     Idteck = 310,
     TagTypesLfEnd = 999,
 
@@ -68,6 +69,7 @@ public static class TagTypeExtensions
         TagSpecificType.Em410xElectra => "EM410X Electra",
         TagSpecificType.HidProx => "HID Prox",
         TagSpecificType.IoProx => "ioProx",
+        TagSpecificType.FarpointePyramid => "Farpointe / Pyramid",
         TagSpecificType.Pac => "PAC / Stanley",
         TagSpecificType.Viking => "Viking",
         TagSpecificType.Jablotron => "Jablotron",
