@@ -1,58 +1,116 @@
-![logo](docs/images/ultra-logo.png)
+<p align="center">
+  <img src="website/chameleon-ultra.png" alt="ChameleonUltra" height="160">
+</p>
 
-![ultra picture](docs/images/ultra-overview.png)
+<h1 align="center">ChameLab</h1>
 
-**[ChameLab](software/chamelab) app downloads and the web version:** https://m0n5ter.github.io/ChameLab/
+<p align="center">
+  Desktop, mobile and web app for ChameleonUltra and ChameleonLite,<br>
+  together with an extended firmware and the command line client.
+</p>
 
-# ChameleonUltra Authorized Distributors
+<p align="center">
+  <a href="https://m0n5ter.github.io/ChameLab/"><b>Open in the browser</b></a> ·
+  <a href="https://m0n5ter.github.io/ChameLab/#stable">Download</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
 
-Lyon, France: [Lab401](https://lab401.com/)
+## The app
 
-Santa Ana, United States: [Hackerwarehouse](https://hackerwarehouse.com/)
+One app for Windows, macOS, Linux, Android, iOS and the browser. USB on desktop and in
+the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
 
-Hastings, UK: [KSEC](https://labs.ksec.co.uk/product/proxgrind-chameleon-ultra/)
+- **Slots** — all eight slots at a glance, with each card's name and LED color. Drag to
+  reorder, tap to activate, edit HF and LF separately.
+- **Read and dump** — ISO14443-A and LF scans. MIFARE Classic Mini, 1K and 4K dumps with
+  your key dictionaries, edited as hex and emulated in one tap.
+- **Saved cards** — a card library with search and color tags. Imports
+  ChameleonUltraGUI, Proxmark3, Flipper `.nfc` / `.rfid`, MCT, `.bin` and `.eml`.
+- **Cloning** — write LF IDs to T55xx and MIFARE Classic to Gen1a / Gen2 magic cards.
+- **Emulator settings** — Gen1a / Gen2 modes, write modes, nonce detection for mfkey32,
+  Ultralight / NTAG version, signature and counters.
+- **Device settings** — LED animation, button actions, long-press threshold, sleep
+  timeout, BLE pairing, factory reset and firmware updates over USB or Bluetooth.
 
-Montreal, Canada: [TechSecurityTools](https://techsecuritytools.com/product/chameleon-ultra/)
+Not there yet: key recovery, HF / LF sniffing, card folders, QR sharing and
+translations. Use the CLI for those for now.
 
-Shenzhen, China: [Sneaktechnology](https://sneaktechnology.com)
+The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor
+Web Bluetooth.
 
-Guangdong, China: [MTools Tec](https://shop.mtoolstec.com/)
+Sources, architecture and build steps: [software/chamelab](software/chamelab).
 
-Lazada One, Singapore: [Aliexpress by RRG](https://proxgrind.aliexpress.com/store/1101312023)
+## The firmware
 
-# What is it and how to use ?
+The ChameLab firmware is the ChameleonUltra firmware with additions that the app needs.
+It runs on both ChameleonUltra and ChameleonLite and stays compatible with the official
+CLI and other apps.
 
-Read the [available documentation](https://github.com/RfidResearchGroup/ChameleonUltra/wiki).
+- **Slot LED colors** — each card in a slot can have its own LED color, so you can tell
+  which card is active by looking at the device. A slot that holds both an HF and an LF
+  card alternates between their two colors.
+- **Farpointe / Pyramid** — read and emulate, with apps able to set the emulated ID.
+- **Fixes** — for example, saving no longer fails after many slot switches.
 
-# Compatible applications
+The full list is on the [website](https://m0n5ter.github.io/ChameLab/#firmware) and in
+the [changelog](CHANGELOG.md).
 
-* [ChameleonUltraGUI](https://github.com/GameTec-live/ChameleonUltraGUI)
-* [MTools BLE](https://github.com/RfidResearchGroup/ChameleonUltra/wiki/mtoolsble)
-* [Mifare Chameleon Tool (iOS only, Beta)](https://apps.apple.com/it/app/mifare-chameleon-tool/id6761231484)
-* [Chameleon Ultra (Sailfish OS only)](https://sailfishos-chum.github.io/apps/harbour-chameleon-ultra)
-* [Chameleon GO (iOS only)](https://apps.apple.com/us/app/id6802015306)
+### Updating
 
-# Videos
+The app on desktop, Android and iOS updates the firmware for you: it offers the newest
+release for your device and flashes it over USB or Bluetooth. To flash by hand:
 
-*Beware some of the instructions might have changed since recording, check the current documentation when in doubt!*
+1. Download `ultra-dfu-app-<version>.zip` or `lite-dfu-app-<version>.zip` from the
+   [releases](https://github.com/m0n5ter/ChameLab/releases). The `-full` packages also
+   contain the bootloader and are only needed for recovery.
+2. Put the device into DFU mode: `hw dfu` in the CLI, or hold button B while plugging in
+   USB.
+3. Flash the package with [`firmware/flash-dfu-app.sh`](firmware/flash-dfu-app.sh),
+   nRF Connect for mobile or nRF Connect for Desktop.
 
-* [Downloading and compiling the official CLI](https://www.youtube.com/watch?v=VGpAeitNXH0)
-* [Downloading ChameleonUltraGUI](https://www.youtube.com/watch?v=rHH7iqbX3nY)
-* [ChameleonUltraGUI features overview](https://www.youtube.com/watch?v=YqE8wyVSse4)
-* [Using ChameleonUltraGUI and the Chameleon Ultra](https://www.youtube.com/watch?v=9jtKNJ5-kVY)
-* [MTools BLE - How to clone a card with ChameleonUltra](https://youtu.be/IvH-xtdW1Wk?si=4exqgAAeJ-kxU3aN)
+Slots, cards and settings are kept by an application update.
 
-# Official channels
+### Building
 
-Where do you find the community?
-* [RFID Hacking community discord server](https://t.ly/d4_C)
-  * Software/chameleon-dev for firmware and clients development discussions
-  * Devices/chameleon-ultra for usage discussions
-* [GameTec_live discord server](https://discord.gg/DJ2A4wxncK)
+```bash
+cd firmware
+docker compose up --pull=always build-ultra
+```
 
-Other notable projects:
-* [Fantasi](https://fantasi.cloud)
-  * [Discord](https://fantasi.cloud/discord)
-* [chameleon-ultra.js](https://github.com/taichunmin/chameleon-ultra.js/) 
+Use `build-lite` for the ChameleonLite. The packages land in `firmware/objects/`.
 
-###### Searching for the docs repo? Find it [here](https://github.com/RfidResearchGroup/ChameleonUltraDocs)
+## The CLI
+
+The Python command line client lives in [software/script](software/script) and is
+managed with [uv](https://docs.astral.sh/uv/):
+
+```bash
+cd software
+uv run script/chameleon_cli_main.py
+```
+
+It knows the ChameLab firmware commands too, such as `hw slot color` and
+`lf pyramid econfig`.
+
+## Versions
+
+Releases are tagged with the ChameLab version (`v1.0.8`), which goes up with every
+release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSION)
+(`2.3.2-cl`) and changes only when the firmware does.
+
+## Repository
+
+| Folder | What's in it |
+| --- | --- |
+| [`software/chamelab`](software/chamelab) | The ChameLab app (Avalonia, .NET) |
+| [`software/script`](software/script) | The Python CLI |
+| [`firmware`](firmware) | Application and bootloader firmware for nRF52840 |
+| [`hardware`](hardware) | Schematics and PCB files for Ultra and Lite |
+| [`website`](website) | The download page and the web app host |
+
+## License
+
+Free software under the [GNU GPL v3](LICENSE).
+
+Based on the [ChameleonUltra](https://github.com/RfidResearchGroup/ChameleonUltra)
+firmware and client by RfidResearchGroup and contributors.
