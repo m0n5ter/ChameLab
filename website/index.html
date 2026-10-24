@@ -229,7 +229,8 @@
     <p class="meta">The ChameLab firmware runs on both ChameleonUltra and ChameleonLite. Here is
       what is new in it.</p>
 
-    <div class="release-head"><h3>v2.3.2-cl</h3><span>October 2026</span></div>
+    <!-- Filled in from the releases below; this is what shows until they load -->
+    <div class="release-head"><h3 id="fw-version">v2.3.3-cl</h3><span id="fw-date">Oct 24, 2026, 16:50 UTC</span></div>
 
     <h3>Slot LED colors <span class="badge">New</span></h3>
     <p>Each card in a slot can have its own LED color, so you can tell which card is active by
@@ -348,14 +349,32 @@
       el('span', {}, sizeOf(a.size)));
   }
 
+  function publishedAt(release) {
+    return new Date(release.published_at || release.created_at)
+      .toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  // Release notes start with "ChameLab v1.0.9 with firmware v2.3.3-cl"
+  function firmwareOf(release) {
+    return (/\bfirmware (v\d\S*)/i.exec(release.body || '') || [])[1];
+  }
+
+  // The firmware section names the newest firmware and when a release first shipped it
+  function showFirmware(stable) {
+    const version = stable.length ? firmwareOf(stable[0]) : null;
+    if (!version) return;
+    const first = stable.filter(r => firmwareOf(r) === version).at(-1);
+    document.getElementById('fw-version').textContent = version;
+    document.getElementById('fw-date').textContent = publishedAt(first);
+  }
+
   function render(section, release, title) {
     section.replaceChildren(el('h2', {}, title));
     if (!release) {
       section.append(el('p', { className: 'meta' }, 'Nothing published yet.'));
       return;
     }
-    const date = new Date(release.published_at || release.created_at)
-      .toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    const date = publishedAt(release);
     section.append(el('p', { className: 'meta' },
       el('a', { href: release.html_url }, release.name || release.tag_name), ` · ${date}`));
 
@@ -384,7 +403,9 @@
   fetch(`https://api.github.com/repos/${repo}/releases?per_page=30`)
     .then(r => r.ok ? r.json() : Promise.reject(r.status))
     .then(releases => {
-      render(stable, releases.find(r => !r.prerelease && !r.draft), 'Latest release');
+      const published = releases.filter(r => !r.prerelease && !r.draft);
+      showFirmware(published);
+      render(stable, published[0], 'Latest release');
       render(dev, releases.find(r => r.tag_name === 'dev'), 'Development build');
     })
     .catch(() => { fail(stable, 'Latest release'); fail(dev, 'Development build'); });
