@@ -384,6 +384,69 @@
     <Setter Property="Height" Value="16" />
   </Style>
 
+  <!-- Touch-friendly number field: big − / + buttons on either side of the value instead of
+       the theme's tiny stacked arrows. -->
+  <!-- Height comes from the text box alone, so it lines up with combo boxes and text boxes. -->
+  <Style Selector="NumericUpDown.stepper">
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="NumericUpDown.stepper /template/ TextBox#PART_TextBox">
+    <Setter Property="TextAlignment" Value="Center" />
+    <Setter Property="TextInputOptions.ContentType" Value="Digits" />
+  </Style>
+  <Style Selector="NumericUpDown.stepper /template/ ButtonSpinner">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                ClipToBounds="True">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <RepeatButton Name="PART_DecreaseButton" Grid.Column="0" Classes="step"
+                          IsVisible="{TemplateBinding ShowButtonSpinner}">
+              <PathIcon Data="{StaticResource Icon.remove}" />
+            </RepeatButton>
+            <ContentPresenter Name="PART_ContentPresenter" Grid.Column="1"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalContentAlignment="Stretch"
+                              VerticalContentAlignment="Center" />
+            <RepeatButton Name="PART_IncreaseButton" Grid.Column="2" Classes="step"
+                          IsVisible="{TemplateBinding ShowButtonSpinner}">
+              <PathIcon Data="{StaticResource Icon.add}" />
+            </RepeatButton>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="RepeatButton.step">
+    <Setter Property="Width" Value="44" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+  </Style>
+  <Style Selector="RepeatButton.step:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+  </Style>
+  <Style Selector="RepeatButton.step:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+  </Style>
+  <Style Selector="RepeatButton.step:disabled">
+    <Setter Property="Opacity" Value="0.35" />
+  </Style>
+  <Style Selector="RepeatButton.step > PathIcon">
+    <Setter Property="Width" Value="18" />
+    <Setter Property="Height" Value="18" />
+  </Style>
+
   <!-- ==================== Navigation ==================== -->
 
   <Style Selector="ListBox.nav">

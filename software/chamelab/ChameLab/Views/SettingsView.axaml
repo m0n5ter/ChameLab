@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
              xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:c="using:ChameLab.Controls"
              xmlns:conv="using:ChameLab.Converters"
              xmlns:svc="using:ChameLab.Services"
              x:Class="ChameLab.Views.SettingsView"
@@ -16,365 +17,390 @@
     <Style Selector=".compact Grid.setting > :is(Control).control">
       <Setter Property="Width" Value="160" />
     </Style>
+    <!-- The save bar sits under the scrolling page, lined up with its cards. -->
+    <Style Selector="Border.savebar.pagebar">
+      <Setter Property="MaxWidth" Value="820" />
+      <Setter Property="Margin" Value="28,0,28,24" />
+    </Style>
+    <Style Selector=".compact Border.savebar.pagebar">
+      <Setter Property="Margin" Value="8,0,8,8" />
+    </Style>
     <Style Selector="Separator.row">
       <Setter Property="Margin" Value="0,14" />
       <Setter Property="Opacity" Value="0.6" />
     </Style>
   </UserControl.Styles>
 
-  <ScrollViewer>
-    <StackPanel Classes="page" MaxWidth="820">
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer Grid.Row="0">
+      <StackPanel Classes="page" MaxWidth="820">
 
-      <!-- Header -->
-      <Grid ColumnDefinitions="*,Auto">
-        <StackPanel Grid.Column="0" Spacing="2">
+        <!-- Header -->
+        <StackPanel Spacing="2">
           <TextBlock Text="Settings" Classes="h1" />
-          <TextBlock Classes="caption" Text="Device behavior and controls. Apply sends changes to the device; Save makes them survive a reboot." />
+          <TextBlock Classes="caption" Text="Device behavior and controls. Save sends your changes to the device and keeps them after a reboot." />
         </StackPanel>
-        <Button Grid.Column="1" Command="{Binding RefreshCommand}" VerticalAlignment="Center"
-                IsVisible="{Binding IsConnected}"
-                Margin="8,0,0,0" ToolTip.Tip="Reload settings from the device">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.refresh}" />
-            <TextBlock Text="Reload" Classes="wide-only" VerticalAlignment="Center" />
+
+        <!-- Offline mode: only app-side settings are available. -->
+        <Border Classes="inset" IsVisible="{Binding !IsConnected}">
+          <TextBlock TextWrapping="Wrap"
+                     Text="Offline mode. Connect a Chameleon to change device settings; appearance and backup work without one." />
+        </Border>
+
+        <Border Classes="card" IsVisible="{Binding IsConnected}">
+          <StackPanel>
+            <!-- LED animation -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell amber">
+                <PathIcon Data="{StaticResource Icon.led}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="LED animation" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Light pattern shown when the device wakes." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding AnimationModes}"
+                        SelectedItem="{Binding AnimationMode}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Sleep timeout -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.sleep}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Sleep timeout" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Seconds of inactivity before the device sleeps (0–255)." />
+              </StackPanel>
+              <NumericUpDown Grid.Column="2" Classes="control stepper" Minimum="0" Maximum="255" Increment="1"
+                             FormatString="0" Value="{Binding SleepTimeout}" />
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button A -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="A" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button A" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a short press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonAShort}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button A (long press) -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="A" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button A — long press" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a long press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonALong}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button B -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="B" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button B" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a short press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBShort}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button B (long press) -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="B" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button B — long press" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a long press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBLong}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsLongPressThreshold}" />
+
+            <!-- Long-press threshold -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
+                  IsVisible="{Binding SupportsLongPressThreshold}">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.button}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Long-press threshold" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="How long a press counts as a long press (ms)." />
+              </StackPanel>
+              <NumericUpDown Grid.Column="2" Classes="control stepper" Minimum="100" Maximum="2000" Increment="50"
+                             FormatString="0" Value="{Binding LongPressThreshold}" />
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
+
+            <!-- BLE pairing -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
+                  IsVisible="{Binding SupportsBle}">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.ble}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Bluetooth pairing" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Require a PIN to connect over Bluetooth LE." />
+              </StackPanel>
+              <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                            IsChecked="{Binding BlePairingEnabled}" />
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
+
+            <!-- BLE PIN -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
+                  IsVisible="{Binding SupportsBle}">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.key}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Pairing PIN" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="6 digits. Leave blank to keep the current PIN. Default is 123456." />
+              </StackPanel>
+              <TextBox Grid.Column="2" Classes="control mono" MaxLength="6" Text="{Binding BlePin}"
+                       PlaceholderText="••••••" />
+            </Grid>
           </StackPanel>
-        </Button>
-      </Grid>
+        </Border>
 
-      <!-- Offline mode: only app-side settings are available. -->
-      <Border Classes="inset" IsVisible="{Binding !IsConnected}">
-        <TextBlock TextWrapping="Wrap"
-                   Text="Offline mode. Connect a Chameleon to change device settings; appearance and backup work without one." />
-      </Border>
-
-      <Border Classes="card" IsVisible="{Binding IsConnected}">
-        <StackPanel>
-          <!-- LED animation -->
+        <!-- Appearance (app-side, applies immediately) -->
+        <Border Classes="card">
           <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" Classes="iconwell amber">
-              <PathIcon Data="{StaticResource Icon.led}" />
+            <Border Grid.Column="0" Classes="iconwell green">
+              <Border Width="16" Height="16" CornerRadius="4" Background="{Binding Accent.Swatch}" />
             </Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="LED animation" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Light pattern shown when the device wakes." />
+              <TextBlock Text="Accent color" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Color of buttons, toggles and highlights in this app." />
             </StackPanel>
-            <ComboBox Grid.Column="2" Classes="control"
-                      ItemsSource="{Binding AnimationModes}"
-                      SelectedItem="{Binding AnimationMode}">
+            <ComboBox Grid.Column="2" Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
               <ComboBox.ItemTemplate>
-                <DataTemplate>
-                  <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                <DataTemplate x:DataType="svc:AccentOption">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Border Width="14" Height="14" CornerRadius="3" Background="{Binding Swatch}"
+                            VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                  </StackPanel>
                 </DataTemplate>
               </ComboBox.ItemTemplate>
             </ComboBox>
           </Grid>
+        </Border>
 
-          <Separator Classes="row" />
-
-          <!-- Sleep timeout -->
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" Classes="iconwell blue">
-              <PathIcon Data="{StaticResource Icon.sleep}" />
-            </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Sleep timeout" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Seconds of inactivity before the device sleeps (0–255)." />
-            </StackPanel>
-            <NumericUpDown Grid.Column="2" Classes="control" Minimum="0" Maximum="255" Increment="5"
-                           FormatString="0" Value="{Binding SleepTimeout}" />
-          </Grid>
-
-          <Separator Classes="row" />
-
-          <!-- Button A -->
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" Classes="iconwell green">
-              <TextBlock Text="A" FontWeight="Bold" FontSize="16"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Button A" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a short press." />
-            </StackPanel>
-            <ComboBox Grid.Column="2" Classes="control"
-                      ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonAShort}">
-              <ComboBox.ItemTemplate>
-                <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </Grid>
-
-          <Separator Classes="row" />
-
-          <!-- Button A (long press) -->
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" Classes="iconwell green">
-              <TextBlock Text="A" FontWeight="Bold" FontSize="16"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Button A — long press" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a long press." />
-            </StackPanel>
-            <ComboBox Grid.Column="2" Classes="control"
-                      ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonALong}">
-              <ComboBox.ItemTemplate>
-                <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </Grid>
-
-          <Separator Classes="row" />
-
-          <!-- Button B -->
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" Classes="iconwell green">
-              <TextBlock Text="B" FontWeight="Bold" FontSize="16"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Button B" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a short press." />
-            </StackPanel>
-            <ComboBox Grid.Column="2" Classes="control"
-                      ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBShort}">
-              <ComboBox.ItemTemplate>
-                <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </Grid>
-
-          <Separator Classes="row" />
-
-          <!-- Button B (long press) -->
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" Classes="iconwell green">
-              <TextBlock Text="B" FontWeight="Bold" FontSize="16"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Button B — long press" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a long press." />
-            </StackPanel>
-            <ComboBox Grid.Column="2" Classes="control"
-                      ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBLong}">
-              <ComboBox.ItemTemplate>
-                <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-          </Grid>
-
-          <Separator Classes="row" IsVisible="{Binding SupportsLongPressThreshold}" />
-
-          <!-- Long-press threshold -->
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
-                IsVisible="{Binding SupportsLongPressThreshold}">
-            <Border Grid.Column="0" Classes="iconwell blue">
-              <PathIcon Data="{StaticResource Icon.button}" />
-            </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Long-press threshold" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="How long a press counts as a long press (ms)." />
-            </StackPanel>
-            <NumericUpDown Grid.Column="2" Classes="control" Minimum="100" Maximum="2000" Increment="50"
-                           FormatString="0" Value="{Binding LongPressThreshold}" />
-          </Grid>
-        </StackPanel>
-      </Border>
-
-      <!-- Actions -->
-      <WrapPanel ItemSpacing="8" LineSpacing="8" IsVisible="{Binding IsConnected}">
-        <Button Classes="accent" Command="{Binding ApplyCommand}" ToolTip.Tip="Send these values to the device">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.check}" />
-            <TextBlock Text="Apply" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
-        <Button Command="{Binding SaveCommand}" ToolTip.Tip="Persist the applied settings to flash">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.save}" />
-            <TextBlock Text="Save to flash" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
-      </WrapPanel>
-
-      <!-- BLE -->
-      <Border Classes="card" IsVisible="{Binding SupportsBle}">
-        <StackPanel Spacing="14">
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <Border Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.ble}" /></Border>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Bluetooth LE" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Pairing and bonded devices." />
-            </StackPanel>
-          </StackPanel>
-
-          <CheckBox Content="Require pairing (PIN) to connect" IsChecked="{Binding BlePairingEnabled}" />
-
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Pairing PIN" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="6 digits. Leave blank to keep the current PIN. Default is 123456." />
-            </StackPanel>
-            <TextBox Grid.Column="2" Classes="control mono" MaxLength="6" Text="{Binding BlePin}"
-                     PlaceholderText="••••••" />
-          </Grid>
-
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Classes="accent" Content="Save BLE settings" Command="{Binding ApplyBleCommand}" />
-            <Button Classes="danger" x:Name="ClearBondsButton" Content="Clear bonded devices…">
-              <Button.Flyout>
-                <Flyout Placement="TopEdgeAlignedRight">
-                  <StackPanel Spacing="12" MaxWidth="280">
-                    <TextBlock Text="Clear all bonded BLE devices?" FontWeight="SemiBold" />
-                    <TextBlock Classes="caption" Text="Paired phones and tablets will have to pair again, and may need the Chameleon removed from their Bluetooth list first." />
-                    <Button Classes="danger solid" HorizontalAlignment="Right" Content="Clear bonds"
-                            Command="{Binding ClearBondsCommand}" Click="OnCloseFlyout" />
-                  </StackPanel>
-                </Flyout>
-              </Button.Flyout>
-            </Button>
-          </StackPanel>
-        </StackPanel>
-      </Border>
-
-      <!-- Appearance (app-side, applies immediately) -->
-      <Border Classes="card">
-        <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-          <Border Grid.Column="0" Classes="iconwell green">
-            <Border Width="16" Height="16" CornerRadius="4" Background="{Binding Accent.Swatch}" />
-          </Border>
-          <StackPanel Grid.Column="1" VerticalAlignment="Center">
-            <TextBlock Text="Accent color" FontWeight="SemiBold" />
-            <TextBlock Classes="caption" Text="Color of buttons, toggles and highlights in this app." />
-          </StackPanel>
-          <ComboBox Grid.Column="2" Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate x:DataType="svc:AccentOption">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <Border Width="14" Height="14" CornerRadius="3" Background="{Binding Swatch}"
-                          VerticalAlignment="Center" />
-                  <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                </StackPanel>
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-        </Grid>
-      </Border>
-
-      <!-- Backup -->
-      <Border Classes="card">
-        <StackPanel Spacing="12">
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <Border Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.save}" /></Border>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Backup" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Export or import your saved cards and key dictionaries." />
-            </StackPanel>
-          </StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Command="{Binding ExportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="Export backup" VerticalAlignment="Center" />
+        <!-- Backup -->
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.save}" /></Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Backup" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Export or import your saved cards and key dictionaries." />
               </StackPanel>
-            </Button>
-            <Button Command="{Binding ImportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="Import backup" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
-          </StackPanel>
-        </StackPanel>
-      </Border>
-
-      <!-- About -->
-      <Border Classes="card">
-        <StackPanel Spacing="10">
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <Border Classes="iconwell green"><PathIcon Data="{StaticResource Icon.info}" /></Border>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="ChameLab" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="{Binding AppVersion, StringFormat='Version {0}'}" />
             </StackPanel>
-          </StackPanel>
-          <!-- App update check: the web app is always current, so it has none. -->
-          <!-- The status gets the full width; the buttons wrap under each other on a narrow screen. -->
-          <StackPanel Spacing="8" IsVisible="{Binding AppUpdate.IsSupported}">
-            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AppUpdate.Message}"
-                       IsVisible="{Binding AppUpdate.Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            <WrapPanel ItemSpacing="8" LineSpacing="8">
-              <Button Classes="accent" Content="Download" Command="{Binding AppUpdate.OpenReleaseCommand}"
-                      IsVisible="{Binding AppUpdate.IsUpdateAvailable}" ToolTip.Tip="Open the release page" />
-              <Button Command="{Binding AppUpdate.CheckCommand}"
-                      ToolTip.Tip="Check GitHub for a newer release">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Command="{Binding ExportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.refresh}" /><TextBlock Text="Check for updates" VerticalAlignment="Center" />
+                  <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="Export backup" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
-            </WrapPanel>
+              <Button Command="{Binding ImportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="Import backup" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
           </StackPanel>
-          <TextBlock Classes="caption" TextWrapping="Wrap"
-                     Text="Cross-platform client for the Chameleon Ultra, built with Avalonia. Device, firmware and protocol documentation: github.com/RfidResearchGroup/ChameleonUltra" />
-          <SelectableTextBlock Classes="caption" TextWrapping="Wrap" FontSize="11" Opacity="0.8"
-                               Text="{x:Static vm:SettingsViewModel.TrademarkNotice}" />
-        </StackPanel>
-      </Border>
+        </Border>
 
-      <!-- Danger zone -->
-      <Border Classes="card" BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}"
-              IsVisible="{Binding IsConnected}">
-        <StackPanel Spacing="14">
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-              <TextBlock Text="Reset to defaults" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Restores factory settings for LEDs, sleep and buttons." />
-            </StackPanel>
-            <Button Grid.Column="1" x:Name="ResetButton" Classes="danger" VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.reset}" />
-                <TextBlock Text="Reset…" VerticalAlignment="Center" />
+        <!-- About -->
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="iconwell green"><PathIcon Data="{StaticResource Icon.info}" /></Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="ChameLab" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="{Binding AppVersion, StringFormat='Version {0}'}" />
               </StackPanel>
-              <Button.Flyout>
-                <Flyout Placement="TopEdgeAlignedRight">
-                  <StackPanel Spacing="12" MaxWidth="260">
-                    <TextBlock Text="Reset all settings?" FontWeight="SemiBold" />
-                    <TextBlock Classes="caption" Text="Current device settings will be replaced by the factory defaults." />
-                    <Button Classes="danger solid" HorizontalAlignment="Right" Content="Reset settings"
-                            Command="{Binding ResetCommand}" Click="OnCloseFlyout" />
-                  </StackPanel>
-                </Flyout>
-              </Button.Flyout>
-            </Button>
-          </Grid>
-
-          <Separator Classes="row" />
-
-          <!-- Factory reset (wipe) -->
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-              <TextBlock Text="Factory reset" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" TextWrapping="Wrap"
-                         Text="Wipes ALL data: every slot, nickname, saved emulator content and settings. This cannot be undone." />
             </StackPanel>
-            <Button Grid.Column="1" x:Name="WipeButton" Classes="danger" VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.delete}" />
-                <TextBlock Text="Factory reset…" VerticalAlignment="Center" />
-              </StackPanel>
-              <Button.Flyout>
-                <Flyout Placement="TopEdgeAlignedRight">
-                  <StackPanel Spacing="12" MaxWidth="280">
-                    <TextBlock Text="Factory reset the Chameleon?" FontWeight="SemiBold" />
-                    <TextBlock Classes="caption" Text="All slots, nicknames, emulator data and settings will be erased. The device will disconnect afterwards." />
-                    <Button Classes="danger solid" HorizontalAlignment="Right" Content="Erase everything"
-                            Command="{Binding FactoryResetCommand}" Click="OnCloseFlyout" />
+            <!-- App update check: the web app is always current, so it has none. -->
+            <!-- The status gets the full width; the buttons wrap under each other on a narrow screen. -->
+            <StackPanel Spacing="8" IsVisible="{Binding AppUpdate.IsSupported}">
+              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AppUpdate.Message}"
+                         IsVisible="{Binding AppUpdate.Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <WrapPanel ItemSpacing="8" LineSpacing="8">
+                <Button Classes="accent" Content="Download" Command="{Binding AppUpdate.OpenReleaseCommand}"
+                        IsVisible="{Binding AppUpdate.IsUpdateAvailable}" ToolTip.Tip="Open the release page" />
+                <Button Command="{Binding AppUpdate.CheckCommand}"
+                        ToolTip.Tip="Check GitHub for a newer release">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.refresh}" /><TextBlock Text="Check for updates" VerticalAlignment="Center" />
                   </StackPanel>
-                </Flyout>
-              </Button.Flyout>
-            </Button>
-          </Grid>
-        </StackPanel>
-      </Border>
-    </StackPanel>
-  </ScrollViewer>
+                </Button>
+              </WrapPanel>
+            </StackPanel>
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="Cross-platform client for the Chameleon Ultra, built with Avalonia. Device, firmware and protocol documentation: github.com/RfidResearchGroup/ChameleonUltra" />
+            <SelectableTextBlock Classes="caption" TextWrapping="Wrap" FontSize="11" Opacity="0.8"
+                                 Text="{x:Static vm:SettingsViewModel.TrademarkNotice}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Danger zone -->
+        <Border Classes="card" BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}"
+                IsVisible="{Binding IsConnected}">
+          <StackPanel Spacing="14">
+            <!-- Bonded BLE devices -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" IsVisible="{Binding SupportsBle}">
+              <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Clear bonded devices" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Forgets every phone and tablet paired over Bluetooth LE." />
+              </StackPanel>
+              <Button Grid.Column="1" x:Name="ClearBondsButton" Classes="danger" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.ble}" />
+                  <TextBlock Text="Clear bonds…" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button.Flyout>
+                  <Flyout Placement="TopEdgeAlignedRight">
+                    <StackPanel Spacing="12" MaxWidth="280">
+                      <TextBlock Text="Clear all bonded BLE devices?" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="Paired phones and tablets will have to pair again, and may need the Chameleon removed from their Bluetooth list first." />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Clear bonds"
+                              Command="{Binding ClearBondsCommand}" Click="OnCloseFlyout" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+              <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Reset to defaults" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Restores factory settings for LEDs, sleep and buttons." />
+              </StackPanel>
+              <Button Grid.Column="1" x:Name="ResetButton" Classes="danger" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.reset}" />
+                  <TextBlock Text="Reset…" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button.Flyout>
+                  <Flyout Placement="TopEdgeAlignedRight">
+                    <StackPanel Spacing="12" MaxWidth="260">
+                      <TextBlock Text="Reset all settings?" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="Current device settings will be replaced by the factory defaults." />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Reset settings"
+                              Command="{Binding ResetCommand}" Click="OnCloseFlyout" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Factory reset (wipe) -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+              <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Factory reset" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" TextWrapping="Wrap"
+                           Text="Wipes ALL data: every slot, nickname, saved emulator content and settings. This cannot be undone." />
+              </StackPanel>
+              <Button Grid.Column="1" x:Name="WipeButton" Classes="danger" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.delete}" />
+                  <TextBlock Text="Factory reset…" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button.Flyout>
+                  <Flyout Placement="TopEdgeAlignedRight">
+                    <StackPanel Spacing="12" MaxWidth="280">
+                      <TextBlock Text="Factory reset the Chameleon?" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="All slots, nicknames, emulator data and settings will be erased. The device will disconnect afterwards." />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Erase everything"
+                              Command="{Binding FactoryResetCommand}" Click="OnCloseFlyout" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ===================== Save bar (stays in view) ===================== -->
+    <!-- Appears only once a device setting changed. -->
+    <Border Grid.Row="1" Classes="savebar pagebar">
+      <Border.IsVisible>
+        <MultiBinding Converter="{x:Static BoolConverters.And}">
+          <Binding Path="IsDirty" />
+          <Binding Path="IsConnected" />
+        </MultiBinding>
+      </Border.IsVisible>
+      <c:ActionBar>
+        <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+        <Button Content="Discard" Command="{Binding DiscardCommand}" />
+        <Button Classes="accent" Command="{Binding SaveCommand}"
+                ToolTip.Tip="Send these values to the device and keep them after a reboot">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.save}" />
+            <TextBlock Text="Save" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </c:ActionBar>
+    </Border>
+
+  </Grid>
 </UserControl>

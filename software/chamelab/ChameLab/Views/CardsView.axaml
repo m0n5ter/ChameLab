@@ -148,9 +148,10 @@
     </Style>
   </UserControl.Styles>
 
-  <!-- 600 is what the memory editor needs for 16 bytes per line plus the ASCII column. -->
+  <!-- 600 is what the memory editor needs for 16 bytes per line plus the ASCII column.
+       The list needs 400 so the card type filter keeps room beside the band toggle and sort. -->
   <Grid Classes="page cardsplit" ColumnDefinitions="*,Auto" Classes.open="{Binding HasPane}"
-        b:SplitLayout.DetailWidth="460,600">
+        b:SplitLayout.DetailWidth="460,600" b:SplitLayout.ListMinWidth="400">
 
     <!-- ==================== Card list ==================== -->
     <!-- Locked while a new card is open: save it or cancel to get back to the list. -->

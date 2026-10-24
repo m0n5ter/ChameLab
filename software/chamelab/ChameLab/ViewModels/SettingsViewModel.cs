@@ -27,6 +27,7 @@ public sealed class SettingsViewModel : PageViewModelBase
     private bool _confirmingFactoryReset;
     private bool _confirmingClearBonds;
     private bool _isConnected;
+    private Values _saved;
     private AccentOption _accent =
         AppearanceService.Accents.First(a => a.Name == AppearanceService.LoadAccent());
 
@@ -42,15 +43,23 @@ public sealed class SettingsViewModel : PageViewModelBase
 
         // Device settings need a connection; appearance and backup work offline.
         var connected = this.WhenAnyValue(x => x.IsConnected);
-        RefreshCommand = ReactiveCommand.CreateFromTask(OnActivatedAsync, connected);
-        ApplyCommand = ReactiveCommand.CreateFromTask(ApplyAsync, connected);
-        SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, connected);
+        var canSave = this.WhenAnyValue(x => x.IsConnected, x => x.IsDirty, (c, d) => c && d);
+        SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, canSave);
+        DiscardCommand = ReactiveCommand.Create(Discard);
         ResetCommand = ReactiveCommand.CreateFromTask(ResetAsync, connected);
-        ApplyBleCommand = ReactiveCommand.CreateFromTask(ApplyBleAsync, connected);
         ClearBondsCommand = ReactiveCommand.CreateFromTask(ClearBondsAsync, connected);
         FactoryResetCommand = ReactiveCommand.CreateFromTask(FactoryResetAsync, connected);
         ExportBackupCommand = ReactiveCommand.CreateFromTask(ExportBackupAsync);
         ImportBackupCommand = ReactiveCommand.CreateFromTask(ImportBackupAsync);
+
+        _saved = Current;
+        PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(AnimationMode) or nameof(SleepTimeout) or nameof(ButtonAShort)
+                or nameof(ButtonBShort) or nameof(ButtonALong) or nameof(ButtonBLong)
+                or nameof(LongPressThreshold) or nameof(BlePairingEnabled) or nameof(BlePin))
+                RaiseDirty();
+        };
 
         _device.StateChanged += s => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
@@ -61,6 +70,10 @@ public sealed class SettingsViewModel : PageViewModelBase
                 SupportsLongPressThreshold = false;
                 ConfirmingFactoryReset = false;
                 ConfirmingClearBonds = false;
+                // Edits meant for that device are dropped; the next connection loads fresh values.
+                BlePin = string.Empty;
+                _saved = Current;
+                RaiseDirty();
             }
         });
     }
@@ -194,11 +207,24 @@ public sealed class SettingsViewModel : PageViewModelBase
         set => this.RaiseAndSetIfChanged(ref _confirmingClearBonds, value);
     }
 
-    public ICommand RefreshCommand { get; }
-    public ICommand ApplyCommand { get; }
+    /// <summary>A device setting differs from what the device holds (drives the save bar).</summary>
+    public bool IsDirty => Current != _saved || !string.IsNullOrEmpty(BlePin);
+
+    private void RaiseDirty() => this.RaisePropertyChanged(nameof(IsDirty));
+
+    // The editable device settings, as loaded or last saved; a typed PIN counts as a change on its own.
+    private readonly record struct Values(
+        AnimationMode AnimationMode, int SleepTimeout,
+        ButtonPressFunction ButtonAShort, ButtonPressFunction ButtonBShort,
+        ButtonPressFunction ButtonALong, ButtonPressFunction ButtonBLong,
+        int LongPressThreshold, bool BlePairingEnabled);
+
+    private Values Current => new(AnimationMode, SleepTimeout, ButtonAShort, ButtonBShort,
+        ButtonALong, ButtonBLong, LongPressThreshold, BlePairingEnabled);
+
     public ICommand SaveCommand { get; }
+    public ICommand DiscardCommand { get; }
     public ICommand ResetCommand { get; }
-    public ICommand ApplyBleCommand { get; }
     public ICommand ClearBondsCommand { get; }
     public ICommand FactoryResetCommand { get; }
 
@@ -213,7 +239,10 @@ public sealed class SettingsViewModel : PageViewModelBase
         "HID™ and HID ProxCard™ are trademarks of HID Global. EM4100 and related product names are " +
         "trademarks of EM Microelectronic-Marin SA. This app is not affiliated with any of them.";
 
-    public override Task OnActivatedAsync() => RunAsync(async () =>
+    /// <summary>Unsaved edits survive leaving and coming back; otherwise the page shows what the device holds.</summary>
+    public override Task OnActivatedAsync() => IsDirty ? Task.CompletedTask : LoadAsync();
+
+    private Task LoadAsync() => RunAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
@@ -247,52 +276,67 @@ public sealed class SettingsViewModel : PageViewModelBase
             SupportsLongPressThreshold = hasThreshold;
             BlePairingEnabled = blePairing;
             SupportsBle = hasBle;
+            BlePin = string.Empty;
+            _saved = Current;
+            RaiseDirty();
         });
         SetStatus("Settings loaded.");
     });
 
-    private Task ApplyAsync() => RunAsync(async () =>
-    {
-        var client = _device.Client;
-        if (client is null) return;
-        await client.SetAnimationModeAsync(AnimationMode);
-        await client.SetSleepTimeoutAsync(SleepTimeout);
-        await client.SetButtonConfigAsync(ButtonType.A, false, ButtonAShort);
-        await client.SetButtonConfigAsync(ButtonType.B, false, ButtonBShort);
-        await client.SetButtonConfigAsync(ButtonType.A, true, ButtonALong);
-        await client.SetButtonConfigAsync(ButtonType.B, true, ButtonBLong);
-        if (SupportsLongPressThreshold)
-            try { await client.SetLongPressThresholdAsync(LongPressThreshold); } catch { }
-    }, "Settings applied (remember to save to flash).");
-
+    // Sends the values and persists them in one go, so they survive a reboot.
     private Task SaveAsync() => RunAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
+        var values = Current;
+        var pin = BlePin ?? string.Empty;
+        if (pin.Length > 0 && (pin.Length != 6 || !pin.All(char.IsDigit)))
+            throw new System.FormatException("The BLE PIN must be exactly 6 digits.");
+
+        await client.SetAnimationModeAsync(values.AnimationMode);
+        await client.SetSleepTimeoutAsync(values.SleepTimeout);
+        await client.SetButtonConfigAsync(ButtonType.A, false, values.ButtonAShort);
+        await client.SetButtonConfigAsync(ButtonType.B, false, values.ButtonBShort);
+        await client.SetButtonConfigAsync(ButtonType.A, true, values.ButtonALong);
+        await client.SetButtonConfigAsync(ButtonType.B, true, values.ButtonBLong);
+        if (SupportsLongPressThreshold)
+            try { await client.SetLongPressThresholdAsync(values.LongPressThreshold); } catch { }
+        if (SupportsBle)
+        {
+            await client.SetBlePairingEnableAsync(values.BlePairingEnabled);
+            if (pin.Length > 0) await client.SetBlePairingKeyAsync(pin);
+        }
         await client.SaveSettingsAsync();
-    }, "Settings saved to flash.");
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            _saved = values;
+            if (BlePin == pin) BlePin = string.Empty;
+            RaiseDirty();
+        });
+    }, "Settings saved.");
+
+    /// <summary>Puts every field back to what the device holds.</summary>
+    private void Discard()
+    {
+        AnimationMode = _saved.AnimationMode;
+        SleepTimeout = _saved.SleepTimeout;
+        ButtonAShort = _saved.ButtonAShort;
+        ButtonBShort = _saved.ButtonBShort;
+        ButtonALong = _saved.ButtonALong;
+        ButtonBLong = _saved.ButtonBLong;
+        LongPressThreshold = _saved.LongPressThreshold;
+        BlePairingEnabled = _saved.BlePairingEnabled;
+        BlePin = string.Empty;
+    }
 
     private Task ResetAsync() => RunAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
         await client.ResetSettingsAsync();
-        await OnActivatedAsync();
+        await LoadAsync();
     }, "Settings reset to defaults.");
-
-    private Task ApplyBleAsync() => RunAsync(async () =>
-    {
-        var client = _device.Client;
-        if (client is null) return;
-        await client.SetBlePairingEnableAsync(BlePairingEnabled);
-        if (!string.IsNullOrEmpty(BlePin))
-        {
-            if (BlePin.Length != 6 || !BlePin.All(char.IsDigit))
-                throw new System.FormatException("The BLE PIN must be exactly 6 digits.");
-            await client.SetBlePairingKeyAsync(BlePin);
-        }
-        await client.SaveSettingsAsync();
-    }, "BLE settings saved to flash.");
 
     private Task ClearBondsAsync() => RunAsync(async () =>
     {
