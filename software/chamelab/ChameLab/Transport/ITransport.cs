@@ -78,6 +78,17 @@ public interface ITransportScanner
 }
 
 /// <summary>
+/// A scanner that reaches a new device only through a chooser the platform shows (Web Bluetooth).
+/// The connect page gives it a button of its own: one click may open one chooser at most, so it
+/// can't share Rescan with another scanner's chooser.
+/// </summary>
+public interface ITransportPicker
+{
+    /// <summary>Opens the chooser; null when the user dismissed it. Must run from a user gesture.</summary>
+    Task<TransportCandidate?> PickAsync(CancellationToken ct = default);
+}
+
+/// <summary>
 /// A scanner that keeps discovering in the background while the connect page is shown and reports
 /// devices as they come and go (e.g. BLE, where a device only advertises while awake). Automatic
 /// scans leave it out; an explicit Rescan still runs it.

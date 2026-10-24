@@ -14,7 +14,7 @@ drawer on phones.
 | `ChameLab.Desktop` | `net10.0` | Windows/macOS/Linux. Serial (USB-CDC) + TCP transports |
 | `ChameLab.Android` | `net10.0-android` | Phone/tablet. BLE (Nordic UART) + TCP transports |
 | `ChameLab.iOS` | `net10.0-ios` | Phone/tablet (build on macOS). BLE + TCP |
-| `ChameLab.Browser` | `net10.0-browser` | WebAssembly build. Web Serial + TCP |
+| `ChameLab.Browser` | `net10.0-browser` | WebAssembly build. Web Serial + Web Bluetooth + TCP |
 
 Package versions are centralized in [`Directory.Packages.props`](Directory.Packages.props).
 
@@ -25,6 +25,7 @@ Transport  (ITransport / ITransportScanner)
   ├─ SerialTransport    (Desktop, System.IO.Ports, auto-detects VID 0x6868)
   ├─ BleTransport       (Android/iOS, Plugin.BLE over Nordic UART Service)
   ├─ WebSerialTransport (Browser, navigator.serial via JS interop)
+  ├─ WebBluetoothTransport (Browser, navigator.bluetooth over Nordic UART Service)
   └─ TcpTransport       (Core, host:port — bridge / simulator)
         │
 ChameleonConnection    frame codec (SOF/LRC) + async request/response loop
@@ -94,6 +95,19 @@ if none, opens the browser's port chooser (ports granted this way persist for th
 origin). Requires a Chromium browser (Chrome/Edge) over `https://` or
 `http://localhost`; Firefox/Safari do not implement Web Serial.
 
+## Web Bluetooth (browser)
+
+Where the browser has `navigator.bluetooth` (Chrome/Edge on Windows, macOS,
+ChromeOS and Android), the connect page shows a **Pair over Bluetooth** button that opens
+the browser's device chooser, filtered to Chameleons. [`wwwroot/ble.js`](ChameLab.Browser/wwwroot/ble.js)
+talks to the Nordic UART Service and [`WebBluetooth.cs`](ChameLab.Browser/WebBluetooth.cs)
+wraps it as an `ITransport`. A page cannot scan in the background, so picked
+devices are listed whether or not they are awake; connecting to a sleeping one
+times out with a hint to wake it. Devices picked earlier are listed again after
+a reload only where the browser implements `getDevices()`. Writes go out in
+20-byte chunks because the page cannot see the negotiated MTU. Firmware updates
+are not available over Web Bluetooth.
+
 ## Status
 
 - Desktop builds and runs.
@@ -106,7 +120,7 @@ origin). Requires a Chromium browser (Chrome/Edge) over `https://` or
 Android and iOS connect wirelessly over the firmware's Nordic UART Service
 (`6E400001-…`). The shared implementation lives in [`Mobile/BleTransport.cs`](Mobile/BleTransport.cs)
 and is compiled into both heads. The scanner matches devices whose name starts
-with "Chameleon" or that advertise a 128-bit service UUID.
+with "Chameleon" or that advertise the Nordic UART service.
 
 - Android: permissions are declared in the manifest and requested at runtime
   (`BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT` on API 31+, location on ≤30).

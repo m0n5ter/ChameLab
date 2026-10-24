@@ -23,6 +23,7 @@ public sealed class ConnectViewModel : PageViewModelBase
         _device = device;
 
         ScanCommand = ReactiveCommand.CreateFromTask(ScanAsync);
+        PickCommand = ReactiveCommand.CreateFromTask(PickAsync);
         ConnectCommand = ReactiveCommand.CreateFromTask(ConnectAsync,
             this.WhenAnyValue(x => x.Selected).Select(s => s is not null));
         ConnectManualCommand = ReactiveCommand.CreateFromTask(ConnectManualAsync,
@@ -52,6 +53,11 @@ public sealed class ConnectViewModel : PageViewModelBase
     private bool HasUsb => _device.Scanners.Any(s => s.Kind == TransportKind.Serial);
     private bool HasBle => _device.Scanners.Any(s => s.Kind == TransportKind.Ble);
 
+    /// <summary>A scanner whose new devices come from a browser chooser, behind the Pair over Bluetooth button.</summary>
+    private ITransportPicker? Picker => _device.Scanners.OfType<ITransportPicker>().FirstOrDefault();
+
+    public bool CanPick => Picker is not null;
+
     /// <summary>The transport the empty state pictures: Bluetooth where it's the only way in, else USB.</summary>
     public TransportKind PrimaryKind => HasBle && !HasUsb ? TransportKind.Ble : TransportKind.Serial;
 
@@ -63,16 +69,21 @@ public sealed class ConnectViewModel : PageViewModelBase
         _ => "Plug the device in over USB, then pick it below.",
     };
 
-    // A web page may only open a serial port the user picked in the browser's chooser,
-    // which opens on Rescan; after that the device shows up on its own like on desktop.
+    // A web page may only open a serial port or a Bluetooth device the user picked in the
+    // browser's chooser, which opens on Rescan (USB) or Pair over Bluetooth; after that the device shows
+    // up on its own like on desktop.
     public string ScanHint => OperatingSystem.IsBrowser()
-        ? "Press Rescan to pick your Chameleon once; after that it appears here automatically."
+        ? CanPick
+            ? "Pick your Chameleon once with Rescan (USB) or Pair over Bluetooth; after that it appears here automatically."
+            : "Press Rescan to pick your Chameleon once; after that it appears here automatically."
         : HasBle && !HasUsb
             ? "Nearby devices appear here automatically while they're awake."
             : "Plugged-in devices appear here automatically.";
 
     public string EmptyHint => OperatingSystem.IsBrowser()
-        ? "Plug the Chameleon in, then press Rescan and allow this page to use it (Chrome or Edge)."
+        ? CanPick
+            ? "Plug the Chameleon in and press Rescan, or wake it up and press Pair over Bluetooth, then allow this page to use it (Chrome or Edge)."
+            : "Plug the Chameleon in, then press Rescan and allow this page to use it (Chrome or Edge)."
         : (HasUsb, HasBle) switch
         {
             (true, true) => "Plug the Chameleon in, or press a button on it to wake it up for Bluetooth — it will show up here on its own.",
@@ -87,6 +98,7 @@ public sealed class ConnectViewModel : PageViewModelBase
     }
 
     public ICommand ScanCommand { get; }
+    public ICommand PickCommand { get; }
     public ICommand ConnectCommand { get; }
     public ICommand ConnectManualCommand { get; }
     public ICommand ContinueOfflineCommand { get; }
@@ -158,6 +170,22 @@ public sealed class ConnectViewModel : PageViewModelBase
         SetStatus(found.Count == 0
             ? "No Chameleon found. Plug it in, or use a network bridge."
             : $"Found {found.Count} device(s).");
+    });
+
+    /// <summary>Opens the browser's Bluetooth chooser and selects the picked device, ready to connect.</summary>
+    private Task PickAsync() => RunAsync(async () =>
+    {
+        if (Picker is not { } picker) return;
+        var picked = await picker.PickAsync();
+        if (picked is null) return;
+        var scanner = (ITransportScanner)picker;
+        var known = await scanner.ScanAsync(AutoScan.Poll);
+        Dispatcher.UIThread.Post(() =>
+        {
+            Apply(known, new HashSet<TransportKind> { scanner.Kind });
+            Selected = Candidates.FirstOrDefault(c => c.Kind == picked.Kind && c.Id == picked.Id) ?? Selected;
+        });
+        SetStatus($"Selected {picked.DisplayName}. Press Connect.");
     });
 
     private HashSet<TransportKind> ScannedKinds(AutoScan trigger) =>

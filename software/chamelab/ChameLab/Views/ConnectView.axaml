@@ -88,13 +88,25 @@
             </StackPanel>
           </Border>
 
-          <Button Grid.Row="2" Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                  Command="{Binding ConnectCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="10" Margin="5">
-              <PathIcon Data="{StaticResource Icon.link}" Width="24" Height="24" />
-              <TextBlock Text="Connect" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
+          <StackPanel Grid.Row="2" Spacing="10">
+            <!-- Web Bluetooth: a new device can only be picked in the browser's own chooser. -->
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding PickCommand}" IsVisible="{Binding CanPick}"
+                    ToolTip.Tip="Pick a Chameleon in the browser's Bluetooth chooser">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <PathIcon Data="{StaticResource Icon.ble}" />
+                <TextBlock Text="Pair over Bluetooth" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Command="{Binding ConnectCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="10" Margin="5">
+                <PathIcon Data="{StaticResource Icon.link}" Width="24" Height="24" />
+                <TextBlock Text="Connect" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
         </Grid>
       </Border>
 
