@@ -49,7 +49,6 @@ CLI and other apps.
 - **Slot LED colors** — each card in a slot can have its own LED color, so you can tell
   which card is active by looking at the device. A slot that holds both an HF and an LF
   card alternates between their two colors.
-- **Farpointe / Pyramid** — read and emulate, with apps able to set the emulated ID.
 - **Fixes** — for example, saving no longer fails after many slot switches.
 
 The full list is on the [website](https://m0n5ter.github.io/ChameLab/#firmware) and in
@@ -89,8 +88,7 @@ cd software
 uv run script/chameleon_cli_main.py
 ```
 
-It knows the ChameLab firmware commands too, such as `hw slot color` and
-`lf pyramid econfig`.
+It knows the ChameLab firmware commands too, such as `hw slot color`.
 
 ## Versions
 
