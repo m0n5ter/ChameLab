@@ -1,130 +1,83 @@
-# Roadmap: паритет с ChameleonUltraGUI (Flutter)
+# Roadmap: parity with ChameleonUltraGUI (Flutter)
 
-Чего не хватает Avalonia GUI по сравнению с оригинальным приложением
+What ChameLab is missing compared with the original app,
 [GameTec-live/ChameleonUltraGUI](https://github.com/GameTec-live/ChameleonUltraGUI).
-Отмечайте `[x]` по мере реализации.
+Checked against its source (commit `7311c54`, 2026-10-24). Tick `[x]` as things land,
+and drop finished items over time.
 
-## Статус
+## High priority
 
-Сделано: сохранённые карты (+ импорт Flutter/PM3/Flipper/MCT/bin/eml, экспорт,
-назначение в слот), редактор слота с настройками эмулятора MFC/UL, чтение LF
-(HID/ioProx/Viking/PAC/Jablotron) и определение типа HF + PRNG, словари ключей,
-запись на T55xx и Gen2/CUID magic, hex-редактор дампа, настройки устройства
-(long-press, порог, BLE, factory reset), Dashboard (used slots + переключатель
-слота), About, бэкап карт/словарей, сбор nonce'ов mfkey32.
+### MIFARE Classic key recovery
+Needs a crapto1 port or the native library in `software/src`.
+- [ ] Darkside, nested, static nested, hardnested (nonce-collection progress)
+- [ ] Backdoor / static encrypted nested
+- [ ] Per-sector found-key marks, Skip / Resume recovery
+- [ ] Partial data dump (only sectors with known keys)
+- [ ] Additional dictionary and "Skip default dictionary" when checking keys
+- [ ] mfkey32 in the app: compute the key from collected nonces (currently only copies the `mfkey32v2` command)
+- [ ] Save recovered keys: to file, to an existing dictionary, to a new one (including from a saved card)
 
-Осталось (тяжёлые/зависящие от нативного кода или железа — намеренно не делались
-наполовину):
-- Восстановление ключей в приложении (darkside/nested/hardnested и вычисление
-  ключа mfkey32/64) — нужен порт crapto1/нативная библиотека из `software/src`.
-- HF/LF сниффинг: захват и декодирование.
-- Прошивка/DFU и проверка обновлений — риск «окирпичить», нужен nRF DFU и
-  загрузка релизов; не протестировать без устройства.
-- Полная локализация (~20 языков).
-- Папки для карт/словарей, QR-импорт/экспорт, сравнение дампов, NDEF-редактор,
-  чтение Ultralight с ключом, непрерывное сканирование, override типа, EM4x05.
+### Sniffing
+- [ ] HF sniffing: capture ISO14443-A, decode frames (reader/card), UID, protocol, AIDs, ATC/Amount, MFC auth groups, mfkey32/mfkey64 recovery from the trace, load `.trace`
+- [ ] LF sniffing: capture 125 kHz ADC, waveform with zoom, modulation analysis (Manchester, ASK/NRZ, Biphase, FSK), clock detection, bit decoding, load `.bin`
 
-Проверялось на программном эмуляторе устройства (TCP), не на реальном Chameleon.
+### Editing slot data in place
+- [ ] UID/SAK/ATQA/ATS and LF ID (Facility Code, Issue Level) in the slot itself (currently only by assigning a saved card)
+- [ ] Export slot data: to file, to a new card, "Update saved card"
+- [ ] Manual slot enable/disable (currently a slot is enabled only when a card is assigned)
+- [ ] View Ultralight passwords from the detection log (`Mf0NtagGetDetectionLog`)
 
-## 1. Сохранённые карты (Saved Cards)
-- [x] Локальная библиотека карт: имя, цвет, тип тега, UID/SAK/ATQA/ATS, данные дампа
-- [x] Сохранение со страницы Read («Save as…», «Save only UID»)
-- [x] Сохранение дампа со страницы Dump
-- [x] Ручное создание карты (Create card) и её редактирование (Edit card)
-- [x] Просмотр карты (View dump)
-- [x] **Назначение карты в слот** (тип + UID/дамп/ID → эмулятор → save)
-- [x] Удаление с подтверждением
-- [x] Импорт: собственный JSON, Proxmark3 JSON, Flipper NFC (`.nfc`), Flipper RFID (`.rfid`), MCT (`.mct`), `.bin` / `.eml`
-- [x] Экспорт карты в файл (JSON)
-- [ ] Папки (создание, вложенность, цвет, перемещение, экспорт/импорт папки)
-- [ ] Экспорт/импорт через QR-коды
-- [ ] Сравнение двух дампов (Compare / Difference)
+## Medium priority
 
-## 2. Словари ключей (Dictionaries)
-- [x] Список словарей: создание, редактирование, удаление, импорт/экспорт (папки — ещё нет)
-- [ ] Скачивание внешних словарей (Dictionary download)
-- [x] Словари используются при чтении дампа (вместе со встроенными ключами)
-- [ ] Сохранение найденных ключей (в файл / в существующий словарь / в новый), копирование ключей
+### Library organization
+- [ ] Folders for cards and dictionaries: create, nest, color, move, export/import a folder, delete with contents
+- [ ] Dump comparison (Compare / Difference)
 
-## 3. Менеджер слотов
-- [x] Смена типа тега слота (HF и LF отдельно)
-- [x] Переименование (nick) HF/LF
-- [x] Включение/выключение HF/LF в слоте
-- [x] Сброс слота к данным по умолчанию и очистка слота
-- [x] Назначение сохранённой карты в слот (см. 1)
-- [ ] Редактирование данных слота: UID/SAK/ATQA/ATS, LF ID (EM410x, HID Prox, ioProx, PAC, Viking, IDTECK, Jablotron)
-- [ ] Экспорт данных слота (в файл, в новую карту, обновить существующую)
-- [x] Настройки эмулятора MIFARE Classic: Gen1A, Gen2, «UID/SAK/ATQA from block 0», write mode (Normal/Decline/Deceive/Shadow), detection (сбор nonce'ов), field-off-do-reset, PRNG type
-- [x] Настройки эмулятора Ultralight/NTAG: UID magic mode, write mode, version/signature/counters, reset auth count, password detection
-- [ ] Просмотр/редактирование дампа, загруженного в слот
+### Dump editor
+- [ ] Value blocks: decode value, Inc/Dec (`Mf1ManipulateValueBlock` is declared but unused)
+- [ ] Decode access conditions per block (currently only a valid / INVALID mark)
+- [ ] BCC check
+- [ ] Export contents as ASCII
+- [ ] NDEF editor (records, add/remove, byte counter)
 
-## 4. Чтение карт (Read Card)
-- [x] LF: HID Prox (Facility Code, Issue Level), ioProx, PAC/Stanley, Viking, Jablotron (EM4x05 — ещё нет)
-- [x] HF: определение типа (MFC Mini/1K/2K/4K, Ultralight/NTAG, ISO14443-4) и PRNG type (backdoor — ещё нет)
-- [ ] Override card type, Continuous scan
-- [ ] Восстановление ключей MFC: darkside, nested, static nested, hardnested, backdoor / static encrypted nested; прогресс, skip/resume, отметки ключей по секторам, дамп частичных данных
-- [ ] Чтение Gen1-карт через backdoor
-- [ ] MIFARE Ultralight/NTAG: чтение с ключом/без, version, signature, counters
-- [ ] Режим Lite: предупреждение, что Lite не читает карты
+### Reading cards
+- [ ] Continuous scan
+- [ ] Override card type (manual type instead of auto-detection)
+- [ ] Show backdoor support and read Gen1 via backdoor without keys
+- [ ] Warning that Chameleon Lite cannot read cards
 
-## 5. Запись карт (Write Card)
-- [x] Выбор сохранённой карты для записи
-- [x] Magic-карты Gen2 / CUID (Gen1A/Gen3 backdoor — ещё нет)
-- [ ] Ultralight, включая lock bytes и counter
-- [x] LF на T55xx: EM410x, HID Prox, ioProx, PAC, Viking, IDTECK, Jablotron, Electra
-- [ ] Vanity SAK, предупреждения (OTP-карты, совместимость дампа), «Write again»
+### Writing cards
+- [ ] Vanity SAK (SAK in block 0 + 0x80)
+- [ ] Write lock bytes and counter for Ultralight C (`Mf0UlcSetKey` unused)
+- [ ] Warnings: OTP cards, "keep the device still", "Write again", "Continue anyway" on partial failure
 
-## 6. Редакторы
-- [x] Dump Editor: редактирование дампа как hex (ASCII-вид, ACL/value-block decode, BCC — ещё нет)
-- [ ] Редактор Ultralight (lock bytes, password)
-- [ ] NDEF Editor
+### Tools
+- [ ] Dictionary download: Proxmark3 dictionaries (MFC, T55xx, MFULC, MFP) and Flipper
+- [ ] T55XX password cleaner: brute-force the password from a dictionary and set a new one
 
-## 7. Инструменты (Tools)
-- [x] mfkey32: сбор nonce'ов из detection log и генерация команды mfkey32v2 (крипто-восстановление ключа — внешним инструментом)
-- [ ] HF sniffing (кадры, UID/протокол, AIDs, восстановление ключей из auth, загрузка `.trace`)
-- [ ] LF sniffing (ADC, осциллограмма, анализ модуляции, декодирование, загрузка `.bin`)
-- [ ] T55xx password cleaner
-- [ ] Mifare Classic Gen4 (WIP в оригинале)
+### Firmware and connection
+- [ ] "Enter DFU mode" button and unconditional "Flash latest FW" (currently Install latest only when an update exists)
+- [ ] Detect a device already in DFU (corrupt firmware) and offer to reflash
+- [ ] Warning about an outdated firmware protocol
+- [ ] Manual connection by serial port name (currently manual entry is TCP only)
+- [ ] Auto scan devices / Auto connect first found device
+- [ ] BLE connect screen with hints (PIN 123456, slow first connection, remove from the Bluetooth list)
 
-## 8. Настройки устройства
-- [x] Долгое нажатие A/B
-- [x] Порог долгого нажатия (long press threshold)
-- [x] BLE: PIN, pairing on/off, очистка bonded-устройств
-- [x] Factory reset (`WipeFds`)
-- [ ] Учёт `GetDeviceCapabilities` (скрывать неподдерживаемое)
-- [ ] Предупреждение об устаревшем протоколе/прошивке
+## Low priority
+- [ ] Battery voltage in the UI (the client already reads `voltage` but does not show it)
+- [ ] Emulated (demo) device — try the app without hardware
+- [ ] System / Light / Dark theme (currently only a Light/Dark toggle; `AppearanceService` already stores `Default`)
+- [ ] Sidebar mode (Expand / Retract / Auto)
+- [ ] Localization (~20 languages) and "Help translate"
+- [ ] Logs: production logging, view, copy, export, clear
+- [ ] Debug page
+- [ ] App changelog with recent commits (currently release notes exist only for firmware)
+- [ ] About: contributors, Open Collective, licenses
+- [ ] Export/import settings via QR codes (mobile only in the original)
+- [ ] "Update card data?" prompt when the UID/SAK/ATQA of a card changes
 
-## 9. Прошивка и обновления
-- [ ] Проверка обновлений (GitHub releases) для Ultra и Lite
-- [ ] DFU: вход, прошивка последней версии, прошивка из `.zip`, force flashing
-- [ ] Обнаружение устройства в DFU-режиме, страница прогресса прошивки
-
-## 10. Главная (Dashboard)
-- [x] Used slots, быстрый переключатель активного слота
-- [ ] Индикация demo/эмулированного устройства
-- [ ] Быстрый доступ к DFU и настройкам устройства
-
-## 11. Подключение
-- [ ] Ручное подключение по имени serial-порта
-- [ ] Авто-сканирование и автоподключение к первому устройству
-- [ ] BLE-подсказки (пароль 123456, первое подключение, разрешения Android)
-- [ ] Эмулированное (demo) устройство
-
-## 12. Настройки приложения
-- [ ] Тема (System/Light/Dark) и цветовая схема
-- [ ] Локализация
-- [ ] Режим боковой панели (Expand / Retract / Auto)
-- [x] Экспорт/импорт карт и словарей одним файлом-бэкапом (JSON); QR — ещё нет
-- [ ] Логи: production logging, просмотр, копирование, экспорт, очистка
-- [ ] Debug-страница / debug mode
-
-## 13. Прочее
-- [x] About (версия, ссылки, трейдмарки) — в настройках
-- [ ] Changelog
-- [ ] Биндинги к нативной библиотеке восстановления ключей (`software/src`) — нужны для 4 (recovery) и 7
-
-## Порядок работ
-1. Сохранённые карты + назначение карты в слот (1, частично 3)
-2. Полноценный редактор слота (3)
-3. Чтение LF-протоколов и Ultralight, словари (2, 4)
-4. Биндинги к `software/src` для recovery, mfkey, sniffing (4, 7, 13)
+## Not counted
+Present in the original's code but unused in its UI — not included in parity:
+`scanEM4X05`, `hf14a4EmvScan`, `hf14a4ReaderApdu`, `hf14a4AddStaticResponse`,
+`adcGenericRead`, `writeT55XX`, `ioProxDecodeRaw`, `manipulateValueBlock`.
+Mifare Classic Gen4 is marked WIP in the original.
