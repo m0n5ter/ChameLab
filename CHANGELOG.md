@@ -6,6 +6,11 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.9][2026-10-24] · firmware v2.3.3-cl
+ - ChameLab: the web app connects over Bluetooth LE in Chrome / Edge (Web Bluetooth), next to USB; firmware updates still need USB or the desktop / mobile app
+ - ChameLab: the Bluetooth scan on Android and iOS lists only devices that advertise the Nordic UART service
+ - ChameLab: Settings has a single Save that sends and stores the values, with a bar for unsaved changes and Discard; unsaved edits survive leaving the page
  - Merged upstream ChameleonUltra v2.3.0:
    - Added Farpointe/Pyramid LF protocol support: read and emulate (FSK2a, RF/50); `lf pyramid read`
    - Battery condition hint (`excellent` … `critical`) in `hw battery` and on the device's battery screen, new `DATA_CMD_GET_BATTERY_INFO_EX`
