@@ -33,7 +33,7 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
   timeout, BLE pairing, factory reset and firmware updates over USB or Bluetooth.
 
 Not there yet: key recovery, HF / LF sniffing, card folders, QR sharing and
-translations. Use the CLI for those for now.
+translations. Key recovery is in the CLI for now.
 
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor
 Web Bluetooth.
@@ -42,9 +42,8 @@ Sources, architecture and build steps: [software/chamelab](software/chamelab).
 
 ## The firmware
 
-The ChameLab firmware is the ChameleonUltra firmware with additions that the app needs.
-It runs on both ChameleonUltra and ChameleonLite and stays compatible with the official
-CLI and other apps.
+The ChameLab firmware runs on both ChameleonUltra and ChameleonLite and moves together
+with the app: features are added on both sides and shipped in the same release.
 
 - **Slot LED colors** — each card in a slot can have its own LED color, so you can tell
   which card is active by looking at the device. A slot that holds both an HF and an LF
@@ -88,7 +87,8 @@ cd software
 uv run script/chameleon_cli_main.py
 ```
 
-It knows the ChameLab firmware commands too, such as `hw slot color`.
+It covers what the app does not have yet, such as key recovery (darkside, nested, hardnested), and every
+firmware command, for example `hw slot color`.
 
 ## Versions
 
@@ -109,6 +109,3 @@ release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSI
 ## License
 
 Free software under the [GNU GPL v3](LICENSE).
-
-Based on the [ChameleonUltra](https://github.com/RfidResearchGroup/ChameleonUltra)
-firmware and client by RfidResearchGroup and contributors.

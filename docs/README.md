@@ -1,3 +1,4 @@
-# Chameleon Ultra Guide
+# ChameLab docs
 
-The docs have moved! [Wiki](https://github.com/RfidResearchGroup/ChameleonUltra/wiki)
+The overview, firmware updates and downloads are in the [main README](../README.md) and
+on the [website](https://m0n5ter.github.io/ChameLab/).
