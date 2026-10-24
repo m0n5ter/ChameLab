@@ -197,14 +197,14 @@
 
   <section id="why">
     <h2>Why ChameLab</h2>
-    <p class="meta">How it compares with the official Python CLI and the Flutter ChameleonUltraGUI.</p>
+    <p class="meta">How the app compares with the Flutter ChameleonUltraGUI and the command line client.</p>
     <div class="table-wrap">
       <table>
-        <thead><tr><th></th><th>ChameLab</th><th>ChameleonUltraGUI</th><th>Official CLI</th></tr></thead>
+        <thead><tr><th></th><th>ChameLab</th><th>ChameleonUltraGUI</th><th>CLI</th></tr></thead>
         <tbody>
           <tr><td>Graphical interface</td><td class="y">✓</td><td class="y">✓</td><td class="n">terminal</td></tr>
           <tr><td>Runs in the browser, nothing to install</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
-          <tr><td>Per-card slot LED colors</td><td class="y">✓</td><td class="n">–</td><td class="y">✓ (with this firmware)</td></tr>
+          <tr><td>Per-card slot LED colors</td><td class="y">✓</td><td class="n">–</td><td class="y">✓</td></tr>
           <tr><td>Import Proxmark3, Flipper, MCT, .bin / .eml</td><td class="y">✓</td><td class="n">partly</td><td class="n">partly</td></tr>
           <tr><td>Key recovery (darkside, nested, hardnested)</td><td class="n">not yet</td><td class="y">✓</td><td class="y">✓</td></tr>
           <tr><td>Firmware update from the app</td><td class="y">✓</td><td class="y">✓</td><td class="n">via scripts</td></tr>
@@ -215,20 +215,19 @@
       <li><b>One codebase, five targets.</b> Windows, macOS, Linux, Android and WebAssembly share
         the same views and protocol code, so a fix lands everywhere at once.</li>
       <li><b>The firmware moves with the app.</b> Features like slot colors are added on both sides
-        together and shipped in the same release, with no waiting for an upstream merge.</li>
+        together and shipped in the same release.</li>
       <li><b>Adaptive layout.</b> Side navigation on a desktop, a drawer on a phone, and the
         keyboard and system Back button handled properly on Android.</li>
       <li><b>Cards first.</b> Read a card, save it to the library, put it into any slot, and the
         slot shows which saved card it holds, matched by UID.</li>
     </ul>
-    <p class="note">Not there yet: key recovery, HF / LF sniffing, card folders, QR sharing and translations. Use the CLI for those for now.</p>
+    <p class="note">Not there yet: key recovery, HF / LF sniffing, card folders, QR sharing and translations. Key recovery is in the CLI for now.</p>
   </section>
 
   <section id="firmware">
-    <h2>Firmware additions</h2>
-    <p class="meta">What the ChameLab firmware adds on top of the ChameleonUltra firmware it is built
-      from. It runs on both ChameleonUltra and ChameleonLite and stays compatible with the
-      official CLI and other apps.</p>
+    <h2>The firmware</h2>
+    <p class="meta">The ChameLab firmware runs on both ChameleonUltra and ChameleonLite. Here is
+      what is new in it.</p>
 
     <div class="release-head"><h3>v2.3.2-cl</h3><span>October 2026</span></div>
 
@@ -290,8 +289,6 @@
       <a href="https://github.com/m0n5ter/ChameLab">source code</a> ·
       <a href="https://github.com/m0n5ter/ChameLab/releases">all releases</a> ·
       <a href="https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md">changelog</a></p>
-    <p>Based on the <a href="https://github.com/RfidResearchGroup/ChameleonUltra">ChameleonUltra</a>
-      firmware and client by RfidResearchGroup and contributors.</p>
   </footer>
 </main>
 
