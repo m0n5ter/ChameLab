@@ -23,7 +23,7 @@ public sealed class CardItemViewModel : ViewModelBase
     public string UidHex => Card.UidHex;
     public string UidLabel => IsLf ? "ID" : "UID";
     public string SakHex => Card.Sak.ToString("X2");
-    public string AtqaHex => Card.Atqa.Length == 0 ? "-" : Hex.Spaced(Card.Atqa);
+    public string AtqaHex => Card.Atqa.Length == 0 ? "-" : Hex.Spaced(CardTags.SwapAtqa(Card.Atqa));
     public string AtsHex => Card.Ats.Length == 0 ? "-" : Hex.Spaced(Card.Ats);
 
     public IBrush ColorBrush => HexBrushConverter.Brush(Card.Color) ?? Brushes.OrangeRed;

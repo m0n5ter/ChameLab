@@ -49,7 +49,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         _tag = source.Tag == TagSpecificType.Undefined ? TagSpecificType.Mifare1024 : source.Tag;
         _uid = Hex.Spaced(source.Uid);
         _sak = source.Sak.ToString("X2");
-        _atqa = Hex.Spaced(source.Atqa);
+        _atqa = Hex.Spaced(SwapAtqa(source.Atqa));
         _ats = Hex.Spaced(source.Ats);
         _data = source.Data.Select(d => (byte[])d.Clone()).ToList();
         RebuildRows();
@@ -121,7 +121,7 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     /// <summary>
     /// Switches SAK / ATQA to the new type's usual values when they are still the old
-    /// type's (or ATQA was never set), so e.g. 1K → 4K also turns 08 / 04 00 into 18 / 02 00.
+    /// type's (or ATQA was never set), so e.g. 1K → 4K also turns 08 / 00 04 into 18 / 00 02.
     /// </summary>
     private void AdaptIdentity(TagSpecificType from, TagSpecificType to)
     {
@@ -129,10 +129,10 @@ public sealed class CardEditorViewModel : ViewModelBase
         if (to.DefaultSakAtqa(uid7) is not { } next) return;
         var untouched = !Hex.TryParse(_atqa, out var atqa) || atqa.Length == 0
                                                            || (from.DefaultSakAtqa(uid7) is { } prev && Hex.TryParse(_sak, out var sak)
-                                                                                                     && sak.SequenceEqual(new[] { prev.Sak }) && atqa.SequenceEqual(prev.Atqa));
+                                                                                                     && sak.SequenceEqual(new[] { prev.Sak }) && atqa.SequenceEqual(SwapAtqa(prev.Atqa)));
         if (!untouched) return;
         Sak = next.Sak.ToString("X2");
-        Atqa = Hex.Spaced(next.Atqa);
+        Atqa = Hex.Spaced(SwapAtqa(next.Atqa));
     }
 
     /// <summary>
@@ -188,7 +188,7 @@ public sealed class CardEditorViewModel : ViewModelBase
     private (byte[] Uid, byte Sak, byte[] Atqa) IdentityBytes() => (
         Hex.TryParse(_uid, out var u) ? u : Array.Empty<byte>(),
         Hex.TryParse(_sak, out var s) && s.Length == 1 ? s[0] : (byte)0,
-        Hex.TryParse(_atqa, out var a) ? a : Array.Empty<byte>());
+        Hex.TryParse(_atqa, out var a) ? SwapAtqa(a) : Array.Empty<byte>());
 
     /// <summary>Blocks past the end of the chosen MIFARE Classic size (dropped on save).</summary>
     private int OverflowBlocks =>
@@ -491,7 +491,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         _source = card;
         _uid = Hex.Spaced(card.Uid);
         _sak = card.Sak.ToString("X2");
-        _atqa = Hex.Spaced(card.Atqa);
+        _atqa = Hex.Spaced(SwapAtqa(card.Atqa));
         _ats = Hex.Spaced(card.Ats);
         this.RaisePropertyChanged(nameof(Uid));
         RaisePyramidFields();
@@ -546,6 +546,7 @@ public sealed class CardEditorViewModel : ViewModelBase
             sak = sakBytes[0];
             atqa = ParseHex(Atqa, "ATQA");
             if (atqa.Length != 2) throw new FormatException("ATQA must be 2 bytes long.");
+            atqa = SwapAtqa(atqa); // field is big-endian (00 04); store device order (04 00)
             ats = ParseHex(Ats, "ATS");
         }
         else
@@ -582,4 +583,10 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     private static byte[] ParseHex(string text, string field) =>
         Hex.TryParse(text, out var b) ? b : throw new FormatException($"{field} must be valid hex.");
+
+    /// <summary>
+    /// Converts ATQA between the high-byte-first form shown and typed in this editor (00 04,
+    /// like ChameleonUltraGUI) and the low-byte-first order the card is stored and sent in (04 00).
+    /// </summary>
+    private static byte[] SwapAtqa(byte[] atqa) => CardTags.SwapAtqa(atqa);
 }

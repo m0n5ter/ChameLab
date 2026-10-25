@@ -187,7 +187,14 @@ public sealed class ToolsViewModel : PageViewModelBase
         if (client is null) return;
         var logs = await client.GetAllMf1DetectionLogsAsync();
 
-        var groups = logs
+        // mfkey32 needs a first authentication, whose nonce is sent in the clear.
+        // A nested auth (a reader authenticating a further sector without dropping the
+        // field, as MCT does when reading a whole card) sends an encrypted nonce, which
+        // mfkey32 would read as a bogus nt and "recover" a wrong but plausible key.
+        var usable = logs.Where(l => !l.IsNested).ToList();
+        var nested = logs.Count - usable.Count;
+
+        var groups = usable
             .GroupBy(l => (l.Block, l.KeyChar))
             .OrderBy(g => g.Key.Block).ThenBy(g => g.Key.KeyChar)
             .Select(g => new NonceGroupViewModel(g.Key.Block, g.Key.KeyChar, g.ToList()))
@@ -200,7 +207,10 @@ public sealed class ToolsViewModel : PageViewModelBase
             this.RaisePropertyChanged(nameof(HasGroups));
             Summary = logs.Count == 0
                 ? "No nonces captured yet. Enable collection and present the card to a reader."
-                : $"{logs.Count} nonce(s) in {groups.Count} group(s).";
+                : $"{usable.Count} nonce(s) in {groups.Count} group(s)."
+                  + (nested > 0
+                        ? $" {nested} nested-auth nonce(s) skipped — mfkey32 needs a first authentication, so read the sector on its own (not as part of a full-card read) to capture one."
+                        : string.Empty);
         });
     });
 

@@ -118,6 +118,14 @@ public static class CardTags
     public static byte[] FixSwappedAtqa(TagSpecificType t, byte[] atqa) =>
         atqa is [0x00, not 0x00] && t.DefaultSakAtqa(false) is not null ? new[] { atqa[1], atqa[0] } : atqa;
 
+    /// <summary>
+    /// Swaps the two ATQA bytes between device order (low byte first, 04 00 — how it is stored,
+    /// sent and written into block 0) and the high-byte-first form shown to the user (00 04, as in
+    /// ChameleonUltraGUI). A value that is not 2 bytes is returned unchanged.
+    /// </summary>
+    public static byte[] SwapAtqa(byte[] atqa) =>
+        atqa.Length == 2 ? new[] { atqa[1], atqa[0] } : atqa;
+
     /// <summary>Whether this GUI can write the card type onto a physical tag (T55xx, magic MFC or Ultralight / NTAG user pages).</summary>
     public static bool CanWriteToTag(this TagSpecificType t) =>
         t.IsMifareClassic()
