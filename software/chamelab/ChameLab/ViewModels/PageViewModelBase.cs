@@ -59,6 +59,9 @@ public abstract class PageViewModelBase : ViewModelBase
     /// <summary>Called when the page becomes visible; override to refresh data.</summary>
     public virtual Task OnActivatedAsync() => Task.CompletedTask;
 
+    /// <summary>Called when the page is left for another; override to undo anything the page set up.</summary>
+    public virtual Task OnDeactivatedAsync() => Task.CompletedTask;
+
     protected void SetStatus(string message, bool isError = false)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>

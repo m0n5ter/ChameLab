@@ -628,7 +628,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                         ct.ThrowIfCancellationRequested();
                         bool ok;
                         try { ok = await Mf1AuthAsync(first, kt, candidate, ct); }
-                        catch { ok = false; }
+                        catch (Exception ex) when (IsRfFailure(ex)) { ok = false; }
                         if (ok) { hit = (kt, candidate); break; }
                     }
                     if (hit is not null) break;
@@ -663,6 +663,13 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     private const int RfAttempts = 4;
 
     /// <summary>
+    /// A failed RF exchange worth retrying or skipping: not a cancellation and not a lost link,
+    /// which would otherwise fail every remaining key and block one by one.
+    /// </summary>
+    private bool IsRfFailure(Exception ex) =>
+        ex is not (OperationCanceledException or ChameleonDisconnectedException) && !conn.IsClosed;
+
+    /// <summary>
     /// Authenticates with a key that is expected to work, retrying transient RF failures
     /// (a card slightly off the antenna drops individual exchanges).
     /// </summary>
@@ -672,8 +679,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             ct.ThrowIfCancellationRequested();
             try { if (await Mf1AuthAsync(block, keyType, key, ct)) return true; }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-            catch { /* retry */ }
+            catch (Exception ex) when (IsRfFailure(ex)) { /* retry */ }
         }
         return false;
     }
@@ -689,8 +695,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 var data = await Mf1ReadBlockAsync(block, keyType, key, ct);
                 if (data.Length == 16) return data;
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-            catch { /* retry */ }
+            catch (Exception ex) when (IsRfFailure(ex)) { /* retry */ }
         }
         return null;
     }
@@ -1414,12 +1419,14 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// Writes the user pages of a saved Ultralight / NTAG card onto the card on the reader with
     /// the standard WRITE command. The UID pages, lock bytes, capability container / OTP and the
     /// configuration pages are left untouched, so a write can never lock or misconfigure the card.
-    /// Returns the pages the card refused.
+    /// Returns the pages the card refused. Per-page states go to <paramref name="pages"/>
+    /// (first a Pending tick covering every page of the card, so a listener can size itself).
     /// </summary>
     /// <param name="pwd">Optional 4-byte PWD of the target card when its pages are write-protected.</param>
     public async Task<IReadOnlyList<int>> WriteUltralightUserPagesAsync(
         CardSave card, byte[]? pwd = null,
-        IProgress<MifareProgress>? progress = null, CancellationToken ct = default)
+        IProgress<MifareProgress>? progress = null, CancellationToken ct = default,
+        IProgress<MifareBlockProgress>? pages = null)
     {
         if (pwd is { Length: 0 }) pwd = null;
         if (pwd is { Length: not 4 })
@@ -1433,9 +1440,10 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             throw new ChameleonException($"Not an Ultralight / NTAG card (SAK {tags[0].Sak:X2}).", Status.HfTagNo);
 
         var (first, end) = UltralightUserPages(card.Tag);
-        var pages = Enumerable.Range(first, Math.Max(0, Math.Min(end, card.Data.Count) - first))
+        var targets = Enumerable.Range(first, Math.Max(0, Math.Min(end, card.Data.Count) - first))
             .Where(p => card.Data[p].Length == 4)
             .ToList();
+        pages?.Report(new MifareBlockProgress(0, Math.Max(card.Tag.UltralightPages(), card.Data.Count), MifareBlockState.Pending));
 
         var failed = new List<int>();
         var written = 0;
@@ -1445,19 +1453,21 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 throw new ChameleonException("The card did not accept the password.", Status.HfTagNo);
 
             bool live = pwd is not null; // still selected (and authenticated) after PWD_AUTH
-            for (var i = 0; i < pages.Count; i++)
+            for (var i = 0; i < targets.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
-                var page = pages[i];
+                var page = targets[i];
+                pages?.Report(new MifareBlockProgress(page, 1, MifareBlockState.Reading));
                 var ok = await UltralightWritePageAsync(page, card.Data[page], live, pwd, ct);
                 live = ok;
                 if (ok) written++; else failed.Add(page);
-                progress?.Report(new MifareProgress(i + 1, pages.Count, written));
+                pages?.Report(new MifareBlockProgress(page, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
+                progress?.Report(new MifareProgress(i + 1, targets.Count, written));
             }
         }
         finally
         {
-            await FieldOffAsync(CancellationToken.None);
+            if (!conn.IsClosed) await FieldOffAsync(CancellationToken.None);
         }
         return failed;
     }
@@ -1497,8 +1507,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 var r = await Hf14aRawAsync(opt, cmd, ct: ct);
                 if (r.Length > 0 && (r[0] & 0x0f) == 0x0a) return true;
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-            catch { /* retry */ }
+            catch (Exception ex) when (IsRfFailure(ex)) { /* retry */ }
         }
         return false;
     }
@@ -1523,8 +1532,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             var pack = await Hf14aRawAsync(opt | RawOpt.AutoSelect, PwdAuth(pwd), ct: ct);
             return pack.Length == 2 ? await Hf14aRawAsync(opt, command, ct: ct) : [];
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-        catch { return []; }
+        catch (Exception ex) when (IsRfFailure(ex)) { return []; }
     }
 
     /// <summary>READ of four pages from <paramref name="page"/>, retrying transient RF failures; null if refused.</summary>
@@ -1544,8 +1552,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     private async Task FieldOffAsync(CancellationToken ct)
     {
         try { await Hf14aRawAsync(RawOpt.None, [], ct: ct); }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-        catch { /* best effort */ }
+        catch (Exception ex) when (IsRfFailure(ex)) { /* best effort */ }
     }
 
     // ---- Raw ISO14443-A exchange (Hf14aRaw) ---------------------------
@@ -1645,22 +1652,24 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// <item>Gen2 / CUID — each sector is authenticated with the dump's own keys, then the dictionary; every block including block 0 is written normally.</item>
     /// <item>Gen3 — data blocks are written like Gen2, and block 0 is set with the backdoor command.</item>
     /// </list>
-    /// Returns the blocks that could not be written.
+    /// Returns the blocks that could not be written. Per-block states go to <paramref name="blocks"/>
+    /// (first a Pending tick covering the whole card, so a listener can size itself).
     /// </summary>
     public Task<IReadOnlyList<int>> WriteMifareDumpToCardAsync(
         MifareDump dump, IReadOnlyList<byte[]> keyDict, MagicGeneration gen = MagicGeneration.Gen2,
-        IProgress<MifareProgress>? progress = null, CancellationToken ct = default)
+        IProgress<MifareProgress>? progress = null, CancellationToken ct = default,
+        IProgress<MifareBlockProgress>? blocks = null)
         => gen switch
         {
-            MagicGeneration.Gen1a => WriteGen1aAsync(dump, progress, ct),
-            MagicGeneration.Gen3 => WriteGen2Or3Async(dump, keyDict, backdoorBlock0: true, progress, ct),
-            _ => WriteGen2Or3Async(dump, keyDict, backdoorBlock0: false, progress, ct),
+            MagicGeneration.Gen1a => WriteGen1aAsync(dump, progress, blocks, ct),
+            MagicGeneration.Gen3 => WriteGen2Or3Async(dump, keyDict, backdoorBlock0: true, progress, blocks, ct),
+            _ => WriteGen2Or3Async(dump, keyDict, backdoorBlock0: false, progress, blocks, ct),
         };
 
     /// <summary>Gen2 / Gen3 shared path: auth + write each block, with Gen3's backdoor used for block 0.</summary>
     private async Task<IReadOnlyList<int>> WriteGen2Or3Async(
         MifareDump dump, IReadOnlyList<byte[]> keyDict, bool backdoorBlock0,
-        IProgress<MifareProgress>? progress, CancellationToken ct)
+        IProgress<MifareProgress>? progress, IProgress<MifareBlockProgress>? blocks, CancellationToken ct)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
@@ -1670,6 +1679,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var failed = new List<int>();
         var total = dump.BlockCount;
         var written = 0;
+        blocks?.Report(new MifareBlockProgress(0, total, MifareBlockState.Pending));
 
         for (var s = 0; s < dump.SectorCount; s++)
         {
@@ -1688,6 +1698,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 var block = first + b;
                 var data = dump.GetBlock(block);
                 if (data is null || data.Length != 16) continue;
+                blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Reading));
 
                 bool ok;
                 if (block == 0 && backdoorBlock0)
@@ -1704,11 +1715,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                         {
                             if (await Mf1WriteBlockAsync(block, kt, key, data, ct)) { ok = true; break; }
                         }
-                        catch { /* try the next key */ }
+                        catch (Exception ex) when (IsRfFailure(ex)) { /* try the next key */ }
                     }
                 }
 
                 if (ok) written++; else failed.Add(block);
+                blocks?.Report(new MifareBlockProgress(block, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
                 progress?.Report(new MifareProgress(block + 1, total, written));
             }
         }
@@ -1742,7 +1754,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             newUid.CopyTo(uidCmd, 5);
             await Hf14aRawAsync(opt, uidCmd, timeoutMs: 1000, ct: ct);
         }
-        catch { /* the card reboots without answering */ }
+        catch (Exception ex) when (IsRfFailure(ex)) { /* the card reboots without answering */ }
 
         // The card reboots after the backdoor write; give it a moment, then confirm by UID.
         await Task.Delay(500, ct);
@@ -1751,18 +1763,19 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             var tags = await Hf14aScanAsync(ct);
             return tags.Count > 0 && tags[0].Uid.AsSpan().SequenceEqual(newUid);
         }
-        catch { return false; }
+        catch (Exception ex) when (IsRfFailure(ex)) { return false; }
     }
 
     /// <summary>Gen1a path: write every block raw with no authentication (block 0 included).</summary>
     private async Task<IReadOnlyList<int>> WriteGen1aAsync(
-        MifareDump dump, IProgress<MifareProgress>? progress, CancellationToken ct)
+        MifareDump dump, IProgress<MifareProgress>? progress, IProgress<MifareBlockProgress>? blocks, CancellationToken ct)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
 
         var failed = new List<int>();
         var total = dump.BlockCount;
         var written = 0;
+        blocks?.Report(new MifareBlockProgress(0, total, MifareBlockState.Pending));
 
         try
         {
@@ -1772,14 +1785,17 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 var data = dump.GetBlock(block);
                 if (data is null || data.Length != 16) continue;
 
+                blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Reading));
                 var ok = await Gen1aWriteBlockAsync(block, data, ct);
                 if (ok) written++; else failed.Add(block);
+                blocks?.Report(new MifareBlockProgress(block, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
                 progress?.Report(new MifareProgress(block + 1, total, written));
             }
         }
         finally
         {
-            await DropFieldAsync(ct);
+            // Also after a cancel: the field must not stay on.
+            if (!conn.IsClosed) await DropFieldAsync(CancellationToken.None);
         }
 
         return failed;
@@ -1811,8 +1827,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 if (output.Length > 0 && (output[0] & 0x0f) == 0x0a) return true;
                 await Task.Delay(100, ct);
             }
-            catch (OperationCanceledException) { throw; }
-            catch { /* retry */ }
+            catch (Exception ex) when (IsRfFailure(ex)) { /* retry */ }
         }
         return false;
     }

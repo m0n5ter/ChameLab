@@ -34,6 +34,10 @@ public class BlockStrip : Control
     public static readonly StyledProperty<string> LockedTextProperty =
         AvaloniaProperty.Register<BlockStrip, string>(nameof(LockedText), "No key");
 
+    /// <summary>The strip tracks a write rather than a dump; only the tooltip wording changes.</summary>
+    public static readonly StyledProperty<bool> IsWriteProperty =
+        AvaloniaProperty.Register<BlockStrip, bool>(nameof(IsWrite));
+
     public static readonly StyledProperty<IBrush?> PendingBrushProperty =
         AvaloniaProperty.Register<BlockStrip, IBrush?>(nameof(PendingBrush), Brushes.Gray);
 
@@ -82,6 +86,7 @@ public class BlockStrip : Control
 
     public string Unit { get => GetValue(UnitProperty); set => SetValue(UnitProperty, value); }
     public string LockedText { get => GetValue(LockedTextProperty); set => SetValue(LockedTextProperty, value); }
+    public bool IsWrite { get => GetValue(IsWriteProperty); set => SetValue(IsWriteProperty, value); }
 
     public IBrush? PendingBrush { get => GetValue(PendingBrushProperty); set => SetValue(PendingBrushProperty, value); }
     public IBrush? ReadingBrush { get => GetValue(ReadingBrushProperty); set => SetValue(ReadingBrushProperty, value); }
@@ -141,12 +146,21 @@ public class BlockStrip : Control
             : null);
     }
 
-    private string Describe(MifareBlockState s) => s switch
-    {
-        MifareBlockState.Reading => "reading…",
-        MifareBlockState.Read => "read",
-        MifareBlockState.ReadError => "read failed",
-        MifareBlockState.NoKey => LockedText.ToLowerInvariant(),
-        _ => "not read yet",
-    };
+    private string Describe(MifareBlockState s) => IsWrite
+        ? s switch
+        {
+            MifareBlockState.Reading => "writing…",
+            MifareBlockState.Read => "written",
+            MifareBlockState.ReadError => "write failed",
+            MifareBlockState.NoKey => LockedText.ToLowerInvariant(),
+            _ => "not written",
+        }
+        : s switch
+        {
+            MifareBlockState.Reading => "reading…",
+            MifareBlockState.Read => "read",
+            MifareBlockState.ReadError => "read failed",
+            MifareBlockState.NoKey => LockedText.ToLowerInvariant(),
+            _ => "not read yet",
+        };
 }

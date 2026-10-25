@@ -348,7 +348,6 @@
                 <CheckBox Content="Gen1A magic mode" IsChecked="{Binding Gen1a}" />
                 <CheckBox Content="Gen2 magic mode" IsChecked="{Binding Gen2}" />
                 <CheckBox Content="Use UID/SAK/ATQA from block 0" IsChecked="{Binding BlockAntiColl}" />
-                <CheckBox Content="Collect nonces (mfkey32 detection)" IsChecked="{Binding MfcDetection}" />
                 <CheckBox Content="Reset on field off" IsChecked="{Binding FieldOffReset}" />
                 <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                   <TextBlock Text="Write mode" VerticalAlignment="Center" />

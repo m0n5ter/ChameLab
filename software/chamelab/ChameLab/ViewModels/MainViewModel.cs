@@ -34,7 +34,7 @@ public sealed class MainViewModel : ViewModelBase
         Slots = new SlotsViewModel(device, cards);
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries);
-        Tools = new ToolsViewModel(device);
+        Tools = new ToolsViewModel(device, dictionaries);
         AppUpdate = new AppUpdateViewModel();
         Settings = new SettingsViewModel(device, cards, dictionaries, AppUpdate);
 
@@ -199,8 +199,10 @@ public sealed class MainViewModel : ViewModelBase
     private async Task NavigateAsync(PageViewModelBase page)
     {
         if (page is null) return;
+        var leaving = CurrentPage;
         CurrentPage = page;
         if (IsCompact) IsPaneOpen = false;
+        if (!ReferenceEquals(leaving, page)) await leaving.OnDeactivatedAsync();
         await page.OnActivatedAsync();
     }
 
@@ -237,6 +239,8 @@ public sealed class MainViewModel : ViewModelBase
         Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
         {
             IsConnected = state == ConnectionState.Connected;
+            // Let the page being left undo anything it set up on the device before the mode switches.
+            await CurrentPage.OnDeactivatedAsync();
             if (state == ConnectionState.Connected)
             {
                 _connect.StopWatching();

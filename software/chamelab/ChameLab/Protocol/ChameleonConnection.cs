@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Transport;
@@ -11,6 +12,13 @@ public sealed class ChameleonException : Exception
 {
     public Status Status { get; }
     public ChameleonException(string message, Status status) : base(message) => Status = status;
+}
+
+/// <summary>The link to the device is gone (unplugged, out of range or closed); no command can succeed.</summary>
+public sealed class ChameleonDisconnectedException : IOException
+{
+    public ChameleonDisconnectedException(Exception? inner = null)
+        : base("The Chameleon was disconnected.", inner) { }
 }
 
 /// <summary>
@@ -27,11 +35,15 @@ public sealed class ChameleonConnection : IAsyncDisposable
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly ConcurrentDictionary<Command, SemaphoreSlim> _commandLocks = new();
     private Task? _readLoop;
+    private volatile bool _closed;
 
     public ChameleonConnection(ITransport transport) => _transport = transport;
 
     public ITransport Transport => _transport;
     public bool IsConnected => _transport.IsConnected;
+
+    /// <summary>The link dropped or was disposed: every further command fails at once.</summary>
+    public bool IsClosed => _closed;
 
     /// <summary>Raised (on a background thread) when the link drops unexpectedly.</summary>
     public event Action<Exception?>? Disconnected;
@@ -64,7 +76,8 @@ public sealed class ChameleonConnection : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            FailAllPending(ex);
+            _closed = true;
+            FailAllPending(new ChameleonDisconnectedException(ex));
             Disconnected?.Invoke(ex);
         }
     }
@@ -83,32 +96,44 @@ public sealed class ChameleonConnection : IAsyncDisposable
     {
         // Responses carry only the command id, so two callers sending the same command at once
         // would get each other's answer (or one would wait forever): they take turns.
+        if (_closed) throw new ChameleonDisconnectedException();
         var turn = _commandLocks.GetOrAdd(cmd, _ => new SemaphoreSlim(1, 1));
         await turn.WaitAsync(ct);
         try
         {
+            if (_closed) throw new ChameleonDisconnectedException();
             var tcs = new TaskCompletionSource<ChameleonFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
             _pending[cmd] = tcs;
 
-            var frame = FrameCodec.Encode(cmd, data ?? Array.Empty<byte>(), status);
-            await _writeLock.WaitAsync(ct);
-            try
-            {
-                await _transport.WriteAsync(frame, ct);
-            }
-            finally
-            {
-                _writeLock.Release();
-            }
-
+            // The timeout covers the write too: a write to an unplugged port may never complete.
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeoutCts.CancelAfter(timeoutMs);
             await using var reg = timeoutCts.Token.Register(() =>
             {
                 // Only this request's entry: a later one for the same command must not be failed.
                 _pending.TryRemove(new KeyValuePair<Command, TaskCompletionSource<ChameleonFrame>>(cmd, tcs));
-                tcs.TrySetException(new TimeoutException($"Command {cmd} timed out after {timeoutMs} ms."));
+                if (ct.IsCancellationRequested) tcs.TrySetCanceled(ct);
+                else tcs.TrySetException(new TimeoutException($"Command {cmd} timed out after {timeoutMs} ms."));
             });
+
+            var frame = FrameCodec.Encode(cmd, data ?? Array.Empty<byte>(), status);
+            await _writeLock.WaitAsync(timeoutCts.Token);
+            try
+            {
+                await _transport.WriteAsync(frame, timeoutCts.Token);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+            {
+                _pending.TryRemove(new KeyValuePair<Command, TaskCompletionSource<ChameleonFrame>>(cmd, tcs));
+                // A write timing out (or failing) on its own: report it like a reply that never came.
+                if (_closed || ex is IOException or InvalidOperationException or ObjectDisposedException)
+                    throw new ChameleonDisconnectedException(ex);
+                throw new TimeoutException($"Command {cmd} timed out after {timeoutMs} ms.", ex);
+            }
+            finally
+            {
+                _writeLock.Release();
+            }
 
             return await tcs.Task;
         }
@@ -132,6 +157,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        _closed = true;
         _cts.Cancel();
         // Close the transport before awaiting the read loop: some streams (SerialPort on
         // Windows) ignore the cancellation token, so only closing unblocks a pending read.
@@ -140,7 +166,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
         {
             try { await loop.WaitAsync(TimeSpan.FromSeconds(2)); } catch { /* ignore */ }
         }
-        FailAllPending(new ObjectDisposedException(nameof(ChameleonConnection)));
+        FailAllPending(new ChameleonDisconnectedException());
         _cts.Dispose();
     }
 }

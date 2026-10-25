@@ -538,7 +538,7 @@
                 <StackPanel Spacing="6" IsVisible="{Binding IsMifareWrite}">
                   <TextBlock Text="MAGIC GENERATION" Classes="overline" />
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <ComboBox Grid.Column="0" HorizontalAlignment="Stretch"
+                    <ComboBox Grid.Column="0" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsWriting}"
                               ItemsSource="{Binding MagicGenerations}"
                               SelectedItem="{Binding SelectedGeneration}">
                       <ComboBox.ItemTemplate>
@@ -547,7 +547,7 @@
                         </DataTemplate>
                       </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Grid.Column="1" Command="{Binding DetectCommand}" IsEnabled="{Binding IsConnected}"
+                    <Button Grid.Column="1" Command="{Binding DetectCommand}" IsEnabled="{Binding !IsWriting}"
                             ToolTip.Tip="Probe the card on the reader and pick its generation">
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <PathIcon Data="{StaticResource Icon.scan}" />
@@ -562,7 +562,7 @@
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                     <TextBlock Text="Password" Classes="caption" VerticalAlignment="Center" />
                     <c:HexBox Grid.Column="1" Text="{Binding WritePassword}" ByteLengths="4"
-                              PlaceholderText="Optional"
+                              IsEnabled="{Binding !IsWriting}" PlaceholderText="Optional"
                               ToolTip.Tip="PWD (4 bytes) of the target card, when its pages are write-protected" />
                   </Grid>
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WritePasswordError}"
@@ -577,15 +577,47 @@
                            Text="Connect a Chameleon to write cards." />
                 <TextBlock Classes="caption" Text="{Binding ProgressText}"
                            b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding ProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                  <Button Content="Cancel" Command="{Binding CloseActionCommand}" />
-                  <Button Classes="accent" Command="{Binding WriteNowCommand}" IsEnabled="{Binding IsConnected}">
+
+                <!-- Block strip: one cell per block / page, as for a dump; kept after the write. -->
+                <StackPanel Spacing="4" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasWriteBlocks}">
+                  <c:BlockStrip States="{Binding WriteBlockStates}" Unit="{Binding WriteUnit}" IsWrite="True"
+                                HorizontalAlignment="Stretch" />
+                  <WrapPanel ItemSpacing="14" LineSpacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend" Margin="0" />
+                      <TextBlock Text="Not written" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend reading" Margin="0" />
+                      <TextBlock Text="Writing" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend read" Margin="0" />
+                      <TextBlock Text="Written" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend readerror" Margin="0" />
+                      <TextBlock Text="Write error" Classes="caption" />
+                    </StackPanel>
+                  </WrapPanel>
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                  <TextBlock Classes="caption" Text="{Binding WriteProgressText}"
+                             VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                             IsVisible="{Binding IsWriting}" />
+                  <!-- While a write runs, Cancel stops it and the writer stays open to show the result;
+                       otherwise the button is Close. -->
+                  <Button Grid.Column="1" Content="{Binding CancelWriteLabel}" Command="{Binding CancelWriteCommand}"
+                          ToolTip.Tip="{Binding CancelWriteTip}" />
+                  <Button Grid.Column="2" Classes="accent" Command="{Binding WriteNowCommand}"
+                          IsEnabled="{Binding IsConnected}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <PathIcon Data="{StaticResource Icon.upload}" />
                       <TextBlock Text="Write" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>
-                </StackPanel>
+                </Grid>
               </StackPanel>
             </StackPanel>
           </Border>
