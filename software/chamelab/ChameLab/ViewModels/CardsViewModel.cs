@@ -80,6 +80,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
     private bool _isUltralightDump;
     private string? _dumpPassword;
     private string? _writePassword;
+    private string? _writeLfPassword;
+    private string? _writeLfNewKey;
     private bool _hasDump;
     private string? _dumpProgressText;
     private CancellationTokenSource? _dumpCts;
@@ -153,7 +155,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         LoadToSlotCommand = ReactiveCommand.CreateFromTask<SlotTargetViewModel>(LoadToSlotAsync, connected);
         RefreshSlotsCommand = ReactiveCommand.CreateFromTask(RefreshSlotsAsync, connected);
         WriteNowCommand = ReactiveCommand.CreateFromTask(WriteAsync,
-            this.WhenAnyValue(x => x.IsConnected, x => x.WritePasswordError, (online, error) => online && error is null));
+            this.WhenAnyValue(x => x.IsConnected, x => x.WritePasswordError, x => x.WriteLfPasswordError,
+                x => x.WriteLfNewKeyError,
+                (online, ulError, lfError, lfNewError) => online && ulError is null && lfError is null && lfNewError is null));
         DetectCommand = ReactiveCommand.CreateFromTask(DetectAsync, connected);
         ResetFiltersCommand = ReactiveCommand.Create(ResetFilters, this.WhenAnyValue(x => x.HasFilters));
 
@@ -1460,6 +1464,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>The writer targets an Ultralight / NTAG card: only its user pages are written.</summary>
     public bool IsUltralightWrite => ActionTag?.IsUltralight() == true;
 
+    /// <summary>The writer targets an LF (T55xx) tag, so the unlock password applies.</summary>
+    public bool IsLfWrite => ActionTag is { } t && t.SenseType() == TagSenseType.Lf && t.CanWriteToTag();
+
     /// <summary>Optional 4-byte PWD of the target Ultralight EV1 / NTAG card when its pages are write-protected.</summary>
     public string? WritePassword
     {
@@ -1475,6 +1482,48 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
     public string? WritePasswordError =>
         !IsUltralightWrite || string.IsNullOrWhiteSpace(_writePassword) ? null
         : !Hex.TryParse(_writePassword, out var key) ? "Not a hex value."
+        : key.Length == 4 ? null
+        : "The password is 4 bytes.";
+
+    /// <summary>
+    /// Optional 4-byte password of an already-locked T55xx tag, tried before the firmware's
+    /// defaults to unlock it. Left empty for a blank tag.
+    /// </summary>
+    public string? WriteLfPassword
+    {
+        get => _writeLfPassword;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _writeLfPassword, value);
+            this.RaisePropertyChanged(nameof(WriteLfPasswordError));
+        }
+    }
+
+    /// <summary>Why <see cref="WriteLfPassword"/> can't be used; null when it is empty or valid.</summary>
+    public string? WriteLfPasswordError =>
+        !IsLfWrite || string.IsNullOrWhiteSpace(_writeLfPassword) ? null
+        : !Hex.TryParse(_writeLfPassword, out var key) ? "Not a hex value."
+        : key.Length == 4 ? null
+        : "The password is 4 bytes.";
+
+    /// <summary>
+    /// Optional 4-byte password the T55xx tag is locked with after the write (the firmware always
+    /// sets the PWD bit). Empty uses the firmware default (0x20206666).
+    /// </summary>
+    public string? WriteLfNewKey
+    {
+        get => _writeLfNewKey;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _writeLfNewKey, value);
+            this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
+        }
+    }
+
+    /// <summary>Why <see cref="WriteLfNewKey"/> can't be used; null when it is empty or valid.</summary>
+    public string? WriteLfNewKeyError =>
+        !IsLfWrite || string.IsNullOrWhiteSpace(_writeLfNewKey) ? null
+        : !Hex.TryParse(_writeLfNewKey, out var key) ? "Not a hex value."
         : key.Length == 4 ? null
         : "The password is 4 bytes.";
 
@@ -1524,8 +1573,11 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(CanWriteSelected));
         this.RaisePropertyChanged(nameof(IsMifareWrite));
         this.RaisePropertyChanged(nameof(IsUltralightWrite));
+        this.RaisePropertyChanged(nameof(IsLfWrite));
         this.RaisePropertyChanged(nameof(WriteUnit));
         this.RaisePropertyChanged(nameof(WritePasswordError));
+        this.RaisePropertyChanged(nameof(WriteLfPasswordError));
+        this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
         this.RaisePropertyChanged(nameof(WriteKind));
         this.RaisePropertyChanged(nameof(WriteWarning));
     }
@@ -1667,7 +1719,16 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (card.Tag.SenseType() == TagSenseType.Lf)
             {
-                await client.WriteLfToT55xxAsync(card.Tag, card.Uid, ct: cts.Token);
+                // The current password unlocks the tag; it is tried before the firmware's defaults.
+                var hasCurrent = Hex.TryParse(WriteLfPassword, out var lfKey) && lfKey.Length == 4;
+                IReadOnlyList<byte[]>? oldKeys = hasCurrent ? [lfKey, .. ChameleonClient.DefaultT55xxOldKeys] : null;
+                // The password the tag is locked with afterwards. An empty New password keeps the
+                // current one, so the tag is not silently re-locked with the firmware default; with
+                // no current password either (a blank tag) it falls back to the firmware default.
+                var newKey = Hex.TryParse(WriteLfNewKey, out var nk) && nk.Length == 4 ? nk
+                    : hasCurrent ? lfKey
+                    : null;
+                await client.WriteLfToT55xxAsync(card.Tag, card.Uid, newKey: newKey, oldKeys: oldKeys, ct: cts.Token);
                 SetStatus($"Wrote “{card.Name}” to the T55xx tag.");
                 return;
             }

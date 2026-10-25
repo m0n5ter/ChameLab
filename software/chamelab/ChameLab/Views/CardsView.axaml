@@ -570,6 +570,26 @@
                              IsVisible="{Binding WritePasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </StackPanel>
 
+                <!-- T55xx: current password (to unlock a locked tag) and the new password it's locked with -->
+                <StackPanel Spacing="4" IsVisible="{Binding IsLfWrite}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="6">
+                    <TextBlock Grid.Row="0" Text="Current password" Classes="caption" VerticalAlignment="Center" />
+                    <c:HexBox Grid.Row="0" Grid.Column="1" Text="{Binding WriteLfPassword}" ByteLengths="4"
+                              IsEnabled="{Binding !IsWriting}" PlaceholderText="Optional"
+                              ToolTip.Tip="Password (4 bytes) of an already-locked T55xx tag. Leave empty for a blank tag; the firmware's default passwords are tried too." />
+                    <TextBlock Grid.Row="1" Text="New password" Classes="caption" VerticalAlignment="Center" />
+                    <c:HexBox Grid.Row="1" Grid.Column="1" Text="{Binding WriteLfNewKey}" ByteLengths="4"
+                              IsEnabled="{Binding !IsWriting}" PlaceholderText="Keep current"
+                              ToolTip.Tip="Password (4 bytes) the tag is locked with after the write. Empty keeps the current password, or the firmware default (20206666) for a blank tag." />
+                  </Grid>
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteLfPasswordError}"
+                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                             IsVisible="{Binding WriteLfPasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteLfNewKeyError}"
+                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                             IsVisible="{Binding WriteLfNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </StackPanel>
+
                 <Border Classes="inset">
                   <TextBlock Text="{Binding WriteWarning}" TextWrapping="Wrap" />
                 </Border>

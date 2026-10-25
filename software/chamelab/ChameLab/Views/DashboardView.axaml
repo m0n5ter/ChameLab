@@ -50,6 +50,17 @@
     <Style Selector="Border.chip.off">
       <Setter Property="Opacity" Value="0.4" />
     </Style>
+    <!-- Operating mode switch: sized to its labels, not the card. -->
+    <Style Selector="Border.segmented.compact">
+      <Setter Property="Padding" Value="2" />
+    </Style>
+    <Style Selector="Border.segmented.compact RadioButton.segment /template/ Border#PART_Bg">
+      <Setter Property="Padding" Value="10,5" />
+    </Style>
+    <Style Selector="Border.segmented.compact RadioButton.segment PathIcon">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+    </Style>
   </UserControl.Styles>
 
   <ScrollViewer>
@@ -111,17 +122,17 @@
         <Border Classes="card">
           <StackPanel Spacing="12">
             <TextBlock Text="OPERATING MODE" Classes="overline" />
-            <Border Classes="segmented">
-              <UniformGrid Columns="2">
+            <Border Classes="segmented compact" HorizontalAlignment="Left">
+              <UniformGrid Rows="1">
                 <RadioButton Classes="segment" GroupName="DeviceMode"
                              IsChecked="{Binding ReaderMode, Converter={x:Static conv:InverseBoolConverter.Instance}}">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
                     <PathIcon Data="{StaticResource Icon.card}" />
                     <TextBlock Text="Emulator" FontWeight="SemiBold" VerticalAlignment="Center" />
                   </StackPanel>
                 </RadioButton>
                 <RadioButton Classes="segment" GroupName="DeviceMode" IsChecked="{Binding ReaderMode}">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
                     <PathIcon Data="{StaticResource Icon.scan}" />
                     <TextBlock Text="Reader" FontWeight="SemiBold" VerticalAlignment="Center" />
                   </StackPanel>

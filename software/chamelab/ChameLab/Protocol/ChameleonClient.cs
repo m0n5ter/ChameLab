@@ -514,6 +514,27 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var f = await conn.SendAsync(cmd, [.. buf], timeoutMs: 5000, ct: ct);
         if (f.Status != Status.LfTagOk)
             throw new ChameleonException($"T55xx write failed: {f.Status.Describe()}", f.Status);
+
+        // A T55xx tag never ACKs a write, so the firmware reports success blindly: a tag
+        // locked with a password we don't have silently rejects every block. Read the ID
+        // back and confirm it actually landed.
+        byte[] readBack;
+        try
+        {
+            readBack = type.IsEm410x() ? (await Em410xScanAsync(ct)).Id : (await LfScanAsync(type, ct)).Id;
+        }
+        catch (ChameleonException e)
+        {
+            throw new ChameleonException(
+                "Wrote the tag but could not read it back to confirm. It may be locked with a different " +
+                "password, or it is not a writable T55xx — enter the tag's current password and try again.",
+                e.Status);
+        }
+        if (!readBack.AsSpan().SequenceEqual(id))
+            throw new ChameleonException(
+                "The tag read back a different ID, so the write did not take. It is most likely locked with a " +
+                "different password — enter the tag's current password and try again.",
+                Status.LfTagOk);
     }
 
     // ---- MIFARE Classic ------------------------------------------------
