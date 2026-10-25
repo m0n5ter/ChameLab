@@ -7,6 +7,10 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.0.13][2026-10-26] · firmware v2.3.3-cl
+ - Release notes list the SHA-256 checksums of the files
+ - v1.0.12 was not published (its release could not be created); its changes ship in this release
+
 ## [v1.0.12][2026-10-26] · firmware v2.3.3-cl
  - ChameLab: saved cards can be filed in folders (one level), shown A–Z (Folder 2 before Folder 10) indented under Cards in the navigation pane with their card counts; Cards itself lists the cards in no folder, followed by the folders as tiles, and the back arrow beside a folder's title returns to it. The + on Cards adds a folder, and the pencil / bin buttons on a folder (on hover, or right-click) rename or delete it (its cards go back to Cards). Drag a card onto a folder (in the navigation pane or a tile) to move it there, or onto Cards to take it out; the Folder button of an open card does the same. New and imported cards go into the folder shown
  - ChameLab: the navigation pane keeps its layout while it slides open or shut
