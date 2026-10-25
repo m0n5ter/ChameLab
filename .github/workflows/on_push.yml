@@ -48,6 +48,15 @@ jobs:
           path: release-artifacts
       - name: Put the versions into the file names
         run: bash .github/scripts/name-release-files.sh release-artifacts ${{ needs.gui_pipeline.outputs.version }} ${{ needs.firmware_pipeline.outputs.version }}
+      - name: Checksum the files
+        id: checksums
+        run: |
+          # Lets people check a download that won't install or unpack
+          {
+            echo 'sha256<<EOF'
+            (cd release-artifacts && sha256sum -- *)
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
       - name: Drop the previous dev release
         # Uploading only adds and replaces files, so renamed or dropped ones would linger
         env:
@@ -62,6 +71,11 @@ jobs:
             For development purposes only.
             These are not tested, here be dragons.
             Built from commit ${{ github.sha }}
+
+            SHA-256:
+            ```
+            ${{ steps.checksums.outputs.sha256 }}
+            ```
           tag_name: dev
           name: ChameLab v${{ needs.gui_pipeline.outputs.version }} (development)
           draft: false
@@ -127,6 +141,15 @@ jobs:
           path: release-artifacts
       - name: Put the versions into the file names
         run: bash .github/scripts/name-release-files.sh release-artifacts ${{ needs.gui_pipeline.outputs.version }} ${{ needs.firmware_pipeline.outputs.version }}
+      - name: Checksum the files
+        id: checksums
+        run: |
+          # Lets people check a download that won't install or unpack
+          {
+            echo 'sha256<<EOF'
+            (cd release-artifacts && sha256sum -- *)
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
       - name: Upload to tagged release
         uses: softprops/action-gh-release@v3
         with:
@@ -138,6 +161,11 @@ jobs:
             - `chamelab-<version>-android.apk`: ChameLab for Android (BLE)
             - `client-<version>-<os>.zip`: command line client
             Built from commit ${{ github.sha }}
+
+            SHA-256:
+            ```
+            ${{ steps.checksums.outputs.sha256 }}
+            ```
           name: ChameLab ${{ github.ref_name }}
           draft: false
           # The newest release is the latest, whatever older tags say
