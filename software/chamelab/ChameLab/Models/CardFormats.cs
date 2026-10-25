@@ -93,22 +93,30 @@ public static class CardTags
     }
 
     /// <summary>
-    /// Usual SAK and ATQA (as displayed, high byte first) of a MIFARE Classic or Ultralight
-    /// type, for a 4- or 7-byte UID; null for other types.
+    /// Usual SAK and ATQA of a MIFARE Classic or Ultralight type, for a 4- or 7-byte UID;
+    /// null for other types. ATQA is in device order (as sent, low byte first), like a scan.
     /// </summary>
     public static (byte Sak, byte[] Atqa)? DefaultSakAtqa(this TagSpecificType t, bool sevenByteUid)
     {
         var uidBit = sevenByteUid ? (byte)0x40 : (byte)0;
         return t switch
         {
-            TagSpecificType.MifareMini => (0x09, new byte[] { 0x00, (byte)(0x04 | uidBit) }),
-            TagSpecificType.Mifare1024 => (0x08, new byte[] { 0x00, (byte)(0x04 | uidBit) }),
-            TagSpecificType.Mifare2048 => (0x19, new byte[] { 0x00, (byte)(0x04 | uidBit) }),
-            TagSpecificType.Mifare4096 => (0x18, new byte[] { 0x00, (byte)(0x02 | uidBit) }),
-            _ when t.IsUltralight() => (0x00, new byte[] { 0x00, 0x44 }),
+            TagSpecificType.MifareMini => (0x09, new byte[] { (byte)(0x04 | uidBit), 0x00 }),
+            TagSpecificType.Mifare1024 => (0x08, new byte[] { (byte)(0x04 | uidBit), 0x00 }),
+            TagSpecificType.Mifare2048 => (0x19, new byte[] { (byte)(0x04 | uidBit), 0x00 }),
+            TagSpecificType.Mifare4096 => (0x18, new byte[] { (byte)(0x02 | uidBit), 0x00 }),
+            _ when t.IsUltralight() => (0x00, new byte[] { 0x44, 0x00 }),
             _ => null,
         };
     }
+
+    /// <summary>
+    /// Puts a MIFARE Classic / Ultralight ATQA saved high byte first (00 04, as older cards
+    /// entered by hand and some imports have it) back in device order. A valid ATQA of these
+    /// types never has a zero low byte, so the swap cannot hit a correct one.
+    /// </summary>
+    public static byte[] FixSwappedAtqa(TagSpecificType t, byte[] atqa) =>
+        atqa is [0x00, not 0x00] && t.DefaultSakAtqa(false) is not null ? new[] { atqa[1], atqa[0] } : atqa;
 
     /// <summary>Whether this GUI can write the card type onto a physical tag (T55xx, magic MFC or Ultralight / NTAG user pages).</summary>
     public static bool CanWriteToTag(this TagSpecificType t) =>
@@ -305,6 +313,8 @@ public static class CardFormats
                 : GuessHfType(card.Sak, card.Atqa);
         }
 
+        // Older Flipper files write ATQA high byte first, newer ones as sent.
+        card.Atqa = CardTags.FixSwappedAtqa(card.Tag, card.Atqa);
         card.Name = card.UidHex;
         return card;
     }
@@ -361,7 +371,7 @@ public static class CardFormats
         {
             Uid = b0[..4],
             Sak = b0[5],
-            Atqa = new[] { b0[7], b0[6] },
+            Atqa = b0[6..8],
             Data = blocks,
             Tag = CardTags.MifareClassicForBlocks(blocks.Count),
         };
@@ -376,7 +386,7 @@ public static class CardFormats
         var b0 = card.Data[0];
         if (card.Uid.Length == 0) card.Uid = b0[..4];
         if (card.Sak == 0) card.Sak = b0[5];
-        if (card.Atqa.Length == 0) card.Atqa = new[] { b0[7], b0[6] };
+        if (card.Atqa.Length == 0) card.Atqa = b0[6..8];
     }
 
     private static string? Match(string text, string pattern)

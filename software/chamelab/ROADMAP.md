@@ -14,7 +14,7 @@ Needs a crapto1 port or the native library in `software/src`.
 - [ ] Per-sector found-key marks, Skip / Resume recovery
 - [ ] Partial data dump (only sectors with known keys)
 - [ ] Additional dictionary and "Skip default dictionary" when checking keys
-- [ ] mfkey32 in the app: compute the key from collected nonces (currently only copies the `mfkey32v2` command)
+- [x] mfkey32 in the app: compute the key from collected nonces (currently only copies the `mfkey32v2` command)
 - [ ] Save recovered keys: to file, to an existing dictionary, to a new one (including from a saved card)
 
 ### Sniffing

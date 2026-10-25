@@ -11,9 +11,15 @@ using ReactiveUI;
 
 namespace ChameLab.ViewModels;
 
-/// <summary>A group of captured nonces for one block + key type, with a ready mfkey32v2 command.</summary>
+/// <summary>A group of captured nonces for one block + key type, recoverable in-app via mfkey32.</summary>
 public sealed class NonceGroupViewModel : ViewModelBase
 {
+    private readonly DetectionLog? _a;
+    private readonly DetectionLog? _b;
+    private bool _recovering;
+    private string? _recoveredKey;
+    private string? _recoverError;
+
     public NonceGroupViewModel(int block, char keyChar, IReadOnlyList<DetectionLog> logs)
     {
         Block = block;
@@ -21,7 +27,7 @@ public sealed class NonceGroupViewModel : ViewModelBase
         Logs = logs;
         Uid = logs[0].UidHex;
 
-        // mfkey32v2 needs two distinct (nt, nr, ar) exchanges on the same block/key.
+        // mfkey32 (Moebius) needs two distinct (nt, nr, ar) exchanges on the same block/key.
         var distinct = logs
             .GroupBy(l => l.NtHex + l.NrHex + l.ArHex)
             .Select(g => g.First())
@@ -29,14 +35,18 @@ public sealed class NonceGroupViewModel : ViewModelBase
         HasEnough = distinct.Count >= 2;
         if (HasEnough)
         {
-            var a = distinct[0];
-            var b = distinct[1];
-            Command = $"mfkey32v2 {a.UidHex} {a.NtHex} {a.NrHex} {a.ArHex} {b.NtHex} {b.NrHex} {b.ArHex}".ToLowerInvariant();
+            _a = distinct[0];
+            _b = distinct[1];
+            Command = $"mfkey32v2 {_a.UidHex} {_a.NtHex} {_a.NrHex} {_a.ArHex} {_b.NtHex} {_b.NrHex} {_b.ArHex}".ToLowerInvariant();
         }
         else
         {
             Command = string.Empty;
         }
+
+        RecoverCommand = ReactiveCommand.CreateFromTask(
+            RecoverAsync,
+            this.WhenAnyValue(x => x.Recovering, r => HasEnough && !r));
     }
 
     public int Block { get; }
@@ -46,10 +56,65 @@ public sealed class NonceGroupViewModel : ViewModelBase
     public bool HasEnough { get; }
     public string Command { get; }
 
+    public ICommand RecoverCommand { get; }
+
+    public bool Recovering
+    {
+        get => _recovering;
+        private set => this.RaiseAndSetIfChanged(ref _recovering, value);
+    }
+
+    /// <summary>The recovered 12-hex-digit key, or null until recovery succeeds.</summary>
+    public string? RecoveredKey
+    {
+        get => _recoveredKey;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _recoveredKey, value);
+            this.RaisePropertyChanged(nameof(HasRecoveredKey));
+        }
+    }
+
+    public bool HasRecoveredKey => !string.IsNullOrEmpty(_recoveredKey);
+
+    /// <summary>A message shown when recovery runs but finds no key.</summary>
+    public string? RecoverError
+    {
+        get => _recoverError;
+        private set => this.RaiseAndSetIfChanged(ref _recoverError, value);
+    }
+
     public string Header => $"Block {Block} · Key {KeyChar} · UID {Uid}";
     public string Status => HasEnough
         ? $"{Logs.Count} nonce(s) — ready"
         : $"{Logs.Count} nonce(s) — need a second auth to recover";
+
+    private async Task RecoverAsync()
+    {
+        if (_a is null || _b is null) return;
+
+        Recovering = true;
+        RecoverError = null;
+        try
+        {
+            var key = await Task.Run(() => Mfkey32Recovery.Recover(_a, _b));
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (key is { } k)
+                    RecoveredKey = k.ToString("X12");
+                else
+                    RecoverError = "No key found — capture more authentications and try again.";
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => RecoverError = $"Recovery failed: {ex.Message}");
+        }
+        finally
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => Recovering = false);
+        }
+    }
 }
 
 /// <summary>

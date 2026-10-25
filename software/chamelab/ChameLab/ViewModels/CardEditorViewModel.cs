@@ -121,7 +121,7 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     /// <summary>
     /// Switches SAK / ATQA to the new type's usual values when they are still the old
-    /// type's (or ATQA was never set), so e.g. 1K → 4K also turns 08 / 00 04 into 18 / 00 02.
+    /// type's (or ATQA was never set), so e.g. 1K → 4K also turns 08 / 04 00 into 18 / 02 00.
     /// </summary>
     private void AdaptIdentity(TagSpecificType from, TagSpecificType to)
     {
@@ -574,8 +574,7 @@ public sealed class CardEditorViewModel : ViewModelBase
             uid.CopyTo(b0, 0);
             b0[4] = (byte)(uid[0] ^ uid[1] ^ uid[2] ^ uid[3]);
             b0[5] = sak;
-            b0[6] = atqa[1];
-            b0[7] = atqa[0];
+            atqa.CopyTo(b0, 6);
             card.Data[0] = b0;
         }
         return card;

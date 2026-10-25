@@ -22,5 +22,6 @@
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="System.Reactive" />
     <PackageReference Include="ActiproSoftware.Controls.Avalonia" />
+    <PackageReference Include="Crapto1Sharp" />
   </ItemGroup>
 </Project>

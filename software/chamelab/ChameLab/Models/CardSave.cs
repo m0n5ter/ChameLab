@@ -95,6 +95,8 @@ public sealed class CardSave
             Tag = ParseTag(o["tag"]),
             Color = NormalizeColor((string?)o["color"]),
         };
+        // Older versions saved the ATQA of cards entered by hand high byte first.
+        card.Atqa = CardTags.FixSwappedAtqa(card.Tag, card.Atqa);
 
         if (o["data"] is JsonArray data)
             card.Data = data.Select(FromArray).ToList();

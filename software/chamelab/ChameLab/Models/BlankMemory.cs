@@ -28,11 +28,11 @@ public static class BlankMemory
         var b0 = blocks[0];
         if (uid.Length == 4)
         {
-            // UID, BCC, SAK, ATQA (low byte first), then manufacturer data.
+            // UID, BCC, SAK, ATQA (device order, low byte first), then manufacturer data.
             uid.CopyTo(b0, 0);
             b0[4] = (byte)(uid[0] ^ uid[1] ^ uid[2] ^ uid[3]);
             b0[5] = sak;
-            if (atqa.Length == 2) { b0[6] = atqa[1]; b0[7] = atqa[0]; }
+            if (atqa.Length == 2) atqa.CopyTo(b0, 6);
         }
         else
         {

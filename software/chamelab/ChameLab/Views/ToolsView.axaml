@@ -60,14 +60,40 @@
                         <TextBlock Text="{Binding Header}" FontWeight="SemiBold" />
                         <TextBlock Text="{Binding Status}" Classes="caption" />
                       </StackPanel>
-                      <Button Grid.Column="1" Classes="accent" VerticalAlignment="Center"
-                              IsVisible="{Binding HasEnough}" b:CopyToClipboard.Text="{Binding Command}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                          <PathIcon Data="{StaticResource Icon.copy}" />
-                          <TextBlock Text="Copy mfkey32v2" VerticalAlignment="Center" />
-                        </StackPanel>
-                      </Button>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                  VerticalAlignment="Center" IsVisible="{Binding HasEnough}">
+                        <Button Classes="accent" Command="{Binding RecoverCommand}">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource Icon.key}" />
+                            <TextBlock Text="Recover key" VerticalAlignment="Center" />
+                          </StackPanel>
+                        </Button>
+                        <Button b:CopyToClipboard.Text="{Binding Command}" ToolTip.Tip="Copy the mfkey32v2 command">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource Icon.copy}" />
+                            <TextBlock Text="Copy command" VerticalAlignment="Center" />
+                          </StackPanel>
+                        </Button>
+                      </StackPanel>
                     </Grid>
+
+                    <ProgressBar IsIndeterminate="True" Height="3" IsVisible="{Binding Recovering}" />
+
+                    <!-- Recovered key -->
+                    <Border Classes="inset" IsVisible="{Binding HasRecoveredKey}">
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <TextBlock Grid.Column="0" Text="Key:" VerticalAlignment="Center" Classes="caption" Margin="0,0,8,0" />
+                        <SelectableTextBlock Grid.Column="1" Text="{Binding RecoveredKey}" Classes="mono"
+                                             FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button Grid.Column="2" b:CopyToClipboard.Text="{Binding RecoveredKey}" ToolTip.Tip="Copy key">
+                          <PathIcon Data="{StaticResource Icon.copy}" />
+                        </Button>
+                      </Grid>
+                    </Border>
+
+                    <TextBlock Text="{Binding RecoverError}" Classes="caption" Foreground="{DynamicResource ThemeErrorBrush}"
+                               TextWrapping="Wrap" IsVisible="{Binding RecoverError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
                     <SelectableTextBlock Text="{Binding Command}" Classes="mono" FontSize="12"
                                          TextWrapping="Wrap" IsVisible="{Binding HasEnough}" />
                   </StackPanel>
@@ -78,7 +104,7 @@
 
           <Border Classes="inset" IsVisible="{Binding HasGroups}">
             <TextBlock Classes="caption" TextWrapping="Wrap"
-                       Text="Run the copied command with the recovery tool in software/src (mfkey32v2) or in Proxmark to get the key, then add it to a dictionary." />
+                       Text="Recover computes the key in-app from two authentications on the same block and key. Copy command exports the equivalent mfkey32v2 command for Proxmark or the tools in software/src." />
           </Border>
         </StackPanel>
       </Border>

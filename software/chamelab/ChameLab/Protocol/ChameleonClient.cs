@@ -834,7 +834,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             if (card.Uid.Length > 0)
             {
-                var atqa = card.Atqa.Length == 2 ? card.Atqa : [0x00, 0x04];
+                var atqa = card.Atqa.Length == 2 ? card.Atqa : [0x04, 0x00];
                 await Hf14aSetAntiCollDataAsync(card.Uid, atqa, card.Sak, card.Ats, ct);
             }
 

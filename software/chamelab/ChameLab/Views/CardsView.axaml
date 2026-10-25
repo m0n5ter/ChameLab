@@ -658,7 +658,7 @@
                 </StackPanel>
                 <StackPanel Spacing="4">
                   <TextBlock Text="ATQA" Classes="caption" />
-                  <c:HexBox Text="{Binding Form?.Atqa}" ByteLengths="2" PlaceholderText="00 04" />
+                  <c:HexBox Text="{Binding Form?.Atqa}" ByteLengths="2" PlaceholderText="04 00" />
                 </StackPanel>
                 <StackPanel Spacing="4">
                   <TextBlock Text="ATS" Classes="caption" />
