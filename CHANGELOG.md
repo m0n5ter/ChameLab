@@ -7,6 +7,13 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.0.10][2026-10-25] · firmware v2.3.3-cl
+ - ChameLab: mfkey32 key recovery wizard in Tools: puts a blank MIFARE Classic card on a free slot in tag mode, captures a reader's authentication attempts as you present the device, recovers the sector key in the app and saves it to the “Recovered keys” dictionary; the device mode, active slot and the slot it used are restored when you finish or leave the page
+ - ChameLab: writing a card shows a block strip like a dump (written, writing, write error, not written) with the progress next to the buttons; Cancel stops the write (blocks already written stay on the card) and then turns into Close
+ - ChameLab: the magic card generation chosen or detected for a write is remembered instead of falling back to Gen2
+ - ChameLab: unplugging the device during a write or dump no longer freezes the app; the operation ends with “The Chameleon was disconnected.”
+ - ChameLab: ATQA is shown high byte first (00 04), as in ChameleonUltraGUI; block 0 of a new card gets it in the right order, and cards or older Flipper files saved with the bytes swapped are fixed on load
+
 ## [v1.0.9][2026-10-24] · firmware v2.3.3-cl
  - ChameLab: the web app connects over Bluetooth LE in Chrome / Edge (Web Bluetooth), next to USB; firmware updates still need USB or the desktop / mobile app
  - ChameLab: the Bluetooth scan on Android and iOS lists only devices that advertise the Nordic UART service
