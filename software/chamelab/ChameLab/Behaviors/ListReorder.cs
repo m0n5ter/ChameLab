@@ -8,7 +8,9 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 
@@ -50,6 +52,21 @@ public interface IDropOntoList
 }
 
 /// <summary>
+/// A list whose items can also be dragged out of it, onto controls elsewhere in the window marked
+/// <see cref="ListReorder.IsDropTargetProperty"/> (e.g. cards onto a folder in the navigation pane).
+/// The marked control's DataContext is the target; it gets the <c>droptarget</c> class while the
+/// drag is over it. Items can then be dragged even while the list can't be reordered.
+/// </summary>
+public interface IDropOutList
+{
+    /// <summary><paramref name="item"/> may be dropped onto <paramref name="target"/>.</summary>
+    bool CanDropOut(object item, object target);
+
+    /// <summary><paramref name="item"/> was dropped onto <paramref name="target"/>; it slides back to its place.</summary>
+    void DropOut(object item, object target);
+}
+
+/// <summary>
 /// Opening and dragging items into place in a <see cref="ListBox"/> that sits in its own
 /// <see cref="ScrollViewer"/>. A mouse press opens its item on release, so the press can still
 /// become a drag; a finger picks an item up after holding still (moving sooner scrolls the list).
@@ -68,6 +85,13 @@ public sealed class ListReorder
     // Items slide to their new places, and a dropped item into its own, this fast.
     private static readonly TimeSpan SlideTime = TimeSpan.FromMilliseconds(180);
 
+    /// <summary>Marks a control outside the list that dragged items can be dropped onto (see <see cref="IDropOutList"/>).</summary>
+    public static readonly AttachedProperty<bool> IsDropTargetProperty =
+        AvaloniaProperty.RegisterAttached<Control, bool>("IsDropTarget", typeof(ListReorder));
+
+    public static bool GetIsDropTarget(Control element) => element.GetValue(IsDropTargetProperty);
+    public static void SetIsDropTarget(Control element, bool value) => element.SetValue(IsDropTargetProperty, value);
+
     private readonly ListBox _list;
     private readonly ScrollViewer _scroll;
 
@@ -83,6 +107,14 @@ public sealed class ListReorder
     private bool _dragging;
     // Drop-onto mode: the item the dragged one would be dropped onto.
     private object? _dropTarget;
+    // The control outside the list the dragged item would be dropped onto.
+    private Control? _outTarget;
+    // While dragged, the item is shown by a picture of it in the window's overlay layer, so it is
+    // never clipped by the list and stays on top of whatever it is dragged over; the item itself
+    // (which still takes its place in the list) is hidden meanwhile.
+    private Control? _ghost;
+    private RenderTargetBitmap? _ghostImage;
+    private Control? _hiddenItem;
     private readonly DispatcherTimer _holdTimer;
     private readonly DispatcherTimer _edgeTimer;
 
@@ -111,6 +143,10 @@ public sealed class ListReorder
 
     private IReorderableList? Model => _list.DataContext as IReorderableList;
     private IDropOntoList? DropModel => _list.DataContext as IDropOntoList;
+    private IDropOutList? DropOutModel => _list.DataContext as IDropOutList;
+
+    /// <summary>Items can be picked up: to reorder them, or to drop them outside the list.</summary>
+    private bool CanDrag => Model is { CanReorder: true } || Model is not null && DropOutModel is not null;
 
     private void OnPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -127,7 +163,7 @@ public sealed class ListReorder
             _pressPointer = e.Pointer;
             e.Handled = true;
         }
-        if (Model is not { CanReorder: true }) return;
+        if (!CanDrag) return;
         _dragItem = item;
         _dragPointer = e.Pointer;
         _dragStart = _dragLast = e.GetPosition(_list);
@@ -199,13 +235,93 @@ public sealed class ListReorder
 
     private void BeginDrag(IPointer pointer)
     {
-        if (Model is not { CanReorder: true } || _dragItem is null) { CancelPress(); return; }
+        if (!CanDrag || _dragItem is null || !CanPlace(_dragItem)) { CancelPress(); return; }
         if (_list.ContainerFromItem(_dragItem) is not { } item || SlotOf(item) is not { } slot) { CancelPress(); return; }
         _dragging = true;
         _grabOffset = _dragStart - slot;
         pointer.Capture(_list);
         MarkDragged(true);
+        // Laid out first, so the picture has the dragged look (frame, opacity).
+        _list.UpdateLayout();
+        _ghostImage = Picture(item);
         FollowPointer();
+    }
+
+    /// <summary>The item as it looks while dragged, for the ghost; null if it can't be drawn.</summary>
+    private RenderTargetBitmap? Picture(Control item)
+    {
+        var size = item.Bounds.Size;
+        if (size.Width < 1 || size.Height < 1) return null;
+        var scale = TopLevel.GetTopLevel(_list)?.RenderScaling ?? 1;
+        // Drawn without the shift of a slide still under way.
+        var transform = item.RenderTransform;
+        item.RenderTransform = null;
+        try
+        {
+            var bitmap = new RenderTargetBitmap(
+                new PixelSize((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale)),
+                new Vector(96 * scale, 96 * scale));
+            bitmap.Render(item);
+            return bitmap;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+        finally { item.RenderTransform = transform; }
+    }
+
+    /// <summary>
+    /// Puts the ghost under the pointer, where the item was picked up, and keeps the item hidden.
+    /// Without a picture the item itself shows (clipped by the list).
+    /// </summary>
+    private void UpdateGhost(Control item)
+    {
+        if (_ghostImage is null || OverlayLayer.GetOverlayLayer(_list) is not { } overlay) return;
+        if (_ghost is null)
+        {
+            // The shadow is cast by the row itself, inside the item's padding.
+            var padding = (item as TemplatedControl)?.Padding ?? default;
+            _ghost = new Panel
+            {
+                IsHitTestVisible = false,
+                Children =
+                {
+                    new Border
+                    {
+                        Margin = padding,
+                        CornerRadius = new CornerRadius(12),
+                        BoxShadow = BoxShadows.Parse("0 6 18 -2 #80000000"),
+                    },
+                    new Image { Source = _ghostImage, Width = item.Bounds.Width, Height = item.Bounds.Height },
+                },
+            };
+            overlay.Children.Add(_ghost);
+        }
+        // The list may have moved the item to another container while it was reordered.
+        if (!ReferenceEquals(item, _hiddenItem))
+        {
+            _hiddenItem?.ClearValue(Visual.OpacityProperty);
+            _hiddenItem = item;
+            item.Opacity = 0;
+        }
+        // Only kept off the window's left edge (the navigation pane is narrower than the item).
+        if (_list.TranslatePoint(_dragLast - _grabOffset, overlay) is { } at)
+        {
+            Canvas.SetLeft(_ghost, Math.Max(4, at.X));
+            Canvas.SetTop(_ghost, at.Y);
+        }
+    }
+
+    /// <summary>Removes the ghost and shows the item again.</summary>
+    private void HideGhost()
+    {
+        if (_ghost is not null) (_ghost.Parent as Panel)?.Children.Remove(_ghost);
+        _ghost = null;
+        _hiddenItem?.ClearValue(Visual.OpacityProperty);
+        _hiddenItem = null;
+        _ghostImage?.Dispose();
+        _ghostImage = null;
     }
 
     /// <summary>Keeps the dragged item under the pointer, wherever its place in the list is.</summary>
@@ -219,6 +335,7 @@ public sealed class ListReorder
         var shift = _dragLast - _grabOffset - slot;
         t.X = shift.X;
         t.Y = shift.Y;
+        UpdateGhost(item);
     }
 
     /// <summary>Where each shown item is on screen now, by key.</summary>
@@ -264,6 +381,15 @@ public sealed class ListReorder
     private void MoveDragged()
     {
         if (Model is not { } model || _dragItem is null) return;
+        // Outside the list: over a drop target elsewhere, or nowhere; the list stays as it is.
+        if (!IsOverList())
+        {
+            SetDropTarget(null);
+            SetOutTarget(OutTargetAt(_dragLast));
+            FollowPointer();
+            return;
+        }
+        SetOutTarget(null);
         if (DropModel is { } drop)
         {
             var under = ItemAt(_dragLast);
@@ -273,6 +399,7 @@ public sealed class ListReorder
             FollowPointer();
             return;
         }
+        if (!model.CanReorder) { FollowPointer(); return; }
         var from = model.ReorderItems.IndexOf(_dragItem);
         if (from < 0) { EndDrag(); return; }
         for (var i = 0; i < model.ReorderItems.Count; i++)
@@ -288,6 +415,56 @@ public sealed class ListReorder
         FollowPointer();
     }
 
+    /// <summary>
+    /// The pointer is over the list, where its scroll viewer shows it (not over whatever else the
+    /// scroll viewer holds below it, which may take drops like anything outside).
+    /// </summary>
+    private bool IsOverList() =>
+        new Rect(_list.Bounds.Size).Contains(_dragLast)
+        && _list.TranslatePoint(_dragLast, _scroll) is { } p && new Rect(_scroll.Bounds.Size).Contains(p);
+
+    /// <summary>The drop target outside the list under <paramref name="point"/> (list coordinates) that takes the dragged item.</summary>
+    /// <summary>
+    /// The item has somewhere to go: a place in the list, or a drop target outside it the user can
+    /// reach (e.g. not while the navigation pane is hidden on a narrow screen). Otherwise the press
+    /// stays a click.
+    /// </summary>
+    private bool CanPlace(object item)
+    {
+        if (Model is { CanReorder: true }) return true;
+        if (DropOutModel is not { } model || TopLevel.GetTopLevel(_list) is not { } top) return false;
+        foreach (var c in top.GetVisualDescendants().OfType<Control>())
+        {
+            if (!GetIsDropTarget(c) || c.DataContext is not { } target || !c.IsEffectivelyVisible) continue;
+            if (!model.CanDropOut(item, target)) continue;
+            // Beside the list (in the scroll area too): scrolled to while dragging. Elsewhere: on screen,
+            // not clipped away or covered.
+            if (c.FindAncestorOfType<ScrollViewer>() == _scroll) return true;
+            var center = c.TranslatePoint(new Point(c.Bounds.Width / 2, c.Bounds.Height / 2), top);
+            if (center is { } p && top.InputHitTest(p) is Visual hit && hit.GetSelfAndVisualAncestors().Contains(c))
+                return true;
+        }
+        return false;
+    }
+
+    private Control? OutTargetAt(Point point)
+    {
+        if (DropOutModel is not { } model || _dragItem is null) return null;
+        if (TopLevel.GetTopLevel(_list) is not { } top || _list.TranslatePoint(point, top) is not { } p) return null;
+        for (var v = top.InputHitTest(p) as Visual; v is not null; v = v.GetVisualParent())
+            if (v is Control { DataContext: { } target } c && GetIsDropTarget(c))
+                return model.CanDropOut(_dragItem, target) ? c : null;
+        return null;
+    }
+
+    private void SetOutTarget(Control? target)
+    {
+        if (ReferenceEquals(target, _outTarget)) return;
+        _outTarget?.Classes.Set("droptarget", false);
+        _outTarget = target;
+        target?.Classes.Set("droptarget", true);
+    }
+
     private void UpdateEdgeScroll()
     {
         if (EdgeDirection() != 0) { if (!_edgeTimer.IsEnabled) _edgeTimer.Start(); }
@@ -298,6 +475,8 @@ public sealed class ListReorder
     private int EdgeDirection()
     {
         if (_list.TranslatePoint(_dragLast, _scroll) is not { } p) return 0;
+        // Only while the pointer is over the list, not off to its side (e.g. over a drop target).
+        if (p.X < 0 || p.X > _scroll.Bounds.Width) return 0;
         if (p.Y < EdgeBand && _scroll.Offset.Y > 0) return -1;
         if (p.Y > _scroll.Viewport.Height - EdgeBand
             && _scroll.Offset.Y < _scroll.Extent.Height - _scroll.Viewport.Height) return 1;
@@ -346,12 +525,24 @@ public sealed class ListReorder
         var shown = Snapshot();
         var dropped = _dragItem;
         var target = _dropTarget;
+        var outTarget = _outTarget?.DataContext;
         SetDropTarget(null);
+        SetOutTarget(null);
+        HideGhost();
         _dragging = false;
         MarkDragged(false);
         var pointer = _dragPointer;
         CancelPress();
         if (pointer?.Captured == _list) pointer.Capture(null);
+        if (outTarget is not null && DropOutModel is { } dropOut)
+        {
+            // Moving the item may rebuild the list (dropping any reordering on the way); an item
+            // still shown glides back from where it was let go.
+            if (dropped is not null) dropOut.DropOut(dropped, outTarget);
+            SlideFrom(shown);
+            KeepOnTop(dropped);
+            return;
+        }
         if (DropModel is { } drop)
         {
             // The dragged item glides back to its place; the drop acts on the two items.

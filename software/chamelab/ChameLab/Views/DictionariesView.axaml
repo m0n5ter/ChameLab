@@ -74,7 +74,7 @@
       <!-- In manual order the dictionaries can be dragged into place (ListReorder). Reaches past the
            column by as much as the list is padded, so a dragged row's shadow is not clipped. -->
       <ScrollViewer Grid.Row="2" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
-        <ListBox Name="DictList" Classes="cards" ItemsSource="{Binding Dictionaries}" Padding="12,0,12,16"
+        <ListBox Name="DictList" Classes="cards" ItemsSource="{Binding Dictionaries}" Padding="8,0,8,12"
                  SelectedItem="{Binding Selected}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:DictionaryItemViewModel">

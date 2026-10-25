@@ -260,7 +260,7 @@
            and a slot dropped onto another swaps contents with it. Reaches past the column by as much
            as the list is padded, like the Cards list, so a dragged row's shadow is not clipped. -->
       <ScrollViewer Grid.Row="1" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
-        <ListBox Name="SlotList" Classes="cards" ItemsSource="{Binding Slots}" Padding="12,0,12,16"
+        <ListBox Name="SlotList" Classes="cards" ItemsSource="{Binding Slots}" Padding="8,0,8,12"
                  SelectedItem="{Binding Selected}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:SlotItemViewModel">
@@ -433,7 +433,7 @@
           <TextBlock Grid.Row="2" Classes="caption" Text="{Binding PickerEmptyText}"
                      IsVisible="{Binding PickerHasNoCards}" />
           <ScrollViewer Grid.Row="2" MaxHeight="360" Margin="-4,0,-4,0">
-            <ListBox Classes="cards picker" ItemsSource="{Binding PickerCards}" Padding="4,0,4,4"
+            <ListBox Classes="cards picker" ItemsSource="{Binding PickerCards}" Padding="0"
                      SelectedItem="{Binding PickerSelected}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:CardItemViewModel">

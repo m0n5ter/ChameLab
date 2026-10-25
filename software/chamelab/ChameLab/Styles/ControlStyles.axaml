@@ -462,11 +462,74 @@
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="0" />
   </Style>
+  <!-- The items touch, and each row (Border.navrow) draws its own highlight inset by 2 px: the gap
+       between highlights belongs to the items, so there is no hole a click or hover falls through. -->
   <Style Selector="ListBox.nav ListBoxItem">
     <Setter Property="Padding" Value="0" />
-    <Setter Property="Margin" Value="0,2" />
+    <Setter Property="Margin" Value="0" />
     <Setter Property="CornerRadius" Value="8" />
     <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem /template/ ContentPresenter, ListBox.nav ListBoxItem:pointerover /template/ ContentPresenter, ListBox.nav ListBoxItem:selected /template/ ContentPresenter, ListBox.nav ListBoxItem:pressed /template/ ContentPresenter, ListBox.nav ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.nav ListBoxItem:selected:focus /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.nav Border.navrow">
+    <Setter Property="Margin" Value="0,2" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <!-- The theme's own list item brushes, as the item would have drawn them. -->
+  <Style Selector="ListBox.nav ListBoxItem:pointerover Border.navrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPointerOver}" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pressed Border.navrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPressed}" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:selected Border.navrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushSelected}" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:selected:pointerover Border.navrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushSelectedPointerOver}" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:selected:pressed Border.navrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushSelectedPressed}" />
+  </Style>
+  <!-- A card dragged over a folder (or Cards) in the navigation pane. -->
+  <Style Selector="ListBox.nav Border.navrow.droptarget">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
+  <!-- Folders without cards are dimmed (the name, icon and count; not the rename / delete buttons). -->
+  <Style Selector="Grid.folderrow PathIcon.foldericon">
+    <Setter Property="Opacity" Value="0.75" />
+  </Style>
+  <Style Selector="Grid.folderrow.empty PathIcon.foldericon">
+    <Setter Property="Opacity" Value="0.35" />
+  </Style>
+  <Style Selector="Grid.folderrow.empty Border.foldername, Grid.folderrow.empty TextBlock.foldercount">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <!-- Folder rows trade their card count for Rename / Delete on hover and while open; the buttons sit
+       over the end of the name, which fades out under them. Nothing changes size, so the name doesn't
+       rewrap (and the row jump) as they come and go. -->
+  <Style Selector="ListBox.nav StackPanel.folderactions">
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pointerover StackPanel.folderactions, ListBox.nav ListBoxItem:selected StackPanel.folderactions">
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="IsHitTestVisible" Value="True" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pointerover TextBlock.foldercount, ListBox.nav ListBoxItem:selected TextBlock.foldercount">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pointerover Border.foldername, ListBox.nav ListBoxItem:selected Border.foldername">
+    <Setter Property="OpacityMask">
+      <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop Offset="0" Color="Black" />
+        <GradientStop Offset="0.5" Color="Black" />
+        <GradientStop Offset="0.68" Color="Transparent" />
+      </LinearGradientBrush>
+    </Setter>
   </Style>
   <Style Selector="Border.navbar">
     <Setter Property="Width" Value="3" />
@@ -483,17 +546,31 @@
     <Setter Property="Padding" Value="0" />
     <!-- Never scroll sideways: rows take the list's width and long names trim instead. -->
     <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
-    <!-- A wide list wraps into several columns. -->
+    <!-- A wide list wraps into several columns. The rows touch: the gap between them is each row's
+         own transparent padding, so there is no hole a click or hover falls through. -->
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <c:TileGrid MinItemWidth="280" ColumnSpacing="8" RowSpacing="8" />
+        <c:TileGrid MinItemWidth="280" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+  <!-- Devices on the Connect page: the same rows, always in one column. -->
+  <Style Selector="ListBox.cards.devices">
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel />
       </ItemsPanelTemplate>
     </Setter>
   </Style>
   <Style Selector="ListBox.cards ListBoxItem">
-    <Setter Property="Padding" Value="0" />
+    <Setter Property="Padding" Value="4" />
     <Setter Property="CornerRadius" Value="12" />
     <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <!-- The row draws itself (Border.cardrow); the item behind it, padding included, stays clear. -->
+  <Style Selector="ListBox.cards ListBoxItem /template/ ContentPresenter, ListBox.cards ListBoxItem:pointerover /template/ ContentPresenter, ListBox.cards ListBoxItem:selected /template/ ContentPresenter, ListBox.cards ListBoxItem:pressed /template/ ContentPresenter, ListBox.cards ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.cards ListBoxItem:selected:focus /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
   </Style>
   <Style Selector="Border.cardrow">
     <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
@@ -502,6 +579,11 @@
     <Setter Property="CornerRadius" Value="12" />
   </Style>
   <Style Selector="ListBoxItem:selected Border.cardrow">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <!-- Hover: like a card tile (Button.cardtile). After the row's own style, which it overrides. -->
+  <Style Selector="ListBox.cards ListBoxItem:pointerover Border.cardrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
   </Style>
   <!-- Clips the color stripe to the inner edge of the frame (12 - 1.5) so it never paints over it. -->
@@ -526,6 +608,34 @@
   <Style Selector="Button.cardtile:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <!-- A folder in the Cards list: a row like a card's, dimmed while empty. Padded like the list rows,
+       so the gaps between folders are part of them too. -->
+  <Style Selector="Button.foldertile">
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.foldertile /template/ ContentPresenter, Button.foldertile:pointerover /template/ ContentPresenter, Button.foldertile:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.foldertile:pointerover Border.cardrow, Button.foldertile.droptarget Border.cardrow">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="Button.foldertile PathIcon.foldericon">
+    <Setter Property="Opacity" Value="0.75" />
+  </Style>
+  <Style Selector="Button.foldertile.empty PathIcon.foldericon">
+    <Setter Property="Opacity" Value="0.35" />
+  </Style>
+  <Style Selector="Button.foldertile.empty TextBlock.foldername, Button.foldertile.empty TextBlock.foldercount">
+    <Setter Property="Opacity" Value="0.45" />
   </Style>
   <Style Selector="Button.cardtile > Border.cardclip">
     <Setter Property="CornerRadius" Value="10.5" />

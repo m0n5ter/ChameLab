@@ -77,57 +77,139 @@
     <!-- ==================== Body ==================== -->
     <SplitView Grid.Row="1" x:Name="Shell"
                IsPaneOpen="{Binding IsPaneOpen}"
-               DisplayMode="Inline" OpenPaneLength="232" CompactPaneLength="0"
+               DisplayMode="Inline" OpenPaneLength="260" CompactPaneLength="0"
                PaneBackground="{actipro:ThemeResource Container1BackgroundBrush}">
 
       <SplitView.Pane>
-        <Border BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,1,0">
-          <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding HasNavigation}">
-            <TextBlock Grid.Row="0" Text="NAVIGATION" Classes="overline" Margin="20,18,0,6" />
+        <!-- As wide as the open pane even while it slides open or shut, so it is cut off instead of
+             laid out again (rewrapping the folder names) at every step. -->
+        <Panel ClipToBounds="True">
+          <Border BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,1,0"
+                  Width="{Binding #Shell.OpenPaneLength}" HorizontalAlignment="Left">
+            <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding HasNavigation}">
+              <TextBlock Grid.Row="0" Text="NAVIGATION" Classes="overline" Margin="20,18,0,6" />
 
-            <ListBox Grid.Row="1" Classes="nav" Margin="10,0"
-                     ItemsSource="{Binding NavPages}"
-                     SelectedItem="{Binding SelectedNavPage}">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:PageViewModelBase">
-                  <Grid ColumnDefinitions="Auto,Auto,*" Height="40">
-                    <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
-                            Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
-                    <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
-                              Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
-                    <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" />
-                  </Grid>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
+              <!-- The pages, with the card folders (one level) indented under Cards. Cards are dragged
+                   onto a folder, or onto Cards to take them out of theirs (see ListReorder). -->
+              <!-- Scrolls only up and down: long folder names are trimmed, never scrolled to. -->
+              <ListBox Grid.Row="1" Classes="nav" Margin="10,0" ItemsSource="{Binding NavItems}"
+                       SelectedItem="{Binding SelectedNavItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.DataTemplates>
+                  <!-- Cards, with + for a new folder (before the general page template, which would match too). -->
+                  <DataTemplate DataType="vm:CardsViewModel">
+                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
+                      <Grid ColumnDefinitions="Auto,Auto,*,Auto" Height="40">
+                        <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
+                                Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
+                        <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
+                                  Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" />
+                        <Button Grid.Column="3" Classes="icon small" Margin="0,0,4,0" Command="{Binding NewFolderCommand}"
+                                ToolTip.Tip="New card folder">
+                          <PathIcon Data="{StaticResource Icon.add}" />
+                        </Button>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
 
-            <!-- Single trimmed lines: wrapped text would change the height while the pane animates its width. -->
-            <Border Grid.Row="2" Classes="inset" Margin="12,8,12,14">
-              <StackPanel Spacing="2">
-                <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding !IsOffline}"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="OFFLINE MODE" Classes="overline" IsVisible="{Binding IsOffline}"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding DeviceSummary}" FontSize="12" IsVisible="{Binding !IsOffline}"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                           ToolTip.Tip="{Binding DeviceSummary}" />
-                <TextBlock FontSize="12" IsVisible="{Binding IsOffline}"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                           Text="No device attached" ToolTip.Tip="No device. Open Connect to attach one." />
-                <!-- A newer release shows as a compact Update link beside the version. -->
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,4,0,0">
-                  <TextBlock Grid.Column="0" Classes="caption" VerticalAlignment="Center"
-                             Text="{Binding Settings.AppVersion, StringFormat='ChameLab {0}'}"
+                  <DataTemplate DataType="vm:PageViewModelBase">
+                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
+                      <Grid ColumnDefinitions="Auto,Auto,*" Height="40">
+                        <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
+                                Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
+                        <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
+                                  Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+
+                  <DataTemplate DataType="vm:CardFolderViewModel">
+                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
+                      <Grid Classes="folderrow" Classes.empty="{Binding IsEmpty}"
+                            ColumnDefinitions="Auto,Auto,*,Auto" MinHeight="32">
+                        <Grid.ContextFlyout>
+                          <MenuFlyout>
+                            <MenuItem Header="Rename" Command="{Binding RenameCommand}" />
+                            <MenuItem Header="Delete folder" Command="{Binding DeleteCommand}"
+                                      ToolTip.Tip="Its cards stay in Cards" />
+                          </MenuFlyout>
+                        </Grid.ContextFlyout>
+                        <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
+                                Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
+                        <!-- Indented under Cards. -->
+                        <PathIcon Grid.Column="1" Classes="foldericon" Width="15" Height="15" Margin="22,0,10,0"
+                                  Data="{StaticResource Icon.folder}" />
+                        <!-- A transparent box around the name, so its tooltip shows over the whole cell, not just the glyphs. -->
+                        <Border Grid.Column="2" Classes="foldername" Background="Transparent" ToolTip.Tip="{Binding Name}"
+                                IsVisible="{Binding !IsEditing}">
+                          <!-- Long names wrap onto a second line, tightly spaced, then trim. -->
+                          <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" Margin="0,4"
+                                     TextWrapping="Wrap" MaxLines="2" LineSpacing="-2" TextTrimming="CharacterEllipsis" />
+                        </Border>
+                        <TextBlock Grid.Column="3" Classes="caption foldercount" Text="{Binding Count}"
+                                   VerticalAlignment="Center" Margin="8,0,10,0" IsVisible="{Binding !IsEditing}" />
+                        <!-- On hover (and on the open folder) the folder's actions, over the end of the name and the
+                             count: the name keeps its width, so it doesn't rewrap as they come and go. -->
+                        <StackPanel Grid.Column="2" Grid.ColumnSpan="2" Classes="folderactions" Orientation="Horizontal"
+                                    HorizontalAlignment="Right" Margin="4,0,2,0" IsVisible="{Binding !IsEditing}">
+                          <Button Classes="icon small" Command="{Binding RenameCommand}" ToolTip.Tip="Rename folder">
+                            <PathIcon Data="{StaticResource Icon.edit}" />
+                          </Button>
+                          <Button Classes="icon small" ToolTip.Tip="Delete folder">
+                            <PathIcon Data="{StaticResource Icon.delete}" />
+                            <Button.Flyout>
+                              <Flyout Placement="RightEdgeAlignedTop">
+                                <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
+                                  <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
+                                             Text="{Binding Name, StringFormat='Delete the folder {0}?'}" />
+                                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                                             Text="Its cards are not deleted: they go back to Cards." />
+                                  <Button Classes="danger solid" Content="Delete folder" HorizontalAlignment="Right"
+                                          Click="OnFolderDeleteClick" />
+                                </StackPanel>
+                              </Flyout>
+                            </Button.Flyout>
+                          </Button>
+                        </StackPanel>
+                        <TextBox Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding EditName}" MaxLength="64"
+                                 MinHeight="0" Padding="6,3" Margin="-7,0,4,0" VerticalAlignment="Center" FontSize="13"
+                                 IsVisible="{Binding IsEditing}" b:FocusOnShow.IsEnabled="True"
+                                 KeyDown="OnFolderNameKeyDown" LostFocus="OnFolderNameLostFocus" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListBox.DataTemplates>
+              </ListBox>
+
+              <!-- Single trimmed lines: wrapped text would change the height while the pane animates its width. -->
+              <Border Grid.Row="2" Classes="inset" Margin="12,8,12,14">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding !IsOffline}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                  <Button Grid.Column="1" Classes="accent" Padding="8,1" MinHeight="0" FontSize="11"
-                          VerticalAlignment="Center" Content="Update"
-                          Command="{Binding AppUpdate.OpenReleaseCommand}" IsVisible="{Binding AppUpdate.IsUpdateAvailable}"
-                          ToolTip.Tip="{Binding AppUpdate.Message}" />
-                </Grid>
-              </StackPanel>
-            </Border>
-          </Grid>
-        </Border>
+                  <TextBlock Text="OFFLINE MODE" Classes="overline" IsVisible="{Binding IsOffline}"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding DeviceSummary}" FontSize="12" IsVisible="{Binding !IsOffline}"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="{Binding DeviceSummary}" />
+                  <TextBlock FontSize="12" IsVisible="{Binding IsOffline}"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                             Text="No device attached" ToolTip.Tip="No device. Open Connect to attach one." />
+                  <!-- A newer release shows as a compact Update link beside the version. -->
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,4,0,0">
+                    <TextBlock Grid.Column="0" Classes="caption" VerticalAlignment="Center"
+                               Text="{Binding Settings.AppVersion, StringFormat='ChameLab {0}'}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <Button Grid.Column="1" Classes="accent" Padding="8,1" MinHeight="0" FontSize="11"
+                            VerticalAlignment="Center" Content="Update"
+                            Command="{Binding AppUpdate.OpenReleaseCommand}" IsVisible="{Binding AppUpdate.IsUpdateAvailable}"
+                            ToolTip.Tip="{Binding AppUpdate.Message}" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Border>
+        </Panel>
       </SplitView.Pane>
 
       <SplitView.Content>

@@ -41,6 +41,9 @@ public sealed class CardSave
 
     public const string DefaultColor = "#FF4000"; // the palette color nearest Flutter's Colors.deepOrange
 
+    /// <summary>The folder the card is filed in; empty for none. ChameLab only (the Flutter app ignores it).</summary>
+    public string Folder { get; set; } = string.Empty;
+
     public TagSenseType Sense => Tag.SenseType();
 
     public string UidHex => Uid.Length == 0 ? "-" : Hex.Spaced(Uid);
@@ -76,6 +79,7 @@ public sealed class CardSave
         if (Extra.UltralightCounters.Count > 0)
             extra["ultralightCounters"] = new JsonArray(Extra.UltralightCounters.Select(c => (JsonNode)c).ToArray());
         o["extra"] = extra;
+        if (Folder.Length > 0) o["folder"] = Folder;
         return o;
     }
 
@@ -94,6 +98,7 @@ public sealed class CardSave
             Ats = FromArray(o["ats"]),
             Tag = ParseTag(o["tag"]),
             Color = NormalizeColor((string?)o["color"]),
+            Folder = NormalizeFolder((string?)o["folder"]),
         };
         // Older versions saved the ATQA of cards entered by hand high byte first.
         card.Atqa = CardTags.FixSwappedAtqa(card.Tag, card.Atqa);
@@ -132,6 +137,15 @@ public sealed class CardSave
                 return t;
         }
         return TagSpecificType.Undefined;
+    }
+
+    /// <summary>Longest folder name kept.</summary>
+    public const int MaxFolderLength = 64;
+
+    public static string NormalizeFolder(string? folder)
+    {
+        var f = folder?.Trim() ?? string.Empty;
+        return f.Length > MaxFolderLength ? f[..MaxFolderLength].TrimEnd() : f;
     }
 
     public static string NormalizeColor(string? color)

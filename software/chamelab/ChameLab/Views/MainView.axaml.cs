@@ -3,7 +3,9 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Platform;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using ChameLab.Behaviors;
 using ChameLab.Services;
@@ -16,7 +18,7 @@ public partial class MainView : UserControl
     /// <summary>Below this the layout switches to phone mode (tighter margins, labels hidden).</summary>
     private const double CompactWidth = 760;
     /// <summary>Width of the docked nav pane (OpenPaneLength).</summary>
-    private const double PaneWidth = 232;
+    private const double PaneWidth = 260;
     private (bool Compact, bool Overlay)? _was;
     private MainViewModel? _vm;
     private TopLevel? _topLevel;
@@ -80,6 +82,31 @@ public partial class MainView : UserControl
                     || vm.TryGoBack()
                     // Only phones and the browser tab close on an unhandled Back; desktop ignores it.
                     || (OperatingSystem.IsAndroid() || OperatingSystem.IsBrowser()) && !vm.ConfirmExit();
+    }
+
+    // ---- Card folder names, edited in place ----------------------------------
+
+    private void OnFolderNameKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (sender is not Control { DataContext: CardFolderViewModel folder } || _vm is null) return;
+        if (e.Key == Key.Enter) _vm.Cards.CommitRename(folder);
+        else if (e.Key == Key.Escape) CardsViewModel.CancelRename(folder);
+        else return;
+        e.Handled = true;
+    }
+
+    // Confirming closes the flyout before the folder (and the row it opened from) goes away. The
+    // folder is taken first: closing the flyout detaches its content from the row's DataContext.
+    private void OnFolderDeleteClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: CardFolderViewModel folder } c) return;
+        if (c.FindLogicalAncestorOfType<Button>() is { Flyout: { } flyout }) flyout.Hide();
+        folder.DeleteCommand.Execute(null);
+    }
+
+    private void OnFolderNameLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: CardFolderViewModel folder }) _vm?.Cards.CommitRename(folder);
     }
 
     /// <summary>Closes the most recently opened flyout or drop-down, if any.</summary>

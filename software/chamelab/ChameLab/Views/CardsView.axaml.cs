@@ -2,8 +2,10 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using ChameLab.Behaviors;
+using ChameLab.ViewModels;
 
 namespace ChameLab.Views;
 
@@ -46,8 +48,29 @@ public partial class CardsView : UserControl
         if (Math.Abs(MemoryScroll.MaxHeight - max) >= 1) MemoryScroll.MaxHeight = max;
     }
 
-    // Picking a swatch closes the palette flyout it lives in.
-    private void OnSwatchTapped(object? sender, TappedEventArgs e)
+    // ---- The open folder's title: renamed in place, deleted after a confirmation ----
+
+    private void OnFolderTitleKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (DataContext is not CardsViewModel vm) return;
+        if (e.Key == Key.Enter) vm.CommitFolderRename();
+        else if (e.Key == Key.Escape) vm.CancelFolderRename();
+        else return;
+        e.Handled = true;
+    }
+
+    private void OnFolderTitleLostFocus(object? sender, RoutedEventArgs e) =>
+        (DataContext as CardsViewModel)?.CommitFolderRename();
+
+    // Confirming closes the flyout first: the folder (and its title) goes away with the delete.
+    private void OnFolderDeleteClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control c && c.FindLogicalAncestorOfType<Button>() is { Flyout: { } flyout }) flyout.Hide();
+        (DataContext as CardsViewModel)?.DeleteCurrentFolder();
+    }
+
+    // Picking a swatch (or a folder) closes the flyout it lives in.
+    private void OnFlyoutPickTapped(object? sender, TappedEventArgs e)
     {
         // The flyout's popup is logically parented to the button that opened it.
         if (sender is Control c && c.FindLogicalAncestorOfType<Button>() is { Flyout: { } flyout })

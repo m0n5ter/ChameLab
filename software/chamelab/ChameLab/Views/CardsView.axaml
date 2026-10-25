@@ -94,6 +94,10 @@
       <Setter Property="Margin" Value="-7,0,0,0" />
       <Setter Property="MinHeight" Value="0" />
     </Style>
+    <!-- The open folder's title being renamed: as big as the title it replaces. -->
+    <Style Selector="TextBox.titlebox.foldertitle">
+      <Setter Property="FontSize" Value="24" />
+    </Style>
     <Style Selector="TextBox.titlebox:pointerover">
       <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
     </Style>
@@ -157,13 +161,51 @@
     <!-- Locked while a new card is open: save it or cancel to get back to the list. -->
     <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,Auto,*"
           IsEnabled="{Binding !ListLocked}">
-      <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
-        <StackPanel Grid.Column="0" Spacing="2">
-          <TextBlock Text="Cards" Classes="h1" />
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+        <!-- Back from a folder to Cards, also when the navigation pane is hidden (narrow, or closed). -->
+        <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0" VerticalAlignment="Center"
+                IsVisible="{Binding IsInFolder}" Command="{Binding ShowRootCommand}"
+                ToolTip.Tip="Back to Cards" b:DialogKeys.IsBack="True">
+          <PathIcon Data="{StaticResource Icon.back}" />
+        </Button>
+        <StackPanel Grid.Column="1" Spacing="2">
+          <!-- A folder's title, with Rename (in place) and Delete right after it. Left-aligned, the grid is
+               only as wide as the title, until a long title trims. -->
+          <Panel>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4" HorizontalAlignment="Left"
+                  IsVisible="{Binding !IsRenamingFolder}">
+              <TextBlock Grid.Column="0" Text="{Binding ListTitle}" Classes="h1" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding ListTitle}" />
+              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                          IsVisible="{Binding IsInFolder}">
+                <Button Classes="icon small" Command="{Binding RenameCurrentFolderCommand}" ToolTip.Tip="Rename folder">
+                  <PathIcon Data="{StaticResource Icon.edit}" />
+                </Button>
+                <Button Classes="icon small" ToolTip.Tip="Delete folder">
+                  <PathIcon Data="{StaticResource Icon.delete}" />
+                  <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                      <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
+                        <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
+                                   Text="{Binding ListTitle, StringFormat='Delete the folder {0}?'}" />
+                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                   Text="Its cards are not deleted: they go back to Cards." />
+                        <Button Classes="danger solid" Content="Delete folder" HorizontalAlignment="Right"
+                                Click="OnFolderDeleteClick" />
+                      </StackPanel>
+                    </Flyout>
+                  </Button.Flyout>
+                </Button>
+              </StackPanel>
+            </Grid>
+            <TextBox Classes="titlebox foldertitle" Text="{Binding FolderRenameText}" MaxLength="64"
+                     IsVisible="{Binding IsRenamingFolder}" b:FocusOnShow.IsEnabled="True"
+                     KeyDown="OnFolderTitleKeyDown" LostFocus="OnFolderTitleLostFocus" />
+          </Panel>
           <TextBlock Classes="caption" Text="{Binding CountText}" />
         </StackPanel>
-        <Button Grid.Column="1" Classes="accent" Command="{Binding AddCommand}" VerticalAlignment="Center"
-                ToolTip.Tip="Scan, import or enter a new card">
+        <Button Grid.Column="2" Classes="accent" Command="{Binding AddCommand}" VerticalAlignment="Center"
+                Margin="12,0,0,0" ToolTip.Tip="Scan, import or enter a new card">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.add}" />
             <TextBlock Text="Add card" Classes="wide-only" VerticalAlignment="Center" />
@@ -234,40 +276,78 @@
 
       <TextBlock Grid.Row="2" Classes="caption" Text="No cards match the search and filters."
                  IsVisible="{Binding NoMatches}" VerticalAlignment="Top" />
+      <TextBlock Grid.Row="2" Classes="caption" TextWrapping="Wrap" VerticalAlignment="Top"
+                 IsVisible="{Binding IsFolderEmpty}"
+                 Text="No cards in this folder yet. Drag cards onto it in the navigation pane, or add one here." />
 
-      <!-- In manual order the cards can be dragged into place (see CardsView.axaml.cs). -->
+      <!-- In manual order the cards can be dragged into place, and in any order onto a folder in
+           the navigation pane (see CardsView.axaml.cs). -->
       <!-- Reaches past the column by as much as the list is padded, so the shadow of a
            dragged card is not clipped at the sides and bottom; the cards stay in place. -->
       <ScrollViewer Grid.Row="2" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
-        <ListBox Name="CardList" Classes="cards" ItemsSource="{Binding Cards}" Padding="12,0,12,16"
-                 SelectedItem="{Binding Selected}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:CardItemViewModel">
-              <Panel>
-                <Border Classes="cardrow"><Border Classes="cardclip">
-                  <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
-                    <Border Grid.Column="0" Background="{Binding ColorBrush}" />
-                    <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
-                                 TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
-                                 TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
-                    <Panel Grid.Column="2" VerticalAlignment="Center">
-                      <Border Classes="chip hf" IsVisible="{Binding IsHf}"><TextBlock Text="HF" /></Border>
-                      <Border Classes="chip lf" IsVisible="{Binding IsLf}"><TextBlock Text="LF" /></Border>
-                      <Border Classes="chip" IsVisible="{Binding IsUnknownType}"
-                              Background="{actipro:ThemeResource Container3BackgroundBrush}">
-                        <TextBlock Text="?" />
-                      </Border>
-                    </Panel>
-                  </Grid>
-                </Border></Border>
-                <Border Classes="dragframe" />
-              </Panel>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <StackPanel>
+          <ListBox Name="CardList" Classes="cards" ItemsSource="{Binding Cards}" Padding="8,0,8,12"
+                   SelectedItem="{Binding Selected}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:CardItemViewModel">
+                <Panel>
+                  <Border Classes="cardrow"><Border Classes="cardclip">
+                    <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
+                      <Border Grid.Column="0" Background="{Binding ColorBrush}" />
+                      <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <Panel Grid.Column="2" VerticalAlignment="Center">
+                        <Border Classes="chip hf" IsVisible="{Binding IsHf}"><TextBlock Text="HF" /></Border>
+                        <Border Classes="chip lf" IsVisible="{Binding IsLf}"><TextBlock Text="LF" /></Border>
+                        <Border Classes="chip" IsVisible="{Binding IsUnknownType}"
+                                Background="{actipro:ThemeResource Container3BackgroundBrush}">
+                          <TextBlock Text="?" />
+                        </Border>
+                      </Panel>
+                    </Grid>
+                  </Border></Border>
+                  <Border Classes="dragframe" />
+                </Panel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <!-- Cards (no folder open): the folders after its own cards. A tile opens its folder, and cards
+               are dragged onto it like onto a folder in the navigation pane (see ListReorder). -->
+          <StackPanel Spacing="4" Margin="8,4,8,12" IsVisible="{Binding ShowsFolderTiles}">
+            <TextBlock Text="FOLDERS" Classes="overline" Margin="4,0" />
+            <ItemsControl ItemsSource="{Binding Folders}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <c:TileGrid MinItemWidth="280" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CardFolderViewModel">
+                  <Button Classes="foldertile" Classes.empty="{Binding IsEmpty}"
+                          Command="{Binding OpenCommand}" b:ListReorder.IsDropTarget="True"
+                          ToolTip.Tip="{Binding Name}">
+                    <Border Classes="cardrow">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="14,8,14,8" MinHeight="36">
+                        <PathIcon Grid.Column="0" Classes="foldericon" Width="20" Height="20"
+                                  Data="{StaticResource Icon.folder}" />
+                        <TextBlock Grid.Column="1" Classes="foldername" Text="{Binding Name}" FontWeight="SemiBold"
+                                   FontSize="15" VerticalAlignment="Center" TextWrapping="Wrap" MaxLines="2"
+                                   LineSpacing="-2" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="2" Classes="caption foldercount" VerticalAlignment="Center"
+                                   Text="{Binding CountText}" />
+                      </Grid>
+                    </Border>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </StackPanel>
       </ScrollViewer>
     </Grid>
 
@@ -290,7 +370,7 @@
                 <Flyout Placement="BottomEdgeAlignedLeft">
                   <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
                            SelectedItem="{Binding Form?.Color}" Background="Transparent" BorderThickness="0"
-                           Tapped="OnSwatchTapped">
+                           Tapped="OnFlyoutPickTapped">
                     <ListBox.ItemsPanel>
                       <ItemsPanelTemplate><UniformGrid Columns="8" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
@@ -312,7 +392,7 @@
             </StackPanel>
           </Grid>
 
-          <!-- One line; when it gets tight, Delete and Duplicate drop their labels first, then Export,
+          <!-- One line; when it gets tight, Delete, Folder and Duplicate drop their labels first, then Export,
                then Assign / Write (tooltips name them). -->
           <c:ActionRow IsVisible="{Binding !IsWriteOpen}">
             <Button Command="{Binding DuplicateCommand}" IsVisible="{Binding IsCardOpen}"
@@ -348,6 +428,53 @@
                 </MenuFlyout>
               </DropDownButton.Flyout>
             </DropDownButton>
+            <Button IsVisible="{Binding IsCardOpen}" ToolTip.Tip="Move this card to a folder">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.folder}" />
+                <TextBlock Text="{Binding CardFolderLabel}" VerticalAlignment="Center"
+                           MaxWidth="140" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+              <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedLeft">
+                  <!-- Fixed width: long names wrap onto a second line, tightly spaced, then trim. No folder
+                       (back to Cards) stands apart above the folders; one choice across both lists. -->
+                  <StackPanel Width="260">
+                    <ListBox ItemsSource="{Binding RootFolderOptions}" SelectedItem="{Binding SelectedCardFolder}"
+                             Background="Transparent" BorderThickness="0" Tapped="OnFlyoutPickTapped">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CardFolderOption">
+                          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
+                                      Data="{StaticResource Icon.cards}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center" />
+                          </Grid>
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Separator Margin="0,4" IsVisible="{Binding HasFolders}" />
+                    <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+                      <ListBox ItemsSource="{Binding FolderOptions}" SelectedItem="{Binding SelectedCardFolder}"
+                               Background="Transparent" BorderThickness="0"
+                               ScrollViewer.HorizontalScrollBarVisibility="Disabled" Tapped="OnFlyoutPickTapped">
+                        <ListBox.ItemTemplate>
+                          <DataTemplate x:DataType="vm:CardFolderOption">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                              <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
+                                        Data="{StaticResource Icon.folder}" />
+                              <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                                         TextWrapping="Wrap" MaxLines="2" LineSpacing="-2"
+                                         TextTrimming="CharacterEllipsis" />
+                              <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="caption"
+                                         VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ListBox.ItemTemplate>
+                      </ListBox>
+                    </ScrollViewer>
+                  </StackPanel>
+                </Flyout>
+              </Button.Flyout>
+            </Button>
             <Button Command="{Binding AssignCommand}" Classes.accent="{Binding IsSlotsOpen}" c:ActionRow.Priority="2"
                     ToolTip.Tip="Emulate this card in one of the device's slots">
               <StackPanel Orientation="Horizontal" Spacing="6">

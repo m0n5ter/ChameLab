@@ -50,6 +50,13 @@ public sealed class MainViewModel : ViewModelBase
         TogglePaneCommand = ReactiveCommand.Create(() => { IsPaneOpen = !IsPaneOpen; });
 
         Slots.OpenCardRequested += card => _ = OpenCardAsync(card.Id);
+        Cards.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(CardsViewModel.CurrentFolder)) RaiseNavSelection();
+        };
+        NavPages.CollectionChanged += (_, _) => SyncNavItems();
+        Cards.Folders.CollectionChanged += (_, _) => SyncNavItems();
+        SyncNavItems();
         _device.StateChanged += OnStateChanged;
         _connect.OfflineRequested += () => _ = EnterOfflineAsync();
         _connect.StartWatching();
@@ -88,19 +95,87 @@ public sealed class MainViewModel : ViewModelBase
         private set
         {
             this.RaiseAndSetIfChanged(ref _currentPage, value);
-            this.RaisePropertyChanged(nameof(SelectedNavPage));
+            this.RaisePropertyChanged(nameof(SelectedNavItem));
         }
     }
 
-    /// <summary>Two-way selection for the navigation list; selecting a page navigates to it.</summary>
-    public PageViewModelBase? SelectedNavPage
+    /// <summary>The navigation list: the pages, with the card folders under Cards.</summary>
+    public ObservableCollection<object> NavItems { get; } = new();
+
+    /// <summary>Keeps <see cref="NavItems"/> in step with the pages and folders, in place (so a folder being renamed keeps its row).</summary>
+    private void SyncNavItems()
     {
-        get => NavPages.Contains(_currentPage) ? _currentPage : null;
+        var wanted = new List<object>();
+        foreach (var page in NavPages)
+        {
+            wanted.Add(page);
+            if (!ReferenceEquals(page, Cards)) continue;
+            wanted.AddRange(Cards.Folders);
+        }
+        for (var i = NavItems.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(NavItems[i])) NavItems.RemoveAt(i);
+        for (var i = 0; i < wanted.Count; i++)
+        {
+            var at = NavItems.IndexOf(wanted[i]);
+            if (at < 0) NavItems.Insert(i, wanted[i]);
+            else if (at != i) NavItems.Move(at, i);
+        }
+        RaiseNavSelection();
+    }
+
+    /// <summary>
+    /// Two-way selection for the navigation list: the page shown, or the card folder shown. Selecting
+    /// a page navigates to it (Cards shows the cards in no folder), a folder shows its cards.
+    /// </summary>
+    public object? SelectedNavItem
+    {
+        get => _clearingNavSelection ? null
+            : ReferenceEquals(_currentPage, Cards) && Cards.CurrentFolder is { } folder ? folder
+            : NavPages.Contains(_currentPage) ? _currentPage : null;
         set
         {
-            if (value is not null && !ReferenceEquals(value, _currentPage))
-                _ = NavigateAsync(value);
+            switch (value)
+            {
+                case PageViewModelBase page:
+                    if (!ReferenceEquals(page, _currentPage)) _ = NavigateAsync(page);
+                    if (ReferenceEquals(page, Cards) && Cards.CurrentFolder is not null) ShowFolder(null);
+                    break;
+                case CardFolderViewModel folder when !ReferenceEquals(folder, SelectedNavItem):
+                    _ = OpenFolderAsync(folder);
+                    break;
+            }
         }
+    }
+
+    private bool _clearingNavSelection;
+
+    /// <summary>
+    /// Puts the list's highlight on the place shown, now and once more after layout: unsaved work may
+    /// have kept the page where it was, and folders added or moving to a new place drop the highlight
+    /// (while the list still holds the item as selected, so it is cleared before it is set again).
+    /// </summary>
+    private void RaiseNavSelection()
+    {
+        this.RaisePropertyChanged(nameof(SelectedNavItem));
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            _clearingNavSelection = true;
+            this.RaisePropertyChanged(nameof(SelectedNavItem));
+            _clearingNavSelection = false;
+            this.RaisePropertyChanged(nameof(SelectedNavItem));
+        }, Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    private async Task OpenFolderAsync(CardFolderViewModel folder)
+    {
+        await NavigateAsync(Cards);
+        ShowFolder(folder);
+    }
+
+    private void ShowFolder(CardFolderViewModel? folder)
+    {
+        Cards.ShowFolder(folder);
+        RaiseNavSelection();
     }
 
     /// <summary>Set by the view when the window is too narrow to dock the pane (it overlays content).</summary>
@@ -218,7 +293,6 @@ public sealed class MainViewModel : ViewModelBase
     {
         NavPages.Clear();
         foreach (var p in pages) NavPages.Add(p);
-        this.RaisePropertyChanged(nameof(SelectedNavPage));
     }
 
     private async Task EnterOfflineAsync()

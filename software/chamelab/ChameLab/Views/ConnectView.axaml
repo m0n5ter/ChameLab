@@ -47,31 +47,33 @@
             </Button>
           </Grid>
 
-          <ListBox Grid.Row="1" x:Name="DeviceList" Classes="nav"
+          <!-- Rows like the other lists (cards, slots); one column, and pulled out by the rows' own
+               padding so they line up with the card's content. -->
+          <ListBox Grid.Row="1" x:Name="DeviceList" Classes="cards devices" Margin="-4,0"
                    ItemsSource="{Binding Candidates}" SelectedItem="{Binding Selected}"
                    MaxHeight="260" IsVisible="{Binding HasCandidates}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="t:TransportCandidate">
-                <Grid ColumnDefinitions="Auto,Auto,*" Margin="0,6,10,6">
-                  <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
-                          Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
-                  <!-- Every listed candidate is a Chameleon, so show the device rather than a port glyph. -->
-                  <Panel Grid.Column="1" Width="36" Height="44" Margin="0,0,12,0">
-                    <Image Source="/Assets/chameleon-ultra.png" Height="42"
-                           RenderOptions.BitmapInterpolationMode="HighQuality" />
-                    <Border Classes="iconwell" Width="20" Height="20" CornerRadius="10" Padding="0"
-                            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-6,-2">
-                      <PathIcon Width="11" Height="11"
-                                Data="{Binding Kind, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
-                    </Border>
-                  </Panel>
-                  <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
-                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="NoWrap"
-                               TextTrimming="CharacterEllipsis"
-                               IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                  </StackPanel>
-                </Grid>
+                <Border Classes="cardrow">
+                  <Grid ColumnDefinitions="Auto,*" Margin="12,6,12,6">
+                    <!-- Every listed candidate is a Chameleon, so show the device rather than a port glyph. -->
+                    <Panel Grid.Column="0" Width="36" Height="44" Margin="0,0,12,0">
+                      <Image Source="/Assets/chameleon-ultra.png" Height="42"
+                             RenderOptions.BitmapInterpolationMode="HighQuality" />
+                      <Border Classes="iconwell" Width="20" Height="20" CornerRadius="10" Padding="0"
+                              HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-6,-2">
+                        <PathIcon Width="11" Height="11"
+                                  Data="{Binding Kind, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                      </Border>
+                    </Panel>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                      <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="NoWrap"
+                                 TextTrimming="CharacterEllipsis"
+                                 IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
