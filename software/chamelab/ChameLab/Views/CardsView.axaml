@@ -97,6 +97,13 @@
     <!-- The open folder's title being renamed: as big as the title it replaces. -->
     <Style Selector="TextBox.titlebox.foldertitle">
       <Setter Property="FontSize" Value="24" />
+      <!-- Frame and padding outside the text (border 1 + padding), so the letters stay where the title's were. -->
+      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="Margin" Value="-7,-3" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Panel.renaming > TextBlock.h1">
+      <Setter Property="Opacity" Value="0" />
     </Style>
     <Style Selector="TextBox.titlebox:pointerover">
       <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
@@ -169,48 +176,46 @@
           <PathIcon Data="{StaticResource Icon.back}" />
         </Button>
         <StackPanel Grid.Column="1" Spacing="2">
-          <!-- A folder's title, with Rename (in place) and Delete right after it. Left-aligned, the grid is
-               only as wide as the title, until a long title trims. -->
-          <Panel>
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4" HorizontalAlignment="Left"
-                  IsVisible="{Binding !IsRenamingFolder}">
-              <TextBlock Grid.Column="0" Text="{Binding ListTitle}" Classes="h1" TextTrimming="CharacterEllipsis"
-                         ToolTip.Tip="{Binding ListTitle}" />
-              <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
-                          IsVisible="{Binding IsInFolder}">
-                <Button Classes="icon small" Command="{Binding RenameCurrentFolderCommand}" ToolTip.Tip="Rename folder">
-                  <PathIcon Data="{StaticResource Icon.edit}" />
-                </Button>
-                <Button Classes="icon small" ToolTip.Tip="Delete folder">
-                  <PathIcon Data="{StaticResource Icon.delete}" />
-                  <Button.Flyout>
-                    <Flyout Placement="BottomEdgeAlignedLeft">
-                      <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
-                        <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
-                                   Text="{Binding ListTitle, StringFormat='Delete the folder {0}?'}" />
-                        <TextBlock Classes="caption" TextWrapping="Wrap"
-                                   Text="Its cards are not deleted: they go back to Cards." />
-                        <Button Classes="danger solid" Content="Delete folder" HorizontalAlignment="Right"
-                                Click="OnFolderDeleteClick" />
-                      </StackPanel>
-                    </Flyout>
-                  </Button.Flyout>
-                </Button>
-              </StackPanel>
-            </Grid>
+          <!-- A folder's title, renamed in place (Rename beside Add card). -->
+          <!-- Renaming: the title stays, unseen, so the header keeps its size; the field lies over it. -->
+          <Panel Classes.renaming="{Binding IsRenamingFolder}">
+            <TextBlock Text="{Binding ListTitle}" Classes="h1" TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding ListTitle}" />
             <TextBox Classes="titlebox foldertitle" Text="{Binding FolderRenameText}" MaxLength="64"
                      IsVisible="{Binding IsRenamingFolder}" b:FocusOnShow.IsEnabled="True"
                      KeyDown="OnFolderTitleKeyDown" LostFocus="OnFolderTitleLostFocus" />
           </Panel>
           <TextBlock Classes="caption" Text="{Binding CountText}" />
         </StackPanel>
-        <Button Grid.Column="2" Classes="accent" Command="{Binding AddCommand}" VerticalAlignment="Center"
-                Margin="12,0,0,0" ToolTip.Tip="Scan, import or enter a new card">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.add}" />
-            <TextBlock Text="Add card" Classes="wide-only" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
+        <!-- The open folder's Rename and Delete, as tall as Add card (the row stretches them to it). -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" VerticalAlignment="Center">
+          <Button Command="{Binding RenameCurrentFolderCommand}" ToolTip.Tip="Rename folder"
+                  VerticalAlignment="Stretch" IsVisible="{Binding IsInFolder}">
+            <PathIcon Data="{StaticResource Icon.edit}" />
+          </Button>
+          <Button Classes="danger" ToolTip.Tip="Delete folder" VerticalAlignment="Stretch"
+                  IsVisible="{Binding IsInFolder}">
+            <PathIcon Data="{StaticResource Icon.delete}" />
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedRight">
+                <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
+                  <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
+                             Text="{Binding ListTitle, StringFormat='Delete the folder {0}?'}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="Its cards are not deleted: they go back to Cards." />
+                  <Button Classes="danger solid" Content="Delete folder" HorizontalAlignment="Right"
+                          Click="OnFolderDeleteClick" />
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+          <Button Classes="accent" Command="{Binding AddCommand}" ToolTip.Tip="Scan, import or enter a new card">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.add}" />
+              <TextBlock Text="Add card" Classes="wide-only" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
       </Grid>
 
       <StackPanel Grid.Row="1" Spacing="8" IsVisible="{Binding !IsEmpty}">
@@ -274,11 +279,6 @@
         </StackPanel>
       </Border>
 
-      <TextBlock Grid.Row="2" Classes="caption" Text="No cards match the search and filters."
-                 IsVisible="{Binding NoMatches}" VerticalAlignment="Top" />
-      <TextBlock Grid.Row="2" Classes="caption" TextWrapping="Wrap" VerticalAlignment="Top"
-                 IsVisible="{Binding IsFolderEmpty}"
-                 Text="No cards in this folder yet. Drag cards onto it in the navigation pane, or add one here." />
 
       <!-- In manual order the cards can be dragged into place, and in any order onto a folder in
            the navigation pane (see CardsView.axaml.cs). -->
@@ -286,6 +286,11 @@
            dragged card is not clipped at the sides and bottom; the cards stay in place. -->
       <ScrollViewer Grid.Row="2" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
         <StackPanel>
+          <!-- In the flow above the list, so they never overlap the folder tiles below it. -->
+          <TextBlock Classes="caption" Margin="12,0,12,8" Text="No cards match the search and filters."
+                     IsVisible="{Binding NoMatches}" />
+          <TextBlock Classes="caption" Margin="12,0,12,8" TextWrapping="Wrap" IsVisible="{Binding IsFolderEmpty}"
+                     Text="No cards in this folder yet. Drag cards onto it in the navigation pane, or add one here." />
           <ListBox Name="CardList" Classes="cards" ItemsSource="{Binding Cards}" Padding="8,0,8,12"
                    SelectedItem="{Binding Selected}">
             <ListBox.ItemTemplate>

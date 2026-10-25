@@ -126,7 +126,7 @@
 
                   <DataTemplate DataType="vm:CardFolderViewModel">
                     <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
-                      <Grid Classes="folderrow" Classes.empty="{Binding IsEmpty}"
+                      <Grid Classes="folderrow" Classes.empty="{Binding IsEmpty}" Classes.editing="{Binding IsEditing}"
                             ColumnDefinitions="Auto,Auto,*,Auto" MinHeight="32">
                         <Grid.ContextFlyout>
                           <MenuFlyout>
@@ -141,14 +141,13 @@
                         <PathIcon Grid.Column="1" Classes="foldericon" Width="15" Height="15" Margin="22,0,10,0"
                                   Data="{StaticResource Icon.folder}" />
                         <!-- A transparent box around the name, so its tooltip shows over the whole cell, not just the glyphs. -->
-                        <Border Grid.Column="2" Classes="foldername" Background="Transparent" ToolTip.Tip="{Binding Name}"
-                                IsVisible="{Binding !IsEditing}">
+                        <Border Grid.Column="2" Classes="foldername" Background="Transparent" ToolTip.Tip="{Binding Name}">
                           <!-- Long names wrap onto a second line, tightly spaced, then trim. -->
                           <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" Margin="0,4"
                                      TextWrapping="Wrap" MaxLines="2" LineSpacing="-2" TextTrimming="CharacterEllipsis" />
                         </Border>
                         <TextBlock Grid.Column="3" Classes="caption foldercount" Text="{Binding Count}"
-                                   VerticalAlignment="Center" Margin="8,0,10,0" IsVisible="{Binding !IsEditing}" />
+                                   VerticalAlignment="Center" Margin="8,0,10,0" />
                         <!-- On hover (and on the open folder) the folder's actions, over the end of the name and the
                              count: the name keeps its width, so it doesn't rewrap as they come and go. -->
                         <StackPanel Grid.Column="2" Grid.ColumnSpan="2" Classes="folderactions" Orientation="Horizontal"
@@ -173,7 +172,7 @@
                           </Button>
                         </StackPanel>
                         <TextBox Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding EditName}" MaxLength="64"
-                                 MinHeight="0" Padding="6,3" Margin="-7,0,4,0" VerticalAlignment="Center" FontSize="13"
+                                 MinHeight="0" Padding="6,2" Margin="-7,-3,4,-3" VerticalAlignment="Center" FontSize="13"
                                  IsVisible="{Binding IsEditing}" b:FocusOnShow.IsEnabled="True"
                                  KeyDown="OnFolderNameKeyDown" LostFocus="OnFolderNameLostFocus" />
                       </Grid>

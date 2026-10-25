@@ -201,7 +201,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public ObservableCollection<CardItemViewModel> Cards { get; } = new();
 
     public bool IsEmpty => _library.Cards.Count == 0;
-    public bool NoMatches => !IsEmpty && Cards.Count == 0 && !IsFolderEmpty;
+    /// <summary>The search or filters hide every card of the folder (or of Cards) shown.</summary>
+    public bool NoMatches => HasFilters && Cards.Count == 0 && _library.Cards.Any(InView);
     /// <summary>The open folder has no cards (Cards with every card in a folder shows the folder tiles instead).</summary>
     public bool IsFolderEmpty => !IsEmpty && _folder is not null && !_library.Cards.Any(InView);
 

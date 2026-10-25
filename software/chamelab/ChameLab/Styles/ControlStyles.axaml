@@ -531,6 +531,11 @@
       </LinearGradientBrush>
     </Setter>
   </Style>
+  <!-- Renaming a folder: the name (and count) stay, unseen, so the row keeps its size, and the field lies
+       over them, its frame and padding outside the text (negative margin) so the letters don't move. -->
+  <Style Selector="Grid.folderrow.editing Border.foldername, Grid.folderrow.editing TextBlock.foldercount">
+    <Setter Property="Opacity" Value="0" />
+  </Style>
   <Style Selector="Border.navbar">
     <Setter Property="Width" Value="3" />
     <Setter Property="Height" Value="18" />
