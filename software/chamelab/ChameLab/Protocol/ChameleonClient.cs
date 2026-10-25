@@ -471,9 +471,13 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// <summary>Default T55xx write key used by the firmware (0x20206666).</summary>
     public static readonly byte[] DefaultT55xxKey = [0x20, 0x20, 0x66, 0x66];
 
-    /// <summary>T55xx keys the firmware tries when a tag is password-protected.</summary>
+    /// <summary>
+    /// T55xx keys the firmware tries when a tag is password-protected. Includes
+    /// <see cref="DefaultT55xxKey"/>, so a tag ChameLab locked earlier can be re-keyed.
+    /// </summary>
     public static readonly byte[][] DefaultT55xxOldKeys =
     [
+        [0x20, 0x20, 0x66, 0x66],
         [0x51, 0x24, 0x36, 0x48],
         [0x19, 0x92, 0x04, 0x27]
     ];
