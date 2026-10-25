@@ -642,6 +642,50 @@
             </StackPanel>
           </Border>
 
+          <!-- ===================== New card: the scanned tag is already saved ===================== -->
+          <Border Classes="card" b:BringIntoViewOnShow.IsEnabled="True">
+            <Border.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="IsEditingNew" />
+                <Binding Path="HasScanMatches" />
+                <Binding Path="!IsWriteOpen" />
+              </MultiBinding>
+            </Border.IsVisible>
+            <StackPanel Spacing="10">
+              <StackPanel Spacing="2">
+                <TextBlock Text="ALREADY SAVED" Classes="overline" />
+                <TextBlock Classes="caption" TextWrapping="Wrap"
+                           Text="{Binding ScanMatchText}" />
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding ScanMatches}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CardItemViewModel">
+                    <Button Classes="cardtile"
+                            Command="{Binding $parent[ItemsControl].((vm:CardsViewModel)DataContext).OpenScanMatchCommand}"
+                            CommandParameter="{Binding}" ToolTip.Tip="Open the saved card">
+                      <Border Classes="cardclip">
+                        <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
+                          <Border Grid.Column="0" Background="{Binding ColorBrush}" />
+                          <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <PathIcon Grid.Column="2" Data="{StaticResource Icon.edit}" Width="16" Height="16" Opacity="0.6"
+                                    VerticalAlignment="Center" />
+                        </Grid>
+                      </Border>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
           <!-- ===================== Card details (add + edit) ===================== -->
           <Border Classes="card" IsVisible="{Binding ShowEditor}">
             <StackPanel Spacing="10">

@@ -131,6 +131,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
         CancelAddCommand = ReactiveCommand.Create(CancelAdd);
+        OpenScanMatchCommand = ReactiveCommand.Create<CardItemViewModel>(OpenScanMatch);
 
         SaveCommand = ReactiveCommand.Create(() => { Save(); }, hasForm);
         DiscardCommand = ReactiveCommand.Create(Discard);
@@ -651,6 +652,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
     public ICommand ImportCommand { get; }
     public ICommand ManualCommand { get; }
     public ICommand CancelAddCommand { get; }
+    public ICommand OpenScanMatchCommand { get; }
 
     /// <summary>LF protocols that can be scanned for.</summary>
     public IReadOnlyList<TagSpecificType> LfProtocols { get; } = new[]
@@ -788,6 +790,76 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         try { _dumpCts?.Cancel(); } catch (ObjectDisposedException) { }
         DumpProgressText = null;
         _scannedAts = Array.Empty<byte>();
+        SetScanMatches(null);
+    }
+
+    // ---- Scanned card already saved ---------------------------------------
+
+    /// <summary>
+    /// Saved cards that are the scanned tag: once its memory is dumped, those with the same memory;
+    /// before that, those with its frequency and UID / ID (and protocol, for LF; EM410x bit rates aside).
+    /// </summary>
+    public ObservableCollection<CardItemViewModel> ScanMatches { get; } = new();
+
+    public bool HasScanMatches => ScanMatches.Count > 0;
+
+    private bool _scanMatchesByDump;
+
+    public string ScanMatchText => _scanMatchesByDump
+        ? "A saved card has the same memory as this dump. Open it, or keep going to save the dump again."
+        : "This tag is already in your library. Open the saved card, or keep going to save it again.";
+
+    private void SetScanMatches(CardSave? scanned)
+    {
+        ScanMatches.Clear();
+        _scanMatchesByDump = scanned is not null && scanned.Data.Any(d => d.Length > 0);
+        if (scanned is { Uid.Length: > 0 } || _scanMatchesByDump)
+            foreach (var card in _library.Cards.Where(c => c.Sense == scanned!.Sense
+                         && (_scanMatchesByDump
+                             ? SameMemory(c.Data, scanned.Data)
+                             : (c.Sense != TagSenseType.Lf || SameLfProtocol(c.Tag, scanned.Tag))
+                               && c.Uid.AsSpan().SequenceEqual(scanned.Uid))))
+                ScanMatches.Add(new CardItemViewModel(card));
+        this.RaisePropertyChanged(nameof(HasScanMatches));
+        this.RaisePropertyChanged(nameof(ScanMatchText));
+    }
+
+    /// <summary>
+    /// A scan reports the EM410x bit rate (EM410X / 64…) while a card saved from a slot has the
+    /// plain EM410X type the slot emulates it with; both are the same tag.
+    /// </summary>
+    private static bool SameLfProtocol(TagSpecificType a, TagSpecificType b) =>
+        ChameleonClient.SlotTypeFor(a) == ChameleonClient.SlotTypeFor(b);
+
+    /// <summary>
+    /// Same size and the same content in every block / page read in both; blocks left unread
+    /// (empty) on either side are not compared, but at least one must be.
+    /// </summary>
+    private static bool SameMemory(IReadOnlyList<byte[]> a, IReadOnlyList<byte[]> b)
+    {
+        if (a.Count != b.Count) return false;
+        var compared = false;
+        for (var i = 0; i < a.Count; i++)
+        {
+            if (a[i].Length == 0 || b[i].Length == 0) continue;
+            if (!a[i].AsSpan().SequenceEqual(b[i])) return false;
+            compared = true;
+        }
+        return compared;
+    }
+
+    /// <summary>
+    /// Opens the saved copy of the scanned card. The scan is dropped, unless its memory was
+    /// dumped: then the usual “save before leaving?” question comes first.
+    /// </summary>
+    private void OpenScanMatch(CardItemViewModel match)
+    {
+        if (!_hasDump)
+        {
+            ResetAddState();
+            Form = null;
+        }
+        OpenCard(match.Card.Id);
     }
 
     private void BeginManual()
@@ -829,6 +901,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
             if (ultralight is { } exact) card.Tag = exact;
             _scannedAts = card.Ats;
             Form = new CardEditorViewModel(card);
+            SetScanMatches(card);
             IsUltralightDump = card.Tag.IsUltralight();
             CanDump = card.Tag.IsMifareClassic() || IsUltralightDump;
             FormSource = $"{card.Tag.DisplayName()} — UID {t.UidHex}";
@@ -874,7 +947,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
             {
                 ResetAddState();
                 FormSource = $"{tag.Type.DisplayName()} tag";
-                Form = new CardEditorViewModel(CardFormats.FromEm410x(tag));
+                var card = CardFormats.FromEm410x(tag);
+                Form = new CardEditorViewModel(card);
+                SetScanMatches(card);
             });
             SetStatus("EM410x tag read.");
             return;
@@ -885,12 +960,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
         {
             ResetAddState();
             FormSource = $"{result.Type.DisplayName()} tag";
-            Form = new CardEditorViewModel(new CardSave
+            var card = new CardSave
             {
                 Name = $"{result.Type.DisplayName()} {result.IdHex}",
                 Tag = result.Type,
                 Uid = result.Id,
-            });
+            };
+            Form = new CardEditorViewModel(card);
+            SetScanMatches(card);
         });
         SetStatus($"{LfProtocol.DisplayName()} tag read.");
     });
@@ -928,6 +1005,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
                 card.Ats = _scannedAts;
                 if (Form is { } form) form.ReplaceContent(card);
                 else Form = new CardEditorViewModel(card);
+                SetScanMatches(card);
                 _hasDump = true;
                 RaiseSaveLabel();
             });
@@ -978,6 +1056,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList
                 if (Form is { } form) form.ReplaceContent(result.Card);
                 else Form = new CardEditorViewModel(result.Card);
                 FormSource = $"{result.Card.Tag.DisplayName()} — UID {Hex.Compact(result.Card.Uid)}";
+                SetScanMatches(result.Card);
                 _hasDump = true;
                 RaiseSaveLabel();
             });

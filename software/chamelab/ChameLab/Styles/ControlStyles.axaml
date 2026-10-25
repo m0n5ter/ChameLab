@@ -172,6 +172,13 @@
   <Style Selector="Button">
     <Setter Property="CornerRadius" Value="8" />
   </Style>
+  <!-- The theme fills disabled buttons with its disabled brush, near black in the dark theme and
+       darker than the surface around them. Keep each button's own fill and border instead; the
+       disabled text color is enough to show the state. -->
+  <Style Selector=":is(Button):disabled /template/ ContentPresenter">
+    <Setter Property="Background" Value="{Binding $parent[Button].Background}" />
+    <Setter Property="BorderBrush" Value="{Binding $parent[Button].BorderBrush}" />
+  </Style>
   <Style Selector="Button > StackPanel > PathIcon">
     <Setter Property="Width" Value="16" />
     <Setter Property="Height" Value="16" />
@@ -217,6 +224,7 @@
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
   </Style>
   <Style Selector="Button.accent:disabled /template/ ContentPresenter">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
     <Setter Property="Opacity" Value="0.5" />
   </Style>
 
@@ -498,6 +506,28 @@
   </Style>
   <!-- Clips the color stripe to the inner edge of the frame (12 - 1.5) so it never paints over it. -->
   <Style Selector="Border.cardrow > Border.cardclip">
+    <Setter Property="CornerRadius" Value="10.5" />
+    <Setter Property="ClipToBounds" Value="True" />
+    <Setter Property="Padding" Value="0,0,14,0" />
+  </Style>
+
+  <!-- A saved card outside the list (slot editor, scanned card already saved): the list row,
+       as a button that opens the card. -->
+  <Style Selector="Button.cardtile">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.cardtile:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="Button.cardtile > Border.cardclip">
     <Setter Property="CornerRadius" Value="10.5" />
     <Setter Property="ClipToBounds" Value="True" />
     <Setter Property="Padding" Value="0,0,14,0" />

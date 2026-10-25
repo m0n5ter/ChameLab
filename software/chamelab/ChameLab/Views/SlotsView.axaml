@@ -48,26 +48,6 @@
       <Setter Property="Height" Value="1" />
       <Setter Property="Background" Value="{actipro:ThemeResource Container1BorderBrush}" />
     </Style>
-    <!-- A saved card in the editor: the Cards list row, as a button that opens the card. -->
-    <Style Selector="Button.cardtile">
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
-      <Setter Property="BorderThickness" Value="1.5" />
-      <Setter Property="CornerRadius" Value="12" />
-      <Setter Property="HorizontalAlignment" Value="Stretch" />
-      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-      <Setter Property="Cursor" Value="Hand" />
-    </Style>
-    <Style Selector="Button.cardtile:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
-    </Style>
-    <Style Selector="Button.cardtile > Border.cardclip">
-      <Setter Property="CornerRadius" Value="10.5" />
-      <Setter Property="ClipToBounds" Value="True" />
-      <Setter Property="Padding" Value="0,0,14,0" />
-    </Style>
     <!-- The picker lists one card per row and is wider than the save questions. -->
     <Style Selector="Border.savebar.dialog.picker">
       <Setter Property="MaxWidth" Value="420" />
