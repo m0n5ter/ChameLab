@@ -7,6 +7,12 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.0.11][2026-10-25] · firmware v2.3.3-cl
+ - ChameLab: writing an LF card to a T55xx tag has Current password and New password fields: the current one unlocks a locked tag, the new one is what the tag is locked with afterwards (empty keeps the current password, or 20206666 for a blank tag)
+ - ChameLab: a T55xx write is checked by reading the tag back, so a write that did not take (most often a tag locked with another password) shows an error instead of reporting success
+ - ChameLab: tags ChameLab locked earlier with its default password (20206666) can get a new password without entering the current one
+ - ChameLab: the Operating mode switch on the Dashboard is sized to its labels
+
 ## [v1.0.10][2026-10-25] · firmware v2.3.3-cl
  - ChameLab: mfkey32 key recovery wizard in Tools: puts a blank MIFARE Classic card on a free slot in tag mode, captures a reader's authentication attempts as you present the device, recovers the sector key in the app and saves it to the “Recovered keys” dictionary; the device mode, active slot and the slot it used are restored when you finish or leave the page
  - ChameLab: writing a card shows a block strip like a dump (written, writing, write error, not written) with the progress next to the buttons; Cancel stops the write (blocks already written stay on the card) and then turns into Close
