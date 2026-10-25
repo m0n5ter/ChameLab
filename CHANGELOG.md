@@ -7,6 +7,10 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.0.14][2026-10-26] · firmware v2.3.3-cl
+ - ChameLab (Android): the navigation pane shows the app version instead of 0.0.0-local
+ - ChameLab: a dragged card looks like the card on scaled screens (phones), not a blown-up corner of it
+
 ## [v1.0.13][2026-10-26] · firmware v2.3.3-cl
  - Release notes list the SHA-256 checksums of the files
  - v1.0.12 was not published (its release could not be created); its changes ship in this release

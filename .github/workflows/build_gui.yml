@@ -168,6 +168,7 @@ jobs:
         run: >
           dotnet publish software/chamelab/ChameLab.Android/ChameLab.Android.csproj
           -c Release -f net10.0-android
+          -p:Version=${{ needs.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }}
           -p:ApplicationVersion=${{ needs.version.outputs.code }}
           ${{ steps.signing.outputs.args }}
