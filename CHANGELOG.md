@@ -6,9 +6,12 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.12][2026-10-26] · firmware v2.3.3-cl
  - ChameLab: saved cards can be filed in folders (one level), shown A–Z (Folder 2 before Folder 10) indented under Cards in the navigation pane with their card counts; Cards itself lists the cards in no folder, followed by the folders as tiles, and the back arrow beside a folder's title returns to it. The + on Cards adds a folder, and the pencil / bin buttons on a folder (on hover, or right-click) rename or delete it (its cards go back to Cards). Drag a card onto a folder (in the navigation pane or a tile) to move it there, or onto Cards to take it out; the Folder button of an open card does the same. New and imported cards go into the folder shown
  - ChameLab: the navigation pane keeps its layout while it slides open or shut
  - ChameLab: card, dictionary and slot rows light up on hover like card tiles, and the gaps between rows (and between navigation items) belong to the rows, so a click or hover never falls through
+ - ChameLab: a scanned card that is already saved is shown under Already saved, with a tile that opens the saved card
 
 ## [v1.0.11][2026-10-25] · firmware v2.3.3-cl
  - ChameLab: writing an LF card to a T55xx tag has Current password and New password fields: the current one unlocks a locked tag, the new one is what the tag is locked with afterwards (empty keeps the current password, or 20206666 for a blank tag)
