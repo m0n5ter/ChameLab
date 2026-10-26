@@ -241,13 +241,13 @@
         <!-- Backup -->
         <Border Classes="card">
           <StackPanel Spacing="12">
-            <StackPanel Orientation="Horizontal" Spacing="12">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
               <Border Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.save}" /></Border>
-              <StackPanel VerticalAlignment="Center">
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock Text="Backup" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Export or import your saved cards and key dictionaries." />
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="Export or import your saved cards and key dictionaries." />
               </StackPanel>
-            </StackPanel>
+            </Grid>
             <StackPanel Orientation="Horizontal" Spacing="8">
               <Button Command="{Binding ExportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
                 <StackPanel Orientation="Horizontal" Spacing="6">

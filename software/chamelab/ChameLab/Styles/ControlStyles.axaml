@@ -241,11 +241,18 @@
     <Setter Property="Foreground" Value="White" />
   </Style>
 
-  <!-- Bar questions (declared after accent / danger so it wins): every answer button the same height, with or without an icon or accent. -->
-  <Style Selector="c|ActionBar > Button">
+  <!-- Every text button the same height, with or without an icon or accent, so swapping one for another
+       (Dump / Stop dump) doesn't shift the layout. Declared after accent / danger so it wins. Tiles,
+       icon buttons and the other drawn-content buttons keep their own size; .mini is a small inline link. -->
+  <Style Selector="Button:not(.icon):not(.tile):not(.slot):not(.cardtile):not(.foldertile):not(.copycell):not(.colorpick):not(.ledpick):not(.slottarget):not(.mini), DropDownButton">
     <Setter Property="Height" Value="36" />
+    <Setter Property="MinHeight" Value="0" />
     <Setter Property="Padding" Value="14,0" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="actipro|ToggleThemeButton">
+    <Setter Property="Height" Value="36" />
+    <Setter Property="MinWidth" Value="36" />
   </Style>
 
   <!-- Large clickable tile (scan buttons). -->
