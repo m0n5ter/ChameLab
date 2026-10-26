@@ -96,6 +96,17 @@ public sealed class MainViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _currentPage, value);
             this.RaisePropertyChanged(nameof(SelectedNavItem));
+            this.RaisePropertyChanged(nameof(SelectedNavPage));
+        }
+    }
+
+    /// <summary>The page shown, for the bottom tab bar of narrow layouts (the card folders stay in the pane).</summary>
+    public PageViewModelBase? SelectedNavPage
+    {
+        get => _clearingNavSelection ? null : NavPages.Contains(_currentPage) ? _currentPage : null;
+        set
+        {
+            if (value is not null) SelectedNavItem = value;
         }
     }
 
@@ -157,12 +168,15 @@ public sealed class MainViewModel : ViewModelBase
     private void RaiseNavSelection()
     {
         this.RaisePropertyChanged(nameof(SelectedNavItem));
+        this.RaisePropertyChanged(nameof(SelectedNavPage));
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             _clearingNavSelection = true;
             this.RaisePropertyChanged(nameof(SelectedNavItem));
+            this.RaisePropertyChanged(nameof(SelectedNavPage));
             _clearingNavSelection = false;
             this.RaisePropertyChanged(nameof(SelectedNavItem));
+            this.RaisePropertyChanged(nameof(SelectedNavPage));
         }, Avalonia.Threading.DispatcherPriority.Background);
     }
 

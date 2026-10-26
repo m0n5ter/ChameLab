@@ -832,11 +832,11 @@
   <!-- MainView adds the "compact" class to itself below its width threshold. -->
 
   <Style Selector=".compact StackPanel.page">
-    <Setter Property="Margin" Value="8,10,8,88" />
+    <Setter Property="Margin" Value="14,10,14,88" />
     <Setter Property="Spacing" Value="8" />
   </Style>
   <Style Selector=".compact Grid.page">
-    <Setter Property="Margin" Value="8,10,8,8" />
+    <Setter Property="Margin" Value="14,10,14,8" />
     <Setter Property="RowSpacing" Value="8" />
   </Style>
   <Style Selector=".compact Grid.panestack">
@@ -876,6 +876,50 @@
   </Style>
   <Style Selector=".compact :is(Control).wide-only">
     <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Control).compact-only">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=".compact :is(Control).compact-only">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <!-- The tab bar makes way for the on-screen keyboard. -->
+  <Style Selector=".compact.keyboard Panel.tabbar">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <!-- ==================== Bottom tab bar (narrow layouts) ==================== -->
+
+  <Style Selector="ListBox.tabbar">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.tabbar ListBoxItem">
+    <Setter Property="Padding" Value="2,4" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+  </Style>
+  <Style Selector="ListBox.tabbar ListBoxItem /template/ ContentPresenter, ListBox.tabbar ListBoxItem:pointerover /template/ ContentPresenter, ListBox.tabbar ListBoxItem:selected /template/ ContentPresenter, ListBox.tabbar ListBoxItem:pressed /template/ ContentPresenter, ListBox.tabbar ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.tabbar ListBoxItem:selected:focus /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <!-- The highlight is a pill behind the icon, as on Android's navigation bar. -->
+  <Style Selector="ListBox.tabbar Border.tabpill">
+    <Setter Property="Padding" Value="16,4" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.tabbar ListBoxItem:pointerover Border.tabpill">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPointerOver}" />
+  </Style>
+  <Style Selector="ListBox.tabbar ListBoxItem:selected Border.tabpill">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushSelected}" />
+  </Style>
+  <Style Selector="ListBox.tabbar ListBoxItem:selected">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
   </Style>
   <!-- ==================== Hex editing ==================== -->
 

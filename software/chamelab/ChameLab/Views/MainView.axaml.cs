@@ -163,6 +163,7 @@ public partial class MainView : UserControl
             covered = Math.Max(0, keyboard.Intersect(mine).Height - shrunk);
         }
         if (root.Margin.Bottom != covered) root.Margin = new Thickness(0, 0, 0, covered);
+        Classes.Set("keyboard", covered > 0);
         return covered > 0;
     }
 

@@ -11,7 +11,7 @@
              x:Class="ChameLab.Views.MainView"
              x:DataType="vm:MainViewModel">
 
-  <Grid x:Name="Root" RowDefinitions="Auto,*">
+  <Grid x:Name="Root" RowDefinitions="Auto,*,Auto">
 
     <!-- ==================== Top app bar ==================== -->
     <Border Grid.Row="0" Padding="10,8,12,8" Background="{actipro:ThemeResource Container1BackgroundBrush}"
@@ -248,9 +248,38 @@
       </SplitView.Content>
     </SplitView>
 
+    <!-- ==================== Bottom tab bar ==================== -->
+    <!-- Narrow layouts only: the pages a tap away. The card folders stay in the navigation pane. -->
+    <Panel Grid.Row="2" Classes="tabbar compact-only">
+      <Border Padding="4,4,4,6" Background="{actipro:ThemeResource Container1BackgroundBrush}"
+              BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,1,0,0"
+              IsVisible="{Binding HasNavigation}">
+        <ListBox Classes="tabbar" ItemsSource="{Binding NavPages}" SelectedItem="{Binding SelectedNavPage}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:PageViewModelBase">
+              <StackPanel Spacing="3" HorizontalAlignment="Center" ToolTip.Tip="{Binding Title}">
+                <Border Classes="tabpill" HorizontalAlignment="Center">
+                  <PathIcon Width="20" Height="20"
+                            Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                </Border>
+                <TextBlock Text="{Binding Title}" FontSize="11" HorizontalAlignment="Center"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+    </Panel>
+
     <!-- ==================== Firmware install dialog ==================== -->
     <!-- Over the whole shell: the device disconnects while it restarts into the bootloader. -->
-    <Panel Grid.Row="0" Grid.RowSpan="2" Background="#80000000"
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
            DataContext="{Binding Firmware}" IsVisible="{Binding IsDialogOpen}" x:DataType="vm:FirmwareUpdateViewModel">
       <!-- Stretched up to MaxWidth (and centered there), so the width doesn't follow the step text. -->
       <Border Classes="card" MaxWidth="520" Margin="16" VerticalAlignment="Center">

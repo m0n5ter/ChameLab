@@ -23,7 +23,7 @@
       <Setter Property="Margin" Value="28,0,28,24" />
     </Style>
     <Style Selector=".compact Border.savebar.pagebar">
-      <Setter Property="Margin" Value="8,0,8,8" />
+      <Setter Property="Margin" Value="14,0,14,8" />
     </Style>
     <Style Selector="Separator.row">
       <Setter Property="Margin" Value="0,14" />
