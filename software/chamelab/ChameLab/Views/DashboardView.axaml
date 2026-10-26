@@ -61,6 +61,12 @@
       <Setter Property="Width" Value="14" />
       <Setter Property="Height" Value="14" />
     </Style>
+    <!-- Battery and mode stack once the page itself is too narrow for both, whatever the window does. -->
+    <ContainerQuery Name="hero" Query="max-width:600">
+      <Style Selector="UniformGrid.cols2">
+        <Setter Property="Columns" Value="1" />
+      </Style>
+    </ContainerQuery>
   </UserControl.Styles>
 
   <ScrollViewer>
@@ -82,70 +88,72 @@
       </Grid>
 
       <!-- Hero: battery + mode -->
-      <UniformGrid Classes="cols2">
-        <Border Classes="card">
-          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
-            <!-- Ring gauge -->
-            <Panel Grid.Column="0" Width="96" Height="96" VerticalAlignment="Center">
-              <Ellipse StrokeThickness="9" Stroke="{actipro:ThemeResource Container3BackgroundBrush}" />
-              <Arc StartAngle="-90" StrokeThickness="9" StrokeLineCap="Round"
-                   SweepAngle="{Binding Battery?.Percent, Converter={x:Static conv:PercentToSweepConverter.Instance}}"
-                   Stroke="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
-                   IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26"
-                        Foreground="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
-                        IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26" Opacity="0.35"
-                        IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
-            </Panel>
-
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-              <TextBlock Text="BATTERY" Classes="overline" />
-              <TextBlock Text="{Binding Battery?.Percent, StringFormat='{}{0}%'}"
-                         FontSize="34" FontWeight="Bold"
-                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              <TextBlock Classes="caption"
-                         Text="{Binding Battery?.Volts, StringFormat='{}{0:F2} V'}"
-                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              <TextBlock Classes="caption" FontWeight="SemiBold"
-                         Text="{Binding Battery?.ConditionText}"
-                         Foreground="{Binding Battery?.Condition, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
-                         IsVisible="{Binding Battery?.ConditionText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              <TextBlock Text="Not available" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"
-                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
-              <TextBlock Text="This model has no battery gauge." Classes="caption"
-                         IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+      <Panel Container.Name="hero" Container.Sizing="Width">
+        <UniformGrid Classes="cols2">
+          <Border Classes="card">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+              <!-- Ring gauge -->
+              <Panel Grid.Column="0" Width="96" Height="96" VerticalAlignment="Center">
+                <Ellipse StrokeThickness="9" Stroke="{actipro:ThemeResource Container3BackgroundBrush}" />
+                <Arc StartAngle="-90" StrokeThickness="9" StrokeLineCap="Round"
+                     SweepAngle="{Binding Battery?.Percent, Converter={x:Static conv:PercentToSweepConverter.Instance}}"
+                     Stroke="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                     IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26"
+                          Foreground="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                          IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26" Opacity="0.35"
+                          IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+              </Panel>
+  
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="BATTERY" Classes="overline" />
+                <TextBlock Text="{Binding Battery?.Percent, StringFormat='{}{0}%'}"
+                           FontSize="34" FontWeight="Bold"
+                           IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Classes="caption"
+                           Text="{Binding Battery?.Volts, StringFormat='{}{0:F2} V'}"
+                           IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Classes="caption" FontWeight="SemiBold"
+                           Text="{Binding Battery?.ConditionText}"
+                           Foreground="{Binding Battery?.Condition, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                           IsVisible="{Binding Battery?.ConditionText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Text="Not available" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"
+                           IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+                <TextBlock Text="This model has no battery gauge." Classes="caption"
+                           IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+  
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Text="OPERATING MODE" Classes="overline" />
+              <Border Classes="segmented compact" HorizontalAlignment="Left">
+                <UniformGrid Rows="1">
+                  <RadioButton Classes="segment" GroupName="DeviceMode"
+                               IsChecked="{Binding ReaderMode, Converter={x:Static conv:InverseBoolConverter.Instance}}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.card}" />
+                      <TextBlock Text="Emulator" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </RadioButton>
+                  <RadioButton Classes="segment" GroupName="DeviceMode" IsChecked="{Binding ReaderMode}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.scan}" />
+                      <TextBlock Text="Reader" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </RadioButton>
+                </UniformGrid>
+              </Border>
+              <TextBlock Classes="caption" IsVisible="{Binding !ReaderMode}"
+                         Text="The device presents the active slot to readers as a card." />
+              <TextBlock Classes="caption" IsVisible="{Binding ReaderMode}"
+                         Text="The device scans external cards and tags." />
             </StackPanel>
-          </Grid>
-        </Border>
-
-        <Border Classes="card">
-          <StackPanel Spacing="12">
-            <TextBlock Text="OPERATING MODE" Classes="overline" />
-            <Border Classes="segmented compact" HorizontalAlignment="Left">
-              <UniformGrid Rows="1">
-                <RadioButton Classes="segment" GroupName="DeviceMode"
-                             IsChecked="{Binding ReaderMode, Converter={x:Static conv:InverseBoolConverter.Instance}}">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{StaticResource Icon.card}" />
-                    <TextBlock Text="Emulator" FontWeight="SemiBold" VerticalAlignment="Center" />
-                  </StackPanel>
-                </RadioButton>
-                <RadioButton Classes="segment" GroupName="DeviceMode" IsChecked="{Binding ReaderMode}">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{StaticResource Icon.scan}" />
-                    <TextBlock Text="Reader" FontWeight="SemiBold" VerticalAlignment="Center" />
-                  </StackPanel>
-                </RadioButton>
-              </UniformGrid>
-            </Border>
-            <TextBlock Classes="caption" IsVisible="{Binding !ReaderMode}"
-                       Text="The device presents the active slot to readers as a card." />
-            <TextBlock Classes="caption" IsVisible="{Binding ReaderMode}"
-                       Text="The device scans external cards and tags." />
-          </StackPanel>
-        </Border>
-      </UniformGrid>
+          </Border>
+        </UniformGrid>
+      </Panel>
 
       <!-- Active slot: the eight slots with their LED colors; arrows step through the filled ones -->
       <Border Classes="card">
