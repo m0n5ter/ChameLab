@@ -39,8 +39,8 @@ public sealed class ScanSound
 
     public byte[] Wav { get; }
 
-    /// <summary>One bright, short beep, like a till scanner.</summary>
-    public static ScanSound Found { get; } = Tones((2400, 90));
+    /// <summary>A soft rising two-note chime (A5, then E6).</summary>
+    public static ScanSound Found { get; } = Chime((880, 90), (1319, 200));
 
     /// <summary>Two low buzzes.</summary>
     public static ScanSound Missed { get; } = Tones((420, 110), (0, 60), (420, 110));
@@ -63,6 +63,30 @@ public sealed class ScanSound
             {
                 var edge = Math.Min(1.0, Math.Min(i, count - 1 - i) / (double)fade);
                 pcm[at + i] = (short)(Math.Sin(2 * Math.PI * hz * i / SampleRate) * edge * short.MaxValue * 0.45);
+            }
+            at += count;
+        }
+        return new ScanSound(pcm);
+    }
+
+    // Bell-like notes: each starts quickly, then dies away instead of stopping flat, which is
+    // what makes a plain beep sound harsh. Quieter than the buzz, since it is heard far more often.
+    private static ScanSound Chime(params (int Hz, int Ms)[] notes)
+    {
+        var total = 0;
+        foreach (var note in notes) total += SampleRate * note.Ms / 1000;
+        var pcm = new short[total];
+        var at = 0;
+        var attack = SampleRate * 6 / 1000;
+        foreach (var (hz, ms) in notes)
+        {
+            var count = SampleRate * ms / 1000;
+            var decay = count / 3.0;
+            for (var i = 0; i < count; i++)
+            {
+                var envelope = Math.Min(1.0, i / (double)attack) * Math.Exp(-i / decay)
+                               * Math.Min(1.0, (count - 1 - i) / (double)attack);
+                pcm[at + i] = (short)(Math.Sin(2 * Math.PI * hz * i / SampleRate) * envelope * short.MaxValue * 0.3);
             }
             at += count;
         }
