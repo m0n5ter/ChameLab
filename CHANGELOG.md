@@ -6,8 +6,10 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.17][2026-10-26] · firmware v2.3.3-cl
  - ChameLab: dumping a MIFARE Classic card now shows a key grid instead of a plain block strip — one cell per sector (16 per row, so 1K is one row and 4K three), each cell two stacked squares (key A over key B) colored by the key-search state; the key being searched fills up as candidates are tried, and the progress line names the sector and key with a bar for the search. Hover a sector for its blocks and recovered keys
- - ChameLab: the MIFARE Classic dump summary is down to blocks read and time; the rest is on the key grid
+ - ChameLab: the MIFARE Classic dump summary is down to sectors read and time; the rest is on the key grid
  - ChameLab: changing a scanned card's type drops its dump (grid, summary and the memory it read) and sets the dump up for the new type — a MIFARE Classic dump reads as many sectors as the chosen type has, so a card picked as 2K or 4K gets all of them; the type picker of a scanned card only offers types of its frequency (no MIFARE for an LF tag)
  - ChameLab: MIFARE Classic 2K cards keep all 128 blocks when dumped, exported as .bin / .eml or written to a card (they were cut to 1K)
  - ChameLab: a MIFARE Classic dump recovers key A and key B for every sector independently (before it stopped at whichever key opened the sector first), and writes the recovered keys into the sector trailers so the saved dump carries them
@@ -16,6 +18,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - ChameLab: the memory editor sets MIFARE Classic sectors apart, each under a "Sector N · blocks a–b" heading, and the memory summary counts complete sectors (15/16 sectors) instead of blocks
  - ChameLab: the key dictionaries picked for a dump are remembered between sessions
  - ChameLab: the Tag type box no longer comes up empty now and then when switching between cards
+ - ChameLab: the highlighted page in the navigation and the phone tab bar no longer goes astray when connecting or disconnecting a device
 
 ## [v1.0.16][2026-10-26] · firmware v2.3.3-cl
  - ChameLab: the navigation is always shown, starting on Connect; once a device is connected, Connect gives way to Chameleon (formerly Dashboard), which now also holds the device settings and resets. Settings keeps the app-side ones. Without a device the app works with saved cards, dictionaries and settings, so Continue without device is gone
