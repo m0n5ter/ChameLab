@@ -259,6 +259,9 @@ public class SectorKeyGrid : Control
         var ease = 1 - Math.Exp(-dt / 80);
 
         var m = Layout(Bounds.Width);
+        // Paint the whole area so the pointer stays on the grid over the gaps between squares
+        // (hit testing only sees what is drawn); otherwise the hover outline and tooltip flicker off.
+        ctx.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
         var pulse = 0.5 - 0.5 * Math.Cos(now / PulseMs * 2 * Math.PI); // 0..1..0
 
         for (var i = 0; i < sectors.Count && 2 * i + 1 < _anims.Length; i++)
