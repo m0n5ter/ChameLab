@@ -18,7 +18,7 @@ internal sealed partial class Program
         var bluetooth = WebBluetoothInterop.IsAvailable();
         var scanners = new List<ITransportScanner> { new WebSerialScanner() };
         if (bluetooth) scanners.Add(new WebBluetoothScanner());
-        AppServices.Register(scanners, new LocalStorageStore());
+        AppServices.Register(scanners, new LocalStorageStore(), feedback: new WebFeedbackPlayer());
 
         return BuildAvaloniaApp()
             .WithInterFont()
@@ -29,6 +29,7 @@ internal sealed partial class Program
             {
                 _ = WebSerialInterop.EnsureModuleAsync();
                 if (bluetooth) _ = WebBluetoothInterop.EnsureModuleAsync();
+                _ = WebFeedbackInterop.EnsureModuleAsync();
             })
             // NOTE: Avalonia DevTools is not WebAssembly-safe (uses System.Diagnostics.Process),
             // so it is intentionally not attached for the browser head.

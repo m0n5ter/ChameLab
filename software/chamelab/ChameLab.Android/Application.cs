@@ -18,7 +18,8 @@ namespace ChameLab.Android
 
         protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
         {
-            AppServices.Register(new ITransportScanner[] { new BleScanner() }, dfu: new IDfuLocator[] { new BleDfuLocator() });
+            AppServices.Register(new ITransportScanner[] { new BleScanner() }, dfu: new IDfuLocator[] { new BleDfuLocator() },
+                feedback: new AndroidFeedbackPlayer());
             return base.CustomizeAppBuilder(builder)
             .WithInterFont()
             .UseReactiveUI(_ => { });

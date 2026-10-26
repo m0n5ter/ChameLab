@@ -238,6 +238,38 @@
           </Grid>
         </Border>
 
+        <!-- Scan feedback (app-side, applies immediately) -->
+        <Border Classes="card">
+          <StackPanel>
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell amber">
+                <PathIcon Data="{StaticResource Icon.volume}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Scan sounds" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="Beep when a card scan or dump finishes, and buzz when no card is found." />
+              </StackPanel>
+              <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                            IsChecked="{Binding ScanSound}" />
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding CanVibrate}" />
+
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
+                  IsVisible="{Binding CanVibrate}">
+              <Border Grid.Column="0" Classes="iconwell amber">
+                <PathIcon Data="{StaticResource Icon.vibrate}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Vibration" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="Vibrate when a card scan or dump finishes." />
+              </StackPanel>
+              <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                            IsChecked="{Binding ScanVibration}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
         <!-- Backup -->
         <Border Classes="card">
           <StackPanel Spacing="12">

@@ -18,6 +18,7 @@ public static class AppServices
     private static DictionaryLibrary? _dictionaries;
     private static IReadOnlyList<IDfuLocator> _dfu = Array.Empty<IDfuLocator>();
     private static FirmwareUpdateService? _firmware;
+    private static IFeedbackPlayer? _feedback;
 
     public static DeviceService Device =>
         _device ??= Build(Enumerable.Empty<ITransportScanner>());
@@ -31,16 +32,21 @@ public static class AppServices
 
     public static FirmwareUpdateService Firmware => _firmware ??= new FirmwareUpdateService(Device, _dfu);
 
+    /// <summary>Scan sounds and vibration; the desktop player unless a head registers its own.</summary>
+    public static IFeedbackPlayer Feedback => _feedback ??= new DesktopFeedbackPlayer();
+
     /// <summary>
-    /// Called by each platform entry point with its native scanners, and the bootloader
-    /// locators for the transports firmware can be installed over (USB serial, BLE).
+    /// Called by each platform entry point with its native scanners, the bootloader
+    /// locators for the transports firmware can be installed over (USB serial, BLE),
+    /// and its sound and vibration player.
     /// </summary>
     public static void Register(IEnumerable<ITransportScanner> platformScanners, IKeyValueStore? store = null,
-        IEnumerable<IDfuLocator>? dfu = null)
+        IEnumerable<IDfuLocator>? dfu = null, IFeedbackPlayer? feedback = null)
     {
         _device = Build(platformScanners);
         if (store is not null) _store = store;
         _dfu = dfu?.ToList() ?? new List<IDfuLocator>();
+        if (feedback is not null) _feedback = feedback;
     }
 
     private static DeviceService Build(IEnumerable<ITransportScanner> platformScanners)

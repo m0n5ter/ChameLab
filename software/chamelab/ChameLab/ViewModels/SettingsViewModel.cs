@@ -100,6 +100,32 @@ public sealed class SettingsViewModel : PageViewModelBase
         }
     }
 
+    /// <summary>Beep when a card scan or dump finishes; remembered as soon as it changes.</summary>
+    public bool ScanSound
+    {
+        get => ScanFeedback.SoundEnabled;
+        set
+        {
+            if (value == ScanFeedback.SoundEnabled) return;
+            ScanFeedback.SoundEnabled = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    /// <summary>Vibrate when a card scan or dump finishes (phones only).</summary>
+    public bool ScanVibration
+    {
+        get => ScanFeedback.VibrationEnabled;
+        set
+        {
+            if (value == ScanFeedback.VibrationEnabled) return;
+            ScanFeedback.VibrationEnabled = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public bool CanVibrate => ScanFeedback.CanVibrate;
+
     public ICommand ExportBackupCommand { get; }
     public ICommand ImportBackupCommand { get; }
 

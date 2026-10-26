@@ -1137,6 +1137,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         if (client is null) return;
         await client.SetDeviceModeAsync(DeviceMode.Reader);
         var tags = await client.Hf14aScanAsync();
+        if (tags.Count > 0) ScanFeedback.Found();
+        else ScanFeedback.Missed();
 
         // The SAK only says “Ultralight family”; GET_VERSION tells the exact model.
         TagSpecificType? ultralight = null;
@@ -1201,7 +1203,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
         if (LfProtocol == TagSpecificType.Em410x)
         {
-            var tag = await client.Em410xScanAsync();
+            var tag = await WithMissFeedback(client.Em410xScanAsync());
+            ScanFeedback.Found();
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 ResetAddState();
@@ -1214,7 +1217,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             return;
         }
 
-        var result = await client.LfScanAsync(LfProtocol);
+        var result = await WithMissFeedback(client.LfScanAsync(LfProtocol));
+        ScanFeedback.Found();
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             ResetAddState();
@@ -1230,6 +1234,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         });
         SetStatus($"{LfProtocol.DisplayName()} tag read.");
     });
+
+    // Buzzes when a scan or dump fails outright (no tag, card lost); a cancel stays quiet.
+    private static async Task<T> WithMissFeedback<T>(Task<T> scan)
+    {
+        try { return await scan; }
+        catch (Exception e) when (e is not OperationCanceledException) { ScanFeedback.Missed(); throw; }
+    }
 
     private Task DumpAsync() => IsUltralightDump ? DumpUltralightAsync() : RunAsync(async () =>
     {
@@ -1252,8 +1263,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         var clock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            var dump = await client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress);
+            var dump = await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress));
             clock.Stop();
+            ScanFeedback.Found();
             var stats = BuildDumpStats(dump, keys.Count, clock.Elapsed);
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
@@ -1304,8 +1316,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         try
         {
             var key = Hex.TryParse(DumpPassword, out var k) && k.Length > 0 ? k : null;
-            var result = await client.DumpUltralightAsync(key, progress, cts.Token, pageProgress);
+            var result = await WithMissFeedback(client.DumpUltralightAsync(key, progress, cts.Token, pageProgress));
             clock.Stop();
+            ScanFeedback.Found();
             var stats = BuildUltralightStats(result, clock.Elapsed);
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
