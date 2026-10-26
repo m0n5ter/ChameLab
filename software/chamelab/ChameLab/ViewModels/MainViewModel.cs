@@ -289,10 +289,24 @@ public sealed class MainViewModel : ViewModelBase
 
     private Task DisconnectAsync() => _device.DisconnectAsync();
 
+    /// <summary>
+    /// Swaps the listed pages. Our CollectionChanged handler runs before the tab bar's, so a selection
+    /// raised mid-swap would point the ListBox at an index it has not seen yet: the selection reads as
+    /// none until the swap is done.
+    /// </summary>
     private void SetNavPages(IReadOnlyList<PageViewModelBase> pages)
     {
-        NavPages.Clear();
-        foreach (var p in pages) NavPages.Add(p);
+        _clearingNavSelection = true;
+        try
+        {
+            NavPages.Clear();
+            foreach (var p in pages) NavPages.Add(p);
+        }
+        finally
+        {
+            _clearingNavSelection = false;
+        }
+        RaiseNavSelection();
     }
 
     private void OnStateChanged(ConnectionState state)

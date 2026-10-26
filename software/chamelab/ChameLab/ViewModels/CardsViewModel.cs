@@ -1528,10 +1528,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     private static List<ScanResultRow> BuildDumpStats(MifareDump dump, TimeSpan elapsed)
     {
-        var pct = dump.BlockCount == 0 ? 0 : 100.0 * dump.RecoveredBlocks / dump.BlockCount;
+        // A sector counts once every one of its blocks was read, as in the memory summary.
+        var read = Enumerable.Range(0, dump.SectorCount).Count(s =>
+            Enumerable.Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s))
+                .All(b => dump.GetBlock(b) is not null));
         return new List<ScanResultRow>
         {
-            new("Blocks read", $"{dump.RecoveredBlocks} / {dump.BlockCount} ({pct:0}%)"),
+            new("Sectors read", $"{read} / {dump.SectorCount}"),
             new("Time", $"{elapsed.TotalSeconds:0.0} s"),
         };
     }
