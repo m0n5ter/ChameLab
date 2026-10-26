@@ -11,6 +11,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - ChameLab: changing a scanned card's type drops its dump (grid, summary and the memory it read) and sets the dump up for the new type — a MIFARE Classic dump reads as many sectors as the chosen type has, so a card picked as 2K or 4K gets all of them; the type picker of a scanned card only offers types of its frequency (no MIFARE for an LF tag)
  - ChameLab: MIFARE Classic 2K cards keep all 128 blocks when dumped, exported as .bin / .eml or written to a card (they were cut to 1K)
  - ChameLab: a MIFARE Classic dump recovers key A and key B for every sector independently (before it stopped at whichever key opened the sector first), and writes the recovered keys into the sector trailers so the saved dump carries them
+ - ChameLab: a MIFARE Classic dump finds keys faster: keys that opened earlier sectors are tried first for both key A and key B, a known key the card rejects is not retried, and the dictionary pass skips keys already tried on the sector
  - ChameLab: stopping a MIFARE Classic dump now keeps what was read so far, so a partial dump can be saved (it was discarded before)
  - ChameLab: the memory editor sets MIFARE Classic sectors apart, each under a "Sector N · blocks a–b" heading, and the memory summary counts complete sectors (15/16 sectors) instead of blocks
  - ChameLab: the key dictionaries picked for a dump are remembered between sessions

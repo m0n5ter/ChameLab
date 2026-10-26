@@ -543,7 +543,14 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     // ---- MIFARE Classic ------------------------------------------------
 
-    public async Task<bool> Mf1AuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default)
+    public async Task<bool> Mf1AuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default) =>
+        await Mf1AuthStatusAsync(block, keyType, key, ct) == Status.HfTagOk;
+
+    /// <summary>
+    /// Authenticates and returns the device status: <see cref="Status.HfTagOk"/>, <see cref="Status.MfErrAuth"/>
+    /// for a wrong key, or an RF error (tag lost, CRC, parity…) that says nothing about the key.
+    /// </summary>
+    private async Task<Status> Mf1AuthStatusAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
     {
         if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[8];
@@ -551,7 +558,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         data[1] = (byte)block;
         key.CopyTo(data, 2);
         var f = await conn.SendAsync(Command.Mf1AuthOneKeyBlock, data, ct: ct);
-        return f.Status == Status.HfTagOk;
+        return f.Status;
     }
 
     public async Task<byte[]> Mf1ReadBlockAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default)
@@ -647,9 +654,10 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
                 // Both keys are searched independently: a sector may hand out data under
                 // key A, key B or both, and the trailer only yields the key used to read it.
-                dump.KeyA[s] = await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, foundA, keyProgress, ct);
-                dump.KeyB[s] = await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, foundB, keyProgress, ct);
+                // Key A joins the known keys before key B is searched, so the same sector's B tries it first.
+                dump.KeyA[s] = await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, foundA, foundB, keyProgress, ct);
                 if (dump.KeyA[s] is { } ka && !foundA.Any(k => k.AsSpan().SequenceEqual(ka))) foundA.Add(ka);
+                dump.KeyB[s] = await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, foundB, foundA, keyProgress, ct);
                 if (dump.KeyB[s] is { } kb && !foundB.Any(k => k.AsSpan().SequenceEqual(kb))) foundB.Add(kb);
 
                 if (dump.KeyA[s] is null && dump.KeyB[s] is null)
@@ -685,22 +693,30 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     /// <summary>
     /// Searches <paramref name="keyDict"/> for a key of type <paramref name="kt"/> that opens
-    /// the sector (authenticating against <paramref name="block"/>), trying keys already known to
-    /// work first. Reports its progress to <paramref name="keyProgress"/>. Null if none is found.
+    /// the sector (authenticating against <paramref name="block"/>). Keys that already opened other
+    /// sectors go first: this type's (<paramref name="known"/>), then the other type's
+    /// (<paramref name="knownOther"/>), as cards often use one key for both. Reports its progress
+    /// to <paramref name="keyProgress"/>. Null if none is found.
     /// </summary>
     private async Task<byte[]?> FindSectorKeyAsync(
         int block, MfKeyType kt, int sector, IReadOnlyList<byte[]> keyDict,
-        IReadOnlyList<byte[]> known, IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
+        IReadOnlyList<byte[]> known, IReadOnlyList<byte[]> knownOther,
+        IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
     {
         var total = keyDict.Count;
         keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Searching, 0, total, null));
 
-        foreach (var k in known)
-            if (await AuthWithRetryAsync(block, kt, k, ct))
+        // Keys already tried on this sector and type: the dictionary pass skips them.
+        var tried = new HashSet<string>();
+        foreach (var k in known.Concat(knownOther))
+        {
+            if (!tried.Add(Convert.ToHexString(k))) continue;
+            if (await AuthKnownKeyAsync(block, kt, k, ct))
             {
                 keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Found, total, total, k));
                 return k;
             }
+        }
 
         // Throttle the "searching" ticks: a dictionary can hold thousands of keys.
         var step = Math.Max(1, total / 50);
@@ -708,6 +724,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             ct.ThrowIfCancellationRequested();
             var candidate = keyDict[i];
+            if (tried.Contains(Convert.ToHexString(candidate))) continue;
             bool ok;
             try { ok = await Mf1AuthAsync(block, kt, candidate, ct); }
             catch (Exception ex) when (IsRfFailure(ex)) { ok = false; }
@@ -743,15 +760,23 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         ex is not (OperationCanceledException or ChameleonDisconnectedException) && !conn.IsClosed;
 
     /// <summary>
-    /// Authenticates with a key that is expected to work, retrying transient RF failures
-    /// (a card slightly off the antenna drops individual exchanges).
+    /// Authenticates with a key that opened another sector, retrying transient RF failures
+    /// (a card slightly off the antenna drops individual exchanges). A plain "wrong key" answer
+    /// is final: retrying it would only cost time for every known key that doesn't fit.
     /// </summary>
-    private async Task<bool> AuthWithRetryAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
+    private async Task<bool> AuthKnownKeyAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
     {
         for (var i = 0; i < RfAttempts; i++)
         {
             ct.ThrowIfCancellationRequested();
-            try { if (await Mf1AuthAsync(block, keyType, key, ct)) return true; }
+            try
+            {
+                switch (await Mf1AuthStatusAsync(block, keyType, key, ct))
+                {
+                    case Status.HfTagOk: return true;
+                    case Status.MfErrAuth: return false;
+                }
+            }
             catch (Exception ex) when (IsRfFailure(ex)) { /* retry */ }
         }
         return false;
