@@ -258,10 +258,16 @@ public sealed class ListReorder
         item.RenderTransform = null;
         try
         {
+            // Drawn at 96 DPI and scaled by hand: a bitmap at the screen's DPI drew whatever sits in a
+            // clipped control (the card's tile) scaled once more, blown up inside the item's frame.
             var bitmap = new RenderTargetBitmap(
-                new PixelSize((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale)),
-                new Vector(96 * scale, 96 * scale));
-            bitmap.Render(item);
+                new PixelSize((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale)));
+            using (var context = bitmap.CreateDrawingContext())
+            using (context.PushTransform(Matrix.CreateScale(scale, scale)))
+            {
+                var brush = new VisualBrush(item) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top };
+                context.DrawRectangle(brush, null, new Rect(size));
+            }
             return bitmap;
         }
         catch (Exception)
@@ -293,7 +299,7 @@ public sealed class ListReorder
                         CornerRadius = new CornerRadius(12),
                         BoxShadow = BoxShadows.Parse("0 6 18 -2 #80000000"),
                     },
-                    new GhostPicture(_ghostImage) { Width = item.Bounds.Width, Height = item.Bounds.Height },
+                    new Image { Source = _ghostImage, Width = item.Bounds.Width, Height = item.Bounds.Height },
                 },
             };
             overlay.Children.Add(_ghost);
@@ -568,16 +574,5 @@ public sealed class ListReorder
         item.ZIndex = 1;
         // Cleared rather than set to 0: a local value would outrank the dragging style's ZIndex next time.
         DispatcherTimer.RunOnce(() => item.ClearValue(Visual.ZIndexProperty), SlideTime);
-    }
-
-    /// <summary>
-    /// Draws the whole picture over its bounds. Not an <see cref="Image"/>: that takes the part of the
-    /// bitmap to draw in device-independent units, which Skia reads as pixels, so on a scaled screen it
-    /// showed only the top-left corner of the picture, blown up (e.g. 3x on a phone).
-    /// </summary>
-    private sealed class GhostPicture(Bitmap picture) : Control
-    {
-        public override void Render(DrawingContext context) =>
-            context.DrawImage(picture, new Rect(0, 0, picture.PixelSize.Width, picture.PixelSize.Height), new Rect(Bounds.Size));
     }
 }

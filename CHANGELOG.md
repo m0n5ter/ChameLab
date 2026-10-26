@@ -7,6 +7,9 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.0.15][2026-10-26] · firmware v2.3.3-cl
+ - ChameLab: a dragged card shows its tile at its real size on scaled screens (phones); v1.0.14 fixed only the frame around it
+
 ## [v1.0.14][2026-10-26] · firmware v2.3.3-cl
  - ChameLab (Android): the navigation pane shows the app version instead of 0.0.0-local
  - ChameLab: a dragged card looks like the card on scaled screens (phones), not a blown-up corner of it
