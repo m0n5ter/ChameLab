@@ -55,7 +55,7 @@
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="t:TransportCandidate">
                 <Border Classes="cardrow">
-                  <Grid ColumnDefinitions="Auto,*" Margin="12,6,12,6">
+                  <Grid ColumnDefinitions="Auto,*" Margin="12">
                     <!-- Every listed candidate is a Chameleon, so show the device rather than a port glyph. -->
                     <Panel Grid.Column="0" Width="36" Height="44" Margin="0,0,12,0">
                       <Image Source="/Assets/chameleon-ultra.png" Height="42"
@@ -101,9 +101,9 @@
               </StackPanel>
             </Button>
 
-            <Button Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+            <Button Classes="accent" Height="56" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding ConnectCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="10" Margin="5">
+              <StackPanel Orientation="Horizontal" Spacing="10">
                 <PathIcon Data="{StaticResource Icon.link}" Width="24" Height="24" />
                 <TextBlock Text="Connect" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
               </StackPanel>

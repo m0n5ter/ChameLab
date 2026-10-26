@@ -325,10 +325,26 @@
               <!-- MIFARE Classic emulator settings -->
               <StackPanel Spacing="10" IsVisible="{Binding ShowMfcSettings}">
                 <TextBlock Text="MIFARE CLASSIC EMULATOR" Classes="overline" />
-                <CheckBox Content="Gen1A magic mode" IsChecked="{Binding Gen1a}" />
-                <CheckBox Content="Gen2 magic mode" IsChecked="{Binding Gen2}" />
-                <CheckBox Content="Use UID/SAK/ATQA from block 0" IsChecked="{Binding BlockAntiColl}" />
-                <CheckBox Content="Reset on field off" IsChecked="{Binding FieldOffReset}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBlock Text="Gen1A magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                IsChecked="{Binding Gen1a}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBlock Text="Gen2 magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                IsChecked="{Binding Gen2}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBlock Text="Use UID/SAK/ATQA from block 0" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                IsChecked="{Binding BlockAntiColl}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBlock Text="Reset on field off" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                IsChecked="{Binding FieldOffReset}" />
+                </Grid>
                 <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                   <TextBlock Text="Write mode" VerticalAlignment="Center" />
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
@@ -350,8 +366,16 @@
               <!-- Ultralight / NTAG emulator settings -->
               <StackPanel Spacing="10" IsVisible="{Binding ShowUlSettings}">
                 <TextBlock Text="ULTRALIGHT / NTAG EMULATOR" Classes="overline" />
-                <CheckBox Content="UID magic mode" IsChecked="{Binding UlUidMagic}" />
-                <CheckBox Content="Password detection" IsChecked="{Binding UlDetection}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBlock Text="UID magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                IsChecked="{Binding UlUidMagic}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBlock Text="Password detection" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                IsChecked="{Binding UlDetection}" />
+                </Grid>
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                   <TextBlock Text="Write mode" VerticalAlignment="Center" />
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"

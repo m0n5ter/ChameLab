@@ -245,14 +245,15 @@
        (Dump / Stop dump) doesn't shift the layout. Declared after accent / danger so it wins. Tiles,
        icon buttons and the other drawn-content buttons keep their own size; .mini is a small inline link. -->
   <Style Selector="Button:not(.icon):not(.tile):not(.slot):not(.cardtile):not(.foldertile):not(.copycell):not(.colorpick):not(.ledpick):not(.slottarget):not(.mini), DropDownButton">
-    <Setter Property="Height" Value="36" />
+    <!-- Comfortable to tap on a phone. -->
+    <Setter Property="Height" Value="40" />
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="Padding" Value="14,0" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style Selector="actipro|ToggleThemeButton">
-    <Setter Property="Height" Value="36" />
-    <Setter Property="MinWidth" Value="36" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="MinWidth" Value="40" />
   </Style>
 
   <!-- Large clickable tile (scan buttons). -->
@@ -481,7 +482,7 @@
     <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="ListBox.nav Border.navrow">
-    <Setter Property="Margin" Value="0,2" />
+    <Setter Property="Margin" Value="2" />
     <Setter Property="CornerRadius" Value="8" />
     <Setter Property="Background" Value="Transparent" />
   </Style>

@@ -36,7 +36,7 @@
 
     <!-- Compact source tiles in the add pane: icon beside a label and a one-line hint. -->
     <Style Selector="Button.tile.source">
-      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="Padding" Value="14" />
       <Setter Property="CornerRadius" Value="10" />
     </Style>
     <Style Selector="Button.tile.source Border.iconwell">
@@ -949,18 +949,17 @@
                     </StackPanel>
                     <Button.Flyout>
                       <Flyout Placement="BottomEdgeAlignedLeft">
-                        <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="8,6">
+                        <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
                           <TextBlock Text="KEY DICTIONARIES" Classes="overline" />
                           <ItemsControl ItemsSource="{Binding DumpKeySources}">
                             <ItemsControl.ItemTemplate>
                               <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
-                                <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Stretch"
-                                          Padding="8,0,0,0" Margin="0,2">
-                                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" />
-                                  </Grid>
-                                </CheckBox>
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
+                                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                  <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
+                                  <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                                                IsChecked="{Binding IsSelected}" />
+                                </Grid>
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
                           </ItemsControl>

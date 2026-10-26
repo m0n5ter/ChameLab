@@ -104,7 +104,7 @@
                                 Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
                         <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
                                   Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
-                        <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" />
+                        <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" />
                         <Button Grid.Column="3" Classes="icon small"
                                 Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).AddCardCommand}"
                                 ToolTip.Tip="Add card">
@@ -125,13 +125,13 @@
                                 Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
                         <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
                                   Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
-                        <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" />
+                        <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" />
                       </Grid>
                     </Border>
                   </DataTemplate>
 
                   <DataTemplate DataType="vm:CardFolderViewModel">
-                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
+                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True" Margin="0,1">
                       <Grid Classes="folderrow" Classes.empty="{Binding IsEmpty}" Classes.editing="{Binding IsEditing}"
                             ColumnDefinitions="Auto,Auto,*,Auto" MinHeight="32">
                         <Grid.ContextFlyout>
@@ -161,7 +161,7 @@
                           <Button Classes="icon small" Command="{Binding RenameCommand}" ToolTip.Tip="Rename folder">
                             <PathIcon Data="{StaticResource Icon.edit}" />
                           </Button>
-                          <Button Classes="icon small" ToolTip.Tip="Delete folder">
+                          <Button Classes="icon small danger" ToolTip.Tip="Delete folder">
                             <PathIcon Data="{StaticResource Icon.delete}" />
                             <Button.Flyout>
                               <Flyout Placement="RightEdgeAlignedTop">
