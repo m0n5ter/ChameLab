@@ -173,7 +173,7 @@
     <Setter Property="CornerRadius" Value="8" />
   </Style>
   <!-- The theme fills disabled buttons with its disabled brush, near black in the dark theme and
-       darker than the surface around them. Keep each button's own fill and border instead; the
+       darker than the surrounding surface. Keep each button's own fill and border instead; the
        disabled text color is enough to show the state. -->
   <Style Selector=":is(Button):disabled /template/ ContentPresenter">
     <Setter Property="Background" Value="{Binding $parent[Button].Background}" />
