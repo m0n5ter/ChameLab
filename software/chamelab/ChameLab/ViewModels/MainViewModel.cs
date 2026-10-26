@@ -48,6 +48,7 @@ public sealed class MainViewModel : ViewModelBase
         NavigateCommand = ReactiveCommand.CreateFromTask<PageViewModelBase>(NavigateAsync);
         DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync);
         TogglePaneCommand = ReactiveCommand.Create(() => { IsPaneOpen = !IsPaneOpen; });
+        AddCardCommand = ReactiveCommand.CreateFromTask(AddCardAsync);
 
         Slots.OpenCardRequested += card => _ = OpenCardAsync(card.Id);
         Cards.PropertyChanged += (_, e) =>
@@ -284,6 +285,8 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand NavigateCommand { get; }
     public ICommand DisconnectCommand { get; }
     public ICommand TogglePaneCommand { get; }
+    /// <summary>The navigation pane's Add card: opens Cards (from any page) and starts a new card there.</summary>
+    public ICommand AddCardCommand { get; }
 
     private async Task NavigateAsync(PageViewModelBase page)
     {
@@ -299,6 +302,12 @@ public sealed class MainViewModel : ViewModelBase
     {
         await NavigateAsync(Cards);
         Cards.OpenCard(id);
+    }
+
+    private async Task AddCardAsync()
+    {
+        await NavigateAsync(Cards);
+        Cards.AddCommand.Execute(null);
     }
 
     private Task DisconnectAsync() => _device.DisconnectAsync();
