@@ -6,7 +6,14 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.16][2026-10-26] · firmware v2.3.3-cl
  - ChameLab: the navigation is always shown, starting on Connect; once a device is connected, Connect gives way to Chameleon (formerly Dashboard), which now also holds the device settings and resets. Settings keeps the app-side ones. Without a device the app works with saved cards, dictionaries and settings, so Continue without device is gone
+ - ChameLab: narrow screens (phones) get a bottom tab bar with the pages a tap away
+ - ChameLab: optional scan sounds and vibration (Settings): a soft chime when a card scan or dump finishes, a buzz when no card is found; vibration on Android, iOS and mobile browsers
+ - ChameLab: Add card and Add folder buttons on the Cards item of the navigation pane; Add card opens Cards from any page and starts a new card
+ - ChameLab: all text buttons and drop-downs share one height, so swapping Dump for Stop dump no longer shifts the layout
+ - ChameLab: the MIFARE Classic and Ultralight emulator settings of a slot are indented under their headings
 
 ## [v1.0.15][2026-10-26] · firmware v2.3.3-cl
  - ChameLab: a dragged card shows its tile at its real size on scaled screens (phones); v1.0.14 fixed only the frame around it
