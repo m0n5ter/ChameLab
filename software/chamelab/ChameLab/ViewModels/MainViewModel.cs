@@ -48,7 +48,9 @@ public sealed class MainViewModel : ViewModelBase
         NavigateCommand = ReactiveCommand.CreateFromTask<PageViewModelBase>(NavigateAsync);
         DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync);
         TogglePaneCommand = ReactiveCommand.Create(() => { IsPaneOpen = !IsPaneOpen; });
-        AddCardCommand = ReactiveCommand.CreateFromTask(AddCardAsync);
+        AddCardCommand = ReactiveCommand.CreateFromTask(AddCardAsync,
+            this.WhenAnyValue(x => x.CurrentPage, x => x.Cards.IsPickingSource,
+                (page, picking) => !(ReferenceEquals(page, Cards) && picking)));
 
         Slots.OpenCardRequested += card => _ = OpenCardAsync(card.Id);
         Cards.PropertyChanged += (_, e) =>
@@ -307,7 +309,8 @@ public sealed class MainViewModel : ViewModelBase
     private async Task AddCardAsync()
     {
         await NavigateAsync(Cards);
-        Cards.AddCommand.Execute(null);
+        // Cards may have been left with the source buttons up: then they are simply shown again.
+        if (Cards.AddCommand.CanExecute(null)) Cards.AddCommand.Execute(null);
     }
 
     private Task DisconnectAsync() => _device.DisconnectAsync();

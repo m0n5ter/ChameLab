@@ -116,7 +116,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         var connected = this.WhenAnyValue(x => x.IsConnected);
         var actionableOnline = actionable.CombineLatest(connected, (ok, online) => ok && online);
 
-        AddCommand = ReactiveCommand.Create(() => LeaveThen(BeginAdd));
+        // Off while the source buttons it brings up are already on screen.
+        AddCommand = ReactiveCommand.Create(() => LeaveThen(BeginAdd),
+            this.WhenAnyValue(x => x.IsPickingSource).Select(picking => !picking));
         CloseCommand = ReactiveCommand.Create(() => LeaveThen(ClosePane));
         SaveAndLeaveCommand = ReactiveCommand.Create(() => ResolveLeave(run: Save()));
         DiscardAndLeaveCommand = ReactiveCommand.Create(() => ResolveLeave(run: true));
