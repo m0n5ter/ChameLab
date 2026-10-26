@@ -18,7 +18,7 @@
             BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto">
         <Button Grid.Column="0" Classes="icon" Command="{Binding TogglePaneCommand}"
-                IsVisible="{Binding HasNavigation}" ToolTip.Tip="Toggle navigation" Margin="0,0,6,0">
+                ToolTip.Tip="Toggle navigation" Margin="0,0,6,0">
           <PathIcon Data="{StaticResource Icon.menu}" />
         </Button>
 
@@ -86,7 +86,7 @@
         <Panel ClipToBounds="True">
           <Border BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,1,0"
                   Width="{Binding #Shell.OpenPaneLength}" HorizontalAlignment="Left">
-            <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding HasNavigation}">
+            <Grid RowDefinitions="Auto,*,Auto">
               <TextBlock Grid.Row="0" Text="NAVIGATION" Classes="overline" Margin="20,18,0,6" />
 
               <!-- The pages, with the card folders (one level) indented under Cards. Cards are dragged
@@ -190,14 +190,14 @@
               <!-- Single trimmed lines: wrapped text would change the height while the pane animates its width. -->
               <Border Grid.Row="2" Classes="inset" Margin="12,8,12,14">
                 <StackPanel Spacing="2">
-                  <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding !IsOffline}"
+                  <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Text="OFFLINE MODE" Classes="overline" IsVisible="{Binding IsOffline}"
+                  <TextBlock Text="NO DEVICE" Classes="overline" IsVisible="{Binding !IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Text="{Binding DeviceSummary}" FontSize="12" IsVisible="{Binding !IsOffline}"
+                  <TextBlock Text="{Binding DeviceSummary}" FontSize="12" IsVisible="{Binding IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                              ToolTip.Tip="{Binding DeviceSummary}" />
-                  <TextBlock FontSize="12" IsVisible="{Binding IsOffline}"
+                  <TextBlock FontSize="12" IsVisible="{Binding !IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                              Text="No device attached" ToolTip.Tip="No device. Open Connect to attach one." />
                   <!-- A newer release shows as a compact Update link beside the version. -->
@@ -258,8 +258,7 @@
     <!-- Narrow layouts only: the pages a tap away. The card folders stay in the navigation pane. -->
     <Panel Grid.Row="2" Classes="tabbar compact-only">
       <Border Padding="4,4,4,6" Background="{actipro:ThemeResource Container1BackgroundBrush}"
-              BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,1,0,0"
-              IsVisible="{Binding HasNavigation}">
+              BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,1,0,0">
         <ListBox Classes="tabbar" ItemsSource="{Binding NavPages}" SelectedItem="{Binding SelectedNavPage}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
           <ListBox.ItemsPanel>

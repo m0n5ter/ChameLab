@@ -45,8 +45,10 @@ responses matched to requests by command id.
 
 - **Connect** — auto-scan serial ports (Chameleon VID flagged first) or a manual
   `host:port` network bridge.
-- **Dashboard** — model, firmware, git, chip id, BLE address, battery gauge, and a
-  Reader/Emulator mode toggle.
+- **Chameleon** — takes the place of Connect once a device is attached: model,
+  firmware, git, chip id, BLE address, battery gauge, a Reader/Emulator mode
+  toggle, firmware updates and the device settings (LEDs, sleep, buttons, BLE
+  pairing, resets).
 - **Slots** — all eight emulation slots as cards (HF/LF type + nickname), tap to
   activate, save to flash.
 - **Read** — HF (ISO14443-A) and LF (EM410x) scans with decoded UID/ATQA/SAK/ATS.

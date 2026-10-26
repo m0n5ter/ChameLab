@@ -112,7 +112,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         // Export / emulate / write: the open card (saved or new) as it stands in the editor.
         var actionable = this.WhenAnyValue(x => x.Pane, x => x.Form,
             (pane, form) => pane is CardsPane.Add or CardsPane.Card && form is not null);
-        // Anything that talks to the device stays disabled in offline mode.
+        // Anything that talks to the device stays disabled without one.
         var connected = this.WhenAnyValue(x => x.IsConnected);
         var actionableOnline = actionable.CombineLatest(connected, (ok, online) => ok && online);
 

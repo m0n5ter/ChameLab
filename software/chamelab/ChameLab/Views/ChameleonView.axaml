@@ -1,0 +1,633 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:conv="using:ChameLab.Converters"
+             xmlns:b="using:ChameLab.Behaviors"
+             xmlns:c="using:ChameLab.Controls"
+             x:Class="ChameLab.Views.ChameleonView"
+             x:DataType="vm:ChameleonViewModel">
+
+  <UserControl.Styles>
+    <!-- Slot strip: a row of LEDs like the device's, each split HF | LF; the active one is ringed. -->
+    <Style Selector="Ellipse.ledring">
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="Stroke" Value="Transparent" />
+    </Style>
+    <Style Selector="Ellipse.ledring.active">
+      <Setter Property="Stroke" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    </Style>
+    <Style Selector="Border.led">
+      <Setter Property="Opacity" Value="0.55" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.slot:pointerover Border.led, Border.led.active">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <!-- The number sits on the LED: white with a shadow over a color, plain text over an empty slot. -->
+    <Style Selector="TextBlock.lednum">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="TextBlock.lednum.lit">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Effect">
+        <DropShadowEffect OffsetX="0" OffsetY="0" BlurRadius="3" Color="Black" Opacity="0.8" />
+      </Setter>
+    </Style>
+    <Style Selector="TextBlock.lednum.active">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <!-- An empty frequency of the active slot: its chip dimmed. -->
+    <Style Selector="Border.chip.off">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
+    <!-- Operating mode switch: sized to its labels, not the card. -->
+    <Style Selector="Border.segmented.compact">
+      <Setter Property="Padding" Value="2" />
+    </Style>
+    <Style Selector="Border.segmented.compact RadioButton.segment /template/ Border#PART_Bg">
+      <Setter Property="Padding" Value="10,5" />
+    </Style>
+    <Style Selector="Border.segmented.compact RadioButton.segment PathIcon">
+      <Setter Property="Width" Value="14" />
+      <Setter Property="Height" Value="14" />
+    </Style>
+    <!-- Battery and mode stack once the page itself is too narrow for both, whatever the window does. -->
+    <ContainerQuery Name="hero" Query="max-width:600">
+      <Style Selector="UniformGrid.cols2">
+        <Setter Property="Columns" Value="1" />
+      </Style>
+    </ContainerQuery>
+    <!-- One setting: icon, title + description, and its control on the right. -->
+    <Style Selector="Grid.setting > :is(Control).control">
+      <Setter Property="Width" Value="220" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector=".compact Grid.setting > :is(Control).control">
+      <Setter Property="Width" Value="160" />
+    </Style>
+    <!-- The save bar sits under the scrolling page, lined up with its cards. -->
+    <Style Selector="Border.savebar.pagebar">
+      <Setter Property="MaxWidth" Value="980" />
+      <Setter Property="Margin" Value="28,0,28,24" />
+    </Style>
+    <Style Selector=".compact Border.savebar.pagebar">
+      <Setter Property="Margin" Value="14,0,14,8" />
+    </Style>
+    <Style Selector="Separator.row">
+      <Setter Property="Margin" Value="0,14" />
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer Grid.Row="0">
+      <StackPanel Classes="page">
+
+        <!-- Header -->
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0" Spacing="2">
+            <TextBlock Text="Chameleon" Classes="h1" />
+            <TextBlock Classes="caption" Text="Device status, firmware and settings." />
+          </StackPanel>
+          <Button Grid.Column="1" Command="{Binding RefreshCommand}" VerticalAlignment="Center"
+                  ToolTip.Tip="Reload device information">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.refresh}" />
+              <TextBlock Text="Refresh" Classes="wide-only" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </Grid>
+
+        <!-- Hero: battery + mode -->
+        <Panel Container.Name="hero" Container.Sizing="Width">
+          <UniformGrid Classes="cols2">
+            <Border Classes="card">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+                <!-- Ring gauge -->
+                <Panel Grid.Column="0" Width="96" Height="96" VerticalAlignment="Center">
+                  <Ellipse StrokeThickness="9" Stroke="{actipro:ThemeResource Container3BackgroundBrush}" />
+                  <Arc StartAngle="-90" StrokeThickness="9" StrokeLineCap="Round"
+                       SweepAngle="{Binding Battery?.Percent, Converter={x:Static conv:PercentToSweepConverter.Instance}}"
+                       Stroke="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                       IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26"
+                            Foreground="{Binding Battery?.Percent, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                            IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <PathIcon Data="{StaticResource Icon.bolt}" Width="26" Height="26" Opacity="0.35"
+                            IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+                </Panel>
+  
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                  <TextBlock Text="BATTERY" Classes="overline" />
+                  <TextBlock Text="{Binding Battery?.Percent, StringFormat='{}{0}%'}"
+                             FontSize="34" FontWeight="Bold"
+                             IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Classes="caption"
+                             Text="{Binding Battery?.Volts, StringFormat='{}{0:F2} V'}"
+                             IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Classes="caption" FontWeight="SemiBold"
+                             Text="{Binding Battery?.ConditionText}"
+                             Foreground="{Binding Battery?.Condition, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
+                             IsVisible="{Binding Battery?.ConditionText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <TextBlock Text="Not available" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"
+                             IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+                  <TextBlock Text="This model has no battery gauge." Classes="caption"
+                             IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+  
+            <Border Classes="card">
+              <StackPanel Spacing="12">
+                <TextBlock Text="OPERATING MODE" Classes="overline" />
+                <Border Classes="segmented compact" HorizontalAlignment="Left">
+                  <UniformGrid Rows="1">
+                    <RadioButton Classes="segment" GroupName="DeviceMode"
+                                 IsChecked="{Binding ReaderMode, Converter={x:Static conv:InverseBoolConverter.Instance}}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.card}" />
+                        <TextBlock Text="Emulator" FontWeight="SemiBold" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </RadioButton>
+                    <RadioButton Classes="segment" GroupName="DeviceMode" IsChecked="{Binding ReaderMode}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.scan}" />
+                        <TextBlock Text="Reader" FontWeight="SemiBold" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </RadioButton>
+                  </UniformGrid>
+                </Border>
+                <TextBlock Classes="caption" IsVisible="{Binding !ReaderMode}"
+                           Text="The device presents the active slot to readers as a card." />
+                <TextBlock Classes="caption" IsVisible="{Binding ReaderMode}"
+                           Text="The device scans external cards and tags." />
+              </StackPanel>
+            </Border>
+          </UniformGrid>
+        </Panel>
+
+        <!-- Active slot: the eight slots with their LED colors; arrows step through the filled ones -->
+        <Border Classes="card">
+          <StackPanel Spacing="14">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.slots}" /></Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="ACTIVE SLOT" Classes="overline" />
+                <TextBlock Text="{Binding ActiveHeader}" Classes="caption" />
+              </StackPanel>
+              <Button Grid.Column="2" Classes="icon" Command="{Binding PrevSlotCommand}" VerticalAlignment="Center"
+                      ToolTip.Tip="Previous filled slot">
+                <PathIcon Data="{StaticResource Icon.back}" />
+              </Button>
+              <Button Grid.Column="3" Classes="icon" Command="{Binding NextSlotCommand}" VerticalAlignment="Center"
+                      ToolTip.Tip="Next filled slot">
+                <PathIcon Data="{StaticResource Icon.back}" RenderTransform="scaleX(-1)" />
+              </Button>
+            </Grid>
+            <!-- Laid out at a fixed size and scaled as a whole, so the strip keeps its proportions. -->
+            <Viewbox Stretch="Uniform" MaxHeight="75">
+              <ItemsControl ItemsSource="{Binding Slots}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="2" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SlotItemViewModel">
+                    <Button Classes="slot" ToolTip.Tip="{Binding Summary}"
+                            Command="{Binding $parent[ItemsControl].((vm:ChameleonViewModel)DataContext).SelectSlotCommand}"
+                            CommandParameter="{Binding}">
+                      <Panel Width="36" Height="36">
+                        <Ellipse Classes="ledring" Classes.active="{Binding IsActive}" />
+                        <!-- HF color on the left, LF on the right; one card fills both halves. -->
+                        <Border Classes="led" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14"
+                                ClipToBounds="True" IsVisible="{Binding !IsEmpty}">
+                          <Grid ColumnDefinitions="*,*">
+                            <Border Grid.Column="0" Background="{Binding LedLeft, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                            <Border Grid.Column="1" Background="{Binding LedRight, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                          </Grid>
+                        </Border>
+                        <Ellipse Width="28" Height="28" StrokeThickness="1.5" StrokeDashArray="2,2"
+                                 Stroke="{actipro:ThemeResource Container3BorderBrush}" IsVisible="{Binding IsEmpty}" />
+                        <TextBlock Classes="lednum" Classes.active="{Binding IsActive}" Classes.lit="{Binding !IsEmpty}"
+                                   Text="{Binding Index}" />
+                      </Panel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Viewbox>
+
+            <!-- The cards of the active slot. -->
+            <Border BorderThickness="0,1,0,0" BorderBrush="{actipro:ThemeResource Container1BorderBrush}" Padding="0,12,0,0"
+                    IsVisible="{Binding ActiveItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <!-- Scoped to the slot so the bindings below never walk through a null ActiveItem. -->
+              <WrapPanel ItemSpacing="20" LineSpacing="6" HorizontalAlignment="Center"
+                         DataContext="{Binding ActiveItem}" x:DataType="vm:SlotItemViewModel">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Border Classes="chip hf" Classes.off="{Binding !HasHf}">
+                    <TextBlock Text="HF" />
+                  </Border>
+                  <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasHf}"
+                           Fill="{Binding HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                  <!-- Name and type as runs of one line, so they share a baseline. -->
+                  <TextBlock VerticalAlignment="Center" IsVisible="{Binding HasHf}">
+                    <Run Text="{Binding HfNick}" FontWeight="Bold" />
+                    <Run Text="{Binding HfTypeLabel}" FontSize="12"
+                         Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+                  </TextBlock>
+                  <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center"
+                             IsVisible="{Binding !HasHf}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Border Classes="chip lf" Classes.off="{Binding !HasLf}">
+                    <TextBlock Text="LF" />
+                  </Border>
+                  <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasLf}"
+                           Fill="{Binding LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                  <TextBlock VerticalAlignment="Center" IsVisible="{Binding HasLf}">
+                    <Run Text="{Binding LfNick}" FontWeight="Bold" />
+                    <Run Text="{Binding LfTypeLabel}" FontSize="12"
+                         Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+                  </TextBlock>
+                  <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center"
+                             IsVisible="{Binding !HasLf}" />
+                </StackPanel>
+              </WrapPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <!-- Device identity -->
+        <Border Classes="card">
+          <StackPanel Spacing="14">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="iconwell green">
+                <PathIcon Data="{StaticResource Icon.info}" />
+              </Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="{Binding Info?.ModelName, TargetNullValue='Device'}" Classes="h2" />
+                <TextBlock Classes="caption" Text="Hardware and firmware identity" />
+              </StackPanel>
+            </StackPanel>
+
+            <UniformGrid Classes="cols2">
+              <Border Classes="inset">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="FIRMWARE" Classes="overline" />
+                  <TextBlock Text="{Binding Info?.FirmwareVersion, TargetNullValue='—'}" Classes="value" />
+                </StackPanel>
+              </Border>
+              <Border Classes="inset">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="GIT VERSION" Classes="overline" />
+                    <TextBlock Text="{Binding Info?.GitVersion, TargetNullValue='—'}" Classes="value mono" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
+                          b:CopyToClipboard.Text="{Binding Info?.GitVersion}">
+                    <PathIcon Data="{StaticResource Icon.copy}" />
+                  </Button>
+                </Grid>
+              </Border>
+              <Border Classes="inset">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="CHIP ID" Classes="overline" />
+                    <TextBlock Text="{Binding Info?.ChipId, TargetNullValue='—'}" Classes="value mono" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
+                          b:CopyToClipboard.Text="{Binding Info?.ChipId}">
+                    <PathIcon Data="{StaticResource Icon.copy}" />
+                  </Button>
+                </Grid>
+              </Border>
+              <Border Classes="inset">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="BLE ADDRESS" Classes="overline" />
+                    <TextBlock Text="{Binding Info?.Address, TargetNullValue='—'}" Classes="value mono" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
+                          b:CopyToClipboard.Text="{Binding Info?.Address}">
+                    <PathIcon Data="{StaticResource Icon.copy}" />
+                  </Button>
+                </Grid>
+              </Border>
+            </UniformGrid>
+          </StackPanel>
+        </Border>
+
+        <!-- Firmware updates -->
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+              <Border Grid.Column="0" Classes="iconwell blue" VerticalAlignment="Center">
+                <PathIcon Data="{StaticResource Icon.upload}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="FIRMWARE UPDATE" Classes="overline" />
+                <TextBlock Text="{Binding Firmware.CurrentVersion, StringFormat='Installed: {0}'}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Firmware.CheckMessage}" Classes="caption" TextWrapping="Wrap" />
+              </StackPanel>
+              <Button Grid.Column="2" Classes="icon" VerticalAlignment="Center"
+                      Command="{Binding Firmware.CheckCommand}" ToolTip.Tip="Check GitHub for a newer release">
+                <PathIcon Data="{StaticResource Icon.refresh}" />
+              </Button>
+            </Grid>
+            <WrapPanel ItemSpacing="8" LineSpacing="8">
+              <Button Classes="accent" Command="{Binding Firmware.InstallLatestCommand}"
+                      IsVisible="{Binding Firmware.CanInstallLatest}">
+                <TextBlock Text="{Binding Firmware.Latest?.Version, StringFormat='Update to {0}'}" />
+              </Button>
+              <Button Content="Release notes" Command="{Binding Firmware.OpenReleaseCommand}"
+                      IsVisible="{Binding Firmware.IsUpdateAvailable}" />
+              <Button Content="Install from file…" Command="{Binding Firmware.InstallFromFileCommand}"
+                      IsVisible="{Binding Firmware.CanInstall}"
+                      ToolTip.Tip="Install a DFU package (ultra-dfu-app.zip / lite-dfu-app.zip)" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Device settings: edited here, sent to the device by the save bar. -->
+        <Border Classes="card">
+          <StackPanel>
+            <StackPanel Spacing="2" Margin="0,0,0,14">
+              <TextBlock Text="DEVICE SETTINGS" Classes="overline" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="Behavior and controls. Save sends your changes to the device and keeps them after a reboot." />
+            </StackPanel>
+            <!-- LED animation -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell amber">
+                <PathIcon Data="{StaticResource Icon.led}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="LED animation" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Light pattern shown when the device wakes." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding AnimationModes}"
+                        SelectedItem="{Binding AnimationMode}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Sleep timeout -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.sleep}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Sleep timeout" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Seconds of inactivity before the device sleeps (0–255)." />
+              </StackPanel>
+              <NumericUpDown Grid.Column="2" Classes="control stepper" Minimum="0" Maximum="255" Increment="1"
+                             FormatString="0" Value="{Binding SleepTimeout}" />
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button A -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="A" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button A" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a short press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonAShort}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button A (long press) -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="A" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button A — long press" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a long press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonALong}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button B -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="B" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button B" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a short press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBShort}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Button B (long press) -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+              <Border Grid.Column="0" Classes="iconwell green">
+                <TextBlock Text="B" FontWeight="Bold" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Button B — long press" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Action on a long press." />
+              </StackPanel>
+              <ComboBox Grid.Column="2" Classes="control"
+                        ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBLong}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsLongPressThreshold}" />
+
+            <!-- Long-press threshold -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
+                  IsVisible="{Binding SupportsLongPressThreshold}">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.button}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Long-press threshold" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="How long a press counts as a long press (ms)." />
+              </StackPanel>
+              <NumericUpDown Grid.Column="2" Classes="control stepper" Minimum="100" Maximum="2000" Increment="50"
+                             FormatString="0" Value="{Binding LongPressThreshold}" />
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
+
+            <!-- BLE pairing -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
+                  IsVisible="{Binding SupportsBle}">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.ble}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Bluetooth pairing" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Require a PIN to connect over Bluetooth LE." />
+              </StackPanel>
+              <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                            IsChecked="{Binding BlePairingEnabled}" />
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
+
+            <!-- BLE PIN -->
+            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
+                  IsVisible="{Binding SupportsBle}">
+              <Border Grid.Column="0" Classes="iconwell blue">
+                <PathIcon Data="{StaticResource Icon.key}" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Pairing PIN" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="6 digits. Leave blank to keep the current PIN. Default is 123456." />
+              </StackPanel>
+              <TextBox Grid.Column="2" Classes="control mono" MaxLength="6" Text="{Binding BlePin}"
+                       PlaceholderText="••••••" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- Danger zone -->
+        <Border Classes="card" BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}">
+          <StackPanel Spacing="14">
+            <!-- Bonded BLE devices -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" IsVisible="{Binding SupportsBle}">
+              <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Clear bonded devices" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Forgets every phone and tablet paired over Bluetooth LE." />
+              </StackPanel>
+              <Button Grid.Column="1" x:Name="ClearBondsButton" Classes="danger" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.ble}" />
+                  <TextBlock Text="Clear bonds…" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button.Flyout>
+                  <Flyout Placement="TopEdgeAlignedRight">
+                    <StackPanel Spacing="12" MaxWidth="280">
+                      <TextBlock Text="Clear all bonded BLE devices?" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="Paired phones and tablets will have to pair again, and may need the Chameleon removed from their Bluetooth list first." />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Clear bonds"
+                              Command="{Binding ClearBondsCommand}" Click="OnCloseFlyout" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
+
+            <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+              <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Reset to defaults" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="Restores factory settings for LEDs, sleep and buttons." />
+              </StackPanel>
+              <Button Grid.Column="1" x:Name="ResetButton" Classes="danger" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.reset}" />
+                  <TextBlock Text="Reset…" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button.Flyout>
+                  <Flyout Placement="TopEdgeAlignedRight">
+                    <StackPanel Spacing="12" MaxWidth="260">
+                      <TextBlock Text="Reset all settings?" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="Current device settings will be replaced by the factory defaults." />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Reset settings"
+                              Command="{Binding ResetCommand}" Click="OnCloseFlyout" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
+
+            <Separator Classes="row" />
+
+            <!-- Factory reset (wipe) -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+              <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="Factory reset" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" TextWrapping="Wrap"
+                           Text="Wipes ALL data: every slot, nickname, saved emulator content and settings. This cannot be undone." />
+              </StackPanel>
+              <Button Grid.Column="1" x:Name="WipeButton" Classes="danger" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.delete}" />
+                  <TextBlock Text="Factory reset…" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button.Flyout>
+                  <Flyout Placement="TopEdgeAlignedRight">
+                    <StackPanel Spacing="12" MaxWidth="280">
+                      <TextBlock Text="Factory reset the Chameleon?" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="All slots, nicknames, emulator data and settings will be erased. The device will disconnect afterwards." />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Erase everything"
+                              Command="{Binding FactoryResetCommand}" Click="OnCloseFlyout" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Grid>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ===================== Save bar (stays in view) ===================== -->
+    <!-- Appears only once a device setting changed. -->
+    <Border Grid.Row="1" Classes="savebar pagebar" IsVisible="{Binding IsDirty}">
+      <c:ActionBar>
+        <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+        <Button Content="Discard" Command="{Binding DiscardCommand}" />
+        <Button Classes="accent" Command="{Binding SaveCommand}"
+                ToolTip.Tip="Send these values to the device and keep them after a reboot">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.save}" />
+            <TextBlock Text="Save" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </c:ActionBar>
+    </Border>
+  </Grid>
+</UserControl>

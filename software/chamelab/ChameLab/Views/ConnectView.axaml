@@ -10,7 +10,7 @@
        then the hero shrinks and puts the device beside the title (code-behind); only after that
        does the page scroll. -->
   <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
-  <Grid x:Name="Page" Classes="page" MaxWidth="540" VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto">
+  <Grid x:Name="Page" Classes="page" MaxWidth="540" VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto">
 
       <!-- Hero: device above the title, or beside it on short windows. -->
       <Grid x:Name="Hero" Grid.Row="0" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto"
@@ -130,16 +130,6 @@
           </Grid>
         </StackPanel>
       </Expander>
-
-      <!-- Offline mode: browse saved cards, dictionaries and app settings without a device. -->
-      <Button Grid.Row="3" HorizontalAlignment="Center" Margin="0,10,0,0"
-              Command="{Binding ContinueOfflineCommand}"
-              ToolTip.Tip="Work with saved cards, dictionaries and app settings without a device">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <PathIcon Data="{StaticResource Icon.cards}" Width="16" Height="16" />
-          <TextBlock Text="Continue without device" VerticalAlignment="Center" />
-        </StackPanel>
-      </Button>
   </Grid>
   </ScrollViewer>
 </UserControl>

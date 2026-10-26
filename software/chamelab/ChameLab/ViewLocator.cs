@@ -17,7 +17,7 @@ public class ViewLocator : IDataTemplate
         null => null,
         MainViewModel => new MainView(),
         ConnectViewModel => new ConnectView(),
-        DashboardViewModel => new DashboardView(),
+        ChameleonViewModel => new ChameleonView(),
         SlotsViewModel => new SlotsView(),
         CardsViewModel => new CardsView(),
         DictionariesViewModel => new DictionariesView(),

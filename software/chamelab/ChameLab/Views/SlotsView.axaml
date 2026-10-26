@@ -325,66 +325,70 @@
               <!-- MIFARE Classic emulator settings -->
               <StackPanel Spacing="10" IsVisible="{Binding ShowMfcSettings}">
                 <TextBlock Text="MIFARE CLASSIC EMULATOR" Classes="overline" />
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                  <TextBlock Text="Gen1A magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
-                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
-                                IsChecked="{Binding Gen1a}" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                  <TextBlock Text="Gen2 magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
-                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
-                                IsChecked="{Binding Gen2}" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                  <TextBlock Text="Use UID/SAK/ATQA from block 0" VerticalAlignment="Center" TextWrapping="Wrap" />
-                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
-                                IsChecked="{Binding BlockAntiColl}" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                  <TextBlock Text="Reset on field off" VerticalAlignment="Center" TextWrapping="Wrap" />
-                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
-                                IsChecked="{Binding FieldOffReset}" />
-                </Grid>
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                  <TextBlock Text="Write mode" VerticalAlignment="Center" />
-                  <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                            ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding MfcWriteMode}">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                  <TextBlock Grid.Row="1" Text="PRNG type" VerticalAlignment="Center" />
-                  <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
-                            ItemsSource="{x:Static vm:SlotEditorViewModel.PrngTypes}" SelectedItem="{Binding Prng}">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                </Grid>
+                <StackPanel Margin="20,0,0,0" Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                      <TextBlock Text="Gen1A magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                    IsChecked="{Binding Gen1a}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                      <TextBlock Text="Gen2 magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                    IsChecked="{Binding Gen2}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                      <TextBlock Text="Use UID/SAK/ATQA from block 0" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                    IsChecked="{Binding BlockAntiColl}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                      <TextBlock Text="Reset on field off" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                    IsChecked="{Binding FieldOffReset}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                      <TextBlock Text="Write mode" VerticalAlignment="Center" />
+                      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding MfcWriteMode}">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                      <TextBlock Grid.Row="1" Text="PRNG type" VerticalAlignment="Center" />
+                      <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
+                                ItemsSource="{x:Static vm:SlotEditorViewModel.PrngTypes}" SelectedItem="{Binding Prng}">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </Grid>
+                </StackPanel>
               </StackPanel>
 
               <!-- Ultralight / NTAG emulator settings -->
               <StackPanel Spacing="10" IsVisible="{Binding ShowUlSettings}">
                 <TextBlock Text="ULTRALIGHT / NTAG EMULATOR" Classes="overline" />
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                  <TextBlock Text="UID magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
-                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
-                                IsChecked="{Binding UlUidMagic}" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                  <TextBlock Text="Password detection" VerticalAlignment="Center" TextWrapping="Wrap" />
-                  <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
-                                IsChecked="{Binding UlDetection}" />
-                </Grid>
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                  <TextBlock Text="Write mode" VerticalAlignment="Center" />
-                  <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                            ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding UlWriteMode}">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                </Grid>
+                <StackPanel Margin="20,0,0,0" Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <TextBlock Text="UID magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                      IsChecked="{Binding UlUidMagic}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <TextBlock Text="Password detection" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
+                                      IsChecked="{Binding UlDetection}" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <TextBlock Text="Write mode" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                  ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding UlWriteMode}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </StackPanel>
               </StackPanel>
             </StackPanel>
           </Border>

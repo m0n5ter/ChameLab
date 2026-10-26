@@ -28,11 +28,7 @@ public sealed class ConnectViewModel : PageViewModelBase
             this.WhenAnyValue(x => x.Selected).Select(s => s is not null));
         ConnectManualCommand = ReactiveCommand.CreateFromTask(ConnectManualAsync,
             this.WhenAnyValue(x => x.ManualEndpoint).Select(e => !string.IsNullOrWhiteSpace(e)));
-        ContinueOfflineCommand = ReactiveCommand.Create(() => OfflineRequested?.Invoke());
     }
-
-    /// <summary>Raised when the user chooses to work without a device.</summary>
-    public event Action? OfflineRequested;
 
     public ObservableCollection<TransportCandidate> Candidates { get; } = new();
 
@@ -101,7 +97,6 @@ public sealed class ConnectViewModel : PageViewModelBase
     public ICommand PickCommand { get; }
     public ICommand ConnectCommand { get; }
     public ICommand ConnectManualCommand { get; }
-    public ICommand ContinueOfflineCommand { get; }
 
     /// <summary>How often cheap scanners (USB serial) are re-run to catch a device being plugged in.</summary>
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);

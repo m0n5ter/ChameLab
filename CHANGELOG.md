@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: the navigation is always shown, starting on Connect; once a device is connected, Connect gives way to Chameleon (formerly Dashboard), which now also holds the device settings and resets. Settings keeps the app-side ones. Without a device the app works with saved cards, dictionaries and settings, so Continue without device is gone
 
 ## [v1.0.15][2026-10-26] · firmware v2.3.3-cl
  - ChameLab: a dragged card shows its tile at its real size on scaled screens (phones); v1.0.14 fixed only the frame around it

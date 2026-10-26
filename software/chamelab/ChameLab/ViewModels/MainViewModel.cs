@@ -14,7 +14,6 @@ public sealed class MainViewModel : ViewModelBase
     private readonly ConnectViewModel _connect;
     private PageViewModelBase _currentPage;
     private bool _isConnected;
-    private bool _isOffline;
     private bool _isPaneOpen = true;
     private string _deviceSummary = "Not connected";
     private bool _isExitHintVisible;
@@ -30,18 +29,19 @@ public sealed class MainViewModel : ViewModelBase
 
         Firmware = new FirmwareUpdateViewModel(device, firmware);
         _connect = new ConnectViewModel(device);
-        Dashboard = new DashboardViewModel(device, Firmware);
+        Chameleon = new ChameleonViewModel(device, Firmware);
         Slots = new SlotsViewModel(device, cards);
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries);
         Tools = new ToolsViewModel(device, dictionaries);
         AppUpdate = new AppUpdateViewModel();
-        Settings = new SettingsViewModel(device, cards, dictionaries, AppUpdate);
+        Settings = new SettingsViewModel(cards, dictionaries, AppUpdate);
 
-        _connectedPages = new PageViewModelBase[] { Dashboard, Slots, Cards, Dictionaries, Tools, Settings };
-        // Without a device only the app-side pages make sense; Connect stays reachable to attach one later.
-        _offlinePages = new PageViewModelBase[] { _connect, Cards, Dictionaries, Settings };
-        NavPages = new ObservableCollection<PageViewModelBase>(_connectedPages);
+        // Chameleon takes the place of Connect once a device is attached.
+        _connectedPages = new PageViewModelBase[] { Chameleon, Slots, Cards, Dictionaries, Tools, Settings };
+        // Without a device only the app-side pages make sense, behind Connect to attach one.
+        _disconnectedPages = new PageViewModelBase[] { _connect, Cards, Dictionaries, Settings };
+        NavPages = new ObservableCollection<PageViewModelBase>(_disconnectedPages);
 
         _currentPage = _connect;
 
@@ -61,7 +61,6 @@ public sealed class MainViewModel : ViewModelBase
         Cards.Folders.CollectionChanged += (_, _) => SyncNavItems();
         SyncNavItems();
         _device.StateChanged += OnStateChanged;
-        _connect.OfflineRequested += () => _ = EnterOfflineAsync();
         _connect.StartWatching();
         _ = AppUpdate.CheckInBackgroundAsync();
         // A firmware install looks for the bootloader itself: a Connect page scan running beside
@@ -79,7 +78,8 @@ public sealed class MainViewModel : ViewModelBase
     public FirmwareUpdateViewModel Firmware { get; }
     /// <summary>Whether a newer ChameLab is out; shown in the top bar and in Settings.</summary>
     public AppUpdateViewModel AppUpdate { get; }
-    public DashboardViewModel Dashboard { get; }
+    /// <summary>The connected device: status, firmware and its settings.</summary>
+    public ChameleonViewModel Chameleon { get; }
     public SlotsViewModel Slots { get; }
     public CardsViewModel Cards { get; }
     public DictionariesViewModel Dictionaries { get; }
@@ -87,9 +87,9 @@ public sealed class MainViewModel : ViewModelBase
     public SettingsViewModel Settings { get; }
 
     private readonly PageViewModelBase[] _connectedPages;
-    private readonly PageViewModelBase[] _offlinePages;
+    private readonly PageViewModelBase[] _disconnectedPages;
 
-    /// <summary>Pages listed in the navigation pane: the full set when connected, a subset offline.</summary>
+    /// <summary>Pages listed in the navigation pane: the full set when connected, the app-side ones without a device.</summary>
     public ObservableCollection<PageViewModelBase> NavPages { get; }
 
     public PageViewModelBase CurrentPage
@@ -201,39 +201,13 @@ public sealed class MainViewModel : ViewModelBase
     public bool IsConnected
     {
         get => _isConnected;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref _isConnected, value);
-            this.RaisePropertyChanged(nameof(HasNavigation));
-            this.RaisePropertyChanged(nameof(IsPaneOpen));
-        }
+        private set => this.RaiseAndSetIfChanged(ref _isConnected, value);
     }
 
-    /// <summary>Working without a device: saved cards, dictionaries and app settings only.</summary>
-    public bool IsOffline
-    {
-        get => _isOffline;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref _isOffline, value);
-            this.RaisePropertyChanged(nameof(HasNavigation));
-            this.RaisePropertyChanged(nameof(IsPaneOpen));
-        }
-    }
-
-    /// <summary>The navigation pane is shown when connected or in offline mode.</summary>
-    public bool HasNavigation => _isConnected || _isOffline;
-
-    /// <summary>Stays closed while there is nothing to navigate, so no empty strip shows beside Connect.</summary>
     public bool IsPaneOpen
     {
-        get => _isPaneOpen && HasNavigation;
-        set
-        {
-            if (_isPaneOpen == value) return;
-            _isPaneOpen = value;
-            this.RaisePropertyChanged();
-        }
+        get => _isPaneOpen;
+        set => this.RaiseAndSetIfChanged(ref _isPaneOpen, value);
     }
 
     public string DeviceSummary
@@ -250,7 +224,7 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     /// <summary>The page Back returns to before leaving the app: where the current session starts.</summary>
-    private PageViewModelBase StartPage => IsConnected ? Dashboard : IsOffline ? Cards : _connect;
+    private PageViewModelBase StartPage => IsConnected ? Chameleon : _connect;
 
     /// <summary>
     /// Steps back inside the shell for the system Back button: closes the overlaid navigation
@@ -321,46 +295,30 @@ public sealed class MainViewModel : ViewModelBase
         foreach (var p in pages) NavPages.Add(p);
     }
 
-    private async Task EnterOfflineAsync()
-    {
-        if (IsConnected) return;
-        if (!IsOffline)
-        {
-            IsOffline = true;
-            SetNavPages(_offlinePages);
-            DeviceSummary = "Offline mode";
-        }
-        if (!IsCompact) IsPaneOpen = true;
-        await NavigateAsync(Cards);
-    }
-
     private void OnStateChanged(ConnectionState state)
     {
         Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
         {
             IsConnected = state == ConnectionState.Connected;
-            // Let the page being left undo anything it set up on the device before the mode switches.
-            await CurrentPage.OnDeactivatedAsync();
             if (state == ConnectionState.Connected)
             {
                 _connect.StopWatching();
-                IsOffline = false;
                 SetNavPages(_connectedPages);
                 var info = _device.DeviceInfo;
                 DeviceSummary = info is null
                     ? "Connected"
                     : $"{info.ModelName} · fw {info.FirmwareVersion}";
-                CurrentPage = Dashboard;
-                if (!IsCompact) IsPaneOpen = true;
                 _ = Firmware.OnConnectedAsync();
-                await Dashboard.OnActivatedAsync();
+                // Connecting from the Connect page goes on to the device; any other page stays.
+                if (ReferenceEquals(CurrentPage, _connect)) await NavigateAsync(Chameleon);
             }
             else
             {
-                DeviceSummary = IsOffline ? "Offline mode" : "Not connected";
-                if (!IsOffline) SetNavPages(_connectedPages);
-                CurrentPage = _connect;
+                DeviceSummary = "Not connected";
+                SetNavPages(_disconnectedPages);
                 if (state == ConnectionState.Disconnected && !Firmware.IsInstalling) _connect.StartWatching();
+                // A device page has nothing left to show: back to Connect. App-side pages stay.
+                if (!NavPages.Contains(CurrentPage)) await NavigateAsync(_connect);
             }
         });
     }
