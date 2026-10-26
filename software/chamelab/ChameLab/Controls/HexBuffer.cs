@@ -63,6 +63,12 @@ public sealed class HexBuffer
     /// <summary>A separator is drawn above rows for which this returns true (sector starts).</summary>
     public Func<int, bool> StartsGroup { get; init; } = _ => false;
 
+    /// <summary>
+    /// Heading drawn on its own line above a row that starts a group (e.g. "Sector 3" with
+    /// "blocks 12–15" as a dimmer detail); null for rows without one.
+    /// </summary>
+    public Func<int, (string Title, string? Detail)?> GroupHeader { get; init; } = _ => null;
+
     /// <summary>Short description of a position for the status line.</summary>
     public Func<int, int, string?> Describe { get; init; } = (_, _) => null;
 

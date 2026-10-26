@@ -828,8 +828,12 @@
               <c:FlowGrid MinItemWidth="200" ColumnSpacing="10" RowSpacing="10">
                 <StackPanel Spacing="4">
                   <TextBlock Text="Tag type" Classes="caption" />
-                  <ComboBox ItemsSource="{Binding Form?.TagChoices}" SelectedItem="{Binding Form?.Tag}"
-                            IsEnabled="{Binding Form?.CanChangeTag, TargetNullValue=False}"
+                  <!-- Bound through its own DataContext (the form): a DataContext switch applies the
+                       selection after the new list, while separate Form?.TagChoices / Form?.Tag bindings
+                       could select the new card's type in the old list and leave the box empty. -->
+                  <ComboBox DataContext="{Binding Form}" x:DataType="vm:CardEditorViewModel"
+                            ItemsSource="{Binding TagChoices}" SelectedItem="{Binding Tag}"
+                            IsEnabled="{Binding CanChangeTag, FallbackValue=False}"
                             HorizontalAlignment="Stretch">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
@@ -933,7 +937,7 @@
                   </Button>
                   <Button Command="{Binding CancelDumpCommand}" VerticalAlignment="Center"
                           IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}"
-                          ToolTip.Tip="Stop the dump; what was read so far is discarded">
+                          ToolTip.Tip="Stop the dump; what was read so far is kept and can be saved">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <PathIcon Data="{StaticResource Icon.close}" />
                       <TextBlock Text="Stop dump" VerticalAlignment="Center" />
@@ -969,10 +973,16 @@
                       </Flyout>
                     </Button.Flyout>
                   </Button>
-                  <TextBlock Grid.Column="2" Classes="caption" Text="{Binding DumpProgressText}"
-                             VerticalAlignment="Center" HorizontalAlignment="Right"
-                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                             IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <!-- What the dump is on (sector and key), and how far the key search got. -->
+                  <StackPanel Grid.Column="2" Spacing="5" VerticalAlignment="Center" Margin="6,0,0,0"
+                              IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Classes="caption" Text="{Binding DumpProgressText}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <ProgressBar Height="6" MinHeight="6" HorizontalAlignment="Stretch"
+                                 Minimum="0" Maximum="{Binding DumpKeyTotal}" Value="{Binding DumpKeyTried}"
+                                 ToolTip.Tip="{Binding DumpKeyProgressTip}"
+                                 IsVisible="{Binding HasDumpKeyProgress}" />
+                  </StackPanel>
                 </Grid>
 
                 <!-- Ultralight / NTAG: optional password for the protected pages. -->
@@ -991,8 +1001,35 @@
                              Text="The password is tried once. Wrong attempts count towards the card's limit (AUTHLIM) and can lock it for good." />
                 </StackPanel>
 
-                <!-- Block strip: one cell per block, drawn as one control spanning the full width. -->
-                <StackPanel Spacing="4" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpBlocks}">
+                <!-- MIFARE Classic: a key grid, one cell per sector (16 per row), each cell two
+                     stacked squares — key A over key B — colored by the key-search state. The
+                     searching key and its tried/total count show in the progress line above. -->
+                <StackPanel Spacing="6" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpSectors}">
+                  <c:SectorKeyGrid Sectors="{Binding DumpSectors}" HorizontalAlignment="Stretch" />
+                  <WrapPanel ItemSpacing="14" LineSpacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend read" Margin="0" />
+                      <TextBlock Text="Key found" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend reading" Margin="0" />
+                      <TextBlock Text="Searching" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend nokey" Margin="0" />
+                      <TextBlock Text="Not found" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend" Margin="0" />
+                      <TextBlock Text="Not tried yet" Classes="caption" />
+                    </StackPanel>
+                    <TextBlock Text="Hover a sector for its keys" Classes="caption" />
+                  </WrapPanel>
+                </StackPanel>
+
+                <!-- Ultralight / NTAG: one cell per page, drawn as one control spanning the full width. -->
+                <StackPanel Spacing="4" b:BringIntoViewOnShow.IsEnabled="True"
+                            IsVisible="{Binding HasDumpBlocks}">
                   <c:BlockStrip States="{Binding DumpBlockStates}" Unit="{Binding DumpUnit}"
                                 LockedText="{Binding DumpLockedText}" HorizontalAlignment="Stretch" />
                   <WrapPanel ItemSpacing="14" LineSpacing="4">

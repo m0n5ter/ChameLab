@@ -610,13 +610,16 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// <paramref name="keyDict"/> (key A then key B) per sector. Blocks whose
     /// sector key is not found are left unread. Reports one tick per sector, and
     /// per-block states to <paramref name="blocks"/> (first a Pending tick covering
-    /// the whole card, so a listener can size itself).
+    /// the whole card, so a listener can size itself). The card's size comes from
+    /// <paramref name="type"/> when given (the user's choice), else from its SAK.
     /// </summary>
     public async Task<MifareDump> ReadMifareClassicAsync(
         IReadOnlyList<byte[]> keyDict,
         IProgress<MifareProgress>? progress = null,
         CancellationToken ct = default,
-        IProgress<MifareBlockProgress>? blocks = null)
+        IProgress<MifareBlockProgress>? blocks = null,
+        IProgress<MifareKeyProgress>? keyProgress = null,
+        MifareClassicType? type = null)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
@@ -624,64 +627,109 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             throw new ChameleonException("No HF tag detected on the reader.", Status.HfTagNo);
 
         var tag = tags[0];
-        var type = MifareClassic.FromSak(tag.Sak);
-        var dump = new MifareDump(type, tag.Uid, tag.Atqa, tag.Sak);
+        var dump = new MifareDump(type ?? MifareClassic.FromSak(tag.Sak), tag.Uid, tag.Atqa, tag.Sak);
         var sectors = dump.SectorCount;
         var recovered = 0;
-        // Keys that already opened a sector: cards usually reuse them, so they are tried
-        // first (with retries) before falling back to a single pass over the dictionary.
-        var found = new List<(MfKeyType Type, byte[] Key)>();
+        // Keys that already opened a sector: cards usually reuse them, so each type's
+        // working keys are tried first (with retries) before the dictionary pass.
+        var foundA = new List<byte[]>();
+        var foundB = new List<byte[]>();
         blocks?.Report(new MifareBlockProgress(0, dump.BlockCount, MifareBlockState.Pending));
 
-        for (var s = 0; s < sectors; s++)
+        try
         {
-            ct.ThrowIfCancellationRequested();
-            var first = MifareClassic.SectorFirstBlock(s);
-            var count = MifareClassic.BlocksInSector(s);
-            blocks?.Report(new MifareBlockProgress(first, count, MifareBlockState.Reading));
-
-            // Find a working key for this sector (authenticate against its first block).
-            (MfKeyType Type, byte[] Key)? hit = null;
-            foreach (var known in found)
-                if (await AuthWithRetryAsync(first, known.Type, known.Key, ct)) { hit = known; break; }
-            if (hit is null)
+            for (var s = 0; s < sectors; s++)
             {
-                foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
-                {
-                    foreach (var candidate in keyDict)
-                    {
-                        ct.ThrowIfCancellationRequested();
-                        bool ok;
-                        try { ok = await Mf1AuthAsync(first, kt, candidate, ct); }
-                        catch (Exception ex) when (IsRfFailure(ex)) { ok = false; }
-                        if (ok) { hit = (kt, candidate); break; }
-                    }
-                    if (hit is not null) break;
-                }
-                if (hit is { } h) found.Add(h);
-            }
+                ct.ThrowIfCancellationRequested();
+                var first = MifareClassic.SectorFirstBlock(s);
+                var count = MifareClassic.BlocksInSector(s);
+                blocks?.Report(new MifareBlockProgress(first, count, MifareBlockState.Reading));
 
-            if (hit is { } use)
-            {
-                if (use.Type == MfKeyType.A) dump.KeyA[s] = use.Key; else dump.KeyB[s] = use.Key;
-                for (var b = 0; b < count; b++)
-                {
-                    var block = first + b;
-                    if (await ReadBlockWithRetryAsync(block, use.Type, use.Key, ct) is { } data)
-                    {
-                        dump.SetBlock(block, data);
-                        recovered++;
-                        blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Read));
-                    }
-                    else blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.ReadError));
-                }
-            }
-            else blocks?.Report(new MifareBlockProgress(first, count, MifareBlockState.NoKey));
+                // Both keys are searched independently: a sector may hand out data under
+                // key A, key B or both, and the trailer only yields the key used to read it.
+                dump.KeyA[s] = await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, foundA, keyProgress, ct);
+                dump.KeyB[s] = await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, foundB, keyProgress, ct);
+                if (dump.KeyA[s] is { } ka && !foundA.Any(k => k.AsSpan().SequenceEqual(ka))) foundA.Add(ka);
+                if (dump.KeyB[s] is { } kb && !foundB.Any(k => k.AsSpan().SequenceEqual(kb))) foundB.Add(kb);
 
-            progress?.Report(new MifareProgress(s + 1, sectors, recovered));
+                if (dump.KeyA[s] is null && dump.KeyB[s] is null)
+                {
+                    blocks?.Report(new MifareBlockProgress(first, count, MifareBlockState.NoKey));
+                }
+                else
+                {
+                    for (var b = 0; b < count; b++)
+                    {
+                        var block = first + b;
+                        if (await ReadBlockWithEitherKeyAsync(block, dump.KeyA[s], dump.KeyB[s], ct) is { } data)
+                        {
+                            dump.SetBlock(block, data);
+                            recovered++;
+                            blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Read));
+                        }
+                        else blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.ReadError));
+                    }
+                }
+
+                progress?.Report(new MifareProgress(s + 1, sectors, recovered));
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // Stopped by the user: keep what was read so far so a partial dump can still be saved.
         }
 
+        dump.FillRecoveredKeys();
         return dump;
+    }
+
+    /// <summary>
+    /// Searches <paramref name="keyDict"/> for a key of type <paramref name="kt"/> that opens
+    /// the sector (authenticating against <paramref name="block"/>), trying keys already known to
+    /// work first. Reports its progress to <paramref name="keyProgress"/>. Null if none is found.
+    /// </summary>
+    private async Task<byte[]?> FindSectorKeyAsync(
+        int block, MfKeyType kt, int sector, IReadOnlyList<byte[]> keyDict,
+        IReadOnlyList<byte[]> known, IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
+    {
+        var total = keyDict.Count;
+        keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Searching, 0, total, null));
+
+        foreach (var k in known)
+            if (await AuthWithRetryAsync(block, kt, k, ct))
+            {
+                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Found, total, total, k));
+                return k;
+            }
+
+        // Throttle the "searching" ticks: a dictionary can hold thousands of keys.
+        var step = Math.Max(1, total / 50);
+        for (var i = 0; i < total; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var candidate = keyDict[i];
+            bool ok;
+            try { ok = await Mf1AuthAsync(block, kt, candidate, ct); }
+            catch (Exception ex) when (IsRfFailure(ex)) { ok = false; }
+            if (ok)
+            {
+                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Found, i + 1, total, candidate));
+                return candidate;
+            }
+            if (i % step == 0)
+                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Searching, i + 1, total, null));
+        }
+
+        keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.NotFound, total, total, null));
+        return null;
+    }
+
+    /// <summary>Reads one block with key A, falling back to key B; null if neither opens it.</summary>
+    private async Task<byte[]?> ReadBlockWithEitherKeyAsync(int block, byte[]? keyA, byte[]? keyB, CancellationToken ct)
+    {
+        if (keyA is not null && await ReadBlockWithRetryAsync(block, MfKeyType.A, keyA, ct) is { } a) return a;
+        if (keyB is not null && await ReadBlockWithRetryAsync(block, MfKeyType.B, keyB, ct) is { } b) return b;
+        return null;
     }
 
     /// <summary>How many times a single RF exchange is attempted before it counts as failed.</summary>

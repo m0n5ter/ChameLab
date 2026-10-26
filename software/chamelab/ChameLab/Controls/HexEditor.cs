@@ -274,7 +274,12 @@ public sealed class HexEditor : Control
         for (var i = 0; i < lines; i++)
         {
             var row = i / LinesPerRow;
-            if (i % LinesPerRow == 0 && row > 0 && _buffer.StartsGroup(row)) y += SeparatorGap;
+            if (i % LinesPerRow == 0)
+            {
+                if (row > 0 && _buffer.StartsGroup(row)) y += SeparatorGap;
+                // A group heading takes a line of its own above the group's first row.
+                if (_buffer.GroupHeader(row) is not null) y += _lineH;
+            }
             _lineY[i] = y;
             y += _lineH;
         }
@@ -298,12 +303,13 @@ public sealed class HexEditor : Control
             : new Rect(AsciiX(col), y, _digitW, _lineH);
     }
 
-    /// <summary>The line at a height (clamped to the lines there are).</summary>
+    /// <summary>The line at a height (clamped to the lines there are); a group heading belongs to the line under it.</summary>
     private int LineAt(double y)
     {
         var line = Array.BinarySearch(_lineY, y);
         if (line < 0) line = Math.Max(0, ~line - 1);
-        return Math.Min(line, _lineY.Length - 1);
+        line = Math.Min(line, _lineY.Length - 1);
+        return y >= _lineY[line] + _lineH && line + 1 < _lineY.Length ? line + 1 : line;
     }
 
     /// <summary>Byte (and nibble / pane) under a point, clamped to the buffer.</summary>
@@ -382,8 +388,21 @@ public sealed class HexEditor : Control
             var firstOfRow = line % LinesPerRow == 0;
             var rowRead = buf.IsRead(row);
 
+            var header = firstOfRow ? buf.GroupHeader(row) : null;
+            var top = header is null ? y : y - _lineH;
             if (firstOfRow && row > 0 && buf.StartsGroup(row) && SeparatorBrush is { } sep)
-                ctx.FillRectangle(sep, new Rect(0, y - SeparatorGap / 2 - 0.5, Bounds.Width, 1));
+                ctx.FillRectangle(sep, new Rect(0, top - SeparatorGap / 2 - 0.5, Bounds.Width, 1));
+
+            if (header is { } h)
+            {
+                var title = Text(h.Title, label);
+                ctx.DrawText(title, new Point(0, top + (_lineH - title.Height) / 2));
+                if (h.Detail is { } detail)
+                {
+                    var ft = Text(detail, dim);
+                    ctx.DrawText(ft, new Point(title.WidthIncludingTrailingWhitespace + 2 * _digitW, top + (_lineH - ft.Height) / 2));
+                }
+            }
 
             if (line == caretLine && ActiveRowBrush is { } activeRow)
                 ctx.FillRectangle(activeRow, new Rect(0, y, Bounds.Width, _lineH), 4);

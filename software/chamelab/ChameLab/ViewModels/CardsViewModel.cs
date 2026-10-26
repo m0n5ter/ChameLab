@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -93,8 +94,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     private string? _writeProgressText;
     private CancellationTokenSource? _writeCts;
     private IReadOnlyList<MifareBlockState> _writeBlockStates = Array.Empty<MifareBlockState>();
-    private readonly HashSet<string> _uncheckedKeySources = new();
+    private readonly HashSet<string> _uncheckedKeySources = LoadUncheckedKeySources();
     private byte[] _scannedAts = Array.Empty<byte>();
+    // The new card came from an HF scan, so its memory can be dumped (as whatever type it is set to).
+    private bool _isHfScan;
+    // A dump result is being put into the form: its type change is not a user's change.
+    private bool _applyingDump;
+    // A dump stopped because its result no longer applies (type changed, add left): its result is dropped.
+    private CancellationTokenSource? _discardedDump;
 
     // Page margins 56 + card list 280 + gap 18 + card editor 600 (see CardsView).
     public override double MinContentWidth => 954;
@@ -472,7 +479,11 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         if (e.PropertyName is nameof(CardEditorViewModel.Tag) or nameof(CardEditorViewModel.HasData))
         {
             RaiseCardInfo();
-            if (e.PropertyName == nameof(CardEditorViewModel.Tag)) RebuildTargets();
+            if (e.PropertyName == nameof(CardEditorViewModel.Tag))
+            {
+                RebuildTargets();
+                OnAddTagChanged();
+            }
         }
         if (e.PropertyName != nameof(CardEditorViewModel.IsDirty)) return;
         this.RaisePropertyChanged(nameof(IsCardDirty));
@@ -543,11 +554,76 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public string? DumpProgressText
     {
         get => _dumpProgressText;
-        private set => this.RaiseAndSetIfChanged(ref _dumpProgressText, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _dumpProgressText, value);
+            if (value is null) SetDumpKeyProgress(0, 0);
+        }
+    }
+
+    private int _dumpKeyTried;
+    private int _dumpKeyTotal;
+
+    /// <summary>Candidate keys tried so far for the key a MIFARE Classic dump is searching.</summary>
+    public int DumpKeyTried
+    {
+        get => _dumpKeyTried;
+        private set => this.RaiseAndSetIfChanged(ref _dumpKeyTried, value);
+    }
+
+    /// <summary>Candidate keys in the search; 0 when no key search is under way.</summary>
+    public int DumpKeyTotal
+    {
+        get => _dumpKeyTotal;
+        private set => this.RaiseAndSetIfChanged(ref _dumpKeyTotal, value);
+    }
+
+    public bool HasDumpKeyProgress => _dumpKeyTotal > 0;
+
+    public string DumpKeyProgressTip => $"{_dumpKeyTried} of {_dumpKeyTotal} keys tried";
+
+    private void SetDumpKeyProgress(int tried, int total)
+    {
+        DumpKeyTotal = total;
+        DumpKeyTried = tried;
+        this.RaisePropertyChanged(nameof(HasDumpKeyProgress));
+        this.RaisePropertyChanged(nameof(DumpKeyProgressTip));
     }
 
     /// <summary>
-    /// Read state of every card block, drawn by the block strip; kept after the dump.
+    /// The MIFARE Classic dump sector grid: one entry per sector, each drawn as a key A / key B
+    /// square pair by <see cref="Controls.SectorKeyGrid"/>. Rebuilt when a dump starts, kept after.
+    /// </summary>
+    public ObservableCollection<DumpSectorRow> DumpSectors { get; } = new();
+
+    public bool HasDumpSectors => DumpSectors.Count > 0;
+
+    /// <summary>Builds empty (unknown) sectors for a card of <paramref name="blockCount"/> blocks.</summary>
+    private void ResetDumpSectors(int blockCount)
+    {
+        DumpSectors.Clear();
+        for (var s = 0; MifareClassic.SectorFirstBlock(s) < blockCount; s++)
+            DumpSectors.Add(new DumpSectorRow(s));
+        this.RaisePropertyChanged(nameof(HasDumpSectors));
+    }
+
+    /// <summary>The first Pending tick (covering the whole card) sizes the sector grid.</summary>
+    private void OnDumpSectorBlock(MifareBlockProgress p)
+    {
+        if (p.State == MifareBlockState.Pending && p.First == 0) ResetDumpSectors(p.Count);
+    }
+
+    private void OnDumpKey(MifareKeyProgress p)
+    {
+        if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
+        DumpSectors[p.Sector].ApplyKey(p);
+        // The text names the sector and key (numbered like the grid's tooltip); the bar shows the search.
+        DumpProgressText = $"Sector {p.Sector} · key {(p.KeyType == MfKeyType.A ? "A" : "B")}";
+        SetDumpKeyProgress(p.Tried, p.Total);
+    }
+
+    /// <summary>
+    /// Read state of every Ultralight / NTAG page, drawn by the block strip; kept after the dump.
     /// Replaced with a new array on each change so the strip redraws.
     /// </summary>
     public IReadOnlyList<MifareBlockState> DumpBlockStates
@@ -1041,17 +1117,69 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         Prng = null;
         FormSource = null;
         _hasDump = false;
-        ResetDumpBlocks(0);
-        DumpStats.Clear();
-        HasDumpStats = false;
+        _isHfScan = false;
+        // Leaving the add pane stops a dump still in flight.
+        ClearDump();
         CanDump = false;
         IsUltralightDump = false;
         ProgressText = null;
-        // Leaving the add pane stops a dump still in flight.
-        try { _dumpCts?.Cancel(); } catch (ObjectDisposedException) { }
-        DumpProgressText = null;
         _scannedAts = Array.Empty<byte>();
         SetScanMatches(null);
+    }
+
+    /// <summary>
+    /// Wraps a dump's UI update so it is skipped once <see cref="ClearDump"/> dropped that dump: its ticks
+    /// still queued on the dispatcher must not repaint (or re-show the progress of) the reset section.
+    /// </summary>
+    private Action<T> IfKept<T>(CancellationTokenSource cts, Action<T> apply) =>
+        v => { if (!ReferenceEquals(_discardedDump, cts)) apply(v); };
+
+    private Action IfKept(CancellationTokenSource cts, Action apply) =>
+        () => { if (!ReferenceEquals(_discardedDump, cts)) apply(); };
+
+    /// <summary>Stops a running dump (dropping its result) and empties the grid, strip and summary.</summary>
+    private void ClearDump()
+    {
+        if (_dumpCts is { } cts)
+        {
+            _discardedDump = cts;
+            try { cts.Cancel(); } catch (ObjectDisposedException) { }
+        }
+        ResetDumpBlocks(0);
+        DumpSectors.Clear();
+        this.RaisePropertyChanged(nameof(HasDumpSectors));
+        DumpStats.Clear();
+        HasDumpStats = false;
+        DumpProgressText = null;
+    }
+
+    /// <summary>
+    /// The new card's type was changed by hand. A dump read as the old type means nothing for the
+    /// new one (1K and NTAG, even 1K and 4K, lay memory out differently), so it is dropped — grid,
+    /// summary and the memory it filled in — and the dump section is set up afresh for the new type.
+    /// </summary>
+    private void OnAddTagChanged()
+    {
+        if (_pane != CardsPane.Add || !_isHfScan || _applyingDump || _form is not { } form) return;
+        ClearDump();
+        if (_hasDump)
+        {
+            form.ClearMemory();
+            _hasDump = false;
+        }
+        ShowDumpFor(form.Tag);
+    }
+
+    /// <summary>
+    /// Sets the dump section up for <paramref name="tag"/>: which dump it runs (Classic blocks or
+    /// Ultralight pages), and for MIFARE Classic an empty sector grid sized for that type.
+    /// </summary>
+    private void ShowDumpFor(TagSpecificType tag)
+    {
+        IsUltralightDump = tag.IsUltralight();
+        CanDump = tag.IsMifareClassic() || IsUltralightDump;
+        if (tag.IsMifareClassic()) ResetDumpSectors(tag.MifareClassicBlocks());
+        RaiseSaveLabel();
     }
 
     // ---- Scanned card already saved ---------------------------------------
@@ -1163,10 +1291,10 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             var card = CardFormats.FromHf14a(t);
             if (ultralight is { } exact) card.Tag = exact;
             _scannedAts = card.Ats;
-            Form = new CardEditorViewModel(card);
+            _isHfScan = true;
+            Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
-            IsUltralightDump = card.Tag.IsUltralight();
-            CanDump = card.Tag.IsMifareClassic() || IsUltralightDump;
+            ShowDumpFor(card.Tag);
             FormSource = $"{card.Tag.DisplayName()} — UID {t.UidHex}";
         });
 
@@ -1190,7 +1318,6 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                     // Lands on the editor this scan opened; another scan or a cancel since then drops it.
                     if (Form is null) return;
                     Prng = prng;
-                    CanDump = true;
                 });
         }
 
@@ -1212,7 +1339,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                 ResetAddState();
                 FormSource = $"{tag.Type.DisplayName()} tag";
                 var card = CardFormats.FromEm410x(tag);
-                Form = new CardEditorViewModel(card);
+                Form = new CardEditorViewModel(card, sameFrequency: true);
                 SetScanMatches(card);
             });
             SetStatus("EM410x tag read.");
@@ -1231,7 +1358,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                 Tag = result.Type,
                 Uid = result.Id,
             };
-            Form = new CardEditorViewModel(card);
+            Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
         });
         SetStatus($"{LfProtocol.DisplayName()} tag read.");
@@ -1249,9 +1376,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         var client = _device.Client;
         if (client is null) return;
 
-        var progress = new Progress<MifareProgress>(p =>
-            DumpProgressText = $"Sector {p.Done}/{p.Total}");
-        var blockProgress = new Progress<MifareBlockProgress>(OnDumpBlocks);
+        using var cts = new CancellationTokenSource();
+        _dumpCts = cts;
+        // Posted (not Progress<T>) so ticks reach the UI in order: a "found" key must not be
+        // overtaken by the "searching" tick before it.
+        // Sector-done ticks are not shown: the key ticks name the sector and the grid shows the rest.
+        var progress = new PostedProgress<MifareProgress>(_ => { });
+        var blockProgress = new PostedProgress<MifareBlockProgress>(IfKept<MifareBlockProgress>(cts, OnDumpSectorBlock));
+        var keyProgress = new PostedProgress<MifareKeyProgress>(IfKept<MifareKeyProgress>(cts, OnDumpKey));
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             DumpStats.Clear();
@@ -1259,41 +1391,43 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             DumpProgressText = "Starting…";
         });
 
-        using var cts = new CancellationTokenSource();
-        _dumpCts = cts;
         var keys = BuildKeyDictionary();
+        // Read as the type the form is set to, so a card picked as 2K / 4K gets all its sectors.
+        MifareClassicType? type = Form?.Tag is { } tag && tag.IsMifareClassic() ? MifareClassic.FromSlotTagType(tag) : null;
         var clock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            var dump = await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress));
+            // A stop keeps the partial dump: the call returns what was read, so a canceled dump
+            // is handled the same as a completed one and can still be saved.
+            var dump = await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress, keyProgress, type));
             clock.Stop();
-            ScanFeedback.Found();
-            var stats = BuildDumpStats(dump, keys.Count, clock.Elapsed);
+            var stopped = cts.IsCancellationRequested;
+            if (!stopped) ScanFeedback.Found();
+            var stats = BuildDumpStats(dump, clock.Elapsed);
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                if (ReferenceEquals(_discardedDump, cts)) return;
                 DumpStats.Clear();
                 foreach (var row in stats) DumpStats.Add(row);
                 HasDumpStats = true;
                 var card = CardFormats.FromMifareDump(dump);
                 card.Ats = _scannedAts;
+                _applyingDump = true;
                 if (Form is { } form) form.ReplaceContent(card);
-                else Form = new CardEditorViewModel(card);
+                else Form = new CardEditorViewModel(card, sameFrequency: true);
+                _applyingDump = false;
                 SetScanMatches(card);
                 _hasDump = true;
                 RaiseSaveLabel();
             });
-            SetStatus($"Read {dump.RecoveredBlocks}/{dump.BlockCount} blocks from {dump.UidHex}.");
-        }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested)
-        {
-            SetStatus("Dump canceled.");
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                SetDumpBlocks(0, _dumpBlockStates.Count, MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading));
+            SetStatus(stopped
+                ? $"Dump stopped — kept {dump.RecoveredBlocks}/{dump.BlockCount} blocks from {dump.UidHex}."
+                : $"Read {dump.RecoveredBlocks}/{dump.BlockCount} blocks from {dump.UidHex}.");
         }
         finally
         {
-            _dumpCts = null;
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => DumpProgressText = null);
+            if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
+            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () => DumpProgressText = null));
         }
     });
 
@@ -1302,18 +1436,17 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         var client = _device.Client;
         if (client is null) return;
 
-        var progress = new Progress<MifareProgress>(p =>
-            DumpProgressText = $"Page {p.Done}/{p.Total}");
-        var pageProgress = new Progress<MifareBlockProgress>(OnDumpBlocks);
+        using var cts = new CancellationTokenSource();
+        _dumpCts = cts;
+        var progress = new Progress<MifareProgress>(IfKept<MifareProgress>(cts, p =>
+            DumpProgressText = $"Page {p.Done}/{p.Total}"));
+        var pageProgress = new Progress<MifareBlockProgress>(IfKept<MifareBlockProgress>(cts, OnDumpBlocks));
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             DumpStats.Clear();
             HasDumpStats = false;
             DumpProgressText = "Starting…";
         });
-
-        using var cts = new CancellationTokenSource();
-        _dumpCts = cts;
         var clock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
@@ -1324,11 +1457,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             var stats = BuildUltralightStats(result, clock.Elapsed);
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                if (ReferenceEquals(_discardedDump, cts)) return;
                 DumpStats.Clear();
                 foreach (var row in stats) DumpStats.Add(row);
                 HasDumpStats = true;
+                _applyingDump = true;
                 if (Form is { } form) form.ReplaceContent(result.Card);
-                else Form = new CardEditorViewModel(result.Card);
+                else Form = new CardEditorViewModel(result.Card, sameFrequency: true);
+                _applyingDump = false;
                 FormSource = $"{result.Card.Tag.DisplayName()} — UID {Hex.Compact(result.Card.Uid)}";
                 SetScanMatches(result.Card);
                 _hasDump = true;
@@ -1339,13 +1475,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
             SetStatus("Dump canceled.");
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                SetDumpBlocks(0, _dumpBlockStates.Count, MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading));
+            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () =>
+                SetDumpBlocks(0, _dumpBlockStates.Count, MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading)));
         }
         finally
         {
-            _dumpCts = null;
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => DumpProgressText = null);
+            if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
+            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () => DumpProgressText = null));
         }
     });
 
@@ -1371,17 +1507,17 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         return rows;
     }
 
-    /// <summary>Stops a running dump; whatever was read so far is discarded.</summary>
+    /// <summary>Stops a running dump; whatever was read so far is kept and can be saved.</summary>
     private void CancelDump()
     {
         if (_dumpCts is not { } cts) return;
         try { cts.Cancel(); } catch (ObjectDisposedException) { /* already finished */ }
-        DumpProgressText = "Canceling…";
+        DumpProgressText = "Stopping…";
     }
 
     // ---- Dump statistics -------------------------------------------------
 
-    /// <summary>Summary of the last dump: blocks, sectors, keys and where reading failed.</summary>
+    /// <summary>Summary of the last dump; per-sector keys are already on the sector grid.</summary>
     public ObservableCollection<ScanResultRow> DumpStats { get; } = new();
 
     public bool HasDumpStats
@@ -1390,38 +1526,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         private set => this.RaiseAndSetIfChanged(ref _hasDumpStats, value);
     }
 
-    private static List<ScanResultRow> BuildDumpStats(MifareDump dump, int keysTried, TimeSpan elapsed)
+    private static List<ScanResultRow> BuildDumpStats(MifareDump dump, TimeSpan elapsed)
     {
-        var opened = dump.SectorCount - dump.SectorsWithoutKey().Count;
-        var keyA = Enumerable.Range(0, dump.SectorCount).Count(s => dump.KeyA[s] is not null);
-        var keyB = Enumerable.Range(0, dump.SectorCount).Count(s => dump.KeyB[s] is not null);
         var pct = dump.BlockCount == 0 ? 0 : 100.0 * dump.RecoveredBlocks / dump.BlockCount;
-
-        var rows = new List<ScanResultRow>
+        return new List<ScanResultRow>
         {
             new("Blocks read", $"{dump.RecoveredBlocks} / {dump.BlockCount} ({pct:0}%)"),
-            new("Sectors opened", $"{opened} / {dump.SectorCount} · key A {keyA}, key B {keyB}"),
+            new("Time", $"{elapsed.TotalSeconds:0.0} s"),
         };
-        if (dump.SectorsWithoutKey() is { Count: > 0 } locked)
-            rows.Add(new("No key found", "sectors " + RangeList(locked)));
-        if (dump.UnreadBlocksWithKey() is { Count: > 0 } failed)
-            rows.Add(new("Unreadable", "blocks " + RangeList(failed)));
-        rows.Add(new("Keys tried", $"{keysTried} unique · {elapsed.TotalSeconds:0.0} s"));
-        return rows;
-    }
-
-    /// <summary>Compacts sorted numbers into “0–3, 7, 9–10”.</summary>
-    private static string RangeList(IReadOnlyList<int> sorted)
-    {
-        var parts = new List<string>();
-        for (var i = 0; i < sorted.Count;)
-        {
-            var j = i;
-            while (j + 1 < sorted.Count && sorted[j + 1] == sorted[j] + 1) j++;
-            parts.Add(j == i ? $"{sorted[i]}" : $"{sorted[i]}–{sorted[j]}");
-            i = j + 1;
-        }
-        return string.Join(", ", parts);
     }
 
     // ---- Dump key sources ------------------------------------------------
@@ -1463,9 +1575,27 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         source.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(on =>
         {
             if (on) _uncheckedKeySources.Remove(id); else _uncheckedKeySources.Add(id);
+            SaveUncheckedKeySources();
             UpdateDumpKeyCount();
         });
         return source;
+    }
+
+    // Unchecked rather than checked sources are kept, so a dictionary added later starts checked.
+    private const string UncheckedKeySourcesSetting = "dumpUncheckedDictionaries";
+
+    private static HashSet<string> LoadUncheckedKeySources() =>
+        AppSettings.Get(UncheckedKeySourcesSetting) is JsonArray ids
+            ? ids.Select(n => n is JsonValue v && v.TryGetValue<string>(out var id) ? id : null).OfType<string>().ToHashSet()
+            : new HashSet<string>();
+
+    /// <summary>Saves the unchecked sources, dropping dictionaries that no longer exist.</summary>
+    private void SaveUncheckedKeySources()
+    {
+        var present = DumpKeySources.Select(s => s.Id).ToHashSet();
+        _uncheckedKeySources.IntersectWith(present);
+        AppSettings.Set(UncheckedKeySourcesSetting,
+            new JsonArray(_uncheckedKeySources.Order().Select(id => (JsonNode?)JsonValue.Create(id)).ToArray()));
     }
 
     private void UpdateDumpKeyCount() => DumpKeyCount = BuildKeyDictionary().Count;

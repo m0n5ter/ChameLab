@@ -38,12 +38,17 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// A saved card: offer only the tag types its data stays valid for (see
     /// <see cref="CardTags.CompatibleTypes"/>); a card without a type still gets them all.
     /// </param>
-    public CardEditorViewModel(CardSave source, bool restrictType = false)
+    /// <param name="sameFrequency">
+    /// A scanned tag: offer only types of its frequency (no MIFARE for an LF scan, no EM410x for HF).
+    /// </param>
+    public CardEditorViewModel(CardSave source, bool restrictType = false, bool sameFrequency = false)
     {
         _source = source;
-        TagChoices = restrictType && source.Tag != TagSpecificType.Undefined
-            ? source.Tag.CompatibleTypes()
-            : AllTagTypes;
+        IsTypeRestricted = restrictType && source.Tag != TagSpecificType.Undefined;
+        TagChoices = IsTypeRestricted ? source.Tag.CompatibleTypes()
+            : sameFrequency && source.Tag != TagSpecificType.Undefined
+                ? AllTagTypes.Where(t => t.SenseType() == source.Tag.SenseType()).ToArray()
+                : AllTagTypes;
         _name = source.Name;
         _color = source.Color;
         _tag = source.Tag == TagSpecificType.Undefined ? TagSpecificType.Mifare1024 : source.Tag;
@@ -66,7 +71,7 @@ public sealed class CardEditorViewModel : ViewModelBase
     public IReadOnlyList<TagSpecificType> TagChoices { get; }
 
     /// <summary>The picker is narrowed to types compatible with the saved card.</summary>
-    public bool IsTypeRestricted => TagChoices.Count < AllTagTypes.Count;
+    public bool IsTypeRestricted { get; }
 
     public bool CanChangeTag => TagChoices.Count > 1;
 
@@ -102,7 +107,8 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     private void SetTag(TagSpecificType value)
     {
-        this.RaiseAndSetIfChanged(ref _tag, value);
+        // Named explicitly: inside SetTag the caller name would announce "SetTag" instead of Tag.
+        this.RaiseAndSetIfChanged(ref _tag, value, nameof(Tag));
         this.RaisePropertyChanged(nameof(IsHf));
         this.RaisePropertyChanged(nameof(UidLabel));
         this.RaisePropertyChanged(nameof(UidHint));
@@ -323,7 +329,16 @@ public sealed class CardEditorViewModel : ViewModelBase
         get
         {
             var known = _data.Count(d => d.Length > 0);
-            if (_tag.IsMifareClassic()) return $"{known}/{_tag.MifareClassicBlocks()} blocks";
+            if (_tag.IsMifareClassic())
+            {
+                // A sector counts once every one of its blocks was read (or entered).
+                var blocks = _tag.MifareClassicBlocks();
+                var sectors = MifareClassic.SectorOfBlock(blocks - 1) + 1;
+                var full = Enumerable.Range(0, sectors).Count(s =>
+                    Enumerable.Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s))
+                        .All(b => b < _data.Count && _data[b].Length > 0));
+                return $"{full}/{sectors} sectors";
+            }
             if (_tag.IsUltralight()) return $"{known}/{_tag.UltralightPages()} pages";
             return known > 0 ? $"{known} data rows" : "Identity only";
         }
@@ -332,6 +347,13 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// <summary>Bytes per row: 16 for MIFARE Classic blocks, 4 for Ultralight pages.</summary>
     private int RowLength =>
         _data.FirstOrDefault(d => d.Length > 0)?.Length ?? (_tag.IsUltralight() ? 4 : 16);
+
+    /// <summary>Forgets the memory, and any a type change set aside: a dump of another type no longer applies.</summary>
+    public void ClearMemory()
+    {
+        _stash = null;
+        SetData(new List<byte[]>());
+    }
 
     private void SetData(List<byte[]> rows)
     {
@@ -348,8 +370,16 @@ public sealed class CardEditorViewModel : ViewModelBase
         var tag = _tag;
         Memory = _data.Count == 0 ? null : new HexBuffer(_data, RowLength)
         {
+            // MIFARE Classic sectors are set apart, each under a "Sector N · blocks a–b" heading,
+            // so the gutter keeps just the block number, like the page number of other tags.
             RowLabel = row => $"{row:D3}",
             StartsGroup = row => mfc && MifareClassic.SectorFirstBlock(MifareClassic.SectorOfBlock(row)) == row,
+            GroupHeader = row =>
+            {
+                if (!mfc || MifareClassic.SectorFirstBlock(MifareClassic.SectorOfBlock(row)) != row) return null;
+                var sector = MifareClassic.SectorOfBlock(row);
+                return ($"Sector {sector}", $"blocks {row}–{row + MifareClassic.BlocksInSector(sector) - 1}");
+            },
             Classify = (row, col) => mfc ? MifareCellKind(row, col) : ul ? UltralightCellKind(tag, row, col) : HexCellKind.Data,
             Describe = (row, col) => mfc ? DescribeMifare(row, col) : ul ? DescribeUltralight(tag, row, col) : null,
         };

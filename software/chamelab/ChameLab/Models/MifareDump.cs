@@ -11,6 +11,7 @@ public enum MifareClassicType
 {
     Mini,
     Classic1K,
+    Classic2K,
     Classic4K,
 }
 
@@ -30,6 +31,7 @@ public static class MifareClassic
     public static int SectorCount(MifareClassicType t) => t switch
     {
         MifareClassicType.Mini => 5,
+        MifareClassicType.Classic2K => 32,
         MifareClassicType.Classic4K => 40,
         _ => 16,
     };
@@ -37,6 +39,7 @@ public static class MifareClassic
     public static int BlockCount(MifareClassicType t) => t switch
     {
         MifareClassicType.Mini => 20,
+        MifareClassicType.Classic2K => 128,
         MifareClassicType.Classic4K => 256,
         _ => 64,
     };
@@ -84,6 +87,7 @@ public static class MifareClassic
     public static string DisplayName(MifareClassicType t) => t switch
     {
         MifareClassicType.Mini => "MIFARE Classic Mini (320 B)",
+        MifareClassicType.Classic2K => "MIFARE Classic 2K",
         MifareClassicType.Classic4K => "MIFARE Classic 4K",
         _ => "MIFARE Classic 1K",
     };
@@ -91,8 +95,17 @@ public static class MifareClassic
     public static TagSpecificType ToSlotTagType(MifareClassicType t) => t switch
     {
         MifareClassicType.Mini => TagSpecificType.MifareMini,
+        MifareClassicType.Classic2K => TagSpecificType.Mifare2048,
         MifareClassicType.Classic4K => TagSpecificType.Mifare4096,
         _ => TagSpecificType.Mifare1024,
+    };
+
+    public static MifareClassicType FromSlotTagType(TagSpecificType t) => t switch
+    {
+        TagSpecificType.MifareMini => MifareClassicType.Mini,
+        TagSpecificType.Mifare2048 => MifareClassicType.Classic2K,
+        TagSpecificType.Mifare4096 => MifareClassicType.Classic4K,
+        _ => MifareClassicType.Classic1K,
     };
 
     /// <summary>
@@ -127,6 +140,16 @@ public enum MifareBlockState { Pending, Reading, Read, ReadError, NoKey }
 
 /// <summary>Per-block tick while dumping: <see cref="First"/>..First+Count-1 moved to <see cref="State"/>.</summary>
 public readonly record struct MifareBlockProgress(int First, int Count, MifareBlockState State);
+
+/// <summary>Phase of the dictionary search for one sector key.</summary>
+public enum MifareKeyPhase { Searching, Found, NotFound }
+
+/// <summary>
+/// Progress of the key search for one sector and key type: <see cref="Tried"/> of
+/// <see cref="Total"/> keys attempted, and the recovered key once <see cref="Phase"/> is Found.
+/// </summary>
+public readonly record struct MifareKeyProgress(
+    int Sector, MfKeyType KeyType, MifareKeyPhase Phase, int Tried, int Total, byte[]? Key);
 
 /// <summary>
 /// An in-memory MIFARE Classic dump: block data plus the keys recovered for
@@ -177,6 +200,22 @@ public sealed class MifareDump
         Enumerable.Range(0, SectorCount).Where(SectorHasKey)
             .SelectMany(s => Enumerable.Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s)))
             .Where(b => _blocks[b] is null).ToList();
+
+    /// <summary>
+    /// Writes each recovered key A / key B into the matching sector trailer that
+    /// was read, so the dump carries the keys (a card returns the key bytes as
+    /// zeros when the trailer is read). Trailers that were not read are left alone.
+    /// </summary>
+    public void FillRecoveredKeys()
+    {
+        for (var s = 0; s < SectorCount; s++)
+        {
+            var trailer = _blocks[MifareClassic.SectorTrailerBlock(s)];
+            if (trailer is not { Length: 16 }) continue;
+            if (KeyA[s] is { Length: 6 } a) a.CopyTo(trailer, 0);
+            if (KeyB[s] is { Length: 6 } b) b.CopyTo(trailer, 10);
+        }
+    }
 
     public string UidHex => Uid.Length == 0 ? "-" : Convert.ToHexString(Uid);
 
@@ -234,6 +273,7 @@ public sealed class MifareDump
     {
         <= 20 => MifareClassicType.Mini,
         <= 64 => MifareClassicType.Classic1K,
+        <= 128 => MifareClassicType.Classic2K,
         _ => MifareClassicType.Classic4K,
     };
 

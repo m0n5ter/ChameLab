@@ -198,13 +198,7 @@ public static class CardFormats
     /// <summary>Rebuilds a MIFARE Classic dump from a saved card; empty rows stay unread.</summary>
     public static MifareDump ToMifareDump(this CardSave card)
     {
-        var type = card.Tag switch
-        {
-            TagSpecificType.MifareMini => MifareClassicType.Mini,
-            TagSpecificType.Mifare4096 => MifareClassicType.Classic4K,
-            _ => MifareClassicType.Classic1K,
-        };
-        var dump = new MifareDump(type, card.Uid, card.Atqa, card.Sak);
+        var dump = new MifareDump(MifareClassic.FromSlotTagType(card.Tag), card.Uid, card.Atqa, card.Sak);
         for (var b = 0; b < Math.Min(card.Data.Count, dump.BlockCount); b++)
             if (card.Data[b].Length == 16) dump.SetBlock(b, card.Data[b]);
         return dump;
