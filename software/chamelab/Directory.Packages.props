@@ -24,6 +24,10 @@
     <!-- Transports -->
     <PackageVersion Include="System.IO.Ports" Version="11.0.0-rc.2.26504.105" />
     <PackageVersion Include="Plugin.BLE" Version="3.3.0-beta.2" />
+    <!-- Tests -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <!-- Android splash -->
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
     <!-- Keep Core.Ktx in step with Core: the Kotlin extensions moved into Core, and mismatched

@@ -115,6 +115,12 @@ public enum MfKeyType : byte
     B = 0x61,
 }
 
+public static class MfKeyTypeExtensions
+{
+    /// <summary>The wire value (0x60 for key A, 0x61 for key B) the firmware expects.</summary>
+    public static byte ToWire(this MfKeyType keyType) => (byte)keyType;
+}
+
 /// <summary>
 /// The kind of "magic" MIFARE Classic card a dump is written onto. They differ
 /// in how block 0 (the UID) can be rewritten.

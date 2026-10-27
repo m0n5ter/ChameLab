@@ -138,6 +138,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                     x => x.DumpPasswordError,
                 (can, online, keys, ultralight, pwdError) =>
                     can && online && (ultralight ? pwdError is null : keys > 0)));
+        RecoverKeysCommand = ReactiveCommand.CreateFromTask(RecoverKeysAsync,
+            this.WhenAnyValue(x => x.CanDump, x => x.IsConnected, x => x.IsUltralightDump,
+                (can, online, ultralight) => can && online && !ultralight));
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
@@ -985,6 +988,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public ICommand ScanHfCommand { get; }
     public ICommand ScanLfCommand { get; }
     public ICommand DumpCommand { get; }
+    public ICommand RecoverKeysCommand { get; }
     public ICommand CancelDumpCommand { get; }
     public ICommand ImportCommand { get; }
     public ICommand ManualCommand { get; }
@@ -1378,6 +1382,75 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
+        var keys = BuildKeyDictionary();
+        await MifareDumpBodyAsync(client, keys, DumpFormType(), cts);
+    });
+
+    /// <summary>
+    /// Recovers the unknown sector keys on the card (darkside / nested / static nested) and then
+    /// dumps it with the recovered keys. The attacks' per-sector progress feeds the same grid the
+    /// dump uses. Hardnested cards stop early with a note that they are not supported yet.
+    /// </summary>
+    private Task RecoverKeysAsync() => RunAsync(async () =>
+    {
+        var client = _device.Client;
+        if (client is null) return;
+
+        using var cts = new CancellationTokenSource();
+        _dumpCts = cts;
+        var type = DumpFormType() ?? MifareClassicType.Classic1K;
+        var dict = BuildKeyDictionary();
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            ResetDumpSectors(MifareClassic.BlockCount(type));
+            DumpStats.Clear();
+            HasDumpStats = false;
+            DumpProgressText = "Starting recovery…";
+        });
+
+        var recovery = new MifareKeyRecovery(client);
+        var recoverProgress = new PostedProgress<KeyRecoveryProgress>(IfKept<KeyRecoveryProgress>(cts, OnRecoverProgress));
+        var result = await recovery.RecoverAsync(dict, recoverProgress, cts.Token);
+
+        // Dump with the recovered keys ahead of the dictionary, so each sector authenticates fast.
+        var keys = new List<byte[]>();
+        var seen = new HashSet<string>();
+        foreach (var k in result.AllKeys()) if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
+        foreach (var k in dict) if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
+
+        await MifareDumpBodyAsync(client, keys, type, cts);
+
+        if (result.HardnestedRequired)
+            SetStatus("This card uses a hardened PRNG — the hardnested attack is not supported yet, so some keys were not recovered.");
+    });
+
+    /// <summary>The MIFARE Classic type the form is set to, or null when it is not a Classic card.</summary>
+    private MifareClassicType? DumpFormType() =>
+        Form?.Tag is { } tag && tag.IsMifareClassic() ? MifareClassic.FromSlotTagType(tag) : null;
+
+    /// <summary>Maps a recovery tick onto the dump's per-sector key grid and status line.</summary>
+    private void OnRecoverProgress(KeyRecoveryProgress p)
+    {
+        DumpProgressText = p.Status;
+        if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
+        var phase = p.Mark switch
+        {
+            KeyMark.Found => MifareKeyPhase.Found,
+            KeyMark.Checking => MifareKeyPhase.Searching,
+            _ => MifareKeyPhase.NotFound,
+        };
+        DumpSectors[p.Sector].ApplyKey(new MifareKeyProgress(p.Sector, p.KeyType, phase, 0, 0, p.Key));
+    }
+
+    /// <summary>
+    /// Shared dump body for the plain dump and the recover-then-dump flow: reads the card with
+    /// <paramref name="keys"/> and fills the grid, stats and card form. The caller owns
+    /// <paramref name="cts"/> (and has set <see cref="_dumpCts"/>).
+    /// </summary>
+    private async Task MifareDumpBodyAsync(
+        Protocol.ChameleonClient client, IReadOnlyList<byte[]> keys, MifareClassicType? type, CancellationTokenSource cts)
+    {
         // Posted (not Progress<T>) so ticks reach the UI in order: a "found" key must not be
         // overtaken by the "searching" tick before it.
         // Sector-done ticks are not shown: the key ticks name the sector and the grid shows the rest.
@@ -1391,9 +1464,6 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             DumpProgressText = "Starting…";
         });
 
-        var keys = BuildKeyDictionary();
-        // Read as the type the form is set to, so a card picked as 2K / 4K gets all its sectors.
-        MifareClassicType? type = Form?.Tag is { } tag && tag.IsMifareClassic() ? MifareClassic.FromSlotTagType(tag) : null;
         var clock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
@@ -1429,7 +1499,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
             Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () => DumpProgressText = null));
         }
-    });
+    }
 
     private Task DumpUltralightAsync() => RunAsync(async () =>
     {

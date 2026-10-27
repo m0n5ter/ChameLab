@@ -375,6 +375,115 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public Task SetMf1PrngTypeAsync(MifareClassicPrngType prng, CancellationToken ct = default) =>
         conn.SendExpectAsync(Command.Mf1SetPrngType, Status.Success, [(byte)prng], ct: ct);
 
+    // ---- MIFARE Classic key-recovery acquisition (reader side) --------
+    // These talk to the card on the reader to collect the material the darkside / nested
+    // attacks need; the solving is done in software (ChameLab.Services.*Recovery).
+
+    /// <summary>
+    /// Detects the card's nonce PRNG level: Static, Weak (nested) or Hard (hardnested).
+    /// Requires an ISO14443-A tag on the reader.
+    /// </summary>
+    public async Task<MifareClassicPrngType> DetectNtLevelAsync(CancellationToken ct = default)
+    {
+        var f = await conn.SendAsync(Command.Mf1DetectPrng, ct: ct);
+        if (f.Status != Status.HfTagOk || f.Data.Length == 0)
+            throw new ChameleonException("Could not detect the card PRNG.", f.Status);
+        return (MifareClassicPrngType)f.Data[0]; // 0 static, 1 weak, 2 hard
+    }
+
+    /// <summary>
+    /// Measures the PRNG distance between the known key's nonce and the target, needed to seed
+    /// the nested attack's nonce sweep. <paramref name="key"/> is a working 6-byte sector key.
+    /// </summary>
+    public async Task<NtDistance> GetNtDistanceAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default)
+    {
+        if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
+        var data = new byte[8];
+        data[0] = keyType.ToWire();
+        data[1] = (byte)block;
+        key.CopyTo(data, 2);
+        var f = await conn.SendAsync(Command.Mf1DetectNtDist, data, timeoutMs: 10000, ct: ct);
+        if (f.Status != Status.HfTagOk || f.Data.Length < 8)
+            throw new ChameleonException("Could not measure the nonce distance.", f.Status);
+        return new NtDistance(
+            BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(0, 4)),
+            BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(4, 4)));
+    }
+
+    /// <summary>
+    /// Collects nested-attack nonce samples for <paramref name="targetBlock"/>/<paramref name="targetKeyType"/>,
+    /// authenticating through the known key on <paramref name="block"/>. <paramref name="isStatic"/>
+    /// selects the static-nonce variant (records carry no parity then).
+    /// </summary>
+    public async Task<IReadOnlyList<NestedNonce>> GetNestedNoncesAsync(
+        int block, MfKeyType keyType, byte[] key, int targetBlock, MfKeyType targetKeyType,
+        bool isStatic = false, CancellationToken ct = default)
+    {
+        if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
+        var data = new byte[10];
+        data[0] = keyType.ToWire();
+        data[1] = (byte)block;
+        key.CopyTo(data, 2);
+        data[8] = targetKeyType.ToWire();
+        data[9] = (byte)targetBlock;
+
+        var cmd = isStatic ? Command.Mf1StaticNestedAcquire : Command.Mf1NestedAcquire;
+        var f = await conn.SendAsync(cmd, data, timeoutMs: 30000, ct: ct);
+        if (f.Status != Status.HfTagOk)
+            throw new ChameleonException("Could not collect nested nonces.", f.Status);
+
+        var nonces = new List<NestedNonce>();
+        if (isStatic)
+        {
+            // The static reply opens with 4 bytes that are not a nonce record; records are
+            // (nt, ntEnc), 8 bytes each, no parity.
+            for (var i = 4; i + 8 <= f.Data.Length; i += 8)
+                nonces.Add(new NestedNonce(
+                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i, 4)),
+                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i + 4, 4)), 0));
+        }
+        else
+        {
+            // (nt, ntEnc, parity), 9 bytes each.
+            for (var i = 0; i + 9 <= f.Data.Length; i += 9)
+                nonces.Add(new NestedNonce(
+                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i, 4)),
+                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i + 4, 4)), f.Data[i + 8]));
+        }
+        return nonces;
+    }
+
+    /// <summary>Probes whether the card is vulnerable to the darkside attack (sector 0, key B).</summary>
+    public async Task<DarksideResult> CheckDarksideAsync(CancellationToken ct = default)
+    {
+        var f = await conn.SendAsync(Command.Mf1DarksideAcquire, [0x61, 0x03, 1, 2], timeoutMs: 60000, ct: ct);
+        var status = f.Data.Length > 0 ? f.Data[0] : (byte)f.Status;
+        return status <= 4 ? (DarksideResult)status : DarksideResult.Fixed;
+    }
+
+    /// <summary>
+    /// Collects one darkside round for <paramref name="targetBlock"/>/<paramref name="targetKeyType"/>.
+    /// Throws when the card is no longer vulnerable; <paramref name="firstRecover"/> is false on
+    /// retries that gather another round for the parity-zero case.
+    /// </summary>
+    public async Task<(uint Uid, DarksideItem Item)> GetDarksideAsync(
+        int targetBlock, MfKeyType targetKeyType, bool firstRecover, int syncMax, CancellationToken ct = default)
+    {
+        var data = new byte[] { targetKeyType.ToWire(), (byte)targetBlock, (byte)(firstRecover ? 1 : 0), (byte)syncMax };
+        var f = await conn.SendAsync(Command.Mf1DarksideAcquire, data, timeoutMs: 60000, ct: ct);
+        if (f.Data.Length < 33 || f.Data[0] != 0)
+            throw new ChameleonException("Card is not vulnerable to the darkside attack.", f.Status);
+
+        var d = f.Data.AsSpan(1);
+        var uid = BinaryPrimitives.ReadUInt32BigEndian(d[..4]);
+        var nt1 = BinaryPrimitives.ReadUInt32BigEndian(d.Slice(4, 4));
+        var par = BinaryPrimitives.ReadUInt64BigEndian(d.Slice(8, 8));
+        var ks1 = BinaryPrimitives.ReadUInt64BigEndian(d.Slice(16, 8));
+        var nr = BinaryPrimitives.ReadUInt32BigEndian(d.Slice(24, 4));
+        var ar = BinaryPrimitives.ReadUInt32BigEndian(d.Slice(28, 4));
+        return (uid, new DarksideItem(nt1, ks1, par, nr, ar));
+    }
+
     // ---- Ultralight / NTAG emulator settings --------------------------
 
     public async Task<bool> GetMf0UidMagicModeAsync(CancellationToken ct = default)

@@ -113,6 +113,26 @@ public sealed record DetectionLog(
     public char KeyChar => KeyType == MfKeyType.A ? 'A' : 'B';
 }
 
+/// <summary>PRNG distance between the known-key nonce and the target (device <c>Mf1DetectNtDist</c>), used by the nested attack.</summary>
+public sealed record NtDistance(uint Uid, uint Distance);
+
+/// <summary>One nested-attack nonce sample: the tag nonce, its encrypted form and (weak PRNG only) three low parity bits.</summary>
+public sealed record NestedNonce(uint Nt, uint NtEnc, byte Parity);
+
+/// <summary>One darkside round captured from the card (device <c>Mf1DarksideAcquire</c>), fed to <see cref="Services.DarksideRecovery"/>.</summary>
+public sealed record DarksideItem(uint Nt, ulong Ks1, ulong Par, uint Nr, uint Ar);
+
+/// <summary>How a darkside acquisition ended; only <see cref="Vulnerable"/> yields usable data.</summary>
+public enum DarksideResult
+{
+    Vulnerable = 0,
+    CantFixNt = 1,
+    LuckAuthOk = 2,
+    NotSendingNack = 3,
+    TagChanged = 4,
+    Fixed = 5,
+}
+
 /// <summary>Result of a non-EM LF scan: the raw emulator ID (decoded by <see cref="LfIdDecoder"/>).</summary>
 public sealed record LfScanResult(TagSpecificType Type, byte[] Id)
 {

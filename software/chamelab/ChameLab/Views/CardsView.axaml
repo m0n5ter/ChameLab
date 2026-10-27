@@ -926,15 +926,26 @@
               <StackPanel Spacing="8">
                 <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
                   <!-- While a dump runs, its button turns into Stop. -->
-                  <Button Command="{Binding DumpCommand}" VerticalAlignment="Center"
-                          Classes.accent="{Binding NeedsDump}"
-                          IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}"
-                          ToolTip.Tip="Read the whole card memory">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <PathIcon Data="{StaticResource Icon.dump}" />
-                      <TextBlock Text="Dump memory" VerticalAlignment="Center" />
-                    </StackPanel>
-                  </Button>
+                  <StackPanel Orientation="Horizontal" Spacing="6"
+                              IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}">
+                    <Button Command="{Binding DumpCommand}" VerticalAlignment="Center"
+                            Classes.accent="{Binding NeedsDump}"
+                            ToolTip.Tip="Read the whole card memory">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.dump}" />
+                        <TextBlock Text="Dump memory" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </Button>
+                    <!-- Classic only: crack unknown sector keys on the card, then dump. -->
+                    <Button Command="{Binding RecoverKeysCommand}" VerticalAlignment="Center"
+                            IsVisible="{Binding !IsUltralightDump}"
+                            ToolTip.Tip="Recover unknown sector keys (darkside / nested / static nested), then dump with them">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.key}" />
+                        <TextBlock Text="Recover keys" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
                   <Button Command="{Binding CancelDumpCommand}" VerticalAlignment="Center"
                           IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}"
                           ToolTip.Tip="Stop the dump; what was read so far is kept and can be saved">
