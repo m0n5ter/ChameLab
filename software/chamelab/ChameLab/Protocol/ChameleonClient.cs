@@ -419,6 +419,39 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         int block, MfKeyType keyType, byte[] key, int targetBlock, MfKeyType targetKeyType,
         bool isStatic = false, CancellationToken ct = default)
     {
+        if (isStatic)
+            return (await GetStaticNestedNoncesAsync(block, keyType, key, targetBlock, targetKeyType, ct)).Nonces;
+        var f = await AcquireNestedAsync(block, keyType, key, targetBlock, targetKeyType, false, ct);
+        if (f.Data.Length < 18 || f.Data.Length % 9 != 0)
+            throw new ChameleonException("Incomplete nested nonce response.", f.Status);
+        var nonces = new List<NestedNonce>();
+        for (var i = 0; i < f.Data.Length; i += 9)
+            nonces.Add(new NestedNonce(
+                BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i, 4)),
+                BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i + 4, 4)), f.Data[i + 8]));
+        return nonces;
+    }
+
+    /// <summary>Static-nested captures include the authentication UID chosen by the firmware's cascade handling.</summary>
+    public async Task<(uint Uid, IReadOnlyList<NestedNonce> Nonces)> GetStaticNestedNoncesAsync(
+        int block, MfKeyType keyType, byte[] key, int targetBlock, MfKeyType targetKeyType, CancellationToken ct = default)
+    {
+        var f = await AcquireNestedAsync(block, keyType, key, targetBlock, targetKeyType, true, ct);
+        if (f.Data.Length < 20 || (f.Data.Length - 4) % 8 != 0)
+            throw new ChameleonException("Incomplete static nested nonce response.", f.Status);
+        var uid = BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(0, 4));
+        var nonces = new List<NestedNonce>();
+        for (var i = 4; i < f.Data.Length; i += 8)
+            nonces.Add(new NestedNonce(
+                BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i, 4)),
+                BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i + 4, 4)), 0));
+        return (uid, nonces);
+    }
+
+    private async Task<ChameleonFrame> AcquireNestedAsync(
+        int block, MfKeyType keyType, byte[] key, int targetBlock, MfKeyType targetKeyType,
+        bool isStatic, CancellationToken ct)
+    {
         if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[10];
         data[0] = keyType.ToWire();
@@ -426,38 +459,19 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         key.CopyTo(data, 2);
         data[8] = targetKeyType.ToWire();
         data[9] = (byte)targetBlock;
-
         var cmd = isStatic ? Command.Mf1StaticNestedAcquire : Command.Mf1NestedAcquire;
         var f = await conn.SendAsync(cmd, data, timeoutMs: 30000, ct: ct);
         if (f.Status != Status.HfTagOk)
             throw new ChameleonException("Could not collect nested nonces.", f.Status);
-
-        var nonces = new List<NestedNonce>();
-        if (isStatic)
-        {
-            // The static reply opens with 4 bytes that are not a nonce record; records are
-            // (nt, ntEnc), 8 bytes each, no parity.
-            for (var i = 4; i + 8 <= f.Data.Length; i += 8)
-                nonces.Add(new NestedNonce(
-                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i, 4)),
-                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i + 4, 4)), 0));
-        }
-        else
-        {
-            // (nt, ntEnc, parity), 9 bytes each.
-            for (var i = 0; i + 9 <= f.Data.Length; i += 9)
-                nonces.Add(new NestedNonce(
-                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i, 4)),
-                    BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(i + 4, 4)), f.Data[i + 8]));
-        }
-        return nonces;
+        return f;
     }
 
     /// <summary>Probes whether a target key is vulnerable to darkside (defaults to sector 0, key B).</summary>
     public async Task<DarksideResult> CheckDarksideAsync(CancellationToken ct = default, int block = 3, MfKeyType keyType = MfKeyType.B)
     {
         var f = await conn.SendAsync(Command.Mf1DarksideAcquire, [(byte)keyType, (byte)block, 1, 2], timeoutMs: 60000, ct: ct);
-        var status = f.Data.Length > 0 ? f.Data[0] : (byte)f.Status;
+        if (f.Status != Status.HfTagOk || f.Data.Length == 0) return DarksideResult.Fixed;
+        var status = f.Data[0];
         return status <= 4 ? (DarksideResult)status : DarksideResult.Fixed;
     }
 
@@ -471,7 +485,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         var data = new byte[] { targetKeyType.ToWire(), (byte)targetBlock, (byte)(firstRecover ? 1 : 0), (byte)syncMax };
         var f = await conn.SendAsync(Command.Mf1DarksideAcquire, data, timeoutMs: 60000, ct: ct);
-        if (f.Data.Length < 33 || f.Data[0] != 0)
+        if (f.Status != Status.HfTagOk || f.Data.Length != 33 || f.Data[0] != 0)
             throw new ChameleonException("Card is not vulnerable to the darkside attack.", f.Status);
 
         var d = f.Data.AsSpan(1);

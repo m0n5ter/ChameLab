@@ -71,8 +71,9 @@ public sealed class MifareKeyRecovery
                 try
                 {
                     var candidates = isStatic
-                        ? await StaticNestedSectorAsync(authUid, seed, target, kt, ct)
+                        ? await StaticNestedSectorAsync(seed, target, kt, progress, ct)
                         : await NestedSectorAsync(seed, target, kt, ct);
+                    Mark(s, kt, KeyMark.Checking, $"Checking {candidates.Count} recovered key candidates…");
                     var hit = await FirstWorkingKeyAsync(target, kt, candidates, ct);
                     if (hit is { } key) Store(s, kt, key);
                     else Mark(s, kt, KeyMark.None, "Key not recovered for this sector.");
@@ -125,14 +126,27 @@ public sealed class MifareKeyRecovery
     }
 
     private async Task<IReadOnlyList<ulong>> StaticNestedSectorAsync(
-        uint authUid, (int Block, MfKeyType Type, byte[] Key) seed, int target, MfKeyType targetKeyType, CancellationToken ct)
+        (int Block, MfKeyType Type, byte[] Key) seed, int target, MfKeyType targetKeyType,
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
     {
-        var nonces = await _client.GetNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, isStatic: true, ct);
-        if (nonces.Count < 2) return Array.Empty<ulong>();
-        return StaticNestedRecovery.Recover(
-            authUid, targetKeyType,
-            nonces[0].Nt, nonces[0].NtEnc,
-            nonces[1].Nt, nonces[1].NtEnc);
+        const int attempts = 3;
+        var sector = MifareClassic.SectorOfBlock(target);
+        for (var attempt = 0; attempt < attempts; attempt++)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (attempt > 0)
+                progress?.Report(new KeyRecoveryProgress($"No consistent candidates; collecting again ({attempt + 1}/{attempts})…",
+                    sector, targetKeyType, KeyMark.Checking));
+            var capture = await _client.GetStaticNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, ct);
+            var nonces = capture.Nonces;
+            progress?.Report(new KeyRecoveryProgress("Calculating static nested candidates…", sector, targetKeyType, KeyMark.Checking));
+            var candidates = await Task.Run(() => StaticNestedRecovery.Recover(
+                capture.Uid, targetKeyType,
+                nonces[0].Nt, nonces[0].NtEnc,
+                nonces[1].Nt, nonces[1].NtEnc, ct), ct);
+            if (candidates.Count > 0) return candidates;
+        }
+        return Array.Empty<ulong>();
     }
 
     private async Task<byte[]?> FirstWorkingKeyAsync(int block, MfKeyType keyType, IReadOnlyList<ulong> candidates, CancellationToken ct)
@@ -166,10 +180,10 @@ public sealed class MifareKeyRecovery
 
     private static uint ReadUid(byte[] uid)
     {
-        Span<byte> buf = stackalloc byte[4];
-        var n = Math.Min(uid.Length, 4);
-        uid.AsSpan(0, n).CopyTo(buf);
-        return BinaryPrimitives.ReadUInt32BigEndian(buf);
+        // rc522.c get_4byte_tag_uid selects the last cascade level for 7/10-byte UIDs.
+        if (uid.Length is not (4 or 7 or 10))
+            throw new ArgumentException("Expected a 4-, 7- or 10-byte card UID.", nameof(uid));
+        return BinaryPrimitives.ReadUInt32BigEndian(uid.AsSpan(uid.Length - 4));
     }
 
     private static byte[] KeyBytes(ulong key)

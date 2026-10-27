@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Crapto1Sharp;
 
 namespace ChameLab.Services;
@@ -66,7 +67,7 @@ public static class NestedRecovery
 /// <summary>
 /// Shared back half of the nested attacks (pm3 <c>nested_recover</c> + <c>most_frequent</c>):
 /// turn (ntp, ks1) samples into LFSR states, roll them back over the plain nonce to the key,
-/// and keep the keys that occur most often across all samples.
+    /// and return up to 50 keys occurring at least twice, ordered by frequency.
 /// </summary>
 internal static class NestedCore
 {
@@ -92,11 +93,14 @@ internal static class NestedCore
 
         if (counts.Count == 0) return System.Array.Empty<ulong>();
 
-        // The real key shows up in both nonce windows, so it is (one of) the most frequent.
-        var max = 0;
-        foreach (var c in counts.Values) if (c > max) max = c;
-        var best = new List<ulong>();
-        foreach (var kv in counts) if (kv.Value == max) best.Add(kv.Key);
-        return best;
+        // C nested_util.c counts repetitions after the first occurrence (count > 0)
+        // and tries the first 50. A less frequent repeated key can still be correct;
+        // a list of singletons means the captures did not corroborate a key.
+        return counts.Where(kv => kv.Value > 1)
+            .OrderByDescending(kv => kv.Value)
+            .ThenBy(kv => kv.Key)
+            .Take(50)
+            .Select(kv => kv.Key)
+            .ToArray();
     }
 }

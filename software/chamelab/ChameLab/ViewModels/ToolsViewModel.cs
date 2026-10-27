@@ -256,7 +256,7 @@ public sealed class ToolsViewModel : PageViewModelBase
 
                 // Two distinct (nt, nr, ar) exchanges on one block + key type are enough (Moebius).
                 var ready = usable
-                    .GroupBy(l => (l.Block, l.KeyChar))
+                    .GroupBy(l => (l.UidHex, l.Block, l.KeyChar))
                     .Select(g => g.GroupBy(x => x.NtHex + x.NrHex + x.ArHex).Select(x => x.First()).ToList())
                     .Where(d => d.Count >= 2)
                     .ToList();

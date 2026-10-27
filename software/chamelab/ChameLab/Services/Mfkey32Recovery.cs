@@ -19,6 +19,13 @@ public static class Mfkey32Recovery
     /// </summary>
     public static ulong? Recover(DetectionLog a, DetectionLog b)
     {
+        // The C command receives words for one card/authentication type. Reject
+        // malformed or unrelated records rather than silently padding/truncating them.
+        if (a.IsNested || b.IsNested || a.Block != b.Block || a.KeyType != b.KeyType
+            || !a.Uid.AsSpan().SequenceEqual(b.Uid) || a.Uid.Length is not (4 or 7 or 10)
+            || a.Nt.Length != 4 || a.Nr.Length != 4 || a.Ar.Length != 4
+            || b.Nt.Length != 4 || b.Nr.Length != 4 || b.Ar.Length != 4)
+            return null;
         var uid = ToUInt32(a.Uid);
         var nt0 = ToUInt32(a.Nt);
         var nr0 = ToUInt32(a.Nr);
@@ -34,13 +41,7 @@ public static class Mfkey32Recovery
     /// <summary>Reads a 4-byte big-endian word (MSB first), matching the device's hex order.</summary>
     private static uint ToUInt32(byte[] value)
     {
-        if (value.Length == 4)
-            return BinaryPrimitives.ReadUInt32BigEndian(value);
-
-        // Be forgiving about length: right-align into 4 bytes (big-endian).
-        Span<byte> buf = stackalloc byte[4];
-        var n = Math.Min(value.Length, 4);
-        value.AsSpan(value.Length - n).CopyTo(buf[(4 - n)..]);
-        return BinaryPrimitives.ReadUInt32BigEndian(buf);
+        // ISO14443 authentication uses the last cascade level (last four UID bytes).
+        return BinaryPrimitives.ReadUInt32BigEndian(value.AsSpan(value.Length - 4));
     }
 }
