@@ -947,9 +947,15 @@
                     </StackPanel>
                   </Button>
                   <!-- Which dictionaries the dump tries; the count is unique keys across the checked ones. -->
-                  <Button Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding !IsUltralightDump}"
+                  <Button Grid.Column="1" VerticalAlignment="Center"
                           IsEnabled="{Binding !IsBusy}"
                           ToolTip.Tip="{Binding DumpKeyCountText}">
+                    <Button.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="!IsUltralightDump" />
+                        <Binding Path="!IsDumpComplete" />
+                      </MultiBinding>
+                    </Button.IsVisible>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                       <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
                       <TextBlock Text="{Binding DumpKeyCount}" VerticalAlignment="Center" />
@@ -961,12 +967,15 @@
                           <ItemsControl ItemsSource="{Binding DumpKeySources}">
                             <ItemsControl.ItemTemplate>
                               <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
-                                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                  <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
-                                  <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
-                                                IsChecked="{Binding IsSelected}" />
-                                </Grid>
+                                <StackPanel>
+                                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
+                                    <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                                                  IsChecked="{Binding IsSelected}" />
+                                  </Grid>
+                                  <Separator Margin="0,8,0,4" IsVisible="{Binding IsKnownCardKeys}" />
+                                </StackPanel>
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
                           </ItemsControl>

@@ -19,6 +19,7 @@ public sealed class DumpKeySourceViewModel : ReactiveObject
     /// <summary>Dictionary id, or <see cref="BuiltInId"/> for the built-in keys; keeps the choice across rebuilds.</summary>
     public string Id { get; }
     public string Name { get; }
+    public bool IsKnownCardKeys => Id == ChameLab.Services.KnownCardKeys.Id;
     public IReadOnlyList<byte[]> Keys { get; }
     public string CountText => Keys.Count == 1 ? "1 key" : $"{Keys.Count} keys";
 

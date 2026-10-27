@@ -276,24 +276,30 @@ public sealed class ToolsViewModel : PageViewModelBase
     {
         var found = await Task.Run(() =>
         {
-            var keys = new List<(int Block, char KeyChar, string Hex)>();
+            var keys = new List<(byte[] Uid, int Block, char KeyChar, string Hex)>();
             var seen = new HashSet<string>();
             foreach (var d in ready)
                 if (Mfkey32Recovery.Recover(d[0], d[1]) is { } k)
                 {
                     var hex = k.ToString("X12");
-                    if (seen.Add($"{d[0].Block}:{d[0].KeyChar}:{hex}"))
-                        keys.Add((d[0].Block, d[0].KeyChar, hex));
+                    if (seen.Add($"{d[0].UidHex}:{d[0].Block}:{d[0].KeyChar}:{hex}"))
+                        keys.Add((d[0].Uid, d[0].Block, d[0].KeyChar, hex));
                 }
             return keys;
         });
 
         if (found.Count == 0) return false; // one candidate couldn't be resolved yet — gather more
 
+        foreach (var (uid, _, _, hex) in found)
+        {
+            try { _dictionaries.KnownKeys.Remember(uid, new[] { Convert.FromHexString(hex) }); }
+            catch (Exception ex) { SetStatus($"Could not save known card keys: {ex.Message}", isError: true); }
+        }
+
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             Keys.Clear();
-            foreach (var (block, keyChar, hex) in found)
+            foreach (var (_, block, keyChar, hex) in found)
                 Keys.Add(new RecoveredKeyViewModel(block, keyChar, hex, SaveKey));
             this.RaisePropertyChanged(nameof(KeyCountText));
             Step = Mfkey32Step.Done;

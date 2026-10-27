@@ -1228,6 +1228,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                 _classicDump = new MifareDump(MifareClassic.FromSlotTagType(tag), card.Uid, card.Atqa, card.Sak);
             }
         }
+        RebuildKeySources();
         UpdateRecoveryMethods();
         RaiseSaveLabel();
     }
@@ -1235,8 +1236,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     // ---- Scanned card already saved ---------------------------------------
 
     /// <summary>
-    /// Saved cards that are the scanned tag: once its memory is dumped, those with the same memory;
-    /// before that, those with its frequency and UID / ID (and protocol, for LF; EM410x bit rates aside).
+    /// The first saved card matching the scanned tag, in library order: once its memory is dumped,
+    /// match memory; before that, frequency and UID / ID (and protocol, for LF; EM410x bit rates aside).
     /// </summary>
     public ObservableCollection<CardItemViewModel> ScanMatches { get; } = new();
 
@@ -1257,7 +1258,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                          && (_scanMatchesByDump
                              ? SameMemory(c.Data, scanned.Data)
                              : (c.Sense != TagSenseType.Lf || SameLfProtocol(c.Tag, scanned.Tag))
-                               && c.Uid.AsSpan().SequenceEqual(scanned.Uid))))
+                               && c.Uid.AsSpan().SequenceEqual(scanned.Uid))).Take(1))
                 ScanMatches.Add(new CardItemViewModel(card));
         this.RaisePropertyChanged(nameof(HasScanMatches));
         this.RaisePropertyChanged(nameof(ScanMatchText));
@@ -1464,6 +1465,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         }
         finally
         {
+            RememberCardKeys(dump);
             if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
             Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
         }
@@ -1521,6 +1523,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         });
 
         var clock = System.Diagnostics.Stopwatch.StartNew();
+        var learnedDump = _classicDump;
         try
         {
             // A stop keeps the partial dump: the call returns what was read, so a canceled dump
@@ -1528,6 +1531,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             var dump = read
                 ? await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress, keyProgress, type, _classicDump))
                 : _classicDump!;
+            learnedDump = dump;
             dump.FillRecoveredKeys();
             clock.Stop();
             var stopped = cts.IsCancellationRequested;
@@ -1558,6 +1562,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         }
         finally
         {
+            if (learnedDump is not null) RememberCardKeys(learnedDump);
             if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
             Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
         }
@@ -1677,6 +1682,12 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>Built-in keys plus every saved dictionary, each with a check box for the next dump.</summary>
     public ObservableCollection<DumpKeySourceViewModel> DumpKeySources { get; } = new();
 
+    private void RememberCardKeys(MifareDump dump)
+    {
+        try { _dictionaries.KnownKeys.Remember(dump.Uid, dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()); }
+        catch (Exception ex) { SetStatus($"Could not save known card keys: {ex.Message}", isError: true); }
+    }
+
     /// <summary>Unique keys across the checked sources: what a dump will try per sector and key type.</summary>
     public int DumpKeyCount
     {
@@ -1699,6 +1710,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     private void RebuildKeySources()
     {
         DumpKeySources.Clear();
+        DumpKeySources.Add(NewKeySource(KnownCardKeys.Id, KnownCardKeys.Name,
+            _classicDump is { } dump ? _dictionaries.KnownKeys.ForUid(dump.Uid) : Array.Empty<byte[]>()));
         DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, "Built-in keys", MifareClassic.DefaultKeys));
         foreach (var d in _dictionaries.Dictionaries)
             DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? "Untitled" : d.Name, d.Keys));
@@ -1744,7 +1757,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         foreach (var source in DumpKeySources)
         {
             if (!source.IsSelected) continue;
-            foreach (var k in source.Keys)
+            foreach (var k in source.IsKnownCardKeys
+                ? (_classicDump is { } dump ? _dictionaries.KnownKeys.ForUid(dump.Uid) : Array.Empty<byte[]>())
+                : source.Keys)
                 if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
         }
         return keys;

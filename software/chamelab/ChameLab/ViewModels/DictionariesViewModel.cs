@@ -166,7 +166,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
 }
 
 /// <summary>What the right-hand pane of the Dictionaries page shows.</summary>
-public enum DictionariesPane { None, New, Dictionary }
+public enum DictionariesPane { None, New, Dictionary, KnownKeys }
 
 /// <summary>Order of the dictionary list; <see cref="Manual"/> is the library's own order, changed by dragging.</summary>
 /// <remarks><see cref="Size"/> is largest first, <see cref="SizeAsc"/> smallest first.</remarks>
@@ -213,6 +213,12 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         var hasForm = this.WhenAnyValue(x => x.Form).Select(f => f is not null);
 
         NewCommand = ReactiveCommand.Create(() => LeaveThen(BeginNew));
+        OpenKnownKeysCommand = ReactiveCommand.Create(() => LeaveThen(() =>
+        {
+            SetSelected(null);
+            Form = null;
+            Pane = DictionariesPane.KnownKeys;
+        }));
         ImportCommand = ReactiveCommand.Create(() => LeaveThen(() => _ = ImportAsync()));
         CloseCommand = ReactiveCommand.Create(() => LeaveThen(ClosePane));
         SaveAndLeaveCommand = ReactiveCommand.Create(() => ResolveLeave(run: Save()));
@@ -238,11 +244,19 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         };
         Rebuild();
         if (_library.LoadError is { } err) SetStatus(err, isError: true);
+        if (_library.KnownKeys.LoadError is { } knownError) SetStatus(knownError, isError: true);
     }
 
     // ---- List ----------------------------------------------------------
 
     public ObservableCollection<DictionaryItemViewModel> Dictionaries { get; } = new();
+    public ICommand OpenKnownKeysCommand { get; }
+    public string KnownKeysCountText => $"{_library.KnownKeys.CardCount} cards · {_library.KnownKeys.KeyCount} keys · Read-only";
+    public string KnownKeysText => _library.KnownKeys.KeyCount == 0
+        ? "Keys found while reading cards or running recovery will appear here, grouped by UID."
+        : _library.KnownKeys.DisplayText;
+    public bool IsKnownKeys => _pane == DictionariesPane.KnownKeys;
+    public bool IsEditorPane => HasPane && !IsKnownKeys;
 
     public bool IsEmpty => _library.Dictionaries.Count == 0;
     public bool NoMatches => !IsEmpty && Dictionaries.Count == 0;
@@ -309,6 +323,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
     private void Rebuild()
     {
+        this.RaisePropertyChanged(nameof(KnownKeysCountText));
+        this.RaisePropertyChanged(nameof(KnownKeysText));
         var selectedId = _selected?.Dictionary.Id;
         _rebuilding = true;
         try
@@ -421,6 +437,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         {
             this.RaiseAndSetIfChanged(ref _pane, value);
             this.RaisePropertyChanged(nameof(HasPane));
+            this.RaisePropertyChanged(nameof(IsKnownKeys));
+            this.RaisePropertyChanged(nameof(IsEditorPane));
             this.RaisePropertyChanged(nameof(IsNew));
             this.RaisePropertyChanged(nameof(IsOpen));
             this.RaisePropertyChanged(nameof(IsDirty));

@@ -17,10 +17,13 @@ public sealed class DictionaryLibrary
     public DictionaryLibrary(IKeyValueStore store)
     {
         _store = store;
+        KnownKeys = new KnownCardKeys(store);
+        KnownKeys.Changed += () => Changed?.Invoke();
         Load();
     }
 
     public IReadOnlyList<KeyDictionary> Dictionaries => _dicts;
+    public KnownCardKeys KnownKeys { get; }
     public string? LoadError { get; private set; }
 
     public event Action? Changed;

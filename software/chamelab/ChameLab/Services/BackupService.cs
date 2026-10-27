@@ -24,6 +24,7 @@ public static class BackupService
             ["version"] = 1,
             ["cards"] = new JsonArray(cards.Cards.Select(c => (JsonNode)c.ToJson()).ToArray()),
             ["dictionaries"] = new JsonArray(dictionaries.Dictionaries.Select(d => (JsonNode)d.ToJson()).ToArray()),
+            ["knownCardKeys"] = dictionaries.KnownKeys.ToJson(),
         };
         return Encoding.UTF8.GetBytes(o.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
     }
@@ -44,6 +45,7 @@ public static class BackupService
             ? da.Where(n => n is not null).Select(n => KeyDictionary.FromJson(n!)).ToList()
             : new();
 
+        if (o["knownCardKeys"] is { } knownKeys) dictionaries.KnownKeys.Merge(knownKeys);
         if (importedCards.Count > 0) cards.AddRange(importedCards);
         if (importedDicts.Count > 0) dictionaries.AddRange(importedDicts);
         return (importedCards.Count, importedDicts.Count);

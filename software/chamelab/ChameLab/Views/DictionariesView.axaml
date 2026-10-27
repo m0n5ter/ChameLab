@@ -14,7 +14,7 @@
 
     <!-- ==================== Dictionary list ==================== -->
     <!-- Locked while a new dictionary is open: save it or discard it to get back to the list. -->
-    <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,Auto,*"
+    <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,Auto,Auto,*"
           IsEnabled="{Binding !IsNew}">
       <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
         <StackPanel Grid.Column="0" Spacing="2">
@@ -58,8 +58,19 @@
         </Button>
       </Grid>
 
+      <StackPanel Grid.Row="2" Spacing="10">
+        <Button Command="{Binding OpenKnownKeysCommand}" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Stretch" ToolTip.Tip="Automatically saved keys grouped by card UID">
+          <StackPanel Spacing="2">
+            <TextBlock Text="Known card keys" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
+          </StackPanel>
+        </Button>
+        <Separator />
+      </StackPanel>
+
       <!-- Empty library -->
-      <Border Grid.Row="2" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
+      <Border Grid.Row="3" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
         <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
           <PathIcon Data="{StaticResource Icon.key}" Width="40" Height="40" Opacity="0.4" HorizontalAlignment="Center" />
           <TextBlock Text="No dictionaries yet" FontWeight="SemiBold" HorizontalAlignment="Center" />
@@ -68,12 +79,12 @@
         </StackPanel>
       </Border>
 
-      <TextBlock Grid.Row="2" Classes="caption" Text="No dictionaries match the search."
+      <TextBlock Grid.Row="3" Classes="caption" Text="No dictionaries match the search."
                  IsVisible="{Binding NoMatches}" VerticalAlignment="Top" />
 
       <!-- In manual order the dictionaries can be dragged into place (ListReorder). Reaches past the
            column by as much as the list is padded, so a dragged row's shadow is not clipped. -->
-      <ScrollViewer Grid.Row="2" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
+      <ScrollViewer Grid.Row="3" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
         <ListBox Name="DictList" Classes="cards" ItemsSource="{Binding Dictionaries}" Padding="8,0,8,12"
                  SelectedItem="{Binding Selected}">
           <ListBox.ItemTemplate>
@@ -101,7 +112,7 @@
     <!-- ==================== Dictionary pane ==================== -->
     <Grid Classes="detailpane" RowDefinitions="Auto,*,Auto">
       <!-- Header + actions (stays in view); disabled under the lightbox so Tab can't reach it. -->
-      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding HasPane}"
+      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding IsEditorPane}"
               IsEnabled="{Binding !IsAsking}">
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,Auto,*">
@@ -163,6 +174,27 @@
         </StackPanel>
       </Border>
 
+      <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsKnownKeys}">
+        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="Known card keys" Classes="h1" />
+            <Button Grid.Column="1" Classes="icon" Command="{Binding CloseCommand}" ToolTip.Tip="Close"
+                    b:DialogKeys.IsBack="True">
+              <PathIcon Data="{StaticResource Icon.close}" />
+            </Button>
+          </Grid>
+          <StackPanel Grid.Row="1" Spacing="4">
+            <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
+            <TextBlock Text="For a familiar UID, these keys are tried before the other dictionaries. This dictionary updates automatically."
+                       Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <ScrollViewer Grid.Row="2">
+            <SelectableTextBlock Text="{Binding KnownKeysText}" FontFamily="Cascadia Code,Consolas,Menlo,monospace"
+                                 TextWrapping="Wrap" />
+          </ScrollViewer>
+        </Grid>
+      </Border>
+
       <!-- Nothing open (desktop only) -->
       <Border Grid.Row="1" Classes="card" VerticalAlignment="Top" IsVisible="{Binding !HasPane}">
         <StackPanel Spacing="8" HorizontalAlignment="Center" Margin="0,20">
@@ -173,7 +205,7 @@
       </Border>
 
       <!-- Keys: one per row in the hex editor, as card memory is; fills the pane and scrolls on its own. -->
-      <Border Grid.Row="1" Classes="card" IsVisible="{Binding HasPane}" IsEnabled="{Binding !IsAsking}">
+      <Border Grid.Row="1" Classes="card" IsVisible="{Binding IsEditorPane}" IsEnabled="{Binding !IsAsking}">
         <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
           <StackPanel Grid.Row="0" Spacing="2">
             <TextBlock Text="KEYS" Classes="overline" />
