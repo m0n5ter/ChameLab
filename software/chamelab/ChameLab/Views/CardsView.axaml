@@ -883,20 +883,20 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
 
-              <UniformGrid Columns="3" ColumnSpacing="10" IsVisible="{Binding Form?.IsHf, TargetNullValue=False}">
+              <Grid ColumnDefinitions="3*,4*,8*" ColumnSpacing="10" IsVisible="{Binding Form?.IsHf, TargetNullValue=False}">
                 <StackPanel Spacing="4">
                   <TextBlock Text="SAK" Classes="caption" />
                   <c:HexBox Text="{Binding Form?.Sak}" ByteLengths="1" PlaceholderText="08" />
                 </StackPanel>
-                <StackPanel Spacing="4">
+                <StackPanel Grid.Column="1" Spacing="4">
                   <TextBlock Text="ATQA" Classes="caption" />
                   <c:HexBox Text="{Binding Form?.Atqa}" ByteLengths="2" PlaceholderText="00 04" />
                 </StackPanel>
-                <StackPanel Spacing="4">
+                <StackPanel Grid.Column="2" Spacing="4">
                   <TextBlock Text="ATS" Classes="caption" />
                   <c:HexBox Text="{Binding Form?.Ats}" PlaceholderText="optional" />
                 </StackPanel>
-              </UniformGrid>
+              </Grid>
             </StackPanel>
           </Border>
 
@@ -929,20 +929,12 @@
                   <StackPanel Orientation="Horizontal" Spacing="6"
                               IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}">
                     <Button Command="{Binding DumpCommand}" VerticalAlignment="Center"
+                            IsVisible="{Binding !IsDumpComplete}"
                             Classes.accent="{Binding NeedsDump}"
                             ToolTip.Tip="Read the whole card memory">
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <PathIcon Data="{StaticResource Icon.dump}" />
-                        <TextBlock Text="Dump memory" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </Button>
-                    <!-- Classic only: crack unknown sector keys on the card, then dump. -->
-                    <Button Command="{Binding RecoverKeysCommand}" VerticalAlignment="Center"
-                            IsVisible="{Binding !IsUltralightDump}"
-                            ToolTip.Tip="Recover unknown sector keys (darkside / nested / static nested), then dump with them">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.key}" />
-                        <TextBlock Text="Recover keys" VerticalAlignment="Center" />
+                        <TextBlock Text="Try keys" VerticalAlignment="Center" />
                       </StackPanel>
                     </Button>
                   </StackPanel>
@@ -956,7 +948,7 @@
                   </Button>
                   <!-- Which dictionaries the dump tries; the count is unique keys across the checked ones. -->
                   <Button Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding !IsUltralightDump}"
-                          IsEnabled="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}"
+                          IsEnabled="{Binding !IsBusy}"
                           ToolTip.Tip="{Binding DumpKeyCountText}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                       <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
@@ -995,6 +987,15 @@
                                  IsVisible="{Binding HasDumpKeyProgress}" />
                   </StackPanel>
                 </Grid>
+
+                <WrapPanel ItemSpacing="6" LineSpacing="6">
+                  <Button Command="{Binding DarksideCommand}" Content="Darkside"
+                          IsVisible="{Binding ShowDarkside}" />
+                  <Button Command="{Binding NestedCommand}" Content="Nested"
+                          IsVisible="{Binding ShowNested}" />
+                  <Button Command="{Binding StaticNestedCommand}" Content="Static nested"
+                          IsVisible="{Binding ShowStaticNested}" />
+                </WrapPanel>
 
                 <!-- Ultralight / NTAG: optional password for the protected pages. -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsUltralightDump}">

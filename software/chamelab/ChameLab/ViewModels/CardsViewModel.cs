@@ -77,6 +77,22 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     // Add-a-card state
     private string? _scanMissText;
     private string? _prng;
+    private MifareDump? _classicDump;
+    private MifareClassicPrngType? _cardPrng;
+    private bool _darksideAvailable;
+
+    public bool ShowDarkside => _classicDump is not null && _darksideAvailable && HasUnknownKeys;
+    public bool ShowNested => _cardPrng == MifareClassicPrngType.Weak && HasKnownKeys && HasUnknownKeys;
+    public bool ShowStaticNested => _cardPrng == MifareClassicPrngType.Static && HasKnownKeys && HasUnknownKeys;
+    private bool HasKnownKeys => DumpSectors.Any(s => s.KeyAState == KeyCellState.Found || s.KeyBState == KeyCellState.Found);
+    private bool HasUnknownKeys => DumpSectors.Any(s => s.KeyAState != KeyCellState.Found || s.KeyBState != KeyCellState.Found);
+
+    private void UpdateRecoveryMethods()
+    {
+        this.RaisePropertyChanged(nameof(ShowDarkside));
+        this.RaisePropertyChanged(nameof(ShowNested));
+        this.RaisePropertyChanged(nameof(ShowStaticNested));
+    }
     private string? _formSource;
     private TagSpecificType _lfProtocol = TagSpecificType.Em410x;
     private bool _canDump;
@@ -86,6 +102,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     private string? _writeLfPassword;
     private string? _writeLfNewKey;
     private bool _hasDump;
+    private bool _isDumpComplete;
     private string? _dumpProgressText;
     private CancellationTokenSource? _dumpCts;
     private int _dumpKeyCount;
@@ -135,12 +152,17 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         ScanLfCommand = ReactiveCommand.CreateFromTask(ScanLfAsync, connected);
         DumpCommand = ReactiveCommand.CreateFromTask(DumpAsync,
             this.WhenAnyValue(x => x.CanDump, x => x.IsConnected, x => x.DumpKeyCount, x => x.IsUltralightDump,
-                    x => x.DumpPasswordError,
-                (can, online, keys, ultralight, pwdError) =>
-                    can && online && (ultralight ? pwdError is null : keys > 0)));
-        RecoverKeysCommand = ReactiveCommand.CreateFromTask(RecoverKeysAsync,
-            this.WhenAnyValue(x => x.CanDump, x => x.IsConnected, x => x.IsUltralightDump,
-                (can, online, ultralight) => can && online && !ultralight));
+                    x => x.DumpPasswordError, x => x.IsBusy,
+                (can, online, keys, ultralight, pwdError, busy) =>
+                    can && online && !busy && (ultralight ? pwdError is null : keys > 0)));
+        var recoveryIdle = this.WhenAnyValue(x => x.CanDump, x => x.IsConnected, x => x.IsBusy,
+            (can, online, busy) => can && online && !busy);
+        DarksideCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Darkside),
+            recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowDarkside), (idle, show) => idle && show));
+        NestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Nested),
+            recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowNested), (idle, show) => idle && show));
+        StaticNestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.StaticNested),
+            recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowStaticNested), (idle, show) => idle && show));
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
@@ -595,7 +617,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     /// <summary>
     /// The MIFARE Classic dump sector grid: one entry per sector, each drawn as a key A / key B
-    /// square pair by <see cref="Controls.SectorKeyGrid"/>. Rebuilt when a dump starts, kept after.
+    /// square pair by <see cref="Controls.SectorKeyGrid"/>. Initialized on scan and kept across methods.
     /// </summary>
     public ObservableCollection<DumpSectorRow> DumpSectors { get; } = new();
 
@@ -613,13 +635,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>The first Pending tick (covering the whole card) sizes the sector grid.</summary>
     private void OnDumpSectorBlock(MifareBlockProgress p)
     {
-        if (p.State == MifareBlockState.Pending && p.First == 0) ResetDumpSectors(p.Count);
+        if (p.State == MifareBlockState.Pending && p.First == 0 && DumpSectors.Count == 0) ResetDumpSectors(p.Count);
     }
 
     private void OnDumpKey(MifareKeyProgress p)
     {
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
         DumpSectors[p.Sector].ApplyKey(p);
+        UpdateRecoveryMethods();
         // The text names the sector and key (numbered like the grid's tooltip); the bar shows the search.
         DumpProgressText = $"Sector {p.Sector} · key {(p.KeyType == MfKeyType.A ? "A" : "B")}";
         SetDumpKeyProgress(p.Tried, p.Total);
@@ -988,7 +1011,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public ICommand ScanHfCommand { get; }
     public ICommand ScanLfCommand { get; }
     public ICommand DumpCommand { get; }
-    public ICommand RecoverKeysCommand { get; }
+    public ICommand DarksideCommand { get; }
+    public ICommand NestedCommand { get; }
+    public ICommand StaticNestedCommand { get; }
     public ICommand CancelDumpCommand { get; }
     public ICommand ImportCommand { get; }
     public ICommand ManualCommand { get; }
@@ -1091,6 +1116,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>A MIFARE Classic or Ultralight card was scanned but its memory has not been dumped yet.</summary>
     public bool NeedsDump => _canDump && !_hasDump;
 
+    /// <summary>Every memory block or page was read; partial dumps can still be continued.</summary>
+    public bool IsDumpComplete
+    {
+        get => _isDumpComplete;
+        private set => this.RaiseAndSetIfChanged(ref _isDumpComplete, value);
+    }
+
     /// <summary>Makes it explicit that saving before a dump keeps only the card's identity.</summary>
     public string AddSaveLabel => NeedsDump ? "Save UID only" : "Save card";
 
@@ -1149,8 +1181,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             _discardedDump = cts;
             try { cts.Cancel(); } catch (ObjectDisposedException) { }
         }
+        _classicDump = null;
+        IsDumpComplete = false;
+        _cardPrng = null;
+        _darksideAvailable = false;
         ResetDumpBlocks(0);
         DumpSectors.Clear();
+        UpdateRecoveryMethods();
         this.RaisePropertyChanged(nameof(HasDumpSectors));
         DumpStats.Clear();
         HasDumpStats = false;
@@ -1182,7 +1219,16 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     {
         IsUltralightDump = tag.IsUltralight();
         CanDump = tag.IsMifareClassic() || IsUltralightDump;
-        if (tag.IsMifareClassic()) ResetDumpSectors(tag.MifareClassicBlocks());
+        if (tag.IsMifareClassic())
+        {
+            ResetDumpSectors(tag.MifareClassicBlocks());
+            if (Form is { } form)
+            {
+                var card = form.Build();
+                _classicDump = new MifareDump(MifareClassic.FromSlotTagType(tag), card.Uid, card.Atqa, card.Sak);
+            }
+        }
+        UpdateRecoveryMethods();
         RaiseSaveLabel();
     }
 
@@ -1282,7 +1328,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             catch (ChameleonException) { /* keep the guess */ }
         }
 
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             ResetAddState();
             if (tags.Count == 0)
@@ -1302,16 +1348,26 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             FormSource = $"{card.Tag.DisplayName()} — UID {t.UidHex}";
         });
 
+        var scannedDump = _classicDump;
+
         // Probe MIFARE Classic specifics (support + PRNG) without failing the scan.
         if (tags.Count > 0 && !CardFormats.GuessHfType(tags[0].Sak, tags[0].Atqa).IsUltralight())
         {
             string? prng = null;
+            MifareClassicPrngType? cardPrng = null;
+            var darkside = false;
             try
             {
                 if (await client.Mf1IsSupportedAsync())
                 {
-                    var p = await client.GetMf1PrngTypeAsync();
+                    var p = await client.DetectNtLevelAsync();
+                    cardPrng = p;
                     prng = p.Label();
+                    if (p != MifareClassicPrngType.Static)
+                    {
+                        try { darkside = await client.CheckDarksideAsync() == DarksideResult.Vulnerable; }
+                        catch (ChameleonException) { }
+                    }
                 }
             }
             catch { /* not a Classic card, or older firmware */ }
@@ -1320,8 +1376,11 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     // Lands on the editor this scan opened; another scan or a cancel since then drops it.
-                    if (Form is null) return;
+                    if (scannedDump is null || !ReferenceEquals(scannedDump, _classicDump)) return;
                     Prng = prng;
+                    _cardPrng = cardPrng;
+                    _darksideAvailable = darkside;
+                    UpdateRecoveryMethods();
                 });
         }
 
@@ -1386,44 +1445,39 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         await MifareDumpBodyAsync(client, keys, DumpFormType(), cts);
     });
 
-    /// <summary>
-    /// Recovers the unknown sector keys on the card (darkside / nested / static nested) and then
-    /// dumps it with the recovered keys. The attacks' per-sector progress feeds the same grid the
-    /// dump uses. Hardnested cards stop early with a note that they are not supported yet.
-    /// </summary>
-    private Task RecoverKeysAsync() => RunAsync(async () =>
+    private Task RecoverKeysAsync(MifareRecoveryMethod method) => RunAsync(async () =>
     {
         var client = _device.Client;
-        if (client is null) return;
-
+        if (client is null || _classicDump is not { } dump) return;
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
-        var type = DumpFormType() ?? MifareClassicType.Classic1K;
-        var dict = BuildKeyDictionary();
-
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        DumpProgressText = "Starting recovery…";
+        try
         {
-            ResetDumpSectors(MifareClassic.BlockCount(type));
-            DumpStats.Clear();
-            HasDumpStats = false;
-            DumpProgressText = "Starting recovery…";
-        });
-
-        var recovery = new MifareKeyRecovery(client);
-        var recoverProgress = new PostedProgress<KeyRecoveryProgress>(IfKept<KeyRecoveryProgress>(cts, OnRecoverProgress));
-        var result = await recovery.RecoverAsync(dict, recoverProgress, cts.Token);
-
-        // Dump with the recovered keys ahead of the dictionary, so each sector authenticates fast.
-        var keys = new List<byte[]>();
-        var seen = new HashSet<string>();
-        foreach (var k in result.AllKeys()) if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
-        foreach (var k in dict) if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
-
-        await MifareDumpBodyAsync(client, keys, type, cts);
-
-        if (result.HardnestedRequired)
-            SetStatus("This card uses a hardened PRNG — the hardnested attack is not supported yet, so some keys were not recovered.");
+            var recovery = new MifareKeyRecovery(client);
+            var progress = new PostedProgress<KeyRecoveryProgress>(IfKept<KeyRecoveryProgress>(cts, OnRecoverProgress));
+            try { await recovery.RecoverAsync(dump, method, progress, cts.Token); }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
+            if (ReferenceEquals(_discardedDump, cts)) return;
+            // Read missing blocks with the keys we now know; another dictionary pass is explicit via Dump.
+            await MifareDumpBodyAsync(client, Array.Empty<byte[]>(), dump.Type, cts, read: !cts.IsCancellationRequested);
+        }
+        finally
+        {
+            if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
+            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
+        }
     });
+
+    private void FinishClassicOperation()
+    {
+        foreach (var sector in DumpSectors)
+            foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
+                if ((kt == MfKeyType.A ? sector.KeyAState : sector.KeyBState) == KeyCellState.Searching)
+                    sector.ApplyKey(new MifareKeyProgress(sector.Sector, kt, MifareKeyPhase.NotFound, 0, 0, null));
+        DumpProgressText = null;
+        UpdateRecoveryMethods();
+    }
 
     /// <summary>The MIFARE Classic type the form is set to, or null when it is not a Classic card.</summary>
     private MifareClassicType? DumpFormType() =>
@@ -1441,15 +1495,17 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             _ => MifareKeyPhase.NotFound,
         };
         DumpSectors[p.Sector].ApplyKey(new MifareKeyProgress(p.Sector, p.KeyType, phase, 0, 0, p.Key));
+        SetDumpKeyProgress(0, 0);
+        UpdateRecoveryMethods();
     }
 
     /// <summary>
-    /// Shared dump body for the plain dump and the recover-then-dump flow: reads the card with
+    /// Shared dump body for dictionary and attack runs: continues reading the card with
     /// <paramref name="keys"/> and fills the grid, stats and card form. The caller owns
     /// <paramref name="cts"/> (and has set <see cref="_dumpCts"/>).
     /// </summary>
     private async Task MifareDumpBodyAsync(
-        Protocol.ChameleonClient client, IReadOnlyList<byte[]> keys, MifareClassicType? type, CancellationTokenSource cts)
+        Protocol.ChameleonClient client, IReadOnlyList<byte[]> keys, MifareClassicType? type, CancellationTokenSource cts, bool read = true)
     {
         // Posted (not Progress<T>) so ticks reach the UI in order: a "found" key must not be
         // overtaken by the "searching" tick before it.
@@ -1469,7 +1525,10 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         {
             // A stop keeps the partial dump: the call returns what was read, so a canceled dump
             // is handled the same as a completed one and can still be saved.
-            var dump = await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress, keyProgress, type));
+            var dump = read
+                ? await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress, keyProgress, type, _classicDump))
+                : _classicDump!;
+            dump.FillRecoveredKeys();
             clock.Stop();
             var stopped = cts.IsCancellationRequested;
             if (!stopped) ScanFeedback.Found();
@@ -1477,6 +1536,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 if (ReferenceEquals(_discardedDump, cts)) return;
+                _classicDump = dump;
+                IsDumpComplete = dump.RecoveredBlocks == dump.BlockCount;
+                UpdateRecoveryMethods();
                 DumpStats.Clear();
                 foreach (var row in stats) DumpStats.Add(row);
                 HasDumpStats = true;
@@ -1497,7 +1559,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         finally
         {
             if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
-            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () => DumpProgressText = null));
+            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
         }
     }
 
@@ -1536,6 +1598,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                 else Form = new CardEditorViewModel(result.Card, sameFrequency: true);
                 _applyingDump = false;
                 FormSource = $"{result.Card.Tag.DisplayName()} — UID {Hex.Compact(result.Card.Uid)}";
+                IsDumpComplete = result.PagesRead == result.PageCount;
                 SetScanMatches(result.Card);
                 _hasDump = true;
                 RaiseSaveLabel();

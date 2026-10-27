@@ -453,10 +453,10 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return nonces;
     }
 
-    /// <summary>Probes whether the card is vulnerable to the darkside attack (sector 0, key B).</summary>
-    public async Task<DarksideResult> CheckDarksideAsync(CancellationToken ct = default)
+    /// <summary>Probes whether a target key is vulnerable to darkside (defaults to sector 0, key B).</summary>
+    public async Task<DarksideResult> CheckDarksideAsync(CancellationToken ct = default, int block = 3, MfKeyType keyType = MfKeyType.B)
     {
-        var f = await conn.SendAsync(Command.Mf1DarksideAcquire, [0x61, 0x03, 1, 2], timeoutMs: 60000, ct: ct);
+        var f = await conn.SendAsync(Command.Mf1DarksideAcquire, [(byte)keyType, (byte)block, 1, 2], timeoutMs: 60000, ct: ct);
         var status = f.Data.Length > 0 ? f.Data[0] : (byte)f.Status;
         return status <= 4 ? (DarksideResult)status : DarksideResult.Fixed;
     }
@@ -728,6 +728,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// per-block states to <paramref name="blocks"/> (first a Pending tick covering
     /// the whole card, so a listener can size itself). The card's size comes from
     /// <paramref name="type"/> when given (the user's choice), else from its SAK.
+    /// With <paramref name="existing"/>, keeps known keys and blocks and only fills missing ones.
     /// </summary>
     public async Task<MifareDump> ReadMifareClassicAsync(
         IReadOnlyList<byte[]> keyDict,
@@ -735,7 +736,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         CancellationToken ct = default,
         IProgress<MifareBlockProgress>? blocks = null,
         IProgress<MifareKeyProgress>? keyProgress = null,
-        MifareClassicType? type = null)
+        MifareClassicType? type = null,
+        MifareDump? existing = null)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
@@ -743,14 +745,17 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             throw new ChameleonException("No HF tag detected on the reader.", Status.HfTagNo);
 
         var tag = tags[0];
-        var dump = new MifareDump(type ?? MifareClassic.FromSak(tag.Sak), tag.Uid, tag.Atqa, tag.Sak);
+        if (existing is not null && (!existing.Uid.AsSpan().SequenceEqual(tag.Uid)
+            || existing.Type != (type ?? MifareClassic.FromSak(tag.Sak))))
+            throw new InvalidOperationException("The card changed. Scan it again before continuing.");
+        var dump = existing ?? new MifareDump(type ?? MifareClassic.FromSak(tag.Sak), tag.Uid, tag.Atqa, tag.Sak);
         var sectors = dump.SectorCount;
-        var recovered = 0;
+        var recovered = dump.RecoveredBlocks;
         // Keys that already opened a sector: cards usually reuse them, so each type's
         // working keys are tried first (with retries) before the dictionary pass.
-        var foundA = new List<byte[]>();
-        var foundB = new List<byte[]>();
-        blocks?.Report(new MifareBlockProgress(0, dump.BlockCount, MifareBlockState.Pending));
+        var foundA = dump.KeyA.OfType<byte[]>().ToList();
+        var foundB = dump.KeyB.OfType<byte[]>().ToList();
+        if (existing is null) blocks?.Report(new MifareBlockProgress(0, dump.BlockCount, MifareBlockState.Pending));
 
         try
         {
@@ -764,9 +769,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 // Both keys are searched independently: a sector may hand out data under
                 // key A, key B or both, and the trailer only yields the key used to read it.
                 // Key A joins the known keys before key B is searched, so the same sector's B tries it first.
-                dump.KeyA[s] = await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, foundA, foundB, keyProgress, ct);
+                dump.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, foundA, foundB, keyProgress, ct);
                 if (dump.KeyA[s] is { } ka && !foundA.Any(k => k.AsSpan().SequenceEqual(ka))) foundA.Add(ka);
-                dump.KeyB[s] = await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, foundB, foundA, keyProgress, ct);
+                dump.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, foundB, foundA, keyProgress, ct);
                 if (dump.KeyB[s] is { } kb && !foundB.Any(k => k.AsSpan().SequenceEqual(kb))) foundB.Add(kb);
 
                 if (dump.KeyA[s] is null && dump.KeyB[s] is null)
@@ -778,6 +783,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                     for (var b = 0; b < count; b++)
                     {
                         var block = first + b;
+                        if (dump.GetBlock(block) is not null) continue;
                         if (await ReadBlockWithEitherKeyAsync(block, dump.KeyA[s], dump.KeyB[s], ct) is { } data)
                         {
                             dump.SetBlock(block, data);
