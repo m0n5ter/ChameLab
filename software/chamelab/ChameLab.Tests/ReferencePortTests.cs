@@ -67,7 +67,7 @@ public class ReferencePortTests
                     .Select(k => ulong.Parse(k.GetString()!, NumberStyles.HexNumber)).Order(), nestedKeys.Order());
                 break;
             case "static":
-                Assert.Contains(key, StaticNestedRecovery.Recover(U(v, "uid"), (MfKeyType)U(v, "type"),
+                Assert.Contains(key, StaticNestedRecovery.Recover(U(v, "uid"), (MfKeyType)U(v, "knownType"),
                     U(v, "nonce"), U(v, "enc0"), U(v, "nonce"), U(v, "enc1")));
                 break;
             case "darkside":

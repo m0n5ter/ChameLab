@@ -921,7 +921,8 @@
                     <Run Text="{Binding Prng}" FontWeight="SemiBold" />
                   </TextBlock>
                 </Grid>
-                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpHint}" />
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpHint}"
+                           IsVisible="{Binding !IsDumpComplete}" />
               </StackPanel>
               <StackPanel Spacing="8">
                 <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">

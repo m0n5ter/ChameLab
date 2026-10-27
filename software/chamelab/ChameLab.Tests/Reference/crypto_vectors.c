@@ -53,7 +53,7 @@ int main(void) {
   uint32_t ntp0=prng_successor(base0,actual0),ntp1=prng_successor(base1,actual1),enc0=encrypted_nonce(key,uid,ntp0),enc1=encrypted_nonce(key,uid,ntp1);
   printf("{\"kind\":\"nested\",\"key\":\"%012" PRIX64 "\",\"uid\":%u,\"distance\":%u,\"nt0\":%u,\"enc0\":%u,\"par0\":%u,\"nt1\":%u,\"enc1\":%u,\"par1\":%u}\n",key,uid,dist,base0,enc0,parity(ntp0,enc0),base1,enc1,parity(ntp1,enc1));
   uint32_t nonce=i<2?0x01200145:0x009080a2;int sd=i==3?161:160;
-  printf("{\"kind\":\"static\",\"key\":\"%012" PRIX64 "\",\"uid\":%u,\"type\":%u,\"nonce\":%u,\"enc0\":%u,\"enc1\":%u}\n",key,uid,i==3?0x61:0x60,nonce,encrypted_nonce(key,uid,prng_successor(nonce,sd)),encrypted_nonce(key,uid,prng_successor(nonce,sd+160)));
+  printf("{\"kind\":\"static\",\"key\":\"%012" PRIX64 "\",\"uid\":%u,\"knownType\":%u,\"nonce\":%u,\"enc0\":%u,\"enc1\":%u}\n",key,uid,i==3?0x61:0x60,nonce,encrypted_nonce(key,uid,prng_successor(nonce,sd)),encrypted_nonce(key,uid,prng_successor(nonce,sd+160)));
   if(i>0) {
    uint32_t prefix=0xabcdef01&0xffffff1f,ar=0x11223344;uint64_t par,ks,*found=0;dark(key,uid,nt0,prefix,ar,&par,&ks);
    uint32_t count=nonce2key(uid,nt0,prefix,ar,par,ks,&found);int has=0;for(uint32_t j=0;j<count;j++)has|=found[j]==key;

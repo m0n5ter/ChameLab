@@ -141,7 +141,7 @@ public sealed class MifareKeyRecovery
             var nonces = capture.Nonces;
             progress?.Report(new KeyRecoveryProgress("Calculating static nested candidates…", sector, targetKeyType, KeyMark.Checking));
             var candidates = await Task.Run(() => StaticNestedRecovery.Recover(
-                capture.Uid, targetKeyType,
+                capture.Uid, seed.Type,
                 nonces[0].Nt, nonces[0].NtEnc,
                 nonces[1].Nt, nonces[1].NtEnc, ct), ct);
             if (candidates.Count > 0) return candidates;

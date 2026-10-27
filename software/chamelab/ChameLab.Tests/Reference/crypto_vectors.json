@@ -61,7 +61,7 @@
     "kind": "static",
     "key": "000000000000",
     "uid": 305419896,
-    "type": 96,
+    "knownType": 96,
     "nonce": 18874693,
     "enc0": 2665184738,
     "enc1": 853951437
@@ -110,7 +110,7 @@
     "kind": "static",
     "key": "FFFFFFFFFFFF",
     "uid": 897170945,
-    "type": 96,
+    "knownType": 96,
     "nonce": 18874693,
     "enc0": 2173719377,
     "enc1": 3453245554
@@ -169,7 +169,7 @@
     "kind": "static",
     "key": "A0A1A2A3A4A5",
     "uid": 1488921994,
-    "type": 96,
+    "knownType": 96,
     "nonce": 9470114,
     "enc0": 2776649864,
     "enc1": 3278256492
@@ -229,7 +229,7 @@
     "kind": "static",
     "key": "112233445566",
     "uid": 2080673043,
-    "type": 97,
+    "knownType": 97,
     "nonce": 9470114,
     "enc0": 1264278201,
     "enc1": 1222223553

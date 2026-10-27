@@ -205,6 +205,31 @@ public class MifareWorkflowTests
             .GetDarksideAsync(3, MfKeyType.B, true, 15));
     }
 
+    [Fact]
+    public async Task StaticNested_KnownBToTargetA_PassesSeedTypeToSolver()
+    {
+        var dump = KnownCard();
+        dump.KeyA[0] = null;
+        var transport = new CardTransport
+        {
+            Prng = MifareClassicPrngType.Static,
+            Response = request => request.Command == Command.Mf1StaticNestedAcquire
+                ? (Status.HfTagOk, Convert.FromHexString("7C048D13009080A24B5B5AB9009080A248D9A6C1"))
+                : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection))
+            .RecoverAsync(dump, MifareRecoveryMethod.StaticNested);
+
+        Assert.Equal(Convert.FromHexString("112233445566"), dump.KeyA[0]);
+        var acquire = Assert.Single(transport.Requests, r => r.Command == Command.Mf1StaticNestedAcquire);
+        Assert.Equal((byte)MfKeyType.B, acquire.Data[0]);
+        Assert.Equal((byte)MfKeyType.A, acquire.Data[8]);
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
+    }
+
     private sealed class CardTransport : ITransport
     {
         private readonly Channel<byte[]> _replies = Channel.CreateUnbounded<byte[]>();

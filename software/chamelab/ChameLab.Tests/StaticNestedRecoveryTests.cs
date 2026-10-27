@@ -9,17 +9,18 @@ namespace ChameLab.Tests;
 
 public class StaticNestedRecoveryTests
 {
-    // Captured on a physical static-PRNG 1K test card. Both A and B use 160/320;
-    // the old B-only 161/321 assumption produced 128,880 or 131,254 wrong keys.
+    // Physical captures entered through a known A key, targeting either A or B.
+    // Passing the target B type instead of the known A type produced 128k wrong keys.
     [Theory]
     [InlineData(MfKeyType.A, 0x2B7C6E42u, 0x1DE65248u, 0x112233445566UL)]
     [InlineData(MfKeyType.B, 0x2B7C6E42u, 0x1DE65248u, 0x112233445566UL)]
     [InlineData(MfKeyType.A, 0xDA3BD82Eu, 0xFCA5BBCFu, 0x112233445588UL)]
     [InlineData(MfKeyType.B, 0xDA3BD82Eu, 0xFCA5BBCFu, 0x112233445588UL)]
     public void PhysicalCardCapture_RecoversExactlyOneCorrectKey(
-        MfKeyType type, uint enc0, uint enc1, ulong expected)
+        MfKeyType targetType, uint enc0, uint enc1, ulong expected)
     {
-        var keys = StaticNestedRecovery.Recover(0x4D4F4E53, type,
+        Assert.True(targetType is MfKeyType.A or MfKeyType.B);
+        var keys = StaticNestedRecovery.Recover(0x4D4F4E53, MfKeyType.A,
             0x009080A2, enc0, 0x009080A2, enc1);
 
         Assert.Equal(expected, Assert.Single(keys));
@@ -29,7 +30,6 @@ public class StaticNestedRecoveryTests
     [InlineData(0x01200145u, MfKeyType.A, 160)]
     [InlineData(0x01200145u, MfKeyType.B, 160)]
     [InlineData(0x009080A2u, MfKeyType.A, 160)]
-    [InlineData(0x009080A2u, MfKeyType.B, 160)]
     [InlineData(0x009080A2u, MfKeyType.B, 161)]
     public void SupportedNonceOffsets_RecoversKnownKey(uint nonce, MfKeyType type, int distance)
     {

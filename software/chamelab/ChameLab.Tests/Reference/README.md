@@ -26,5 +26,8 @@ the algorithm sources were unchanged. This changes scheduling only, not how
 each worker computes its candidate list.
 
 Physical-card Static nested captures are separate regressions in
-`StaticNestedRecoveryTests.cs`. The C baseline fails on the B/160 variant of
-that card; the corrected managed solver supports both B/160 and B/161.
+`StaticNestedRecoveryTests.cs`. The offset selector takes the **known seed
+key's type**, as the GUI's `validKeyType` caller does, not the target type.
+The `knownType` field in the static fixtures has this meaning. Passing the
+unknown B type for an A-seeded capture reproduces the old port bug; it does
+not demonstrate a fault in the GUI's C solver.

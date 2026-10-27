@@ -30,7 +30,7 @@ for vector in vectors:
         values = [f"{vector[k]:x}" for k in ("uid", "nt0", "nr0", "ar0", "nt1", "nr1", "ar1")]
         assert f"[{vector['key']}]".lower() in run(args.mfkey32v2, values).lower()
     elif kind == "static":
-        values = [vector[k] for k in ("uid", "type", "nonce", "enc0", "nonce", "enc1")]
+        values = [vector[k] for k in ("uid", "knownType", "nonce", "enc0", "nonce", "enc1")]
         assert vector["key"].lower() in run(args.staticnested, values).lower()
 
 args.output.write_text(json.dumps(vectors, indent=2) + "\n", encoding="utf-8")
