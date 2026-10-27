@@ -7,7 +7,11 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
-## [v1.0.17][2026-10-26] · firmware v2.3.3-cl
+## [v1.0.18][2026-10-27] · firmware v2.3.3-cl
+ - ChameLab: a MIFARE Classic dump can recover unknown sector keys with the Darkside, Nested and Static nested attacks, run in the app — the buttons appear next to Dump once a scan has found which ones the card is open to (Darkside when the card is vulnerable and some keys are still missing; Nested and Static nested once at least one key is known, matched to the card's PRNG), and each one reads back the blocks it just unlocked
+ - ChameLab: scanning a MIFARE Classic card now detects its PRNG type and whether it is open to Darkside, so the recovery buttons offered fit the card
+ - ChameLab: keys recovered for a card are remembered in a read-only "Known card keys" dictionary, indexed by UID, and tried first the next time that card is dumped; it is shown in Dictionaries with its card and key counts
+
  - ChameLab: dumping a MIFARE Classic card now shows a key grid instead of a plain block strip — one cell per sector (16 per row, so 1K is one row and 4K three), each cell two stacked squares (key A over key B) colored by the key-search state; the key being searched fills up as candidates are tried, and the progress line names the sector and key with a bar for the search. Hover a sector for its blocks and recovered keys
  - ChameLab: the MIFARE Classic dump summary is down to sectors read and time; the rest is on the key grid
  - ChameLab: changing a scanned card's type drops its dump (grid, summary and the memory it read) and sets the dump up for the new type — a MIFARE Classic dump reads as many sectors as the chosen type has, so a card picked as 2K or 4K gets all of them; the type picker of a scanned card only offers types of its frequency (no MIFARE for an LF tag)
