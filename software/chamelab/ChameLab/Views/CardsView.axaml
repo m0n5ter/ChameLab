@@ -943,7 +943,7 @@
                           ToolTip.Tip="Stop the dump; what was read so far is kept and can be saved">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <PathIcon Data="{StaticResource Icon.close}" />
-                      <TextBlock Text="Stop dump" VerticalAlignment="Center" />
+                      <TextBlock Text="Stop" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>
                   <!-- Which dictionaries the dump tries; the count is unique keys across the checked ones. -->

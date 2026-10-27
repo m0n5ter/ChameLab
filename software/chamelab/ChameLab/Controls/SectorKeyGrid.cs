@@ -411,7 +411,10 @@ public class SectorKeyGrid : Control
 
         public Grid Root { get; } = new()
         {
-            ColumnDefinitions = new ColumnDefinitions("Auto,Auto"),
+            // Keep the popup stable while live search counts grow. The value column
+            // uses the available width and wraps instead of drawing past its edge.
+            Width = 280,
+            ColumnDefinitions = new ColumnDefinitions("Auto,*"),
             RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
             ColumnSpacing = 14,
             RowSpacing = 3,
@@ -451,6 +454,11 @@ public class SectorKeyGrid : Control
         }
 
         private static TextBlock Value() =>
-            new() { FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+            new()
+            {
+                FontWeight = FontWeight.SemiBold,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap,
+            };
     }
 }
