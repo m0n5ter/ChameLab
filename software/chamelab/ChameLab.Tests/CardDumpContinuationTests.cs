@@ -112,8 +112,7 @@ public class CardDumpContinuationTests
         editor.SelectedSector = 32;
         Assert.Equal(0xAB, editor.SelectedMemory![0]);
         Assert.Equal(0xAB, editor.Build().Data[128][0]);
-        Assert.Equal(MifareClassic.BlankBlock(127), editor.Build().Data[127]);
-        Assert.Empty(editor.BuildForReading().Data[127]);
+        Assert.Empty(editor.Build().Data[127]);
         Assert.True(editor.SelectedMemory.Undo());
         Assert.False(editor.IsDirty);
         Assert.True(editor.HasData);
@@ -126,42 +125,31 @@ public class CardDumpContinuationTests
     {
         var editor = new CardEditorViewModel(Card(tag));
         Assert.Equal(count, editor.Memory!.RowCount);
-        Assert.All(editor.Build().Data, row => Assert.Equal(size, row.Length));
-        Assert.All(editor.BuildForReading().Data, row => Assert.Empty(row));
+        Assert.Equal(size, editor.Memory.RowLength);
+        Assert.Empty(editor.Build().Data);
         Assert.False(editor.IsDirty);
         editor.SelectedMemory!.Write(1, [0xAB]);
-        Assert.Equal(0xAB, editor.BuildForReading().Data[0][1]);
-        Assert.Empty(editor.BuildForReading().Data[1]);
+        Assert.Equal(0xAB, editor.Build().Data[0][1]);
+        Assert.Empty(editor.Build().Data[1]);
         Assert.True(editor.SelectedMemory.Undo());
-        Assert.All(editor.BuildForReading().Data, row => Assert.Empty(row));
+        Assert.Empty(editor.Build().Data);
+        // Saved untouched, it reopens as the same blank memory instead of as read sectors.
+        var reopened = new CardEditorViewModel(editor.Build(), restrictType: true);
+        Assert.Equal(count, reopened.Memory!.RowCount);
+        Assert.Empty(reopened.Build().Data);
     }
 
     [Fact]
     public void DumpThatReadNothingSavesAsUnread()
     {
         var editor = new CardEditorViewModel(Card());
-        var dump = editor.BuildForReading().ToMifareDump();
+        var dump = editor.Build().ToMifareDump();
         editor.ReplaceContent(CardFormats.FromMifareDump(dump));
         Assert.Equal("0/16 sectors", editor.DataSummary);
         var saved = editor.Build();
         Assert.Equal(64, saved.Data.Count);
         Assert.All(saved.Data, row => Assert.Empty(row));
         Assert.All(new CardEditorViewModel(saved, restrictType: true).Build().Data, row => Assert.Empty(row));
-    }
-
-    [Fact]
-    public void GeneratedMemoryUsesIdentityEnteredAfterCreation()
-    {
-        var card = Card(TagSpecificType.Ntag213);
-        card.Uid = [];
-        var editor = new CardEditorViewModel(card);
-        editor.Uid = "01020304050607";
-        var result = editor.Build();
-        var expected = BlankMemory.Create(result.Tag, result.Uid, result.Sak, result.Atqa);
-        Assert.Equal(expected[0], result.Data[0]);
-        Assert.Equal(expected[1], result.Data[1]);
-        Assert.Equal(expected[2], result.Data[2]);
-        Assert.All(editor.BuildForReading().Data, row => Assert.Empty(row));
     }
 
     [Theory]
@@ -173,6 +161,8 @@ public class CardDumpContinuationTests
         if (!generated)
             card.Data = Enumerable.Range(0, 256).Select(MifareClassic.BlankBlock).ToList();
         var editor = new CardEditorViewModel(card);
+        // Untouched generated memory is saved as no memory at all.
+        static byte[] Row(CardSave c, int block) => block < c.Data.Count ? c.Data[block] : [];
         var before = editor.Build();
         editor.SelectedSector = 32;
         editor.ClearSectorCommand.Execute(null);
@@ -180,13 +170,13 @@ public class CardDumpContinuationTests
         Assert.True(editor.IsDirty);
         for (var block = 0; block < 256; block++)
         {
-            if (block >= 128 && block < 144) Assert.Empty(cleared.Data[block]);
-            else Assert.Equal(before.Data[block], cleared.Data[block]);
+            if (block >= 128 && block < 144) Assert.Empty(Row(cleared, block));
+            else Assert.Equal(Row(before, block), Row(cleared, block));
         }
         Assert.True(editor.SelectedMemory!.Undo());
         Assert.False(editor.IsDirty);
-        Assert.Equal(before.Data[128], editor.Build().Data[128]);
-        Assert.Equal(before.Data[143], editor.Build().Data[143]);
+        Assert.Equal(Row(before, 128), Row(editor.Build(), 128));
+        Assert.Equal(Row(before, 143), Row(editor.Build(), 143));
     }
 
     [Fact]

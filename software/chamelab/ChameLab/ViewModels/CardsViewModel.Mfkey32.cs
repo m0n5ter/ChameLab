@@ -80,7 +80,7 @@ public sealed partial class CardsViewModel
     private Task RunMfkey32Async() => RunAsync(async () =>
     {
         if (_device.Client is not { } client || Form is not { } form) return;
-        var card = form.BuildForReading();
+        var card = form.Build();
         _classicDump ??= card.ToMifareDump();
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
