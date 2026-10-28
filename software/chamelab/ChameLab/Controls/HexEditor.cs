@@ -15,6 +15,9 @@ using ChameLab.Models;
 
 namespace ChameLab.Controls;
 
+public sealed record HexSelectionStatus(string Title, string? Detail, string Position,
+    string? Hex, string? Decimal, string? Binary, string? Note);
+
 /// <summary>
 /// Grid hex editor for card memory (<see cref="HexBuffer"/>): row labels, hex
 /// bytes and an ASCII column. Typing overwrites nibble by nibble, so the
@@ -26,6 +29,10 @@ public sealed class HexEditor : Control
 {
     public static readonly StyledProperty<HexBuffer?> BufferProperty =
         AvaloniaProperty.Register<HexEditor, HexBuffer?>(nameof(Buffer));
+    public static readonly StyledProperty<bool> ShowGroupHeadersProperty =
+        AvaloniaProperty.Register<HexEditor, bool>(nameof(ShowGroupHeaders), true);
+    public static readonly DirectProperty<HexEditor, HexSelectionStatus?> SelectionStatusProperty =
+        AvaloniaProperty.RegisterDirect<HexEditor, HexSelectionStatus?>(nameof(SelectionStatus), o => o.SelectionStatus);
 
     public static readonly StyledProperty<FontFamily> FontFamilyProperty =
         TextElement.FontFamilyProperty.AddOwner<HexEditor>();
@@ -91,6 +98,7 @@ public sealed class HexEditor : Control
     private bool _dragging;
     private bool _pointerFocus, _movingCaret;
     private string? _statusText, _statusDetail;
+    private HexSelectionStatus? _selectionStatus;
     private HexBuffer? _buffer;
     private readonly DispatcherTimer _blink;
     private bool _caretOn = true;
@@ -100,7 +108,8 @@ public sealed class HexEditor : Control
     static HexEditor()
     {
         FocusableProperty.OverrideDefaultValue<HexEditor>(true);
-        AffectsMeasure<HexEditor>(BufferProperty, FontFamilyProperty, FontSizeProperty);
+        AffectsMeasure<HexEditor>(BufferProperty, FontFamilyProperty, FontSizeProperty, ShowGroupHeadersProperty);
+        AffectsRender<HexEditor>(ShowGroupHeadersProperty);
         AffectsRender<HexEditor>(ForegroundProperty, LabelBrushProperty, DimBrushProperty, ChangedBrushProperty,
             ManufacturerBrushProperty, KeyABrushProperty, AccessBitsBrushProperty, KeyBBrushProperty, CaretBrushProperty,
             CaretCellBrushProperty, SelectionBrushProperty, ActiveRowBrushProperty, SeparatorBrushProperty);
@@ -148,6 +157,12 @@ public sealed class HexEditor : Control
     }
 
     public HexBuffer? Buffer { get => GetValue(BufferProperty); set => SetValue(BufferProperty, value); }
+    public bool ShowGroupHeaders { get => GetValue(ShowGroupHeadersProperty); set => SetValue(ShowGroupHeadersProperty, value); }
+    public HexSelectionStatus? SelectionStatus
+    {
+        get => _selectionStatus;
+        private set => SetAndRaise(SelectionStatusProperty, ref _selectionStatus, value);
+    }
     public FontFamily FontFamily { get => GetValue(FontFamilyProperty); set => SetValue(FontFamilyProperty, value); }
     public double FontSize { get => GetValue(FontSizeProperty); set => SetValue(FontSizeProperty, value); }
     public IBrush? Foreground { get => GetValue(ForegroundProperty); set => SetValue(ForegroundProperty, value); }
@@ -278,7 +293,7 @@ public sealed class HexEditor : Control
             {
                 if (row > 0 && _buffer.StartsGroup(row)) y += SeparatorGap;
                 // A group heading takes a line of its own above the group's first row.
-                if (_buffer.GroupHeader(row) is not null) y += _lineH;
+                if (ShowGroupHeaders && _buffer.GroupHeader(row) is not null) y += _lineH;
             }
             _lineY[i] = y;
             y += _lineH;
@@ -388,7 +403,7 @@ public sealed class HexEditor : Control
             var firstOfRow = line % LinesPerRow == 0;
             var rowRead = buf.IsRead(row);
 
-            var header = firstOfRow ? buf.GroupHeader(row) : null;
+            var header = firstOfRow && ShowGroupHeaders ? buf.GroupHeader(row) : null;
             var top = header is null ? y : y - _lineH;
             if (firstOfRow && row > 0 && buf.StartsGroup(row) && SeparatorBrush is { } sep)
                 ctx.FillRectangle(sep, new Rect(0, top - SeparatorGap / 2 - 0.5, Bounds.Width, 1));
@@ -489,7 +504,7 @@ public sealed class HexEditor : Control
     private void UpdateStatus()
     {
         var buf = _buffer;
-        if (buf is not { ViewLength: > 0 }) { StatusText = StatusDetail = null; return; }
+        if (buf is not { ViewLength: > 0 }) { StatusText = StatusDetail = null; SelectionStatus = null; return; }
 
         // Every field is padded so the line keeps its width as the caret moves.
         const int valueWidth = 16; // "E1  225 11100001"
@@ -514,6 +529,21 @@ public sealed class HexEditor : Control
         StatusText = $"{buf.RowLabel(row).PadLeft(labelWidth)}:{col.ToString().PadLeft(colWidth, '0')}  " +
                      $"0x{(buf.ByteOffset + _caret).ToString("X" + offsetWidth)}  {value.PadRight(valueWidth, ' ')}";
         StatusDetail = buf.Describe(row, col) is { Length: > 0 } what ? what : null;
+        var title = "Memory";
+        for (var r = row; r >= 0; r--)
+            if (buf.GroupHeader(r) is { } group) { title = group.Title; break; }
+        var detail = StatusDetail;
+        if (detail == title) detail = null;
+        else if (detail?.StartsWith(title + " · ", StringComparison.Ordinal) == true)
+            detail = detail[(title.Length + 3)..];
+        else if (detail?.StartsWith(title + " trailer · ", StringComparison.Ordinal) == true)
+            detail = detail[(title.Length + 11)..];
+        var position = $"{buf.RowLabel(row)}:{col.ToString().PadLeft(colWidth, '0')}";
+        SelectionStatus = !HasSelection && buf.IsRead(row)
+            ? new(title, detail, position, buf[_caret].ToString("X2"), buf[_caret].ToString(CultureInfo.InvariantCulture),
+                Convert.ToString(buf[_caret], 2).PadLeft(8, '0'), null)
+            : new(title, detail, position, null, null, null,
+                HasSelection ? $"{Selection().to - Selection().from + 1} selected" : "not read");
     }
 
     // ================================================================ Input

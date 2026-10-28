@@ -940,8 +940,8 @@
   </Style>
   <!-- The highlight is a pill behind the icon, as on Android's navigation bar. -->
   <Style Selector="ListBox.tabbar Border.tabpill">
-    <Setter Property="Padding" Value="16,4" />
-    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="16,6" />
+    <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="ListBox.tabbar ListBoxItem:pointerover Border.tabpill">

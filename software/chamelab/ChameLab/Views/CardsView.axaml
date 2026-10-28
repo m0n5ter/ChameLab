@@ -1063,7 +1063,7 @@
                       </Button>
                     </StackPanel>
                     <Grid Grid.Column="0" Classes="progresslines" Classes.mfkey="{Binding IsMfkey32Progress}"
-                          Height="40" RowDefinitions="18,18" RowSpacing="4" VerticalAlignment="Center">
+                          Height="36" RowDefinitions="18,18" RowSpacing="0" VerticalAlignment="Top">
                       <TextBlock Classes="caption progresshint" Text="{Binding DumpProgressText}"
                                  TextWrapping="NoWrap" MaxLines="1" LineHeight="18" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
                                  ToolTip.Tip="{Binding DumpProgressText}" />
@@ -1159,26 +1159,38 @@
                 </StackPanel>
 
                 <StackPanel Spacing="6">
-                  <!-- Fixed-width position/value part, then the meaning. One TextBlock keeps both on
-                       the same baseline; trimming eats the meaning first so it stays on one line. -->
-                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                    <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                               ToolTip.Tip="{Binding #MemoryEditor.StatusDetail}"
-                               IsVisible="{Binding #MemoryEditor.StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
-                      <Run FontFamily="Cascadia Code,Consolas,Menlo,monospace" Text="{Binding #MemoryEditor.StatusText}" />
-                      <Run Text="  " />
-                      <Run Text="{Binding #MemoryEditor.StatusDetail}" />
-                    </TextBlock>
-                    <Button Grid.Column="1" Content="Clear" Command="{Binding Form.ClearSectorCommand}"
-                            IsVisible="{Binding Form.IsMifareClassic}" IsEnabled="{Binding !IsBusy}"
-                            ToolTip.Tip="Clear the selected sector and mark its blocks as unread" />
-                  </Grid>
-                  <!-- Keep the status above and the legend below the editor's own scroll area. -->
-                  <ScrollViewer x:Name="MemoryScroll" HorizontalScrollBarVisibility="Disabled" Margin="0,6,0,0">
-                    <Border Classes="inset" Padding="8,6">
-                      <c:HexEditor x:Name="MemoryEditor" Buffer="{Binding Form?.SelectedMemory}" />
-                    </Border>
-                  </ScrollViewer>
+                  <Border Classes="inset" Padding="8,6">
+                    <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12"
+                              VerticalAlignment="Center">
+                          <TextBlock Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Title}" />
+                          <TextBlock Grid.Column="1" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Detail}"
+                                     TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                     ToolTip.Tip="{Binding #MemoryEditor.SelectionStatus.Detail}" />
+                          <TextBlock Grid.Row="1" Classes="caption mono" Text="{Binding #MemoryEditor.SelectionStatus.Position}" />
+                          <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                            <TextBlock Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Hex}"
+                                       Foreground="{StaticResource BrandBlueBrush}" />
+                            <TextBlock Grid.Column="1" Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Decimal}"
+                                       Foreground="{StaticResource BrandAmberBrush}" />
+                            <TextBlock Grid.Column="2" Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Binary}"
+                                       Foreground="{StaticResource HexKeyBBrush}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.ColumnSpan="3" Classes="caption mono" Text="{Binding #MemoryEditor.SelectionStatus.Note}"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding #MemoryEditor.SelectionStatus.Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                          </Grid>
+                        </Grid>
+                        <Button Grid.Column="1" Content="Clear" Command="{Binding Form.ClearSectorCommand}"
+                                VerticalAlignment="Center" IsVisible="{Binding Form.IsMifareClassic}"
+                                IsEnabled="{Binding !IsBusy}"
+                                ToolTip.Tip="Clear the selected sector and mark its blocks as unread" />
+                      </Grid>
+                      <ScrollViewer x:Name="MemoryScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+                        <c:HexEditor x:Name="MemoryEditor" Buffer="{Binding Form?.SelectedMemory}" ShowGroupHeaders="False" />
+                      </ScrollViewer>
+                    </Grid>
+                  </Border>
                   <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsMifareClassic, TargetNullValue=False}" Margin="16,0,0,0">
                     <TextBlock Classes="manufacturer" Text="■ Block 0" />
                     <TextBlock Classes="keya" Text="■ Key A" />

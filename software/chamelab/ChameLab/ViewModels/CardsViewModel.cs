@@ -1181,7 +1181,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool ShowDumpActions => CanDump && !IsDumpRunning && IsConnected && !IsDumpComplete;
     public bool ShowDumpNotice => CanDump && !IsDumpRunning && (!IsConnected || IsDumpComplete);
     public string DumpNotice => IsDumpComplete
-        ? IsUltralightDump ? "All pages have been read." : "All blocks have been read."
+        ? IsUltralightDump ? "All pages have been read." : "All sectors have been read."
         : "Connect a device to read memory and recover keys.";
 
     private void RaiseDumpToolbar()
