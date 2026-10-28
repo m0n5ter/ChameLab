@@ -869,7 +869,10 @@
   <!-- ==================== Compact (phone-width) overrides ==================== -->
   <!-- MainView adds the "compact" class to itself below its width threshold. -->
 
-  <Style Selector=".compact Button.header-disconnect">
+  <Style Selector="c|AppBarGrid.hide-summary :is(Control).header-summary, c|AppBarGrid.hide-logo :is(Control).header-logo, c|AppBarGrid.hide-connection-label :is(Control).header-connection-label, c|AppBarGrid.hide-disconnect-label :is(Control).header-disconnect-label">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="c|AppBarGrid.hide-disconnect-label Button.header-disconnect">
     <Setter Property="Width" Value="36" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />

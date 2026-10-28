@@ -16,7 +16,7 @@
     <!-- ==================== Top app bar ==================== -->
     <Border Grid.Row="0" Padding="10,8,12,8" Background="{actipro:ThemeResource Container1BackgroundBrush}"
             BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,0,1">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+      <c:AppBarGrid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
         <Button Grid.Column="0" Classes="icon" Command="{Binding TogglePaneCommand}"
                 ToolTip.Tip="Toggle navigation" Margin="0,0,6,0">
           <PathIcon Data="{StaticResource Icon.menu}" />
@@ -24,7 +24,7 @@
 
         <!-- Brand mark: the device itself. -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-          <Image Source="/Assets/chameleon-ultra.png" Height="36" Classes="wide-only"
+          <Image Source="/Assets/chameleon-ultra.png" Height="36" Classes="header-logo"
                  RenderOptions.BitmapInterpolationMode="HighQuality" />
           <Button Classes="brand" VerticalAlignment="Center"
                   Command="{Binding AppUpdate.OpenDownloadCommand}"
@@ -45,7 +45,7 @@
           </Button>
         </StackPanel>
 
-        <TextBlock Grid.Column="2" Classes="caption wide-only" Text="{Binding DeviceSummary}"
+        <TextBlock Grid.Column="2" Classes="caption header-summary" Text="{Binding DeviceSummary}"
                    TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                    VerticalAlignment="Center" HorizontalAlignment="Right" Margin="16,0" />
 
@@ -58,7 +58,7 @@
                      Fill="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" IsVisible="{Binding IsConnected}" />
             <Ellipse Width="8" Height="8" VerticalAlignment="Center"
                      Fill="{actipro:ThemeResource DefaultForegroundBrushTertiary}" IsVisible="{Binding !IsConnected}" />
-            <Panel Classes="wide-only">
+            <Panel Classes="header-connection-label">
               <TextBlock Text="Online" FontSize="12" IsVisible="{Binding IsConnected}" VerticalAlignment="Center" />
               <TextBlock Text="Offline" FontSize="12" IsVisible="{Binding !IsConnected}" VerticalAlignment="Center" />
             </Panel>
@@ -75,10 +75,10 @@
                 IsVisible="{Binding IsConnected}" ToolTip.Tip="Disconnect from the device">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.power}" />
-            <TextBlock Text="Disconnect" Classes="wide-only" VerticalAlignment="Center" />
+            <TextBlock Text="Disconnect" Classes="header-disconnect-label" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-      </Grid>
+      </c:AppBarGrid>
     </Border>
 
     <!-- ==================== Body ==================== -->
