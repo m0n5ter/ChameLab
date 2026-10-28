@@ -119,6 +119,410 @@ public class MifareWorkflowTests
         public void Report(T value) => callback(value);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Write_ResumesOnlyUnconfirmedBlocksAndRejectsAnotherUid(bool changedCard)
+    {
+        var source = KnownCard();
+        for (var b = 0; b < source.BlockCount; b++) source.SetBlock(b, MifareClassic.BlankBlock(b));
+        var session = new MifareWriteSession(source, MagicGeneration.Gen2, targetKeys: KnownCard());
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport
+        {
+            OnRequest = r => { if (r.Command == Command.Mf1WriteOneBlock && r.Data[1] == 5) stop.Cancel(); },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            client.WriteMifareDumpToCardAsync(source, [], ct: stop.Token, session: session));
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, session.WrittenBlocks.Order());
+        var confirmed = session.WrittenBlocks.ToArray();
+        transport.OnRequest = null;
+        transport.Requests.Clear();
+        if (changedCard)
+        {
+            transport.Response = r => r.Command == Command.Hf14aScan
+                ? (Status.HfTagOk, new byte[] { 4, 9, 8, 7, 6, 4, 0, 9, 0 }) : null;
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                client.WriteMifareDumpToCardAsync(source, [], session: session));
+            Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1AuthOneKeyBlock or Command.Mf1WriteOneBlock);
+            Assert.Equal(confirmed, session.WrittenBlocks);
+        }
+        else
+        {
+            var failed = await client.WriteMifareDumpToCardAsync(source, [], session: session);
+            Assert.Empty(failed);
+            Assert.True(session.IsComplete);
+            var writes = transport.Requests.Where(r => r.Command == Command.Mf1WriteOneBlock).ToArray();
+            Assert.Equal(14, writes.Length);
+            Assert.DoesNotContain(writes, r => confirmed.Contains(r.Data[1]));
+        }
+    }
+
+    [Theory]
+    [InlineData(MagicGeneration.Gen2)]
+    [InlineData(MagicGeneration.Gen3)]
+    public async Task Write_ResumeAcceptsUidChangedByConfirmedBlock0(MagicGeneration generation)
+    {
+        var source = KnownCard();
+        for (var b = 0; b < source.BlockCount; b++) source.SetBlock(b, MifareClassic.BlankBlock(b));
+        var uid = new byte[] { 1, 2, 3, 4 };
+        var replacement = new byte[] { 9, 8, 7, 6 };
+        replacement.CopyTo(source.GetBlock(0)!, 0);
+        var session = new MifareWriteSession(source, generation, true, KnownCard());
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport
+        {
+            Response = r => r.Command == Command.Hf14aScan
+                ? (Status.HfTagOk, new byte[] { 4 }.Concat(uid).Concat(new byte[] { 4, 0, 9, 0 }).ToArray()) : null,
+            OnRequest = r =>
+            {
+                if (r.Command == Command.Hf14aRaw)
+                {
+                    var start = r.Data.AsSpan().IndexOf(new byte[] { 0x90, 0xFB, 0xCC, 0xCC });
+                    if (start >= 0) uid = r.Data[(start + 5)..(start + 9)];
+                }
+                if (r.Command != Command.Mf1WriteOneBlock) return;
+                if (r.Data[1] == 0) uid = r.Data[8..12];
+                if (r.Data[1] == 1) stop.Cancel();
+            },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.WriteMifareDumpToCardAsync(source, [], generation,
+            ct: stop.Token, writeGen2Block0: true, session: session));
+        Assert.Equal(replacement, session.TargetKeys!.Uid);
+        Assert.Equal(new[] { 0, 1 }, session.WrittenBlocks.Order());
+        transport.OnRequest = null;
+        transport.Requests.Clear();
+
+        Assert.Empty(await client.WriteMifareDumpToCardAsync(source, [], generation, writeGen2Block0: true, session: session));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1WriteOneBlock && r.Data[1] == 0);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Write_ResumeUsesKeysChangedByTrailer(bool acknowledged)
+    {
+        var source = KnownCard();
+        var replacement = Convert.FromHexString("112233445566");
+        for (var b = 0; b < source.BlockCount; b++)
+        {
+            var data = MifareClassic.BlankBlock(b);
+            if (MifareClassic.IsTrailer(b)) { replacement.CopyTo(data, 0); replacement.CopyTo(data, 10); }
+            source.SetBlock(b, data);
+        }
+        Array.Clear(source.KeyA);
+        Array.Clear(source.KeyB);
+        // Match an imported dump: key bytes exist in trailers, but were not authenticated on the source.
+        var session = new MifareWriteSession(source, MagicGeneration.Gen2, targetKeys: KnownCard());
+        var liveKeys = Enumerable.Range(0, 5).Select(_ => Key).ToArray();
+        var retry = false;
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport
+        {
+            Response = r =>
+            {
+                if (r.Command == Command.Mf1AuthOneKeyBlock)
+                    return (r.Data[2..].SequenceEqual(liveKeys[r.Data[1] / 4]) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>());
+                if (r.Command != Command.Mf1WriteOneBlock) return null;
+                if (r.Data[1] == 1 && !retry) return (Status.MfErrAuth, Array.Empty<byte>());
+                if (MifareClassic.IsTrailer(r.Data[1])) liveKeys[r.Data[1] / 4] = r.Data[8..14];
+                if (r.Data[1] == 3 && !acknowledged && !retry) return (Status.HfTagNo, Array.Empty<byte>());
+                return (Status.HfTagOk, Array.Empty<byte>());
+            },
+            OnRequest = r => { if (r.Command == Command.Mf1WriteOneBlock && r.Data[1] == (acknowledged ? 4 : 3)) stop.Cancel(); },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            client.WriteMifareDumpToCardAsync(source, [], ct: stop.Token, session: session));
+        Assert.Equal(acknowledged, session.WrittenBlocks.Contains(3));
+        Assert.Equal(acknowledged ? replacement : Key, session.TargetKeys!.KeyA[0]);
+        retry = true;
+        transport.OnRequest = null;
+        transport.Requests.Clear();
+
+        Assert.Empty(await client.WriteMifareDumpToCardAsync(source, [], session: session));
+        var retriedBlock = Assert.Single(transport.Requests, r => r.Command == Command.Mf1WriteOneBlock && r.Data[1] == 1);
+        Assert.Equal(replacement, retriedBlock.Data[2..8]);
+        Assert.Equal(!acknowledged, transport.Requests.Any(r => r.Command == Command.Mf1WriteOneBlock && r.Data[1] == 3));
+    }
+
+    [Fact]
+    public async Task Gen1a_ResumeSkipsAcknowledgedBlocks()
+    {
+        var source = KnownCard();
+        for (var b = 0; b < source.BlockCount; b++) source.SetBlock(b, MifareClassic.BlankBlock(b));
+        source.Uid.CopyTo(source.GetBlock(0)!, 0);
+        var session = new MifareWriteSession(source, MagicGeneration.Gen1a);
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport
+        {
+            Response = r => r.Command == Command.Hf14aRaw ? (Status.HfTagOk, new byte[] { 0x0A }) : null,
+            OnRequest = r => { if (r.Command == Command.Hf14aRaw && r.Data.AsSpan().EndsWith(new byte[] { 0xA0, 2 })) stop.Cancel(); },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            client.WriteMifareDumpToCardAsync(source, [], MagicGeneration.Gen1a, ct: stop.Token, session: session));
+        Assert.Equal(new[] { 0, 1, 2 }, session.WrittenBlocks.Order());
+        transport.OnRequest = null;
+        transport.Requests.Clear();
+
+        Assert.Empty(await client.WriteMifareDumpToCardAsync(source, [], MagicGeneration.Gen1a, session: session));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Hf14aRaw
+            && (r.Data.AsSpan().EndsWith(new byte[] { 0xA0, 0 }) || r.Data.AsSpan().EndsWith(new byte[] { 0xA0, 1 })));
+    }
+
+    [Theory]
+    [InlineData(false, 19)]
+    [InlineData(true, 20)]
+    public async Task Gen2_Block0OptionControlsWritesAndProgress(bool enabled, int count)
+    {
+        var dump = KnownCard();
+        for (var b = 0; b < dump.BlockCount; b++) dump.SetBlock(b, new byte[16]);
+        var progress = new List<MifareProgress>();
+        var blocks = new List<MifareBlockProgress>();
+        var transport = new CardTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        var failed = await new ChameleonClient(connection).WriteMifareDumpToCardAsync(dump, [],
+            progress: new CallbackProgress<MifareProgress>(progress.Add),
+            blocks: new CallbackProgress<MifareBlockProgress>(blocks.Add), writeGen2Block0: enabled);
+
+        Assert.Empty(failed);
+        var writes = transport.Requests.Where(r => r.Command == Command.Mf1WriteOneBlock).ToArray();
+        Assert.Equal(count, writes.Length);
+        Assert.Equal(enabled, writes.Any(r => r.Data[1] == 0));
+        Assert.Equal(enabled, blocks.Any(p => p.First == 0 && p.State == MifareBlockState.Reading));
+        Assert.Equal(count, progress[^1].Done);
+        Assert.Equal(count, progress[^1].Total);
+    }
+
+    [Fact]
+    public async Task Gen2_DefaultSkipsBlock0WithoutTryingKeysForAnOtherwiseEmptySector()
+    {
+        var dump = KnownCard();
+        dump.SetBlock(0, new byte[16]);
+        var transport = new CardTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        var failed = await new ChameleonClient(connection).WriteMifareDumpToCardAsync(dump, [Key]);
+
+        Assert.Empty(failed);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1AuthOneKeyBlock or Command.Mf1WriteOneBlock);
+    }
+
+    [Theory]
+    [InlineData(MagicGeneration.Gen1a)]
+    [InlineData(MagicGeneration.Gen3)]
+    public async Task OtherGenerationsStillWriteBlock0WithGen2OptionOff(MagicGeneration generation)
+    {
+        var dump = KnownCard();
+        var data = new byte[16];
+        dump.Uid.CopyTo(data, 0);
+        dump.SetBlock(0, data);
+        var transport = new CardTransport
+        {
+            Response = r => r.Command == Command.Hf14aRaw ? (Status.HfTagOk, new byte[] { 0x0A }) : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        var failed = await new ChameleonClient(connection).WriteMifareDumpToCardAsync(dump, [], generation);
+
+        Assert.Empty(failed);
+        Assert.Contains(transport.Requests, r => r.Command == Command.Hf14aRaw
+            && (generation == MagicGeneration.Gen1a
+                ? r.Data.AsSpan().EndsWith(new byte[] { 0xA0, 0x00 })
+                : r.Data.AsSpan().IndexOf(new byte[] { 0x90, 0xFB, 0xCC, 0xCC }) >= 0));
+    }
+
+    [Fact]
+    public async Task KeySearch_DoesNotReadOrWriteMemoryAndReusesRecoveredKeys()
+    {
+        var target = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        var ticks = new List<MifareKeyProgress>();
+        var transport = new CardTransport
+        {
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (request.Data[2..].SequenceEqual(Key) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>())
+                : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+
+        await client.FindMifareKeysAsync(target, [new byte[6], Key],
+            new CallbackProgress<MifareKeyProgress>(ticks.Add));
+
+        Assert.All(target.KeyA.Concat(target.KeyB), key => Assert.Equal(Key, key));
+        Assert.Equal(10, ticks.Count(p => p.Phase == MifareKeyPhase.Found));
+        Assert.Equal(0, target.RecoveredBlocks);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1ReadOneBlock or Command.Mf1WriteOneBlock);
+        transport.Requests.Clear();
+        await client.FindMifareKeysAsync(target, []);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
+    }
+
+    [Fact]
+    public async Task Write_UsesRecoveredTargetKeysWithoutChangingSourceDump()
+    {
+        var source = KnownCard();
+        source.SetBlock(1, new byte[16]);
+        var targetKey = Convert.FromHexString("112233445566");
+        var target = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        target.KeyB[0] = targetKey;
+        var transport = new CardTransport
+        {
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (request.Data[0] == (byte)MfKeyType.B && request.Data[2..].SequenceEqual(targetKey)
+                    ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>()) : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        var failed = await new ChameleonClient(connection).WriteMifareDumpToCardAsync(source, [], targetKeys: target);
+
+        Assert.Empty(failed);
+        var write = Assert.Single(transport.Requests, r => r.Command == Command.Mf1WriteOneBlock);
+        Assert.Equal((byte)MfKeyType.B, write.Data[0]);
+        Assert.Equal(targetKey, write.Data[2..8]);
+        Assert.Equal(Key, source.KeyA[0]);
+        Assert.Equal(Key, source.KeyB[0]);
+        Assert.Equal(targetKey, target.KeyB[0]);
+    }
+
+    [Fact]
+    public async Task Recovery_RejectsChangedTargetBeforeSearchingOrWriting()
+    {
+        var source = KnownCard();
+        source.SetBlock(0, new byte[16]);
+        var target = new MifareDump(MifareClassicType.Mini, [9, 8, 7, 6]);
+        target.KeyA[0] = Key;
+        var transport = new CardTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.FindMifareKeysAsync(target, [Key]));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            client.WriteMifareDumpToCardAsync(source, [Key], targetKeys: target));
+
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1AuthOneKeyBlock or Command.Mf1WriteOneBlock);
+    }
+
+    [Fact]
+    public async Task KeySearch_CancellationKeepsAlreadyRecoveredKeys()
+    {
+        var target = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var progress = new CallbackProgress<MifareKeyProgress>(p =>
+        {
+            if (p.Phase == MifareKeyPhase.Found && p.KeyType == MfKeyType.A) stop.Cancel();
+        });
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            new ChameleonClient(connection).FindMifareKeysAsync(target, [Key], progress, stop.Token));
+
+        Assert.Equal(Key, target.KeyA[0]);
+        Assert.Null(target.KeyB[0]);
+        Assert.Equal(0, target.RecoveredBlocks);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1ReadOneBlock or Command.Mf1WriteOneBlock);
+    }
+
+    [Fact]
+    public async Task Write_SearchesTargetKeysOncePerSectorAndKeepsSourceKeys()
+    {
+        var dump = KnownCard();
+        for (var block = 0; block < 4; block++) dump.SetBlock(block, MifareClassic.BlankBlock(block));
+        var targetKey = Convert.FromHexString("112233445566");
+        var ticks = new List<MifareKeyProgress>();
+        var transport = new CardTransport
+        {
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (request.Data[2..].SequenceEqual(targetKey) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>())
+                : null,
+        };
+        transport.OnRequest = request =>
+        {
+            if (request.Command != Command.Mf1WriteOneBlock) return;
+            Assert.Equal(targetKey, request.Data[2..8]);
+            Assert.Equal(2, ticks.Count(p => p.Phase == MifareKeyPhase.Found));
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        var failed = await new ChameleonClient(connection).WriteMifareDumpToCardAsync(dump,
+            [Key, Key, targetKey, targetKey], keyProgress: new CallbackProgress<MifareKeyProgress>(ticks.Add));
+
+        Assert.Empty(failed);
+        Assert.All(ticks, tick => Assert.Equal(0, tick.Sector));
+        Assert.All(ticks, tick => Assert.Equal(2, tick.Total));
+        Assert.Equal(4, transport.Requests.Count(r => r.Command == Command.Mf1AuthOneKeyBlock));
+        Assert.Equal(3, transport.Requests.Count(r => r.Command == Command.Mf1WriteOneBlock));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1WriteOneBlock && r.Data[1] == 0);
+        Assert.Equal(Key, dump.KeyA[0]);
+        Assert.Equal(Key, dump.KeyB[0]);
+    }
+
+    [Fact]
+    public async Task Write_MissingTargetKeysReportsNotFoundAndFailedBlocks()
+    {
+        var dump = KnownCard();
+        dump.SetBlock(0, new byte[16]);
+        dump.SetBlock(1, new byte[16]);
+        var ticks = new List<MifareKeyProgress>();
+        var transport = new CardTransport
+        {
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (Status.MfErrAuth, Array.Empty<byte>()) : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        var failed = await new ChameleonClient(connection).WriteMifareDumpToCardAsync(dump, [],
+            keyProgress: new CallbackProgress<MifareKeyProgress>(ticks.Add));
+
+        Assert.Equal(new[] { 1 }, failed);
+        Assert.Equal(2, ticks.Count(p => p.Phase == MifareKeyPhase.NotFound));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1WriteOneBlock);
+    }
+
+    [Fact]
+    public async Task Write_CancellationDuringKeySearchDoesNotWriteBlocks()
+    {
+        var dump = KnownCard();
+        dump.SetBlock(1, new byte[16]);
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport
+        {
+            OnRequest = request =>
+            {
+                if (request.Command == Command.Mf1AuthOneKeyBlock) stop.Cancel();
+            },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            new ChameleonClient(connection).WriteMifareDumpToCardAsync(dump, [Key], ct: stop.Token));
+
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1WriteOneBlock);
+    }
+
     [Fact]
     public async Task Dump_CancelKeepsKeysAndBlocksForNextRun()
     {

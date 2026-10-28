@@ -3,6 +3,16 @@ namespace ChameLab.Models;
 /// <summary>Where one key (A or B) of a sector stands while a dump runs.</summary>
 public enum KeyCellState { Unknown, Searching, Found, NotFound }
 
+public enum SectorWriteState { None, Pending, Writing, Partial, Written, Error }
+
+/// <summary>Optional write progress drawn in the same sector cells as key recovery.</summary>
+public interface ISectorWriteProgress
+{
+    SectorWriteState WriteState { get; }
+    double WriteProgress { get; }
+    string WriteText { get; }
+}
+
 /// <summary>
 /// A sector's two key cells, as the dump sector grid reads them. Implemented by the
 /// dump row view model so the grid control can draw without depending on the view models.

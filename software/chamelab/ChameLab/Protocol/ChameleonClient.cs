@@ -860,6 +860,28 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return dump;
     }
 
+    /// <summary>Searches keys without reading or modifying card memory. The target UID is checked
+    /// before using any keys retained from an earlier recovery operation.</summary>
+    public async Task FindMifareKeysAsync(MifareDump target, IReadOnlyList<byte[]> keyDict,
+        IProgress<MifareKeyProgress>? keyProgress = null, CancellationToken ct = default)
+    {
+        await SetDeviceModeAsync(DeviceMode.Reader, ct);
+        var tags = await Hf14aScanAsync(ct);
+        if (tags.Count != 1 || !target.Uid.AsSpan().SequenceEqual(tags[0].Uid))
+            throw new InvalidOperationException("The target card changed. Scan it again before continuing.");
+        var knownA = target.KeyA.OfType<byte[]>().ToList();
+        var knownB = target.KeyB.OfType<byte[]>().ToList();
+        for (var s = 0; s < target.SectorCount; s++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var first = MifareClassic.SectorFirstBlock(s);
+            target.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, knownA, knownB, keyProgress, ct);
+            if (target.KeyA[s] is { } a && !knownA.Any(k => k.AsSpan().SequenceEqual(a))) knownA.Add(a);
+            target.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, knownB, knownA, keyProgress, ct);
+            if (target.KeyB[s] is { } b && !knownB.Any(k => k.AsSpan().SequenceEqual(b))) knownB.Add(b);
+        }
+    }
+
     /// <summary>
     /// Searches <paramref name="keyDict"/> for a key of type <paramref name="kt"/> that opens
     /// the sector (authenticating against <paramref name="block"/>). Keys that already opened other
@@ -1926,7 +1948,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// Writes a MIFARE Classic dump onto a magic card physically on the reader.
     /// <list type="bullet">
     /// <item>Gen1a — magic wakeup, then every block (block 0 included) is written raw with no keys.</item>
-    /// <item>Gen2 / CUID — each sector is authenticated with the dump's own keys, then the dictionary; every block including block 0 is written normally.</item>
+    /// <item>Gen2 / CUID — finds the target's sector keys using the source dump's keys, then the dictionary; block 0 is skipped unless explicitly enabled.</item>
     /// <item>Gen3 — data blocks are written like Gen2, and block 0 is set with the backdoor command.</item>
     /// </list>
     /// Returns the blocks that could not be written. Per-block states go to <paramref name="blocks"/>
@@ -1935,28 +1957,42 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public Task<IReadOnlyList<int>> WriteMifareDumpToCardAsync(
         MifareDump dump, IReadOnlyList<byte[]> keyDict, MagicGeneration gen = MagicGeneration.Gen2,
         IProgress<MifareProgress>? progress = null, CancellationToken ct = default,
-        IProgress<MifareBlockProgress>? blocks = null)
-        => gen switch
+        IProgress<MifareBlockProgress>? blocks = null, IProgress<MifareKeyProgress>? keyProgress = null,
+        MifareDump? targetKeys = null, bool writeGen2Block0 = false, MifareWriteSession? session = null)
+    {
+        session ??= new MifareWriteSession(dump, gen, writeGen2Block0, targetKeys);
+        session.ValidatePlan(dump, gen, writeGen2Block0);
+        return gen switch
         {
-            MagicGeneration.Gen1a => WriteGen1aAsync(dump, progress, blocks, ct),
-            MagicGeneration.Gen3 => WriteGen2Or3Async(dump, keyDict, backdoorBlock0: true, progress, blocks, ct),
-            _ => WriteGen2Or3Async(dump, keyDict, backdoorBlock0: false, progress, blocks, ct),
+            MagicGeneration.Gen1a => WriteGen1aAsync(session, progress, blocks, ct),
+            MagicGeneration.Gen3 => WriteGen2Or3Async(session, keyDict, backdoorBlock0: true, progress, blocks, keyProgress, ct),
+            _ => WriteGen2Or3Async(session, keyDict, backdoorBlock0: false, progress, blocks, keyProgress, ct),
         };
+    }
 
-    /// <summary>Gen2 / Gen3 shared path: auth + write each block, with Gen3's backdoor used for block 0.</summary>
-    private async Task<IReadOnlyList<int>> WriteGen2Or3Async(
-        MifareDump dump, IReadOnlyList<byte[]> keyDict, bool backdoorBlock0,
+    private async Task StartMifareWriteAsync(MifareWriteSession session,
         IProgress<MifareProgress>? progress, IProgress<MifareBlockProgress>? blocks, CancellationToken ct)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
-        if (tags.Count == 0)
-            throw new ChameleonException("No HF tag on the reader.", Status.HfTagNo);
+        if (tags.Count != 1) throw new InvalidOperationException("Place exactly one target card on the reader.");
+        session.ValidateTarget(tags[0].Uid, tags[0].Atqa, tags[0].Sak);
+        if (!session.Started) blocks?.Report(new MifareBlockProgress(0, session.Source.BlockCount, MifareBlockState.Pending));
+        session.Started = true;
+        foreach (var block in session.WrittenBlocks)
+            blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Read));
+        progress?.Report(new MifareProgress(session.WrittenBlocks.Count, session.Total, session.WrittenBlocks.Count));
+    }
 
+    /// <summary>Gen2 / Gen3 shared path: auth + write each block, with Gen3's backdoor used for block 0.</summary>
+    private async Task<IReadOnlyList<int>> WriteGen2Or3Async(
+        MifareWriteSession session, IReadOnlyList<byte[]> keyDict, bool backdoorBlock0,
+        IProgress<MifareProgress>? progress, IProgress<MifareBlockProgress>? blocks,
+        IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
+    {
+        await StartMifareWriteAsync(session, progress, blocks, ct);
+        var dump = session.Source;
         var failed = new List<int>();
-        var total = dump.BlockCount;
-        var written = 0;
-        blocks?.Report(new MifareBlockProgress(0, total, MifareBlockState.Pending));
 
         for (var s = 0; s < dump.SectorCount; s++)
         {
@@ -1964,15 +2000,33 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             var first = MifareClassic.SectorFirstBlock(s);
             var count = MifareClassic.BlocksInSector(s);
 
-            // Candidate write keys for this sector: the dump's own keys, then the dictionary.
+            // Authenticate against the target before writing; the source dump's keys may differ.
+            // Use the same search and progress reporting as reading, without changing the source dump.
+            if (!Enumerable.Range(first, count).Any(session.NeedsWrite)) continue;
+            var targetKeys = session.TargetKeys;
+            // A cancelled trailer write may have committed before its acknowledgement was lost.
+            // Include the planned trailer keys as fallbacks, even for an imported unauthenticated dump.
+            var trailer = dump.GetBlock(MifareClassic.SectorTrailerBlock(s));
+            var sourceA = new[] { targetKeys?.KeyA[s], dump.KeyA[s], trailer is { Length: 16 } ? trailer[..6] : null }
+                .OfType<byte[]>().ToArray();
+            var sourceB = new[] { targetKeys?.KeyB[s], dump.KeyB[s], trailer is { Length: 16 } ? trailer[10..] : null }
+                .OfType<byte[]>().ToArray();
+            var needsKeys = Enumerable.Range(first, count)
+                .Any(b => (b != 0 || !backdoorBlock0) && session.NeedsWrite(b));
+            var keyA = needsKeys
+                ? await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, sourceA, sourceB, keyProgress, ct) : null;
+            var keyB = needsKeys
+                ? await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, sourceB, sourceA, keyProgress, ct) : null;
+            session.StoreKeys(s, keyA, keyB);
             var candidates = new List<(MfKeyType type, byte[] key)>();
-            if (dump.KeyA[s] is { } ka) candidates.Add((MfKeyType.A, ka));
-            if (dump.KeyB[s] is { } kb) candidates.Add((MfKeyType.B, kb));
-            foreach (var k in keyDict) { candidates.Add((MfKeyType.A, k)); candidates.Add((MfKeyType.B, k)); }
+            if (keyA is not null) candidates.Add((MfKeyType.A, keyA));
+            if (keyB is not null) candidates.Add((MfKeyType.B, keyB));
 
             for (var b = 0; b < count; b++)
             {
                 var block = first + b;
+                if (!session.NeedsWrite(block)) continue;
+                ct.ThrowIfCancellationRequested();
                 var data = dump.GetBlock(block);
                 if (data is null || data.Length != 16) continue;
                 blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Reading));
@@ -1980,7 +2034,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 bool ok;
                 if (block == 0 && backdoorBlock0)
                 {
-                    ok = await WriteGen3Block0Async(data, tags[0].Uid, ct);
+                    ok = await WriteGen3Block0Async(data, session.TargetKeys!.Uid, CancellationToken.None);
                 }
                 else
                 {
@@ -1990,15 +2044,17 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                         ct.ThrowIfCancellationRequested();
                         try
                         {
-                            if (await Mf1WriteBlockAsync(block, kt, key, data, ct)) { ok = true; break; }
+                            // Finish the current write transaction even after Stop, so its acknowledgement
+                            // (and any changed UID/keys) is retained before cancellation stops the next block.
+                            if (await Mf1WriteBlockAsync(block, kt, key, data, CancellationToken.None)) { ok = true; break; }
                         }
                         catch (Exception ex) when (IsRfFailure(ex)) { /* try the next key */ }
                     }
                 }
 
-                if (ok) written++; else failed.Add(block);
+                if (ok) session.Confirm(block); else failed.Add(block);
                 blocks?.Report(new MifareBlockProgress(block, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
-                progress?.Report(new MifareProgress(block + 1, total, written));
+                progress?.Report(new MifareProgress(session.WrittenBlocks.Count + failed.Count, session.Total, session.WrittenBlocks.Count));
             }
         }
 
@@ -2045,28 +2101,26 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
     /// <summary>Gen1a path: write every block raw with no authentication (block 0 included).</summary>
     private async Task<IReadOnlyList<int>> WriteGen1aAsync(
-        MifareDump dump, IProgress<MifareProgress>? progress, IProgress<MifareBlockProgress>? blocks, CancellationToken ct)
+        MifareWriteSession session, IProgress<MifareProgress>? progress, IProgress<MifareBlockProgress>? blocks, CancellationToken ct)
     {
-        await SetDeviceModeAsync(DeviceMode.Reader, ct);
-
+        await StartMifareWriteAsync(session, progress, blocks, ct);
+        var dump = session.Source;
         var failed = new List<int>();
-        var total = dump.BlockCount;
-        var written = 0;
-        blocks?.Report(new MifareBlockProgress(0, total, MifareBlockState.Pending));
 
         try
         {
             for (var block = 0; block < dump.BlockCount; block++)
             {
                 ct.ThrowIfCancellationRequested();
+                if (!session.NeedsWrite(block)) continue;
                 var data = dump.GetBlock(block);
                 if (data is null || data.Length != 16) continue;
 
                 blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Reading));
-                var ok = await Gen1aWriteBlockAsync(block, data, ct);
-                if (ok) written++; else failed.Add(block);
+                var ok = await Gen1aWriteBlockAsync(block, data, CancellationToken.None);
+                if (ok) session.Confirm(block); else failed.Add(block);
                 blocks?.Report(new MifareBlockProgress(block, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
-                progress?.Report(new MifareProgress(block + 1, total, written));
+                progress?.Report(new MifareProgress(session.WrittenBlocks.Count + failed.Count, session.Total, session.WrittenBlocks.Count));
             }
         }
         finally

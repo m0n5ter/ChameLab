@@ -55,7 +55,7 @@ public enum CardAction { None, Slots, Write, Delete }
 /// and an editor for a saved card with duplicate / export / emulate-in-slot /
 /// write-to-tag / delete actions.
 /// </summary>
-public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList, IDropOutList
+public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList, IDropOutList, IKeyRecoveryContext
 {
     private readonly DeviceService _device;
     private readonly CardLibrary _library;
@@ -134,6 +134,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _library = library;
         _dictionaries = dictionaries;
         _isConnected = device.State == ConnectionState.Connected;
+        WriteRecovery = new MifareKeyRecoveryViewModel(() => _device.Client, _dictionaries,
+            () => _slotInfos, SourceWriteKeys, work => RunAsync(work), cancelWrite: CancelWrite,
+            targetCard: ResolveRecoveryTargetCard);
+        WriteRecovery.SetGeneration(SelectedGeneration);
+        WriteRecovery.WhenAnyValue(x => x.AllTargetKeysRecovered, x => x.AllPlannedSectorsWritten,
+            (keys, written) => (keys, written)).Subscribe(_ => RaiseWriteKeyAvailability());
+        this.WhenAnyValue(x => x.IsConnected, x => x.IsBusy, (online, busy) => (online, busy))
+            .Subscribe(state =>
+            {
+                WriteRecovery.SetAvailability(state.Item1, state.Item2);
+                this.RaisePropertyChanged(nameof(CanChangeWriteOptions));
+            });
 
         var hasForm = this.WhenAnyValue(x => x.Form).Select(f => f is not null);
         var cardOpen = this.WhenAnyValue(x => x.Selected).Select(s => s is not null);
@@ -204,8 +216,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         RefreshSlotsCommand = ReactiveCommand.CreateFromTask(RefreshSlotsAsync, connected);
         WriteNowCommand = ReactiveCommand.CreateFromTask(WriteAsync,
             this.WhenAnyValue(x => x.IsConnected, x => x.WritePasswordError, x => x.WriteLfPasswordError,
-                x => x.WriteLfNewKeyError,
-                (online, ulError, lfError, lfNewError) => online && ulError is null && lfError is null && lfNewError is null));
+                x => x.WriteLfNewKeyError, x => x.IsBusy, x => x.HasRequiredWriteKeys, x => x.IsWriteSuccessful,
+                (online, ulError, lfError, lfNewError, busy, keysReady, succeeded) =>
+                    online && !busy && !succeeded && keysReady && ulError is null && lfError is null && lfNewError is null));
+        WriteAnotherCommand = ReactiveCommand.Create(WriteAnother,
+            this.WhenAnyValue(x => x.IsBusy, x => x.IsWriteSuccessful, (busy, succeeded) => !busy && succeeded));
         DetectCommand = ReactiveCommand.CreateFromTask(DetectAsync, connected);
         ResetFiltersCommand = ReactiveCommand.Create(ResetFilters, this.WhenAnyValue(x => x.HasFilters));
         NewFolderCommand = ReactiveCommand.Create(NewFolder);
@@ -502,6 +517,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (_form is not null) _form.PropertyChanged -= OnFormPropertyChanged;
             this.RaiseAndSetIfChanged(ref _form, value);
+            this.RaisePropertyChanged(nameof(RecoverySelectedSector));
             if (_form is not null) _form.PropertyChanged += OnFormPropertyChanged;
             if (!_applyingDump) InitializeDumpFromForm();
             this.RaisePropertyChanged(nameof(IsCardDirty));
@@ -515,6 +531,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private void OnFormPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(CardEditorViewModel.SelectedSector))
+            this.RaisePropertyChanged(nameof(RecoverySelectedSector));
         if (e.PropertyName == nameof(CardEditorViewModel.Memory))
             this.RaisePropertyChanged(nameof(ShowMemoryEditor));
         if (e.PropertyName is nameof(CardEditorViewModel.Name) or nameof(CardEditorViewModel.Tag)
@@ -1226,14 +1244,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     public bool IsDumpRunning => DumpProgressText is not null;
-    public bool ShowDumpActions => CanDump && !IsDumpRunning && IsConnected && !IsDumpComplete;
-    public bool ShowDumpNotice => CanDump && !IsDumpRunning && (!IsConnected || IsDumpComplete);
-    public string DumpNotice => IsDumpComplete
-        ? IsUltralightDump ? "All pages have been read." : "All sectors have been read."
-        : "Connect a device to read memory and recover keys.";
+    public bool ShowDumpActions => CanDump && !IsDumpRunning && !IsDumpComplete;
+    public bool ShowDumpNotice => CanDump && !IsDumpRunning && !IsDumpComplete && !IsConnected;
+    public string DumpNotice => "Connect a device to read memory and recover keys.";
 
     private void RaiseDumpToolbar()
     {
+        this.RaisePropertyChanged(nameof(ShowRecoveryTools));
         this.RaisePropertyChanged(nameof(IsDumpRunning));
         this.RaisePropertyChanged(nameof(ShowDumpActions));
         this.RaisePropertyChanged(nameof(ShowDumpNotice));
@@ -1351,7 +1368,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         RaiseSaveLabel();
     }
 
-    public bool ShowCheckRecovery => _classicDump is not null && _cardPrng is null && !IsDumpComplete;
+    public bool ShowCheckRecovery => _classicDump is not null && _cardPrng is null && !IsDumpComplete && HasUnknownKeys;
 
     private Task CheckRecoveryAsync() => RunAsync(async () =>
     {
@@ -1618,7 +1635,25 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
         var keys = BuildKeyDictionary();
-        await MifareDumpBodyAsync(client, keys, DumpFormType(), cts);
+        try
+        {
+            // A saved full dump still needs its physical card's keys authenticated.
+            // The normal continuation reader deliberately skips blocks already present.
+            if (IsDumpComplete && _classicDump is { } complete && HasUnknownKeys)
+            {
+                DumpProgressText = "Checking dictionary keys…";
+                var progress = new PostedProgress<MifareKeyProgress>(IfKept<MifareKeyProgress>(cts, OnDumpKey));
+                await client.FindMifareKeysAsync(complete, keys, progress, cts.Token);
+            }
+            await MifareDumpBodyAsync(client, keys, DumpFormType(), cts, finish: false);
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
+        finally
+        {
+            if (_classicDump is { } dump) RememberCardKeys(dump);
+            if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
+            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
+        }
     });
 
     private Task RecoverKeysAsync(MifareRecoveryMethod method) => RunAsync(async () =>
@@ -1924,6 +1959,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, "Built-in keys", MifareClassic.DefaultKeys));
         foreach (var d in _dictionaries.Dictionaries)
             DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? "Untitled" : d.Name, d.Keys));
+        WriteRecovery.SetKeySources(DumpKeySources.Where(s => !s.IsKnownCardKeys));
         UpdateDumpKeyCount();
     }
 
@@ -1956,7 +1992,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             new JsonArray(_uncheckedKeySources.Order().Select(id => (JsonNode?)JsonValue.Create(id)).ToArray()));
     }
 
-    private void UpdateDumpKeyCount() => DumpKeyCount = BuildKeyDictionary().Count;
+    private void UpdateDumpKeyCount()
+    {
+        DumpKeyCount = BuildKeyDictionary().Count;
+        WriteRecovery.Refresh();
+    }
 
     /// <summary>Keys of the checked sources in list order (built-in first), de-duplicated.</summary>
     private IReadOnlyList<byte[]> BuildKeyDictionary()
@@ -2178,6 +2218,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public ICommand LoadToSlotCommand { get; }
     public ICommand RefreshSlotsCommand { get; }
     public ICommand WriteNowCommand { get; }
+    public ICommand WriteAnotherCommand { get; }
     public ICommand CancelWriteCommand { get; }
     public ICommand DetectCommand { get; }
 
@@ -2189,7 +2230,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         private set
         {
             // Closing the writer (Cancel, another action, a disconnect) stops a write in flight.
-            if (value != CardAction.Write) CancelWrite();
+            if (value != CardAction.Write)
+            {
+                CancelWrite();
+                ClearWriteSession();
+                WriteRecovery.Reset();
+            }
             this.RaiseAndSetIfChanged(ref _action, value);
             this.RaisePropertyChanged(nameof(IsSlotsOpen));
             this.RaisePropertyChanged(nameof(IsWriteOpen));
@@ -2217,7 +2263,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void Toggle(CardAction action)
     {
         Action = _action == action ? CardAction.None : action;
-        if (_action == CardAction.Write) WriteBlockStates = Array.Empty<MifareBlockState>();
+        if (_action == CardAction.Write)
+        {
+            WriteBlockStates = Array.Empty<MifareBlockState>();
+            ResetWriteRecovery();
+        }
     }
 
     /// <summary>Short progress line shown beside the Stop button while a write runs; null otherwise.</summary>
@@ -2228,6 +2278,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             this.RaiseAndSetIfChanged(ref _writeProgressText, value);
             this.RaisePropertyChanged(nameof(IsWriting));
+            this.RaisePropertyChanged(nameof(WriteKeyHint));
             this.RaisePropertyChanged(nameof(CancelWriteLabel));
             this.RaisePropertyChanged(nameof(CancelWriteTip));
         }
@@ -2255,13 +2306,14 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
     }
 
-    public bool HasWriteBlocks => _writeBlockStates.Count > 0;
+    public bool HasWriteBlocks => IsUltralightWrite && _writeBlockStates.Count > 0;
 
     /// <summary>What one cell of the writer's strip is.</summary>
     public string WriteUnit => IsUltralightWrite ? "Page" : "Block";
 
     private void OnWriteBlocks(MifareBlockProgress p)
     {
+        if (IsMifareWrite) WriteRecovery.ApplyWriteProgress(p);
         if (p.State == MifareBlockState.Pending && p.First == 0)
         {
             WriteBlockStates = new MifareBlockState[p.Count];
@@ -2311,6 +2363,26 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private const string GenerationSetting = "cardsWriteGeneration";
     private MagicGeneration _generation =
         Enum.TryParse<MagicGeneration>(AppSettings.GetString(GenerationSetting), out var gen) ? gen : MagicGeneration.Gen2;
+
+    private const string Gen2Block0Setting = "cardsWriteGen2Block0";
+    private bool _writeGen2Block0 = AppSettings.Get(Gen2Block0Setting) is JsonValue savedBlock0
+        && savedBlock0.TryGetValue<bool>(out var enabledBlock0) && enabledBlock0;
+
+    public bool IsGen2Write => IsMifareWrite && SelectedGeneration == MagicGeneration.Gen2;
+
+    public bool WriteGen2Block0
+    {
+        get => _writeGen2Block0;
+        set
+        {
+            if (_writeGen2Block0 == value) return;
+            this.RaiseAndSetIfChanged(ref _writeGen2Block0, value);
+            AppSettings.Set(Gen2Block0Setting, value);
+            this.RaisePropertyChanged(nameof(WriteInstructions));
+            this.RaisePropertyChanged(nameof(WriteWarning));
+            RefreshWritePreview();
+        }
+    }
 
     /// <summary>The writer targets an Ultralight / NTAG card: only its user pages are written.</summary>
     public bool IsUltralightWrite => ActionTag?.IsUltralight() == true;
@@ -2386,7 +2458,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (_generation == value) return;
             this.RaiseAndSetIfChanged(ref _generation, value);
+            this.RaisePropertyChanged(nameof(WriteInstructions));
             this.RaisePropertyChanged(nameof(WriteWarning));
+            this.RaisePropertyChanged(nameof(ShowWriteSectors));
+            this.RaisePropertyChanged(nameof(IsGen2Write));
+            ResetWriteRecovery();
+            RaiseWriteKeyAvailability();
             AppSettings.Set(GenerationSetting, value.ToString());
         }
     }
@@ -2400,16 +2477,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _ => "This card type cannot be written yet",
     };
 
-    public string WriteWarning => ActionTag switch
+    public string WriteInstructions => ActionTag switch
     {
         { } t when t.IsMifareClassic() => SelectedGeneration switch
         {
             MagicGeneration.Gen1a =>
                 "Place a Gen1a (UID) magic card on the reader. Every block, block 0 included, is written raw with no keys.",
             MagicGeneration.Gen3 =>
-                "Place a Gen3 (APDU) magic card on the reader. Data blocks are written with the card's own keys or the saved dictionaries; block 0 is set with the Gen3 backdoor command.",
+                "Place a Gen3 (APDU) magic card on the reader. Data blocks are written using the source dump's keys or the selected dictionaries; block 0 is set with the Gen3 backdoor command.",
             _ =>
-                "Place a Gen2 / CUID magic card on the reader. Every block, block 0 included, is written with the card's own keys or the saved dictionaries.",
+                WriteGen2Block0
+                    ? "Place a Gen2 / CUID magic card on the reader. Every block, block 0 included, is written using the source dump's keys or the selected dictionaries."
+                    : "Place a Gen2 / CUID magic card on the reader. Block 0 is skipped, so the card keeps its UID. Other blocks are written using the source dump's keys or the selected dictionaries.",
         },
         { } t when t.IsUltralight() =>
             "Place an Ultralight / NTAG card of the same size or larger on the reader. The user pages are written; the UID, lock bytes, capability container and configuration (password, AUTH0) are left as they are, so the card keeps its own UID.",
@@ -2418,13 +2497,22 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _ => string.Empty,
     };
 
+    public string? WriteWarning => !IsGen2Write ? null
+        : WriteGen2Block0
+            ? "WARNING: Incorrect block 0 data or sector access bits can permanently brick the card. Double-check the dump and the target card before writing."
+            : "WARNING: Incorrect sector access bits can permanently brick the card. Double-check the dump and the target card before writing.";
+
     private void RaiseCardInfo()
     {
+        RaiseWriteKeyAvailability();
         this.RaisePropertyChanged(nameof(SelectedCardFolder));
         this.RaisePropertyChanged(nameof(CardFolderLabel));
         this.RaisePropertyChanged(nameof(CanExportDump));
         this.RaisePropertyChanged(nameof(CanWriteSelected));
         this.RaisePropertyChanged(nameof(IsMifareWrite));
+        this.RaisePropertyChanged(nameof(IsGen2Write));
+        this.RaisePropertyChanged(nameof(HasWriteBlocks));
+        this.RaisePropertyChanged(nameof(ShowWriteSectors));
         this.RaisePropertyChanged(nameof(IsUltralightWrite));
         this.RaisePropertyChanged(nameof(IsLfWrite));
         this.RaisePropertyChanged(nameof(WriteUnit));
@@ -2432,6 +2520,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(WriteLfPasswordError));
         this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
         this.RaisePropertyChanged(nameof(WriteKind));
+        this.RaisePropertyChanged(nameof(WriteInstructions));
         this.RaisePropertyChanged(nameof(WriteWarning));
     }
 
@@ -2439,30 +2528,22 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         var client = _device.Client;
         if (client is null) return;
-        ProgressText = "Detecting the card…";
-        try
+        var gen = await client.DetectMagicAsync();
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            var gen = await client.DetectMagicAsync();
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            if (gen is null)
             {
-                if (gen is null)
-                {
-                    SetStatus("No card found on the reader.", isError: true);
-                    return;
-                }
-                SelectedGeneration = gen.Value;
-                SetStatus(gen.Value switch
-                {
-                    MagicGeneration.Gen1a => "Detected a Gen1a (UID) magic card.",
-                    MagicGeneration.Gen3 => "Detected a Gen3 (APDU) magic card.",
-                    _ => "No Gen1a or Gen3 magic card detected; assuming Gen2 / CUID.",
-                });
+                SetStatus("No card found on the reader.", isError: true);
+                return;
+            }
+            SelectedGeneration = gen.Value;
+            SetStatus(gen.Value switch
+            {
+                MagicGeneration.Gen1a => "Detected a Gen1a (UID) magic card.",
+                MagicGeneration.Gen3 => "Detected a Gen3 (APDU) magic card.",
+                _ => "No Gen1a or Gen3 magic card detected; assuming Gen2 / CUID.",
             });
-        }
-        finally
-        {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => ProgressText = null);
-        }
+        });
     });
 
     private void Duplicate()
@@ -2554,37 +2635,60 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         var client = _device.Client;
         if (client is null || ActionCard() is not { } card) return;
+        if (!HasRequiredWriteKeys)
+        {
+            SetStatus("Recover both keys for every sector of the target Gen2 card before writing.", isError: true);
+            return;
+        }
 
         var unit = card.Tag.IsUltralight() ? "page" : "block";
-        // Posted like the reset below and the cleanup in finally, so the ticks land in order between them.
-        var progress = new PostedProgress<MifareProgress>(p =>
-        {
-            // A late tick must not overwrite “Stopping…”.
-            if (_writeCts is { IsCancellationRequested: false }) WriteProgressText = $"{WriteUnit} {p.Done}/{p.Total}";
-        });
-        var blockProgress = new PostedProgress<MifareBlockProgress>(OnWriteBlocks);
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            WriteBlockStates = Array.Empty<MifareBlockState>();
-            WriteProgressText = "Starting…";
-        });
-
+        var version = _writeVersion;
+        var resume = _writeSession is not null;
+        var session = card.Tag.IsMifareClassic()
+            ? _writeSession ??= new MifareWriteSession(card.ToMifareDump(), SelectedGeneration, WriteGen2Block0, WriteRecovery.Target)
+            : null;
+        var succeeded = false;
         using var cts = new CancellationTokenSource();
         _writeCts = cts;
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        long lastProgress = -200;
+        var progress = new PostedProgress<MifareProgress>(p =>
+        {
+            if (version != _writeVersion || cts.IsCancellationRequested) return;
+            // Counts change at most ~7 times a second; completion is always delivered.
+            if (clock.ElapsedMilliseconds - lastProgress < 150 && p.Done != p.Total) return;
+            lastProgress = clock.ElapsedMilliseconds;
+            WriteProgressText = $"{WriteUnit} {p.Done}/{p.Total}";
+            if (session is not null) WriteRecovery.ReportWriteCount(p);
+        });
+        var blockProgress = new PostedProgress<MifareBlockProgress>(p =>
+        {
+            if (version == _writeVersion) OnWriteBlocks(p);
+        });
+        var keyProgress = new PostedProgress<MifareKeyProgress>(p =>
+        {
+            if (version == _writeVersion) WriteRecovery.ApplyKey(p);
+        });
+        var writeKeys = WriteRecovery.BuildKeyDictionary();
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (version != _writeVersion) return;
+            if (!resume) WriteBlockStates = Array.Empty<MifareBlockState>();
+            if (session is not null)
+                WriteRecovery.PrepareWrite(card.Tag, session.Source, IncludeWriteBlock0, resume);
+            WriteProgressText = resume ? "Checking target UID…" : "Starting…";
+            this.RaisePropertyChanged(nameof(CanChangeWriteOptions));
+        });
         try
         {
             if (card.Tag.SenseType() == TagSenseType.Lf)
             {
-                // The current password unlocks the tag; it is tried before the firmware's defaults.
                 var hasCurrent = Hex.TryParse(WriteLfPassword, out var lfKey) && lfKey.Length == 4;
                 IReadOnlyList<byte[]>? oldKeys = hasCurrent ? [lfKey, .. ChameleonClient.DefaultT55xxOldKeys] : null;
-                // The password the tag is locked with afterwards. An empty New password keeps the
-                // current one, so the tag is not silently re-locked with the firmware default; with
-                // no current password either (a blank tag) it falls back to the firmware default.
                 var newKey = Hex.TryParse(WriteLfNewKey, out var nk) && nk.Length == 4 ? nk
-                    : hasCurrent ? lfKey
-                    : null;
+                    : hasCurrent ? lfKey : null;
                 await client.WriteLfToT55xxAsync(card.Tag, card.Uid, newKey: newKey, oldKeys: oldKeys, ct: cts.Token);
+                succeeded = true;
                 SetStatus($"Wrote “{card.Name}” to the T55xx tag.");
                 return;
             }
@@ -2595,31 +2699,35 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 var pwd = Hex.TryParse(WritePassword, out var k) && k.Length > 0 ? k : null;
                 failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress);
             }
-            else if (card.Tag.IsMifareClassic())
+            else if (session is not null)
             {
-                failed = await client.WriteMifareDumpToCardAsync(card.ToMifareDump(), _dictionaries.AllKeys(),
-                    SelectedGeneration, progress, cts.Token, blockProgress);
+                failed = await client.WriteMifareDumpToCardAsync(card.ToMifareDump(), writeKeys,
+                    SelectedGeneration, progress, cts.Token, blockProgress, keyProgress,
+                    session.TargetKeys, WriteGen2Block0, session);
             }
             else return;
 
-            if (failed.Count == 0)
-                SetStatus($"Wrote “{card.Name}” to the card.");
-            else
-                SetStatus($"Wrote “{card.Name}”, but {failed.Count} {unit}(s) failed: {string.Join(", ", failed)}.", isError: true);
+            succeeded = failed.Count == 0;
+            if (succeeded) SetStatus($"Wrote “{card.Name}” to the card.");
+            else SetStatus($"Wrote “{card.Name}”, but {failed.Count} {unit}(s) failed: {string.Join(", ", failed)}.", isError: true);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            SetStatus($"Write stopped. The {unit}s already written stay on the card.");
+            SetStatus(session is not null
+                ? "Write stopped. Press Write to continue on the same card; its UID will be checked first."
+                : $"Write stopped. The {unit}s already written stay on the card.");
         }
         finally
         {
-            _writeCts = null;
-            // The block being written when the write stopped (or the link dropped) was not confirmed.
+            if (ReferenceEquals(_writeCts, cts)) _writeCts = null;
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                if (version != _writeVersion) return;
                 WriteBlockStates = WithBlocks(_writeBlockStates, 0, _writeBlockStates.Count,
                     MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading);
                 WriteProgressText = null;
+                if (session is not null) WriteRecovery.FinishWrite(session);
+                IsWriteSuccessful = succeeded;
             });
         }
     });

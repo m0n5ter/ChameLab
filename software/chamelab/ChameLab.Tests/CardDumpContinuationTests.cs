@@ -180,13 +180,13 @@ public class CardDumpContinuationTests
     }
 
     [Fact]
-    public void DumpToolbarShowsExactlyOneStateAndUpdatesWhenConnectionOrProgressChanges()
+    public void DumpToolbarAndNoticeHideWhenReadingCompletes()
     {
         var vm = Open(Card());
         void Set(string name, object? value) => typeof(CardsViewModel).GetProperty(name)!.SetValue(vm, value);
         Assert.True(vm.ShowDumpNotice);
         Assert.Contains("Connect a device", vm.DumpNotice);
-        Assert.False(vm.ShowDumpActions);
+        Assert.True(vm.ShowDumpActions);
         Set(nameof(CardsViewModel.IsConnected), true);
         Assert.True(vm.ShowDumpActions);
         Assert.False(vm.ShowDumpNotice);
@@ -200,12 +200,13 @@ public class CardDumpContinuationTests
         Set(nameof(CardsViewModel.DumpProgressText), null);
         Assert.False(vm.IsDumpRunning);
         Assert.False(vm.ShowDumpActions);
-        Assert.True(vm.ShowDumpNotice);
-        Assert.Equal("All sectors have been read.", vm.DumpNotice);
+        Assert.False(vm.ShowRecoveryTools);
+        Assert.False(vm.ShowDumpNotice);
         Set(nameof(CardsViewModel.IsConnected), false);
-        Assert.True(vm.ShowDumpNotice);
-        Assert.Equal("All sectors have been read.", vm.DumpNotice);
+        Assert.False(vm.ShowDumpNotice);
         Set(nameof(CardsViewModel.IsDumpComplete), false);
+        Assert.True(vm.ShowDumpActions);
+        Assert.True(vm.ShowRecoveryTools);
         Assert.Contains("Connect a device", vm.DumpNotice);
     }
 
@@ -216,6 +217,29 @@ public class CardDumpContinuationTests
         Assert.True(vm.CanDump);
         Assert.False(vm.IsDumpComplete);
         Assert.Equal(0, Dump(vm).RecoveredBlocks);
+    }
+
+    [Fact]
+    public void OpeningAndClosingClassicCardNotifiesRecoveryPanelVisibility()
+    {
+        var store = new MemoryKeyValueStore();
+        var library = new CardLibrary(store);
+        var card = Card();
+        library.Add(card);
+        var vm = new CardsViewModel(new DeviceService([]), library, new DictionaryLibrary(store));
+        var visibilityChanged = 0;
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(CardsViewModel.ShowRecoveryTools)) visibilityChanged++;
+        };
+        Assert.False(vm.ShowRecoveryTools);
+        vm.OpenCard(card.Id);
+        Assert.True(vm.ShowRecoveryTools);
+        Assert.True(visibilityChanged > 0);
+        visibilityChanged = 0;
+        vm.CloseCommand.Execute(null);
+        Assert.False(vm.ShowRecoveryTools);
+        Assert.True(visibilityChanged > 0);
     }
 
     [Fact]
@@ -234,13 +258,16 @@ public class CardDumpContinuationTests
     [Theory]
     [InlineData(TagSpecificType.Mifare1024, 64, 16)]
     [InlineData(TagSpecificType.Ntag213, 45, 4)]
-    public void CompleteMemoryDoesNotOfferAnotherDump(TagSpecificType tag, int count, int size)
+    public void CompleteMemoryHidesAttackPanelAndNotice(TagSpecificType tag, int count, int size)
     {
         var card = Card(tag);
         card.Data = Enumerable.Range(0, count).Select(_ => new byte[size]).ToList();
         var vm = Open(card);
         Assert.True(vm.IsDumpComplete);
         Assert.False(vm.ShowCheckRecovery);
+        Assert.False(vm.ShowDumpActions);
+        Assert.False(vm.ShowRecoveryTools);
+        Assert.False(vm.ShowDumpNotice);
     }
 
     [Fact]

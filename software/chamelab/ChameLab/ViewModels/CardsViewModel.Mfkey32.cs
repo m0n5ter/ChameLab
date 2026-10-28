@@ -64,6 +64,7 @@ public sealed partial class CardsViewModel
 
     private void RaiseMfkey32Availability()
     {
+        WriteRecovery.Refresh();
         this.RaisePropertyChanged(nameof(CanRunMfkey32));
         this.RaisePropertyChanged(nameof(Mfkey32Tip));
     }
@@ -143,6 +144,9 @@ public sealed partial class CardsViewModel
 
     public override async Task OnDeactivatedAsync()
     {
+        WriteRecovery.Cancel();
+        if (WriteRecovery.RunningTask is { IsCompleted: false } recovery) await recovery;
+        CancelWrite();
         if (!_mfkey32Running) return;
         CancelDump();
         if (_mfkey32Task is { } task) await task;

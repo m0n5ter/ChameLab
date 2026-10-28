@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -27,6 +28,9 @@ namespace ChameLab.Controls;
 /// </summary>
 public class SectorKeyGrid : Control
 {
+    public static readonly StyledProperty<bool> IsWriteProperty =
+        AvaloniaProperty.Register<SectorKeyGrid, bool>(nameof(IsWrite));
+    public bool IsWrite { get => GetValue(IsWriteProperty); set => SetValue(IsWriteProperty, value); }
     public static readonly StyledProperty<IReadOnlyList<ISectorKeys>?> SectorsProperty =
         AvaloniaProperty.Register<SectorKeyGrid, IReadOnlyList<ISectorKeys>?>(nameof(Sectors));
 
@@ -61,6 +65,10 @@ public class SectorKeyGrid : Control
         AvaloniaProperty.Register<SectorKeyGrid, IBrush?>(nameof(NotFoundBrush), Brushes.IndianRed);
     public static readonly StyledProperty<IBrush?> UnknownBrushProperty =
         AvaloniaProperty.Register<SectorKeyGrid, IBrush?>(nameof(UnknownBrush), Brushes.Gray);
+
+    public static readonly StyledProperty<IBrush?> WriteErrorBrushProperty =
+        AvaloniaProperty.Register<SectorKeyGrid, IBrush?>(nameof(WriteErrorBrush), Brushes.IndianRed);
+    public IBrush? WriteErrorBrush { get => GetValue(WriteErrorBrushProperty); set => SetValue(WriteErrorBrushProperty, value); }
 
     /// <summary>The persistent outline of the selected sector.</summary>
     public static readonly StyledProperty<IBrush?> SelectionBrushProperty =
@@ -102,7 +110,8 @@ public class SectorKeyGrid : Control
         AffectsMeasure<SectorKeyGrid>(SectorsProperty, ColumnsProperty, MaxSquareProperty, MaxCellWidthProperty,
             GapProperty, RowGapProperty, LabelBrushProperty);
         AffectsRender<SectorKeyGrid>(SectorsProperty, FoundBrushProperty, SearchingBrushProperty,
-            NotFoundBrushProperty, UnknownBrushProperty, LabelBrushProperty, SelectionBrushProperty, SelectedSectorProperty);
+            NotFoundBrushProperty, UnknownBrushProperty, WriteErrorBrushProperty, IsWriteProperty,
+            LabelBrushProperty, SelectionBrushProperty, SelectedSectorProperty);
         SectorsProperty.Changed.AddClassHandler<SectorKeyGrid>((g, e) => g.OnSectorsChanged(e));
         LabelBrushProperty.Changed.AddClassHandler<SectorKeyGrid>((g, _) => g._labelA = g._labelB = null);
     }
@@ -208,6 +217,7 @@ public class SectorKeyGrid : Control
 
     private bool IsAnimating()
     {
+        if (IsWrite) return false;
         var now = Now;
         foreach (var a in _anims)
             if (a.State == KeyCellState.Searching || now - a.SettledAt < FlashMs) return true;
@@ -303,6 +313,12 @@ public class SectorKeyGrid : Control
             using var opacity = ctx.PushOpacity(i == SelectedSector ? 1 : i == _hover ? 0.85 : 0.55);
             var a = m.Cell(i, false);
             var b = m.Cell(i, true);
+            if (IsWrite && sectors[i] is ISectorWriteProgress write)
+            {
+                WriteSquare(ctx, a, write);
+                WriteSquare(ctx, b, write);
+                continue;
+            }
             if (sectors[i].IsRead)
             {
                 if (FoundBrush is { } readBrush)
@@ -387,6 +403,24 @@ public class SectorKeyGrid : Control
                 ctx.DrawRectangle(null, new Pen(brush, 2 * (1 - e) + 0.75),
                     new RoundedRect(r.Inflate(m.Gap * (0.5 + 1.5 * e)), Radius + m.Gap * (0.5 + 1.5 * e)));
         }
+    }
+
+    private void WriteSquare(DrawingContext ctx, Rect r, ISectorWriteProgress write)
+    {
+        var shape = new RoundedRect(r, Radius);
+        var brush = write.WriteState switch
+        {
+            SectorWriteState.Written => FoundBrush,
+            SectorWriteState.Error => WriteErrorBrush,
+            _ => UnknownBrush,
+        };
+        if (brush is not null) ctx.DrawRectangle(brush, null, shape);
+        var fill = write.WriteState == SectorWriteState.Writing ? SearchingBrush : FoundBrush;
+        if (write.WriteState is SectorWriteState.Partial or SectorWriteState.Writing && fill is not null)
+            using (ctx.PushClip(shape))
+                ctx.DrawRectangle(fill, null, new Rect(r.X, r.Y, r.Width * write.WriteProgress, r.Height));
+        if (write.WriteState == SectorWriteState.Writing && SearchingBrush is { } active)
+            ctx.DrawRectangle(null, new Pen(active, 1), new RoundedRect(r.Deflate(0.5), Radius));
     }
 
     /// <summary>"A" / "B" in the gutter at the start of every row, centered on its square.</summary>
@@ -520,7 +554,7 @@ public class SectorKeyGrid : Control
             return;
         }
         _tip ??= new SectorTip();
-        _tip.Show(sectors[_hover]);
+        _tip.Show(sectors[_hover], IsWrite);
         ToolTip.SetTip(this, _tip.Root);
     }
 
@@ -531,7 +565,8 @@ public class SectorKeyGrid : Control
     private sealed class SectorTip
     {
         private static readonly FontFamily Mono = new("Cascadia Code,Consolas,Menlo,monospace");
-        private readonly TextBlock _sector = Value(), _blocks = Value(), _keyA = Value(), _keyB = Value();
+        private readonly TextBlock _sector = Value(), _blocks = Value(), _keyA = Value(), _keyB = Value(), _write = Value();
+        private readonly TextBlock _writeLabel;
 
         public Grid Root { get; } = new()
         {
@@ -539,7 +574,7 @@ public class SectorKeyGrid : Control
             // uses the available width and wraps instead of drawing past its edge.
             Width = 280,
             ColumnDefinitions = new ColumnDefinitions("Auto,*"),
-            RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
+            RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto,Auto"),
             ColumnSpacing = 14,
             RowSpacing = 3,
         };
@@ -550,14 +585,18 @@ public class SectorKeyGrid : Control
             Add(1, "Blocks", _blocks);
             Add(2, "Key A", _keyA);
             Add(3, "Key B", _keyB);
+            _writeLabel = Add(4, "Write", _write);
         }
 
-        public void Show(ISectorKeys s)
+        public void Show(ISectorKeys s, bool isWrite)
         {
             _sector.Text = s.Sector.ToString(CultureInfo.InvariantCulture);
             _blocks.Text = $"{s.FirstBlock}–{s.LastBlock}" + (s.IsRead ? " (read)" : string.Empty);
             Key(_keyA, s.KeyAState, s.KeyAText);
             Key(_keyB, s.KeyBState, s.KeyBText);
+            var write = s as ISectorWriteProgress;
+            _write.IsVisible = _writeLabel.IsVisible = isWrite && write is not null;
+            _write.Text = write?.WriteState == SectorWriteState.None ? "No blocks selected" : write?.WriteText;
         }
 
         private static void Key(TextBlock t, KeyCellState state, string text)
@@ -568,7 +607,7 @@ public class SectorKeyGrid : Control
             else t.ClearValue(TextBlock.FontFamilyProperty);
         }
 
-        private void Add(int row, string caption, TextBlock value)
+        private TextBlock Add(int row, string caption, TextBlock value)
         {
             var label = new TextBlock { Text = caption, Opacity = 0.7, VerticalAlignment = VerticalAlignment.Center };
             Grid.SetRow(label, row);
@@ -576,6 +615,7 @@ public class SectorKeyGrid : Control
             Grid.SetColumn(value, 1);
             Root.Children.Add(label);
             Root.Children.Add(value);
+            return label;
         }
 
         private static TextBlock Value() =>

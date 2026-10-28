@@ -1,0 +1,234 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:b="using:ChameLab.Behaviors"
+             xmlns:c="using:ChameLab.Controls"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             x:Class="ChameLab.Controls.KeyRecoveryPanel"
+             x:Name="RecoveryPanel"
+             x:DataType="vm:IKeyRecoveryContext">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.progressdetail">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="TextBlock.progressdetail:not(.success):not(.danger):not(.warning)">
+      <Setter Property="Foreground" Value="{Binding #RecoveryPanel.ProgressDetailForeground}" />
+    </Style>
+    <Style Selector="Grid.memorytoolbar.compact Button.progress-action">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Grid.memorytoolbar.compact Button.progress-action TextBlock.action-label">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="c|ActionRow.attackactions :is(Control).iconic TextBlock.action-label">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="c|ActionRow.attackactions > Button.iconic, c|ActionRow.attackactions > :is(Control).iconic Button.responsive">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+  <StackPanel Spacing="8">
+    <TextBlock Classes="caption" Text="{Binding RecoveryIdentity}" TextWrapping="Wrap"
+               IsVisible="{Binding RecoveryIdentity, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <Grid Classes="memorytoolbar" Height="48" IsVisible="{Binding ShowRecoveryTools}"
+          SizeChanged="OnMemoryToolbarSizeChanged">
+        <c:ActionRow Classes="attackactions" Spacing="6"
+                    IsVisible="{Binding ShowDumpActions}" VerticalAlignment="Center" IsEnabled="{Binding !IsBusy}">
+          <Grid Height="40" c:ActionRow.Priority="3">
+            <Grid.Styles>
+              <Style Selector="Button.dump-main">
+                <Setter Property="CornerRadius" Value="8,0,0,8" />
+              </Style>
+              <Style Selector="Button.dump-main.ultralight">
+                <Setter Property="CornerRadius" Value="8" />
+              </Style>
+            </Grid.Styles>
+            <StackPanel Orientation="Horizontal" Spacing="0">
+              <Button x:Name="TryKeysButton" Command="{Binding DumpCommand}" Classes="dump-main responsive"
+                      Classes.ultralight="{Binding IsUltralightDump}"
+                      Height="40" BorderThickness="0"
+                      ToolTip.Tip="{Binding TryKeysTip}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.dump}" />
+                  <TextBlock Classes="action-label" Text="Try keys" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button IsVisible="{Binding !IsUltralightDump}" ToolTip.Tip="{Binding DumpKeyCountText}"
+                      Height="40" Width="40" Padding="0" CornerRadius="0,8,8,0" BorderThickness="1,0,0,0"
+                      BorderBrush="{Binding #TryKeysButton.BorderBrush}"
+                      AutomationProperties.Name="Key dictionaries">
+                <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
+                <Button.Flyout>
+                  <Flyout Placement="BottomEdgeAlignedLeft">
+                    <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
+                      <TextBlock Text="KEY DICTIONARIES" Classes="overline" />
+                      <ItemsControl ItemsSource="{Binding DumpKeySources}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
+                            <StackPanel>
+                              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
+                                <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                                              IsChecked="{Binding IsSelected}" />
+                              </Grid>
+                              <Separator Margin="0,8,0,4" IsVisible="{Binding IsKnownCardKeys}" />
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <Separator Margin="0,2" />
+                      <TextBlock Text="{Binding DumpKeyCountText}" FontWeight="SemiBold" />
+                    </StackPanel>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </StackPanel>
+            <!-- Draw the shared outline above the button backgrounds. -->
+            <Border BorderBrush="{Binding #TryKeysButton.BorderBrush}" BorderThickness="1"
+                    CornerRadius="8" IsHitTestVisible="False" />
+          </Grid>
+          <Button Classes="responsive" Command="{Binding CheckRecoveryCommand}"
+                  ToolTip.Tip="Check recovery methods" AutomationProperties.Name="Check recovery methods"
+                  IsVisible="{Binding ShowCheckRecovery}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.search}" />
+              <TextBlock Classes="action-label" Text="Check recovery methods" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding DarksideCommand}" ToolTip.Tip="Darkside" AutomationProperties.Name="Darkside"
+                  IsVisible="{Binding ShowDarkside}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.sleep}" />
+              <TextBlock Classes="action-label" Text="Darkside" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding NestedCommand}" ToolTip.Tip="Nested" AutomationProperties.Name="Nested"
+                  IsVisible="{Binding ShowNested}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.slots}" />
+              <TextBlock Classes="action-label" Text="Nested" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding StaticNestedCommand}" ToolTip.Tip="Static nested" AutomationProperties.Name="Static nested"
+                  IsVisible="{Binding ShowStaticNested}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.refresh}" />
+              <TextBlock Classes="action-label" Text="Static nested" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding HardnestedCommand}" AutomationProperties.Name="Hardnested"
+                  IsVisible="{Binding ShowHardnested}" ToolTip.Tip="{Binding HardnestedWarning, TargetNullValue=Hardnested}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.bolt}" />
+              <TextBlock Classes="action-label" Text="Hardnested" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Border c:ActionRow.Priority="2" ToolTip.Tip="{Binding Mfkey32Tip}" Background="Transparent"
+                  IsVisible="{Binding ShowMfkey32}">
+            <Button Classes="responsive" Command="{Binding Mfkey32Command}" AutomationProperties.Name="mfkey32">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.scan}" />
+                <TextBlock Classes="action-label" Text="mfkey32" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </Border>
+        </c:ActionRow>
+      <Grid Height="48" RowDefinitions="40,4" RowSpacing="4"
+            ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center"
+            IsVisible="{Binding IsDumpRunning}">
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Button Classes="progress-action" Command="{Binding CancelDumpCommand}" b:DialogKeys.IsCancel="True"
+                  AutomationProperties.Name="{Binding DumpStopLabel}"
+                  Classes.success="{Binding IsMfkey32Done}" ToolTip.Tip="{Binding DumpStopTip}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.close}" IsVisible="{Binding !IsMfkey32Done}" />
+              <PathIcon Data="{StaticResource Icon.check}" IsVisible="{Binding IsMfkey32Done}" />
+              <TextBlock Classes="action-label" Text="{Binding DumpStopLabel}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+        <Grid Grid.Column="0" Classes="progresslines" Classes.mfkey="{Binding IsMfkey32Progress}"
+              Height="36" RowDefinitions="18,18" RowSpacing="0" VerticalAlignment="Top">
+          <TextBlock Classes="caption progresshint" Text="{Binding DumpProgressText}"
+                     TextWrapping="NoWrap" MaxLines="1" LineHeight="18" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                     ToolTip.Tip="{Binding DumpProgressText}" />
+          <TextBlock Grid.Row="1" Classes="progressdetail" Text="{Binding DumpProgressDetail}"
+                     TextWrapping="NoWrap" MaxLines="1" LineHeight="18" TextTrimming="CharacterEllipsis"
+                     ToolTip.Tip="{Binding DumpProgressDetail}"
+                     IsVisible="{Binding DumpProgressDetail, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="1" Classes="progressdetail" Text="{Binding Mfkey32CaptureText}"
+                     TextWrapping="NoWrap" MaxLines="1" LineHeight="18" TextTrimming="CharacterEllipsis"
+                     ToolTip.Tip="{Binding Mfkey32CaptureText}"
+                     IsVisible="{Binding ShowMfkey32CaptureCount}" VerticalAlignment="Center" />
+          <TextBlock Grid.Row="1" Classes="progressdetail success" Text="{Binding Mfkey32FoundKey}"
+                     ToolTip.Tip="{Binding Mfkey32FoundKey}" TextTrimming="CharacterEllipsis"
+                     TextWrapping="NoWrap" MaxLines="1" LineHeight="18"
+                     IsVisible="{Binding ShowMfkey32FoundKey}"
+                     VerticalAlignment="Center" />
+        </Grid>
+          <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Height="4" MinHeight="4" HorizontalAlignment="Stretch"
+                       Minimum="0" Maximum="{Binding DumpKeyTotal}" Value="{Binding DumpKeyTried}"
+                       IsIndeterminate="{Binding !HasDumpKeyProgress}"
+                       IsVisible="{Binding !IsMfkey32Done}"
+                       ToolTip.Tip="{Binding DumpKeyProgressTip}" />
+      </Grid>
+    </Grid>
+    <TextBlock Classes="caption" Text="{Binding DumpNotice}" VerticalAlignment="Center"
+                 TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                 IsVisible="{Binding ShowDumpNotice}" />
+
+    <!-- MIFARE Classic: a key grid, one cell per sector (16 per row), each cell two
+         stacked squares — key A over key B — colored by the key-search state. The
+         searching key and its tried/total count show in the progress line above. -->
+    <StackPanel Spacing="6" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpSectors}">
+      <c:SectorKeyGrid Sectors="{Binding DumpSectors}" SelectedSector="{Binding RecoverySelectedSector, Mode=TwoWay}"
+                       IsWrite="{Binding ShowWriteProgress}"
+                       HorizontalAlignment="Stretch" Margin="0,4,0,0" />
+      <WrapPanel ItemSpacing="14" LineSpacing="4" Margin="16,0,0,0" IsVisible="{Binding !ShowWriteProgress}">
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend read" Margin="0" />
+          <TextBlock Text="OK" Classes="caption" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend searching" Margin="0" />
+          <TextBlock Text="Searching" Classes="caption" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend nokey" Margin="0" />
+          <TextBlock Text="No key" Classes="caption" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend" Margin="0" />
+          <TextBlock Text="Not tried" Classes="caption" />
+        </StackPanel>
+        <TextBlock Text="{Binding RecoverySectorHint}" Classes="caption" />
+      </WrapPanel>
+      <WrapPanel ItemSpacing="14" LineSpacing="4" Margin="16,0,0,0" IsVisible="{Binding ShowWriteProgress}">
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend read" Margin="0" />
+          <TextBlock Text="Written" Classes="caption" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend searching" Margin="0" />
+          <TextBlock Text="Writing" Classes="caption" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend writeerror" Margin="0" />
+          <TextBlock Text="Error" Classes="caption" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Border Classes="blockcell blocklegend" Margin="0" />
+          <TextBlock Text="Pending" Classes="caption" />
+        </StackPanel>
+        <TextBlock Text="{Binding RecoverySectorHint}" Classes="caption" />
+      </WrapPanel>
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

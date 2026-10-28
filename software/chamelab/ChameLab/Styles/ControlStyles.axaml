@@ -3,6 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui">
 
+  <Style Selector="ComboBox">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <!-- Actipro's selected-value presenter stretches its data-template root even with
+       VerticalContentAlignment=Center. Center the presenter itself at its desired height. -->
+  <Style Selector="ComboBox /template/ ContentPresenter#content">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ComboBoxItem">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
   <!-- ==================== Shell ==================== -->
 
   <!-- The theme shows the light-dismiss layer by an :overlay:open animation and hides it only on
@@ -100,6 +112,16 @@
   </Style>
 
   <!-- ==================== Typography ==================== -->
+
+  <Style Selector="TextBlock.warning">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineWarning}" />
+  </Style>
+  <Style Selector="TextBlock.danger">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
+  </Style>
+  <Style Selector="TextBlock.success">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineSuccess}" />
+  </Style>
 
   <Style Selector="TextBlock.h1">
     <Setter Property="FontSize" Value="24" />
@@ -308,10 +330,14 @@
   </Style>
 
   <!-- Dump sector key grid (drawn control): A/B squares per sector, colors match the legend. -->
+  <Style Selector="c|KeyRecoveryPanel">
+    <Setter Property="ProgressDetailForeground" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+  </Style>
   <Style Selector="c|SectorKeyGrid">
+    <Setter Property="WriteErrorBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
     <Setter Property="SelectionBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="FoundBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
-    <Setter Property="SearchingBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="SearchingBrush" Value="{DynamicResource BrandBlueBrush}" />
     <Setter Property="NotFoundBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
     <Setter Property="UnknownBrush" Value="{actipro:ThemeResource Container5BackgroundBrush}" />
     <Setter Property="LabelBrush" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
@@ -325,6 +351,10 @@
     <Setter Property="ReadErrorBrush" Value="{DynamicResource BrandAmberBrush}" />
     <Setter Property="NoKeyBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
   </Style>
+  <Style Selector="c|BlockStrip.write">
+    <Setter Property="ReadingBrush" Value="{DynamicResource BrandBlueBrush}" />
+    <Setter Property="ReadErrorBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
 
   <!-- Legend cells for the dump block strip, colored by read state. -->
   <Style Selector="Border.blockcell">
@@ -336,11 +366,17 @@
   <Style Selector="Border.blockcell.reading">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
   </Style>
+  <Style Selector="Border.blockcell.searching">
+    <Setter Property="Background" Value="{DynamicResource BrandBlueBrush}" />
+  </Style>
   <Style Selector="Border.blockcell.read">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
   </Style>
   <Style Selector="Border.blockcell.readerror">
     <Setter Property="Background" Value="{DynamicResource BrandAmberBrush}" />
+  </Style>
+  <Style Selector="Border.blockcell.writeerror">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
   </Style>
   <Style Selector="Border.blockcell.nokey">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
@@ -407,7 +443,9 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Border Name="PART_Bg" Background="Transparent" CornerRadius="7" Padding="12,8">
-          <ContentPresenter Content="{TemplateBinding Content}"
+          <!-- Keep the button theme's disabled fill off the label; PART_Bg owns the segment fill. -->
+          <ContentPresenter Content="{TemplateBinding Content}" Background="Transparent"
+                            Foreground="{TemplateBinding Foreground}"
                             HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
       </ControlTemplate>
@@ -424,6 +462,10 @@
   </Style>
   <Style Selector="RadioButton.segment:checked /template/ Border#PART_Bg">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="RadioButton.segment:disabled">
+    <Setter Property="Opacity" Value="0.45" />
+    <Setter Property="Cursor" Value="Arrow" />
   </Style>
   <Style Selector="RadioButton.segment PathIcon">
     <Setter Property="Width" Value="16" />
