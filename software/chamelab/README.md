@@ -12,7 +12,7 @@ drawer on phones.
 | --- | --- | --- |
 | `ChameLab` | `net10.0` | Shared core: protocol, transports, view models, views, theme |
 | `ChameLab.Desktop` | `net10.0` | Windows/macOS/Linux. Serial (USB-CDC) + TCP transports |
-| `ChameLab.Android` | `net10.0-android` | Phone/tablet. BLE (Nordic UART) + TCP transports |
+| `ChameLab.Android` | `net10.0-android` | Phone/tablet. USB CDC (OTG) + BLE (Nordic UART) + TCP transports |
 | `ChameLab.iOS` | `net10.0-ios` | Phone/tablet (build on macOS). BLE + TCP |
 | `ChameLab.Browser` | `net10.0-browser` | WebAssembly build. Web Serial + Web Bluetooth + TCP |
 
@@ -92,6 +92,19 @@ dotnet build ChameLab.Android -c Debug
 ```
 
 iOS builds on macOS with the `ios` workload.
+
+### Android USB connection
+
+On a phone or tablet with USB Host / OTG support, connect the Chameleon using a
+USB data cable (and an OTG adapter if needed). Open Connect, select the
+`Chameleon (USB …)` entry and allow Android's USB access request. Devices appear
+automatically while the Connect page is open; Rescan also refreshes the list.
+Charge-only cables cannot carry the connection. Phones without USB Host support
+can still connect over BLE.
+
+The Android USB transport supports normal device commands, scans and card dumps.
+Firmware updates on Android currently use BLE; USB bootloader flashing is not
+implemented in the Android build. iOS continues to use BLE and TCP.
 
 ## Hardnested (desktop)
 

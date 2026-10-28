@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
     <Compile Include="..\Mobile\BleTransport.cs" Link="Mobile\BleTransport.cs" />
+    <Compile Include="..\Mobile\UsbCdcTransport.cs" Link="Mobile\UsbCdcTransport.cs" />
     <None Update="Reference\crypto_vectors.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
