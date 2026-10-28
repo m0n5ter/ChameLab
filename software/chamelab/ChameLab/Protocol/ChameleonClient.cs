@@ -1408,6 +1408,14 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return type.IsEm410x() && f.Data.Length > 2 ? f.Data[2..] : f.Data;
     }
 
+    /// <summary>Identity currently emulated by the active HF slot. Caller owns the slot lock.</summary>
+    public async Task<Hf14aTag> GetHf14aEmulatorIdentityAsync(CancellationToken ct = default)
+    {
+        var card = new CardSave();
+        await ReadHf14aAntiCollAsync(card, ct);
+        return new Hf14aTag(card.Uid, card.Atqa, card.Sak, card.Ats);
+    }
+
     private async Task ReadHf14aAntiCollAsync(CardSave card, CancellationToken ct)
     {
         // uidlen[1]|uid[uidlen]|atqa[2]|sak[1]|atslen[1]|ats[atslen]

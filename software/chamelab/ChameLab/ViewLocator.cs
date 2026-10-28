@@ -21,7 +21,6 @@ public class ViewLocator : IDataTemplate
         SlotsViewModel => new SlotsView(),
         CardsViewModel => new CardsView(),
         DictionariesViewModel => new DictionariesView(),
-        ToolsViewModel => new ToolsView(),
         SettingsViewModel => new SettingsView(),
         _ => new TextBlock { Text = "Not Found: " + param.GetType().FullName!.Replace("ViewModel", "View") },
     };

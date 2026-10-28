@@ -18,6 +18,8 @@ public class ActionRow : Panel
 {
     public static readonly StyledProperty<double> SpacingProperty =
         AvaloniaProperty.Register<ActionRow, double>(nameof(Spacing), 8);
+    public static readonly StyledProperty<bool> WrapProperty =
+        AvaloniaProperty.Register<ActionRow, bool>(nameof(Wrap));
 
     /// <summary>Higher keeps its label longer when the row runs out of room.</summary>
     public static readonly AttachedProperty<int> PriorityProperty =
@@ -27,7 +29,7 @@ public class ActionRow : Panel
 
     static ActionRow()
     {
-        AffectsMeasure<ActionRow>(SpacingProperty);
+        AffectsMeasure<ActionRow>(SpacingProperty, WrapProperty);
         PriorityProperty.Changed.AddClassHandler<Control>((c, _) => (c.Parent as ActionRow)?.InvalidateMeasure());
     }
 
@@ -36,6 +38,8 @@ public class ActionRow : Panel
         get => GetValue(SpacingProperty);
         set => SetValue(SpacingProperty, value);
     }
+    /// <summary>Wrap only when even all icon buttons cannot fit on one line.</summary>
+    public bool Wrap { get => GetValue(WrapProperty); set => SetValue(WrapProperty, value); }
 
     public static int GetPriority(Control control) => control.GetValue(PriorityProperty);
     public static void SetPriority(Control control, int value) => control.SetValue(PriorityProperty, value);
@@ -79,7 +83,7 @@ public class ActionRow : Panel
             order[i].Measure(Size.Infinity);
             height = Math.Max(height, order[i].DesiredSize.Height);
         }
-        return new Size(Math.Min(width, limit), height);
+        return new Size(Math.Min(width, limit), Wrap ? LayoutRows(limit, arrange: false) : height);
     }
 
     private static double WidthOf(Control child, bool iconic)
@@ -104,6 +108,11 @@ public class ActionRow : Panel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
+        if (Wrap)
+        {
+            LayoutRows(finalSize.Width, arrange: true);
+            return finalSize;
+        }
         var x = 0.0;
         foreach (var child in Visible())
         {
@@ -112,5 +121,33 @@ public class ActionRow : Panel
             x += size.Width + Spacing;
         }
         return finalSize;
+    }
+
+    private double LayoutRows(double limit, bool arrange)
+    {
+        var children = Visible();
+        double y = 0;
+        for (var start = 0; start < children.Count;)
+        {
+            var end = start + 1;
+            var width = children[start].DesiredSize.Width;
+            var height = children[start].DesiredSize.Height;
+            while (end < children.Count && width + Spacing + children[end].DesiredSize.Width <= limit)
+            {
+                width += Spacing + children[end].DesiredSize.Width;
+                height = Math.Max(height, children[end].DesiredSize.Height);
+                end++;
+            }
+            double x = 0;
+            for (var i = start; i < end; i++)
+            {
+                var size = children[i].DesiredSize;
+                if (arrange) children[i].Arrange(new Rect(x, y + (height - size.Height) / 2, size.Width, size.Height));
+                x += size.Width + Spacing;
+            }
+            y += height + Spacing;
+            start = end;
+        }
+        return children.Count == 0 ? 0 : y - Spacing;
     }
 }

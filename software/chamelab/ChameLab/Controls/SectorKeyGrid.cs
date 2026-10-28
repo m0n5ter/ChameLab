@@ -35,7 +35,7 @@ public class SectorKeyGrid : Control
     public static readonly StyledProperty<int> ColumnsProperty =
         AvaloniaProperty.Register<SectorKeyGrid, int>(nameof(Columns), 16);
 
-    /// <summary>Upper bound on a cell's height; narrower cells stay square.</summary>
+    /// <summary>Upper bound on a cell's height, subject to the 24 DIP minimum.</summary>
     public static readonly StyledProperty<double> MaxSquareProperty =
         AvaloniaProperty.Register<SectorKeyGrid, double>(nameof(MaxSquare), 28);
 
@@ -69,6 +69,7 @@ public class SectorKeyGrid : Control
         AvaloniaProperty.Register<SectorKeyGrid, IBrush?>(nameof(LabelBrush), Brushes.Gray);
 
     private const double MinSquare = 6;
+    private const double MinCellHeight = 24;
     private const double Gutter = 16;    // left margin holding the A / B labels, gap included
     private const double Radius = 3;
     private const double FlashMs = 550;  // ring after a key search settles
@@ -236,7 +237,7 @@ public class SectorKeyGrid : Control
     /// <summary>
     /// Fits <see cref="Cols"/> cells into <paramref name="width"/>: cells widen with the control (up to
     /// <see cref="MaxCellWidth"/>) instead of the gaps growing; height follows the width up to
-    /// <see cref="MaxSquare"/>, so narrow layouts keep squares. The pixel remainder stays on the right.
+    /// <see cref="MaxSquare"/>, with a 24 DIP minimum. The pixel remainder stays on the right.
     /// </summary>
     private Metrics Layout(double width)
     {
@@ -249,7 +250,7 @@ public class SectorKeyGrid : Control
         var min = Px(MinSquare);
         var avail = Math.Floor(Math.Max(0, width) * scale) - left;
         var w = Math.Clamp(Math.Floor((avail - (cols - 1) * gap) / cols), min, Math.Max(min, Px(MaxCellWidth)));
-        var h = Math.Max(min, Math.Min(w, Px(MaxSquare)));
+        var h = Math.Max(Px(MinCellHeight), Math.Min(w, Px(MaxSquare)));
         return new Metrics(left / scale, w / scale, h / scale, gap / scale, rowGap / scale, 1 / scale, cols);
     }
 

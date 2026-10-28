@@ -228,6 +228,20 @@
     <Setter Property="Opacity" Value="0.5" />
   </Style>
 
+  <Style Selector="Button.success">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidSuccess}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Button.success:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccessPointerOver}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidSuccess}" />
+  </Style>
+  <Style Selector="Button.success:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccessPressed}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidSuccess}" />
+  </Style>
+
   <!-- Quiet destructive action: red text, red fill on hover. -->
   <Style Selector="Button.danger">
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />

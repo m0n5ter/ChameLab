@@ -55,7 +55,7 @@ public enum CardAction { None, Slots, Write, Delete }
 /// and an editor for a saved card with duplicate / export / emulate-in-slot /
 /// write-to-tag / delete actions.
 /// </summary>
-public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropOutList
+public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList, IDropOutList
 {
     private readonly DeviceService _device;
     private readonly CardLibrary _library;
@@ -171,6 +171,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowHardnested),
                 (idle, show) => idle && show && CanRunHardnested));
         CheckRecoveryCommand = ReactiveCommand.CreateFromTask(CheckRecoveryAsync, recoveryIdle);
+        this.WhenAnyValue(x => x.IsBusy).Subscribe(_ => RaiseMfkey32Availability());
+        Mfkey32Command = ReactiveCommand.CreateFromTask(() => _mfkey32Task = RunMfkey32Async(),
+            this.WhenAnyValue(x => x.CanRunMfkey32));
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
@@ -218,8 +221,10 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         _device.StateChanged += s => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             IsConnected = s == ConnectionState.Connected;
+            if (IsConnected) _ = RefreshSlotsAsync();
             if (!IsConnected)
             {
+                if (_mfkey32Running) CancelDump();
                 _slotInfos = Array.Empty<SlotInfo>();
                 RebuildTargets();
                 if (_slotUpdate is not null) ResolveSlotUpdate(update: false);
@@ -507,6 +512,10 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     private void OnFormPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(CardEditorViewModel.Name) or nameof(CardEditorViewModel.Tag)
+            or nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.Sak)
+            or nameof(CardEditorViewModel.Atqa) or nameof(CardEditorViewModel.Ats))
+            RaiseMfkey32Availability();
         // The card actions follow its type and memory as they are edited.
         if (e.PropertyName is nameof(CardEditorViewModel.Tag) or nameof(CardEditorViewModel.HasData))
         {
@@ -1235,6 +1244,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>Stops a running dump (dropping its result) and empties the grid, strip and summary.</summary>
     private void ClearDump()
     {
+        IsMfkey32Done = false;
+        Mfkey32FoundKey = null;
+        Mfkey32CapturedCount = null;
         if (_dumpCts is { } cts)
         {
             _discardedDump = cts;
@@ -1622,7 +1634,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <paramref name="cts"/> (and has set <see cref="_dumpCts"/>).
     /// </summary>
     private async Task MifareDumpBodyAsync(
-        Protocol.ChameleonClient client, IReadOnlyList<byte[]> keys, MifareClassicType? type, CancellationTokenSource cts, bool read = true)
+        Protocol.ChameleonClient client, IReadOnlyList<byte[]> keys, MifareClassicType? type, CancellationTokenSource cts, bool read = true,
+        bool finish = true)
     {
         // Posted (not Progress<T>) so ticks reach the UI in order: a "found" key must not be
         // overtaken by the "searching" tick before it.
@@ -1634,7 +1647,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         {
             DumpStats.Clear();
             HasDumpStats = false;
-            DumpProgressText = "Starting…";
+            DumpProgressText = _mfkey32Running ? "Reading card…" : "Starting…";
         });
 
         var clock = System.Diagnostics.Stopwatch.StartNew();
@@ -1673,14 +1686,17 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                 RaiseSaveLabel();
             });
             SetStatus(stopped
-                ? $"Dump stopped — kept {dump.RecoveredBlocks}/{dump.BlockCount} blocks from {dump.UidHex}."
-                : $"Read {dump.RecoveredBlocks}/{dump.BlockCount} blocks from {dump.UidHex}.");
+                ? $"Dump stopped — kept {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}."
+                : $"Read {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}.");
         }
         finally
         {
             if (learnedDump is not null) RememberCardKeys(learnedDump);
-            if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
-            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
+            if (finish)
+            {
+                if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
+                Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
+            }
         }
     }
 
@@ -1779,6 +1795,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>Stops a running dump; whatever was read so far is kept and can be saved.</summary>
     private void CancelDump()
     {
+        if (IsMfkey32Done)
+        {
+            IsMfkey32Done = false;
+            Mfkey32FoundKey = null;
+            DumpProgressText = null;
+            return;
+        }
         if (_dumpCts is not { } cts) return;
         try { cts.Cancel(); } catch (ObjectDisposedException) { /* already finished */ }
         DumpProgressText = "Stopping…";
@@ -1795,12 +1818,15 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         private set => this.RaiseAndSetIfChanged(ref _hasDumpStats, value);
     }
 
+    private static int ReadSectorCount(MifareDump dump) =>
+        Enumerable.Range(0, dump.SectorCount).Count(s =>
+            Enumerable.Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s))
+                .All(b => dump.GetBlock(b) is not null));
+
     private static List<ScanResultRow> BuildDumpStats(MifareDump dump, TimeSpan elapsed)
     {
         // A sector counts once every one of its blocks was read, as in the memory summary.
-        var read = Enumerable.Range(0, dump.SectorCount).Count(s =>
-            Enumerable.Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s))
-                .All(b => dump.GetBlock(b) is not null));
+        var read = ReadSectorCount(dump);
         return new List<ScanResultRow>
         {
             new("Sectors read", $"{read} / {dump.SectorCount}"),
@@ -2442,6 +2468,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     private void RebuildTargets()
     {
+        RaiseMfkey32Availability();
         SlotTargets.Clear();
         if (ActionTag is not { } tag) return;
         var sense = tag.SenseType() == TagSenseType.Lf ? TagSenseType.Lf : TagSenseType.Hf;

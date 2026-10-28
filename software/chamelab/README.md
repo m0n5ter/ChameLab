@@ -63,6 +63,12 @@ responses matched to requests by command id.
   signature, counters), ISO14443-4 and LF (EM410x, HID Prox, ioProx, Viking,
   PAC, Jablotron, IDTECK). Stored under `LocalApplicationData/ChameLab`
   (`localStorage` in the browser build).
+- **mfkey32** — available in the card editor's attack toolbar after loading a
+  MIFARE Classic card into a slot. The progress panel guides capture from a reader,
+  saves recovered keys under the card's full UID, and waits for the original
+  card on Chameleon before automatically reading it. Stop keeps recovered keys and any
+  blocks already read; completion shows a green Done button. The previous device
+  mode, active slot and emulator settings are restored when the operation ends.
 - **Settings** — LED animation, sleep timeout, button functions; apply / save /
   reset.
 

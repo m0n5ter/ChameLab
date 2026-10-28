@@ -22,6 +22,11 @@ public partial class CardsView : UserControl
 
     // ---- Memory editor ---------------------------------------------------------
 
+    private void OnMemoryToolbarSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (sender is Control toolbar) toolbar.Classes.Set("compact", e.NewSize.Width < 480);
+    }
+
     /// <summary>
     /// The memory scroll has already brought the caret into view; the request must
     /// not travel on to the pane scroll, which would scroll to the caret's position

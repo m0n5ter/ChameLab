@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: mfkey32 now runs from the card editor's attack toolbar using a slot that already holds the card. The progress panel guides reader capture, saves recovered keys against the card's full UID, and prompts for the original card before reading it. Stop becomes a green Done button after completion; cancellation and errors restore the device mode, active slot and emulator settings. The Tools page has been removed
 
 ## [v1.0.18][2026-10-27] · firmware v2.3.3-cl
  - ChameLab: a MIFARE Classic dump can recover unknown sector keys with the Darkside, Nested and Static nested attacks, run in the app — the buttons appear next to Dump once a scan has found which ones the card is open to (Darkside when the card is vulnerable and some keys are still missing; Nested and Static nested once at least one key is known, matched to the card's PRNG), and each one reads back the blocks it just unlocked

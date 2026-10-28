@@ -33,12 +33,11 @@ public sealed class MainViewModel : ViewModelBase
         Slots = new SlotsViewModel(device, cards);
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries);
-        Tools = new ToolsViewModel(device, dictionaries);
         AppUpdate = new AppUpdateViewModel();
         Settings = new SettingsViewModel(cards, dictionaries, AppUpdate);
 
         // Chameleon takes the place of Connect once a device is attached.
-        _connectedPages = new PageViewModelBase[] { Chameleon, Slots, Cards, Dictionaries, Tools, Settings };
+        _connectedPages = new PageViewModelBase[] { Chameleon, Slots, Cards, Dictionaries, Settings };
         // Without a device only the app-side pages make sense, behind Connect to attach one.
         _disconnectedPages = new PageViewModelBase[] { _connect, Cards, Dictionaries, Settings };
         NavPages = new ObservableCollection<PageViewModelBase>(_disconnectedPages);
@@ -83,7 +82,6 @@ public sealed class MainViewModel : ViewModelBase
     public SlotsViewModel Slots { get; }
     public CardsViewModel Cards { get; }
     public DictionariesViewModel Dictionaries { get; }
-    public ToolsViewModel Tools { get; }
     public SettingsViewModel Settings { get; }
 
     private readonly PageViewModelBase[] _connectedPages;
