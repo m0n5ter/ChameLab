@@ -9,6 +9,12 @@
              x:DataType="vm:CardsViewModel">
 
   <UserControl.Styles>
+    <Style Selector="TextBlock.progressdetail.success">
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineSuccess}" />
+    </Style>
+    <Style Selector="TextBlock.progressdetail.error">
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
+    </Style>
     <Style Selector="Grid.memorytoolbar.compact Button.progress-action">
       <Setter Property="Width" Value="40" />
       <Setter Property="Padding" Value="0" />
