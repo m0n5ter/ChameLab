@@ -150,7 +150,7 @@ public sealed class MainViewModel : ViewModelBase
             {
                 case PageViewModelBase page:
                     if (!ReferenceEquals(page, _currentPage)) _ = NavigateAsync(page);
-                    if (ReferenceEquals(page, Cards) && Cards.CurrentFolder is not null) ShowFolder(null);
+                    else if (ReferenceEquals(page, Cards) && Cards.CurrentFolder is not null) ShowFolder(null);
                     break;
                 case CardFolderViewModel folder when !ReferenceEquals(folder, SelectedNavItem):
                     _ = OpenFolderAsync(folder);

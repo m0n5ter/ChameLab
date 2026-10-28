@@ -396,6 +396,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         get => _selected;
         set
         {
+            // Detaching the view can clear the list selection. Only an actual card pick
+            // changes the editor; closing it goes through CloseCommand instead.
+            if (value is null) return;
             if (ReferenceEquals(value, _selected)) return;
             // Clearing the list during a rebuild resets the ListBox selection; Rebuild restores it itself.
             if (_rebuilding) return;
@@ -614,6 +617,21 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
     }
 
+    private bool _isDumpProgressSuccess;
+    private bool _isDumpProgressError;
+
+    public bool IsDumpProgressSuccess
+    {
+        get => _isDumpProgressSuccess;
+        private set => this.RaiseAndSetIfChanged(ref _isDumpProgressSuccess, value);
+    }
+
+    public bool IsDumpProgressError
+    {
+        get => _isDumpProgressError;
+        private set => this.RaiseAndSetIfChanged(ref _isDumpProgressError, value);
+    }
+
     private string? _dumpProgressDetail;
 
     /// <summary>Target and counters shown on the second progress line.</summary>
@@ -713,6 +731,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             _ => "Checking dictionary keys…",
         };
         DumpProgressDetail = $"Sector {p.Sector} · block {MifareClassic.SectorTrailerBlock(p.Sector)} · key {key} · {detail}";
+        IsDumpProgressSuccess = p.Phase == MifareKeyPhase.Found;
+        IsDumpProgressError = p.Phase == MifareKeyPhase.NotFound;
         SetDumpKeyProgress(p.Tried, p.Total);
     }
 
@@ -1647,6 +1667,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
         DumpProgressDetail = $"Sector {p.Sector} · block {MifareClassic.SectorTrailerBlock(p.Sector)} · key {(p.KeyType == MfKeyType.A ? "A" : "B")}";
         if (p.Detail is { } detail) DumpProgressDetail += $" · {detail}";
+        IsDumpProgressSuccess = p.Mark == KeyMark.Found;
+        IsDumpProgressError = p.Mark == KeyMark.None;
         var phase = p.Mark switch
         {
             KeyMark.Found => MifareKeyPhase.Found,

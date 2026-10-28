@@ -372,6 +372,9 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         get => _selected;
         set
         {
+            // Detaching the view can clear the list selection. Only an actual dictionary
+            // pick changes the editor; closing it goes through CloseCommand instead.
+            if (value is null) return;
             if (ReferenceEquals(value, _selected)) return;
             // Clearing the list during a rebuild resets the ListBox selection; Rebuild restores it itself.
             if (_rebuilding) return;
