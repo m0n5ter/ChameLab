@@ -6,10 +6,10 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
- - ChameLab: hide the empty memory panel when choosing to scan, create or import a card
 
 ## [v1.0.19][2026-10-28] · firmware v2.3.3-cl
  - ChameLab: MIFARE Classic keys can be recovered with the Hardnested attack (desktop only)
+ - ChameLab: hide the empty memory panel when choosing to scan, create or import a card
  - ChameLab: Android shows a splash screen with the ChameLab logo (it was cropped)
  - ChameLab: a card saved without its memory having been read (a new card, a scan, or a dump stopped before any key was found) keeps its sectors unread instead of saving blank memory that showed every sector as read
  - ChameLab: Android connects to the Chameleon over BLE more reliably (LE transport, faster connection interval, acknowledged writes), instead of timing out on the first command
