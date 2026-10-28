@@ -63,7 +63,9 @@ public sealed class BleTransport : ITransport
     {
         // StopWatching cancels the window, but native scan cleanup is asynchronous.
         await BleScanner.WaitForScanAsync(ct);
-        _device = await _adapter.ConnectToKnownDeviceAsync(_deviceId, ConnectParameters.None, ct);
+        // Android's default transport may pick BR/EDR for a device it has not cached as LE.
+        _device = await _adapter.ConnectToKnownDeviceAsync(_deviceId,
+            new ConnectParameters(autoConnect: false, forceBleTransport: true), ct);
 
         // Larger MTU greatly improves throughput; ignore if unsupported.
         try
@@ -73,6 +75,10 @@ public sealed class BleTransport : ITransport
         }
         catch { /* best effort */ }
 
+        // Android starts on a slow, power-saving interval; commands are request/response round trips.
+        try { _device.UpdateConnectionInterval(ConnectionInterval.High); }
+        catch { /* not supported on this platform */ }
+
         var service = await _device.GetServiceAsync(NordicUart.Service, ct)
             ?? throw new InvalidOperationException("Nordic UART service not found on device.");
         _rx = await service.GetCharacteristicAsync(NordicUart.Rx, ct)
@@ -80,8 +86,10 @@ public sealed class BleTransport : ITransport
         _tx = await service.GetCharacteristicAsync(NordicUart.Tx, ct)
             ?? throw new InvalidOperationException("NUS TX characteristic not found.");
 
-        if (_rx.CanWrite)
-            _rx.WriteType = CharacteristicWriteType.WithoutResponse;
+        // Acknowledged writes: a write command the device rejects (e.g. BLE pairing is enabled and
+        // the link is not encrypted yet) is dropped silently, and the reply then never comes. A
+        // request surfaces the error, and Android starts pairing on it.
+        _rx.WriteType = CharacteristicWriteType.WithResponse;
 
         _tx.ValueUpdated += OnTxValueUpdated;
         await _tx.StartUpdatesAsync(ct);

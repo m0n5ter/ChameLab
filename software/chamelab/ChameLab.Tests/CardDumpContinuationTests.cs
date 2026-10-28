@@ -137,6 +137,19 @@ public class CardDumpContinuationTests
     }
 
     [Fact]
+    public void DumpThatReadNothingSavesAsUnread()
+    {
+        var editor = new CardEditorViewModel(Card());
+        var dump = editor.BuildForReading().ToMifareDump();
+        editor.ReplaceContent(CardFormats.FromMifareDump(dump));
+        Assert.Equal("0/16 sectors", editor.DataSummary);
+        var saved = editor.Build();
+        Assert.Equal(64, saved.Data.Count);
+        Assert.All(saved.Data, row => Assert.Empty(row));
+        Assert.All(new CardEditorViewModel(saved, restrictType: true).Build().Data, row => Assert.Empty(row));
+    }
+
+    [Fact]
     public void GeneratedMemoryUsesIdentityEnteredAfterCreation()
     {
         var card = Card(TagSpecificType.Ntag213);

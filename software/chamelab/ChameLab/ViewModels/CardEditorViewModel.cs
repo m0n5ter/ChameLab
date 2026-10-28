@@ -390,7 +390,9 @@ public sealed class CardEditorViewModel : ViewModelBase
         var mfc = _tag.IsMifareClassic();
         var ul = _tag.IsUltralight();
         var tag = _tag;
-        if (!_data.Any(row => row.Length > 0) && BlankMemory.Supports(tag))
+        // Defaults only stand in for a card with no memory at all: rows that are there but empty
+        // were not read (e.g. a dump that found no keys) and must stay unread when saved.
+        if (_data.Count == 0 && BlankMemory.Supports(tag))
         {
             var (uid, sak, atqa) = IdentityBytes();
             _data = BlankMemory.Create(tag, uid, sak, atqa);
