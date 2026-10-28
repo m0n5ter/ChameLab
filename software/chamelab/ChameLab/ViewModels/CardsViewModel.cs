@@ -2488,6 +2488,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var client = _device.Client;
         if (client is null || ActionCard() is not { } card) return;
 
+        Action = CardAction.None;
+
         var progress = new Progress<MifareProgress>(p =>
             ProgressText = $"Uploading {p.Done}/{p.Total}…");
         try
