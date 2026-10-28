@@ -333,17 +333,6 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     public bool HasData => _data.Any(d => d.Length > 0);
 
-    /// <summary>Generated defaults are editable memory, but are not a physical read result.</summary>
-    public CardSave BuildForReading()
-    {
-        var card = Build();
-        if (_generatedMemory && Memory is { } memory)
-            card.Data = card.Data.Select((row, index) =>
-                Enumerable.Range(0, row.Length).Any(col => memory.IsChanged((long)index * memory.RowLength + col))
-                    ? row : Array.Empty<byte>()).ToList();
-        return card;
-    }
-
     public string DataSummary
     {
         get
@@ -632,13 +621,15 @@ public sealed class CardEditorViewModel : ViewModelBase
         card.Ats = ats;
         card.Data = _data.Take(_data.Count - OverflowBlocks).Select(d => (byte[])d.Clone()).ToList();
 
+        // Generated defaults are editable memory, but were never read: only the rows the user
+        // edited are kept, and a card with none of them edited is saved with no memory at all.
         if (_generatedMemory && Memory is { } memory)
         {
-            var defaults = BlankMemory.Create(_tag, uid, sak, atqa);
-            for (var row = 0; row < Math.Min(card.Data.Count, defaults.Count); row++)
-                if (card.Data[row].Length > 0 && !Enumerable.Range(0, card.Data[row].Length)
+            for (var row = 0; row < card.Data.Count; row++)
+                if (!Enumerable.Range(0, card.Data[row].Length)
                         .Any(col => memory.IsChanged((long)row * memory.RowLength + col)))
-                    card.Data[row] = defaults[row];
+                    card.Data[row] = Array.Empty<byte>();
+            if (card.Data.All(row => row.Length == 0)) card.Data.Clear();
         }
 
         // Keep block 0 in step with an edited identity so dumps stay consistent.

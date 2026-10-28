@@ -1280,7 +1280,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (CanDump && Form is { } form)
             {
-                var card = form.BuildForReading();
+                var card = form.Build();
                 _scannedAts = card.Ats;
                 if (tag.IsMifareClassic())
                 {
@@ -1566,7 +1566,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var client = _device.Client;
         if (client is null) return;
 
-        if (_classicDump is null && Form is { } form) _classicDump = form.BuildForReading().ToMifareDump();
+        if (_classicDump is null && Form is { } form) _classicDump = form.Build().ToMifareDump();
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
         var keys = BuildKeyDictionary();
@@ -1720,7 +1720,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         try
         {
             var key = Hex.TryParse(DumpPassword, out var k) && k.Length > 0 ? k : null;
-            var previous = Form?.BuildForReading();
+            var previous = Form?.Build();
             if (previous is not null)
             {
                 await client.SetDeviceModeAsync(DeviceMode.Reader, cts.Token);
