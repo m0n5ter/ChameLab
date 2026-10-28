@@ -10,7 +10,7 @@ public enum AppUpdateState { None, Checking, UpToDate, Available, Failed }
 
 /// <summary>
 /// Checks GitHub for a newer ChameLab once at startup (quietly) and on demand from Settings;
-/// a newer release shows up in the top bar and opens its release page.
+/// a newer release shows up in the top bar and opens the website download section.
 /// </summary>
 public sealed class AppUpdateViewModel : ViewModelBase
 {
@@ -21,11 +21,11 @@ public sealed class AppUpdateViewModel : ViewModelBase
     public AppUpdateViewModel()
     {
         CheckCommand = ReactiveCommand.CreateFromTask(CheckAsync);
-        OpenReleaseCommand = ReactiveCommand.CreateFromTask(OpenReleaseAsync);
+        OpenDownloadCommand = ReactiveCommand.CreateFromTask(OpenDownloadAsync);
     }
 
     public ICommand CheckCommand { get; }
-    public ICommand OpenReleaseCommand { get; }
+    public ICommand OpenDownloadCommand { get; }
 
     public string CurrentVersion => AppUpdateService.CurrentVersion;
 
@@ -89,9 +89,9 @@ public sealed class AppUpdateViewModel : ViewModelBase
         }
     }
 
-    private async Task OpenReleaseAsync()
+    private async Task OpenDownloadAsync()
     {
-        var url = _latest?.PageUrl ?? $"https://github.com/{FirmwareUpdateService.Repository}/releases/latest";
+        const string url = "https://m0n5ter.github.io/ChameLab/#stable";
         if (StorageService.TopLevelAccessor?.Invoke()?.Launcher is { } launcher)
             await launcher.LaunchUriAsync(new Uri(url));
     }

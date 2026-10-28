@@ -185,6 +185,12 @@
   </Style>
 
   <!-- Compact icon-only button. -->
+  <Style Selector="Button.brand">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="4,0" />
+    <Setter Property="MinHeight" Value="36" />
+  </Style>
   <Style Selector="Button.icon">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
@@ -862,6 +868,12 @@
 
   <!-- ==================== Compact (phone-width) overrides ==================== -->
   <!-- MainView adds the "compact" class to itself below its width threshold. -->
+
+  <Style Selector=".compact Button.header-disconnect">
+    <Setter Property="Width" Value="36" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
 
   <Style Selector=".compact StackPanel.page">
     <Setter Property="Margin" Value="14,10,14,88" />

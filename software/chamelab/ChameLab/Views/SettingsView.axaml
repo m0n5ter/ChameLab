@@ -127,7 +127,7 @@
             <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AppUpdate.Message}"
                        IsVisible="{Binding AppUpdate.Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <WrapPanel ItemSpacing="8" LineSpacing="8">
-              <Button Classes="accent" Content="Download" Command="{Binding AppUpdate.OpenReleaseCommand}"
+              <Button Classes="accent" Content="Download" Command="{Binding AppUpdate.OpenDownloadCommand}"
                       IsVisible="{Binding AppUpdate.IsUpdateAvailable}" ToolTip.Tip="Open the release page" />
               <Button Command="{Binding AppUpdate.CheckCommand}"
                       ToolTip.Tip="Check GitHub for a newer release">
