@@ -198,10 +198,10 @@ public class CardDumpContinuationTests
         Assert.False(vm.IsDumpRunning);
         Assert.False(vm.ShowDumpActions);
         Assert.True(vm.ShowDumpNotice);
-        Assert.Equal("All blocks have been read.", vm.DumpNotice);
+        Assert.Equal("All sectors have been read.", vm.DumpNotice);
         Set(nameof(CardsViewModel.IsConnected), false);
         Assert.True(vm.ShowDumpNotice);
-        Assert.Equal("All blocks have been read.", vm.DumpNotice);
+        Assert.Equal("All sectors have been read.", vm.DumpNotice);
         Set(nameof(CardsViewModel.IsDumpComplete), false);
         Assert.Contains("Connect a device", vm.DumpNotice);
     }

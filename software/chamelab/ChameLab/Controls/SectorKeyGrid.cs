@@ -7,10 +7,12 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.Rendering.SceneGraph;
+using Avalonia.Threading;
 using ChameLab.Models;
 
 namespace ChameLab.Controls;
@@ -83,6 +85,9 @@ public class SectorKeyGrid : Control
     private int _hover = -1;
     private FormattedText? _labelA, _labelB;
     private SectorTip? _tip;
+    private readonly DispatcherTimer _touchTipTimer;
+    private TopLevel? _tipHost;
+    private Point? _touchTipOrigin;
 
     /// <summary>Per-square animation memory: the last state seen, when it settled, the drawn fill.</summary>
     private sealed class KeyAnim
@@ -142,7 +147,7 @@ public class SectorKeyGrid : Control
     {
         foreach (var t in _tracked) t.PropertyChanged -= OnItemChanged;
         _tracked.Clear();
-        _hover = -1;
+        DismissTip();
         var sectors = Sectors;
         _anims = new KeyAnim[2 * (sectors?.Count ?? 0)];
         if (sectors is null) return;
@@ -184,7 +189,21 @@ public class SectorKeyGrid : Control
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        _tipHost = TopLevel.GetTopLevel(this);
+        _tipHost?.AddHandler(PointerPressedEvent, OnHostPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
+        _tipHost?.AddHandler(PointerWheelChangedEvent, OnHostPointerWheelChanged, RoutingStrategies.Tunnel, handledEventsToo: true);
+        _tipHost?.AddHandler(PointerMovedEvent, OnHostPointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
         EnsureAnimating();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        DismissTip();
+        _tipHost?.RemoveHandler(PointerPressedEvent, OnHostPointerPressed);
+        _tipHost?.RemoveHandler(PointerWheelChangedEvent, OnHostPointerWheelChanged);
+        _tipHost?.RemoveHandler(PointerMovedEvent, OnHostPointerMoved);
+        _tipHost = null;
+        base.OnDetachedFromVisualTree(e);
     }
 
     private bool IsAnimating()
@@ -389,7 +408,12 @@ public class SectorKeyGrid : Control
         new(text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
             new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 10, brush);
 
-    public SectorKeyGrid() => Focusable = true;
+    public SectorKeyGrid()
+    {
+        Focusable = true;
+        _touchTipTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
+        _touchTipTimer.Tick += (_, _) => DismissTip();
+    }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
@@ -428,7 +452,8 @@ public class SectorKeyGrid : Control
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        SetHover(HitTest(e.GetPosition(this)));
+        if (e.Pointer.Type == PointerType.Mouse)
+            SetHover(HitTest(e.GetPosition(this)));
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -442,7 +467,31 @@ public class SectorKeyGrid : Control
             Focus();
             e.Handled = true;
         }
-        if (_hover >= 0 && e.Pointer.Type != PointerType.Mouse) ToolTip.SetIsOpen(this, true);
+        if (_hover >= 0 && e.Pointer.Type != PointerType.Mouse)
+        {
+            _touchTipOrigin = e.GetPosition(this);
+            ToolTip.SetIsOpen(this, true);
+            _touchTipTimer.Stop();
+            _touchTipTimer.Start();
+        }
+    }
+
+    private void OnHostPointerPressed(object? sender, PointerPressedEventArgs e) => DismissTip();
+    private void OnHostPointerWheelChanged(object? sender, PointerWheelEventArgs e) => DismissTip();
+    private void OnHostPointerMoved(object? sender, PointerEventArgs e)
+    {
+        // ScrollViewer may capture the touch and handle movement before it reaches this control.
+        if (e.Pointer.Type != PointerType.Mouse && _touchTipOrigin is { } origin &&
+            (Math.Abs(e.GetPosition(this).X - origin.X) > 10 || Math.Abs(e.GetPosition(this).Y - origin.Y) > 10))
+            DismissTip();
+    }
+
+    private void DismissTip()
+    {
+        _touchTipTimer.Stop();
+        _touchTipOrigin = null;
+        ToolTip.SetIsOpen(this, false);
+        SetHover(-1);
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
@@ -462,7 +511,14 @@ public class SectorKeyGrid : Control
     private void UpdateTip()
     {
         var sectors = Sectors;
-        if (sectors is null || _hover < 0 || _hover >= sectors.Count) { ToolTip.SetTip(this, null); return; }
+        if (sectors is null || _hover < 0 || _hover >= sectors.Count)
+        {
+            _touchTipTimer.Stop();
+            _touchTipOrigin = null;
+            ToolTip.SetIsOpen(this, false);
+            ToolTip.SetTip(this, null);
+            return;
+        }
         _tip ??= new SectorTip();
         _tip.Show(sectors[_hover]);
         ToolTip.SetTip(this, _tip.Root);

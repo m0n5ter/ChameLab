@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -59,6 +61,8 @@ public sealed class BleTransport : ITransport
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
+        // StopWatching cancels the window, but native scan cleanup is asynchronous.
+        await BleScanner.WaitForScanAsync(ct);
         _device = await _adapter.ConnectToKnownDeviceAsync(_deviceId, ConnectParameters.None, ct);
 
         // Larger MTU greatly improves throughput; ignore if unsupported.
@@ -167,8 +171,16 @@ public sealed class BleTransport : ITransport
 /// </summary>
 public sealed class BleScanner : ITransportScanner, ITransportWatcher
 {
-    private readonly IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
-    private readonly IBluetoothLE _ble = CrossBluetoothLE.Current;
+    private readonly IAdapter _adapter;
+    private readonly IBluetoothLE _ble;
+
+    public BleScanner() : this(CrossBluetoothLE.Current) { }
+
+    internal BleScanner(IBluetoothLE ble)
+    {
+        _ble = ble;
+        _adapter = ble.Adapter;
+    }
 
     public TransportKind Kind => TransportKind.Ble;
     public string DisplayName => "Bluetooth LE";
@@ -177,6 +189,20 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
     // StopScanning would cut the first one short, so overlapping callers share the running scan.
     private static readonly object Gate = new();
     private static Task<IReadOnlyList<TransportCandidate>>? _running;
+    private static readonly Stopwatch ScanClock = Stopwatch.StartNew();
+    private static TimeSpan _nextScan;
+    // Also covers short/cancelled windows and repeated Rescan taps: stay below Android's
+    // five scan starts per 30 seconds even when the page is repeatedly reopened.
+    private static readonly TimeSpan MinimumScanInterval = TimeSpan.FromSeconds(7);
+
+    internal static async Task WaitForScanAsync(CancellationToken ct)
+    {
+        Task? running;
+        lock (Gate) running = _running;
+        if (running is null) return;
+        try { await running.WaitAsync(ct); }
+        catch (Exception) when (!ct.IsCancellationRequested) { /* a failed scan must not block connection */ }
+    }
 
     /// <summary>Scan window for an explicit Rescan.</summary>
     private static readonly TimeSpan RescanWindow = TimeSpan.FromSeconds(6);
@@ -201,8 +227,8 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
     {
         lock (Gate)
         {
-            if (_running is { IsCompleted: false }) return _running;
-            return _running = ScanCoreAsync(window, ct);
+            var running = _running is { IsCompleted: false } ? _running : _running = ScanCoreAsync(window, ct);
+            return running.WaitAsync(ct);
         }
     }
 
@@ -236,7 +262,20 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
         {
             while (!ct.IsCancellationRequested)
             {
-                await ScanAsync(WatchWindow, ct);
+                try
+                {
+                    var found = await ScanAsync(WatchWindow, ct);
+                    foreach (var candidate in found) Seen(candidate, Guid.Parse(candidate.Id));
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
+                catch (Exception ex)
+                {
+                    // Permission may still be pending on first launch; Bluetooth may be toggled
+                    // during a window. Keep watching so granting/enabling it recovers automatically.
+                    Console.WriteLine($"[BLE] Scan failed, retrying: {ex}");
+                    await Task.Delay(WatchPause, ct);
+                    continue;
+                }
                 lock (_watchGate)
                 {
                     if (ct.IsCancellationRequested) return;
@@ -280,9 +319,26 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
 
     private async Task<IReadOnlyList<TransportCandidate>> ScanCoreAsync(TimeSpan window, CancellationToken ct)
     {
-        var found = new Dictionary<Guid, TransportCandidate>();
+        var found = new ConcurrentDictionary<Guid, TransportCandidate>();
+#if ANDROID
+        // MainActivity requests permissions asynchronously. Do not start the plugin's native
+        // scanner until the result arrives (a native startup exception can leave it marked busy).
+        var permission = OperatingSystem.IsAndroidVersionAtLeast(31)
+            ? global::Android.Manifest.Permission.BluetoothScan
+            : global::Android.Manifest.Permission.AccessFineLocation;
+        if (global::Android.App.Application.Context.CheckSelfPermission(permission) != global::Android.Content.PM.Permission.Granted ||
+            OperatingSystem.IsAndroidVersionAtLeast(31) &&
+            global::Android.App.Application.Context.CheckSelfPermission(global::Android.Manifest.Permission.BluetoothConnect) != global::Android.Content.PM.Permission.Granted)
+            throw new InvalidOperationException("Bluetooth permission has not been granted.");
+#endif
         if (!_ble.IsAvailable || !_ble.IsOn)
             return Array.Empty<TransportCandidate>();
+
+        // ScanCore is shared process-wide. A cancelled watch can still be cleaning up when
+        // a new watch starts; rate limiting and native cleanup must finish before the next start.
+        var delay = _nextScan - ScanClock.Elapsed;
+        if (delay > TimeSpan.Zero) await Task.Delay(delay, ct);
+        ct.ThrowIfCancellationRequested();
 
         void OnDiscovered(object? sender, DeviceEventArgs e)
         {
@@ -297,22 +353,25 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
             Seen(candidate, d.Id);
         }
 
-        _adapter.DeviceDiscovered += OnDiscovered;
+        // Re-evaluate every packet: a first advertisement may lack the name or the NUS
+        // UUID carried in a later scan response. Also refresh sightings throughout the window.
+        _adapter.DeviceAdvertised += OnDiscovered;
         try
         {
             using var scanCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             scanCts.CancelAfter(window);
+            _adapter.ScanMode = ScanMode.LowLatency;
+            _nextScan = ScanClock.Elapsed + MinimumScanInterval;
             await _adapter.StartScanningForDevicesAsync(
                 new ScanFilterOptions(),
-                deviceFilter: IsChameleon,
-                allowDuplicatesKey: false,
+                allowDuplicatesKey: true,
                 cancellationToken: scanCts.Token);
         }
         catch (OperationCanceledException) { /* scan window elapsed */ }
         finally
         {
             try { await _adapter.StopScanningForDevicesAsync(); } catch { /* ignore */ }
-            _adapter.DeviceDiscovered -= OnDiscovered;
+            _adapter.DeviceAdvertised -= OnDiscovered;
         }
 
         return new List<TransportCandidate>(found.Values);
