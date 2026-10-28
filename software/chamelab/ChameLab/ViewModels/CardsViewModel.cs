@@ -117,7 +117,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private string? _writeProgressText;
     private CancellationTokenSource? _writeCts;
     private IReadOnlyList<MifareBlockState> _writeBlockStates = Array.Empty<MifareBlockState>();
-    private readonly HashSet<string> _uncheckedKeySources = LoadUncheckedKeySources();
     private byte[] _scannedAts = Array.Empty<byte>();
     // A dump result is being put into the form: its type change is not a user's change.
     private bool _applyingDump;
@@ -1959,37 +1958,20 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, "Built-in keys", MifareClassic.DefaultKeys));
         foreach (var d in _dictionaries.Dictionaries)
             DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? "Untitled" : d.Name, d.Keys));
-        WriteRecovery.SetKeySources(DumpKeySources.Where(s => !s.IsKnownCardKeys));
+        WriteRecovery.SetKeySources(DumpKeySources);
         UpdateDumpKeyCount();
     }
 
     private DumpKeySourceViewModel NewKeySource(string id, string name, IReadOnlyList<byte[]> keys)
     {
-        var source = new DumpKeySourceViewModel(id, name, keys, !_uncheckedKeySources.Contains(id));
+        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id));
         source.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(on =>
         {
-            if (on) _uncheckedKeySources.Remove(id); else _uncheckedKeySources.Add(id);
-            SaveUncheckedKeySources();
+            if (!DumpKeySources.Contains(source)) return;
+            KeySourceSelection.SetSelected(id, on);
             UpdateDumpKeyCount();
         });
         return source;
-    }
-
-    // Unchecked rather than checked sources are kept, so a dictionary added later starts checked.
-    private const string UncheckedKeySourcesSetting = "dumpUncheckedDictionaries";
-
-    private static HashSet<string> LoadUncheckedKeySources() =>
-        AppSettings.Get(UncheckedKeySourcesSetting) is JsonArray ids
-            ? ids.Select(n => n is JsonValue v && v.TryGetValue<string>(out var id) ? id : null).OfType<string>().ToHashSet()
-            : new HashSet<string>();
-
-    /// <summary>Saves the unchecked sources, dropping dictionaries that no longer exist.</summary>
-    private void SaveUncheckedKeySources()
-    {
-        var present = DumpKeySources.Select(s => s.Id).ToHashSet();
-        _uncheckedKeySources.IntersectWith(present);
-        AppSettings.Set(UncheckedKeySourcesSetting,
-            new JsonArray(_uncheckedKeySources.Order().Select(id => (JsonNode?)JsonValue.Create(id)).ToArray()));
     }
 
     private void UpdateDumpKeyCount()

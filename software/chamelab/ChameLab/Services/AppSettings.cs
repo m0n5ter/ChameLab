@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Nodes;
 
 namespace ChameLab.Services;
@@ -11,22 +12,32 @@ public static class AppSettings
     private const string StoreKey = "settings";
 
     private static JsonObject? _settings;
+    private static readonly object Sync = new();
 
     private static JsonObject Settings => _settings ??= Load();
 
     /// <summary>A copy of the saved value, or null when none is saved.</summary>
-    public static JsonNode? Get(string name) => Settings[name]?.DeepClone();
+    public static JsonNode? Get(string name)
+    {
+        lock (Sync) return Settings[name]?.DeepClone();
+    }
 
     /// <summary>The saved value when it is a string, else null.</summary>
     public static string? GetString(string name) =>
-        Settings[name] is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+        Get(name) is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
 
     /// <summary>Remembers a value and saves every preference at once (best effort).</summary>
-    public static void Set(string name, JsonNode? value)
+    public static void Set(string name, JsonNode? value) => Update(name, _ => value);
+
+    /// <summary>Reads, changes and saves a preference without losing concurrent changes.</summary>
+    internal static void Update(string name, Func<JsonNode?, JsonNode?> update)
     {
-        Settings[name] = value;
-        try { AppServices.Store.Write(StoreKey, Settings.ToJsonString()); }
-        catch { /* best effort: the value still holds for this session */ }
+        lock (Sync)
+        {
+            Settings[name] = update(Settings[name]?.DeepClone());
+            try { AppServices.Store.Write(StoreKey, Settings.ToJsonString()); }
+            catch { /* best effort: the value still holds for this session */ }
+        }
     }
 
     private static JsonObject Load()

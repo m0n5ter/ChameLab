@@ -11,6 +11,90 @@ namespace ChameLab.Tests;
 public class KeyRecoveryPanelTests
 {
     [Fact]
+    public void DictionaryChangesMergeAcrossWindowsAndPreserveUnavailableDictionaries()
+    {
+        const string setting = "dumpUncheckedDictionaries";
+        var original = AppSettings.Get(setting);
+        try
+        {
+            var store = new MemoryKeyValueStore();
+            var dictionaries = new DictionaryLibrary(store);
+            var first = new KeyDictionary { Name = "First" };
+            var second = new KeyDictionary { Name = "Second" };
+            dictionaries.AddRange([first, second]);
+            CardsViewModel Window(DictionaryLibrary library) =>
+                new(new DeviceService([]), new CardLibrary(store), library);
+            var window = Window(dictionaries);
+            var otherWindow = Window(dictionaries);
+
+            window.DumpKeySources.Single(s => s.Id == first.Id).IsSelected = false;
+            otherWindow.DumpKeySources.Single(s => s.Id == second.Id).IsSelected = false;
+            // A temporarily empty library must not prune either saved choice.
+            var emptyWindow = Window(new DictionaryLibrary(new MemoryKeyValueStore()));
+            var builtIn = emptyWindow.DumpKeySources.Single(s => s.Id == DumpKeySourceViewModel.BuiltInId);
+            builtIn.IsSelected = !builtIn.IsSelected;
+
+            var reloaded = Window(new DictionaryLibrary(store));
+            Assert.False(reloaded.DumpKeySources.Single(s => s.Id == first.Id).IsSelected);
+            Assert.False(reloaded.DumpKeySources.Single(s => s.Id == second.Id).IsSelected);
+            var saved = System.Text.Json.Nodes.JsonNode.Parse(AppServices.Store.Read("settings")!)!;
+            var ids = saved[setting]!.AsArray().Select(n => n!.GetValue<string>()).ToArray();
+            Assert.Contains(first.Id, ids);
+            Assert.Contains(second.Id, ids);
+        }
+        finally { AppSettings.Set(setting, original); }
+    }
+
+    [Fact]
+    public void KnownKeySelectionIsSharedAndSurvivesResetAndRecreation()
+    {
+        const string setting = "dumpUncheckedDictionaries";
+        var original = AppSettings.Get(setting);
+        try
+        {
+            var store = new MemoryKeyValueStore();
+            var library = new DictionaryLibrary(store);
+            CardsViewModel Window() => new(new DeviceService([]), new CardLibrary(store), library);
+            var vm = Window();
+            vm.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected = true;
+            vm.WriteRecovery.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected = false;
+            Assert.False(vm.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected);
+            vm.WriteRecovery.Reset();
+            Assert.False(vm.WriteRecovery.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected);
+            var reloaded = Window();
+            Assert.False(reloaded.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected);
+            Assert.False(reloaded.WriteRecovery.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected);
+            vm.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected = true;
+            Assert.True(vm.WriteRecovery.DumpKeySources.Single(s => s.IsKnownCardKeys).IsSelected);
+        }
+        finally { AppSettings.Set(setting, original); }
+    }
+
+    [Fact]
+    public void DetachedSourcesCannotOverwriteSelectionAfterListRebuild()
+    {
+        const string setting = "dumpUncheckedDictionaries";
+        var original = AppSettings.Get(setting);
+        try
+        {
+            var store = new MemoryKeyValueStore();
+            var library = new DictionaryLibrary(store);
+            var dictionary = new KeyDictionary { Name = "Test" };
+            library.Add(dictionary);
+            var vm = new CardsViewModel(new DeviceService([]), new CardLibrary(store), library);
+            var old = vm.DumpKeySources.Single(s => s.Id == dictionary.Id);
+            old.IsSelected = false;
+            // Rebuild synchronously, just as opening a different card does.
+            typeof(CardsViewModel).GetMethod("RebuildKeySources",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vm, null);
+            old.IsSelected = true;
+            var reloaded = new CardsViewModel(new DeviceService([]), new CardLibrary(store), library);
+            Assert.False(reloaded.DumpKeySources.Single(s => s.Id == dictionary.Id).IsSelected);
+        }
+        finally { AppSettings.Set(setting, original); }
+    }
+
+    [Fact]
     public void ActiveSectorDoesNotSwitchToPartialBetweenEveryBlock()
     {
         var row = new DumpSectorRow(0);

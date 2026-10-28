@@ -40,7 +40,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     private bool _showWriteProgress;
     private bool _hasWriteSession;
     private int _writeSector = -1;
-    private bool _knownKeysSelected = true;
+    private DumpKeySourceViewModel? _knownKeySelection;
+    private IDisposable? _knownKeySubscription;
     private int _selectedSector;
     public MifareDump? Target { get; private set; }
     public Task? RunningTask { get; private set; }
@@ -158,16 +159,25 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public void SetKeySources(IEnumerable<DumpKeySourceViewModel> sources)
     {
         var dictionaries = sources.ToArray();
+        _knownKeySubscription?.Dispose();
+        var sharedKnown = dictionaries.FirstOrDefault(s => s.IsKnownCardKeys);
+        if (sharedKnown is not null) _knownKeySelection = sharedKnown;
         DumpKeySources.Clear();
         var known = new DumpKeySourceViewModel(KnownCardKeys.Id, KnownCardKeys.Name,
-            Target is { } d ? _dictionaries.KnownKeys.ForUid(d.Uid) : Array.Empty<byte[]>(), _knownKeysSelected);
+            Target is { } d ? _dictionaries.KnownKeys.ForUid(d.Uid) : Array.Empty<byte[]>(),
+            _knownKeySelection?.IsSelected ?? KeySourceSelection.IsSelected(KnownCardKeys.Id));
         known.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(selected =>
         {
-            _knownKeysSelected = selected;
+            if (!DumpKeySources.Contains(known)) return;
+            if (_knownKeySelection is { } shared) shared.IsSelected = selected;
+            else KeySourceSelection.SetSelected(KnownCardKeys.Id, selected);
             Refresh();
         });
+        if (_knownKeySelection is { } selection)
+            _knownKeySubscription = selection.WhenAnyValue(x => x.IsSelected).Skip(1)
+                .Subscribe(selected => known.IsSelected = selected);
         DumpKeySources.Add(known);
-        foreach (var source in dictionaries) DumpKeySources.Add(source);
+        foreach (var source in dictionaries.Where(s => !s.IsKnownCardKeys)) DumpKeySources.Add(source);
         Refresh();
     }
 
