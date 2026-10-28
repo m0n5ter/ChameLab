@@ -5,171 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChameLab</title>
   <meta name="description" content="ChameLab: desktop, mobile and web app for ChameleonUltra and ChameleonLite, with firmware and a command line client.">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#101112">
   <link rel="icon" href="favicon.ico">
-  <style>
-    :root {
-      --bg: #f6f7f9; --card: #fff; --text: #1c1f24; --muted: #5d6571;
-      --line: #e1e4e8; --accent: #2563eb; --accent-text: #fff; --accent-soft: #e8efff;
-      --warn: #9a6700; --code: #eef0f3; --new: #1a7f37; --new-soft: #e3f4e7;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #111418; --card: #1a1e24; --text: #e6e8eb; --muted: #9aa3ae;
-        --line: #2b313a; --accent: #3b82f6; --accent-text: #fff; --accent-soft: #1c2a44;
-        --warn: #d4a72c; --code: #232830; --new: #4ac26b; --new-soft: #183222;
-      }
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 64px; }
-    body {
-      margin: 0; background: var(--bg); color: var(--text);
-      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-    a { color: var(--accent); }
-    code {
-      font: .88em ui-monospace, "Cascadia Code", Consolas, monospace;
-      background: var(--code); padding: 1px 5px; border-radius: 4px;
-    }
-
-    nav {
-      position: sticky; top: 0; z-index: 10;
-      background: color-mix(in srgb, var(--bg) 88%, transparent);
-      backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
-    }
-    nav div {
-      max-width: 960px; margin: 0 auto; padding: 0 16px; height: 52px;
-      display: flex; align-items: center; gap: 20px; overflow-x: auto;
-    }
-    nav b { margin-right: auto; white-space: nowrap; }
-    nav a { color: var(--muted); text-decoration: none; white-space: nowrap; font-size: .95rem; }
-    nav a:hover { color: var(--text); }
-
-    main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
-    header.hero {
-      display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center;
-      margin-bottom: 36px;
-    }
-    .hero h1 { margin: 0; font-size: 2.75rem; letter-spacing: -.02em; line-height: 1.1; }
-    .hero p { color: var(--muted); margin: 12px 0 20px; font-size: 1.1rem; max-width: 560px; }
-    .hero img { height: 170px; width: auto; }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
-    .button {
-      display: inline-block; background: var(--accent); color: var(--accent-text);
-      padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;
-    }
-    .button.secondary { background: var(--card); color: var(--text); border: 1px solid var(--line); }
-    .button:hover { filter: brightness(1.08); }
-    @media (max-width: 640px) {
-      header.hero { grid-template-columns: 1fr; text-align: center; }
-      .hero img { height: 120px; grid-row: 1; justify-self: center; }
-      .hero p { margin-left: auto; margin-right: auto; }
-      .actions { justify-content: center; }
-      .hero h1 { font-size: 2.2rem; }
-    }
-
-    section {
-      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-      padding: 22px 24px; margin-bottom: 20px;
-    }
-    @media (max-width: 640px) { section { padding: 18px 16px; } }
-    h2 { margin: 0 0 4px; font-size: 1.35rem; }
-    h3 { margin: 20px 0 6px; font-size: 1.02rem; }
-    .meta { color: var(--muted); font-size: .92rem; margin: 0 0 12px; }
-    .note { color: var(--warn); font-size: .9rem; margin: 10px 0 0; }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-    .tile { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
-    .tile h3 { margin: 0 0 4px; }
-    .tile p { margin: 0; color: var(--muted); font-size: .93rem; }
-
-    .badge {
-      display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .03em;
-      text-transform: uppercase; padding: 2px 7px; border-radius: 999px; vertical-align: 2px;
-      background: var(--new-soft); color: var(--new); margin-left: 6px;
-    }
-    .badge.fix { background: var(--accent-soft); color: var(--accent); }
-
-    .release-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-    .release-head h3 { margin: 0; font-size: 1.1rem; }
-    .release-head span { color: var(--muted); font-size: .9rem; }
-    ul.changes { margin: 8px 0 0; padding-left: 20px; }
-    ul.changes li { margin: 6px 0; }
-    ul.changes li b { font-weight: 600; }
-
-    .leds { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 6px; }
-    .led { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .78rem; color: var(--muted); }
-    .led i {
-      width: 26px; height: 26px; border-radius: 50%; background: var(--c1);
-      box-shadow: 0 0 10px var(--c1); display: block;
-    }
-    .led.dual i { animation: dual 2s steps(1) infinite; }
-    @keyframes dual { 0% { background: var(--c1); box-shadow: 0 0 10px var(--c1); }
-                      50% { background: var(--c2); box-shadow: 0 0 10px var(--c2); } }
-    @media (prefers-reduced-motion: reduce) {
-      .led.dual i { animation: none; background: linear-gradient(90deg, var(--c1) 50%, var(--c2) 50%); }
-    }
-
-    .table-wrap { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; font-size: .93rem; }
-    th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-    th { color: var(--muted); font-weight: 600; }
-    td.y { color: var(--new); font-weight: 700; }
-    td.n { color: var(--muted); }
-
-    ol.steps { padding-left: 20px; margin: 8px 0 0; }
-    ol.steps li { margin: 6px 0; }
-
-    ul.assets { list-style: none; margin: 0; padding: 0; }
-    ul.assets li {
-      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-      padding: 7px 0; border-top: 1px solid var(--line);
-    }
-    ul.assets li:first-child { border-top: 0; }
-    ul.assets li div { min-width: 0; }
-    ul.assets a { overflow-wrap: anywhere; }
-    ul.assets small { display: block; color: var(--muted); font-size: .85rem; }
-    ul.assets span { color: var(--muted); white-space: nowrap; font-size: .9rem; }
-    ul.assets li.mine a { font-weight: 700; }
-    ul.assets li.mine small::after { content: " · for this device"; color: var(--new); }
-    details.notes { margin-top: 14px; }
-    details.notes summary { cursor: pointer; color: var(--accent); }
-    details.notes pre {
-      white-space: pre-wrap; font: .88rem/1.5 ui-monospace, Consolas, monospace;
-      background: var(--code); padding: 12px; border-radius: 8px; margin: 8px 0 0;
-    }
-
-    footer { text-align: center; color: var(--muted); font-size: .9rem; margin-top: 28px; }
-  </style>
+  <link rel="stylesheet" href="styles.css">
   <!-- Cloudflare Web Analytics -->
   <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7cca38a46a8343549564c3277c5cb102"}'></script>
 </head>
 <body>
-<nav><div>
-  <b>ChameLab</b>
-  <a href="#app">App</a>
-  <a href="#why">Why</a>
-  <a href="#firmware">Firmware</a>
-  <a href="#stable">Download</a>
-  <a href="https://github.com/m0n5ter/ChameLab">GitHub</a>
+<a class="skip-link" href="#main">Skip to content</a>
+<nav aria-label="Main navigation"><div class="nav-inner">
+  <a class="brand" href="#" aria-label="ChameLab home"><span class="brand-mark" aria-hidden="true">C</span>ChameLab<span class="brand-dot">.</span></a>
+  <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span aria-hidden="true">☰</span></button>
+  <div class="nav-links" id="nav-links">
+    <a href="#app">The app</a>
+    <a href="#why">Features</a>
+    <a href="#firmware">Firmware</a>
+    <a href="https://github.com/m0n5ter/ChameLab">GitHub <span aria-hidden="true">↗</span></a>
+    <a class="nav-download" href="#stable">Download <span aria-hidden="true">↓</span></a>
+  </div>
 </div></nav>
 
-<main>
+<main id="main">
   <header class="hero">
     <div>
-      <h1>ChameLab</h1>
+      <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Built for ChameleonUltra &amp; ChameleonLite</p>
+      <h1>Your cards.<br>Your device.<br><span>Your ChameLab.</span></h1>
       <p>Desktop, mobile and web app for ChameleonUltra and ChameleonLite, together with
         an extended firmware and the command line client.</p>
       <div class="actions">
-        <a class="button" href="app/">Open in the browser</a>
-        <a class="button secondary" href="#stable">Download</a>
+        <a class="button" href="app/">Open web app <span aria-hidden="true">↗</span></a>
+        <a class="button secondary" href="#stable">Download app <span aria-hidden="true">↓</span></a>
       </div>
     </div>
-    <img src="chameleon-ultra.png" alt="ChameleonUltra">
+    <div class="device-card">
+      <div class="device-top"><span>CHAMELEON ULTRA</span><span class="device-label">HF + LF</span></div>
+      <div class="device-image"><img src="chameleon-ultra.png" alt="ChameleonUltra device" width="280" height="280"></div>
+      <div class="device-bottom"><span><span class="status-dot" aria-hidden="true"></span> One device. All your cards.</span><span class="device-label">8 SLOTS</span></div>
+    </div>
   </header>
 
+  <div class="platforms" aria-label="Supported platforms"><span>ONE APP. EVERYWHERE.</span><ul><li>Windows</li><li>macOS</li><li>Linux</li><li>Android</li><li>Web</li></ul><span class="platform-license">Open source · GPL v3</span></div>
+
   <section id="app">
-    <h2>The app</h2>
+    <p class="eyebrow">01 / YOUR WORKSPACE</p>
+    <h2>Everything your device can do.<br>In one place.</h2>
     <p class="meta">One app for Windows, macOS, Linux, Android and the browser. USB on desktop and in
       the browser, Bluetooth on phones, TCP everywhere.</p>
     <div class="grid">
@@ -196,17 +76,18 @@
   </section>
 
   <section id="why">
+    <p class="eyebrow">02 / THE DIFFERENCE</p>
     <h2>Why ChameLab</h2>
     <p class="meta">How the app compares with the Flutter ChameleonUltraGUI and the command line client.</p>
-    <div class="table-wrap">
+    <div class="table-wrap" role="region" aria-label="Feature comparison, scroll horizontally on small screens" tabindex="0">
       <table>
-        <thead><tr><th></th><th>ChameLab</th><th>ChameleonUltraGUI</th><th>CLI</th></tr></thead>
+        <thead><tr><th scope="col">Feature</th><th scope="col">ChameLab</th><th scope="col">ChameleonUltraGUI</th><th scope="col">CLI</th></tr></thead>
         <tbody>
           <tr><td>Graphical interface</td><td class="y">✓</td><td class="y">✓</td><td class="n">terminal</td></tr>
           <tr><td>Runs in the browser, nothing to install</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
           <tr><td>Per-card slot LED colors</td><td class="y">✓</td><td class="n">–</td><td class="y">✓</td></tr>
           <tr><td>Import Proxmark3, Flipper, MCT, .bin / .eml</td><td class="y">✓</td><td class="n">partly</td><td class="n">partly</td></tr>
-          <tr><td>Key recovery (darkside, nested, hardnested)</td><td class="n">not yet</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>Key recovery (darkside, nested, hardnested)</td><td class="y" aria-label="Supported">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
           <tr><td>Firmware update from the app</td><td class="y">✓</td><td class="y">✓</td><td class="n">via scripts</td></tr>
         </tbody>
       </table>
@@ -221,10 +102,11 @@
       <li><b>Cards first.</b> Read a card, save it to the library, put it into any slot, and the
         slot shows which saved card it holds, matched by UID.</li>
     </ul>
-    <p class="note">Not there yet: key recovery, HF / LF sniffing, card folders, QR sharing and translations. Key recovery is in the CLI for now.</p>
+    <p class="note">Still on the roadmap: HF / LF sniffing, card folders, QR sharing and translations.</p>
   </section>
 
   <section id="firmware">
+    <p class="eyebrow">03 / UNDER THE HOOD</p>
     <h2>The firmware</h2>
     <p class="meta">The ChameLab firmware runs on both ChameleonUltra and ChameleonLite. Here is
       what is new in it.</p>
@@ -275,6 +157,8 @@
       update. See the full <a href="https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md">changelog</a>.</p>
   </section>
 
+  <div class="download-intro"><p class="eyebrow">04 / GET STARTED</p><h2>Make it yours.</h2><p class="meta">Get ChameLab for your platform, or open the web app and connect your device.</p></div>
+  <div class="downloads">
   <section id="stable">
     <h2>Latest release</h2>
     <p class="meta">Loading…</p>
@@ -285,6 +169,8 @@
     <p class="meta">Loading…</p>
   </section>
 
+  </div>
+  <noscript><p class="note">To see downloads here, enable JavaScript, or <a href="https://github.com/m0n5ter/ChameLab/releases">browse all releases on GitHub</a>.</p></noscript>
   <footer>
     <p>Free software under the GNU GPL v3:
       <a href="https://github.com/m0n5ter/ChameLab">source code</a> ·
@@ -294,6 +180,21 @@
 </main>
 
 <script>
+  const menuToggle = document.querySelector('.menu-toggle');
+  const navLinks = document.getElementById('nav-links');
+  function closeMenu() { menuToggle.setAttribute('aria-expanded', 'false'); }
+  menuToggle.addEventListener('click', () => {
+    menuToggle.setAttribute('aria-expanded', String(menuToggle.getAttribute('aria-expanded') !== 'true'));
+  });
+  navLinks.addEventListener('click', event => { if (event.target.closest('a')) closeMenu(); });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') {
+      closeMenu();
+      menuToggle.focus();
+    }
+  });
+  document.addEventListener('click', event => { if (!event.target.closest('nav')) closeMenu(); });
+
   const repo = 'm0n5ter/ChameLab';
   const releasesUrl = `https://github.com/${repo}/releases`;
 
