@@ -512,6 +512,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private void OnFormPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(CardEditorViewModel.Memory))
+            this.RaisePropertyChanged(nameof(ShowMemoryEditor));
         if (e.PropertyName is nameof(CardEditorViewModel.Name) or nameof(CardEditorViewModel.Tag)
             or nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.Sak)
             or nameof(CardEditorViewModel.Atqa) or nameof(CardEditorViewModel.Ats))
@@ -1110,7 +1112,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool CanDump
     {
         get => _canDump;
-        private set { this.RaiseAndSetIfChanged(ref _canDump, value); RaiseSaveLabel(); RaiseDumpToolbar(); }
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _canDump, value);
+            this.RaisePropertyChanged(nameof(ShowMemoryEditor));
+            RaiseSaveLabel();
+            RaiseDumpToolbar();
+        }
     }
 
     /// <summary>
@@ -2159,8 +2167,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>The card editor is shown unless the writer view has taken over the pane.</summary>
     public bool ShowEditor => _form is not null && !IsWriteOpen;
 
-    /// <summary>The "create memory" block is shown only while editing a card that still needs memory.</summary>
-    public bool ShowMemoryEditor => ShowEditor && _form?.Memory is not null;
+    /// <summary>The memory panel is shown only for an open card with readable or editable memory.</summary>
+    public bool ShowMemoryEditor => ShowEditor && (CanDump || _form?.Memory is not null);
 
     private void Toggle(CardAction action)
     {

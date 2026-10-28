@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: hide the empty memory panel when choosing to scan, create or import a card
 
 ## [v1.0.19][2026-10-28] · firmware v2.3.3-cl
  - ChameLab: MIFARE Classic keys can be recovered with the Hardnested attack (desktop only)
