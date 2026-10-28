@@ -298,7 +298,7 @@ public class SectorKeyGrid : Control
 
         if (SelectedSector >= 0 && SelectedSector < sectors.Count && SelectionBrush is ISolidColorBrush selectedBrush)
         {
-            var gap = 2 * m.Px;
+            var gap = 3 * m.Px;
             var box = m.Cell(SelectedSector, false).Union(m.Cell(SelectedSector, true)).Inflate(gap);
             var color = selectedBrush.Color;
             color = Color.FromArgb(255, color.R, color.G, color.B);

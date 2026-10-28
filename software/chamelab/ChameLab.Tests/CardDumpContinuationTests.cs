@@ -177,6 +177,36 @@ public class CardDumpContinuationTests
     }
 
     [Fact]
+    public void DumpToolbarShowsExactlyOneStateAndUpdatesWhenConnectionOrProgressChanges()
+    {
+        var vm = Open(Card());
+        void Set(string name, object? value) => typeof(CardsViewModel).GetProperty(name)!.SetValue(vm, value);
+        Assert.True(vm.ShowDumpNotice);
+        Assert.Contains("Connect a device", vm.DumpNotice);
+        Assert.False(vm.ShowDumpActions);
+        Set(nameof(CardsViewModel.IsConnected), true);
+        Assert.True(vm.ShowDumpActions);
+        Assert.False(vm.ShowDumpNotice);
+        Set(nameof(CardsViewModel.DumpProgressText), "Reading…");
+        Assert.True(vm.IsDumpRunning);
+        Assert.False(vm.ShowDumpActions);
+        Assert.False(vm.ShowDumpNotice);
+        Set(nameof(CardsViewModel.IsDumpComplete), true);
+        Assert.True(vm.IsDumpRunning);
+        Assert.False(vm.ShowDumpNotice);
+        Set(nameof(CardsViewModel.DumpProgressText), null);
+        Assert.False(vm.IsDumpRunning);
+        Assert.False(vm.ShowDumpActions);
+        Assert.True(vm.ShowDumpNotice);
+        Assert.Equal("All blocks have been read.", vm.DumpNotice);
+        Set(nameof(CardsViewModel.IsConnected), false);
+        Assert.True(vm.ShowDumpNotice);
+        Assert.Equal("All blocks have been read.", vm.DumpNotice);
+        Set(nameof(CardsViewModel.IsDumpComplete), false);
+        Assert.Contains("Connect a device", vm.DumpNotice);
+    }
+
+    [Fact]
     public void SavedUidOnlyCardCanBeRead()
     {
         var vm = Open(Card());

@@ -928,93 +928,119 @@
                            IsVisible="{Binding NeedsDump}" />
               </StackPanel>
               <StackPanel Spacing="8">
-                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6" IsVisible="{Binding CanDump}">
-                  <!-- While a dump runs, its button turns into Stop. -->
-                  <StackPanel Orientation="Horizontal" Spacing="6"
-                              IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}">
-                    <Button Command="{Binding DumpCommand}" VerticalAlignment="Center"
-                            IsVisible="{Binding !IsDumpComplete}"
-                            Classes.accent="{Binding NeedsDump}"
-                            ToolTip.Tip="Read the whole card memory">
+                <!-- One fixed-height slot for actions, progress or an informational message. -->
+                <Grid Height="48" IsVisible="{Binding CanDump}">
+                  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                IsVisible="{Binding ShowDumpActions}">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsEnabled="{Binding !IsBusy}">
+                      <Grid Height="40">
+                        <Grid.Styles>
+                          <Style Selector="Button.dump-main">
+                            <Setter Property="CornerRadius" Value="8,0,0,8" />
+                          </Style>
+                          <Style Selector="Button.dump-main.ultralight">
+                            <Setter Property="CornerRadius" Value="8" />
+                          </Style>
+                        </Grid.Styles>
+                        <StackPanel Orientation="Horizontal" Spacing="0">
+                          <Button x:Name="TryKeysButton" Command="{Binding DumpCommand}" Classes="dump-main"
+                                  Classes.accent="{Binding NeedsDump}" Classes.ultralight="{Binding IsUltralightDump}"
+                                  Height="40" BorderThickness="0"
+                                  ToolTip.Tip="Read missing blocks with the selected keys">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <PathIcon Data="{StaticResource Icon.dump}" />
+                              <TextBlock Text="Try keys" VerticalAlignment="Center" />
+                            </StackPanel>
+                          </Button>
+                          <Button IsVisible="{Binding !IsUltralightDump}" ToolTip.Tip="{Binding DumpKeyCountText}"
+                                  Height="40" Width="40" Padding="0" CornerRadius="0,8,8,0" BorderThickness="1,0,0,0"
+                                  BorderBrush="{Binding #TryKeysButton.BorderBrush}"
+                                  AutomationProperties.Name="Key dictionaries">
+                            <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
+                            <Button.Flyout>
+                              <Flyout Placement="BottomEdgeAlignedLeft">
+                                <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
+                                  <TextBlock Text="KEY DICTIONARIES" Classes="overline" />
+                                  <ItemsControl ItemsSource="{Binding DumpKeySources}">
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
+                                        <StackPanel>
+                                          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
+                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
+                                            <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+                                                          IsChecked="{Binding IsSelected}" />
+                                          </Grid>
+                                          <Separator Margin="0,8,0,4" IsVisible="{Binding IsKnownCardKeys}" />
+                                        </StackPanel>
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                  <Separator Margin="0,2" />
+                                  <TextBlock Text="{Binding DumpKeyCountText}" FontWeight="SemiBold" />
+                                </StackPanel>
+                              </Flyout>
+                            </Button.Flyout>
+                          </Button>
+                        </StackPanel>
+                        <!-- Draw the shared outline above the button backgrounds. -->
+                        <Border BorderBrush="{Binding #TryKeysButton.BorderBrush}" BorderThickness="1"
+                                CornerRadius="8" IsHitTestVisible="False" />
+                      </Grid>
+                      <Button Command="{Binding CheckRecoveryCommand}" Content="Check recovery methods"
+                              IsVisible="{Binding ShowCheckRecovery}" />
+                      <Button Command="{Binding DarksideCommand}"
+                              IsVisible="{Binding ShowDarkside}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <PathIcon Data="{StaticResource Icon.sleep}" />
+                          <TextBlock Text="Darkside" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </Button>
+                      <Button Command="{Binding NestedCommand}"
+                              IsVisible="{Binding ShowNested}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <PathIcon Data="{StaticResource Icon.slots}" />
+                          <TextBlock Text="Nested" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </Button>
+                      <Button Command="{Binding StaticNestedCommand}"
+                              IsVisible="{Binding ShowStaticNested}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <PathIcon Data="{StaticResource Icon.refresh}" />
+                          <TextBlock Text="Static nested" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </Button>
+                      <Button Command="{Binding HardnestedCommand}"
+                              IsVisible="{Binding ShowHardnested}" ToolTip.Tip="{Binding HardnestedWarning}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <PathIcon Data="{StaticResource Icon.bolt}" />
+                          <TextBlock Text="Hardnested" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </Button>
+                    </StackPanel>
+                  </ScrollViewer>
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center"
+                        IsVisible="{Binding IsDumpRunning}">
+                    <Button Grid.Column="1" Command="{Binding CancelDumpCommand}" b:DialogKeys.IsCancel="True"
+                            ToolTip.Tip="Stop and keep the memory read so far (Esc)">
                       <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.dump}" />
-                        <TextBlock Text="Try keys" VerticalAlignment="Center" />
+                        <PathIcon Data="{StaticResource Icon.close}" />
+                        <TextBlock Text="Stop" VerticalAlignment="Center" />
                       </StackPanel>
                     </Button>
-                  </StackPanel>
-                  <Button Command="{Binding CancelDumpCommand}" VerticalAlignment="Center"
-                          IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}"
-                          ToolTip.Tip="Stop the dump; what was read so far is kept and can be saved">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <PathIcon Data="{StaticResource Icon.close}" />
-                      <TextBlock Text="Stop" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="0" Spacing="5" VerticalAlignment="Center">
+                      <TextBlock Classes="caption" Text="{Binding DumpProgressText}"
+                                 TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                      <ProgressBar Height="6" MinHeight="6" HorizontalAlignment="Stretch"
+                                   Minimum="0" Maximum="{Binding DumpKeyTotal}" Value="{Binding DumpKeyTried}"
+                                   IsIndeterminate="{Binding !HasDumpKeyProgress}"
+                                   ToolTip.Tip="{Binding DumpKeyProgressTip}" />
                     </StackPanel>
-                  </Button>
-                  <!-- Which dictionaries the dump tries; the count is unique keys across the checked ones. -->
-                  <Button Grid.Column="1" VerticalAlignment="Center"
-                          IsEnabled="{Binding !IsBusy}"
-                          ToolTip.Tip="{Binding DumpKeyCountText}">
-                    <Button.IsVisible>
-                      <MultiBinding Converter="{x:Static BoolConverters.And}">
-                        <Binding Path="!IsUltralightDump" />
-                        <Binding Path="!IsDumpComplete" />
-                      </MultiBinding>
-                    </Button.IsVisible>
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                      <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
-                      <TextBlock Text="{Binding DumpKeyCount}" VerticalAlignment="Center" />
-                    </StackPanel>
-                    <Button.Flyout>
-                      <Flyout Placement="BottomEdgeAlignedLeft">
-                        <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
-                          <TextBlock Text="KEY DICTIONARIES" Classes="overline" />
-                          <ItemsControl ItemsSource="{Binding DumpKeySources}">
-                            <ItemsControl.ItemTemplate>
-                              <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
-                                <StackPanel>
-                                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
-                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
-                                    <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
-                                                  IsChecked="{Binding IsSelected}" />
-                                  </Grid>
-                                  <Separator Margin="0,8,0,4" IsVisible="{Binding IsKnownCardKeys}" />
-                                </StackPanel>
-                              </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                          </ItemsControl>
-                          <Separator Margin="0,2" />
-                          <TextBlock Text="{Binding DumpKeyCountText}" FontWeight="SemiBold" />
-                        </StackPanel>
-                      </Flyout>
-                    </Button.Flyout>
-                  </Button>
-                  <!-- What the dump is on (sector and key), and how far the key search got. -->
-                  <StackPanel Grid.Column="2" Spacing="5" VerticalAlignment="Center" Margin="6,0,0,0"
-                              IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNotNull}}">
-                    <TextBlock Classes="caption" Text="{Binding DumpProgressText}"
-                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                    <ProgressBar Height="6" MinHeight="6" HorizontalAlignment="Stretch"
-                                 Minimum="0" Maximum="{Binding DumpKeyTotal}" Value="{Binding DumpKeyTried}"
-                                 ToolTip.Tip="{Binding DumpKeyProgressTip}"
-                                 IsVisible="{Binding HasDumpKeyProgress}" />
-                  </StackPanel>
+                  </Grid>
+                  <TextBlock Classes="caption" Text="{Binding DumpNotice}" VerticalAlignment="Center"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                             IsVisible="{Binding ShowDumpNotice}" />
                 </Grid>
-
-                <WrapPanel ItemSpacing="6" LineSpacing="6">
-                  <Button Command="{Binding CheckRecoveryCommand}" Content="Check recovery methods"
-                          IsVisible="{Binding ShowCheckRecovery}" />
-                  <Button Command="{Binding DarksideCommand}" Content="Darkside"
-                          IsVisible="{Binding ShowDarkside}" />
-                  <Button Command="{Binding NestedCommand}" Content="Nested"
-                          IsVisible="{Binding ShowNested}" />
-                  <Button Command="{Binding StaticNestedCommand}" Content="Static nested"
-                          IsVisible="{Binding ShowStaticNested}" />
-                  <Button Command="{Binding HardnestedCommand}" Content="Hardnested"
-                          IsVisible="{Binding ShowHardnested}" />
-                </WrapPanel>
-                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding HardnestedWarning}"
-                           IsVisible="{Binding HardnestedWarning, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
                 <!-- Ultralight / NTAG: optional password for the protected pages. -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsUltralightDump}">
@@ -1105,7 +1131,7 @@
                       <c:HexEditor x:Name="MemoryEditor" Buffer="{Binding Form?.SelectedMemory}" />
                     </Border>
                   </ScrollViewer>
-                  <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsMifareClassic, TargetNullValue=False}" Margin="0,6,0,0">
+                  <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsMifareClassic, TargetNullValue=False}" Margin="16,0,0,0">
                     <TextBlock Classes="manufacturer" Text="■ Block 0" />
                     <TextBlock Classes="keya" Text="■ Key A" />
                     <TextBlock Classes="access" Text="■ Access bits" />
@@ -1123,20 +1149,7 @@
                   </WrapPanel>
                 </StackPanel>
 
-                <!-- Summary of the last dump. -->
-                <Border Classes="inset" Padding="14,8" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpStats}">
-                  <ItemsControl ItemsSource="{Binding DumpStats}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="vm:ScanResultRow">
-                        <Grid ColumnDefinitions="110,*" Margin="0,2">
-                          <TextBlock Text="{Binding Field}" Classes="caption" VerticalAlignment="Center" />
-                          <SelectableTextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap"
-                                               VerticalAlignment="Center" />
-                        </Grid>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </Border>
+
               </StackPanel>
             </StackPanel>
           </Border>

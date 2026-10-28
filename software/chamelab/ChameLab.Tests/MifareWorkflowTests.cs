@@ -76,6 +76,49 @@ public class MifareWorkflowTests
         Assert.Null(result.KeyB[0]);
     }
 
+    [Theory]
+    [InlineData(true, 1)]
+    [InlineData(false, 3)]
+    public async Task Dump_ProgressCountsUniqueKnownKeysAndReportsReadingBeforeIo(bool knownWorks, int attempts)
+    {
+        var dump = KnownCard();
+        for (var block = 0; block < dump.BlockCount; block++) dump.SetBlock(block, new byte[16]);
+        dump.KeyB[4] = null;
+        dump.SetBlock(17, null);
+        var other = Convert.FromHexString("112233445566");
+        var accepted = knownWorks ? Key : other;
+        var keys = new List<MifareKeyProgress>();
+        var blocks = new List<MifareBlockProgress>();
+        var transport = new CardTransport
+        {
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (request.Data[2..].SequenceEqual(accepted) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>())
+                : null,
+        };
+        transport.OnRequest = request =>
+        {
+            if (request.Command == Command.Mf1ReadOneBlock)
+                Assert.Contains(blocks, p => p.First == 17 && p.Count == 1 && p.State == MifareBlockState.Reading);
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        await new ChameleonClient(connection).ReadMifareClassicAsync([Key, Key, new byte[6], new byte[6], other],
+            type: dump.Type, existing: dump,
+            keyProgress: new CallbackProgress<MifareKeyProgress>(keys.Add),
+            blocks: new CallbackProgress<MifareBlockProgress>(blocks.Add));
+
+        Assert.All(keys, p => Assert.Equal(3, p.Total));
+        Assert.Equal(Enumerable.Range(0, attempts + 1), keys.Select(p => p.Tried));
+        var found = Assert.Single(keys, p => p.Phase == MifareKeyPhase.Found);
+        Assert.Equal(attempts, found.Tried);
+        Assert.Equal(attempts, transport.Requests.Count(r => r.Command == Command.Mf1AuthOneKeyBlock));
+    }
+
+    private sealed class CallbackProgress<T>(Action<T> callback) : IProgress<T>
+    {
+        public void Report(T value) => callback(value);
+    }
+
     [Fact]
     public async Task Dump_CancelKeepsKeysAndBlocksForNextRun()
     {

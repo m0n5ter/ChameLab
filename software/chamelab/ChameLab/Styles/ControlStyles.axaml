@@ -293,13 +293,13 @@
     <Setter Property="FoundBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
     <Setter Property="SearchingBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="NotFoundBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
-    <Setter Property="UnknownBrush" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="UnknownBrush" Value="{actipro:ThemeResource Container5BackgroundBrush}" />
     <Setter Property="LabelBrush" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
   </Style>
 
   <!-- Dump block strip (drawn control); colors match the legend cells below. -->
   <Style Selector="c|BlockStrip">
-    <Setter Property="PendingBrush" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="PendingBrush" Value="{actipro:ThemeResource Container5BackgroundBrush}" />
     <Setter Property="ReadingBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="ReadBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
     <Setter Property="ReadErrorBrush" Value="{DynamicResource BrandAmberBrush}" />
@@ -311,7 +311,7 @@
     <Setter Property="Height" Value="14" />
     <Setter Property="Margin" Value="1" />
     <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="Background" Value="{actipro:ThemeResource Container5BackgroundBrush}" />
   </Style>
   <Style Selector="Border.blockcell.reading">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />

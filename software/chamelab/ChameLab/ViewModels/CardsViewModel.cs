@@ -577,7 +577,11 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public bool IsConnected
     {
         get => _isConnected;
-        private set => this.RaiseAndSetIfChanged(ref _isConnected, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isConnected, value);
+            RaiseDumpToolbar();
+        }
     }
 
     public string? ProgressText
@@ -593,6 +597,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         private set
         {
             this.RaiseAndSetIfChanged(ref _dumpProgressText, value);
+            RaiseDumpToolbar();
             if (value is null) SetDumpKeyProgress(0, 0);
         }
     }
@@ -647,6 +652,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     private void OnDumpSectorBlock(MifareBlockProgress p)
     {
         if (p.State == MifareBlockState.Pending && p.First == 0 && DumpSectors.Count == 0) ResetDumpSectors(p.Count);
+        if (p.State == MifareBlockState.Reading)
+        {
+            SetDumpKeyProgress(0, 0);
+            var sector = MifareClassic.SectorOfBlock(p.First);
+            DumpProgressText = p.Count == 1
+                ? $"Reading sector {sector} · block {p.First}"
+                : $"Preparing sector {sector}…";
+        }
         RefreshDumpReadState();
     }
 
@@ -661,8 +674,14 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
         DumpSectors[p.Sector].ApplyKey(p);
         UpdateRecoveryMethods();
-        // The text names the sector and key (numbered like the grid's tooltip); the bar shows the search.
-        DumpProgressText = $"Sector {p.Sector} · key {(p.KeyType == MfKeyType.A ? "A" : "B")}";
+        var key = p.KeyType == MfKeyType.A ? "A" : "B";
+        var detail = p.Phase switch
+        {
+            MifareKeyPhase.Found => $"found after {p.Tried} key checks",
+            MifareKeyPhase.NotFound => $"not found · {p.Tried}/{p.Total} keys checked",
+            _ => $"checking key {Math.Min(p.Tried + 1, p.Total)}/{p.Total}",
+        };
+        DumpProgressText = $"Sector {p.Sector} · key {key} · {detail}";
         SetDumpKeyProgress(p.Tried, p.Total);
     }
 
@@ -1082,7 +1101,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public bool CanDump
     {
         get => _canDump;
-        private set { this.RaiseAndSetIfChanged(ref _canDump, value); RaiseSaveLabel(); }
+        private set { this.RaiseAndSetIfChanged(ref _canDump, value); RaiseSaveLabel(); RaiseDumpToolbar(); }
     }
 
     /// <summary>
@@ -1098,6 +1117,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             this.RaisePropertyChanged(nameof(DumpHint));
             this.RaisePropertyChanged(nameof(DumpUnit));
             this.RaisePropertyChanged(nameof(DumpLockedText));
+            RaiseDumpToolbar();
         }
     }
 
@@ -1144,7 +1164,23 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         {
             this.RaiseAndSetIfChanged(ref _isDumpComplete, value);
             this.RaisePropertyChanged(nameof(ShowCheckRecovery));
+            RaiseDumpToolbar();
         }
+    }
+
+    public bool IsDumpRunning => DumpProgressText is not null;
+    public bool ShowDumpActions => CanDump && !IsDumpRunning && IsConnected && !IsDumpComplete;
+    public bool ShowDumpNotice => CanDump && !IsDumpRunning && (!IsConnected || IsDumpComplete);
+    public string DumpNotice => IsDumpComplete
+        ? IsUltralightDump ? "All pages have been read." : "All blocks have been read."
+        : "Connect a device to read memory and recover keys.";
+
+    private void RaiseDumpToolbar()
+    {
+        this.RaisePropertyChanged(nameof(IsDumpRunning));
+        this.RaisePropertyChanged(nameof(ShowDumpActions));
+        this.RaisePropertyChanged(nameof(ShowDumpNotice));
+        this.RaisePropertyChanged(nameof(DumpNotice));
     }
 
     /// <summary>Makes it explicit that saving before a dump keeps only the card's identity.</summary>

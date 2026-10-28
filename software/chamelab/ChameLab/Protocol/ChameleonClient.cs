@@ -837,6 +837,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                     {
                         var block = first + b;
                         if (dump.GetBlock(block) is not null) continue;
+                        blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Reading));
                         if (await ReadBlockWithEitherKeyAsync(block, dump.KeyA[s], dump.KeyB[s], ct) is { } data)
                         {
                             dump.SetBlock(block, data);
@@ -871,41 +872,43 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         IReadOnlyList<byte[]> known, IReadOnlyList<byte[]> knownOther,
         IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
     {
-        var total = keyDict.Count;
+        var preferred = known.Concat(knownOther).DistinctBy(k => Convert.ToHexString(k)).ToArray();
+        var seen = preferred.Select(k => Convert.ToHexString(k)).ToHashSet();
+        var candidates = keyDict.Where(k => seen.Add(Convert.ToHexString(k))).ToArray();
+        var total = preferred.Length + candidates.Length;
+        var completed = 0;
         keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Searching, 0, total, null));
 
-        // Keys already tried on this sector and type: the dictionary pass skips them.
-        var tried = new HashSet<string>();
-        foreach (var k in known.Concat(knownOther))
+        // Count known-key checks too; a quick hit is one actual attempt, not a full dictionary pass.
+        foreach (var key in preferred)
         {
-            if (!tried.Add(Convert.ToHexString(k))) continue;
-            if (await AuthKnownKeyAsync(block, kt, k, ct))
-            {
-                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Found, total, total, k));
-                return k;
-            }
+            var ok = await AuthKnownKeyAsync(block, kt, key, ct);
+            completed++;
+            keyProgress?.Report(new MifareKeyProgress(sector, kt,
+                ok ? MifareKeyPhase.Found : MifareKeyPhase.Searching, completed, total, ok ? key : null));
+            if (ok) return key;
         }
 
-        // Throttle the "searching" ticks: a dictionary can hold thousands of keys.
+        // Throttle dictionary ticks, but keep one consistent count across both search stages.
         var step = Math.Max(1, total / 50);
-        for (var i = 0; i < total; i++)
+        for (var i = 0; i < candidates.Length; i++)
         {
             ct.ThrowIfCancellationRequested();
-            var candidate = keyDict[i];
-            if (tried.Contains(Convert.ToHexString(candidate))) continue;
+            var candidate = candidates[i];
             bool ok;
             try { ok = await Mf1AuthAsync(block, kt, candidate, ct); }
             catch (Exception ex) when (IsRfFailure(ex)) { ok = false; }
+            completed++;
             if (ok)
             {
-                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Found, i + 1, total, candidate));
+                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Found, completed, total, candidate));
                 return candidate;
             }
             if (i % step == 0)
-                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Searching, i + 1, total, null));
+                keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Searching, completed, total, null));
         }
 
-        keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.NotFound, total, total, null));
+        keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.NotFound, completed, total, null));
         return null;
     }
 
