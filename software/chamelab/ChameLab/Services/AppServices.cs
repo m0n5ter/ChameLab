@@ -19,6 +19,7 @@ public static class AppServices
     private static IReadOnlyList<IDfuLocator> _dfu = Array.Empty<IDfuLocator>();
     private static FirmwareUpdateService? _firmware;
     private static IFeedbackPlayer? _feedback;
+    public static IHardnestedEngine Hardnested { get; private set; } = new UnavailableHardnestedEngine();
 
     public static DeviceService Device =>
         _device ??= Build(Enumerable.Empty<ITransportScanner>());
@@ -41,12 +42,14 @@ public static class AppServices
     /// and its sound and vibration player.
     /// </summary>
     public static void Register(IEnumerable<ITransportScanner> platformScanners, IKeyValueStore? store = null,
-        IEnumerable<IDfuLocator>? dfu = null, IFeedbackPlayer? feedback = null)
+        IEnumerable<IDfuLocator>? dfu = null, IFeedbackPlayer? feedback = null,
+        IHardnestedEngine? hardnested = null)
     {
         _device = Build(platformScanners);
         if (store is not null) _store = store;
         _dfu = dfu?.ToList() ?? new List<IDfuLocator>();
         if (feedback is not null) _feedback = feedback;
+        Hardnested = hardnested ?? new UnavailableHardnestedEngine();
     }
 
     private static DeviceService Build(IEnumerable<ITransportScanner> platformScanners)

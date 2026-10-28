@@ -14,7 +14,8 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        AppServices.Register(new ITransportScanner[] { new SerialScanner() }, dfu: new IDfuLocator[] { new SerialDfuLocator() });
+        AppServices.Register(new ITransportScanner[] { new SerialScanner() }, dfu: new IDfuLocator[] { new SerialDfuLocator() },
+            hardnested: new NativeHardnestedEngine());
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

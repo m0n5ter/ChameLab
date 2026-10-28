@@ -78,7 +78,9 @@ THE SOFTWARE.
 #include <io.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#define atomic_add(num, val) (InterlockedExchangeAdd64(num, val) + val)
+#define atomic_add(num, val) (sizeof(*(num)) == 8 ? \
+    (uint64_t)(InterlockedExchangeAdd64((volatile LONG64 *)(num), (LONG64)(val)) + (val)) : \
+    (uint64_t)(InterlockedExchangeAdd((volatile LONG *)(num), (LONG)(val)) + (val)))
 FILE *fmemopen(void *buf, size_t len, const char *type) {
     int fd;
     FILE *fp;

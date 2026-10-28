@@ -1005,7 +1005,11 @@
                           IsVisible="{Binding ShowNested}" />
                   <Button Command="{Binding StaticNestedCommand}" Content="Static nested"
                           IsVisible="{Binding ShowStaticNested}" />
+                  <Button Command="{Binding HardnestedCommand}" Content="Hardnested"
+                          IsVisible="{Binding ShowHardnested}" />
                 </WrapPanel>
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding HardnestedWarning}"
+                           IsVisible="{Binding HardnestedWarning, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
                 <!-- Ultralight / NTAG: optional password for the protected pages. -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsUltralightDump}">
@@ -1028,7 +1032,7 @@
                      searching key and its tried/total count show in the progress line above. -->
                 <StackPanel Spacing="6" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpSectors}">
                   <c:SectorKeyGrid Sectors="{Binding DumpSectors}" HorizontalAlignment="Stretch" />
-                  <WrapPanel ItemSpacing="14" LineSpacing="4">
+                  <WrapPanel ItemSpacing="14" LineSpacing="4" Margin="16,0,0,0">
                     <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend read" Margin="0" />
                       <TextBlock Text="Key found" Classes="caption" />

@@ -8,6 +8,14 @@
 
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <BuildHardnested Condition="'$(BuildHardnested)' == ''">true</BuildHardnested>
+    <CMakeExecutable Condition="'$(CMakeExecutable)' == ''">cmake</CMakeExecutable>
+    <HardnestedNativeDirectory Condition="'$(HardnestedNativeDirectory)' == ''">$(MSBuildProjectDirectory)/obj/hardnested-output/$(Configuration)</HardnestedNativeDirectory>
+    <HardnestedWorkerFile Condition="$([MSBuild]::IsOSPlatform('Windows'))">chamelab-hardnested-worker.exe</HardnestedWorkerFile>
+    <HardnestedWorkerFile Condition="'$(HardnestedWorkerFile)' == ''">chamelab-hardnested-worker</HardnestedWorkerFile>
+    <HardnestedLibraryFile Condition="$([MSBuild]::IsOSPlatform('Windows'))">chamelab-hardnested.dll</HardnestedLibraryFile>
+    <HardnestedLibraryFile Condition="$([MSBuild]::IsOSPlatform('OSX'))">libchamelab-hardnested.dylib</HardnestedLibraryFile>
+    <HardnestedLibraryFile Condition="'$(HardnestedLibraryFile)' == ''">libchamelab-hardnested.so</HardnestedLibraryFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,5 +29,38 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
+    <HardnestedSource Include="../../src/HardnestedRecovery/**/*.c;../../src/HardnestedRecovery/**/*.h;../../src/HardnestedRecovery/native/CMakeLists.txt;../../src/HardnestedRecovery/native/*.ps1;../../src/crypto1.c;../../src/crapto1.c;../../src/bucketsort.c;../../src/parity.c;../../src/*.h" />
   </ItemGroup>
+
+  <Target Name="BuildNativeHardnested" BeforeTargets="AssignTargetPaths"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(BuildHardnested)' == 'true'"
+          Inputs="@(HardnestedSource)"
+          Outputs="$(HardnestedNativeDirectory)/$(HardnestedWorkerFile);$(HardnestedNativeDirectory)/$(HardnestedLibraryFile)">
+    <Error Condition="'$(RuntimeIdentifier)' != '' and '$(RuntimeIdentifier)' != '$(NETCoreSdkRuntimeIdentifier)'"
+           Text="For cross-platform publishing, build the matching native component separately and set BuildHardnested=false and HardnestedNativeDirectory." />
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Windows')) and '$(CMakeExecutable)' == 'cmake'"
+          Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)/../../src/HardnestedRecovery/native/find-cmake.ps1&quot;"
+          ConsoleToMSBuild="true" StandardOutputImportance="Low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CMakeExecutable" />
+    </Exec>
+    <Exec Command="&quot;$(CMakeExecutable)&quot; -S &quot;$(MSBuildProjectDirectory)/../../src/HardnestedRecovery/native&quot; -B &quot;$(MSBuildProjectDirectory)/obj/hardnested-native&quot; -DCMAKE_BUILD_TYPE=$(Configuration)" />
+    <Exec Command="&quot;$(CMakeExecutable)&quot; --build &quot;$(MSBuildProjectDirectory)/obj/hardnested-native&quot; --config $(Configuration) --target chamelab-hardnested-worker --parallel" />
+    <Exec Command="&quot;$(CMakeExecutable)&quot; --install &quot;$(MSBuildProjectDirectory)/obj/hardnested-native&quot; --config $(Configuration) --prefix &quot;$(HardnestedNativeDirectory)&quot; --component Hardnested" />
+  </Target>
+
+  <Target Name="IncludeNativeHardnested" BeforeTargets="AssignTargetPaths" DependsOnTargets="BuildNativeHardnested"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <HardnestedWorker Include="$(HardnestedNativeDirectory)/chamelab-hardnested-worker*" />
+      <HardnestedLibrary Include="$(HardnestedNativeDirectory)/*chamelab-hardnested.dll;$(HardnestedNativeDirectory)/*chamelab-hardnested.so;$(HardnestedNativeDirectory)/*chamelab-hardnested.dylib" />
+      <Content Include="@(HardnestedWorker);@(HardnestedLibrary)">
+        <Link>hardnested/%(Filename)%(Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </Content>
+    </ItemGroup>
+    <Error Condition="(!Exists('$(HardnestedNativeDirectory)/chamelab-hardnested-worker') and !Exists('$(HardnestedNativeDirectory)/chamelab-hardnested-worker.exe')) or '@(HardnestedLibrary)' == ''"
+           Text="The native hardnested component was not built." />
+  </Target>
 </Project>

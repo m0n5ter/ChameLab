@@ -137,7 +137,10 @@ static const size_t __BIGGEST_ALIGNMENT__ = _Alignof(long double);
 #ifdef _MSC_VER
 #include <intrin.h> // For __popcnt64
 unsigned int __builtin_popcountl(unsigned long long x) {
-    return __popcnt64(x);
+    uint32_t value = (uint32_t)x;
+    value -= (value >> 1) & 0x55555555;
+    value = (value & 0x33333333) + ((value >> 2) & 0x33333333);
+    return (((value + (value >> 4)) & 0x0f0f0f0f) * 0x01010101) >> 24;
 }
 #endif
 

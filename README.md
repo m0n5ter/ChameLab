@@ -32,8 +32,11 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
 - **Device settings** — LED animation, button actions, long-press threshold, sleep
   timeout, BLE pairing, factory reset and firmware updates over USB or Bluetooth.
 
-Not there yet: key recovery, HF / LF sniffing, card folders, QR sharing and
-translations. Key recovery is in the CLI for now.
+Key recovery includes Darkside, Nested, Static nested and mfkey32, plus the
+original native Hardnested solver on desktop. Hardnested needs a known key and
+substantial memory; mobile and browser builds show a resource-requirements warning.
+
+Not there yet: HF / LF sniffing, card folders, QR sharing and translations.
 
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor
 Web Bluetooth.

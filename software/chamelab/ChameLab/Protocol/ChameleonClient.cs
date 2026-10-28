@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Models;
+using ChameLab.Services;
 
 namespace ChameLab.Protocol;
 
@@ -467,6 +468,38 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     }
 
     /// <summary>Probes whether a target key is vulnerable to darkside (defaults to sector 0, key B).</summary>
+    public async Task<IReadOnlyList<HardnestedSample>> GetHardnestedNoncesAsync(
+        bool slow, int knownBlock, MfKeyType knownType, byte[] knownKey,
+        int targetBlock, MfKeyType targetType, CancellationToken ct = default)
+    {
+        if (knownBlock is < 0 or > 255) throw new ArgumentOutOfRangeException(nameof(knownBlock));
+        if (targetBlock is < 0 or > 255) throw new ArgumentOutOfRangeException(nameof(targetBlock));
+        if (knownKey.Length != 6) throw new ArgumentException("Key must be 6 bytes.", nameof(knownKey));
+        var data = new byte[11];
+        data[0] = slow ? (byte)1 : (byte)0;
+        data[1] = (byte)knownType;
+        data[2] = (byte)knownBlock;
+        knownKey.CopyTo(data, 3);
+        data[9] = (byte)targetType;
+        data[10] = (byte)targetBlock;
+        ct.ThrowIfCancellationRequested();
+        var frame = await conn.SendExpectAsync(Command.Mf1HardnestedAcquire, Status.HfTagOk,
+            data, timeoutMs: 30000);
+        ct.ThrowIfCancellationRequested();
+        if (frame.Data.Length == 0 || frame.Data.Length % 9 != 0)
+            throw new ChameleonException("Invalid hardnested nonce response.", frame.Status);
+        var samples = new List<HardnestedSample>(frame.Data.Length / 9 * 2);
+        for (var offset = 0; offset < frame.Data.Length; offset += 9)
+        {
+            var parity = frame.Data[offset + 8];
+            samples.Add(new HardnestedSample(
+                BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(offset, 4)), (byte)(parity >> 4)));
+            samples.Add(new HardnestedSample(
+                BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(offset + 4, 4)), (byte)(parity & 15)));
+        }
+        return samples;
+    }
+
     public async Task<DarksideResult> CheckDarksideAsync(CancellationToken ct = default, int block = 3, MfKeyType keyType = MfKeyType.B)
     {
         var f = await conn.SendAsync(Command.Mf1DarksideAcquire, [(byte)keyType, (byte)block, 1, 2], timeoutMs: 60000, ct: ct);

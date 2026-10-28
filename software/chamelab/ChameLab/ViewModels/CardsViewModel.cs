@@ -84,6 +84,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public bool ShowDarkside => _classicDump is not null && _darksideAvailable && HasUnknownKeys;
     public bool ShowNested => _cardPrng == MifareClassicPrngType.Weak && HasKnownKeys && HasUnknownKeys;
     public bool ShowStaticNested => _cardPrng == MifareClassicPrngType.Static && HasKnownKeys && HasUnknownKeys;
+    public bool ShowHardnested => _cardPrng == MifareClassicPrngType.Hard && HasKnownKeys && HasUnknownKeys;
+    public bool CanRunHardnested => AppServices.Hardnested.UnavailableReason is null;
+    public string? HardnestedWarning => ShowHardnested ? AppServices.Hardnested.UnavailableReason : null;
     private bool HasKnownKeys => DumpSectors.Any(s => s.KeyAState == KeyCellState.Found || s.KeyBState == KeyCellState.Found);
     private bool HasUnknownKeys => DumpSectors.Any(s => s.KeyAState != KeyCellState.Found || s.KeyBState != KeyCellState.Found);
 
@@ -92,6 +95,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         this.RaisePropertyChanged(nameof(ShowDarkside));
         this.RaisePropertyChanged(nameof(ShowNested));
         this.RaisePropertyChanged(nameof(ShowStaticNested));
+        this.RaisePropertyChanged(nameof(ShowHardnested));
+        this.RaisePropertyChanged(nameof(HardnestedWarning));
     }
     private string? _formSource;
     private TagSpecificType _lfProtocol = TagSpecificType.Em410x;
@@ -163,6 +168,9 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowNested), (idle, show) => idle && show));
         StaticNestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.StaticNested),
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowStaticNested), (idle, show) => idle && show));
+        HardnestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Hardnested),
+            recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowHardnested),
+                (idle, show) => idle && show && CanRunHardnested));
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
@@ -1014,6 +1022,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public ICommand DarksideCommand { get; }
     public ICommand NestedCommand { get; }
     public ICommand StaticNestedCommand { get; }
+    public ICommand HardnestedCommand { get; }
     public ICommand CancelDumpCommand { get; }
     public ICommand ImportCommand { get; }
     public ICommand ManualCommand { get; }
@@ -1455,7 +1464,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         DumpProgressText = "Starting recovery…";
         try
         {
-            var recovery = new MifareKeyRecovery(client);
+            var recovery = new MifareKeyRecovery(client, AppServices.Hardnested);
             var progress = new PostedProgress<KeyRecoveryProgress>(IfKept<KeyRecoveryProgress>(cts, OnRecoverProgress));
             try { await recovery.RecoverAsync(dump, method, progress, cts.Token); }
             catch (OperationCanceledException) when (cts.IsCancellationRequested) { }

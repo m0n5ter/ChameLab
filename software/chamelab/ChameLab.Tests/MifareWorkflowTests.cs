@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -228,6 +229,170 @@ public class MifareWorkflowTests
         Assert.Equal((byte)MfKeyType.B, acquire.Data[0]);
         Assert.Equal((byte)MfKeyType.A, acquire.Data[8]);
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
+    }
+
+    [Fact]
+    public async Task HardnestedAcquisition_DecodesBothNoncesAndParityNibbles()
+    {
+        var transport = new CardTransport
+        {
+            Response = _ => (Status.HfTagOk, Convert.FromHexString("123456789ABCDEF0A5")),
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        var samples = await new ChameleonClient(connection)
+            .GetHardnestedNoncesAsync(true, 3, MfKeyType.A, Key, 19, MfKeyType.B);
+
+        Assert.Equal(new[] { new HardnestedSample(0x12345678, 10), new HardnestedSample(0x9ABCDEF0, 5) }, samples);
+        var request = Assert.Single(transport.Requests);
+        Assert.Equal(Command.Mf1HardnestedAcquire, request.Command);
+        Assert.Equal(new byte[] { 1, 0x60, 3 }.Concat(Key).Concat(new byte[] { 0x61, 19 }), request.Data);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(8)]
+    [InlineData(10)]
+    public async Task HardnestedAcquisition_RejectsMisalignedPayload(int length)
+    {
+        var transport = new CardTransport { Response = _ => (Status.HfTagOk, new byte[length]) };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await Assert.ThrowsAsync<ChameleonException>(() => new ChameleonClient(connection)
+            .GetHardnestedNoncesAsync(false, 3, MfKeyType.A, Key, 19, MfKeyType.B));
+    }
+
+    [Fact]
+    public async Task Hardnested_RecoversOnlyMissingKeyAndAuthenticatesZeroKey()
+    {
+        var dump = KnownCard();
+        dump.KeyB[4] = null;
+        var counter = 0;
+        var transport = new CardTransport { Prng = MifareClassicPrngType.Hard };
+        transport.Response = request => request.Command switch
+        {
+            Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
+            Command.Mf1HardnestedAcquire => (Status.HfTagOk, HardnestedBatch(ref counter)),
+            _ => null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var engine = new HardnestedEngine();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection), engine)
+            .RecoverAsync(dump, MifareRecoveryMethod.Hardnested);
+
+        Assert.NotNull(engine.Capture);
+        Assert.Equal(0x01020304u, engine.Capture.AuthenticationUid);
+        Assert.True(engine.Capture.Samples.Count >= 4096);
+        Assert.Equal(new byte[6], dump.KeyB[4]);
+        Assert.All(transport.Requests.Where(request => request.Command == Command.Mf1HardnestedAcquire), request =>
+            Assert.Equal(new byte[] { (byte)MfKeyType.B, 19 }, request.Data[9..]));
+        var auth = Assert.Single(transport.Requests, request => request.Command == Command.Mf1AuthOneKeyBlock);
+        Assert.Equal(new byte[6], auth.Data[2..]);
+    }
+
+    [Fact]
+    public async Task Hardnested_UnsupportedPlatformDoesNotTouchDevice()
+    {
+        var transport = new CardTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await Assert.ThrowsAsync<NotSupportedException>(() =>
+            new MifareKeyRecovery(new ChameleonClient(connection))
+                .RecoverAsync(KnownCard(), MifareRecoveryMethod.Hardnested));
+
+        Assert.Empty(transport.Requests);
+    }
+
+    [Fact]
+    public async Task Hardnested_UnsupportedFirmwareDoesNotCollectNonces()
+    {
+        var transport = new CardTransport { Prng = MifareClassicPrngType.Hard };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await Assert.ThrowsAsync<NotSupportedException>(() =>
+            new MifareKeyRecovery(new ChameleonClient(connection), new HardnestedEngine())
+                .RecoverAsync(KnownCard(), MifareRecoveryMethod.Hardnested));
+
+        Assert.DoesNotContain(transport.Requests, request => request.Command == Command.Mf1HardnestedAcquire);
+    }
+
+    private static byte[] HardnestedBatch(ref int counter)
+    {
+        var data = new byte[495];
+        for (var offset = 0; offset < data.Length; offset += 9)
+        {
+            data[offset] = (byte)counter++;
+            data[offset + 4] = (byte)counter++;
+        }
+        return data;
+    }
+
+    [Fact]
+    public async Task Hardnested_RejectsChangedCardBeforeAuthenticatingCandidate()
+    {
+        var dump = KnownCard();
+        dump.KeyB[4] = null;
+        var counter = 0;
+        var changed = false;
+        var transport = new CardTransport { Prng = MifareClassicPrngType.Hard };
+        transport.Response = request => request.Command switch
+        {
+            Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
+            Command.Mf1HardnestedAcquire => (Status.HfTagOk, HardnestedBatch(ref counter)),
+            Command.Hf14aScan when changed => (Status.HfTagOk, new byte[] { 4, 9, 8, 7, 6, 4, 0, 9, 0 }),
+            _ => null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var engine = new HardnestedEngine { OnRecover = () => changed = true };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            new MifareKeyRecovery(new ChameleonClient(connection), engine)
+                .RecoverAsync(dump, MifareRecoveryMethod.Hardnested));
+
+        Assert.Null(dump.KeyB[4]);
+        Assert.DoesNotContain(transport.Requests, request => request.Command == Command.Mf1AuthOneKeyBlock);
+    }
+
+    [Fact]
+    public async Task HardnestedAcquisition_CancellationDrainsTheCurrentResponse()
+    {
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport
+        {
+            Response = _ => (Status.HfTagOk, Convert.FromHexString("123456789ABCDEF0A5")),
+            OnRequest = _ => stop.Cancel(),
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            client.GetHardnestedNoncesAsync(false, 3, MfKeyType.A, Key, 19, MfKeyType.B, stop.Token));
+        transport.OnRequest = null;
+        transport.Response = _ => (Status.HfTagOk, Convert.FromHexString("DEADBEEF010203045A"));
+
+        var samples = await client.GetHardnestedNoncesAsync(false, 3, MfKeyType.A, Key, 19, MfKeyType.B);
+        Assert.Equal(new HardnestedSample(0xDEADBEEF, 5), samples[0]);
+    }
+
+    private sealed class HardnestedEngine : IHardnestedEngine
+    {
+        public string? UnavailableReason => null;
+        public HardnestedCapture? Capture { get; private set; }
+        public Action? OnRecover { get; init; }
+        public Task<ulong?> RecoverAsync(HardnestedCapture capture, IProgress<string>? progress, CancellationToken ct)
+        {
+            Capture = capture;
+            OnRecover?.Invoke();
+            return Task.FromResult<ulong?>(0);
+        }
     }
 
     private sealed class CardTransport : ITransport

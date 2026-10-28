@@ -87,6 +87,59 @@ dotnet build ChameLab.Android -c Debug
 
 iOS builds on macOS with the `ios` workload.
 
+## Hardnested (desktop)
+
+Hardnested recovery is available for hardened-PRNG MIFARE Classic cards when at
+least one key is known. Scan the card, find a seed key with the dictionary or
+another recovery method, then choose **Hardnested**. ChameLab collects encrypted
+nonces with the device, calls the original C solver, authenticates the recovered
+key on the same card, and reads the remaining blocks. Keep the card on the reader.
+
+The solver is built as a native library (`.dll`, `.so`, or `.dylib`) and loaded by
+`chamelab-hardnested-worker`, a separate process. The worker reports progress over
+stdout. Cancel terminates the worker and removes its temporary capture; during
+device acquisition, cancellation waits for the current batch response (up to
+30 seconds), since the firmware has no command-abort operation. Native crashes
+and memory exhaustion do not terminate the GUI. Only one solver runs at a time.
+
+Android, iOS and Browser show a resource-requirements warning instead of enabling
+Hardnested. Other recovery methods remain available.
+
+Desktop builds require CMake 3.24+, Git, and a C compiler (MSVC on Windows, GCC or
+Clang on Linux, Xcode command-line tools on macOS). The first build fetches the
+same XZ/liblzma version used by the CLI, v5.8.1, and links it statically. The
+original algorithm's memory requirements remain: the per-nonce state bitsets
+alone use 1 GiB, with additional tables and search buffers on top.
+
+`dotnet build ChameLab.Desktop -c Release` builds and copies the native component
+to the output's `hardnested/` directory. Windows also detects Visual Studio's
+bundled CMake automatically. To use another CMake installation, pass
+`-p:CMakeExecutable="PATH/TO/cmake"`. IDE design-time builds skip native compilation.
+
+For cross-platform publishing, build the native component for the target first:
+
+```bash
+cmake -S ../src/HardnestedRecovery/native -B native-build -DCMAKE_BUILD_TYPE=Release
+cmake --build native-build --config Release --target chamelab-hardnested-worker --parallel
+cmake --install native-build --config Release --prefix "$PWD/native-hardnested" --component Hardnested
+dotnet publish ChameLab.Desktop -c Release -r YOUR_RID \
+  -p:BuildHardnested=false -p:HardnestedNativeDirectory="$PWD/native-hardnested"
+```
+
+The CMake build must use the target's architecture/toolchain. Release CI builds
+Windows x64, Linux x64, macOS arm64 and macOS x64 components separately and keeps
+the library and worker beside the app, including single-file publishes.
+
+To test the native solver without RFID hardware:
+
+```bash
+cmake --build native-build --config Release --target chamelab-hardnested-fixture --parallel
+ctest --test-dir native-build -C Release --output-on-failure -R '^(missing_input|generate_capture|recover_capture)$'
+```
+
+The fixture generator uses the original C Crypto1 implementation to create a
+deterministic capture; the test requires recovery of the known 48-bit key.
+
 ## Web Serial (browser)
 
 The WASM build cannot use `System.IO.Ports` — browsers only reach USB-serial

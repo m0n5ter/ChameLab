@@ -141,6 +141,9 @@ void hardnested_print_progress(uint32_t nonces, const char *activity, float brut
     static uint64_t last_print_time = 0;
     if (msclock() - last_print_time > min_diff_print_time) {
         last_print_time = msclock();
+#ifdef CHAMELAB_HARDNESTED
+        printf("CHAMELAB_PROGRESS=%s\n", activity);
+#endif
         uint64_t total_time = msclock() - start_time;
         float brute_force_time = brute_force / brute_force_per_second;
         char brute_force_time_string[20];
@@ -1175,7 +1178,7 @@ static int simulate_acquire_nonces(uint32_t uid, char* path) {
     hardnested_stage = CHECK_1ST_BYTES;
     bool acquisition_completed = false;
     uint32_t total_num_nonces = 0;
-    float brute_force_depth;
+    float brute_force_depth = (float)(1LL << 47);
     bool reported_suma8 = false;
     bool got_invalid = false;
 
@@ -1199,6 +1202,9 @@ static int simulate_acquire_nonces(uint32_t uid, char* path) {
             sscanf(line, "%u|%hhu", &nt_enc, &par_enc);
             num_acquired_nonces += add_nonce(nt_enc, par_enc);
             total_num_nonces++;
+        } else if (first_byte_num < 256 || ferror(fp)) {
+            fclose(fp);
+            return -1;
         }
 
         if (num_acquired_nonces % 256 == 0) {
@@ -1270,6 +1276,7 @@ static int simulate_acquire_nonces(uint32_t uid, char* path) {
 
     time_t end_time = time(NULL);
 
+    fclose(fp);
     return 0;
 }
 

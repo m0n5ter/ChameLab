@@ -85,9 +85,9 @@ THE SOFTWARE.
 
 #ifdef _MSC_VER
 #include <Windows.h>
-#define atomic_add(num, val) (InterlockedExchangeAdd(num, val) + val)
-#pragma pack(push, VECTOR_SIZE)
-typedef uint32_t bitslice_value_t;
+#define atomic_add(num, val) (InterlockedExchangeAdd64((volatile LONG64 *)(num), val) + val)
+#pragma pack(push, 8)
+typedef uint64_t bitslice_value_t;
 #pragma pack(pop)
 #else
 #define atomic_add __sync_fetch_and_add
