@@ -1061,6 +1061,11 @@
                       <TextBlock Classes="caption progresshint" Text="{Binding DumpProgressText}"
                                  TextWrapping="NoWrap" MaxLines="1" LineHeight="18" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
                                  ToolTip.Tip="{Binding DumpProgressText}" />
+                      <TextBlock Grid.Row="1" Classes="progressdetail" FontSize="12" FontWeight="Bold" Text="{Binding DumpProgressDetail}"
+                                 Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}"
+                                 TextWrapping="NoWrap" MaxLines="1" LineHeight="18" TextTrimming="CharacterEllipsis"
+                                 ToolTip.Tip="{Binding DumpProgressDetail}"
+                                 IsVisible="{Binding DumpProgressDetail, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Center" />
                       <TextBlock Grid.Row="1" Classes="progressdetail" FontSize="12" FontWeight="Bold" Text="{Binding Mfkey32CaptureText}"
                                  Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}"
                                  TextWrapping="NoWrap" MaxLines="1" LineHeight="18" TextTrimming="CharacterEllipsis"
@@ -1070,7 +1075,7 @@
                                  Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineSuccess}"
                                  ToolTip.Tip="{Binding Mfkey32FoundKey}" TextTrimming="CharacterEllipsis"
                                  TextWrapping="NoWrap" MaxLines="1" LineHeight="18"
-                                 IsVisible="{Binding Mfkey32FoundKey, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                 IsVisible="{Binding ShowMfkey32FoundKey}"
                                  VerticalAlignment="Center" />
                     </Grid>
                       <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Height="4" MinHeight="4" HorizontalAlignment="Stretch"

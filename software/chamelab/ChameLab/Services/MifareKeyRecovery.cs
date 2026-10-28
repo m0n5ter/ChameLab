@@ -17,7 +17,7 @@ public enum KeyMark { None, Checking, Found }
 
 /// <summary>A live recovery update: a status line and, when it concerns one key, which sector/key changed.</summary>
 public sealed record KeyRecoveryProgress(
-    string Status, int Sector = -1, MfKeyType KeyType = MfKeyType.A, KeyMark Mark = KeyMark.None, byte[]? Key = null);
+    string Status, int Sector = -1, MfKeyType KeyType = MfKeyType.A, KeyMark Mark = KeyMark.None, byte[]? Key = null, string? Detail = null);
 
 /// <summary>Runs one selected recovery method, preserving keys already found in the shared dump.</summary>
 public sealed class MifareKeyRecovery
@@ -79,6 +79,7 @@ public sealed class MifareKeyRecovery
                 var seed = FirstKnownKey(dump)!.Value;
                 var target = MifareClassic.SectorTrailerBlock(s);
                 Mark(s, kt, KeyMark.Checking,
+                    isHardnested ? "Collecting nonces (hardnested)…" :
                     isStatic ? "Collecting nonces (static nested)…" : "Collecting nonces (nested)…");
                 try
                 {
@@ -86,9 +87,9 @@ public sealed class MifareKeyRecovery
                         ? await HardnestedSectorAsync(dump.Uid, authUid, seed, target, kt, progress, ct)
                         : isStatic
                         ? await StaticNestedSectorAsync(seed, target, kt, progress, ct)
-                        : await NestedSectorAsync(seed, target, kt, ct);
+                        : await NestedSectorAsync(seed, target, kt, progress, ct);
                     Mark(s, kt, KeyMark.Checking, $"Checking {candidates.Count} recovered key candidates…");
-                    var hit = await FirstWorkingKeyAsync(target, kt, candidates, ct);
+                    var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct);
                     if (hit is { } key) Store(s, kt, key);
                     else Mark(s, kt, KeyMark.None, "Key not recovered for this sector.");
                 }
@@ -132,16 +133,24 @@ public sealed class MifareKeyRecovery
             {
                 if ((kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is not null) continue;
                 var target = MifareClassic.SectorTrailerBlock(sector);
-                if (await _client.CheckDarksideAsync(ct, target, kt) != DarksideResult.Vulnerable) continue;
+                progress?.Report(new KeyRecoveryProgress("Checking darkside vulnerability…", sector, kt, KeyMark.Checking));
+                if (await _client.CheckDarksideAsync(ct, target, kt) != DarksideResult.Vulnerable)
+                {
+                    progress?.Report(new KeyRecoveryProgress("Key is not vulnerable to darkside.", sector, kt));
+                    continue;
+                }
                 progress?.Report(new KeyRecoveryProgress("Running darkside…", sector, kt, KeyMark.Checking));
                 var items = new List<DarksideItem>();
                 for (var tries = 0; tries < 5; tries++)
                 {
                     ct.ThrowIfCancellationRequested();
+                    var detail = $"Attempt {tries + 1}/5";
+                    progress?.Report(new KeyRecoveryProgress("Collecting darkside nonces…", sector, kt, KeyMark.Checking, Detail: detail));
                     var (uid, item) = await _client.GetDarksideAsync(target, kt, tries == 0, 15, ct);
                     items.Add(item);
                     if (uid != 0) authUid = uid;
-                    var hit = await FirstWorkingKeyAsync(target, kt, DarksideRecovery.Recover(authUid, items), ct);
+                    progress?.Report(new KeyRecoveryProgress("Calculating darkside candidates…", sector, kt, KeyMark.Checking, Detail: detail));
+                    var hit = await FirstWorkingKeyAsync(target, kt, DarksideRecovery.Recover(authUid, items), progress, ct, detail);
                     if (hit is { } key) { store(sector, kt, key); return; }
                 }
                 progress?.Report(new KeyRecoveryProgress("Key not recovered for this sector.", sector, kt));
@@ -149,11 +158,16 @@ public sealed class MifareKeyRecovery
     }
 
     private async Task<IReadOnlyList<ulong>> NestedSectorAsync(
-        (int Block, MfKeyType Type, byte[] Key) seed, int target, MfKeyType targetKeyType, CancellationToken ct)
+        (int Block, MfKeyType Type, byte[] Key) seed, int target, MfKeyType targetKeyType,
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
     {
+        var updates = new RecoveryProgress(progress, MifareClassic.SectorOfBlock(target), targetKeyType);
+        updates.Report("Measuring nested nonce distance…");
         var dist = await _client.GetNtDistanceAsync(seed.Block, seed.Type, seed.Key, ct);
+        updates.Report("Collecting nested nonces…");
         var nonces = await _client.GetNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, isStatic: false, ct);
         if (nonces.Count < 2) return Array.Empty<ulong>();
+        updates.Report("Calculating nested candidates…");
         return NestedRecovery.Recover(
             dist.Uid, dist.Distance,
             nonces[0].Nt, nonces[0].NtEnc, nonces[0].Parity,
@@ -169,12 +183,13 @@ public sealed class MifareKeyRecovery
         for (var attempt = 0; attempt < attempts; attempt++)
         {
             ct.ThrowIfCancellationRequested();
-            if (attempt > 0)
-                progress?.Report(new KeyRecoveryProgress($"No consistent candidates; collecting again ({attempt + 1}/{attempts})…",
-                    sector, targetKeyType, KeyMark.Checking));
+            var detail = $"Attempt {attempt + 1}/{attempts}";
+            progress?.Report(new KeyRecoveryProgress(
+                attempt == 0 ? "Collecting static nested nonces…" : "No consistent candidates; collecting again…",
+                sector, targetKeyType, KeyMark.Checking, Detail: detail));
             var capture = await _client.GetStaticNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, ct);
             var nonces = capture.Nonces;
-            progress?.Report(new KeyRecoveryProgress("Calculating static nested candidates…", sector, targetKeyType, KeyMark.Checking));
+            progress?.Report(new KeyRecoveryProgress("Calculating static nested candidates…", sector, targetKeyType, KeyMark.Checking, Detail: detail));
             var candidates = await Task.Run(() => StaticNestedRecovery.Recover(
                 capture.Uid, seed.Type,
                 nonces[0].Nt, nonces[0].NtEnc,
@@ -184,12 +199,17 @@ public sealed class MifareKeyRecovery
         return Array.Empty<ulong>();
     }
 
-    private async Task<byte[]?> FirstWorkingKeyAsync(int block, MfKeyType keyType, IReadOnlyList<ulong> candidates, CancellationToken ct)
+    private async Task<byte[]?> FirstWorkingKeyAsync(int block, MfKeyType keyType, IReadOnlyList<ulong> candidates,
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, string? detail = null)
     {
-        foreach (var candidate in candidates)
+        for (var i = 0; i < candidates.Count; i++)
         {
             ct.ThrowIfCancellationRequested();
-            var key = KeyBytes(candidate);
+            var counter = $"Candidate {i + 1}/{candidates.Count}";
+            progress?.Report(new KeyRecoveryProgress("Checking recovered key candidates…",
+                MifareClassic.SectorOfBlock(block), keyType, KeyMark.Checking,
+                Detail: detail is null ? counter : $"{detail} · {counter}"));
+            var key = KeyBytes(candidates[i]);
             if (await TryAuthAsync(block, keyType, key, ct)) return key;
         }
         return null;

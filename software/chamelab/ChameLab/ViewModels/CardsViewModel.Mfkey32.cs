@@ -27,13 +27,19 @@ public sealed partial class CardsViewModel
             this.RaisePropertyChanged(nameof(Mfkey32CaptureText));
         }
     }
-    public bool ShowMfkey32CaptureCount => Mfkey32CapturedCount is not null;
+    public bool ShowMfkey32CaptureCount => DumpProgressDetail is null && Mfkey32FoundKey is null && Mfkey32CapturedCount is not null;
     public string Mfkey32CaptureText => $"Captured {Mfkey32CapturedCount} authentications";
     public string? Mfkey32FoundKey
     {
         get => _mfkey32FoundKey;
-        private set => this.RaiseAndSetIfChanged(ref _mfkey32FoundKey, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _mfkey32FoundKey, value);
+            this.RaisePropertyChanged(nameof(ShowMfkey32FoundKey));
+            this.RaisePropertyChanged(nameof(ShowMfkey32CaptureCount));
+        }
     }
+    public bool ShowMfkey32FoundKey => DumpProgressDetail is null && Mfkey32FoundKey is not null;
     public bool IsMfkey32Progress => _mfkey32Running || IsMfkey32Done;
 
     public ICommand Mfkey32Command { get; }

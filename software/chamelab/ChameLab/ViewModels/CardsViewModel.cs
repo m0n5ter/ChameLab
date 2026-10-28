@@ -601,15 +601,30 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         private set => this.RaiseAndSetIfChanged(ref _progressText, value);
     }
 
-    /// <summary>Short progress line shown under the Dump button while a dump runs; null otherwise.</summary>
+    /// <summary>Current operation shown on the first progress line; null when idle.</summary>
     public string? DumpProgressText
     {
         get => _dumpProgressText;
         private set
         {
             this.RaiseAndSetIfChanged(ref _dumpProgressText, value);
+            DumpProgressDetail = null;
             RaiseDumpToolbar();
             if (value is null) SetDumpKeyProgress(0, 0);
+        }
+    }
+
+    private string? _dumpProgressDetail;
+
+    /// <summary>Target and counters shown on the second progress line.</summary>
+    public string? DumpProgressDetail
+    {
+        get => _dumpProgressDetail;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _dumpProgressDetail, value);
+            this.RaisePropertyChanged(nameof(ShowMfkey32CaptureCount));
+            this.RaisePropertyChanged(nameof(ShowMfkey32FoundKey));
         }
     }
 
@@ -667,9 +682,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             SetDumpKeyProgress(0, 0);
             var sector = MifareClassic.SectorOfBlock(p.First);
-            DumpProgressText = p.Count == 1
-                ? $"Reading sector {sector} · block {p.First}"
-                : $"Preparing sector {sector}…";
+            DumpProgressText = p.Count == 1 ? "Reading card…" : "Preparing sector…";
+            DumpProgressDetail = $"Sector {sector} · block {p.First}";
         }
         RefreshDumpReadState();
     }
@@ -692,7 +706,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             MifareKeyPhase.NotFound => $"not found · {p.Tried}/{p.Total} keys checked",
             _ => $"checking key {Math.Min(p.Tried + 1, p.Total)}/{p.Total}",
         };
-        DumpProgressText = $"Sector {p.Sector} · key {key} · {detail}";
+        DumpProgressText = p.Phase switch
+        {
+            MifareKeyPhase.Found => "Dictionary key found.",
+            MifareKeyPhase.NotFound => "Dictionary key not found.",
+            _ => "Checking dictionary keys…",
+        };
+        DumpProgressDetail = $"Sector {p.Sector} · block {MifareClassic.SectorTrailerBlock(p.Sector)} · key {key} · {detail}";
         SetDumpKeyProgress(p.Tried, p.Total);
     }
 
@@ -1625,6 +1645,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         DumpProgressText = p.Status;
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
+        DumpProgressDetail = $"Sector {p.Sector} · block {MifareClassic.SectorTrailerBlock(p.Sector)} · key {(p.KeyType == MfKeyType.A ? "A" : "B")}";
+        if (p.Detail is { } detail) DumpProgressDetail += $" · {detail}";
         var phase = p.Mark switch
         {
             KeyMark.Found => MifareKeyPhase.Found,
