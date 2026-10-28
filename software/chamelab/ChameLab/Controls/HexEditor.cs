@@ -496,7 +496,7 @@ public sealed class HexEditor : Control
         int row = (int)(_caret / buf.RowLength), col = (int)(_caret % buf.RowLength);
         var labelWidth = buf.RowLabel(buf.ViewRowCount - 1).Length;
         var colWidth = (buf.RowLength - 1).ToString().Length;
-        var offsetWidth = Math.Max(3, (buf.ViewLength - 1).ToString("X").Length);
+        var offsetWidth = Math.Max(3, (buf.ByteOffset + buf.ViewLength - 1).ToString("X").Length);
 
         string value;
         if (HasSelection)
@@ -512,7 +512,7 @@ public sealed class HexEditor : Control
         else value = "not read";
 
         StatusText = $"{buf.RowLabel(row).PadLeft(labelWidth)}:{col.ToString().PadLeft(colWidth, '0')}  " +
-                     $"0x{_caret.ToString("X" + offsetWidth)}  {value.PadRight(valueWidth, ' ')}";
+                     $"0x{(buf.ByteOffset + _caret).ToString("X" + offsetWidth)}  {value.PadRight(valueWidth, ' ')}";
         StatusDetail = buf.Describe(row, col) is { Length: > 0 } what ? what : null;
     }
 

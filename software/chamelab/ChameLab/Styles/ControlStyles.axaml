@@ -289,6 +289,7 @@
 
   <!-- Dump sector key grid (drawn control): A/B squares per sector, colors match the legend. -->
   <Style Selector="c|SectorKeyGrid">
+    <Setter Property="SelectionBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="FoundBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
     <Setter Property="SearchingBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="NotFoundBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />

@@ -9,6 +9,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
+using Avalonia.Rendering.SceneGraph;
 using ChameLab.Models;
 
 namespace ChameLab.Controls;
@@ -25,6 +27,10 @@ public class SectorKeyGrid : Control
 {
     public static readonly StyledProperty<IReadOnlyList<ISectorKeys>?> SectorsProperty =
         AvaloniaProperty.Register<SectorKeyGrid, IReadOnlyList<ISectorKeys>?>(nameof(Sectors));
+
+    public static readonly StyledProperty<int> SelectedSectorProperty =
+        AvaloniaProperty.Register<SectorKeyGrid, int>(nameof(SelectedSector), 0,
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public static readonly StyledProperty<int> ColumnsProperty =
         AvaloniaProperty.Register<SectorKeyGrid, int>(nameof(Columns), 16);
@@ -54,7 +60,11 @@ public class SectorKeyGrid : Control
     public static readonly StyledProperty<IBrush?> UnknownBrushProperty =
         AvaloniaProperty.Register<SectorKeyGrid, IBrush?>(nameof(UnknownBrush), Brushes.Gray);
 
-    /// <summary>The A / B row labels and the hover outline; no labels when null.</summary>
+    /// <summary>The persistent outline of the selected sector.</summary>
+    public static readonly StyledProperty<IBrush?> SelectionBrushProperty =
+        AvaloniaProperty.Register<SectorKeyGrid, IBrush?>(nameof(SelectionBrush), Brushes.White);
+
+    /// <summary>The A / B row labels; no labels when null.</summary>
     public static readonly StyledProperty<IBrush?> LabelBrushProperty =
         AvaloniaProperty.Register<SectorKeyGrid, IBrush?>(nameof(LabelBrush), Brushes.Gray);
 
@@ -86,7 +96,7 @@ public class SectorKeyGrid : Control
         AffectsMeasure<SectorKeyGrid>(SectorsProperty, ColumnsProperty, MaxSquareProperty, MaxCellWidthProperty,
             GapProperty, RowGapProperty, LabelBrushProperty);
         AffectsRender<SectorKeyGrid>(SectorsProperty, FoundBrushProperty, SearchingBrushProperty,
-            NotFoundBrushProperty, UnknownBrushProperty, LabelBrushProperty);
+            NotFoundBrushProperty, UnknownBrushProperty, LabelBrushProperty, SelectionBrushProperty, SelectedSectorProperty);
         SectorsProperty.Changed.AddClassHandler<SectorKeyGrid>((g, e) => g.OnSectorsChanged(e));
         LabelBrushProperty.Changed.AddClassHandler<SectorKeyGrid>((g, _) => g._labelA = g._labelB = null);
     }
@@ -102,6 +112,10 @@ public class SectorKeyGrid : Control
     public IBrush? NotFoundBrush { get => GetValue(NotFoundBrushProperty); set => SetValue(NotFoundBrushProperty, value); }
     public IBrush? UnknownBrush { get => GetValue(UnknownBrushProperty); set => SetValue(UnknownBrushProperty, value); }
     public IBrush? LabelBrush { get => GetValue(LabelBrushProperty); set => SetValue(LabelBrushProperty, value); }
+
+    public IBrush? SelectionBrush { get => GetValue(SelectionBrushProperty); set => SetValue(SelectionBrushProperty, value); }
+
+    public int SelectedSector { get => GetValue(SelectedSectorProperty); set => SetValue(SelectedSectorProperty, value); }
 
     private double Now => _clock.Elapsed.TotalMilliseconds;
 
@@ -266,19 +280,45 @@ public class SectorKeyGrid : Control
 
         for (var i = 0; i < sectors.Count && 2 * i + 1 < _anims.Length; i++)
         {
-            Square(ctx, m, m.Cell(i, false), _anims[2 * i], sectors[i].KeyAState, sectors[i].KeyAProgress, now, ease, pulse);
-            Square(ctx, m, m.Cell(i, true), _anims[2 * i + 1], sectors[i].KeyBState, sectors[i].KeyBProgress, now, ease, pulse);
+            using var opacity = ctx.PushOpacity(i == SelectedSector ? 1 : i == _hover ? 0.85 : 0.55);
+            var a = m.Cell(i, false);
+            var b = m.Cell(i, true);
+            if (sectors[i].IsRead)
+            {
+                if (FoundBrush is { } readBrush)
+                {
+                    ctx.DrawRectangle(readBrush, null, new RoundedRect(a, Radius));
+                    ctx.DrawRectangle(readBrush, null, new RoundedRect(b, Radius));
+                }
+                continue;
+            }
+            Square(ctx, m, a, _anims[2 * i], sectors[i].KeyAState, sectors[i].KeyAProgress, now, ease, pulse);
+            Square(ctx, m, b, _anims[2 * i + 1], sectors[i].KeyBState, sectors[i].KeyBProgress, now, ease, pulse);
         }
 
-        // The hovered sector's outline runs down the middle of the surrounding gap, clear of its neighbors.
-        if (_hover >= 0 && _hover < sectors.Count && LabelBrush is { } hb)
+        if (SelectedSector >= 0 && SelectedSector < sectors.Count && SelectionBrush is ISolidColorBrush selectedBrush)
         {
-            var t = Math.Max(m.Px, Math.Floor(m.Gap / m.Px / 2) * m.Px);
-            var box = m.Cell(_hover, false).Union(m.Cell(_hover, true)).Inflate(m.Gap / 2);
-            ctx.DrawRectangle(null, new Pen(hb, t), new RoundedRect(box, Radius + m.Gap / 2));
+            var gap = 2 * m.Px;
+            var box = m.Cell(SelectedSector, false).Union(m.Cell(SelectedSector, true)).Inflate(gap);
+            var color = selectedBrush.Color;
+            color = Color.FromArgb(255, color.R, color.G, color.B);
+            ctx.Custom(new SelectionShadow(box, Radius + gap, color, 5 * m.Px));
         }
 
         DrawLabels(ctx, m, sectors.Count);
+    }
+
+    /// <summary>A visual-only glow: its overlapping area never participates in hit testing.</summary>
+    private sealed class SelectionShadow(Rect box, double radius, Color color, double blur) : ICustomDrawOperation
+    {
+        public Rect Bounds => box.Inflate(blur * 2);
+        public bool HitTest(Point point) => false;
+        public bool Equals(ICustomDrawOperation? other) => false;
+        public void Dispose() { }
+
+        public void Render(ImmediateDrawingContext context) => context.DrawRectangle(
+            new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Colors.Transparent), new ImmutablePen(new ImmutableSolidColorBrush(color)), box,
+            radius, radius, new BoxShadows(new BoxShadow { Color = color, Blur = blur }));
     }
 
     private void Square(DrawingContext ctx, Metrics m, Rect r, KeyAnim anim, KeyCellState state, double progress,
@@ -348,6 +388,27 @@ public class SectorKeyGrid : Control
         new(text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
             new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 10, brush);
 
+    public SectorKeyGrid() => Focusable = true;
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (Count == 0) return;
+        var next = e.Key switch
+        {
+            Key.Left => SelectedSector - 1,
+            Key.Right => SelectedSector + 1,
+            Key.Up => SelectedSector - Columns,
+            Key.Down => SelectedSector + Columns,
+            Key.Home => 0,
+            Key.End => Count - 1,
+            _ => SelectedSector,
+        };
+        if (e.Key is not (Key.Left or Key.Right or Key.Up or Key.Down or Key.Home or Key.End)) return;
+        SetCurrentValue(SelectedSectorProperty, Math.Clamp(next, 0, Count - 1));
+        e.Handled = true;
+    }
+
     // ---- hover / tooltip ----
 
     /// <summary>Sector under <paramref name="p"/>, counting the gap after each cell as part of it so
@@ -374,6 +435,12 @@ public class SectorKeyGrid : Control
         base.OnPointerPressed(e);
         // A tap on touch screens selects the sector and opens its tooltip (no hover there).
         SetHover(HitTest(e.GetPosition(this)));
+        if (_hover >= 0 && (e.Pointer.Type != PointerType.Mouse || e.GetCurrentPoint(this).Properties.IsLeftButtonPressed))
+        {
+            SetCurrentValue(SelectedSectorProperty, _hover);
+            Focus();
+            e.Handled = true;
+        }
         if (_hover >= 0 && e.Pointer.Type != PointerType.Mouse) ToolTip.SetIsOpen(this, true);
     }
 
@@ -431,7 +498,7 @@ public class SectorKeyGrid : Control
         public void Show(ISectorKeys s)
         {
             _sector.Text = s.Sector.ToString(CultureInfo.InvariantCulture);
-            _blocks.Text = $"{s.FirstBlock}–{s.LastBlock}";
+            _blocks.Text = $"{s.FirstBlock}–{s.LastBlock}" + (s.IsRead ? " (read)" : string.Empty);
             Key(_keyA, s.KeyAState, s.KeyAText);
             Key(_keyB, s.KeyBState, s.KeyBText);
         }
@@ -439,7 +506,7 @@ public class SectorKeyGrid : Control
         private static void Key(TextBlock t, KeyCellState state, string text)
         {
             t.Text = text;
-            if (state == KeyCellState.Found) t.FontFamily = Mono;
+            if (state == KeyCellState.Found || state == KeyCellState.Unknown && text.Length == 12) t.FontFamily = Mono;
             else t.ClearValue(TextBlock.FontFamilyProperty);
         }
 

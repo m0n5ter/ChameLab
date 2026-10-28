@@ -30,7 +30,7 @@ public sealed class CardEditorViewModel : ViewModelBase
     private bool _isDirty;
     private HexBuffer? _memory;
     private string? _memoryWarning;
-    private bool _expandMemory;
+    private bool _generatedMemory;
     // Memory of another layout set aside by a type change; restored when switching back.
     private (TagSpecificType Tag, List<byte[]> Data)? _stash;
 
@@ -59,7 +59,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         _data = source.Data.Select(d => (byte[])d.Clone()).ToList();
         RebuildRows();
         _baseline = Fingerprint();
-        CreateMemoryCommand = ReactiveCommand.Create(CreateBlankMemory);
+        ClearSectorCommand = ReactiveCommand.Create(() => SelectedMemory?.ClearRows(0, SelectedMemory.RowCount));
     }
 
     public string Id => _source.Id;
@@ -294,6 +294,36 @@ public sealed class CardEditorViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _memory, value);
     }
 
+    private int _selectedSector;
+    public int SelectedSector
+    {
+        get => _selectedSector;
+        set
+        {
+            var count = _tag.IsMifareClassic() ? MifareClassic.SectorOfBlock(_tag.MifareClassicBlocks() - 1) + 1 : 0;
+            var selected = count > 0 ? Math.Clamp(value, 0, count - 1) : 0;
+            if (_selectedSector == selected) return;
+            this.RaiseAndSetIfChanged(ref _selectedSector, selected);
+            UpdateSelectedMemory();
+        }
+    }
+
+    private HexBuffer? _selectedMemory;
+    public HexBuffer? SelectedMemory => _selectedMemory;
+    public ICommand ClearSectorCommand { get; }
+
+    private void UpdateSelectedMemory()
+    {
+        var memory = Memory;
+        if (_tag.IsMifareClassic() && memory is not null)
+        {
+            var count = MifareClassic.SectorOfBlock(_tag.MifareClassicBlocks() - 1) + 1;
+            this.RaiseAndSetIfChanged(ref _selectedSector, Math.Clamp(_selectedSector, 0, count - 1), nameof(SelectedSector));
+            memory = memory.Slice(MifareClassic.SectorFirstBlock(_selectedSector), MifareClassic.BlocksInSector(_selectedSector));
+        }
+        this.RaiseAndSetIfChanged(ref _selectedMemory, memory, nameof(SelectedMemory));
+    }
+
     /// <summary>Problems in the memory that would break the card (e.g. corrupt access bits).</summary>
     public string? MemoryWarning
     {
@@ -303,31 +333,22 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     public bool HasData => _data.Any(d => d.Length > 0);
 
-    /// <summary>The card type has memory but the card holds none (entered by hand, or saved as UID only).</summary>
-    public bool CanCreateMemory => !HasData && BlankMemory.Supports(_tag);
-
-    /// <summary>Set once blank memory was just created, so its editor opens.</summary>
-    public bool ExpandMemory
+    /// <summary>Generated defaults are editable memory, but are not a physical read result.</summary>
+    public CardSave BuildForReading()
     {
-        get => _expandMemory;
-        private set => this.RaiseAndSetIfChanged(ref _expandMemory, value);
-    }
-
-    public ICommand CreateMemoryCommand { get; }
-
-    /// <summary>Fills the memory with a blank card's, its manufacturer block / pages taken from the identity fields.</summary>
-    private void CreateBlankMemory()
-    {
-        if (!CanCreateMemory) return;
-        var (uid, sak, atqa) = IdentityBytes();
-        SetData(BlankMemory.Create(_tag, uid, sak, atqa));
-        ExpandMemory = true;
+        var card = Build();
+        if (_generatedMemory && Memory is { } memory)
+            card.Data = card.Data.Select((row, index) =>
+                Enumerable.Range(0, row.Length).Any(col => memory.IsChanged((long)index * memory.RowLength + col))
+                    ? row : Array.Empty<byte>()).ToList();
+        return card;
     }
 
     public string DataSummary
     {
         get
         {
+            if (_generatedMemory) return "Blank memory";
             var known = _data.Count(d => d.Length > 0);
             if (_tag.IsMifareClassic())
             {
@@ -358,6 +379,7 @@ public sealed class CardEditorViewModel : ViewModelBase
     private void SetData(List<byte[]> rows)
     {
         _data = rows;
+        _generatedMemory = false;
         RebuildRows();
         Touch();
     }
@@ -368,6 +390,15 @@ public sealed class CardEditorViewModel : ViewModelBase
         var mfc = _tag.IsMifareClassic();
         var ul = _tag.IsUltralight();
         var tag = _tag;
+        if (!_data.Any(row => row.Length > 0) && BlankMemory.Supports(tag))
+        {
+            var (uid, sak, atqa) = IdentityBytes();
+            _data = BlankMemory.Create(tag, uid, sak, atqa);
+            _generatedMemory = true;
+        }
+        // A partial read retains every unread row; defaults only initialize a card with no memory.
+        if (mfc)
+            while (_data.Count < tag.MifareClassicBlocks()) _data.Add(Array.Empty<byte>());
         Memory = _data.Count == 0 ? null : new HexBuffer(_data, RowLength)
         {
             // MIFARE Classic sectors are set apart, each under a "Sector N · blocks a–b" heading,
@@ -384,6 +415,7 @@ public sealed class CardEditorViewModel : ViewModelBase
             Describe = (row, col) => mfc ? DescribeMifare(row, col) : ul ? DescribeUltralight(tag, row, col) : null,
         };
         if (_memory is not null) _memory.Changed += OnMemoryChanged;
+        UpdateSelectedMemory();
         RefreshMemoryState();
     }
 
@@ -396,7 +428,6 @@ public sealed class CardEditorViewModel : ViewModelBase
     private void RefreshMemoryState()
     {
         this.RaisePropertyChanged(nameof(HasData));
-        this.RaisePropertyChanged(nameof(CanCreateMemory));
         this.RaisePropertyChanged(nameof(DataSummary));
 
         var warnings = new List<string>();
@@ -518,6 +549,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     {
         var keepName = Name;
         var keepColor = Color;
+        card.Id = _source.Id;
+        card.Folder = _source.Folder;
         _source = card;
         _uid = Hex.Spaced(card.Uid);
         _sak = card.Sak.ToString("X2");
@@ -596,6 +629,15 @@ public sealed class CardEditorViewModel : ViewModelBase
         card.Atqa = atqa;
         card.Ats = ats;
         card.Data = _data.Take(_data.Count - OverflowBlocks).Select(d => (byte[])d.Clone()).ToList();
+
+        if (_generatedMemory && Memory is { } memory)
+        {
+            var defaults = BlankMemory.Create(_tag, uid, sak, atqa);
+            for (var row = 0; row < Math.Min(card.Data.Count, defaults.Count); row++)
+                if (card.Data[row].Length > 0 && !Enumerable.Range(0, card.Data[row].Length)
+                        .Any(col => memory.IsChanged((long)row * memory.RowLength + col)))
+                    card.Data[row] = defaults[row];
+        }
 
         // Keep block 0 in step with an edited identity so dumps stay consistent.
         var identityChanged = !uid.SequenceEqual(_source.Uid) || sak != _source.Sak || !atqa.SequenceEqual(_source.Atqa);

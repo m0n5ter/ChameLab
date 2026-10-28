@@ -900,19 +900,18 @@
             </StackPanel>
           </Border>
 
-          <!-- ===================== New card: memory dump (MIFARE Classic / Ultralight scan) ===================== -->
-          <Border Classes="card">
+          <!-- Memory dump / continuation for scanned, saved, imported and manual cards. -->
+          <Border x:Name="MemoryCard" Classes="card">
             <Border.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="IsEditingNew" />
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
                 <Binding Path="CanDump" />
-                <Binding Path="!IsWriteOpen" />
+                <Binding Path="Form.HasData" TargetNullValue="False" />
               </MultiBinding>
             </Border.IsVisible>
             <StackPanel Spacing="12">
               <StackPanel Spacing="2">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                  <TextBlock Text="DUMP" Classes="overline" VerticalAlignment="Center" />
+                  <TextBlock Text="MEMORY" Classes="overline" VerticalAlignment="Center" />
                   <!-- Measured by the scan; decides which key attacks can work. -->
                   <TextBlock Grid.Column="1" Classes="caption" VerticalAlignment="Center"
                              ToolTip.Tip="The card's random number generator, measured by the scan"
@@ -921,11 +920,15 @@
                     <Run Text="{Binding Prng}" FontWeight="SemiBold" />
                   </TextBlock>
                 </Grid>
+                <TextBlock Classes="caption" Text="{Binding Form?.DataSummary}" />
+                <TextBlock Classes="caption" Text="{Binding Form?.MemoryWarning}" TextWrapping="Wrap"
+                           Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                           IsVisible="{Binding Form?.MemoryWarning, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
                 <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpHint}"
-                           IsVisible="{Binding !IsDumpComplete}" />
+                           IsVisible="{Binding NeedsDump}" />
               </StackPanel>
               <StackPanel Spacing="8">
-                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
+                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6" IsVisible="{Binding CanDump}">
                   <!-- While a dump runs, its button turns into Stop. -->
                   <StackPanel Orientation="Horizontal" Spacing="6"
                               IsVisible="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}">
@@ -999,6 +1002,8 @@
                 </Grid>
 
                 <WrapPanel ItemSpacing="6" LineSpacing="6">
+                  <Button Command="{Binding CheckRecoveryCommand}" Content="Check recovery methods"
+                          IsVisible="{Binding ShowCheckRecovery}" />
                   <Button Command="{Binding DarksideCommand}" Content="Darkside"
                           IsVisible="{Binding ShowDarkside}" />
                   <Button Command="{Binding NestedCommand}" Content="Nested"
@@ -1031,25 +1036,26 @@
                      stacked squares — key A over key B — colored by the key-search state. The
                      searching key and its tried/total count show in the progress line above. -->
                 <StackPanel Spacing="6" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpSectors}">
-                  <c:SectorKeyGrid Sectors="{Binding DumpSectors}" HorizontalAlignment="Stretch" />
+                  <c:SectorKeyGrid Sectors="{Binding DumpSectors}" SelectedSector="{Binding Form.SelectedSector, Mode=TwoWay}"
+                                   HorizontalAlignment="Stretch" />
                   <WrapPanel ItemSpacing="14" LineSpacing="4" Margin="16,0,0,0">
                     <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend read" Margin="0" />
-                      <TextBlock Text="Key found" Classes="caption" />
+                      <TextBlock Text="OK" Classes="caption" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend reading" Margin="0" />
-                      <TextBlock Text="Searching" Classes="caption" />
+                      <TextBlock Text="Reading" Classes="caption" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend nokey" Margin="0" />
-                      <TextBlock Text="Not found" Classes="caption" />
+                      <TextBlock Text="No key" Classes="caption" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend" Margin="0" />
-                      <TextBlock Text="Not tried yet" Classes="caption" />
+                      <TextBlock Text="Not tried" Classes="caption" />
                     </StackPanel>
-                    <TextBlock Text="Hover a sector for its keys" Classes="caption" />
+                    <TextBlock Text="Select a sector to edit its blocks; hover for keys" Classes="caption" />
                   </WrapPanel>
                 </StackPanel>
 
@@ -1078,6 +1084,45 @@
                   </WrapPanel>
                 </StackPanel>
 
+                <StackPanel Spacing="6">
+                  <!-- Fixed-width position/value part, then the meaning. One TextBlock keeps both on
+                       the same baseline; trimming eats the meaning first so it stays on one line. -->
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                               ToolTip.Tip="{Binding #MemoryEditor.StatusDetail}"
+                               IsVisible="{Binding #MemoryEditor.StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                      <Run FontFamily="Cascadia Code,Consolas,Menlo,monospace" Text="{Binding #MemoryEditor.StatusText}" />
+                      <Run Text="  " />
+                      <Run Text="{Binding #MemoryEditor.StatusDetail}" />
+                    </TextBlock>
+                    <Button Grid.Column="1" Content="Clear" Command="{Binding Form.ClearSectorCommand}"
+                            IsVisible="{Binding Form.IsMifareClassic}" IsEnabled="{Binding !IsBusy}"
+                            ToolTip.Tip="Clear the selected sector and mark its blocks as unread" />
+                  </Grid>
+                  <!-- Keep the status above and the legend below the editor's own scroll area. -->
+                  <ScrollViewer x:Name="MemoryScroll" HorizontalScrollBarVisibility="Disabled" Margin="0,6,0,0">
+                    <Border Classes="inset" Padding="8,6">
+                      <c:HexEditor x:Name="MemoryEditor" Buffer="{Binding Form?.SelectedMemory}" />
+                    </Border>
+                  </ScrollViewer>
+                  <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsMifareClassic, TargetNullValue=False}" Margin="0,6,0,0">
+                    <TextBlock Classes="manufacturer" Text="■ Block 0" />
+                    <TextBlock Classes="keya" Text="■ Key A" />
+                    <TextBlock Classes="access" Text="■ Access bits" />
+                    <TextBlock Classes="keyb" Text="■ Key B" />
+                    <TextBlock Classes="changed" Text="■ Modified" />
+                  </WrapPanel>
+                  <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsUltralight, TargetNullValue=False}" Margin="0,6,0,0">
+                    <TextBlock Classes="manufacturer" Text="■ UID" />
+                    <TextBlock Classes="access" Text="■ Lock bytes" />
+                    <TextBlock Classes="keya" Text="■ Config"
+                               IsVisible="{Binding Form?.HasUltralightConfig, TargetNullValue=False}" />
+                    <TextBlock Classes="keyb" Text="{Binding Form?.UltralightKeyLegend}"
+                               IsVisible="{Binding Form?.HasUltralightConfig, TargetNullValue=False}" />
+                    <TextBlock Classes="changed" Text="■ Modified" />
+                  </WrapPanel>
+                </StackPanel>
+
                 <!-- Summary of the last dump. -->
                 <Border Classes="inset" Padding="14,8" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpStats}">
                   <ItemsControl ItemsSource="{Binding DumpStats}">
@@ -1095,85 +1140,6 @@
               </StackPanel>
             </StackPanel>
           </Border>
-
-          <!-- ===================== No memory yet (entered by hand / UID only) ===================== -->
-          <Border Classes="card" IsVisible="{Binding ShowMemoryEditor}">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-              <StackPanel Spacing="2" VerticalAlignment="Center">
-                <TextBlock Text="MEMORY" Classes="overline" />
-                <TextBlock Classes="caption" TextWrapping="Wrap"
-                           Text="Identity only. The device emulates its own blank card; create one here to see and edit it." />
-              </StackPanel>
-              <Button Grid.Column="1" Command="{Binding Form?.CreateMemoryCommand}" VerticalAlignment="Center"
-                      ToolTip.Tip="Blank card memory: block 0 / UID pages from the fields above, default keys">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.add}" />
-                  <TextBlock Text="Create blank memory" VerticalAlignment="Center" />
-                </StackPanel>
-              </Button>
-            </Grid>
-          </Border>
-
-          <!-- ===================== Memory (dump) ===================== -->
-          <!-- Open while adding, or right after blank memory was created. -->
-          <Expander x:Name="MemoryCard" Classes="card" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                    IsVisible="{Binding Form?.HasData, TargetNullValue=False}">
-            <Expander.IsExpanded>
-              <MultiBinding Converter="{x:Static BoolConverters.Or}" Mode="OneWay">
-                <Binding Path="IsAdding" />
-                <Binding Path="Form?.ExpandMemory" TargetNullValue="False" />
-              </MultiBinding>
-            </Expander.IsExpanded>
-            <Expander.Header>
-              <StackPanel Margin="12,0">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                      <TextBlock Text="MEMORY" Classes="overline" />
-                      <TextBlock Text="{Binding Form?.DataSummary}" Classes="caption"/>
-                  </StackPanel>
-                <TextBlock Classes="caption" Text="{Binding Form?.MemoryWarning}" TextWrapping="Wrap" Margin="0,4,0,0"
-                           Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
-                           IsVisible="{Binding Form?.MemoryWarning, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
-              </StackPanel>
-            </Expander.Header>
-            <StackPanel>
-              <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsMifareClassic, TargetNullValue=False}" Margin="0,6,0,0">
-                <TextBlock Classes="manufacturer" Text="■ Block 0" />
-                <TextBlock Classes="keya" Text="■ Key A" />
-                <TextBlock Classes="access" Text="■ Access bits" />
-                <TextBlock Classes="keyb" Text="■ Key B" />
-                <TextBlock Classes="changed" Text="■ Modified" />
-              </WrapPanel>
-              <WrapPanel Classes="hexlegend" IsVisible="{Binding Form?.IsUltralight, TargetNullValue=False}" Margin="0,6,0,0">
-                <TextBlock Classes="manufacturer" Text="■ UID" />
-                <TextBlock Classes="access" Text="■ Lock bytes" />
-                <TextBlock Classes="keya" Text="■ Config"
-                           IsVisible="{Binding Form?.HasUltralightConfig, TargetNullValue=False}" />
-                <TextBlock Classes="keyb" Text="{Binding Form?.UltralightKeyLegend}"
-                           IsVisible="{Binding Form?.HasUltralightConfig, TargetNullValue=False}" />
-                <TextBlock Classes="changed" Text="■ Modified" />
-              </WrapPanel>
-              <!-- Fixed-width position/value part, then the meaning. One TextBlock keeps both on
-                   the same baseline; trimming eats the meaning first so it stays on one line. -->
-              <TextBlock Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                         ToolTip.Tip="{Binding #MemoryEditor.StatusDetail}"
-                         IsVisible="{Binding #MemoryEditor.StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <Run FontFamily="Cascadia Code,Consolas,Menlo,monospace" Text="{Binding #MemoryEditor.StatusText}" />
-                <Run Text="  " />
-                <Run Text="{Binding #MemoryEditor.StatusDetail}" />
-              </TextBlock>
-              <!-- Own scroll, sized to the pane (code-behind), so the legend and status above stay
-                   in view; the hint scrolls away. -->
-              <ScrollViewer x:Name="MemoryScroll" HorizontalScrollBarVisibility="Disabled" Margin="0,6,0,0">
-                <StackPanel Spacing="4">
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="Tap a byte and type hex to overwrite it. Shift+arrows select; Ctrl+C / Ctrl+V copy and paste; Ctrl+Z undoes; right-click for more." />
-                  <Border Classes="inset" Padding="8,6">
-                    <c:HexEditor x:Name="MemoryEditor" Buffer="{Binding Form?.Memory}" />
-                  </Border>
-                </StackPanel>
-              </ScrollViewer>
-            </StackPanel>
-          </Expander>
         </StackPanel>
       </ScrollViewer>
 

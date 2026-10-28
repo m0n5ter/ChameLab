@@ -811,6 +811,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 ct.ThrowIfCancellationRequested();
                 var first = MifareClassic.SectorFirstBlock(s);
                 var count = MifareClassic.BlocksInSector(s);
+                // A resumed dictionary pass only works on sectors with missing data.
+                if (Enumerable.Range(first, count).All(b => dump.GetBlock(b) is { Length: 16 }))
+                {
+                    progress?.Report(new MifareProgress(s + 1, sectors, recovered));
+                    continue;
+                }
                 blocks?.Report(new MifareBlockProgress(first, count, MifareBlockState.Reading));
 
                 // Both keys are searched independently: a sector may hand out data under

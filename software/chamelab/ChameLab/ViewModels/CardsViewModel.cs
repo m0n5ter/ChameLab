@@ -92,6 +92,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     private void UpdateRecoveryMethods()
     {
+        this.RaisePropertyChanged(nameof(ShowCheckRecovery));
         this.RaisePropertyChanged(nameof(ShowDarkside));
         this.RaisePropertyChanged(nameof(ShowNested));
         this.RaisePropertyChanged(nameof(ShowStaticNested));
@@ -118,8 +119,6 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     private IReadOnlyList<MifareBlockState> _writeBlockStates = Array.Empty<MifareBlockState>();
     private readonly HashSet<string> _uncheckedKeySources = LoadUncheckedKeySources();
     private byte[] _scannedAts = Array.Empty<byte>();
-    // The new card came from an HF scan, so its memory can be dumped (as whatever type it is set to).
-    private bool _isHfScan;
     // A dump result is being put into the form: its type change is not a user's change.
     private bool _applyingDump;
     // A dump stopped because its result no longer applies (type changed, add left): its result is dropped.
@@ -171,6 +170,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         HardnestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Hardnested),
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowHardnested),
                 (idle, show) => idle && show && CanRunHardnested));
+        CheckRecoveryCommand = ReactiveCommand.CreateFromTask(CheckRecoveryAsync, recoveryIdle);
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
@@ -495,6 +495,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             if (_form is not null) _form.PropertyChanged -= OnFormPropertyChanged;
             this.RaiseAndSetIfChanged(ref _form, value);
             if (_form is not null) _form.PropertyChanged += OnFormPropertyChanged;
+            if (!_applyingDump) InitializeDumpFromForm();
             this.RaisePropertyChanged(nameof(IsCardDirty));
             this.RaisePropertyChanged(nameof(ShowEditor));
             this.RaisePropertyChanged(nameof(ShowMemoryEditor));
@@ -506,8 +507,6 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     private void OnFormPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(CardEditorViewModel.CanCreateMemory))
-            this.RaisePropertyChanged(nameof(ShowMemoryEditor));
         // The card actions follow its type and memory as they are edited.
         if (e.PropertyName is nameof(CardEditorViewModel.Tag) or nameof(CardEditorViewModel.HasData))
         {
@@ -515,9 +514,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             if (e.PropertyName == nameof(CardEditorViewModel.Tag))
             {
                 RebuildTargets();
-                OnAddTagChanged();
+                InitializeDumpFromForm();
             }
         }
+        if (!_applyingDump && e.PropertyName is nameof(CardEditorViewModel.HasData)
+            or nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.Sak)
+            or nameof(CardEditorViewModel.Atqa) or nameof(CardEditorViewModel.Ats))
+            InitializeDumpFromForm();
         if (e.PropertyName != nameof(CardEditorViewModel.IsDirty)) return;
         this.RaisePropertyChanged(nameof(IsCardDirty));
         // Editing again supersedes the question about the previous save.
@@ -644,6 +647,13 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     private void OnDumpSectorBlock(MifareBlockProgress p)
     {
         if (p.State == MifareBlockState.Pending && p.First == 0 && DumpSectors.Count == 0) ResetDumpSectors(p.Count);
+        RefreshDumpReadState();
+    }
+
+    private void RefreshDumpReadState()
+    {
+        if (_classicDump is not { } dump) return;
+        foreach (var sector in DumpSectors) sector.UpdateReadState(dump);
     }
 
     private void OnDumpKey(MifareKeyProgress p)
@@ -1019,6 +1029,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public ICommand ScanHfCommand { get; }
     public ICommand ScanLfCommand { get; }
     public ICommand DumpCommand { get; }
+    public ICommand CheckRecoveryCommand { get; }
     public ICommand DarksideCommand { get; }
     public ICommand NestedCommand { get; }
     public ICommand StaticNestedCommand { get; }
@@ -1067,7 +1078,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         private set => this.RaiseAndSetIfChanged(ref _formSource, value);
     }
 
-    /// <summary>The scanned tag is MIFARE Classic or Ultralight / NTAG, so its memory can be dumped.</summary>
+    /// <summary>The open card supports memory reading, regardless of its source.</summary>
     public bool CanDump
     {
         get => _canDump;
@@ -1129,7 +1140,11 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public bool IsDumpComplete
     {
         get => _isDumpComplete;
-        private set => this.RaiseAndSetIfChanged(ref _isDumpComplete, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isDumpComplete, value);
+            this.RaisePropertyChanged(nameof(ShowCheckRecovery));
+        }
     }
 
     /// <summary>Makes it explicit that saving before a dump keeps only the card's identity.</summary>
@@ -1162,7 +1177,6 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         Prng = null;
         FormSource = null;
         _hasDump = false;
-        _isHfScan = false;
         // Leaving the add pane stops a dump still in flight.
         ClearDump();
         CanDump = false;
@@ -1191,6 +1205,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             try { cts.Cancel(); } catch (ObjectDisposedException) { }
         }
         _classicDump = null;
+        Prng = null;
         IsDumpComplete = false;
         _cardPrng = null;
         _darksideAvailable = false;
@@ -1203,43 +1218,99 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         DumpProgressText = null;
     }
 
-    /// <summary>
-    /// The new card's type was changed by hand. A dump read as the old type means nothing for the
-    /// new one (1K and NTAG, even 1K and 4K, lay memory out differently), so it is dropped — grid,
-    /// summary and the memory it filled in — and the dump section is set up afresh for the new type.
-    /// </summary>
-    private void OnAddTagChanged()
+    /// <summary>Resume from the editor's memory regardless of how the card was added.</summary>
+    private void InitializeDumpFromForm()
     {
-        if (_pane != CardsPane.Add || !_isHfScan || _applyingDump || _form is not { } form) return;
+        if (_applyingDump) return;
         ClearDump();
-        if (_hasDump)
-        {
-            form.ClearMemory();
-            _hasDump = false;
-        }
-        ShowDumpFor(form.Tag);
-    }
-
-    /// <summary>
-    /// Sets the dump section up for <paramref name="tag"/>: which dump it runs (Classic blocks or
-    /// Ultralight pages), and for MIFARE Classic an empty sector grid sized for that type.
-    /// </summary>
-    private void ShowDumpFor(TagSpecificType tag)
-    {
+        var tag = Form?.Tag ?? TagSpecificType.Undefined;
         IsUltralightDump = tag.IsUltralight();
         CanDump = tag.IsMifareClassic() || IsUltralightDump;
-        if (tag.IsMifareClassic())
+        _hasDump = Form?.HasData == true;
+        if (tag.IsMifareClassic()) ResetDumpSectors(tag.MifareClassicBlocks());
+        try
         {
-            ResetDumpSectors(tag.MifareClassicBlocks());
-            if (Form is { } form)
+            if (CanDump && Form is { } form)
             {
-                var card = form.Build();
-                _classicDump = new MifareDump(MifareClassic.FromSlotTagType(tag), card.Uid, card.Atqa, card.Sak);
+                var card = form.BuildForReading();
+                _scannedAts = card.Ats;
+                if (tag.IsMifareClassic())
+                {
+                    // Saved trailer keys are candidates until authenticated on the physical card.
+                    _classicDump = card.ToMifareDump();
+                    RefreshDumpReadState();
+                    IsDumpComplete = _classicDump.RecoveredBlocks == _classicDump.BlockCount;
+                }
+                else
+                {
+                    var count = tag.UltralightPages();
+                    IsDumpComplete = count > 0 && card.Data.Count >= count
+                        && card.Data.Take(count).All(b => b.Length == 4);
+                }
             }
         }
+        catch (FormatException) { /* The manual identity is still being entered. */ }
         RebuildKeySources();
         UpdateRecoveryMethods();
         RaiseSaveLabel();
+    }
+
+    public bool ShowCheckRecovery => _classicDump is not null && _cardPrng is null && !IsDumpComplete;
+
+    private Task CheckRecoveryAsync() => RunAsync(async () =>
+    {
+        if (_device.Client is not { } client) return;
+        using var cts = new CancellationTokenSource();
+        _dumpCts = cts;
+        DumpProgressText = "Checking recovery methods…";
+        try { await ProbeRecoveryAsync(client, cts.Token); }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
+        finally
+        {
+            if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
+            Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
+        }
+    });
+
+    private async Task ProbeRecoveryAsync(ChameleonClient client, CancellationToken ct)
+    {
+        if (_classicDump is not { } dump) return;
+        await client.SetDeviceModeAsync(DeviceMode.Reader, ct);
+        var tags = await client.Hf14aScanAsync(ct);
+        if (tags.Count == 0 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
+            throw new InvalidOperationException("Place the selected card on the reader before continuing.");
+        var prng = await client.DetectNtLevelAsync(ct);
+        var darkside = false;
+        if (prng != MifareClassicPrngType.Static)
+        {
+            try { darkside = await client.CheckDarksideAsync(ct) == DarksideResult.Vulnerable; }
+            catch (ChameleonException) { }
+        }
+        for (var sector = 0; sector < dump.SectorCount; sector++)
+        {
+            var trailer = dump.GetBlock(MifareClassic.SectorTrailerBlock(sector));
+            if (trailer is not { Length: 16 }) continue;
+            foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
+            {
+                var keys = kt == MfKeyType.A ? dump.KeyA : dump.KeyB;
+                if (keys[sector] is not null) continue;
+                var key = kt == MfKeyType.A ? trailer[..6] : trailer[10..];
+                if (await client.Mf1AuthAsync(MifareClassic.SectorFirstBlock(sector), kt, key, ct))
+                    keys[sector] = key;
+            }
+        }
+        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (!ReferenceEquals(dump, _classicDump)) return;
+            Prng = prng.Label();
+            _cardPrng = prng;
+            _darksideAvailable = darkside;
+            for (var sector = 0; sector < dump.SectorCount; sector++)
+                foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
+                    if ((kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is { } key)
+                        DumpSectors[sector].ApplyKey(new MifareKeyProgress(sector, kt, MifareKeyPhase.Found, 0, 0, key));
+            UpdateRecoveryMethods();
+        });
     }
 
     // ---- Scanned card already saved ---------------------------------------
@@ -1351,10 +1422,8 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             var card = CardFormats.FromHf14a(t);
             if (ultralight is { } exact) card.Tag = exact;
             _scannedAts = card.Ats;
-            _isHfScan = true;
             Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
-            ShowDumpFor(card.Tag);
             FormSource = $"{card.Tag.DisplayName()} — UID {t.UidHex}";
         });
 
@@ -1449,6 +1518,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         var client = _device.Client;
         if (client is null) return;
 
+        if (_classicDump is null && Form is { } form) _classicDump = form.BuildForReading().ToMifareDump();
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
         var keys = BuildKeyDictionary();
@@ -1550,6 +1620,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
             {
                 if (ReferenceEquals(_discardedDump, cts)) return;
                 _classicDump = dump;
+                RefreshDumpReadState();
                 IsDumpComplete = dump.RecoveredBlocks == dump.BlockCount;
                 UpdateRecoveryMethods();
                 DumpStats.Clear();
@@ -1597,7 +1668,22 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
         try
         {
             var key = Hex.TryParse(DumpPassword, out var k) && k.Length > 0 ? k : null;
+            var previous = Form?.BuildForReading();
+            if (previous is not null)
+            {
+                await client.SetDeviceModeAsync(DeviceMode.Reader, cts.Token);
+                var tags = await client.Hf14aScanAsync(cts.Token);
+                if (tags.Count == 0 || !previous.Uid.AsSpan().SequenceEqual(tags[0].Uid))
+                    throw new InvalidOperationException("Place the selected card on the reader before continuing.");
+            }
             var result = await WithMissFeedback(client.DumpUltralightAsync(key, progress, cts.Token, pageProgress));
+            if (previous is not null && previous.Tag == result.Card.Tag)
+            {
+                for (var page = 0; page < Math.Min(previous.Data.Count, result.Card.Data.Count); page++)
+                    if (result.Card.Data[page].Length != 4 && previous.Data[page].Length == 4)
+                        result.Card.Data[page] = previous.Data[page];
+                result = result with { PagesRead = result.Card.Data.Count(p => p.Length == 4) };
+            }
             clock.Stop();
             ScanFeedback.Found();
             var stats = BuildUltralightStats(result, clock.Elapsed);
@@ -1771,6 +1857,11 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
                 : source.Keys)
                 if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
         }
+        if (_classicDump is { } saved)
+            for (var sector = 0; sector < saved.SectorCount; sector++)
+                if (saved.GetBlock(MifareClassic.SectorTrailerBlock(sector)) is { Length: 16 } trailer)
+                    foreach (var key in new[] { trailer[..6], trailer[10..] })
+                        if (seen.Add(Convert.ToHexString(key))) keys.Add(key);
         return keys;
     }
 
@@ -2007,7 +2098,7 @@ public sealed class CardsViewModel : PageViewModelBase, IReorderableList, IDropO
     public bool ShowEditor => _form is not null && !IsWriteOpen;
 
     /// <summary>The "create memory" block is shown only while editing a card that still needs memory.</summary>
-    public bool ShowMemoryEditor => ShowEditor && _form?.CanCreateMemory == true;
+    public bool ShowMemoryEditor => ShowEditor && _form?.Memory is not null;
 
     private void Toggle(CardAction action)
     {

@@ -12,6 +12,8 @@ public interface ISectorKeys
     int Sector { get; }
     int FirstBlock { get; }
     int LastBlock { get; }
+    /// <summary>Every block of the sector is present, independently of key authentication.</summary>
+    bool IsRead { get; }
     KeyCellState KeyAState { get; }
     KeyCellState KeyBState { get; }
     /// <summary>Share of the candidate keys tried so far (0..1), or -1 when the total is unknown.</summary>

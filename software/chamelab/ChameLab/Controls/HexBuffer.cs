@@ -29,6 +29,32 @@ public sealed class HexBuffer
     private readonly Stack<Edit> _undo = new();
     private readonly Stack<Edit> _redo = new();
     private long _typingOffset = -1;
+    private readonly HexBuffer? _parent;
+    private readonly int _firstRow, _viewRows;
+
+    private HexBuffer(HexBuffer parent, int firstRow, int rowCount)
+        : this(new List<byte[]>(), parent.RowLength)
+    {
+        _parent = parent;
+        _firstRow = firstRow;
+        _viewRows = rowCount;
+        RowLabel = row => parent.RowLabel(firstRow + row);
+        Classify = (row, col) => parent.Classify(firstRow + row, col);
+        StartsGroup = row => parent.StartsGroup(firstRow + row);
+        GroupHeader = row => parent.GroupHeader(firstRow + row);
+        Describe = (row, col) => parent.Describe(firstRow + row, col);
+    }
+
+    /// <summary>A fixed range sharing edits, original bytes and undo history with this buffer.</summary>
+    public HexBuffer Slice(int firstRow, int rowCount)
+    {
+        if (firstRow < 0 || rowCount < 0 || firstRow > RowCount - rowCount)
+            throw new ArgumentOutOfRangeException(nameof(firstRow));
+        return new HexBuffer(this, firstRow, rowCount);
+    }
+
+    /// <summary>Absolute byte position of the first row of this view.</summary>
+    public long ByteOffset => (_parent?.ByteOffset ?? 0) + (long)_firstRow * RowLength;
 
     /// <param name="rows">Rows edited in place; an empty array marks an unread row.</param>
     /// <param name="rowLength">Bytes per row (16 for MIFARE Classic, 4 for Ultralight, 6 for keys).</param>
@@ -40,7 +66,7 @@ public sealed class HexBuffer
         _original = rows.Select(r => (byte[]?)r.Clone()).ToList();
     }
 
-    public int RowCount => _rows.Count;
+    public int RowCount => _parent is null ? _rows.Count : _viewRows;
     public int RowLength { get; }
     public int Length => RowCount * RowLength;
 
@@ -73,20 +99,29 @@ public sealed class HexBuffer
     public Func<int, int, string?> Describe { get; init; } = (_, _) => null;
 
     /// <summary>Raised after every edit, undo and redo.</summary>
-    public event EventHandler? Changed;
+    private event EventHandler? _changed;
+    public event EventHandler? Changed
+    {
+        add { if (_parent is { } parent) parent.Changed += value; else _changed += value; }
+        remove { if (_parent is { } parent) parent.Changed -= value; else _changed -= value; }
+    }
 
-    public IReadOnlyList<byte[]> Rows => _rows;
+    public IReadOnlyList<byte[]> Rows => _parent is null ? _rows : _parent.Rows.Skip(_firstRow).Take(_viewRows).ToArray();
 
     /// <summary>The row holds data (false for an unread row and for the empty row after the last).</summary>
-    public bool IsRead(int row) => row < _rows.Count && _rows[row].Length > 0;
+    public bool IsRead(int row) => row >= 0 && row < RowCount
+        && (_parent is { } parent ? parent.IsRead(_firstRow + row) : _rows[row].Length > 0);
 
     public bool IsRead(long offset) => IsRead((int)(offset / RowLength));
 
-    public byte this[long offset] => IsRead(offset) ? _rows[(int)(offset / RowLength)][offset % RowLength] : (byte)0;
+    public byte this[long offset] => _parent is { } parent
+        ? parent[(long)_firstRow * RowLength + offset]
+        : IsRead(offset) ? _rows[(int)(offset / RowLength)][offset % RowLength] : (byte)0;
 
     /// <summary>The byte differs from what the buffer was created with.</summary>
     public bool IsChanged(long offset)
     {
+        if (_parent is { } parent) return parent.IsChanged((long)_firstRow * RowLength + offset);
         int row = (int)(offset / RowLength), col = (int)(offset % RowLength);
         if (row >= _rows.Count) return false;
         var now = _rows[row];
@@ -96,8 +131,8 @@ public sealed class HexBuffer
         return was.Length == 0 || was[col] != now[col];
     }
 
-    public bool CanUndo => _undo.Count > 0;
-    public bool CanRedo => _redo.Count > 0;
+    public bool CanUndo => _parent?.CanUndo ?? (_undo.Count > 0);
+    public bool CanRedo => _parent?.CanRedo ?? (_redo.Count > 0);
 
     /// <summary>
     /// Overwrites bytes starting at <paramref name="offset"/>; unread rows become read (zero-filled).
@@ -115,6 +150,20 @@ public sealed class HexBuffer
         var merge = !high && _typingOffset == offset;
         Write(offset, [b], merge);
         _typingOffset = high ? offset : -1;
+    }
+
+    /// <summary>Marks a fixed range as unread, preserving its size and undo history.</summary>
+    public void ClearRows(int first, int count)
+    {
+        if (first < 0 || first >= RowCount || count <= 0) return;
+        count = Math.Min(count, RowCount - first);
+        if (_parent is { } parent)
+        {
+            parent.ClearRows(_firstRow + first, count);
+            return;
+        }
+        var empty = Enumerable.Range(0, count).Select(_ => Array.Empty<byte>()).ToArray();
+        Apply(new Edit(first, Snapshot(first, count), Originals(first, count), empty, Originals(first, count)));
     }
 
     /// <summary>Inserts <paramref name="count"/> unread (empty) rows before row <paramref name="at"/>.</summary>
@@ -137,14 +186,17 @@ public sealed class HexBuffer
             Array.Empty<byte[]>(), Array.Empty<byte[]?>()));
     }
 
-    public bool Undo() => Step(_undo, _redo, undo: true);
-    public bool Redo() => Step(_redo, _undo, undo: false);
+    public bool Undo() => _parent?.Undo() ?? Step(_undo, _redo, undo: true);
+    public bool Redo() => _parent?.Redo() ?? Step(_redo, _undo, undo: false);
 
     private int Write(long offset, ReadOnlySpan<byte> bytes, bool merge)
     {
         _typingOffset = -1;
         // A resizable buffer also takes writes into the empty row after the last one.
         if (offset < 0 || bytes.IsEmpty || offset >= ViewLength) return 0;
+        if (_parent is { } parent)
+            return parent.Write((long)_firstRow * RowLength + offset,
+                bytes[..(int)Math.Min(bytes.Length, Length - offset)], merge);
         var count = CanResize ? bytes.Length : (int)Math.Min(bytes.Length, Length - offset);
         int first = (int)(offset / RowLength), last = (int)((offset + count - 1) / RowLength);
         // Rows that exist now, then the ones a paste past the end adds.
@@ -173,7 +225,7 @@ public sealed class HexBuffer
         }
         _undo.Push(edit);
         _redo.Clear();
-        Changed?.Invoke(this, EventArgs.Empty);
+        _changed?.Invoke(this, EventArgs.Empty);
         return count;
     }
 
@@ -184,7 +236,7 @@ public sealed class HexBuffer
         Replace(edit.FirstRow, edit.Before.Length, edit.After, edit.AfterOriginal);
         _undo.Push(edit);
         _redo.Clear();
-        Changed?.Invoke(this, EventArgs.Empty);
+        _changed?.Invoke(this, EventArgs.Empty);
     }
 
     private bool Step(Stack<Edit> from, Stack<Edit> to, bool undo)
@@ -195,7 +247,7 @@ public sealed class HexBuffer
         if (undo) Replace(edit.FirstRow, edit.After.Length, edit.Before, edit.BeforeOriginal);
         else Replace(edit.FirstRow, edit.Before.Length, edit.After, edit.AfterOriginal);
         to.Push(edit);
-        Changed?.Invoke(this, EventArgs.Empty);
+        _changed?.Invoke(this, EventArgs.Empty);
         return true;
     }
 

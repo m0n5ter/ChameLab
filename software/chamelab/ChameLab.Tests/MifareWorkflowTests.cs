@@ -53,6 +53,30 @@ public class MifareWorkflowTests
     }
 
     [Fact]
+    public async Task Dump_SavedSectorsWithoutAuthenticatedKeysAreSkippedEntirely()
+    {
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        for (var block = 0; block < dump.BlockCount; block++) dump.SetBlock(block, new byte[16]);
+        dump.SetBlock(17, null);
+        var kept = dump.GetBlock(0);
+        var transport = new CardTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var result = await new ChameleonClient(connection).ReadMifareClassicAsync([Key],
+            type: dump.Type, existing: dump);
+
+        Assert.Equal(20, result.RecoveredBlocks);
+        Assert.Same(kept, result.GetBlock(0));
+        var auth = transport.Requests.Where(r => r.Command == Command.Mf1AuthOneKeyBlock).ToList();
+        Assert.NotEmpty(auth);
+        Assert.All(auth, request => Assert.Equal(16, request.Data[1]));
+        var read = Assert.Single(transport.Requests, r => r.Command == Command.Mf1ReadOneBlock);
+        Assert.Equal(17, read.Data[1]);
+        Assert.Null(result.KeyA[0]);
+        Assert.Null(result.KeyB[0]);
+    }
+
+    [Fact]
     public async Task Dump_CancelKeepsKeysAndBlocksForNextRun()
     {
         var dump = KnownCard();
