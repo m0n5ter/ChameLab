@@ -14,7 +14,7 @@
     <Application.Styles>
         <actipro:ModernTheme>
             <actipro:ModernTheme.Definition>
-                <generation:ThemeDefinition AccentColorRampName="Emerald" ToggleSwitchAppearanceKind="Solid" />
+                <generation:ThemeDefinition AccentColorRampName="Emerald" ToggleSwitchAppearanceKind="Solid" UseAccentedSwitches="True" />
             </actipro:ModernTheme.Definition>
         </actipro:ModernTheme>
         <StyleInclude Source="avares://ChameLab/Styles/ControlStyles.axaml" />

@@ -49,11 +49,31 @@ public sealed class AndroidFeedbackPlayer : IFeedbackPlayer
         long[] pattern = outcome == ScanOutcome.Found ? [0, 40] : [0, 70, 80, 70];
         var vibrator = Vibrator;
         if (vibrator is null) return;
-        if (OperatingSystem.IsAndroidVersionAtLeast(26))
-            vibrator.Vibrate(VibrationEffect.CreateWaveform(pattern, -1));
+        // Scan completion is a notification. Without an explicit usage Android can classify
+        // short effects as touch feedback and suppress them when touch vibration is disabled.
+        if (OperatingSystem.IsAndroidVersionAtLeast(33))
+        {
+            using var attributes = new VibrationAttributes.Builder()
+                .SetUsage((int)VibrationAttributesUsageType.Notification)!
+                .Build();
+            using var effect = VibrationEffect.CreateWaveform(pattern, -1)!;
+            vibrator.Vibrate(effect, attributes);
+        }
         else
-#pragma warning disable CA1422 // the pattern overload, for Android 7
-            vibrator.Vibrate(pattern, -1);
+        {
+            using var attributes = new AudioAttributes.Builder()
+                .SetUsage(AudioUsageKind.Notification)!
+                .SetContentType(AudioContentType.Sonification)!
+                .Build();
+#pragma warning disable CA1422 // AudioAttributes overloads for Android 12L and older
+            if (OperatingSystem.IsAndroidVersionAtLeast(26))
+            {
+                using var effect = VibrationEffect.CreateWaveform(pattern, -1);
+                vibrator.Vibrate(effect, attributes);
+            }
+            else
+                vibrator.Vibrate(pattern, -1, attributes);
 #pragma warning restore CA1422
+        }
     }
 }
