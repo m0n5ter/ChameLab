@@ -10,6 +10,58 @@ public class EditorSelectionTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void BrowsingFoldersKeepsCardAndAsksOnlyWhenAnotherCardIsPicked(bool newCard)
+    {
+        var store = new MemoryKeyValueStore();
+        var library = new CardLibrary(store);
+        var firstCard = new CardSave { Name = "First" };
+        library.Add(firstCard);
+        library.Add(new CardSave { Name = "Second", Folder = "Other" });
+        var vm = new CardsViewModel(new DeviceService([]), library, new DictionaryLibrary(store));
+        if (newCard)
+        {
+            vm.AddCommand.Execute(null);
+            vm.ManualCommand.Execute(null);
+        }
+        else vm.Selected = vm.Cards[0];
+        var form = vm.Form!;
+        form.Name = "Unsaved card";
+        var pane = vm.Pane;
+
+        vm.ShowFolder(vm.Folders[0]);
+        Assert.Equal("Other", vm.CurrentFolder?.Name);
+        Assert.False(vm.IsConfirmingLeave);
+        Assert.Same(form, vm.Form);
+        Assert.Equal(pane, vm.Pane);
+        var second = Assert.Single(vm.Cards);
+        Assert.Equal("Second", second.Name);
+
+        vm.ShowRootCommand.Execute(null);
+        Assert.Null(vm.CurrentFolder);
+        Assert.False(vm.IsConfirmingLeave);
+        Assert.Same(form, vm.Form);
+
+        vm.ShowFolder(vm.Folders[0]);
+        second = Assert.Single(vm.Cards);
+        vm.Selected = second;
+        Assert.True(vm.IsConfirmingLeave);
+        Assert.Same(form, vm.Form);
+        vm.StayCommand.Execute(null);
+        Assert.Same(form, vm.Form);
+
+        vm.Selected = second;
+        vm.DiscardAndLeaveCommand.Execute(null);
+        Assert.False(vm.IsConfirmingLeave);
+        Assert.Same(second, vm.Selected);
+        Assert.NotSame(form, vm.Form);
+        Assert.Equal("Second", vm.Form!.Name);
+        Assert.Equal("First", firstCard.Name);
+        Assert.Equal(2, library.Cards.Count);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void CardSelectionResetKeepsEditorButSwitchingOrClosingAsksWhenDirty(bool dirty)
     {
         var store = new MemoryKeyValueStore();

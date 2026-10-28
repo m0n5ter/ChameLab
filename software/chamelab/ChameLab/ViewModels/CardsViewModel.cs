@@ -832,7 +832,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         finally { _rebuilding = false; }
         this.RaisePropertyChanged(nameof(TypeFilter));
 
-        var reselect = selectedId is null ? null : Cards.FirstOrDefault(c => c.Card.Id == selectedId);
+        // Browsing folders or filtering the list does not leave the open card.
+        // Clear the editor only if the card was actually removed from the library.
+        var reselect = selectedId is null ? null
+            : Cards.FirstOrDefault(c => c.Card.Id == selectedId)
+                ?? (_library.Cards.Any(c => c.Id == selectedId) ? _selected : null);
         if (reselect is not null && _form is not null && _pane == CardsPane.Card)
         {
             // Same card, new list item: keep the editor (and any unsaved edits) as they are.
@@ -896,11 +900,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public string CardFolderLabel => _selected is { Card.Folder: { Length: > 0 } folder } ? folder : "Folder";
 
     /// <summary>Shows the cards of a folder, or all of them for null.</summary>
-    public void ShowFolder(CardFolderViewModel? folder) => LeaveThen(() =>
+    public void ShowFolder(CardFolderViewModel? folder)
     {
         SetFolder(folder?.Name);
         Rebuild();
-    });
+    }
 
     private void SetFolder(string? name)
     {

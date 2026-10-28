@@ -6,6 +6,15 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.20][2026-10-29] · firmware v2.3.3-cl
+ - ChameLab: browsing card folders keeps the current card and its unsaved data in the editor without asking to Save / Discard; selecting another card still asks before replacing it
+ - ChameLab: unsaved card and dictionary edits survive leaving and returning to their pages
+ - ChameLab: Android connects over USB OTG for card scans, reads, writes and device commands; scan vibration works more reliably
+ - ChameLab: Gen2 MIFARE Classic writing has a target-card key recovery panel, sector progress and an optional block 0 write; source-card keys can be tried against the target
+ - ChameLab: dictionary selections are shared between card reading and target-card key recovery and remembered between sessions; concurrent settings changes no longer overwrite each other
+ - ChameLab: clearer key recovery progress and sector states; assigning a card to a slot closes the assignment panel
+ - Website: refreshed responsive layout, improved readability and a higher-resolution device image
  - ChameLab: always show the app version under the title; available updates appear as a small icon beside ChameLab, with the title opening the website's Download section. Header details collapse one at a time only when their contents no longer fit
 
 ## [v1.0.19][2026-10-28] · firmware v2.3.3-cl
