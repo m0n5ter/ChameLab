@@ -6,6 +6,12 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.19][2026-10-28] · firmware v2.3.3-cl
+ - ChameLab: MIFARE Classic keys can be recovered with the Hardnested attack (desktop only)
+ - ChameLab: Android shows a splash screen with the ChameLab logo (it was cropped)
+ - ChameLab: a card saved without its memory having been read (a new card, a scan, or a dump stopped before any key was found) keeps its sectors unread instead of saving blank memory that showed every sector as read
+ - ChameLab: Android connects to the Chameleon over BLE more reliably (LE transport, faster connection interval, acknowledged writes), instead of timing out on the first command
  - ChameLab: mfkey32 now runs from the card editor's attack toolbar using a slot that already holds the card. The progress panel guides reader capture, saves recovered keys against the card's full UID, and prompts for the original card before reading it. Stop becomes a green Done button after completion; cancellation and errors restore the device mode, active slot and emulator settings. The Tools page has been removed
 
 ## [v1.0.18][2026-10-27] · firmware v2.3.3-cl
