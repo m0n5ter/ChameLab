@@ -27,6 +27,27 @@ public sealed class KnownCardKeys
     public event Action? Changed;
     public int CardCount => _cards.Count;
     public int KeyCount => _cards.Values.Sum(keys => keys.Count);
+    public IReadOnlyList<string> Uids => _cards.Keys.OrderBy(uid => uid, StringComparer.Ordinal).ToArray();
+
+    /// <summary>Commit edited UID groups together, leaving unrelated learned keys intact.</summary>
+    public void ApplyEdits(IReadOnlyDictionary<string, IReadOnlyList<byte[]>?> edits)
+    {
+        if (LoadError is not null) throw new InvalidOperationException(LoadError);
+        var next = _cards.ToDictionary(c => c.Key, c => new List<string>(c.Value), StringComparer.Ordinal);
+        foreach (var (uid, keys) in edits)
+        {
+            var normalized = Convert.ToHexString(Convert.FromHexString(uid));
+            if (normalized.Length == 0) throw new FormatException("Invalid UID.");
+            if (keys is null) { next.Remove(normalized); continue; }
+            if (keys.Any(k => k.Length != 6)) throw new FormatException("Each key must contain 6 bytes.");
+            next[normalized] = keys.Select(k => Convert.ToHexString(k)).Distinct().ToList();
+        }
+        var json = new JsonObject(next.Select(c => new KeyValuePair<string, JsonNode?>(c.Key,
+            new JsonArray(c.Value.Select(k => (JsonNode?)JsonValue.Create(k)).ToArray()))));
+        _store.Write(Id, json.ToJsonString());
+        _cards = next;
+        Changed?.Invoke();
+    }
     public IReadOnlyList<byte[]> ForUid(byte[] uid) =>
         _cards.TryGetValue(Convert.ToHexString(uid), out var keys)
             ? keys.Select(Convert.FromHexString).ToArray() : Array.Empty<byte[]>();

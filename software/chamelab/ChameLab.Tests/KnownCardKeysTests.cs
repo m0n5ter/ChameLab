@@ -108,6 +108,77 @@ public class KnownCardKeysTests
         Assert.Contains(target.KnownKeys.ForUid(Uid), k => k.SequenceEqual(Key));
     }
 
+    [Fact]
+    public void EditorKeepsEditsAcrossUidSearchAndCommitsDeletionOnlyOnSave()
+    {
+        var store = new MemoryKeyValueStore();
+        var known = new KnownCardKeys(store);
+        known.Remember(Uid, [Key]);
+        known.Remember([5, 6, 7, 8], [new byte[6]]);
+        var cards = new CardLibrary(store);
+        cards.Add(new CardSave { Name = "Office", Uid = Uid });
+        cards.Add(new CardSave { Name = "Office copy", Uid = Uid });
+        var editor = new KnownKeysEditorViewModel(known, cards);
+        var first = editor.Selected!;
+        Assert.Equal("01 02 03 04", first.DisplayUid);
+        Assert.Contains("Office copy", first.CardNames);
+        Assert.True(first.HasCardNames);
+        editor.Filter = "oFFice cOpy";
+        Assert.Same(first, Assert.Single(editor.Uids));
+        editor.Filter = "05 06";
+        Assert.False(Assert.Single(editor.Uids).HasCardNames);
+        editor.Filter = null;
+        var replacement = Convert.FromHexString("112233445566");
+        first.Form.Keys.Write(0, replacement);
+        editor.Filter = "05 06";
+        Assert.Single(editor.Uids);
+        editor.DeleteUidCommand.Execute(null);
+        Assert.Equal(2, known.CardCount);
+        Assert.Equal(Key, Assert.Single(known.ForUid(Uid)));
+        editor.Filter = null;
+        Assert.Same(first, editor.Selected);
+        Assert.True(editor.IsDirty);
+
+        // A different UID learned while editing must survive Save.
+        known.Remember([9, 9, 9, 9], [Key]);
+        editor.Save();
+        var reloaded = new KnownCardKeys(store);
+        Assert.Equal(replacement, Assert.Single(reloaded.ForUid(Uid)));
+        Assert.Empty(reloaded.ForUid([5, 6, 7, 8]));
+        Assert.Single(reloaded.ForUid([9, 9, 9, 9]));
+        Assert.False(editor.IsDirty);
+    }
+
+    [Fact]
+    public void EditorDiscardRestoresDeletedUidsAndOriginalKeys()
+    {
+        var known = new KnownCardKeys(new MemoryKeyValueStore());
+        known.Remember(Uid, [Key]);
+        var editor = new KnownKeysEditorViewModel(known, new CardLibrary(new MemoryKeyValueStore()));
+        editor.Selected!.Form.Keys.Write(0, new byte[6]);
+        editor.DeleteUidCommand.Execute(null);
+        editor.Reset();
+        Assert.False(editor.IsDirty);
+        Assert.Equal(Key, Assert.Single(editor.Selected!.Form.Build().Keys));
+    }
+
+    [Fact]
+    public void EditorFailedSaveKeepsDraftAndStoredKeysForRetry()
+    {
+        var store = new FailingStore { Fail = false };
+        var known = new KnownCardKeys(store);
+        known.Remember(Uid, [Key]);
+        var editor = new KnownKeysEditorViewModel(known, new CardLibrary(store));
+        editor.DeleteUidCommand.Execute(null);
+        store.Fail = true;
+        Assert.Throws<IOException>(editor.Save);
+        Assert.True(editor.IsDirty);
+        Assert.Single(known.ForUid(Uid));
+        store.Fail = false;
+        editor.Save();
+        Assert.Empty(new KnownCardKeys(store).Uids);
+    }
+
     private sealed class FailingStore : IKeyValueStore
     {
         private readonly MemoryKeyValueStore _inner = new();

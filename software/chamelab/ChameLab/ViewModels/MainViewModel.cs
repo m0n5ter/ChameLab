@@ -32,7 +32,7 @@ public sealed class MainViewModel : ViewModelBase
         Chameleon = new ChameleonViewModel(device, Firmware);
         Slots = new SlotsViewModel(device, cards);
         Cards = new CardsViewModel(device, cards, dictionaries);
-        Dictionaries = new DictionariesViewModel(dictionaries);
+        Dictionaries = new DictionariesViewModel(dictionaries, cards);
         Tools = new ToolsViewModel(device);
         AppUpdate = new AppUpdateViewModel();
         Settings = new SettingsViewModel(cards, dictionaries, AppUpdate);

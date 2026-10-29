@@ -8,36 +8,59 @@
              x:Class="ChameLab.Views.DictionariesView"
              x:DataType="vm:DictionariesViewModel">
 
+  <UserControl.Styles>
+    <!-- React to the list pane's own width, including when details use most of the window. -->
+    <Style Selector="Grid.dictionary-list TextBox.library-search">
+      <Setter Property="Grid.Column" Value="1" />
+    </Style>
+    <Style Selector="Grid.dictionary-list.narrow TextBox.library-search">
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+      <Setter Property="Grid.Row" Value="1" />
+    </Style>
+    <Style Selector="Grid.dictionary-list Button.library-clear">
+      <Setter Property="Grid.Row" Value="0" />
+    </Style>
+    <Style Selector="Grid.dictionary-list.narrow Button.library-clear">
+      <Setter Property="Grid.Row" Value="1" />
+    </Style>
+  </UserControl.Styles>
+
   <!-- Laid out like the Cards page; the shared styles are under "Library pages" in ControlStyles. -->
   <Grid Classes="page cardsplit" ColumnDefinitions="*,Auto" Classes.open="{Binding HasPane}"
         b:SplitLayout.DetailWidth="380,420">
 
     <!-- ==================== Dictionary list ==================== -->
     <!-- Locked while a new dictionary is open: save it or discard it to get back to the list. -->
-    <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,Auto,Auto,*"
+    <Grid Grid.Column="0" Classes="listpane panestack dictionary-list" RowDefinitions="Auto,Auto,Auto,*"
+          SizeChanged="OnListPaneSizeChanged"
           IsEnabled="{Binding !IsNew}">
-      <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
+      <!-- Measure the title first; give actions the remaining finite width so they collapse by priority. -->
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="12">
         <StackPanel Grid.Column="0" Spacing="2">
-          <TextBlock Text="Key dictionaries" Classes="h1" />
-          <TextBlock Classes="caption" Text="{Binding CountText}" />
+          <TextBlock Text="Key dictionaries" Classes="h1" TextWrapping="NoWrap" />
+          <TextBlock Classes="caption" Text="{Binding CountText}" TextWrapping="NoWrap" />
         </StackPanel>
-        <Button Grid.Column="1" Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
-                Margin="8,0,8,0" VerticalAlignment="Center" ToolTip.Tip="Import a .dic / .txt / .json dictionary">
+        <c:ActionRow Grid.Column="1" Classes="library-actions" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <Button Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
+                VerticalAlignment="Center" ToolTip.Tip="Import a .dic / .txt / .json dictionary">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.import}" />
-            <TextBlock Text="Import" Classes="wide-only" VerticalAlignment="Center" />
+            <TextBlock Text="Import" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-        <Button Grid.Column="2" Classes="accent" Command="{Binding NewCommand}" VerticalAlignment="Center"
+        <Button Classes="accent" Command="{Binding NewCommand}" VerticalAlignment="Center" c:ActionRow.Priority="1"
                 ToolTip.Tip="Start a new dictionary">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.add}" />
-            <TextBlock Text="New dictionary" Classes="wide-only" VerticalAlignment="Center" />
+            <TextBlock Text="New dictionary" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
+        </c:ActionRow>
       </Grid>
 
-      <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" IsVisible="{Binding !IsEmpty}">
+      <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8"
+            IsVisible="{Binding !IsEmpty}">
         <ComboBox Grid.Column="0" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
                   VerticalAlignment="Center"
                   ToolTip.Tip="Order of the list. In Manual, drag dictionaries to arrange them.">
@@ -47,23 +70,28 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <TextBox Grid.Column="1" Text="{Binding Filter}" PlaceholderText="Search by name or key">
+        <TextBox Classes="library-search" Text="{Binding Filter}" PlaceholderText="Search by name or key">
           <TextBox.InnerLeftContent>
             <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
           </TextBox.InnerLeftContent>
         </TextBox>
-        <Button Grid.Column="2" Classes="icon" Command="{Binding ResetFiltersCommand}"
+        <Button Grid.Column="2" Classes="icon library-clear" Command="{Binding ResetFiltersCommand}"
                 VerticalAlignment="Center" ToolTip.Tip="Clear search">
           <PathIcon Data="{StaticResource Icon.close}" />
         </Button>
       </Grid>
 
-      <StackPanel Grid.Row="2" Spacing="10">
+      <StackPanel Grid.Row="1" Spacing="10">
         <Button Command="{Binding OpenKnownKeysCommand}" HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Stretch" ToolTip.Tip="Automatically saved keys grouped by card UID">
-          <StackPanel Spacing="2">
-            <TextBlock Text="Known card keys" FontWeight="SemiBold" />
-            <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
+                HorizontalContentAlignment="Stretch" Height="NaN" Padding="16,12"
+                BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" BorderThickness="1"
+                ToolTip.Tip="Edit known keys grouped by card UID">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <PathIcon Data="{StaticResource Icon.key}" Width="22" Height="22" VerticalAlignment="Center" />
+            <StackPanel Spacing="2">
+              <TextBlock Text="Known card keys" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
+            </StackPanel>
           </StackPanel>
         </Button>
         <Separator />
@@ -174,8 +202,10 @@
         </StackPanel>
       </Border>
 
-      <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsKnownKeys}">
-        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+      <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsKnownKeys}"
+              IsEnabled="{Binding !IsAsking}">
+        <!-- Keep the header, guidance and search fixed; only the working area scrolls. -->
+        <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="Known card keys" Classes="h1" />
             <Button Grid.Column="1" Classes="icon" Command="{Binding CloseCommand}" ToolTip.Tip="Close"
@@ -185,13 +215,58 @@
           </Grid>
           <StackPanel Grid.Row="1" Spacing="4">
             <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
-            <TextBlock Text="For a familiar UID, these keys are tried before the other dictionaries. This dictionary updates automatically."
+            <TextBlock Text="Select a UID to edit its keys. Changes and deleted UIDs are applied when you save."
+                       Classes="caption" TextWrapping="Wrap" />
+            <TextBlock Text="One 6-byte key per row (11 22 33 44 55 66). Type or paste into the empty row to add a key; Delete removes selected rows."
                        Classes="caption" TextWrapping="Wrap" />
           </StackPanel>
-          <ScrollViewer Grid.Row="2">
-            <SelectableTextBlock Text="{Binding KnownKeysText}" FontFamily="Cascadia Code,Consolas,Menlo,monospace"
-                                 TextWrapping="Wrap" />
-          </ScrollViewer>
+          <TextBox Grid.Row="2" Text="{Binding KnownEditor.Filter}" PlaceholderText="Search by UID or card name">
+            <TextBox.InnerLeftContent>
+              <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+          <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+          <Grid MinHeight="104" MaxHeight="180">
+            <ListBox ItemsSource="{Binding KnownEditor.Uids}" SelectedItem="{Binding KnownEditor.Selected}"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:KnownUidViewModel">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding DisplayUid}" FontFamily="Cascadia Code,Consolas,Menlo,monospace" />
+                    <TextBlock Text="{Binding CardNames}" Classes="caption" IsVisible="{Binding HasCardNames}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding CardNames}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Text="No cards match the search." Classes="caption" Margin="8"
+                       IsVisible="{Binding KnownEditor.NoMatches}" />
+          </Grid>
+          <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="12"
+                IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel Spacing="2" VerticalAlignment="Center">
+                <TextBlock Text="{Binding KnownEditor.Selected.DisplayUid}" FontWeight="Bold" TextWrapping="Wrap"
+                           FontFamily="Cascadia Code,Consolas,Menlo,monospace" />
+                <TextBlock Text="{Binding KnownEditor.Selected.KnownKeyCountText}" Classes="caption" />
+              </StackPanel>
+              <Button Grid.Column="1" Classes="danger" Command="{Binding KnownEditor.DeleteUidCommand}"
+                      HorizontalAlignment="Right" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.delete}" />
+                  <TextBlock Text="Forget card" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+          </Grid>
+          <Border Grid.Row="2" Classes="inset" Padding="8,6" MinHeight="220" MaxHeight="400"
+                  IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+              <c:HexEditor Buffer="{Binding KnownEditor.Selected.Form.Keys}" />
+            </ScrollViewer>
+          </Border>
+        </Grid>
+        </ScrollViewer>
         </Grid>
       </Border>
 
@@ -264,7 +339,10 @@
       <Border Grid.Row="2" Classes="savebar">
         <Border.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <Binding Path="IsDirty" />
+            <MultiBinding Converter="{x:Static BoolConverters.Or}">
+              <Binding Path="IsDirty" />
+              <Binding Path="IsKnownKeys" />
+            </MultiBinding>
             <Binding Path="!IsConfirmingLeave" />
             <Binding Path="!IsConfirmingDelete" />
           </MultiBinding>
@@ -275,9 +353,9 @@
             <TextBlock Text="{Binding SaveError}" />
           </DockPanel>
           <c:ActionBar>
-            <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+            <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" IsVisible="{Binding IsDirty}" />
             <Button Content="Discard" Command="{Binding DiscardCommand}" />
-            <Button Classes="accent" Command="{Binding SaveCommand}">
+            <Button Classes="accent" Command="{Binding SaveCommand}" IsEnabled="{Binding IsDirty}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.save}" />
                 <TextBlock Text="Save" VerticalAlignment="Center" />

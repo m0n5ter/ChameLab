@@ -14,6 +14,12 @@ public partial class DictionariesView : UserControl
         _ = new ListReorder(DictList, ListScroll);
     }
 
+    private void OnListPaneSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (sender is Grid list && e.WidthChanged)
+            list.Classes.Set("narrow", list.Bounds.Width < 520);
+    }
+
     // Picking a swatch closes the palette flyout it lives in.
     private void OnSwatchTapped(object? sender, TappedEventArgs e)
     {

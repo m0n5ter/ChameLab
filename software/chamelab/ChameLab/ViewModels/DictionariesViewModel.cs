@@ -205,9 +205,15 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     // Page margins 56 + list 280 + gap 18 + details 420 (see DictionariesView).
     public override double MinContentWidth => 774;
 
-    public DictionariesViewModel(DictionaryLibrary library) : base("Dictionaries", "key")
+    public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base("Dictionaries", "key")
     {
         _library = library;
+        KnownEditor = new KnownKeysEditorViewModel(library.KnownKeys, cards ?? AppServices.Cards);
+        KnownEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(KnownKeysEditorViewModel.IsDirty))
+                this.RaisePropertyChanged(nameof(IsDirty));
+        };
 
         var open = this.WhenAnyValue(x => x.Selected).Select(s => s is not null);
         var hasForm = this.WhenAnyValue(x => x.Form).Select(f => f is not null);
@@ -217,6 +223,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         {
             SetSelected(null);
             Form = null;
+            KnownEditor.Reset();
             Pane = DictionariesPane.KnownKeys;
         }));
         ImportCommand = ReactiveCommand.Create(() => LeaveThen(() => _ = ImportAsync()));
@@ -225,7 +232,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         DiscardAndLeaveCommand = ReactiveCommand.Create(() => ResolveLeave(run: true));
         StayCommand = ReactiveCommand.Create(() => ResolveLeave(run: false));
 
-        SaveCommand = ReactiveCommand.Create(() => { Save(); }, hasForm);
+        SaveCommand = ReactiveCommand.Create(() => { Save(); },
+            this.WhenAnyValue(x => x.HasPane));
         DiscardCommand = ReactiveCommand.Create(Discard);
         CancelNewCommand = ReactiveCommand.Create(ClosePane);
         DuplicateCommand = ReactiveCommand.Create(Duplicate, open);
@@ -251,7 +259,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
     public ObservableCollection<DictionaryItemViewModel> Dictionaries { get; } = new();
     public ICommand OpenKnownKeysCommand { get; }
-    public string KnownKeysCountText => $"{_library.KnownKeys.CardCount} cards · {_library.KnownKeys.KeyCount} keys · Read-only";
+    public KnownKeysEditorViewModel KnownEditor { get; }
+    public string KnownKeysCountText => $"{_library.KnownKeys.CardCount} UIDs · {_library.KnownKeys.KeyCount} keys";
     public string KnownKeysText => _library.KnownKeys.KeyCount == 0
         ? "Keys found while reading cards or running recovery will appear here, grouped by UID."
         : _library.KnownKeys.DisplayText;
@@ -460,7 +469,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public bool IsOpen => _pane == DictionariesPane.Dictionary;
 
     /// <summary>A saved dictionary is open and has unsaved edits (drives the save bar).</summary>
-    public bool IsDirty => _pane == DictionariesPane.Dictionary && _form?.IsDirty == true;
+    public bool IsDirty => _pane == DictionariesPane.KnownKeys ? KnownEditor.IsDirty
+        : _pane == DictionariesPane.Dictionary && _form?.IsDirty == true;
 
     /// <summary>Where the new dictionary came from (“New dictionary”, “Imported from x.dic”).</summary>
     public string? FormSource
@@ -502,6 +512,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     {
         DictionariesPane.Dictionary => _form?.IsDirty == true,
         DictionariesPane.New => _form is not null,
+        DictionariesPane.KnownKeys => KnownEditor.IsDirty,
         _ => false,
     };
 
@@ -529,6 +540,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
     public string LeaveText => _pane == DictionariesPane.New
         ? "Save the new dictionary before leaving?"
+        : _pane == DictionariesPane.KnownKeys ? "Save changes to known card keys?"
         : $"Save changes to “{_selected?.Name}”?";
 
     public ICommand SaveAndLeaveCommand { get; }
@@ -553,6 +565,12 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     /// <returns>False when the dictionary could not be saved (it stays open).</returns>
     private bool Save()
     {
+        if (IsKnownKeys)
+        {
+            ClearSaveError();
+            try { KnownEditor.Save(); return true; }
+            catch (Exception ex) { ReportSaveError($"Could not save: {ex.Message}"); return false; }
+        }
         if (_form is not { } form) return false;
         ClearSaveError();
         KeyDictionary dict;
@@ -581,6 +599,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
     private void Discard()
     {
+        ClearSaveError();
+        if (IsKnownKeys) { KnownEditor.Reset(); return; }
         if (_selected is { } s) Form = new DictionaryEditorViewModel(s.Dictionary);
     }
 

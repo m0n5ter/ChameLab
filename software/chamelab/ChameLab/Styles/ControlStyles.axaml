@@ -851,6 +851,14 @@
   <Style Selector="c|ActionRow > :is(Control).iconic > StackPanel > TextBlock">
     <Setter Property="IsVisible" Value="False" />
   </Style>
+  <Style Selector="c|ActionRow > Button.iconic, c|ActionRow > DropDownButton.iconic">
+    <Setter Property="Width" Value="40" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
   <!-- Save / discard bar under the details. -->
   <Style Selector="Border.savebar">
     <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
