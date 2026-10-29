@@ -467,7 +467,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         NestedNonce Read(int offset)
         {
             var half = BinaryPrimitives.ReadUInt16BigEndian(frame.Data.AsSpan(offset, 2));
-            var nt = ((uint)half << 16) | Crapto1Sharp.Crypto1.PrngSuccessor(half, 16);
+            var nt = ((uint)half << 16) | Crypto.Crypto1.PrngSuccessor(half, 16);
             return new NestedNonce(nt, BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(offset + 3, 4)),
                 (byte)(frame.Data[offset + 2] & 15));
         }

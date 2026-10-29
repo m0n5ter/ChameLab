@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using ChameLab.Models;
 using ChameLab.Services;
-using Crapto1Sharp;
+using ChameLab.Crypto;
 using Xunit;
 
 namespace ChameLab.Tests;
