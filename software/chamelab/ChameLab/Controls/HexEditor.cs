@@ -10,6 +10,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Input.TextInput;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 using Avalonia.Threading;
 using ChameLab.Models;
 
@@ -81,9 +82,21 @@ public sealed class HexEditor : Control
     private static readonly TimeSpan CaretBlink = TimeSpan.FromMilliseconds(530);
 
     private readonly Dictionary<(string, IBrush), FormattedText> _textCache = new();
+    private readonly Dictionary<int, List<(IBrush Brush, GlyphRun Run)>> _lineText = new();
+    private static readonly string[] HexBytes = Enumerable.Range(0, 256).Select(b => b.ToString("X2")).ToArray();
+    private static readonly string[] AsciiBytes = Enumerable.Range(0, 256)
+        .Select(b => b is >= 0x20 and < 0x7F ? ((char)b).ToString() : "·").ToArray();
+
+    private void ClearLineText()
+    {
+        foreach (var runs in _lineText.Values)
+            foreach (var (_, run) in runs) run.Dispose();
+        _lineText.Clear();
+    }
 
     // Layout (recomputed on measure).
     private Typeface _typeface;
+    private bool _canBatchText;
     private double _digitW, _lineH, _labelW, _hexX, _asciiX, _byteStride, _byteGap, _groupGap;
     private int _perLine = 16;
     private bool _showAscii;
@@ -201,6 +214,7 @@ public sealed class HexEditor : Control
         base.OnPropertyChanged(change);
         if (change.Property == BufferProperty)
         {
+            ClearLineText();
             if (_buffer is not null) _buffer.Changed -= OnBufferChanged;
             _buffer = Buffer;
             if (_buffer is not null) _buffer.Changed += OnBufferChanged;
@@ -213,11 +227,13 @@ public sealed class HexEditor : Control
                  change.Property.PropertyType == typeof(IBrush))
         {
             _textCache.Clear();
+            ClearLineText();
         }
     }
 
     private void OnBufferChanged(object? sender, EventArgs e)
     {
+        ClearLineText();
         if (_buffer is { } buf && _lineY.Length != buf.ViewRowCount * LinesPerRow)
         {
             // Rows were added or removed: lay the lines out again and keep the caret inside.
@@ -251,9 +267,15 @@ public sealed class HexEditor : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        ClearLineText();
         _textCache.Clear();
         _typeface = new Typeface(FontFamily);
+        var glyphMap = _typeface.GlyphTypeface.CharacterToGlyphMap;
+        _canBatchText = Enumerable.Range(0x20, 0x7F - 0x20).Append(0xB7)
+            .All(c => glyphMap.ContainsGlyph(c));
         _digitW = "0123456789ABCDEF".Max(c => Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace);
+        _canBatchText &= "0123456789ABCDEF".All(c =>
+            Math.Abs(Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace - _digitW) < 0.001);
         _lineH = Math.Ceiling(FontSize * 1.45);
         _byteGap = _digitW * 0.6;
         _groupGap = _digitW * 0.6;
@@ -372,6 +394,57 @@ public sealed class HexEditor : Control
         _ => fg,
     };
 
+    // Batch a line by brush instead of recording a separate text draw for every byte.
+    // Explicit glyph advances preserve the cell positions, including fractional group gaps.
+    // Keep only the drawn window cached, so scrolling a large capture has bounded memory use.
+    private List<(IBrush Brush, GlyphRun Run)> LineText(int line, HexBuffer buf,
+        IBrush fg, IBrush dim, IBrush changed)
+    {
+        if (_lineText.TryGetValue(line, out var cached)) return cached;
+        var glyphs = new Dictionary<IBrush, List<(ushort Glyph, double X)>>();
+        var face = _typeface.GlyphTypeface;
+        var sample = Text("00", fg);
+        var baseline = (_lineH - sample.Height) / 2 + sample.Baseline;
+        void Add(string text, IBrush brush, double center)
+        {
+            var width = Text(text, brush).WidthIncludingTrailingWhitespace;
+            var x = center - width / 2;
+            // Coverage and fixed-width hex digits were checked during measure.
+            foreach (var c in text)
+            {
+                var glyph = face.CharacterToGlyphMap[c];
+                if (!glyphs.TryGetValue(brush, out var list)) glyphs[brush] = list = new();
+                list.Add((glyph, x));
+                x += width / text.Length;
+            }
+        }
+
+        var row = line / LinesPerRow;
+        var read = buf.IsRead(row);
+        for (var col = 0; col < _perLine; col++)
+        {
+            var offset = (long)line * _perLine + col;
+            var b = read ? buf[offset] : (byte)0;
+            var brush = !read ? dim : buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(row, (int)(offset % buf.RowLength)), fg);
+            Add(read ? HexBytes[b] : "--", brush, ByteX(col) + _digitW);
+            if (_showAscii)
+                Add(read ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);
+        }
+
+        var runs = new List<(IBrush, GlyphRun)>();
+        foreach (var (brush, list) in glyphs)
+        {
+            list.Sort((a, b) => a.X.CompareTo(b.X));
+            var info = new GlyphInfo[list.Count];
+            for (var i = 0; i < info.Length; i++)
+                info[i] = new GlyphInfo(list[i].Glyph, i,
+                    i + 1 < info.Length ? list[i + 1].X - list[i].X : _digitW, default);
+            runs.Add((brush, new GlyphRun(face, FontSize, ReadOnlyMemory<char>.Empty, info,
+                new Point(list[0].X, baseline))));
+        }
+        return _lineText[line] = runs;
+    }
+
     public override void Render(DrawingContext ctx)
     {
         var buf = _buffer;
@@ -394,6 +467,14 @@ public sealed class HexEditor : Control
             drawFrom = Math.Max(0, LineAt(view.Top - view.Height));
             drawTo = Math.Min(_lineY.Length - 1, LineAt(view.Bottom + view.Height));
         }
+
+        foreach (var line in _lineText.Keys.Where(line => line < drawFrom || line > drawTo).ToArray())
+        {
+            foreach (var (_, run) in _lineText[line]) run.Dispose();
+            _lineText.Remove(line);
+        }
+        // Gutter labels are unique; do not retain every offset visited while scrolling.
+        if (_textCache.Count > 4096) _textCache.Clear();
 
         var caretLine = LineOf(_caret);
         for (var line = drawFrom; line <= drawTo; line++)
@@ -431,44 +512,63 @@ public sealed class HexEditor : Control
             for (var col = 0; col < _perLine; col++)
             {
                 var offset = (long)line * _perLine + col;
-                var rowCol = (int)(offset % buf.RowLength);
                 var selected = offset >= selFrom && offset <= selTo;
                 var isCaret = offset == _caret;
 
-                foreach (var pane in _showAscii ? new[] { Pane.Hex, Pane.Ascii } : new[] { Pane.Hex })
+                // Most cells have no background. Avoid per-byte pane arrays and rectangle work.
+                if (selected || isCaret)
                 {
-                    var cell = CellRect(offset, pane);
-                    if (selected && SelectionBrush is { } selBrush)
-                        ctx.FillRectangle(selBrush, cell);
-                    else if (isCaret && CaretCellBrush is { } caretCell)
-                        ctx.FillRectangle(caretCell, cell.Deflate(new Thickness(0, 2)), 3);
+                    for (var p = 0; p < (_showAscii ? 2 : 1); p++)
+                    {
+                        var cell = CellRect(offset, p == 0 ? Pane.Hex : Pane.Ascii);
+                        if (selected && SelectionBrush is { } selBrush)
+                            ctx.FillRectangle(selBrush, cell);
+                        else if (isCaret && CaretCellBrush is { } caretCell)
+                            ctx.FillRectangle(caretCell, cell.Deflate(new Thickness(0, 2)), 3);
+                    }
                 }
+            }
 
-                IBrush brush;
-                string hex, ascii;
-                if (!rowRead)
-                {
-                    brush = dim;
-                    hex = "--";
-                    ascii = "·";
-                }
-                else
-                {
-                    var b = buf[offset];
-                    brush = buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(row, rowCol), fg);
-                    hex = b.ToString("X2");
-                    ascii = b is >= 0x20 and < 0x7F ? ((char)b).ToString() : "·";
-                }
+            if (_canBatchText)
+            {
+                using (ctx.PushTransform(Matrix.CreateTranslation(0, y)))
+                    foreach (var (brush, run) in LineText(line, buf, fg, dim, changed))
+                        ctx.DrawGlyphRun(brush, run);
+            }
 
-                var x = ByteX(col);
-                DrawCentered(ctx, hex, brush, x + _digitW, y);
-                if (_showAscii)
-                    DrawCentered(ctx, ascii, rowRead && ascii != "·" ? brush : dim, AsciiX(col) + _digitW / 2, y);
+            for (var col = 0; col < _perLine; col++)
+            {
+                var offset = (long)line * _perLine + col;
+                var rowCol = (int)(offset % buf.RowLength);
+                var isCaret = offset == _caret;
+
+                if (!_canBatchText)
+                {
+                    IBrush brush;
+                    string hex, ascii;
+                    if (!rowRead)
+                    {
+                        brush = dim;
+                        hex = "--";
+                        ascii = "·";
+                    }
+                    else
+                    {
+                        var b = buf[offset];
+                        brush = buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(row, rowCol), fg);
+                        hex = HexBytes[b];
+                        ascii = AsciiBytes[b];
+                    }
+
+                    DrawCentered(ctx, hex, brush, ByteX(col) + _digitW, y);
+                    if (_showAscii)
+                        DrawCentered(ctx, ascii, rowRead && ascii != "·" ? brush : dim, AsciiX(col) + _digitW / 2, y);
+                }
 
                 // Caret: a blinking text-cursor bar before the active nibble (hex) or character (ASCII).
                 if (isCaret && focused && _caretOn && CaretBrush is { } caret)
                 {
-                    var cx = _pane == Pane.Hex ? x + (_lowNibble ? _digitW : 0) : AsciiX(col);
+                    var cx = _pane == Pane.Hex ? ByteX(col) + (_lowNibble ? _digitW : 0) : AsciiX(col);
                     ctx.FillRectangle(caret, new Rect(cx - 1, y + 2, 2, _lineH - 4));
                 }
             }
@@ -568,6 +668,7 @@ public sealed class HexEditor : Control
     {
         base.OnDetachedFromVisualTree(e);
         _blink.Stop();
+        ClearLineText();
     }
 
     /// <summary>Shows the caret solid after a move and blinks it while focused.</summary>
