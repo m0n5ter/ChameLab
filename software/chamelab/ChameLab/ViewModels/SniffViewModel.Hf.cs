@@ -83,7 +83,6 @@ public sealed partial class SniffViewModel
             this.RaisePropertyChanged(nameof(HfSessionText));
             this.RaisePropertyChanged(nameof(HfHasAids));
             this.RaisePropertyChanged(nameof(HfAidsText));
-            this.RaisePropertyChanged(nameof(HfHexText));
         }
     }
 
@@ -184,9 +183,10 @@ public sealed partial class SniffViewModel
 
     public IReadOnlyList<HfAnnotatedFrame> HfAnnotated { get; private set; } = [];
 
-    /// <summary>The capture as text, one frame a line, for the clipboard.</summary>
-    public string HfHexText => string.Join('\n', HfAnnotated.Select(a =>
-        $"{a.Index,3} {(a.Frame.IsReader ? "R>" : "<C")} {a.Frame.Bits,4}  {a.Frame.Hex}  {a.Label}"));
+    /// <summary>Frames as text, one a line, for the clipboard.</summary>
+    public static string FramesText(IEnumerable<HfAnnotatedFrame> frames) => string.Join('\n', frames
+        .OrderBy(a => a.Index)
+        .Select(a => $"{a.Index,4}  {(a.Frame.IsReader ? "Reader" : "  Card")}  {a.Frame.Hex}  {a.Label}"));
 
     // ---- Key recovery --------------------------------------------------
 
@@ -223,6 +223,7 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
     private readonly HfAuthGroup _group;
     private string? _key;
     private string? _result;
+    private string? _method;
     private bool _isRecovering;
 
     public HfAuthGroupViewModel(HfAuthGroup group)
@@ -266,6 +267,13 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _key, value);
     }
 
+    /// <summary>Which attack found <see cref="Key"/>: mfkey32 or mfkey64.</summary>
+    public string? Method
+    {
+        get => _method;
+        private set => this.RaiseAndSetIfChanged(ref _method, value);
+    }
+
     public string? Result
     {
         get => _result;
@@ -277,11 +285,13 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
         if (IsRecovering || !CanRecover) return;
         IsRecovering = true;
         Result = "Recovering…";
+        Key = null;
         try
         {
             var found = await Task.Run(() => Mfkey32Recovery.Recover(_group));
-            Key = found is { } f ? f.Key.ToString("X12") : null;
-            Result = found is { } r ? $"Key {r.Key:X12} ({r.Method})" : "No unique key: capture more authentications.";
+            Key = found is { } f ? string.Join(' ', f.Key.ToString("X12").Chunk(2).Select(c => new string(c))) : null;
+            Method = found?.Method;
+            Result = found is null ? "No unique key: capture more authentications." : null;
         }
         catch (Exception ex)
         {

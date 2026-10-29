@@ -147,7 +147,7 @@
     <Setter Property="CodeBackground" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
   </Style>
   <Style Selector="TextBlock.mono, SelectableTextBlock.mono">
-    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,monospace" />
+    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,DejaVu Sans Mono,monospace" />
   </Style>
   <Style Selector="TextBlock.value">
     <Setter Property="FontSize" Value="15" />

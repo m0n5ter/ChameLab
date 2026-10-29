@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -9,8 +11,8 @@ namespace ChameLab.Controls;
 
 /// <summary>
 /// Plot of a raw LF capture: one 8-bit ADC sample per carrier cycle against time, with the decode threshold,
-/// the gap threshold and the samples below it shaded. <see cref="Zoom"/> magnifies the time axis; the wheel
-/// zooms around the pointer and dragging pans, so it works the same with a mouse and a finger.
+/// the gap threshold and the samples below it shaded. <see cref="Zoom"/> magnifies the time axis: the wheel,
+/// a two-finger pinch or a touchpad pinch zoom around where they happen, and dragging pans.
 /// </summary>
 public class LfWaveform : Control
 {
@@ -43,14 +45,23 @@ public class LfWaveform : Control
 
     /// <summary>Index of the sample at the left edge.</summary>
     private double _offset;
-    private Point? _dragFrom;
-    private double _dragOffset;
+    /// <summary>Pointers down on the plot: one pans, two pinch.</summary>
+    private readonly Dictionary<IPointer, Point> _pointers = new();
 
     static LfWaveform()
     {
         AffectsRender<LfWaveform>(SamplesProperty, ThresholdProperty, GapThresholdProperty, ZoomProperty,
             LineBrushProperty, ThresholdBrushProperty, GapBrushProperty);
         ClipToBoundsProperty.OverrideDefaultValue<LfWaveform>(true);
+    }
+
+    public LfWaveform()
+    {
+        AddHandler(PointerTouchPadGestureMagnifyEvent, (_, e) =>
+        {
+            ZoomAround(e.GetPosition(this).X, 1 + e.Delta.X);
+            e.Handled = true;
+        });
     }
 
     public byte[]? Samples { get => GetValue(SamplesProperty); set => SetValue(SamplesProperty, value); }
@@ -79,6 +90,8 @@ public class LfWaveform : Control
 
     public override void Render(DrawingContext context)
     {
+        // Filled all over, so the pointer lands on the plot between the lines too.
+        context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
         if (Samples is not { Length: > 1 } samples || Bounds.Width <= 0) return;
         var width = Bounds.Width;
         var perPixel = Visible / width;
@@ -153,26 +166,34 @@ public class LfWaveform : Control
         context.DrawGeometry(null, pen, geometry);
     }
 
-    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    /// <summary>Multiplies the zoom by <paramref name="factor"/>, keeping the sample under <paramref name="x"/> in place.</summary>
+    private void ZoomAround(double x, double factor)
     {
-        base.OnPointerWheelChanged(e);
-        if (Count == 0 || Bounds.Width <= 0) return;
-        var x = e.GetPosition(this).X;
+        if (Count == 0 || Bounds.Width <= 0 || factor <= 0) return;
         var anchor = _offset + x / Bounds.Width * Visible;
-        var zoom = Math.Clamp(Zoom * Math.Pow(1.25, e.Delta.Y), 1, MaxZoom);
+        var zoom = Math.Clamp(Zoom * factor, 1, MaxZoom);
         _offset = anchor - x / Bounds.Width * (Count / zoom);
         Zoom = zoom;
         ClampOffset();
         InvalidateVisual();
+    }
+
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        base.OnPointerWheelChanged(e);
+        ZoomAround(e.GetPosition(this).X, Math.Pow(1.25, e.Delta.Y));
         e.Handled = true;
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        _dragFrom = e.GetPosition(this);
-        _dragOffset = _offset;
+        if (_pointers.Count >= 2) return;
+        _pointers[e.Pointer] = e.GetPosition(this);
         e.Pointer.Capture(this);
+        // A finger drag pans the plot instead of scrolling the page.
+        e.PreventGestureRecognition();
+        e.Handled = true;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
@@ -180,14 +201,28 @@ public class LfWaveform : Control
         base.OnPointerMoved(e);
         if (Samples is not { Length: > 0 } samples || Bounds.Width <= 0) return;
         var p = e.GetPosition(this);
-        if (_dragFrom is { } from)
+        if (_pointers.TryGetValue(e.Pointer, out var was))
         {
-            _offset = _dragOffset - (p.X - from.X) / Bounds.Width * Visible;
-            ClampOffset();
-            InvalidateVisual();
+            if (_pointers.Count == 1)
+            {
+                _offset -= (p.X - was.X) / Bounds.Width * Visible;
+                ClampOffset();
+                InvalidateVisual();
+            }
+            else
+            {
+                // Pinch: the spread between the fingers sets the zoom, around their midpoint.
+                var other = _pointers.First(kv => kv.Key != e.Pointer).Value;
+                var before = Math.Abs(was.X - other.X);
+                var after = Math.Abs(p.X - other.X);
+                if (before > 8 && after > 8) ZoomAround((p.X + other.X) / 2, after / before);
+            }
+            _pointers[e.Pointer] = p;
+            e.PreventGestureRecognition();
+            e.Handled = true;
         }
         var index = (int)(_offset + p.X / Bounds.Width * Visible);
-        ToolTip.SetTip(this, index >= 0 && index < samples.Length
+        ToolTip.SetTip(this, e.Pointer.Type == PointerType.Mouse && index >= 0 && index < samples.Length
             ? $"Sample {index} · {index * 8 / 1000.0:0.000} ms · 0x{samples[index]:X2}"
             : null);
     }
@@ -195,13 +230,13 @@ public class LfWaveform : Control
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        _dragFrom = null;
+        _pointers.Remove(e.Pointer);
         e.Pointer.Capture(null);
     }
 
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
-        _dragFrom = null;
+        _pointers.Remove(e.Pointer);
     }
 }

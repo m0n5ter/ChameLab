@@ -125,9 +125,8 @@ public sealed partial class SniffViewModel : PageViewModelBase
             this.RaisePropertyChanged(nameof(GapsText));
             this.RaisePropertyChanged(nameof(ModulationText));
             this.RaisePropertyChanged(nameof(ClockText));
-            this.RaisePropertyChanged(nameof(HexDump));
-            this.RaisePropertyChanged(nameof(HexDumpCaption));
-            this.RaisePropertyChanged(nameof(HexText));
+            SamplesBuffer = value is null ? null : SampleRows(value);
+            this.RaisePropertyChanged(nameof(SamplesBuffer));
             Redecode();
         }
     }
@@ -222,6 +221,11 @@ public sealed partial class SniffViewModel : PageViewModelBase
 
     public string ZoomText => $"{_zoom:0.#}×";
 
+    /// <summary>How to zoom and pan, for the input the device has.</summary>
+    public static string WaveformHint { get; } = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()
+        ? "Pinch or the slider zooms, dragging pans."
+        : "The wheel, a pinch or the slider zooms, dragging pans.";
+
     // ---- Decode --------------------------------------------------------
 
     public IReadOnlyList<int> ClockDivisors => LfSniff.ClockDivisors;
@@ -274,14 +278,13 @@ public sealed partial class SniffViewModel : PageViewModelBase
 
     // ---- Hex -----------------------------------------------------------
 
-    private const int HexDumpBytes = 512;
+    /// <summary>Every sample in a read-only hex view, 16 to a row labelled by its offset.</summary>
+    public Controls.HexBuffer? SamplesBuffer { get; private set; }
 
-    public string HexDump => _samples is { } s ? LfSniff.HexDump(s, HexDumpBytes) : "";
-
-    public string HexDumpCaption => _samples is { Length: > HexDumpBytes } s
-        ? $"The first {HexDumpBytes} of {s.Length} samples. Save the capture to keep them all."
-        : "All samples.";
-
-    /// <summary>Every sample as hex, for the clipboard.</summary>
-    public string HexText => _samples is { } s ? Convert.ToHexString(s) : "";
+    private static Controls.HexBuffer SampleRows(byte[] samples) =>
+        new(samples.Chunk(16).Select(c => c.Length == 16 ? c : [.. c, .. new byte[16 - c.Length]]).ToList(), 16)
+        {
+            IsReadOnly = true,
+            RowLabel = row => (row * 16).ToString("X4"),
+        };
 }

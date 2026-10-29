@@ -194,36 +194,6 @@ public static class LfSniff
         return errors;
     }
 
-    /// <summary>The capture's first <paramref name="maxBytes"/> samples as hex dump lines with a level bar.</summary>
-    public static string HexDump(ReadOnlySpan<byte> samples, int maxBytes = 512)
-    {
-        var sb = new StringBuilder();
-        var limit = Math.Min(samples.Length, maxBytes);
-        for (var offset = 0; offset < limit; offset += 16)
-        {
-            var row = samples[offset..Math.Min(offset + 16, limit)];
-            sb.Append(offset.ToString("X4")).Append("  ");
-            for (var i = 0; i < 16; i++)
-                sb.Append(i < row.Length ? row[i].ToString("X2") + " " : "   ");
-            sb.Append(' ');
-            foreach (var s in row) sb.Append(LevelGlyph(s));
-            sb.Append('\n');
-        }
-        return sb.ToString().TrimEnd('\n');
-    }
-
-    /// <summary>The CLI's level bar: _ gap, . ringing, - low, + mid, o carrier, O high, # clipped.</summary>
-    public static char LevelGlyph(byte value) => value switch
-    {
-        < 0x10 => '_',
-        < 0x40 => '.',
-        < 0x80 => '-',
-        < 0xA0 => '+',
-        < 0xC0 => 'o',
-        < 0xE0 => 'O',
-        _ => '#',
-    };
-
     private static ReadOnlySpan<byte> Settled(ReadOnlySpan<byte> samples) =>
         samples.Length > SettleSamples ? samples[SettleSamples..] : samples;
 

@@ -101,14 +101,4 @@ public class LfSniffTests
         Assert.Equal("101011", d.BitString);
         Assert.Equal("AC", d.Hex);
     }
-
-    [Fact]
-    public void HexDumpShowsOffsetBytesAndLevels()
-    {
-        var samples = new byte[] { 0x00, 0x20, 0x70, 0x90, 0xB0, 0xD0, 0xFF };
-        Assert.Equal("0000  00 20 70 90 B0 D0 FF " + new string(' ', 27) + " _.-+oO#", LfSniff.HexDump(samples));
-        var lines = LfSniff.HexDump(new byte[600]).Split('\n');
-        Assert.Equal(32, lines.Length);
-        Assert.StartsWith("01F0  ", lines[^1]);
-    }
 }

@@ -73,6 +73,9 @@ public sealed class HexBuffer
     /// <summary>Rows can be inserted and removed, and pasting past the end adds rows.</summary>
     public bool CanResize { get; init; }
 
+    /// <summary>The editor only shows and copies the bytes: typing, pasting and undo are off.</summary>
+    public bool IsReadOnly { get; init; }
+
     /// <summary>
     /// Rows the editor shows: a resizable buffer ends with one more, empty row that typing or
     /// pasting into turns into a real one (and a new empty row appears under it).

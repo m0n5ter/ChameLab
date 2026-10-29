@@ -115,7 +115,7 @@ public sealed class HexEditor : Control
             CaretCellBrushProperty, SelectionBrushProperty, ActiveRowBrushProperty, SeparatorBrushProperty);
         TextInputMethodClientRequestedEvent.AddClassHandler<HexEditor>((editor, e) =>
         {
-            if (editor.Buffer is not null) e.Client = editor._ime;
+            if (editor.Buffer is { IsReadOnly: false }) e.Client = editor._ime;
         });
     }
 
@@ -646,7 +646,7 @@ public sealed class HexEditor : Control
     protected override void OnTextInput(TextInputEventArgs e)
     {
         base.OnTextInput(e);
-        if (_buffer is not { ViewLength: > 0 } || string.IsNullOrEmpty(e.Text)) return;
+        if (_buffer is not { ViewLength: > 0, IsReadOnly: false } || string.IsNullOrEmpty(e.Text)) return;
         e.Handled = true;
 
         if (HasSelection) MoveCaret(Selection().from, false, extend: false);
@@ -731,12 +731,12 @@ public sealed class HexEditor : Control
 
     private void Undo()
     {
-        if (_buffer?.Undo() == true) InvalidateVisual();
+        if (_buffer is { IsReadOnly: false } && _buffer.Undo()) InvalidateVisual();
     }
 
     private void Redo()
     {
-        if (_buffer?.Redo() == true) InvalidateVisual();
+        if (_buffer is { IsReadOnly: false } && _buffer.Redo()) InvalidateVisual();
     }
 
     /// <summary>
@@ -800,7 +800,7 @@ public sealed class HexEditor : Control
     private async void Paste()
     {
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-        if (_buffer is null || clipboard is null) return;
+        if (_buffer is null or { IsReadOnly: true } || clipboard is null) return;
 
         string? text;
         try { text = await clipboard.TryGetTextAsync(); }
@@ -838,16 +838,18 @@ public sealed class HexEditor : Control
         var insert = Item("Add row below", "Enter", InsertRowBelow);
         var remove = Item("Delete rows", "Delete", RemoveRows);
         var rowsSeparator = new Separator();
+        var paste = Item("Paste", "Ctrl+V", Paste);
+        var historySeparator = new Separator();
         var menu = new ContextMenu
         {
             Items =
             {
                 Item("Copy", "Ctrl+C", Copy),
-                Item("Paste", "Ctrl+V", Paste),
+                paste,
                 rowsSeparator,
                 insert,
                 remove,
-                new Separator(),
+                historySeparator,
                 undo,
                 redo,
                 new Separator(),
@@ -861,6 +863,8 @@ public sealed class HexEditor : Control
             // Rows come and go only in resizable buffers (key lists), never in card memory.
             var resizable = _buffer?.CanResize == true;
             rowsSeparator.IsVisible = insert.IsVisible = remove.IsVisible = resizable;
+            // A read-only view copies and selects only.
+            paste.IsVisible = historySeparator.IsVisible = undo.IsVisible = redo.IsVisible = _buffer?.IsReadOnly != true;
         };
         return menu;
     }
