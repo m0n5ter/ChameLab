@@ -104,36 +104,36 @@
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding DarksideCommand}" ToolTip.Tip="Darkside" AutomationProperties.Name="Darkside"
                   IsVisible="{Binding ShowDarkside}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.sleep}" />
+              <c:AttackIcon Label="DS" />
               <TextBlock Classes="action-label" Text="Darkside" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding NestedCommand}" ToolTip.Tip="Nested" AutomationProperties.Name="Nested"
                   IsVisible="{Binding ShowNested}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.slots}" />
+              <c:AttackIcon Label="N" />
               <TextBlock Classes="action-label" Text="Nested" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding StaticNestedCommand}" ToolTip.Tip="Static nested" AutomationProperties.Name="Static nested"
                   IsVisible="{Binding ShowStaticNested}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.refresh}" />
+              <c:AttackIcon Label="SN" />
               <TextBlock Classes="action-label" Text="Static nested" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding StaticEncryptedNestedCommand}"
-                  IsVisible="{Binding ShowStaticEncryptedNested}" AutomationProperties.Name="Static encrypted nested"
+                  IsVisible="{Binding ShowStaticEncryptedNested}" AutomationProperties.Name="Static enс nested"
                   ToolTip.Tip="Recover keys on FM11RF08S and compatible cards using known backdoor keys">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.lock}" />
+              <c:AttackIcon Label="SEN" />
               <TextBlock Classes="action-label" Text="Static encrypted nested" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding HardnestedCommand}" AutomationProperties.Name="Hardnested"
                   IsVisible="{Binding ShowHardnested}" ToolTip.Tip="{Binding HardnestedWarning, TargetNullValue=Hardnested}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.bolt}" />
+              <c:AttackIcon Label="HN" />
               <TextBlock Classes="action-label" Text="Hardnested" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
@@ -141,7 +141,7 @@
                   IsVisible="{Binding ShowMfkey32}">
             <Button Classes="responsive" Command="{Binding Mfkey32Command}" AutomationProperties.Name="mfkey32">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.scan}" />
+                <c:AttackIcon Label="32" />
                 <TextBlock Classes="action-label" Text="mfkey32" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
