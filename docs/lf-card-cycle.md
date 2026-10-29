@@ -29,6 +29,12 @@ first card. Switching slots or leaving tag mode also cancels the pending pause.
 The setting is saved with the slot and follows it during slot swaps. It is
 shown only on firmware that advertises the new silence commands.
 
+Firmware without both cycle commands uses the original single-card LF editor:
+the linked card tile, **Choose saved** to replace the current card, **Clear**,
+and the LED settings. The multi-card list, count, drag reordering and cycle
+settings remain hidden. Support is determined from device capabilities, not
+from the firmware version string. Silence support is checked separately.
+
 Slot swaps preserve the list. Uploading a single card through the normal upload
 command clears its previous list. Saving a card from a slot to the card library
 exports the primary card only. The cycle editor appears only when the device

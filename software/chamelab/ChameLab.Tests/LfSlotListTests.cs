@@ -172,8 +172,7 @@ public class LfSlotListTests
         var library = new CardLibrary(new MemoryKeyValueStore());
         var editor = new SlotEditorViewModel(new DeviceService([]), library,
             new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x }, () => { }, _ => { });
-        typeof(SlotEditorViewModel).GetField("_supportsLfCycle", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-            .SetValue(editor, true);
+        editor.SetLfCapabilities([(ushort)Command.Em410xSetCycle, (ushort)Command.Em410xGetCycle]);
         editor.Lf.UidRead(TagSpecificType.Em410x, Card(1).Uid);
         editor.LfCards.Load(true, new LfCardCycle(1, [Card(2).Uid]));
         Assert.False(editor.IsDirty);
@@ -188,5 +187,61 @@ public class LfSlotListTests
         Assert.Equal(3, editor.CycleGapSeconds);
         editor.CycleGapSeconds = -1;
         Assert.Equal(0, editor.CycleGapSeconds);
+    }
+
+    [Fact]
+    public void LegacyFirmwareUsesOriginalPickerAndReplacesExistingLfCard()
+    {
+        var library = new CardLibrary(new MemoryKeyValueStore());
+        var first = Card(1);
+        var second = Card(2, TagSpecificType.Viking);
+        library.Add(first); library.Add(second);
+        var editor = new SlotEditorViewModel(new DeviceService([]), library,
+            new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x }, () => { }, _ => { });
+        editor.SetLfCapabilities([]);
+        editor.Lf.UidRead(TagSpecificType.Em410x, first.Uid);
+        Assert.False(editor.SupportsMultiLf);
+        Assert.False(editor.ShowLfCycle);
+        Assert.False(editor.ShowCycleGap);
+        Assert.False(editor.IsDirty);
+        editor.Lf.PickCommand.Execute(null);
+        Assert.True(editor.IsPicking);
+        Assert.Equal("Choose a saved LF card", editor.PickerTitle);
+        Assert.Equal(2, editor.PickerCards.Count);
+        Assert.Contains(editor.PickerCards, c => c.Card.Id == first.Id);
+        editor.PickSavedCard(editor.Lf, second);
+        Assert.Equal(TagSpecificType.Viking, editor.Lf.Type);
+        Assert.Equal(second.Uid, editor.Lf.CurrentCard().Uid);
+        Assert.True(editor.IsDirty);
+        editor.Discard();
+        Assert.Equal(first.Uid, editor.Lf.CurrentCard().Uid);
+        Assert.False(editor.IsDirty);
+        editor.Lf.ClearCommand.Execute(null);
+        Assert.False(editor.Lf.HasCard);
+        Assert.True(editor.IsDirty);
+    }
+
+    [Fact]
+    public void MultiLfRequiresBothCycleCommandsAndSilenceIsIndependent()
+    {
+        var editor = new SlotEditorViewModel(new DeviceService([]), new CardLibrary(new MemoryKeyValueStore()),
+            new SlotInfo { Index = 1 }, () => { }, _ => { });
+        Assert.False(editor.SupportsMultiLf);
+        editor.SetLfCapabilities([(ushort)Command.Em410xSetCycle]);
+        Assert.False(editor.SupportsMultiLf);
+        editor.SetLfCapabilities([(ushort)Command.Em410xGetCycle]);
+        Assert.False(editor.SupportsMultiLf);
+        editor.SetLfCapabilities([(ushort)Command.Em410xSetCycleGap, (ushort)Command.Em410xGetCycleGap]);
+        Assert.False(editor.ShowCycleGap);
+        editor.SetLfCapabilities([(ushort)Command.Em410xSetCycle, (ushort)Command.Em410xGetCycle]);
+        Assert.True(editor.SupportsMultiLf);
+        Assert.False(editor.ShowCycleGap);
+        editor.SetLfCapabilities([(ushort)Command.Em410xSetCycle, (ushort)Command.Em410xGetCycle,
+            (ushort)Command.Em410xSetCycleGap, (ushort)Command.Em410xGetCycleGap]);
+        Assert.True(editor.SupportsMultiLf);
+        Assert.True(editor.ShowCycleGap);
+        editor.SetLfCapabilities([]);
+        Assert.False(editor.SupportsMultiLf);
+        Assert.False(editor.ShowCycleGap);
     }
 }

@@ -400,7 +400,10 @@
 
           <!-- ===================== LF ===================== -->
           <Border Classes="card">
-            <StackPanel Spacing="12">
+            <StackPanel>
+              <ContentControl Content="{Binding Lf}" ContentTemplate="{StaticResource SlotSide}"
+                              IsVisible="{Binding !SupportsMultiLf}" />
+              <StackPanel Spacing="12" IsVisible="{Binding SupportsMultiLf}">
               <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                 <Border Classes="chip lf"><TextBlock Text="LF" /></Border>
                 <TextBlock Grid.Column="1" Text="125 kHz" Classes="caption" VerticalAlignment="Center" />
@@ -456,6 +459,7 @@
                 </StackPanel>
                 <TextBlock Text="Drag cards to change transmission order. Each presentation starts from the first card."
                            Classes="caption" TextWrapping="Wrap" />
+              </StackPanel>
               </StackPanel>
             </StackPanel>
           </Border>
