@@ -2,24 +2,29 @@
 
 What ChameLab is missing compared with the original app,
 [GameTec-live/ChameleonUltraGUI](https://github.com/GameTec-live/ChameleonUltraGUI).
-Checked against its source (commit `7311c54`, 2026-10-24). Tick `[x]` as things land,
-and drop finished items over time.
+Checked against its source (commit `7311c54`, 2026-10-24); ChameLab state as of v1.0.20.
+Tick `[x]` as things land, and drop finished items over time.
+
+## Done
+- Darkside, Nested, Static nested and mfkey32 key recovery; Hardnested on desktop
+- Per-sector key grid with found-key marks; stopping a dump keeps what was read and
+  a partial dump can be continued
+- Dictionary selection for dumps, shared with target-card key recovery; recovered keys
+  kept in the "Known card keys" dictionary
+- Card folders
+- Card type override in the card editor
+- Writing to Gen1a, Gen2 and Gen3 magic cards, T55xx with a password
 
 ## High priority
-
-### MIFARE Classic key recovery
-Needs a crapto1 port or the native library in `software/src`.
-- [ ] Darkside, nested, static nested, hardnested (nonce-collection progress)
-- [ ] Backdoor / static encrypted nested
-- [ ] Per-sector found-key marks, Skip / Resume recovery
-- [ ] Partial data dump (only sectors with known keys)
-- [ ] Additional dictionary and "Skip default dictionary" when checking keys
-- [x] mfkey32 in the app: compute the key from collected nonces (currently only copies the `mfkey32v2` command)
-- [ ] Save recovered keys: to file, to an existing dictionary, to a new one (including from a saved card)
 
 ### Sniffing
 - [ ] HF sniffing: capture ISO14443-A, decode frames (reader/card), UID, protocol, AIDs, ATC/Amount, MFC auth groups, mfkey32/mfkey64 recovery from the trace, load `.trace`
 - [ ] LF sniffing: capture 125 kHz ADC, waveform with zoom, modulation analysis (Manchester, ASK/NRZ, Biphase, FSK), clock detection, bit decoding, load `.bin`
+
+### MIFARE Classic key recovery
+- [ ] Backdoor / static encrypted nested (FM11RF08S and similar)
+- [ ] mfkey64
+- [ ] Save recovered keys: to file, to an existing dictionary, to a new one (including from a saved card)
 
 ### Editing slot data in place
 - [ ] UID/SAK/ATQA/ATS and LF ID (Facility Code, Issue Level) in the slot itself (currently only by assigning a saved card)
@@ -30,7 +35,7 @@ Needs a crapto1 port or the native library in `software/src`.
 ## Medium priority
 
 ### Library organization
-- [ ] Folders for cards and dictionaries: create, nest, color, move, export/import a folder, delete with contents
+- [ ] Folders for dictionaries; export/import a folder
 - [ ] Dump comparison (Compare / Difference)
 
 ### Dump editor
@@ -42,7 +47,6 @@ Needs a crapto1 port or the native library in `software/src`.
 
 ### Reading cards
 - [ ] Continuous scan
-- [ ] Override card type (manual type instead of auto-detection)
 - [ ] Show backdoor support and read Gen1 via backdoor without keys
 - [ ] Warning that Chameleon Lite cannot read cards
 

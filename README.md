@@ -36,7 +36,9 @@ Key recovery includes Darkside, Nested, Static nested and mfkey32, plus the
 original native Hardnested solver on desktop. Hardnested needs a known key and
 substantial memory; mobile and browser builds show a resource-requirements warning.
 
-Not there yet: HF / LF sniffing, card folders, QR sharing and translations.
+Not there yet: HF / LF sniffing, editing slot data in place, backdoor key recovery,
+QR sharing and translations. The full list is in the
+[roadmap](software/chamelab/ROADMAP.md).
 
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor
 Web Bluetooth.
@@ -90,8 +92,8 @@ cd software
 uv run script/chameleon_cli_main.py
 ```
 
-It covers what the app does not have yet, such as key recovery (darkside, nested, hardnested), and every
-firmware command, for example `hw slot color`.
+It covers what the app does not have yet, such as HF / LF sniffing, and every firmware
+command, for example `hw slot color`.
 
 ## Versions
 
