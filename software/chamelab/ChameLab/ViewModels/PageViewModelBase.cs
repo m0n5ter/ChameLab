@@ -11,7 +11,7 @@ namespace ChameLab.ViewModels;
 /// Messages come in three kinds, each shown where it gets in the way least:
 /// <list type="bullet">
 /// <item><see cref="Notice"/>: a short confirmation that clears itself and never takes input.</item>
-/// <item><see cref="Error"/>: a failure, shown above the page (pushing it down) until dismissed,
+/// <item><see cref="Error"/>: a failure, shown under the page (which ends above it) until dismissed,
 /// a later operation succeeds or the page is left.</item>
 /// <item><see cref="SaveError"/>: why the open edits could not be saved, shown in the save bar.</item>
 /// </list>
@@ -92,7 +92,7 @@ public abstract class PageViewModelBase : ViewModelBase
         }, NoticeLifetime);
     });
 
-    /// <summary>Reports a failure above the page. It stays until dismissed, replaced or outdated.</summary>
+    /// <summary>Reports a failure under the page. It stays until dismissed, replaced or outdated.</summary>
     protected void ReportError(string message) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
     {
         Notice = null;
@@ -115,7 +115,7 @@ public abstract class PageViewModelBase : ViewModelBase
         Error = null;
     }
 
-    /// <summary>Runs device work; a failure goes above the page. Starting it clears an earlier failure.</summary>
+    /// <summary>Runs device work; a failure goes under the page. Starting it clears an earlier failure.</summary>
     protected Task RunAsync(Func<Task> work, string? successMessage = null) =>
         RunAsync(work, successMessage, ReportError);
 

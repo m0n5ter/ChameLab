@@ -227,10 +227,11 @@
       </SplitView.Pane>
 
       <SplitView.Content>
-        <Grid RowDefinitions="Auto,*">
-          <!-- The page's last failure: above the page, pushing it down, so it never covers controls.
-               It goes when dismissed, when the page starts another operation or when the page is left. -->
-          <Border Grid.Row="0" Classes="banner error" Margin="16,10,16,0"
+        <Grid RowDefinitions="*,Auto">
+          <!-- The page's last failure: under the page, which ends above it, so it never covers controls
+               and the top of the page stays put. It goes when dismissed, when the page starts another
+               operation or when the page is left. -->
+          <Border Grid.Row="1" Classes="banner error" Margin="16,0,16,12"
                   IsVisible="{Binding CurrentPage.Error, Converter={x:Static ObjectConverters.IsNotNull}}">
             <Grid ColumnDefinitions="Auto,*,Auto,Auto">
               <PathIcon Grid.Column="0" Classes="state" Width="18" Height="18" Margin="0,0,10,0"
@@ -248,19 +249,19 @@
             </Grid>
           </Border>
 
-          <TransitioningContentControl Grid.Row="1" Content="{Binding CurrentPage}">
+          <TransitioningContentControl Grid.Row="0" Content="{Binding CurrentPage}">
             <TransitioningContentControl.PageTransition>
               <CrossFade Duration="0:0:0.15" />
             </TransitioningContentControl.PageTransition>
           </TransitioningContentControl>
 
           <!-- Thin activity bar while the current page talks to the device. -->
-          <ProgressBar Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Top" IsIndeterminate="True" Height="3" MinHeight="3"
+          <ProgressBar Grid.Row="0" VerticalAlignment="Top" IsIndeterminate="True" Height="3" MinHeight="3"
                        CornerRadius="0" Foreground="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" Background="Transparent"
                        IsVisible="{Binding CurrentPage.IsBusy}" />
 
           <!-- A passing confirmation at the top of the page: clears itself, and clicks go through it. -->
-          <Border Grid.Row="1" Classes="notice" VerticalAlignment="Top" HorizontalAlignment="Center"
+          <Border Grid.Row="0" Classes="notice" VerticalAlignment="Top" HorizontalAlignment="Center"
                   Margin="16,10,16,0" MaxWidth="520" IsHitTestVisible="False"
                   Classes.on="{Binding CurrentPage.Notice, Converter={x:Static ObjectConverters.IsNotNull}}">
             <StackPanel Orientation="Horizontal" Spacing="8">

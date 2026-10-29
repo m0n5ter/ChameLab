@@ -902,10 +902,10 @@
   </Style>
 
   <!-- ==================== Page messages ==================== -->
-  <!-- See PageViewModelBase: a failure sits above the page, a notice floats briefly over its top,
+  <!-- See PageViewModelBase: a failure sits under the page, a notice floats briefly over its top,
        and a save error shows in the save bar. -->
 
-  <!-- A failure, laid out above the page (so it pushes it down rather than covering it). -->
+  <!-- A failure, laid out under the page (so the page ends above it rather than under it). -->
   <Style Selector="Border.banner">
     <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Padding" Value="14,6,6,6" />
