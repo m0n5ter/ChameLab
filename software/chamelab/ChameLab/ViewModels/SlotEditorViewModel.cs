@@ -99,6 +99,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     /// <summary>Puts every field back to what the slot holds.</summary>
     public void Discard()
     {
+        ClearSaveError();
         Hf.Discard();
         Lf.Discard();
         SetEmulator(_savedEmulator);
@@ -247,13 +248,13 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     public async Task<bool> SaveAsync()
     {
         var saved = false;
-        await RunAsync(async () =>
+        await RunSaveAsync(async () =>
         {
             var client = _device.Client;
             if (client is null) return;
             var kind = ShownKind;
             var emulator = CurrentEmulator;
-            var progress = new Progress<MifareProgress>(p => SetStatus($"Uploading {p.Done}/{p.Total}…"));
+            var progress = new Progress<MifareProgress>(p => Notify($"Uploading {p.Done}/{p.Total}…"));
 
             await client.WithSlotLockAsync(async () =>
             {
@@ -312,7 +313,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             side.Renamed(nick, card.Uid);
             _library.Add(card);
         });
-        SetStatus($"Saved “{card.Name}” to Saved cards.");
+        Notify($"Saved “{card.Name}” to Saved cards.");
     });
 
     // ---- Choosing a saved card -----------------------------------------

@@ -243,8 +243,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
             else Avalonia.Threading.Dispatcher.UIThread.Post(Rebuild);
         };
         Rebuild();
-        if (_library.LoadError is { } err) SetStatus(err, isError: true);
-        if (_library.KnownKeys.LoadError is { } knownError) SetStatus(knownError, isError: true);
+        if (_library.LoadError is { } err) ReportError(err);
+        if (_library.KnownKeys.LoadError is { } knownError) ReportError(knownError);
     }
 
     // ---- List ----------------------------------------------------------
@@ -421,6 +421,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         private set
         {
             if (_form is not null) _form.PropertyChanged -= OnFormPropertyChanged;
+            // Another dictionary (or the saved state of this one): an earlier save error is moot.
+            if (!ReferenceEquals(_form, value)) ClearSaveError();
             this.RaiseAndSetIfChanged(ref _form, value);
             if (_form is not null) _form.PropertyChanged += OnFormPropertyChanged;
             this.RaisePropertyChanged(nameof(IsDirty));
@@ -552,29 +554,28 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     private bool Save()
     {
         if (_form is not { } form) return false;
+        ClearSaveError();
         KeyDictionary dict;
         try { dict = form.Build(); }
-        catch (FormatException ex) { SetStatus(ex.Message, isError: true); return false; }
+        catch (FormatException ex) { ReportSaveError(ex.Message); return false; }
 
         var isNew = _pane == DictionariesPane.New;
         try
         {
             if (isNew) _library.Add(dict); else _library.Update(dict);
         }
-        catch (Exception ex) { SetStatus($"Could not save: {ex.Message}", isError: true); return false; }
+        catch (Exception ex) { ReportSaveError($"Could not save: {ex.Message}"); return false; }
 
         if (isNew)
         {
             Pane = DictionariesPane.None;
             Form = null;
             SelectById(dict.Id);
-            SetStatus($"Created “{dict.Name}” ({dict.Count} keys).");
             return true;
         }
 
         // Fresh editor so the saved state becomes the new baseline.
         Form = new DictionaryEditorViewModel(dict);
-        SetStatus($"Saved “{dict.Name}”.");
         return true;
     }
 
@@ -590,14 +591,13 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     {
         KeyDictionary? dict;
         try { dict = ActionDictionary(); }
-        catch (FormatException ex) { SetStatus(ex.Message, isError: true); return; }
+        catch (FormatException ex) { ReportError(ex.Message); return; }
         if (dict is null) return;
         // The copy takes the unsaved edits; the original stays as last saved.
         var copy = dict.Clone();
         copy.Name = dict.Name + " (copy)";
         _library.Add(copy);
         SelectById(copy.Id);
-        SetStatus($"Duplicated as “{copy.Name}”.");
     }
 
     private void ConfirmDelete()
@@ -605,7 +605,6 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         if (_selected is not { } s) return;
         SetSelected(null);
         _library.Remove(s.Dictionary);
-        SetStatus($"Deleted “{s.Name}”.");
     }
 
     private Task ImportAsync() => RunAsync(async () =>
@@ -639,6 +638,6 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         var safe = string.Concat(dict.Name.Select(c => System.IO.Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
         var data = Encoding.UTF8.GetBytes(dict.ToText());
         var name = await StorageService.SaveAsync("Export dictionary (.dic)", $"{safe}.dic", data, "dic");
-        if (name is not null) SetStatus($"Saved {name}.");
+        if (name is not null) Notify($"Saved {name}.");
     });
 }

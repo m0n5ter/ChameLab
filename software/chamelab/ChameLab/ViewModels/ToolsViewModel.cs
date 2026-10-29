@@ -190,7 +190,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         if (_samples is not { } samples) return;
         var name = await StorageService.SaveAsync("Save LF capture",
             $"lf-sniff-{DateTime.Now:yyyyMMdd-HHmmss}.bin", samples, "bin");
-        if (name is not null) SetStatus($"Capture saved: {name}.");
+        if (name is not null) Notify($"Capture saved: {name}.");
     });
 
     // ---- Summary -------------------------------------------------------

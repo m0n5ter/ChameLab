@@ -258,7 +258,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         Rebuild();
         RebuildKeySources();
-        if (_library.LoadError is { } err) SetStatus(err, isError: true);
+        if (_library.LoadError is { } err) ReportError(err);
     }
 
     // ---- List ----------------------------------------------------------
@@ -519,6 +519,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         private set
         {
             if (_form is not null) _form.PropertyChanged -= OnFormPropertyChanged;
+            // Another card (or the saved state of this one): an earlier save error is moot.
+            if (!ReferenceEquals(_form, value)) ClearSaveError();
             this.RaiseAndSetIfChanged(ref _form, value);
             this.RaisePropertyChanged(nameof(RecoverySelectedSector));
             if (_form is not null) _form.PropertyChanged += OnFormPropertyChanged;
@@ -896,7 +898,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (_rebuilding || value is null || _selected is not { } s || s.Card.Folder == value.Name) return;
             SetFolder(value.Name.Length == 0 ? null : value.Name);
             _library.MoveToFolder(s.Card, value.Name);
-            SetStatus(value.Name.Length == 0 ? $"Moved “{s.Name}” out of its folder." : $"Moved “{s.Name}” to {value.Name}.");
+            Notify(value.Name.Length == 0 ? $"Moved “{s.Name}” out of its folder." : $"Moved “{s.Name}” to {value.Name}.");
         }
     }
 
@@ -988,7 +990,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (name.Length == 0 || name == old) return;
         if (_library.FindFolder(name) is { } taken && taken != old)
         {
-            SetStatus($"There is already a folder named “{taken}”.", isError: true);
+            ReportError($"There is already a folder named “{taken}”.");
             return;
         }
         // Renamed in place first, so the row (and the selection on it) is kept.
@@ -1049,7 +1051,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (_folder == folder.Name) SetFolder(null);
         var count = folder.Count;
         _library.RemoveFolder(folder.Name);
-        SetStatus(count switch
+        Notify(count switch
         {
             0 => $"Deleted the folder {folder.Name}.",
             1 => $"Deleted the folder {folder.Name}; its card is still in Cards.",
@@ -1067,7 +1069,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         void Move()
         {
             _library.MoveToFolder(card, folder);
-            SetStatus(folder.Length == 0 ? $"Moved “{name}” out of its folder." : $"Moved “{name}” to {folder}.");
+            Notify(folder.Length == 0 ? $"Moved “{name}” out of its folder." : $"Moved “{name}” to {folder}.");
         }
         if (folder != (_folder ?? string.Empty) && _selected?.Card.Id == card.Id) LeaveThen(Move);
         else Move();
@@ -1584,7 +1586,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 });
         }
 
-        SetStatus($"Found {tags.Count} HF tag(s).");
+        Notify($"Found {tags.Count} HF tag(s).");
     });
 
     private Task ScanLfAsync() => RunAsync(async () =>
@@ -1605,7 +1607,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 Form = new CardEditorViewModel(card, sameFrequency: true);
                 SetScanMatches(card);
             });
-            SetStatus("EM410x tag read.");
+            Notify("EM410x tag read.");
             return;
         }
 
@@ -1624,7 +1626,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
         });
-        SetStatus($"{LfProtocol.DisplayName()} tag read.");
+        Notify($"{LfProtocol.DisplayName()} tag read.");
     });
 
     // Buzzes when a scan or dump fails outright (no tag, card lost); a cancel stays quiet.
@@ -1780,7 +1782,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 _hasDump = true;
                 RaiseSaveLabel();
             });
-            SetStatus(stopped
+            Notify(stopped
                 ? $"Dump stopped — kept {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}."
                 : $"Read {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}.");
         }
@@ -1850,11 +1852,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 _hasDump = true;
                 RaiseSaveLabel();
             });
-            SetStatus($"Read {result.PagesRead}/{result.PageCount} pages from {Hex.Compact(result.Card.Uid)}.");
+            Notify($"Read {result.PagesRead}/{result.PageCount} pages from {Hex.Compact(result.Card.Uid)}.");
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            SetStatus("Dump canceled.");
+            Notify("Dump canceled.");
             Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () =>
                 SetDumpBlocks(0, _dumpBlockStates.Count, MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading)));
         }
@@ -1937,7 +1939,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void RememberCardKeys(MifareDump dump)
     {
         try { _dictionaries.KnownKeys.Remember(dump.Uid, dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()); }
-        catch (Exception ex) { SetStatus($"Could not save known card keys: {ex.Message}", isError: true); }
+        catch (Exception ex) { ReportError($"Could not save known card keys: {ex.Message}"); }
     }
 
     /// <summary>Unique keys across the checked sources: what a dump will try per sector and key type.</summary>
@@ -2035,7 +2037,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 foreach (var card in cards.Where(c => c.Folder.Length == 0)) card.Folder = _folder;
             _library.AddRange(cards);
             SelectById(cards[^1].Id);
-            SetStatus($"Imported {cards.Count} cards.");
+            Notify($"Imported {cards.Count} cards.");
         });
     });
 
@@ -2045,9 +2047,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private bool Save()
     {
         if (Form is not { } form) return false;
+        ClearSaveError();
         CardSave card;
         try { card = form.Build(); }
-        catch (FormatException ex) { SetStatus(ex.Message, isError: true); return false; }
+        catch (FormatException ex) { ReportSaveError(ex.Message); return false; }
 
         var isNew = _pane == CardsPane.Add;
         var previous = isNew ? null : _selected?.Card;
@@ -2056,14 +2059,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (isNew) _library.Add(card); else _library.Update(card);
         }
-        catch (Exception ex) { SetStatus($"Could not save: {ex.Message}", isError: true); return false; }
+        catch (Exception ex) { ReportSaveError($"Could not save: {ex.Message}"); return false; }
 
         if (isNew)
         {
             Pane = CardsPane.None;
             Form = null;
             SelectById(card.Id);
-            SetStatus($"Saved “{card.Name}”.");
             return true;
         }
 
@@ -2071,7 +2073,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Form = new CardEditorViewModel(card, restrictType: true);
         RaiseCardInfo();
         RebuildTargets();
-        SetStatus($"Saved “{card.Name}”.");
         if (previous is not null) OfferSlotUpdate(previous, card);
         return true;
     }
@@ -2185,7 +2186,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         var slots = await client.GetAllSlotsAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => { _slotInfos = slots; RebuildTargets(); });
-        SetStatus(update.Slots.Count == 1
+        Notify(update.Slots.Count == 1
             ? $"Updated slot {update.Slots[0]} with “{update.Card.Name}”."
             : $"Updated slots {string.Join(", ", update.Slots)} with “{update.Card.Name}”.");
     });
@@ -2524,11 +2525,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (gen is null)
             {
-                SetStatus("No card found on the reader.", isError: true);
+                ReportError("No card found on the reader.");
                 return;
             }
             SelectedGeneration = gen.Value;
-            SetStatus(gen.Value switch
+            Notify(gen.Value switch
             {
                 MagicGeneration.Gen1a => "Detected a Gen1a (UID) magic card.",
                 MagicGeneration.Gen3 => "Detected a Gen3 (APDU) magic card.",
@@ -2541,14 +2542,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         CardSave? card;
         try { card = ActionCard(); }
-        catch (FormatException ex) { SetStatus(ex.Message, isError: true); return; }
+        catch (FormatException ex) { ReportError(ex.Message); return; }
         if (card is null) return;
         // The copy takes the unsaved edits; the original stays as last saved.
         var copy = card.Clone();
         copy.Name = card.Name + " (copy)";
         _library.Add(copy);
         SelectById(copy.Id);
-        SetStatus($"Duplicated as “{copy.Name}”.");
     }
 
     private void ConfirmDelete()
@@ -2556,14 +2556,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (Selected is not { } s) return;
         SetSelected(null);
         _library.Remove(s.Card);
-        SetStatus($"Deleted “{s.Name}”.");
     }
 
     private Task ExportAsync() => RunAsync(async () =>
     {
         if (ActionCard() is not { } card) return;
         var name = await StorageService.SaveAsync("Export card", $"{SafeFileName(card.Name)}.json", CardFormats.ExportJson(card), "json");
-        if (name is not null) SetStatus($"Saved {name}.");
+        if (name is not null) Notify($"Saved {name}.");
     });
 
     /// <summary>Exports a MIFARE Classic card's memory as a raw .bin or Proxmark .eml dump.</summary>
@@ -2576,7 +2575,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             ? await StorageService.SaveAsync("Export dump as .bin", $"{safe}.bin", dump.ToBin(), "bin")
             : await StorageService.SaveAsync("Export dump as .eml", $"{safe}.eml",
                 System.Text.Encoding.UTF8.GetBytes(dump.ToEml()), "eml");
-        if (name is not null) SetStatus($"Saved {name}.");
+        if (name is not null) Notify($"Saved {name}.");
     });
 
     private static string SafeFileName(string name) =>
@@ -2619,7 +2618,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         var slots = await client.GetAllSlotsAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => { _slotInfos = slots; RebuildTargets(); });
-        SetStatus($"“{card.Name}” is now emulated in slot {target.Index}.");
+        Notify($"“{card.Name}” is now emulated in slot {target.Index}.");
     });
 
     private Task WriteAsync() => RunAsync(async () =>
@@ -2628,7 +2627,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (client is null || ActionCard() is not { } card) return;
         if (!HasRequiredWriteKeys)
         {
-            SetStatus("Recover both keys for every sector of the target Gen2 card before writing.", isError: true);
+            ReportError("Recover both keys for every sector of the target Gen2 card before writing.");
             return;
         }
 
@@ -2680,7 +2679,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     : hasCurrent ? lfKey : null;
                 await client.WriteLfToT55xxAsync(card.Tag, card.Uid, newKey: newKey, oldKeys: oldKeys, ct: cts.Token);
                 succeeded = true;
-                SetStatus($"Wrote “{card.Name}” to the T55xx tag.");
+                Notify($"Wrote “{card.Name}” to the T55xx tag.");
                 return;
             }
 
@@ -2699,12 +2698,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             else return;
 
             succeeded = failed.Count == 0;
-            if (succeeded) SetStatus($"Wrote “{card.Name}” to the card.");
-            else SetStatus($"Wrote “{card.Name}”, but {failed.Count} {unit}(s) failed: {string.Join(", ", failed)}.", isError: true);
+            if (succeeded) Notify($"Wrote “{card.Name}” to the card.");
+            else ReportError($"Wrote “{card.Name}”, but {failed.Count} {unit}(s) failed: {string.Join(", ", failed)}.");
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            SetStatus(session is not null
+            Notify(session is not null
                 ? "Write stopped. Press Write to continue on the same card; its UID will be checked first."
                 : $"Write stopped. The {unit}s already written stay on the card.");
         }

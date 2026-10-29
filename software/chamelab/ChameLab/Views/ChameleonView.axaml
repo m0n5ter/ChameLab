@@ -617,17 +617,23 @@
     <!-- ===================== Save bar (stays in view) ===================== -->
     <!-- Appears only once a device setting changed. -->
     <Border Grid.Row="1" Classes="savebar pagebar" IsVisible="{Binding IsDirty}">
-      <c:ActionBar>
-        <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
-        <Button Content="Discard" Command="{Binding DiscardCommand}" />
-        <Button Classes="accent" Command="{Binding SaveCommand}"
-                ToolTip.Tip="Send these values to the device and keep them after a reboot">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.save}" />
-            <TextBlock Text="Save" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
-      </c:ActionBar>
+      <StackPanel>
+        <DockPanel Classes="saveerror" IsVisible="{Binding SaveError, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <PathIcon Data="{StaticResource Icon.error}" />
+          <TextBlock Text="{Binding SaveError}" />
+        </DockPanel>
+        <c:ActionBar>
+          <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+          <Button Content="Discard" Command="{Binding DiscardCommand}" />
+          <Button Classes="accent" Command="{Binding SaveCommand}"
+                  ToolTip.Tip="Send these values to the device and keep them after a reboot">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.save}" />
+              <TextBlock Text="Save" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionBar>
+      </StackPanel>
     </Border>
   </Grid>
 </UserControl>

@@ -167,7 +167,7 @@
   </Style>
   <!-- Grid variant for pages that fit the viewport instead of scrolling (rows flex). -->
   <Style Selector="Grid.page">
-    <!-- Fits the viewport and scrolls inside, so no room is kept for the status banner. -->
+    <!-- Fits the viewport and scrolls inside. -->
     <Setter Property="Margin" Value="28,24,28,24" />
     <Setter Property="RowSpacing" Value="12" />
   </Style>
@@ -893,25 +893,62 @@
     <Setter Property="Padding" Value="10,0" />
   </Style>
 
-  <!-- ==================== Status banner ==================== -->
+  <!-- ==================== Page messages ==================== -->
+  <!-- See PageViewModelBase: a failure sits above the page, a notice floats briefly over its top,
+       and a save error shows in the save bar. -->
 
+  <!-- A failure, laid out above the page (so it pushes it down rather than covering it). -->
   <Style Selector="Border.banner">
     <Setter Property="CornerRadius" Value="10" />
-    <Setter Property="Padding" Value="14,8,6,8" />
+    <Setter Property="Padding" Value="14,6,6,6" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="Background" Value="{actipro:ThemeResource InfoBarBackgroundBrushSuccess}" />
-    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
-    <Setter Property="BoxShadow" Value="0 6 18 0 #40000000" />
-  </Style>
-  <Style Selector="Border.banner PathIcon.state">
-    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
-  </Style>
-  <Style Selector="Border.banner.error">
     <Setter Property="Background" Value="{actipro:ThemeResource InfoBarBackgroundBrushError}" />
     <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
   </Style>
-  <Style Selector="Border.banner.error PathIcon.state">
+  <Style Selector="Border.banner PathIcon.state">
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
+
+  <!-- A passing confirmation: fades in, never takes clicks or focus. -->
+  <Style Selector="Border.notice">
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="{actipro:ThemeResource InfoBarBackgroundBrushSuccess}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+    <Setter Property="BoxShadow" Value="0 2 8 0 #26000000" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Border.notice.on">
+    <Setter Property="Opacity" Value="1" />
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector="Border.notice PathIcon.state">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlBackgroundBrushSolidSuccess}" />
+  </Style>
+
+  <!-- Why the edits could not be saved: in the save bar, above its buttons. -->
+  <Style Selector="DockPanel.saveerror">
+    <Setter Property="HorizontalSpacing" Value="8" />
+    <Setter Property="Margin" Value="0,0,0,10" />
+  </Style>
+  <Style Selector="DockPanel.saveerror > PathIcon">
+    <Setter Property="DockPanel.Dock" Value="Left" />
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Margin" Value="0,1,0,0" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
+  <Style Selector="DockPanel.saveerror > TextBlock">
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
   </Style>
 
   <!-- ==================== Compact (phone-width) overrides ==================== -->

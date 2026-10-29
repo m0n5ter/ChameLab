@@ -144,7 +144,7 @@ public sealed class ConnectViewModel : PageViewModelBase
             watcher.StopWatching();
     }
 
-    /// <summary>Silent background scan: no busy bar, no status toast, errors ignored.</summary>
+    /// <summary>Silent background scan: no busy bar, no notice, errors ignored.</summary>
     private async Task AutoScanAsync(AutoScan trigger)
     {
         if (_autoScanning || IsBusy) return;
@@ -162,7 +162,7 @@ public sealed class ConnectViewModel : PageViewModelBase
     {
         var found = await _device.ScanAsync();
         Dispatcher.UIThread.Post(() => Apply(found, ScannedKinds(AutoScan.Never)));
-        SetStatus(found.Count == 0
+        Notify(found.Count == 0
             ? "No Chameleon found. Plug it in, or use a network bridge."
             : $"Found {found.Count} device(s).");
     });
@@ -180,7 +180,7 @@ public sealed class ConnectViewModel : PageViewModelBase
             Apply(known, new HashSet<TransportKind> { scanner.Kind });
             Selected = Candidates.FirstOrDefault(c => c.Kind == picked.Kind && c.Id == picked.Id) ?? Selected;
         });
-        SetStatus($"Selected {picked.DisplayName}. Press Connect.");
+        Notify($"Selected {picked.DisplayName}. Press Connect.");
     });
 
     private HashSet<TransportKind> ScannedKinds(AutoScan trigger) =>
@@ -206,7 +206,7 @@ public sealed class ConnectViewModel : PageViewModelBase
 
     private Task ConnectAsync() => RunAsync(async () =>
     {
-        if (Selected is null) { SetStatus("Select a device first.", true); return; }
+        if (Selected is null) { ReportError("Select a device first."); return; }
         // A BLE connection attempt made while the adapter is scanning may stall or fail.
         StopWatchers();
         try { await _device.ConnectAsync(Selected); }

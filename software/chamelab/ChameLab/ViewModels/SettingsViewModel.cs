@@ -74,7 +74,7 @@ public sealed class SettingsViewModel : PageViewModelBase
     {
         var data = BackupService.Export(_cards, _dictionaries);
         var name = await StorageService.SaveAsync("Export backup", "chamelab-backup.json", data, "json");
-        if (name is not null) SetStatus($"Backup saved: {name}.");
+        if (name is not null) Notify($"Backup saved: {name}.");
     });
 
     private System.Threading.Tasks.Task ImportBackupAsync() => RunAsync(async () =>
@@ -82,7 +82,7 @@ public sealed class SettingsViewModel : PageViewModelBase
         var picked = await StorageService.OpenAsync("Import backup", "json");
         if (picked is not { } file) return;
         var (c, d) = BackupService.Import(file.Data, _cards, _dictionaries);
-        SetStatus($"Imported {c} card(s) and {d} dictionary(ies).");
+        Notify($"Imported {c} card(s) and {d} dictionary(ies).");
     });
 
     /// <summary>Application version, from the assembly's informational version.</summary>

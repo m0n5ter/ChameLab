@@ -143,7 +143,7 @@ public sealed partial class ToolsViewModel
         if (_hfFrames.Count == 0) return;
         var name = await StorageService.SaveAsync("Save HF trace",
             $"hf-sniff-{DateTime.Now:yyyyMMdd-HHmmss}.trace", HfSniff.BuildTrace(_hfFrames), "trace");
-        if (name is not null) SetStatus($"Trace saved: {name}.");
+        if (name is not null) Notify($"Trace saved: {name}.");
     });
 
     // ---- Summary -------------------------------------------------------

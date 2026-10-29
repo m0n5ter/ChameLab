@@ -68,7 +68,7 @@ public sealed partial class CardsViewModel
         ResetWriteRecovery();
         WriteBlockStates = Array.Empty<MifareBlockState>();
         WriteProgressText = null;
-        Status = null;
+        ClearMessages();
     }
 
     private bool IncludeWriteBlock0 => SelectedGeneration != MagicGeneration.Gen2 || WriteGen2Block0;
