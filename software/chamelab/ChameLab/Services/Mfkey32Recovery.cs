@@ -35,7 +35,7 @@ public static class Mfkey32Recovery
         var nr1 = ToUInt32(b.Nr);
         var ar1 = ToUInt32(b.Ar);
 
-        var key = MfKey.MfKey32(uid, nt0, nr0, ar0, nt1, nr1, ar1);
+        var key = MfKey32(uid, nt0, nr0, ar0, nt1, nr1, ar1);
         return key == ulong.MaxValue ? null : key;
     }
 
@@ -53,11 +53,23 @@ public static class Mfkey32Recovery
         for (var j = i + 1; j < list.Count; j++)
         {
             if (list[i].Nt == list[j].Nt && list[i].NrEnc == list[j].NrEnc) continue;
-            var key = MfKey.MfKey32(group.Uid, list[i].Nt, list[i].NrEnc, list[i].ArEnc,
+            var key = MfKey32(group.Uid, list[i].Nt, list[i].NrEnc, list[i].ArEnc,
                 list[j].Nt, list[j].NrEnc, list[j].ArEnc);
             if (key != ulong.MaxValue) return (key, "mfkey32");
         }
         return null;
+    }
+
+    /// <summary>
+    /// <see cref="MfKey.MfKey32(uint, uint, uint, uint, uint, uint, uint)"/>, with its race closed: once a second
+    /// candidate validates, Crapto1Sharp stops its validation workers, and the thread still producing candidates
+    /// can then throw <see cref="OperationCanceledException"/> instead of returning "not unique". No token of ours
+    /// is passed in, so that exception always means more than one key.
+    /// </summary>
+    private static ulong MfKey32(uint uid, uint nt0, uint nr0, uint ar0, uint nt1, uint nr1, uint ar1)
+    {
+        try { return MfKey.MfKey32(uid, nt0, nr0, ar0, nt1, nr1, ar1); }
+        catch (OperationCanceledException) { return ulong.MaxValue; }
     }
 
     /// <summary>Reads a 4-byte big-endian word (MSB first), matching the device's hex order.</summary>

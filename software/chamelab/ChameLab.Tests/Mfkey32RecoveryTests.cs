@@ -59,4 +59,16 @@ public class Mfkey32RecoveryTests
     {
         Assert.Null(Mfkey32Recovery.Recover(First, First));
     }
+
+    [Fact]
+    public void AmbiguousRecoveryUnderLoad_ReturnsNullInsteadOfThrowing()
+    {
+        // Crapto1Sharp stops its workers on a second valid key; under load the producing thread then threw
+        // OperationCanceledException. Many ambiguous recoveries at once make that race likely.
+        var results = new ulong?[16];
+        System.Threading.Tasks.Parallel.For(0, results.Length,
+            new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = 8 },
+            i => results[i] = Mfkey32Recovery.Recover(First, First));
+        Assert.All(results, Assert.Null);
+    }
 }
