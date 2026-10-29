@@ -1,5 +1,5 @@
 <Project>
-  <!-- Libraries built from source for ChameLab (git submodules). Imported after each project's own
+  <!-- Third-party libraries kept as source in the repository (see README.md here). Imported after each project's own
        properties, so these win: only the target ChameLab uses is restored and built (no netstandard1.1
        package graph), no NuGet package is packed on each build, and the code is optimized in Debug
        builds too (as the NuGet package was), so key recovery keeps its speed. -->

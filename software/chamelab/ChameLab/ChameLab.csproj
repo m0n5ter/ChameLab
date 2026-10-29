@@ -25,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- MIFARE Classic key recovery (crapto1 port, GPL-3.0), built from the m0n5ter/Crapto1Sharp fork
-         (git submodule) for fixes not yet in the NuGet package; see software/external. -->
+    <!-- MIFARE Classic key recovery (crapto1 port, GPL-3.0), kept as source with our fixes;
+         see software/external. -->
     <ProjectReference Include="..\..\external\Crapto1Sharp\Crapto1Sharp\Crapto1Sharp.csproj" />
   </ItemGroup>
 </Project>
