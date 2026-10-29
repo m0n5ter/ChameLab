@@ -31,3 +31,10 @@ key's type**, as the GUI's `validKeyType` caller does, not the target type.
 The `knownType` field in the static fixtures has this meaning. Passing the
 unknown B type for an A-seeded capture reproduces the old port bug; it does
 not demonstrate a fault in the GUI's C solver.
+
+`static_encrypted_vectors.c` includes the original `staticnested_1nt` and
+`staticnested_2x1nt_rf08s` sources and prints a candidate-set fingerprint plus
+RF08S seed vectors for `StaticEncryptedNestedRecoveryTests`. Build it with
+`crapto1.c`, `crypto1.c`, `bucketsort.c`, and `parity.c` from `software/src`.
+The fingerprint sorts keys numerically, then applies FNV-1a 64 to each key's
+six bytes in little-endian order. No device is required.

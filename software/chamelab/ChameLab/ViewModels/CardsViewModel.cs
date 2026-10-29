@@ -84,6 +84,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool ShowDarkside => _classicDump is not null && _darksideAvailable && HasUnknownKeys;
     public bool ShowNested => _cardPrng == MifareClassicPrngType.Weak && HasKnownKeys && HasUnknownKeys;
     public bool ShowStaticNested => _cardPrng == MifareClassicPrngType.Static && HasKnownKeys && HasUnknownKeys;
+    public bool ShowStaticEncryptedNested => _classicDump is not null && HasUnknownKeys;
     public bool ShowHardnested => _cardPrng == MifareClassicPrngType.Hard && HasKnownKeys && HasUnknownKeys;
     public bool CanRunHardnested => AppServices.Hardnested.UnavailableReason is null;
     public string? HardnestedWarning => ShowHardnested ? AppServices.Hardnested.UnavailableReason : null;
@@ -96,6 +97,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(ShowDarkside));
         this.RaisePropertyChanged(nameof(ShowNested));
         this.RaisePropertyChanged(nameof(ShowStaticNested));
+        this.RaisePropertyChanged(nameof(ShowStaticEncryptedNested));
         this.RaisePropertyChanged(nameof(ShowHardnested));
         this.RaisePropertyChanged(nameof(HardnestedWarning));
     }
@@ -178,6 +180,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowNested), (idle, show) => idle && show));
         StaticNestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.StaticNested),
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowStaticNested), (idle, show) => idle && show));
+        StaticEncryptedNestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.StaticEncryptedNested),
+            recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowStaticEncryptedNested), (idle, show) => idle && show));
         HardnestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Hardnested),
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowHardnested),
                 (idle, show) => idle && show && CanRunHardnested));
@@ -1124,6 +1128,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public ICommand DarksideCommand { get; }
     public ICommand NestedCommand { get; }
     public ICommand StaticNestedCommand { get; }
+    public ICommand StaticEncryptedNestedCommand { get; }
     public ICommand HardnestedCommand { get; }
     public ICommand CancelDumpCommand { get; }
     public ICommand ImportCommand { get; }

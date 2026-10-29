@@ -449,6 +449,59 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return (uid, nonces);
     }
 
+    /// <summary>Collects A/B static encrypted nonces through a backdoor key, starting at sector zero.</summary>
+    public async Task<(uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)> GetStaticEncryptedNestedNoncesAsync(
+        byte[] backdoorKey, int sectorCount, CancellationToken ct = default)
+    {
+        if (backdoorKey.Length != 6) throw new ArgumentException("Key must be 6 bytes.", nameof(backdoorKey));
+        if (sectorCount is < 1 or > 40) throw new ArgumentOutOfRangeException(nameof(sectorCount));
+        var data = new byte[8];
+        backdoorKey.CopyTo(data, 0);
+        data[6] = (byte)sectorCount;
+        // Drain the device reply before honoring cancellation; collection can take 30 seconds.
+        ct.ThrowIfCancellationRequested();
+        var frame = await conn.SendExpectAsync(Command.Mf1EncNestedAcquire, Status.HfTagOk, data, timeoutMs: 30000);
+        ct.ThrowIfCancellationRequested();
+        if (frame.Data.Length != 4 + 14 * sectorCount)
+            throw new ChameleonException("Incomplete static encrypted nested nonce response.", frame.Status);
+        NestedNonce Read(int offset)
+        {
+            var half = BinaryPrimitives.ReadUInt16BigEndian(frame.Data.AsSpan(offset, 2));
+            var nt = ((uint)half << 16) | Crapto1Sharp.Crypto1.PrngSuccessor(half, 16);
+            return new NestedNonce(nt, BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(offset + 3, 4)),
+                (byte)(frame.Data[offset + 2] & 15));
+        }
+        var sectors = new List<(NestedNonce A, NestedNonce B)>();
+        for (var i = 4; i < frame.Data.Length; i += 14) sectors.Add((Read(i), Read(i + 7)));
+        return (BinaryPrimitives.ReadUInt32BigEndian(frame.Data.AsSpan(0, 4)), sectors);
+    }
+
+    public async Task<byte[]?> CheckMifareKeysOnBlockAsync(int block, MfKeyType type,
+        IReadOnlyList<byte[]> keys, CancellationToken ct = default)
+    {
+        if (block is < 0 or > 255) throw new ArgumentOutOfRangeException(nameof(block));
+        if (type is not (MfKeyType.A or MfKeyType.B)) throw new ArgumentOutOfRangeException(nameof(type));
+        if (keys.Count is < 1 or > 83) throw new ArgumentOutOfRangeException(nameof(keys));
+        var data = new byte[3 + keys.Count * 6];
+        data[0] = (byte)block; data[1] = type.ToWire(); data[2] = (byte)keys.Count;
+        for (var i = 0; i < keys.Count; i++)
+        {
+            if (keys[i].Length != 6) throw new ArgumentException("Key must be 6 bytes.", nameof(keys));
+            keys[i].CopyTo(data, 3 + 6 * i);
+        }
+        ct.ThrowIfCancellationRequested();
+        var frame = await conn.SendAsync(Command.Mf1CheckKeysOnBlock, data, timeoutMs: 10000);
+        ct.ThrowIfCancellationRequested();
+        if (frame.Status == Status.MfErrAuth) return null;
+        if (frame.Status != Status.HfTagOk || frame.Data.Length != 7 || frame.Data[0] > 1)
+            throw new ChameleonException("Could not check key candidates.", frame.Status);
+        if (frame.Data[0] == 0) return null;
+        var found = frame.Data[1..7];
+        if (!keys.Any(key => key.AsSpan().SequenceEqual(found)))
+            throw new ChameleonException("Device returned an unexpected key candidate.", frame.Status);
+        return found;
+    }
+
     private async Task<ChameleonFrame> AcquireNestedAsync(
         int block, MfKeyType keyType, byte[] key, int targetBlock, MfKeyType targetKeyType,
         bool isStatic, CancellationToken ct)

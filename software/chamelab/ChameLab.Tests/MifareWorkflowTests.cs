@@ -866,6 +866,163 @@ public class MifareWorkflowTests
         }
     }
 
+    private static byte[] EncryptedCapture(int sectors)
+    {
+        var data = new byte[4 + sectors * 14];
+        Convert.FromHexString("A13E4902").CopyTo(data, 0);
+        for (var i = 0; i < sectors * 2; i++)
+            Convert.FromHexString("D1410F2E9E49FC").CopyTo(data, 4 + i * 7);
+        return data;
+    }
+
+    [Fact]
+    public async Task StaticEncrypted_ParsesWireResponseAndCollectsFromSectorZero()
+    {
+        var transport = new CardTransport { Response = r => r.Command == Command.Mf1EncNestedAcquire
+            ? (Status.HfTagOk, EncryptedCapture(2)) : null };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var result = await new ChameleonClient(connection).GetStaticEncryptedNestedNoncesAsync(Key, 2);
+        Assert.Equal(0xA13E4902u, result.Uid);
+        Assert.Equal(2, result.Sectors.Count);
+        Assert.Equal(new NestedNonce(0xD14191B3, 0x2E9E49FC, 15), result.Sectors[1].B);
+        Assert.Equal(Convert.FromHexString("FFFFFFFFFFFF0200"), Assert.Single(transport.Requests).Data);
+    }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(17)]
+    [InlineData(19)]
+    [InlineData(33)]
+    public async Task StaticEncrypted_RejectsIncompleteOrExtraRecords(int length)
+    {
+        var transport = new CardTransport { Response = _ => (Status.HfTagOk, new byte[length]) };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        await Assert.ThrowsAsync<ChameleonException>(() =>
+            new ChameleonClient(connection).GetStaticEncryptedNestedNoncesAsync(Key, 2));
+    }
+
+    [Fact]
+    public async Task StaticEncrypted_TriesKnownBackdoorsWithoutPrngOrSeedKey()
+    {
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        using var stop = new CancellationTokenSource();
+        var attempts = 0;
+        var transport = new CardTransport
+        {
+            Response = r => r.Command switch
+            {
+                Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
+                Command.Mf1EncNestedAcquire => (++attempts < 3 ? Status.MfErrAuth : Status.HfTagOk, EncryptedCapture(5)),
+                _ => null,
+            },
+            OnRequest = r => { if (r.Command == Command.Mf1EncNestedAcquire && attempts == 3) stop.Cancel(); },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            new MifareKeyRecovery(new ChameleonClient(connection)).RecoverAsync(dump,
+                MifareRecoveryMethod.StaticEncryptedNested, ct: stop.Token));
+        var requests = transport.Requests.Where(r => r.Command == Command.Mf1EncNestedAcquire).ToArray();
+        Assert.Equal(3, requests.Length);
+        Assert.Equal("A396EFA4E24F", Convert.ToHexString(requests[0].Data[..6]));
+        Assert.Equal("A31667A8CEC1", Convert.ToHexString(requests[1].Data[..6]));
+        Assert.Equal("518B3354E760", Convert.ToHexString(requests[2].Data[..6]));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1DetectPrng);
+    }
+
+    [Fact]
+    public async Task StaticEncrypted_RecoversOnlyMissingKeyAndUsesBatchAuthentication()
+    {
+        var dump = KnownCard();
+        dump.KeyB[4] = null;
+        var transport = new CardTransport { Response = r => r.Command switch
+        {
+            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
+            Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(r.Data[3..9]).ToArray()),
+            _ => null,
+        }};
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        await new MifareKeyRecovery(new ChameleonClient(connection)).RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested);
+        Assert.NotNull(dump.KeyB[4]);
+        Assert.All(dump.KeyA, key => Assert.Equal(Key, key));
+        var request = Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+        Assert.Equal(19, request.Data[0]);
+        Assert.Equal((byte)MfKeyType.B, request.Data[1]);
+        Assert.InRange(request.Data[2], (byte)1, (byte)64);
+        Assert.Equal(3 + 6 * request.Data[2], request.Data.Length);
+    }
+
+    [Fact]
+    public async Task StaticEncrypted_UnsupportedFirmwareFailsBeforeCollection()
+    {
+        var transport = new CardTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        await Assert.ThrowsAsync<NotSupportedException>(() => new MifareKeyRecovery(new ChameleonClient(connection))
+            .RecoverAsync(KnownCard(), MifareRecoveryMethod.StaticEncryptedNested));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1EncNestedAcquire);
+    }
+
+    [Fact]
+    public async Task StaticEncrypted_NoSeedRequiredAndCancellationKeepsFoundKey()
+    {
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        using var stop = new CancellationTokenSource();
+        var transport = new CardTransport { Response = r => r.Command switch
+        {
+            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
+            Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(r.Data[3..9]).ToArray()),
+            _ => null,
+        }};
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var progress = new CallbackProgress<KeyRecoveryProgress>(p => { if (p.Mark == KeyMark.Found) stop.Cancel(); });
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new MifareKeyRecovery(new ChameleonClient(connection))
+            .RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested, progress, stop.Token));
+        Assert.NotNull(dump.KeyB[0]);
+        Assert.All(dump.KeyA, key => Assert.Null(key));
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+    }
+
+    [Fact]
+    public async Task StaticEncrypted_RejectsChangedCardBeforeCheckingCandidates()
+    {
+        var scans = 0;
+        var transport = new CardTransport { Response = r => r.Command switch
+        {
+            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
+            Command.Hf14aScan when ++scans == 2 => (Status.HfTagOk, new byte[] { 4, 9, 8, 7, 6, 4, 0, 9, 0 }),
+            _ => null,
+        }};
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => new MifareKeyRecovery(new ChameleonClient(connection))
+            .RecoverAsync(KnownCard(), MifareRecoveryMethod.StaticEncryptedNested));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+    }
+
+    [Theory]
+    [InlineData(Status.MfErrAuth, "")]
+    [InlineData(Status.HfTagNo, "")]
+    [InlineData(Status.HfTagOk, "01000000000000")]
+    [InlineData(Status.HfTagOk, "01")]
+    public async Task StaticEncrypted_BatchCheckHandlesFailures(Status status, string payload)
+    {
+        var transport = new CardTransport { Response = _ => (status, Convert.FromHexString(payload)) };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        if (status == Status.MfErrAuth)
+            Assert.Null(await client.CheckMifareKeysOnBlockAsync(255, MfKeyType.B, [Key]));
+        else await Assert.ThrowsAsync<ChameleonException>(() => client.CheckMifareKeysOnBlockAsync(255, MfKeyType.B, [Key]));
+    }
+
     private sealed class CardTransport : ITransport
     {
         private readonly Channel<byte[]> _replies = Channel.CreateUnbounded<byte[]>();
