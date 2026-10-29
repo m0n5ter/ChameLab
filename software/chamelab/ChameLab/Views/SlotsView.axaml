@@ -442,6 +442,8 @@
               </ListBox>
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                 <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !LfCards.HasCards}" VerticalAlignment="Center" />
+                <TextBlock Text="Drag cards to change transmission order. Each presentation starts from the first card."
+                           Classes="caption" TextWrapping="Wrap" VerticalAlignment="Center" IsVisible="{Binding LfCards.CanReorder}" />
                 <Button Grid.Column="1" Command="{Binding Lf.PickCommand}" IsEnabled="{Binding LfCards.CanAdd}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <PathIcon Data="{StaticResource Icon.cards}" />
@@ -462,8 +464,6 @@
                                  Minimum="0" Maximum="3" Increment="0.1" FormatString="0.0" Value="{Binding CycleGapSeconds}" />
                 </Grid>
                 <TextBlock Text="One burst is about 0.33 seconds." Classes="caption" TextWrapping="Wrap" />
-                <TextBlock Text="Drag cards to change transmission order. Each presentation starts from the first card."
-                           Classes="caption" TextWrapping="Wrap" />
               </StackPanel>
               </StackPanel>
             </StackPanel>
