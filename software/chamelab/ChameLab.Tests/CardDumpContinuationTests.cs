@@ -29,6 +29,40 @@ public class CardDumpContinuationTests
     private static MifareDump Dump(CardsViewModel vm) => (MifareDump)typeof(CardsViewModel)
         .GetField("_classicDump", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(vm)!;
 
+    [Fact]
+    public void NewClassicCardOffersKeysAndCheckUntilRecoveryIsChecked()
+    {
+        var vm = Open(Card());
+        typeof(CardsViewModel).GetProperty(nameof(CardsViewModel.Pane))!.SetValue(vm, CardsPane.Add);
+
+        Assert.True(vm.CanDump);
+        Assert.True(vm.ShowDumpActions);
+        Assert.True(vm.ShowCheckRecovery);
+        Assert.False(vm.ShowDarkside);
+        Assert.False(vm.ShowNested);
+        Assert.False(vm.ShowStaticNested);
+        Assert.False(vm.ShowStaticEncryptedNested);
+        Assert.False(vm.ShowHardnested);
+        Assert.False(vm.ShowMfkey32);
+
+        typeof(CardsViewModel).GetField("_cardPrng", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(vm, MifareClassicPrngType.Weak);
+        typeof(CardsViewModel).GetField("_darksideAvailable", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(vm, true);
+        Assert.False(vm.ShowCheckRecovery);
+        Assert.True(vm.ShowDarkside);
+        Assert.True(vm.ShowStaticEncryptedNested);
+        Assert.True(vm.ShowMfkey32);
+
+        // Replacing the identity drops the previous card's recovery results.
+        typeof(CardsViewModel).GetProperty(nameof(CardsViewModel.Form))!
+            .SetValue(vm, new CardEditorViewModel(Card(TagSpecificType.Mifare4096)));
+        Assert.True(vm.ShowCheckRecovery);
+        Assert.False(vm.ShowDarkside);
+        Assert.False(vm.ShowStaticEncryptedNested);
+        Assert.False(vm.ShowMfkey32);
+    }
+
     [Theory]
     [InlineData(TagSpecificType.MifareMini, 20, 5)]
     [InlineData(TagSpecificType.Mifare1024, 64, 16)]
