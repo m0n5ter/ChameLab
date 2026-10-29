@@ -64,7 +64,8 @@ public class Mfkey32RecoveryTests
     public void AmbiguousRecoveryUnderLoad_ReturnsNullInsteadOfThrowing()
     {
         // Crapto1Sharp stops its workers on a second valid key; under load the producing thread then threw
-        // OperationCanceledException. Many ambiguous recoveries at once make that race likely.
+        // OperationCanceledException (fixed in the m0n5ter/Crapto1Sharp fork). Many ambiguous recoveries at
+        // once make that race likely.
         var results = new ulong?[16];
         System.Threading.Tasks.Parallel.For(0, results.Length,
             new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = 8 },

@@ -109,6 +109,8 @@ jobs:
         with:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           persist-credentials: false
+          # Crapto1Sharp is built from the m0n5ter fork (software/external).
+          submodules: true
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -155,6 +157,8 @@ jobs:
         with:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           persist-credentials: false
+          # Crapto1Sharp is built from the m0n5ter fork (software/external).
+          submodules: true
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -186,6 +190,8 @@ jobs:
         with:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           persist-credentials: false
+          # Crapto1Sharp is built from the m0n5ter fork (software/external).
+          submodules: true
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:

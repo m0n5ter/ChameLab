@@ -19,8 +19,6 @@
     <PackageVersion Include="System.Reactive" Version="7.0.0" />
     <!-- Actipro modern theme + controls -->
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="26.2.0" />
-    <!-- MIFARE Classic key recovery (crapto1 port, GPL-3.0) -->
-    <PackageVersion Include="Crapto1Sharp" Version="2.0.0" />
     <!-- Transports -->
     <PackageVersion Include="System.IO.Ports" Version="11.0.0-rc.2.26504.105" />
     <PackageVersion Include="Plugin.BLE" Version="3.3.0-beta.2" />

@@ -80,6 +80,15 @@ responses matched to requests by command id.
 
 ## Build & run
 
+The crapto1 port (Crapto1Sharp) is built from source, from the
+[m0n5ter/Crapto1Sharp](https://github.com/m0n5ter/Crapto1Sharp) fork in
+`software/external/Crapto1Sharp`: a git submodule. Clone with `--recurse-submodules`, or fetch
+it in an existing clone:
+
+```bash
+git submodule update --init
+```
+
 ```bash
 # Desktop (primary target)
 dotnet run --project ChameLab.Desktop -c Debug
