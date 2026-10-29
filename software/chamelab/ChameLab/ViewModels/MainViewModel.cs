@@ -271,7 +271,11 @@ public sealed class MainViewModel : ViewModelBase
         var leaving = CurrentPage;
         CurrentPage = page;
         if (IsCompact) IsPaneOpen = false;
-        if (!ReferenceEquals(leaving, page)) await leaving.OnDeactivatedAsync();
+        if (!ReferenceEquals(leaving, page))
+        {
+            leaving.ClearMessages();
+            await leaving.OnDeactivatedAsync();
+        }
         await page.OnActivatedAsync();
     }
 

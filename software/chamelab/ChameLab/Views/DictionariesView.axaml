@@ -244,15 +244,21 @@
             <Binding Path="!IsConfirmingLeave" />
           </MultiBinding>
         </Border.IsVisible>
-        <c:ActionBar>
-          <Button Content="Discard" Command="{Binding CancelNewCommand}" />
-          <Button Classes="accent" Command="{Binding SaveCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="Save dictionary" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </c:ActionBar>
+        <StackPanel>
+          <DockPanel Classes="saveerror" IsVisible="{Binding SaveError, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <PathIcon Data="{StaticResource Icon.error}" />
+            <TextBlock Text="{Binding SaveError}" />
+          </DockPanel>
+          <c:ActionBar>
+            <Button Content="Discard" Command="{Binding CancelNewCommand}" />
+            <Button Classes="accent" Command="{Binding SaveCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.save}" />
+                <TextBlock Text="Save dictionary" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </c:ActionBar>
+        </StackPanel>
       </Border>
       <!-- Saved dictionary: appears only once something changed. -->
       <Border Grid.Row="2" Classes="savebar">
@@ -263,16 +269,22 @@
             <Binding Path="!IsConfirmingDelete" />
           </MultiBinding>
         </Border.IsVisible>
-        <c:ActionBar>
-          <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
-          <Button Content="Discard" Command="{Binding DiscardCommand}" />
-          <Button Classes="accent" Command="{Binding SaveCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="Save" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </c:ActionBar>
+        <StackPanel>
+          <DockPanel Classes="saveerror" IsVisible="{Binding SaveError, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <PathIcon Data="{StaticResource Icon.error}" />
+            <TextBlock Text="{Binding SaveError}" />
+          </DockPanel>
+          <c:ActionBar>
+            <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+            <Button Content="Discard" Command="{Binding DiscardCommand}" />
+            <Button Classes="accent" Command="{Binding SaveCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.save}" />
+                <TextBlock Text="Save" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </c:ActionBar>
+        </StackPanel>
       </Border>
       <!-- Switching, closing or starting another with unsaved work: save, drop it, or stay. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsConfirmingLeave}">

@@ -225,39 +225,48 @@
       </SplitView.Pane>
 
       <SplitView.Content>
-        <Panel>
-          <TransitioningContentControl Content="{Binding CurrentPage}">
+        <Grid RowDefinitions="Auto,*">
+          <!-- The page's last failure: above the page, pushing it down, so it never covers controls.
+               It goes when dismissed, when the page starts another operation or when the page is left. -->
+          <Border Grid.Row="0" Classes="banner error" Margin="16,10,16,0"
+                  IsVisible="{Binding CurrentPage.Error, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+              <PathIcon Grid.Column="0" Classes="state" Width="18" Height="18" Margin="0,0,10,0"
+                        VerticalAlignment="Center" Data="{StaticResource Icon.error}" />
+              <TextBlock Grid.Column="1" Text="{Binding CurrentPage.Error}"
+                         TextWrapping="Wrap" VerticalAlignment="Center" />
+              <Button Grid.Column="2" Classes="icon small" Margin="8,0,0,0"
+                      b:CopyToClipboard.Text="{Binding CurrentPage.Error}">
+                <PathIcon Data="{StaticResource Icon.copy}" />
+              </Button>
+              <Button Grid.Column="3" Classes="icon small" ToolTip.Tip="Dismiss"
+                      Command="{Binding CurrentPage.DismissErrorCommand}">
+                <PathIcon Data="{StaticResource Icon.close}" />
+              </Button>
+            </Grid>
+          </Border>
+
+          <TransitioningContentControl Grid.Row="1" Content="{Binding CurrentPage}">
             <TransitioningContentControl.PageTransition>
               <CrossFade Duration="0:0:0.15" />
             </TransitioningContentControl.PageTransition>
           </TransitioningContentControl>
 
           <!-- Thin activity bar while the current page talks to the device. -->
-          <ProgressBar VerticalAlignment="Top" IsIndeterminate="True" Height="3" MinHeight="3"
+          <ProgressBar Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Top" IsIndeterminate="True" Height="3" MinHeight="3"
                        CornerRadius="0" Foreground="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" Background="Transparent"
                        IsVisible="{Binding CurrentPage.IsBusy}" />
 
-          <!-- Status banner for the current page (errors stay until dismissed). -->
-          <Border Classes="banner" Classes.error="{Binding CurrentPage.StatusIsError}"
-                  VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                  Margin="16,0,16,18" MaxWidth="640"
-                  IsVisible="{Binding CurrentPage.Status, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <Panel Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
-                <PathIcon Classes="state" Width="18" Height="18" Data="{StaticResource Icon.success}"
-                          IsVisible="{Binding !CurrentPage.StatusIsError}" />
-                <PathIcon Classes="state" Width="18" Height="18" Data="{StaticResource Icon.error}"
-                          IsVisible="{Binding CurrentPage.StatusIsError}" />
-              </Panel>
-              <SelectableTextBlock Grid.Column="1" Text="{Binding CurrentPage.Status}"
-                                   TextWrapping="Wrap" VerticalAlignment="Center" />
-              <Button Grid.Column="2" Classes="icon small" Margin="8,0,0,0" ToolTip.Tip="Dismiss"
-                      Command="{Binding CurrentPage.DismissStatusCommand}">
-                <PathIcon Data="{StaticResource Icon.close}" />
-              </Button>
-            </Grid>
+          <!-- A passing confirmation at the top of the page: clears itself, and clicks go through it. -->
+          <Border Grid.Row="1" Classes="notice" VerticalAlignment="Top" HorizontalAlignment="Center"
+                  Margin="16,10,16,0" MaxWidth="520" IsHitTestVisible="False"
+                  Classes.on="{Binding CurrentPage.Notice, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Classes="state" Width="16" Height="16" VerticalAlignment="Center" Data="{StaticResource Icon.success}" />
+              <TextBlock Text="{Binding CurrentPage.Notice}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </StackPanel>
           </Border>
-        </Panel>
+        </Grid>
       </SplitView.Content>
     </SplitView>
 

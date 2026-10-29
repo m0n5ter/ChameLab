@@ -119,7 +119,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         if (client is null || target == ActiveSlot) return;
         await client.SetActiveSlotAsync(target);
         Avalonia.Threading.Dispatcher.UIThread.Post(() => ActiveSlot = target);
-        SetStatus($"Slot {target} is now active.");
+        Notify($"Slot {target} is now active.");
     });
 
     public DeviceInfo? Info
@@ -282,7 +282,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         if (client is null) return;
         var target = ReaderMode ? DeviceMode.Reader : DeviceMode.Tag;
         await client.SetDeviceModeAsync(target);
-        SetStatus($"Switched to {target} mode.");
+        Notify($"Switched to {target} mode.");
     });
 
     private async Task LoadSettingsAsync(ChameleonClient client)
@@ -323,7 +323,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
     }
 
     // Sends the values and persists them in one go, so they survive a reboot.
-    private Task SaveAsync() => RunAsync(async () =>
+    private Task SaveAsync() => RunSaveAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
@@ -353,11 +353,12 @@ public sealed class ChameleonViewModel : PageViewModelBase
             if (BlePin == pin) BlePin = string.Empty;
             RaiseDirty();
         });
-    }, "Settings saved.");
+    });
 
     /// <summary>Puts every field back to what the device holds.</summary>
     private void Discard()
     {
+        ClearSaveError();
         AnimationMode = _saved.AnimationMode;
         SleepTimeout = _saved.SleepTimeout;
         ButtonAShort = _saved.ButtonAShort;

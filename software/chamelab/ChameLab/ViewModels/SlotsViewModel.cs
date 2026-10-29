@@ -264,12 +264,12 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             case nameof(SlotEditorViewModel.IsPicking):
                 this.RaisePropertyChanged(nameof(IsAsking));
                 break;
-            // The editor's messages show in this page's banner (read once its error flag is set too).
-            case nameof(Status) when sender is SlotEditorViewModel editor:
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    if (editor.Status is { } message) SetStatus(message, editor.StatusIsError);
-                });
+            // The editor's messages show on this page (its save errors bind to the save bar directly).
+            case nameof(Notice) when sender is SlotEditorViewModel { Notice: { } notice }:
+                Notify(notice);
+                break;
+            case nameof(Error) when sender is SlotEditorViewModel editor:
+                if (editor.Error is { } error) ReportError(error); else ClearError();
                 break;
         }
     }
@@ -372,7 +372,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
                     await client.SaveSlotConfigAsync();
                 }
             });
-            SetStatus($"Swapped slots {ia} and {ib}.");
+            Notify($"Swapped slots {ia} and {ib}.");
         }
         finally { SetProgress(null); }
     });

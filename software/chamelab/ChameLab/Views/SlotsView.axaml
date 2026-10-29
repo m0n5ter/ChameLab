@@ -412,17 +412,23 @@
             <Binding Path="!IsAsking" />
           </MultiBinding>
         </Border.IsVisible>
-        <c:ActionBar>
-          <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
-          <Button Content="Discard" Command="{Binding DiscardCommand}" />
-          <Button Classes="accent" Command="{Binding SaveSlotCommand}"
-                  ToolTip.Tip="Write the slot to the device and save it to flash">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="Save slot" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
-        </c:ActionBar>
+        <StackPanel>
+          <DockPanel Classes="saveerror" IsVisible="{Binding Editor.SaveError, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <PathIcon Data="{StaticResource Icon.error}" />
+            <TextBlock Text="{Binding Editor.SaveError}" />
+          </DockPanel>
+          <c:ActionBar>
+            <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
+            <Button Content="Discard" Command="{Binding DiscardCommand}" />
+            <Button Classes="accent" Command="{Binding SaveSlotCommand}"
+                    ToolTip.Tip="Write the slot to the device and save it to flash">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.save}" />
+                <TextBlock Text="Save slot" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </c:ActionBar>
+        </StackPanel>
       </Border>
       <!-- Switching slot, closing or swapping with unsaved edits: save, drop them, or stay. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsConfirmingLeave}">
