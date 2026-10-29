@@ -20,6 +20,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     private readonly Action<CardSave> _openCard;
     private CardSave[] _saved = [];
     private bool _syncing, _supportsCycle;
+    private LfSlotCardViewModel? _revealCard;
 
     public LfSlotListViewModel(SlotSideViewModel side, CardLibrary library, Action changed, Action<CardSave> openCard)
     {
@@ -31,6 +32,11 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     }
 
     public ObservableCollection<LfSlotCardViewModel> Cards { get; } = new();
+    public LfSlotCardViewModel? RevealCard
+    {
+        get => _revealCard;
+        private set => this.RaiseAndSetIfChanged(ref _revealCard, value);
+    }
     public bool CanReorder => Cards.Count > 1;
     public IList ReorderItems => Cards;
     public string ReorderKey(object item) => Key(((LfSlotCardViewModel)item).Card);
@@ -51,6 +57,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
 
     public void Load(bool supportsCycle, LfCardCycle cycle)
     {
+        RevealCard = null;
         _supportsCycle = supportsCycle;
         Cards.Clear();
         if (_side.HasCard) Cards.Add(Row(_side.CurrentCard()));
@@ -66,13 +73,16 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     public void Add(CardSave card)
     {
         if (!CanChoose(card)) return;
-        Cards.Add(Row(card));
+        var row = Row(card);
+        Cards.Add(row);
         SyncPrimary();
+        RevealCard = row;
     }
 
     public void Remove(LfSlotCardViewModel card)
     {
         if (!Cards.Remove(card)) return;
+        if (ReferenceEquals(RevealCard, card)) RevealCard = null;
         SyncPrimary();
     }
 
@@ -130,6 +140,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
 
     public void Discard()
     {
+        RevealCard = null;
         Cards.Clear();
         foreach (var card in _saved) Cards.Add(Row(card));
         Notify();

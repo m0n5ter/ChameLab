@@ -167,6 +167,26 @@ public class LfSlotListTests
     }
 
     [Fact]
+    public void RequestsScrollOnlyForNewlyAddedCards()
+    {
+        var (list, _, _) = Create(held: true);
+        Assert.Null(list.RevealCard);
+        list.Load(true, new LfCardCycle(1, [Card(2).Uid]));
+        Assert.Null(list.RevealCard);
+        list.Add(Card(3));
+        var added = list.Cards[^1];
+        Assert.Same(added, list.RevealCard);
+        list.MoveItem(2, 0);
+        Assert.Same(added, list.RevealCard);
+        list.Remove(added);
+        Assert.Null(list.RevealCard);
+        list.Add(Card(4));
+        Assert.Same(list.Cards[^1], list.RevealCard);
+        list.Discard();
+        Assert.Null(list.RevealCard);
+    }
+
+    [Fact]
     public void SilenceEditsUseTenthsAndDiscardWithTheSlot()
     {
         var library = new CardLibrary(new MemoryKeyValueStore());
