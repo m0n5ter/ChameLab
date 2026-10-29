@@ -1,0 +1,170 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:b="using:ChameLab.Behaviors"
+             xmlns:c="using:ChameLab.Controls"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             x:Class="ChameLab.Views.SniffView"
+             x:DataType="vm:SniffViewModel">
+
+  <UserControl.Styles>
+    <!-- Label / value rows of the summary. -->
+    <Style Selector="Grid.facts > TextBlock.caption">
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel Classes="page" MaxWidth="980">
+
+      <!-- Header -->
+      <StackPanel Spacing="2">
+        <TextBlock Text="Sniff" Classes="h1" />
+        <TextBlock Classes="caption" TextWrapping="Wrap"
+                   Text="Record the raw 125 kHz signal at the Chameleon's antenna and take it apart: levels, modulation and the bits it carries." />
+      </StackPanel>
+
+      <!-- LF capture -->
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.sniff}" /></Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="LF capture" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="Turns the field on and records 32 ms of the antenna signal, one sample per carrier cycle (8 µs). Hold a tag on the antenna while it records." />
+            </StackPanel>
+          </Grid>
+
+          <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
+                     Text="Connect a Chameleon to capture. A saved capture (.bin) can be loaded without one." />
+          <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding IsUnsupported}"
+                     Foreground="{DynamicResource BrandAmberBrush}"
+                     Text="This firmware has no LF sniffing. Update the Chameleon's firmware to use it (the Chameleon Lite has no reader)." />
+
+          <WrapPanel ItemSpacing="8" LineSpacing="8">
+            <Button Classes="accent" Command="{Binding CaptureCommand}" IsEnabled="{Binding IsConnected}"
+                    ToolTip.Tip="Record the LF field now">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.sniff}" /><TextBlock Text="Capture" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding LoadCommand}" IsEnabled="{Binding CanUseFiles}"
+                    ToolTip.Tip="Open a raw capture: one byte per sample">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="Load .bin" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding CanUseFiles}"
+                    ToolTip.Tip="Save every sample as a raw .bin file">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="Save .bin" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </WrapPanel>
+          <TextBlock Classes="caption" Text="{Binding Source}"
+                     IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </Border>
+
+      <!-- Summary -->
+      <Border Classes="card" IsVisible="{Binding HasCapture}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Summary" Classes="h2" />
+          <Grid Classes="facts" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                ColumnSpacing="16" RowSpacing="6">
+            <TextBlock Grid.Row="0" Classes="caption" Text="Samples" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SamplesText}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="1" Classes="caption" Text="Range" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding RangeText}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="2" Classes="caption" Text="Gaps" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding GapsText}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="3" Classes="caption" Text="Modulation" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ModulationText}" TextWrapping="Wrap"
+                       ToolTip.Tip="A guess from the lengths of the high and low runs" />
+            <TextBlock Grid.Row="4" Classes="caption" Text="Clock" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ClockText}" TextWrapping="Wrap" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Waveform -->
+      <Border Classes="card" IsVisible="{Binding HasCapture}">
+        <StackPanel Spacing="10">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+            <TextBlock Text="Waveform" Classes="h2" VerticalAlignment="Center" />
+            <Slider Grid.Column="1" Width="160" Minimum="1" Maximum="{x:Static c:LfWaveform.MaxZoom}"
+                    Value="{Binding Zoom}" VerticalAlignment="Center" ToolTip.Tip="Zoom" />
+            <TextBlock Grid.Column="2" Text="{Binding ZoomText}" MinWidth="36" VerticalAlignment="Center" />
+          </Grid>
+          <Border CornerRadius="6" ClipToBounds="True"
+                  Background="{actipro:ThemeResource Container2BackgroundBrush}">
+            <c:LfWaveform Height="200" Samples="{Binding Samples}" Zoom="{Binding Zoom}"
+                          Threshold="{Binding Summary.Threshold, FallbackValue=0}"
+                          GapThreshold="{Binding Summary.GapThreshold, FallbackValue=0}" />
+          </Border>
+          <TextBlock Classes="caption" TextWrapping="Wrap"
+                     Text="The wheel or the slider zooms, dragging pans. The dashed line splits high from low for decoding; shaded stretches fall below the gap threshold (the field dropped out)." />
+        </StackPanel>
+      </Border>
+
+      <!-- Manchester decode -->
+      <Border Classes="card" IsVisible="{Binding HasCapture}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Manchester decode" Classes="h2" />
+          <WrapPanel ItemSpacing="12" LineSpacing="8">
+            <ComboBox ItemsSource="{Binding ClockDivisors}" SelectedItem="{Binding ClockDivisor}"
+                      MinWidth="120" VerticalAlignment="Center" ToolTip.Tip="Carrier cycles per bit">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="x:Int32">
+                  <TextBlock Text="{Binding StringFormat='RF/{0}'}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <CheckBox Content="Invert" IsChecked="{Binding Invert}" VerticalAlignment="Center"
+                      ToolTip.Tip="Swap high and low: decodes the bits inverted" />
+          </WrapPanel>
+          <TextBlock Classes="caption" Text="{Binding DecodeText}" TextWrapping="Wrap" />
+
+          <StackPanel Spacing="10" IsVisible="{Binding HasBits}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <SelectableTextBlock Classes="mono" Text="{Binding Bits}" TextWrapping="Wrap" />
+              <Button Grid.Column="1" Classes="icon" VerticalAlignment="Top" b:CopyToClipboard.Text="{Binding Bits}">
+                <PathIcon Data="{StaticResource Icon.copy}" />
+              </Button>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+              <TextBlock Classes="caption" Text="Hex" VerticalAlignment="Center" />
+              <SelectableTextBlock Grid.Column="1" Classes="mono" Text="{Binding BitsHex}" TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+              <Button Grid.Column="2" Classes="icon" b:CopyToClipboard.Text="{Binding BitsHex}">
+                <PathIcon Data="{StaticResource Icon.copy}" />
+              </Button>
+            </Grid>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Raw samples -->
+      <Expander Classes="card" IsVisible="{Binding HasCapture}" HorizontalAlignment="Stretch">
+        <Expander.Header>
+          <TextBlock Text="Samples (hex)" Classes="h2" />
+        </Expander.Header>
+        <StackPanel Spacing="10">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBlock Classes="caption" TextWrapping="Wrap" VerticalAlignment="Center"
+                       Text="{Binding HexDumpCaption, StringFormat='{}{0} Bar: _ gap · . ringing · - low · + mid · o carrier · O high · # clipped.'}" />
+            <Button Grid.Column="1" b:CopyToClipboard.Text="{Binding HexText}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.copy}" /><TextBlock Text="Copy all" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </Grid>
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <SelectableTextBlock Classes="mono" FontSize="12" Text="{Binding HexDump}" />
+          </ScrollViewer>
+        </StackPanel>
+      </Expander>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

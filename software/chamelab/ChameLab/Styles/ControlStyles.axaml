@@ -344,6 +344,11 @@
   </Style>
 
   <!-- Dump block strip (drawn control); colors match the legend cells below. -->
+  <Style Selector="c|LfWaveform">
+    <Setter Property="LineBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="ThresholdBrush" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+    <Setter Property="GapBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+  </Style>
   <Style Selector="c|BlockStrip">
     <Setter Property="PendingBrush" Value="{actipro:ThemeResource Container5BackgroundBrush}" />
     <Setter Property="ReadingBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />

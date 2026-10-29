@@ -29,6 +29,9 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
 - **Cloning** — write LF IDs to T55xx and MIFARE Classic to Gen1a / Gen2 magic cards.
 - **Emulator settings** — Gen1a / Gen2 modes, write modes, nonce detection for mfkey32,
   Ultralight / NTAG version, signature and counters.
+- **LF sniffing** — record the 125 kHz signal at the antenna, see it as a zoomable
+  waveform with a modulation and clock guess, and decode it as Manchester. Captures
+  load and save as raw `.bin`, the same as the CLI's `lf sniff --out`.
 - **Device settings** — LED animation, button actions, long-press threshold, sleep
   timeout, BLE pairing, factory reset and firmware updates over USB or Bluetooth.
 
@@ -36,7 +39,7 @@ Key recovery includes Darkside, Nested, Static nested and mfkey32, plus the
 original native Hardnested solver on desktop. Hardnested needs a known key and
 substantial memory; mobile and browser builds show a resource-requirements warning.
 
-Not there yet: HF / LF sniffing, editing slot data in place, backdoor key recovery,
+Not there yet: HF sniffing, editing slot data in place, backdoor key recovery,
 QR sharing and translations. The full list is in the
 [roadmap](software/chamelab/ROADMAP.md).
 
@@ -92,7 +95,7 @@ cd software
 uv run script/chameleon_cli_main.py
 ```
 
-It covers what the app does not have yet, such as HF / LF sniffing, and every firmware
+It covers what the app does not have yet, such as HF sniffing, and every firmware
 command, for example `hw slot color`.
 
 ## Versions

@@ -33,13 +33,14 @@ public sealed class MainViewModel : ViewModelBase
         Slots = new SlotsViewModel(device, cards);
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries);
+        Sniff = new SniffViewModel(device);
         AppUpdate = new AppUpdateViewModel();
         Settings = new SettingsViewModel(cards, dictionaries, AppUpdate);
 
         // Chameleon takes the place of Connect once a device is attached.
-        _connectedPages = new PageViewModelBase[] { Chameleon, Slots, Cards, Dictionaries, Settings };
+        _connectedPages = new PageViewModelBase[] { Chameleon, Slots, Cards, Dictionaries, Sniff, Settings };
         // Without a device only the app-side pages make sense, behind Connect to attach one.
-        _disconnectedPages = new PageViewModelBase[] { _connect, Cards, Dictionaries, Settings };
+        _disconnectedPages = new PageViewModelBase[] { _connect, Cards, Dictionaries, Sniff, Settings };
         NavPages = new ObservableCollection<PageViewModelBase>(_disconnectedPages);
 
         _currentPage = _connect;
@@ -82,6 +83,8 @@ public sealed class MainViewModel : ViewModelBase
     public SlotsViewModel Slots { get; }
     public CardsViewModel Cards { get; }
     public DictionariesViewModel Dictionaries { get; }
+    /// <summary>LF captures: recorded from the device or loaded from a file, so it is listed without one too.</summary>
+    public SniffViewModel Sniff { get; }
     public SettingsViewModel Settings { get; }
 
     private readonly PageViewModelBase[] _connectedPages;

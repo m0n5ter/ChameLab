@@ -12,6 +12,7 @@ Tick `[x]` as things land, and drop finished items over time.
 - Dictionary selection for dumps, shared with target-card key recovery; recovered keys
   kept in the "Known card keys" dictionary
 - Card folders
+- LF sniffing: 125 kHz capture, waveform with zoom, modulation guess, clock detection, Manchester decoding, `.bin` load / save
 - Card type override in the card editor
 - Writing to Gen1a, Gen2 and Gen3 magic cards, T55xx with a password
 
@@ -19,7 +20,6 @@ Tick `[x]` as things land, and drop finished items over time.
 
 ### Sniffing
 - [ ] HF sniffing: capture ISO14443-A, decode frames (reader/card), UID, protocol, AIDs, ATC/Amount, MFC auth groups, mfkey32/mfkey64 recovery from the trace, load `.trace`
-- [ ] LF sniffing: capture 125 kHz ADC, waveform with zoom, modulation analysis (Manchester, ASK/NRZ, Biphase, FSK), clock detection, bit decoding, load `.bin`
 
 ### MIFARE Classic key recovery
 - [ ] Backdoor / static encrypted nested (FM11RF08S and similar)

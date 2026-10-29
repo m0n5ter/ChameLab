@@ -597,6 +597,24 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     }
 
     /// <summary>
+    /// Turns the 125 kHz field on and records the antenna envelope, one 8-bit ADC sample per carrier
+    /// cycle (8 µs). The firmware stops at its buffer size (4000 samples, 32 ms) or after
+    /// <paramref name="timeoutMs"/>; an empty array when nothing was captured. Needs reader mode.
+    /// </summary>
+    public async Task<byte[]> LfSniffAsync(int timeoutMs = 2000, CancellationToken ct = default)
+    {
+        timeoutMs = Math.Clamp(timeoutMs, 1, 10000);
+        var f = await conn.SendAsync(Command.LfSniff, [(byte)(timeoutMs >> 8), (byte)timeoutMs],
+            timeoutMs: timeoutMs + 3000, ct: ct);
+        return f.Status switch
+        {
+            Status.LfTagOk => f.Data,
+            Status.LfTagNoFound => [],
+            _ => throw new ChameleonException($"LF sniff failed: {f.Status.Describe()}", f.Status),
+        };
+    }
+
+    /// <summary>
     /// Scans one of the non-EM LF protocols. The returned <see cref="LfScanResult.Id"/>
     /// is the raw emulator-ID buffer the firmware reports, so it can be written
     /// straight back with <see cref="SetLfEmulatorIdAsync"/>.

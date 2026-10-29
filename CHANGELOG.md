@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: LF sniffing on the new Sniff page: records 32 ms of the 125 kHz antenna signal and shows it as a waveform (zoom with the wheel or slider, drag to pan) with its levels, field gaps, a modulation and clock guess and a Manchester decode at a chosen RF/n clock, plain or inverted. Captures load and save as raw .bin files, also without a device
 
 ## [v1.0.20][2026-10-29] · firmware v2.3.3-cl
  - ChameLab: browsing card folders keeps the current card and its unsaved data in the editor without asking to Save / Discard; selecting another card still asks before replacing it

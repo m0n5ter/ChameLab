@@ -69,6 +69,9 @@ responses matched to requests by command id.
   card on Chameleon before automatically reading it. Stop keeps recovered keys and any
   blocks already read; completion shows a green Done button. The previous device
   mode, active slot and emulator settings are restored when the operation ends.
+- **Sniff** — LF capture (`LF_SNIFF`): 32 ms of the 125 kHz antenna signal as a
+  zoomable waveform, level summary, modulation and clock guess and a Manchester
+  decode. Raw `.bin` load / save, so saved captures open without a device.
 - **Settings** — LED animation, sleep timeout, button functions; apply / save /
   reset.
 
