@@ -233,7 +233,7 @@ public sealed class SlotSideViewModel : ViewModelBase
 
     /// <summary>The color the slot LED shows for the card.</summary>
     public string LedPreview => EffectiveColor
-        ?? (Partner is { } other && IsLit && other.IsLit && other.EffectiveColor is null ? SlotColors.DefaultDual
+        ?? (Partner is { } other && IsLit && other is { IsLit: true, EffectiveColor: null } ? SlotColors.DefaultDual
             : IsHf ? SlotColors.DefaultHf : SlotColors.DefaultLf);
 
     /// <summary>The other frequency of the slot: two cards without colors of their own light the LED red.</summary>

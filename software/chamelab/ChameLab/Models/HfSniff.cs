@@ -206,7 +206,7 @@ public static class HfSniff
     }
 
     private static bool IsAuth(HfFrame f) =>
-        f.IsReader && f.Data.Length == 4 && f.Data[0] is 0x60 or 0x61 && f.CrcOk == true;
+        f is { IsReader: true, Data: [0x60 or 0x61, _, _, _], CrcOk: true };
 
     private static bool IsSelect(HfFrame? f) =>
         f is { IsReader: true, Data: [0x93 or 0x95 or 0x97, 0x70, ..] };
@@ -229,11 +229,11 @@ public static class HfSniff
         {
             case 0x93 or 0x95 or 0x97:
                 var level = b0 == 0x93 ? 1 : b0 == 0x95 ? 2 : 3;
-                if (d.Length >= 7 && d[1] == 0x70)
+                if (d is [_, 0x70, _, _, _, _, _, ..])
                     return d[2] == 0x88 ? $"SELECT CL{level}: UID part {Convert.ToHexString(d, 3, 3)} (cascade tag)"
                         : $"SELECT CL{level}: UID {Convert.ToHexString(d, 2, 4)}";
                 return $"ANTICOLLISION CL{level}";
-            case 0x50 when d.Length == 4 && d[1] == 0x00: return "HALT";
+            case 0x50 when d is [_, 0x00, _, _]: return "HALT";
             case 0xE0 when d.Length >= 2: return $"RATS (FSDI {d[1] >> 4}, CID {d[1] & 0x0F})";
             case 0x60 or 0x61 when d.Length == 4:
                 return $"AUTH key {(b0 == 0x60 ? 'A' : 'B')}, block {d[1]} (sector {MifareClassic.SectorOfBlock(d[1])})";
@@ -407,14 +407,14 @@ public static class HfSniff
             }
             switch (d[0])
             {
-                case 0x93 or 0x95 or 0x97 when d.Length >= 7 && d[1] == 0x70:
+                case 0x93 or 0x95 or 0x97 when d is [_, 0x70, _, _, _, _, _, ..]:
                     if (d[0] == 0x93) uid.Clear();
                     uid.AddRange(d[2] == 0x88 ? d[3..6] : d[2..6]);
                     break;
                 case 0xE0 when d.Length >= 2:
                     rats = true;
                     break;
-                case 0x50 when d.Length == 4 && d[1] == 0:
+                case 0x50 when d is [_, 0, _, _]:
                     halted = true;
                     break;
             }

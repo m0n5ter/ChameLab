@@ -718,7 +718,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>The first Pending tick (covering the whole card) sizes the sector grid.</summary>
     private void OnDumpSectorBlock(MifareBlockProgress p)
     {
-        if (p.State == MifareBlockState.Pending && p.First == 0 && DumpSectors.Count == 0) ResetDumpSectors(p.Count);
+        if (p is { State: MifareBlockState.Pending, First: 0 } && DumpSectors.Count == 0) ResetDumpSectors(p.Count);
         if (p.State == MifareBlockState.Reading)
         {
             SetDumpKeyProgress(0, 0);
@@ -777,7 +777,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private void OnDumpBlocks(MifareBlockProgress p)
     {
-        if (p.State == MifareBlockState.Pending && p.First == 0)
+        if (p is { State: MifareBlockState.Pending, First: 0 })
         {
             ResetDumpBlocks(p.Count);
             return;
@@ -2306,7 +2306,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void OnWriteBlocks(MifareBlockProgress p)
     {
         if (IsMifareWrite) WriteRecovery.ApplyWriteProgress(p);
-        if (p.State == MifareBlockState.Pending && p.First == 0)
+        if (p is { State: MifareBlockState.Pending, First: 0 })
         {
             WriteBlockStates = new MifareBlockState[p.Count];
             return;

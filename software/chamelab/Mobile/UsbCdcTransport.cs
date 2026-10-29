@@ -35,7 +35,7 @@ internal sealed class UsbCdcScanner(IUsbCdcHost host) : ITransportScanner
         ct.ThrowIfCancellationRequested();
         // Match the desktop VID filter, and leave DFU bootloaders and unrelated USB devices out.
         IReadOnlyList<TransportCandidate> devices = host.GetDevices()
-            .Where(d => d.VendorId == 0x6868 && d.HasCdcAcm)
+            .Where(d => d is { VendorId: 0x6868, HasCdcAcm: true })
             .OrderBy(d => d.Id, StringComparer.Ordinal)
             .Select(d => new TransportCandidate(Kind, d.Id, d.Name, "USB serial · " + d.Id))
             .ToArray();

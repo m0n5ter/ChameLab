@@ -83,7 +83,7 @@ internal static class NestedCore
                 var state = found;
                 // The pm3 recovery list is terminated by the empty state; skip it so a
                 // spurious all-zero key is not counted.
-                if (state.Odd == 0 && state.Even == 0) continue;
+                if (state is { Odd: 0, Even: 0 }) continue;
                 state.LfsrRollbackWord(seed, false);
                 var key = state.Lfsr;
                 counts.TryGetValue(key, out var c);

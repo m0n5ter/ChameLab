@@ -5,7 +5,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
-using Avalonia.Layout;
 using Avalonia.Media;
 
 namespace ChameLab.Controls;

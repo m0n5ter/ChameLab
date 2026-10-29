@@ -420,7 +420,7 @@ public class LfWaveform : Control
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (_pointers.Remove(e.Pointer, out var down) && !down.Overview && !down.Moved && _pointers.Count == 0
+        if (_pointers.Remove(e.Pointer, out var down) && down is { Overview: false, Moved: false } && _pointers.Count == 0
             && Samples is { Length: > 0 } samples)
             CursorIndex = Math.Clamp(SampleAt(e.GetPosition(this).X), 0, samples.Length - 1);
         e.Pointer.Capture(null);

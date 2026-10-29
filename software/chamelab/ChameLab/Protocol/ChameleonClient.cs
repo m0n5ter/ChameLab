@@ -188,7 +188,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         try
         {
             var active = await GetActiveSlotAsync(ct);
-            if (active >= 1 && active <= 8) slots[active - 1].IsActive = true;
+            if (active is >= 1 and <= 8) slots[active - 1].IsActive = true;
         }
         catch { /* ignore */ }
 

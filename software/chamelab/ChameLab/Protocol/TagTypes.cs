@@ -97,7 +97,7 @@ public static class TagTypeExtensions
             .Where(t => t != TagSpecificType.TagTypesLfEnd);
 
     public static IEnumerable<TagSpecificType> LfTypes() =>
-        All().Where(t => t > TagSpecificType.Undefined && t < TagSpecificType.TagTypesLfEnd);
+        All().Where(t => t is > TagSpecificType.Undefined and < TagSpecificType.TagTypesLfEnd);
 
     public static IEnumerable<TagSpecificType> HfTypes() =>
         All().Where(t => t > TagSpecificType.TagTypesLfEnd);

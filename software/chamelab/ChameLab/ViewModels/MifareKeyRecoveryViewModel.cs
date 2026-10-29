@@ -101,7 +101,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         && target.KeyA.All(key => key is { Length: 6 })
         && target.KeyB.All(key => key is { Length: 6 })
         && DumpSectors.Count == target.SectorCount
-        && DumpSectors.All(sector => sector.KeyAState == KeyCellState.Found && sector.KeyBState == KeyCellState.Found);
+        && DumpSectors.All(sector => sector is { KeyAState: KeyCellState.Found, KeyBState: KeyCellState.Found });
     public bool AllPlannedSectorsWritten => ShowWriteProgress
         && DumpSectors.Any(sector => sector.WriteState != SectorWriteState.None)
         && DumpSectors.All(sector => sector.WriteState is SectorWriteState.None or SectorWriteState.Written);

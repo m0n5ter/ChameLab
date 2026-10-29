@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using ChameLab.Models;
@@ -19,10 +18,10 @@ public static class StaticEncryptedNestedRecovery
         {
             ct.ThrowIfCancellationRequested();
             var state = recovered;
-            if (state.Odd == 0 && state.Even == 0) continue;
+            if (state is { Odd: 0, Even: 0 }) continue;
             // The state is immediately after nT, so the next keystream bit encrypts its last parity bit.
             var next = state;
-            var parityStream = (Crypto1.Crypto1Word(ref next, 0, false) >> 24) & 1;
+            var parityStream = (next.Crypto1Word(0, false) >> 24) & 1;
             if (Crypto1.OddParity8((byte)nonce.Nt) != (encryptedParity ^ parityStream)) continue;
             state.LfsrRollbackWord(input, false);
             keys.Add(state.Lfsr);

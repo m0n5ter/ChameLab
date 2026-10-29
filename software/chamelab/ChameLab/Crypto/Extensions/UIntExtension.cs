@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace ChameLab.Crypto.Extensions;
 
@@ -84,7 +82,7 @@ public static class UIntExtension
     {
         if (a == null)
             throw new ArgumentNullException(nameof(a));
-        return ToUInt32(a.AsSpan(offset, length));
+        return a.AsSpan(offset, length).ToUInt32();
     }
 
     /// <summary>
@@ -113,7 +111,7 @@ public static class UIntExtension
     {
         if (a == null)
             throw new ArgumentNullException(nameof(a));
-        return ToUInt64(a.AsSpan(offset, length));
+        return a.AsSpan(offset, length).ToUInt64();
     }
 
     /// <summary>
@@ -124,39 +122,42 @@ public static class UIntExtension
     public static ulong ToUInt64(this ReadOnlySpan<byte> bytes)
     {
         ulong result = 0;
-        for (var i = 0; i < bytes.Length; i++)
-            result = result << 8 | bytes[i];
+        foreach (var t in bytes)
+            result = result << 8 | t;
+
         return result;
     }
 
-    /// <summary>
-    /// Allocates and fills a big-endian byte representation of a 32-bit value.
-    /// </summary>
     /// <param name="v">The value to encode.</param>
-    /// <param name="length">The output array length.</param>
-    /// <returns>A new array containing the big-endian representation.</returns>
-    /// <exception cref="OverflowException"><paramref name="length"/> is negative.</exception>
-    public static byte[] GetBytes(this uint v, int length = 4)
+    extension(uint v)
     {
-        var result = new byte[length];
-        v.WriteBytes(result);
-        return result;
-    }
-
-    /// <summary>
-    /// Writes a 32-bit value to a destination span in big-endian byte order.
-    /// </summary>
-    /// <param name="value">The value to encode.</param>
-    /// <param name="destination">
-    /// The destination. Longer spans are zero-padded; shorter spans receive the
-    /// least-significant bytes.
-    /// </param>
-    public static void WriteBytes(this uint value, Span<byte> destination)
-    {
-        for (var i = destination.Length - 1; i >= 0; i--)
+        /// <summary>
+        /// Allocates and fills a big-endian byte representation of a 32-bit value.
+        /// </summary>
+        /// <param name="length">The output array length.</param>
+        /// <returns>A new array containing the big-endian representation.</returns>
+        /// <exception cref="OverflowException"><paramref name="length"/> is negative.</exception>
+        public byte[] GetBytes(int length = 4)
         {
-            destination[i] = (byte)value;
-            value >>= 8;
+            var result = new byte[length];
+            v.WriteBytes(result);
+            return result;
+        }
+
+        /// <summary>
+        /// Writes a 32-bit value to a destination span in big-endian byte order.
+        /// </summary>
+        /// <param name="destination">
+        /// The destination. Longer spans are zero-padded; shorter spans receive the
+        /// least-significant bytes.
+        /// </param>
+        public void WriteBytes(Span<byte> destination)
+        {
+            for (var i = destination.Length - 1; i >= 0; i--)
+            {
+                destination[i] = (byte)v;
+                v >>= 8;
+            }
         }
     }
 

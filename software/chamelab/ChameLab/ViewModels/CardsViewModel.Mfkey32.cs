@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ChameLab.Models;
-using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
 

@@ -1,13 +1,11 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using ChameLab.Behaviors;
 using ChameLab.Models;
-using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
 

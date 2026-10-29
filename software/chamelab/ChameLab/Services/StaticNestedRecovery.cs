@@ -39,13 +39,13 @@ public static class StaticNestedRecovery
             {
                 ct.ThrowIfCancellationRequested();
                 var state = recovered;
-                if (state.Odd == 0 && state.Even == 0) continue;
+                if (state is { Odd: 0, Even: 0 }) continue;
                 state.LfsrRollbackWord(seed0, false);
                 var key = state.Lfsr;
                 // A key matching only one sample is not a candidate. Checking the second
                 // sample forward is cheaper than recovering and intersecting two full lists.
                 var check = new Crypto1State(key);
-                if (Crypto1.Crypto1Word(ref check, seed1, false) == ks1)
+                if (check.Crypto1Word(seed1, false) == ks1)
                     keys.Add(key);
             }
         }

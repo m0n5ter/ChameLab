@@ -197,7 +197,7 @@ public sealed partial class ToolsViewModel
 
     public ICommand HfRecoverAllCommand => _hfRecoverAll ??= ReactiveCommand.CreateFromTask(async () =>
     {
-        foreach (var g in HfAuthGroups.Where(g => g.CanRecover && g.Key is null).ToList())
+        foreach (var g in HfAuthGroups.Where(g => g is { CanRecover: true, Key: null }).ToList())
             await g.RecoverAsync();
     });
 
