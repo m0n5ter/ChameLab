@@ -80,9 +80,6 @@ responses matched to requests by command id.
 
 ## Build & run
 
-The crapto1 port (Crapto1Sharp) is kept as source in
-[`software/external/Crapto1Sharp`](../external) and built with the app.
-
 ```bash
 # Desktop (primary target)
 dotnet run --project ChameLab.Desktop -c Debug

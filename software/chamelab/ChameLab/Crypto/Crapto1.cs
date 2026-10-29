@@ -1,9 +1,9 @@
-using Crapto1Sharp.Extensions;
+using ChameLab.Crypto.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Crapto1Sharp;
+namespace ChameLab.Crypto;
 
 /// <summary>
 /// Provides reverse Crypto1 operations, LFSR state recovery, and nonce-distance

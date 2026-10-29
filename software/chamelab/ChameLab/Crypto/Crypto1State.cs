@@ -1,10 +1,10 @@
-﻿using Crapto1Sharp.Extensions;
+using ChameLab.Crypto.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Crapto1Sharp;
+namespace ChameLab.Crypto;
 
 /// <summary>
 /// Represents the 48-bit odd/even linear-feedback shift register state used by

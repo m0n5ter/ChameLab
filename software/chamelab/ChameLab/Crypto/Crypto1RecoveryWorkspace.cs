@@ -2,7 +2,7 @@ using System;
 using System.Buffers;
 using System.Threading;
 
-namespace Crapto1Sharp;
+namespace ChameLab.Crypto;
 
 /// <summary>
 /// Reusable pooled buffers for Crypto1 state recovery.

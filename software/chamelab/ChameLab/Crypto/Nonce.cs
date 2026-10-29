@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Crapto1Sharp;
+namespace ChameLab.Crypto;
 
 /// <summary>
 /// Represents one MIFARE Classic authentication transcript used by MfKey

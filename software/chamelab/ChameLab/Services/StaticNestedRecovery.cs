@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using ChameLab.Protocol;
-using Crapto1Sharp;
+using ChameLab.Crypto;
 
 namespace ChameLab.Services;
 

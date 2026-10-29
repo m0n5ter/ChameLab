@@ -2,7 +2,7 @@ using System;
 using System.Buffers.Binary;
 using System.Linq;
 using ChameLab.Models;
-using Crapto1Sharp;
+using ChameLab.Crypto;
 
 namespace ChameLab.Services;
 

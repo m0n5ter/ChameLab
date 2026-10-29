@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using Crapto1Sharp;
+using ChameLab.Crypto;
 
 namespace ChameLab.Services;
 
 /// <summary>
 /// MIFARE Classic "nested" key recovery for weak-PRNG cards, ported from the pm3
 /// reference (<c>nested.c</c> / <c>nested_util.c</c>, as wrapped by ChameleonUltraGUI's
-/// <c>recovery.c</c>) onto the crapto1 primitives in <see cref="Crapto1Sharp"/>.
+/// <c>recovery.c</c>) onto the crapto1 primitives in <see cref="ChameLab.Crypto"/>.
 ///
 /// One sector key must already be known; the firmware collects two (nt, ntEnc, parity)
 /// samples of the target sector while authenticating through the known one, and this turns
