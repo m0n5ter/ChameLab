@@ -112,6 +112,18 @@ The Android USB transport supports normal device commands, scans and card dumps.
 Firmware updates on Android currently use BLE; USB bootloader flashing is not
 implemented in the Android build. iOS continues to use BLE and TCP.
 
+## Static encrypted nested
+
+Choose **Static encrypted nested** in the card or target-card recovery panel
+for FM11RF08S and compatible backdoored MIFARE Classic cards. A known sector
+key is not required. ChameLab tries backdoor keys `A396EFA4E24F`, `A31667A8CEC1`
+and `518B3354E760`, collects the static encrypted nonces, calculates candidates
+locally, and checks them on the card in batches. RF08S seed filtering prioritizes
+candidate pairs; remaining candidates are tried if that filter does not find a
+key. This managed solver works on every platform and requires firmware commands
+2014 and 2015. Keep the card on the reader throughout recovery. Stop preserves
+recovered keys; an in-flight collection or key batch finishes before stopping.
+
 ## Hardnested (desktop)
 
 Hardnested recovery is available for hardened-PRNG MIFARE Classic cards when at

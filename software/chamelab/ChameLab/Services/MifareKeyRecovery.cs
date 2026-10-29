@@ -10,7 +10,7 @@ using ChameLab.Protocol;
 namespace ChameLab.Services;
 
 /// <summary>Independently selectable MIFARE Classic recovery methods.</summary>
-public enum MifareRecoveryMethod { Darkside, Nested, StaticNested, Hardnested }
+public enum MifareRecoveryMethod { Darkside, Nested, StaticNested, Hardnested, StaticEncryptedNested }
 
 /// <summary>State of one sector key during recovery, surfaced to the per-sector grid.</summary>
 public enum KeyMark { None, Checking, Found }
@@ -60,6 +60,12 @@ public sealed class MifareKeyRecovery
             return;
         }
 
+        if (method == MifareRecoveryMethod.StaticEncryptedNested)
+        {
+            await StaticEncryptedNestedAsync(dump, Store, progress, ct);
+            return;
+        }
+
         var prng = await _client.DetectNtLevelAsync(ct);
         var isStatic = method == MifareRecoveryMethod.StaticNested;
         var isHardnested = method == MifareRecoveryMethod.Hardnested;
@@ -102,6 +108,86 @@ public sealed class MifareKeyRecovery
     }
 
     // ---- attack helpers ---------------------------------------------------
+
+    private async Task StaticEncryptedNestedAsync(MifareDump dump, Action<int, MfKeyType, byte[]> store,
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
+    {
+        var capabilities = await _client.GetCapabilitiesAsync(ct);
+        if (!capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
+            !capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
+            throw new NotSupportedException("This device firmware does not support static encrypted nested recovery.");
+        (uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)? capture = null;
+        foreach (var backdoor in new[] { "A396EFA4E24F", "A31667A8CEC1", "518B3354E760" })
+        {
+            progress?.Report(new KeyRecoveryProgress("Collecting static encrypted nonces…", Detail: $"Backdoor key {backdoor}"));
+            try
+            {
+                capture = await _client.GetStaticEncryptedNestedNoncesAsync(Convert.FromHexString(backdoor), dump.SectorCount, ct);
+                break;
+            }
+            catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth) { }
+        }
+        if (capture is not { } data)
+            throw new InvalidOperationException("The card did not accept any known backdoor key.");
+        var tags = await _client.Hf14aScanAsync(ct);
+        if (tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
+            throw new InvalidOperationException("The card was removed or changed. Scan it again before continuing.");
+
+        for (var s = 0; s < dump.SectorCount; s++)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (dump.KeyA[s] is not null && dump.KeyB[s] is not null) continue;
+            var (a, b) = data.Sectors[s];
+            async Task<IReadOnlyList<ulong>> Candidates(NestedNonce nonce, MfKeyType type, byte[]? known)
+            {
+                if (known is not null) return new[] { KeyValue(known) };
+                progress?.Report(new KeyRecoveryProgress("Calculating static encrypted candidates…", s, type, KeyMark.Checking));
+                return await Task.Run(() => StaticEncryptedNestedRecovery.Recover(data.Uid, nonce, ct), ct);
+            }
+            var aKeys = await Candidates(a, MfKeyType.A, dump.KeyA[s]);
+            var bKeys = await Candidates(b, MfKeyType.B, dump.KeyB[s]);
+            foreach (var type in new[] { MfKeyType.B, MfKeyType.A })
+            {
+                if ((type == MfKeyType.A ? dump.KeyA : dump.KeyB)[s] is not null) continue;
+                var nonce = type == MfKeyType.A ? a : b;
+                var other = type == MfKeyType.A ? b : a;
+                var keys = type == MfKeyType.A ? aKeys : bKeys;
+                var otherKeys = type == MfKeyType.A ? bKeys : aKeys;
+                var filtered = await Task.Run(() => StaticEncryptedNestedRecovery.Filter(nonce.Nt, keys, other.Nt, otherKeys, ct), ct);
+                async Task<byte[]?> Check(IReadOnlyList<ulong> candidates)
+                {
+                    for (var i = 0; i < candidates.Count; i += 64)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        progress?.Report(new KeyRecoveryProgress("Checking static encrypted candidates…", s, type,
+                            KeyMark.Checking, Detail: $"Candidates {i + 1}–{Math.Min(i + 64, candidates.Count)}/{candidates.Count}"));
+                        var batch = candidates.Skip(i).Take(64).Select(KeyBytes).ToArray();
+                        var hit = await _client.CheckMifareKeysOnBlockAsync(MifareClassic.SectorTrailerBlock(s), type, batch, ct);
+                        if (hit is not null) return hit;
+                    }
+                    return null;
+                }
+                var hit = await Check(filtered);
+                // Other backdoored chips need not share the RF08S A/B seed relationship.
+                if (hit is null && filtered.Count != keys.Count) hit = await Check(keys.Except(filtered).ToArray());
+                if (hit is not null)
+                {
+                    store(s, type, hit);
+                    if (type == MfKeyType.B) bKeys = new[] { KeyValue(hit) };
+                    else aKeys = new[] { KeyValue(hit) };
+                }
+                else progress?.Report(new KeyRecoveryProgress("Key not recovered for this sector.", s, type));
+            }
+        }
+        progress?.Report(new KeyRecoveryProgress("Recovery finished."));
+    }
+
+    private static ulong KeyValue(byte[] key)
+    {
+        ulong value = 0;
+        foreach (var b in key) value = (value << 8) | b;
+        return value;
+    }
 
     private async Task<IReadOnlyList<ulong>> HardnestedSectorAsync(
         byte[] uid, uint authenticationUid, (int Block, MfKeyType Type, byte[] Key) seed,

@@ -65,6 +65,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         DarksideCommand = Attack(MifareRecoveryMethod.Darkside, this.WhenAnyValue(x => x.ShowDarkside));
         NestedCommand = Attack(MifareRecoveryMethod.Nested, this.WhenAnyValue(x => x.ShowNested));
         StaticNestedCommand = Attack(MifareRecoveryMethod.StaticNested, this.WhenAnyValue(x => x.ShowStaticNested));
+        StaticEncryptedNestedCommand = Attack(MifareRecoveryMethod.StaticEncryptedNested, this.WhenAnyValue(x => x.ShowStaticEncryptedNested));
         HardnestedCommand = Attack(MifareRecoveryMethod.Hardnested, this.WhenAnyValue(x => x.ShowHardnested));
         Mfkey32Command = ReactiveCommand.CreateFromTask(() => StartAsync(Mfkey32Async),
             this.WhenAnyValue(x => x.CanRunMfkey32));
@@ -81,6 +82,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public ICommand DarksideCommand { get; }
     public ICommand NestedCommand { get; }
     public ICommand StaticNestedCommand { get; }
+    public ICommand StaticEncryptedNestedCommand { get; }
     public ICommand HardnestedCommand { get; }
     public ICommand Mfkey32Command { get; }
     public ICommand CancelDumpCommand { get; }
@@ -110,6 +112,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public bool ShowDarkside => _darkside && HasUnknownKeys;
     public bool ShowNested => _prng == MifareClassicPrngType.Weak && HasKnownKeys && HasUnknownKeys;
     public bool ShowStaticNested => _prng == MifareClassicPrngType.Static && HasKnownKeys && HasUnknownKeys;
+    public bool ShowStaticEncryptedNested => Target is not null && HasUnknownKeys;
     public bool ShowHardnested => _prng == MifareClassicPrngType.Hard && HasKnownKeys && HasUnknownKeys;
     public string? HardnestedWarning => _hardnested.UnavailableReason;
     public string TryKeysTip => "Find the target card's keys using the selected dictionaries and source keys";

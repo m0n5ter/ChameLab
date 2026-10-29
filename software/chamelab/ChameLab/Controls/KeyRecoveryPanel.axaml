@@ -122,6 +122,14 @@
               <TextBlock Classes="action-label" Text="Static nested" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
+          <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding StaticEncryptedNestedCommand}"
+                  IsVisible="{Binding ShowStaticEncryptedNested}" AutomationProperties.Name="Static encrypted nested"
+                  ToolTip.Tip="Recover keys on FM11RF08S and compatible cards using known backdoor keys">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.refresh}" />
+              <TextBlock Classes="action-label" Text="Static encrypted nested" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding HardnestedCommand}" AutomationProperties.Name="Hardnested"
                   IsVisible="{Binding ShowHardnested}" ToolTip.Tip="{Binding HardnestedWarning, TargetNullValue=Hardnested}">
             <StackPanel Orientation="Horizontal" Spacing="6">

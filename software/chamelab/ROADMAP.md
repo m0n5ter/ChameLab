@@ -6,6 +6,7 @@ Checked against its source (commit `7311c54`, 2026-10-24); ChameLab state as of 
 Tick `[x]` as things land, and drop finished items over time.
 
 ## Done
+- Backdoor / static encrypted nested (FM11RF08S and compatible cards), managed solver on all platforms
 - Darkside, Nested, Static nested and mfkey32 key recovery; Hardnested on desktop
 - Per-sector key grid with found-key marks; stopping a dump keeps what was read and
   a partial dump can be continued
@@ -20,7 +21,6 @@ Tick `[x]` as things land, and drop finished items over time.
 ## High priority
 
 ### MIFARE Classic key recovery
-- [ ] Backdoor / static encrypted nested (FM11RF08S and similar)
 - [ ] mfkey64
 - [ ] Save recovered keys: to file, to an existing dictionary, to a new one (including from a saved card)
 

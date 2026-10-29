@@ -25,6 +25,7 @@ public interface IKeyRecoveryContext
     ObservableCollection<DumpSectorRow> DumpSectors { get; }
     string? DumpStopLabel { get; }
     string? DumpStopTip { get; }
+    ICommand StaticEncryptedNestedCommand { get; }
     ICommand HardnestedCommand { get; }
     string? HardnestedWarning { get; }
     bool HasDumpKeyProgress { get; }
@@ -46,6 +47,7 @@ public interface IKeyRecoveryContext
     bool ShowDarkside { get; }
     bool ShowDumpActions { get; }
     bool ShowDumpNotice { get; }
+    bool ShowStaticEncryptedNested { get; }
     bool ShowHardnested { get; }
     bool ShowMfkey32CaptureCount { get; }
     bool ShowMfkey32 { get; }
