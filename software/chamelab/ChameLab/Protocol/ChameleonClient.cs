@@ -21,11 +21,23 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public async Task<LfCardCycle> GetEm410xCycleAsync(CancellationToken ct = default)
     {
         var frame = await conn.SendExpectAsync(Command.Em410xGetCycle, Status.Success, ct: ct);
-        return LfCardCycle.Decode(frame.Data);
+        var cycle = LfCardCycle.Decode(frame.Data);
+        if (!(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetCycleGap)) return cycle;
+        var gap = await conn.SendExpectAsync(Command.Em410xGetCycleGap, Status.Success, ct: ct);
+        if (gap.Data.Length != 1 || gap.Data[0] > 30) throw new ArgumentException("Invalid LF cycle silence response.");
+        return cycle with { GapSteps = gap.Data[0] };
     }
 
-    public Task SetEm410xCycleAsync(LfCardCycle cycle, CancellationToken ct = default) =>
-        conn.SendExpectAsync(Command.Em410xSetCycle, Status.Success, cycle.Encode(), ct: ct);
+    public async Task SetEm410xCycleAsync(LfCardCycle cycle, CancellationToken ct = default)
+    {
+        var payload = cycle.Encode();
+        if (cycle.GapSteps > 0 && !(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xSetCycleGap))
+            throw new NotSupportedException("Update the firmware to configure silence between LF cards.");
+        await conn.SendExpectAsync(Command.Em410xSetCycle, Status.Success, payload, ct: ct);
+        // SET_CYCLE also clears a previous gap, preserving the legacy wire format.
+        if (cycle.GapSteps > 0)
+            await conn.SendExpectAsync(Command.Em410xSetCycleGap, Status.Success, [(byte)cycle.GapSteps], ct: ct);
+    }
 
     private readonly SemaphoreSlim _slotLock = new(1, 1);
 

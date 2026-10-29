@@ -1316,6 +1316,39 @@ static data_frame_tx_t *cmd_processor_em410x_get_cycle(uint16_t cmd, uint16_t st
     return data_frame_make(cmd, STATUS_SUCCESS, 2 + response[1] * LF_EM410X_TAG_ID_SIZE, response);
 }
 
+// Silence between cards, in 100 ms steps (0..30). Separate commands keep
+// the original cycle payload compatible with existing clients and firmware.
+static data_frame_tx_t *cmd_processor_em410x_set_cycle_gap(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    tag_specific_type_t type;
+    uint16_t size;
+    if (length != 1 || data[0] > 30 || !get_active_em410x_type(&type, &size) || type != TAG_TYPE_EM410X)
+        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    bool sensing = get_device_mode() != DEVICE_MODE_READER;
+    if (sensing) tag_emulation_sense_end();
+    tag_data_buffer_t *buffer = get_buffer_by_tag_type(type);
+    if (!lf_em410x_cycle_valid(buffer->buffer, buffer->length)) {
+        memset(buffer->buffer + 5, 0, buffer->length - 5);
+        buffer->buffer[5] = 0xC7;
+        buffer->buffer[7] = 1;
+        buffer->buffer[8] = 1;
+    }
+    buffer->buffer[6] = 2;
+    buffer->buffer[44] = data[0];
+    tag_emulation_load_by_buffer(type, false);
+    if (sensing) tag_emulation_sense_run();
+    return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
+}
+
+static data_frame_tx_t *cmd_processor_em410x_get_cycle_gap(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    tag_specific_type_t type;
+    uint16_t size;
+    if (length || !get_active_em410x_type(&type, &size) || type != TAG_TYPE_EM410X)
+        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    tag_data_buffer_t *buffer = get_buffer_by_tag_type(type);
+    uint8_t gap = lf_em410x_cycle_valid(buffer->buffer, buffer->length) && buffer->buffer[6] == 2 ? buffer->buffer[44] : 0;
+    return data_frame_make(cmd, STATUS_SUCCESS, 1, &gap);
+}
+
 static data_frame_tx_t *cmd_processor_em410x_get_emu_id(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     tag_specific_type_t tag_type;
     uint16_t id_size;
@@ -3473,6 +3506,8 @@ static cmd_data_map_t m_data_cmd_map[] = {
     {    DATA_CMD_EM410X_GET_EMU_ID,              NULL,                      cmd_processor_em410x_get_emu_id,             NULL                   },
     {    DATA_CMD_EM410X_SET_CYCLE,               NULL,                      cmd_processor_em410x_set_cycle,              NULL                   },
     {    DATA_CMD_EM410X_GET_CYCLE,               NULL,                      cmd_processor_em410x_get_cycle,              NULL                   },
+    {    DATA_CMD_EM410X_SET_CYCLE_GAP,           NULL,                      cmd_processor_em410x_set_cycle_gap,          NULL                   },
+    {    DATA_CMD_EM410X_GET_CYCLE_GAP,           NULL,                      cmd_processor_em410x_get_cycle_gap,          NULL                   },
     {    DATA_CMD_HIDPROX_SET_EMU_ID,             NULL,                      cmd_processor_hidprox_set_emu_id,            NULL                   },
     {    DATA_CMD_HIDPROX_GET_EMU_ID,             NULL,                      cmd_processor_hidprox_get_emu_id,            NULL                   },
     {    DATA_CMD_IOPROX_SET_EMU_ID,              NULL,                      cmd_processor_ioprox_set_emu_id,             NULL                   },

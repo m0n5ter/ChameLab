@@ -406,52 +406,37 @@
                 <TextBlock Grid.Column="1" Text="125 kHz" Classes="caption" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="{Binding LfCards.CountLabel}" Classes="caption" VerticalAlignment="Center" />
               </Grid>
-              <ItemsControl ItemsSource="{Binding LfCards.Cards}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
+              <ListBox Classes="cards" DataContext="{Binding LfCards}" x:DataType="vm:LfSlotListViewModel"
+                       ItemsSource="{Binding Cards}" SelectedItem="{Binding SelectedCard}"
+                       Loaded="OnLfCardListLoaded" Background="Transparent" BorderThickness="0"
+                       ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:LfSlotCardViewModel">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                      <Button Classes="cardtile" Command="{Binding OpenCommand}" IsEnabled="{Binding HasMatch}"
-                              ToolTip.Tip="Open this card in Cards" HorizontalAlignment="Stretch">
-                        <Border Classes="cardclip">
-                          <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14"
-                                DataContext="{Binding Item}" x:DataType="vm:CardItemViewModel">
-                            <Border Background="{Binding ColorBrush}" />
-                            <StackPanel Grid.Column="1" Margin="0,10">
-                              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
-                              <TextBlock Text="{Binding Summary}" Classes="caption" TextTrimming="CharacterEllipsis" />
-                            </StackPanel>
-                            <PathIcon Grid.Column="2" Data="{StaticResource Icon.edit}" Width="16" Height="16"
-                                      Opacity="0.6" VerticalAlignment="Center" />
-                          </Grid>
-                        </Border>
-                      </Button>
-                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                        <StackPanel Spacing="2">
-                          <Button Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}" Padding="5,2"
-                                  ToolTip.Tip="Move card up" AutomationProperties.Name="Move card up">
-                            <PathIcon Data="{StaticResource Icon.moveUp}" Width="16" Height="16" />
+                    <Border Classes="cardrow"><Border Classes="cardclip">
+                      <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
+                        <Border Background="{Binding Item.ColorBrush}" />
+                        <StackPanel Grid.Column="1" Margin="0,10">
+                          <TextBlock Text="{Binding Item.Name}" FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Item.Summary}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                          <Button Classes="icon small" Command="{Binding SaveCommand}" IsVisible="{Binding !HasMatch}"
+                                  b:ListReorder.IsAction="True" ToolTip.Tip="Add this card to Saved cards" AutomationProperties.Name="Save card">
+                            <PathIcon Data="{StaticResource Icon.save}" />
                           </Button>
-                          <Button Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" Padding="5,2"
-                                  ToolTip.Tip="Move card down" AutomationProperties.Name="Move card down">
-                            <PathIcon Data="{StaticResource Icon.moveDown}" Width="16" Height="16" />
+                          <Button Classes="icon small danger" Command="{Binding RemoveCommand}" b:ListReorder.IsAction="True"
+                                  ToolTip.Tip="Remove card from slot" AutomationProperties.Name="Remove card from slot">
+                            <PathIcon Data="{StaticResource Icon.delete}" />
                           </Button>
                         </StackPanel>
-                        <Button Command="{Binding SaveCommand}" IsVisible="{Binding !HasMatch}" Padding="6"
-                                ToolTip.Tip="Add this card to Saved cards" AutomationProperties.Name="Save card">
-                          <PathIcon Data="{StaticResource Icon.save}" Width="16" Height="16" />
-                        </Button>
-                        <Button Classes="danger" Command="{Binding RemoveCommand}" Padding="6"
-                                ToolTip.Tip="Remove card from slot" AutomationProperties.Name="Remove card from slot">
-                          <PathIcon Data="{StaticResource Icon.delete}" Width="16" Height="16" />
-                        </Button>
-                      </StackPanel>
-                    </Grid>
+                      </Grid>
+                    </Border></Border>
                   </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+                </ListBox.ItemTemplate>
+              </ListBox>
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                 <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !LfCards.HasCards}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Command="{Binding Lf.PickCommand}" IsEnabled="{Binding LfCards.CanAdd}">
@@ -465,7 +450,11 @@
               <StackPanel Spacing="10" IsVisible="{Binding ShowLfCycle}">
                 <TextBlock Text="Time per card (1–10 bursts, about 0.33 seconds each)" Classes="caption" TextWrapping="Wrap" />
                 <NumericUpDown Minimum="1" Maximum="10" Increment="1" FormatString="0" Value="{Binding CycleBursts}" />
-                <TextBlock Text="Cards are transmitted in list order. Each presentation starts from the first card."
+                <StackPanel Spacing="6" IsVisible="{Binding ShowCycleGap}">
+                  <TextBlock Text="Silence between cards (seconds)" Classes="caption" />
+                  <NumericUpDown Minimum="0" Maximum="3" Increment="0.1" FormatString="0.0" Value="{Binding CycleGapSeconds}" />
+                </StackPanel>
+                <TextBlock Text="Drag cards to change transmission order. Each presentation starts from the first card."
                            Classes="caption" TextWrapping="Wrap" />
               </StackPanel>
             </StackPanel>

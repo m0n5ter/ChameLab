@@ -159,4 +159,6 @@ public enum Command : ushort
     PyramidGetEmuId = 5901,
     Em410xSetCycle = 5902,
     Em410xGetCycle = 5903,
+    Em410xSetCycleGap = 5904,
+    Em410xGetCycleGap = 5905,
 }

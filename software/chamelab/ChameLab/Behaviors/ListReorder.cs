@@ -92,6 +92,12 @@ public sealed class ListReorder
     public static bool GetIsDropTarget(Control element) => element.GetValue(IsDropTargetProperty);
     public static void SetIsDropTarget(Control element, bool value) => element.SetValue(IsDropTargetProperty, value);
 
+    // Row actions (delete/save) receive their own clicks and never start a drag or open the row.
+    public static readonly AttachedProperty<bool> IsActionProperty =
+        AvaloniaProperty.RegisterAttached<Control, bool>("IsAction", typeof(ListReorder));
+    public static bool GetIsAction(Control element) => element.GetValue(IsActionProperty);
+    public static void SetIsAction(Control element, bool value) => element.SetValue(IsActionProperty, value);
+
     private readonly ListBox _list;
     private readonly ScrollViewer _scroll;
 
@@ -150,6 +156,8 @@ public sealed class ListReorder
 
     private void OnPressed(object? sender, PointerPressedEventArgs e)
     {
+        if ((e.Source as Visual)?.FindAncestorOfType<Button>(includeSelf: true) is { } button && GetIsAction(button))
+            return;
         EndDrag();
         _pressedItem = null;
         _pressPointer = null;

@@ -80,9 +80,8 @@ public class LfSlotListTests
         Assert.Equal("010200000000010000000002", Convert.ToHexString(list.Cycle(1).Encode()));
         Assert.Equal(SlotColorMode.Custom, side.ColorMode);
         Assert.Equal("#00FF00", side.CustomColor);
-        Assert.False(list.Cards[0].CanMoveUp);
-        Assert.False(list.Cards[^1].CanMoveDown);
-        Assert.True(list.Cards[1].CanMoveUp && list.Cards[1].CanMoveDown);
+        Assert.True(list.CanReorder);
+        Assert.Same(list.Cards, list.ReorderItems);
     }
 
     [Fact]
@@ -149,5 +148,45 @@ public class LfSlotListTests
         list.Move(list.Cards[0], -1);
         list.Move(list.Cards[0], 1);
         Assert.Single(list.Cards);
+        Assert.False(list.CanReorder);
+    }
+
+    [Fact]
+    public void DragUsesStableIdentityAndKeepsOrderUnsavedUntilSlotSave()
+    {
+        var (list, side, _) = Create(held: true);
+        list.Load(true, new LfCardCycle(1, [Card(2).Uid, Card(3).Uid]));
+        var row = list.Cards[2];
+        var key = list.ReorderKey(row);
+        list.MoveItem(2, 0);
+        list.CommitOrder();
+        Assert.Same(row, list.Cards[0]);
+        Assert.Equal(key, list.ReorderKey(row));
+        Assert.Equal(Card(3).Uid, side.CurrentCard().Uid);
+        Assert.True(list.IsDirty);
+    }
+
+    [Fact]
+    public void SilenceEditsUseTenthsAndDiscardWithTheSlot()
+    {
+        var library = new CardLibrary(new MemoryKeyValueStore());
+        var editor = new SlotEditorViewModel(new DeviceService([]), library,
+            new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x }, () => { }, _ => { });
+        typeof(SlotEditorViewModel).GetField("_supportsLfCycle", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .SetValue(editor, true);
+        editor.Lf.UidRead(TagSpecificType.Em410x, Card(1).Uid);
+        editor.LfCards.Load(true, new LfCardCycle(1, [Card(2).Uid]));
+        Assert.False(editor.IsDirty);
+        editor.CycleGapSeconds = 1.24m;
+        Assert.Equal(1.2m, editor.CycleGapSeconds);
+        Assert.True(editor.IsDirty);
+        Assert.Equal(12, editor.LfCards.Cycle(editor.CycleBursts, (int)(editor.CycleGapSeconds * 10)).GapSteps);
+        editor.Discard();
+        Assert.Equal(0, editor.CycleGapSeconds);
+        Assert.False(editor.IsDirty);
+        editor.CycleGapSeconds = 4;
+        Assert.Equal(3, editor.CycleGapSeconds);
+        editor.CycleGapSeconds = -1;
+        Assert.Equal(0, editor.CycleGapSeconds);
     }
 }

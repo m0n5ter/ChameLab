@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -6,11 +7,12 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Behaviors;
 
 namespace ChameLab.ViewModels;
 
 /// <summary>The ordered LF identities. The first row is the firmware's primary card.</summary>
-public sealed class LfSlotListViewModel : ViewModelBase
+public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
 {
     private readonly SlotSideViewModel _side;
     private readonly CardLibrary _library;
@@ -29,6 +31,16 @@ public sealed class LfSlotListViewModel : ViewModelBase
     }
 
     public ObservableCollection<LfSlotCardViewModel> Cards { get; } = new();
+    public bool CanReorder => Cards.Count > 1;
+    public IList ReorderItems => Cards;
+    public string ReorderKey(object item) => Key(((LfSlotCardViewModel)item).Card);
+    public void OpenItem(object item) => ((LfSlotCardViewModel)item).OpenCommand.Execute(null);
+    public void MoveItem(int from, int to)
+    {
+        if (from >= 0 && from < Cards.Count && to >= 0 && to < Cards.Count) Move(Cards[from], to - from);
+    }
+    public void CommitOrder() { /* The slot save bar persists the edited list. */ }
+    public LfSlotCardViewModel? SelectedCard { get => null; set { if (value is not null) OpenItem(value); } }
     public bool HasCards => Cards.Count > 0;
     public string ChooseLabel => HasCards ? "Add saved" : "Choose saved";
     public string CountLabel => $"{Cards.Count} / 8";
@@ -73,7 +85,7 @@ public sealed class LfSlotListViewModel : ViewModelBase
         SyncPrimary();
     }
 
-    private LfSlotCardViewModel Row(CardSave card) => new(card, _library, _openCard, Remove, Move);
+    private LfSlotCardViewModel Row(CardSave card) => new(card, _library, _openCard, Remove);
 
     private void SyncPrimary()
     {
@@ -123,17 +135,16 @@ public sealed class LfSlotListViewModel : ViewModelBase
         Notify();
     }
 
-    public LfCardCycle Cycle(int bursts)
+    public LfCardCycle Cycle(int bursts, int gapSteps = 0)
     {
-        var cycle = new LfCardCycle(bursts, Cards.Skip(1).Select(c => c.Card.Uid.ToArray()).ToArray());
+        var cycle = new LfCardCycle(bursts, Cards.Skip(1).Select(c => c.Card.Uid.ToArray()).ToArray(), gapSteps);
         cycle.Encode(); // Validate before any slot writes.
         return cycle;
     }
 
     private void Notify()
     {
-        for (var i = 0; i < Cards.Count; i++) Cards[i].Position(i, Cards.Count);
-        foreach (var name in new[] { nameof(HasCards), nameof(ChooseLabel), nameof(CountLabel), nameof(CanAdd), nameof(IsDirty) })
+        foreach (var name in new[] { nameof(HasCards), nameof(ChooseLabel), nameof(CountLabel), nameof(CanAdd), nameof(IsDirty), nameof(CanReorder) })
             this.RaisePropertyChanged(name);
         _changed();
     }
@@ -144,18 +155,15 @@ public sealed class LfSlotCardViewModel : ViewModelBase
     private readonly CardLibrary _library;
     private CardSave? _match;
     private CardItemViewModel _item;
-    private bool _canMoveUp, _canMoveDown;
 
     public LfSlotCardViewModel(CardSave card, CardLibrary library, Action<CardSave> open,
-        Action<LfSlotCardViewModel> remove, Action<LfSlotCardViewModel, int> move)
+        Action<LfSlotCardViewModel> remove)
     {
         Card = card;
         _library = library;
         _item = new CardItemViewModel(card);
         OpenCommand = ReactiveCommand.Create(() => { if (_match is { } match) open(match); });
         RemoveCommand = ReactiveCommand.Create(() => remove(this));
-        MoveUpCommand = ReactiveCommand.Create(() => move(this, -1));
-        MoveDownCommand = ReactiveCommand.Create(() => move(this, 1));
         SaveCommand = ReactiveCommand.Create(() => { _library.Add(Card.Clone()); Refresh(); });
         Refresh();
     }
@@ -163,19 +171,9 @@ public sealed class LfSlotCardViewModel : ViewModelBase
     public CardSave Card { get; }
     public CardItemViewModel Item => _item;
     public bool HasMatch => _match is not null;
-    public bool CanMoveUp => _canMoveUp;
-    public bool CanMoveDown => _canMoveDown;
     public ICommand OpenCommand { get; }
     public ICommand RemoveCommand { get; }
-    public ICommand MoveUpCommand { get; }
-    public ICommand MoveDownCommand { get; }
     public ICommand SaveCommand { get; }
-
-    public void Position(int index, int count)
-    {
-        this.RaiseAndSetIfChanged(ref _canMoveUp, index > 0, nameof(CanMoveUp));
-        this.RaiseAndSetIfChanged(ref _canMoveDown, index < count - 1, nameof(CanMoveDown));
-    }
 
     public void Refresh()
     {

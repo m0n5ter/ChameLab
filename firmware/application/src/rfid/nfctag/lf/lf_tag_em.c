@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "bsp_delay.h"
+#include "app_timer.h"
 #include "fds_util.h"
 #include "nrf_gpio.h"
 #include "nrf_soc.h"
@@ -45,14 +46,25 @@ static nrf_pwm_values_wave_form_t m_cycle_values[LF_EM410X_CYCLE_MAX][64];
 static nrf_pwm_sequence_t m_cycle_sequences[LF_EM410X_CYCLE_MAX];
 static uint8_t m_cycle_count = 1, m_cycle_index = 0;
 static uint8_t m_cycle_bursts = 1, m_cycle_elapsed = 0;
+static uint8_t m_cycle_gap_steps = 0, m_gap_remaining = 0;
+static volatile bool m_gap_active = false;
+static bool m_gap_timer_created = false;
+APP_TIMER_DEF(m_cycle_gap_timer);
 
 bool lf_em410x_cycle_valid(const uint8_t *data, uint16_t length) {
-    return length >= LF_EM410X_CYCLE_SIZE && data[5] == 0xC7 && data[6] == 1 &&
-           data[7] >= 2 && data[7] <= LF_EM410X_CYCLE_MAX &&
-           data[8] >= 1 && data[8] <= 10;
+    if (length < LF_EM410X_CYCLE_V1_SIZE || data[5] != 0xC7 ||
+        data[7] > LF_EM410X_CYCLE_MAX || data[8] < 1 || data[8] > 10) return false;
+    if (data[6] == 1) return data[7] >= 2;
+    return data[6] == 2 && length >= LF_EM410X_CYCLE_SIZE && data[7] >= 1 && data[44] <= 30;
+}
+
+static void cycle_gap_stop(void) {
+    m_gap_active = false;
+    if (m_gap_timer_created) APP_ERROR_CHECK(app_timer_stop(m_cycle_gap_timer));
 }
 
 static void lf_field_lost(void) {
+    cycle_gap_stop();
     // Open the incident interruption, so that the next event can be in and out normally
     g_is_tag_emulating = false;  // Reset the flag in the emulation
     m_is_lf_emulating = false;
@@ -126,6 +138,21 @@ static void lpcomp_init(void) {
     APP_ERROR_CHECK(err_code);
 }
 
+static void cycle_gap_tick(void *context) {
+    (void)context;
+    if (!m_gap_active || !m_is_lf_emulating) return;
+    if (!is_lf_field_exists()) {
+        lf_field_lost();
+        return;
+    }
+    if (--m_gap_remaining) {
+        APP_ERROR_CHECK(app_timer_start(m_cycle_gap_timer, APP_TIMER_TICKS(100), NULL));
+    } else {
+        m_gap_active = false;
+        nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
+    }
+}
+
 static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
     if (event_type != NRFX_PWM_EVT_STOPPED) {
         return;
@@ -139,6 +166,14 @@ static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
             m_cycle_elapsed = 0;
             m_cycle_index = (m_cycle_index + 1) % m_cycle_count;
             m_pwm_seq = &m_cycle_sequences[m_cycle_index];
+            if (m_cycle_gap_steps) {
+                // PWM is stopped and LF_MOD is clear. Check the reader field every
+                // 100 ms while silent; never busy-wait for a multi-second gap in an ISR.
+                m_gap_remaining = m_cycle_gap_steps;
+                m_gap_active = true;
+                APP_ERROR_CHECK(app_timer_start(m_cycle_gap_timer, APP_TIMER_TICKS(100), NULL));
+                return;
+            }
         }
         // Field still present — play another finite burst then check again.
         nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
@@ -171,6 +206,10 @@ static void pwm_init(void) {
 }
 
 static void lf_sense_enable(void) {
+    if (!m_gap_timer_created) {
+        APP_ERROR_CHECK(app_timer_create(&m_cycle_gap_timer, APP_TIMER_MODE_SINGLE_SHOT, cycle_gap_tick));
+        m_gap_timer_created = true;
+    }
     // PWM bit timing divides HFCLK by a fixed ratio. On HFINT (64 MHz RC,
     // ±1.5% at 25°C after factory trim, wider over temperature) this gives a
     // chip-to-chip spread that NRZ readers — which see cumulative error across
@@ -200,6 +239,8 @@ static void lf_sense_enable(void) {
 }
 
 static void lf_sense_disable(void) {
+    cycle_gap_stop();
+    m_is_lf_emulating = false;
     nrfx_pwm_uninit(&m_broadcast);
     nrfx_lpcomp_uninit();
     m_pwm_seq = NULL;
@@ -243,6 +284,7 @@ void lf_tag_125khz_sense_switch(bool enable) {
  */
 int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
     m_cycle_count = 1;
+    m_cycle_gap_steps = 0;
     m_cycle_index = m_cycle_elapsed = 0;
     // ensure buffer size is large enough for specific tag type,
     // so that tag data (e.g., card numbers) can be converted to corresponding pwm sequence here.
@@ -255,6 +297,7 @@ int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
         if (type == TAG_TYPE_EM410X && lf_em410x_cycle_valid(buffer->buffer, buffer->length)) {
             m_cycle_count = buffer->buffer[7];
             m_cycle_bursts = buffer->buffer[8];
+            m_cycle_gap_steps = buffer->buffer[6] == 2 ? buffer->buffer[44] : 0;
             // Precompute in thread context. ISR switches pointers only; no allocation
             // or rewriting a waveform that EasyDMA might still be transmitting.
             for (uint8_t i = 0; i < m_cycle_count; i++) {
@@ -265,7 +308,7 @@ int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
                 m_cycle_sequences[i].values.p_wave_form = m_cycle_values[i];
             }
             m_pwm_seq = &m_cycle_sequences[0];
-            return LF_EM410X_CYCLE_SIZE;
+            return buffer->buffer[6] == 2 ? LF_EM410X_CYCLE_SIZE : LF_EM410X_CYCLE_V1_SIZE;
         }
         NRF_LOG_INFO("load lf em410x%s data finish.", type == TAG_TYPE_EM410X_ELECTRA ? " electra" : "");
         return lf_em410x_id_size(type);
@@ -347,7 +390,8 @@ int lf_tag_em410x_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffe
     // Make sure to load this tag before allowing saving
     // Just save the original card package directly
     if (m_tag_type == TAG_TYPE_EM410X) {
-        if (lf_em410x_cycle_valid(buffer->buffer, buffer->length)) return LF_EM410X_CYCLE_SIZE;
+        if (lf_em410x_cycle_valid(buffer->buffer, buffer->length))
+            return buffer->buffer[6] == 2 ? LF_EM410X_CYCLE_SIZE : LF_EM410X_CYCLE_V1_SIZE;
         return LF_EM410X_TAG_ID_SIZE;
     }
     if (m_tag_type == TAG_TYPE_EM410X_ELECTRA) {

@@ -4,7 +4,7 @@ using System.Linq;
 namespace ChameLab.Models;
 
 /// <summary>Additional EM410x UIDs; the slot's primary card is always first.</summary>
-public sealed record LfCardCycle(int Bursts, byte[][] ExtraIds)
+public sealed record LfCardCycle(int Bursts, byte[][] ExtraIds, int GapSteps = 0)
 {
     public static LfCardCycle Parse(string text, int bursts)
     {
@@ -25,7 +25,7 @@ public sealed record LfCardCycle(int Bursts, byte[][] ExtraIds)
 
     public byte[] Encode()
     {
-        if (Bursts is < 1 or > 10 || ExtraIds.Length > 7 || ExtraIds.Any(id => id.Length != 5))
+        if (Bursts is < 1 or > 10 || GapSteps is < 0 or > 30 || ExtraIds.Length > 7 || ExtraIds.Any(id => id.Length != 5))
             throw new ArgumentException("Invalid EM410x cycle.");
         var data = new byte[2 + 5 * ExtraIds.Length];
         data[0] = (byte)Bursts;
