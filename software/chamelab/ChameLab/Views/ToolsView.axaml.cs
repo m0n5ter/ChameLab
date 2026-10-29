@@ -10,9 +10,9 @@ using ChameLab.ViewModels;
 
 namespace ChameLab.Views;
 
-public partial class SniffView : UserControl
+public partial class ToolsView : UserControl
 {
-    public SniffView()
+    public ToolsView()
     {
         InitializeComponent();
         FramesList.SelectionChanged += (_, _) => UpdateCopyLabel();
@@ -41,7 +41,7 @@ public partial class SniffView : UserControl
     /// </summary>
     private void OnFrameTapped(object? sender, TappedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse || DataContext is not SniffViewModel vm) return;
+        if (e.Pointer.Type == PointerType.Mouse || DataContext is not ToolsViewModel vm) return;
         if ((e.Source as Control)?.FindAncestorOfType<ListBoxItem>(includeSelf: true) is not { DataContext: HfAnnotatedFrame tapped }
             || FramesList.SelectedItems is not { } selected)
             return;
@@ -63,9 +63,9 @@ public partial class SniffView : UserControl
 
     private async void OnCopyFrames(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not SniffViewModel vm || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        if (DataContext is not ToolsViewModel vm || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
         var picked = FramesList.SelectedItems?.OfType<HfAnnotatedFrame>().ToList();
-        var text = SniffViewModel.FramesText(picked is { Count: > 0 } ? picked : vm.HfAnnotated);
+        var text = ToolsViewModel.FramesText(picked is { Count: > 0 } ? picked : vm.HfAnnotated);
         try { await clipboard.SetTextAsync(text); }
         catch { return; /* clipboard unavailable (browser without permission) */ }
         ToolTip.SetTip(CopyFramesButton, "Copied");

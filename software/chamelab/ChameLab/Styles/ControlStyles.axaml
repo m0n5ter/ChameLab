@@ -348,6 +348,7 @@
     <Setter Property="LineBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="ThresholdBrush" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
     <Setter Property="GapBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
+    <Setter Property="CursorBrush" Value="{DynamicResource BrandAmberBrush}" />
   </Style>
   <Style Selector="c|BlockStrip">
     <Setter Property="PendingBrush" Value="{actipro:ThemeResource Container5BackgroundBrush}" />

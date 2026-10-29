@@ -5,40 +5,30 @@
              xmlns:c="using:ChameLab.Controls"
              xmlns:m="using:ChameLab.Models"
              xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
-             x:Class="ChameLab.Views.SniffView"
-             x:DataType="vm:SniffViewModel">
+             x:Class="ChameLab.Views.ToolsView"
+             x:DataType="vm:ToolsViewModel">
 
   <UserControl.Styles>
-    <!-- HF / LF: large tiles like the Add card sources; the chosen one is framed in the accent color. -->
-    <Style Selector="RadioButton.band">
-      <Setter Property="Template">
-        <ControlTemplate>
-          <Border Name="PART_Bg" Background="{actipro:ThemeResource Container1BackgroundBrush}"
-                  BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="1"
-                  CornerRadius="10" Padding="14">
-            <ContentPresenter Content="{TemplateBinding Content}" Background="Transparent"
-                              Foreground="{TemplateBinding Foreground}" />
-          </Border>
-        </ControlTemplate>
-      </Setter>
-      <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <!-- Tool tiles, like the Add card sources: icon beside a label and a one-line hint. -->
+    <Style Selector="Button.tile.source">
+      <Setter Property="Padding" Value="14" />
+      <Setter Property="CornerRadius" Value="10" />
     </Style>
-    <Style Selector="RadioButton.band:pointerover /template/ Border#PART_Bg">
-      <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
-    </Style>
-    <Style Selector="RadioButton.band:checked /template/ Border#PART_Bg">
-      <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
-      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
-    </Style>
-    <Style Selector="RadioButton.band Border.iconwell">
+    <Style Selector="Button.tile.source Border.iconwell">
       <Setter Property="Width" Value="32" />
       <Setter Property="Height" Value="32" />
       <Setter Property="CornerRadius" Value="8" />
     </Style>
-    <Style Selector="RadioButton.band Border.iconwell > PathIcon">
+    <Style Selector="Button.tile.source Border.iconwell > PathIcon">
       <Setter Property="Width" Value="16" />
       <Setter Property="Height" Value="16" />
+    </Style>
+
+    <!-- Legend swatches under the waveform. -->
+    <Style Selector="StackPanel.legend > TextBlock">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
     </Style>
 
     <!-- Short of room: icon only (the tooltip names the action), as in the card editor. -->
@@ -65,9 +55,6 @@
       <Setter Property="Padding" Value="8,5" />
       <Setter Property="MinHeight" Value="0" />
     </Style>
-    <Style Selector="c|InlineStack.card">
-      <Setter Property="Margin" Value="28,0,0,0" />
-    </Style>
     <Style Selector="TextBlock.dir">
       <Setter Property="FontSize" Value="12" />
       <Setter Property="FontWeight" Value="SemiBold" />
@@ -92,36 +79,54 @@
 
     <!-- ==================== Header: stays put while the results scroll ==================== -->
     <StackPanel Grid.Row="0" Spacing="10">
-      <TextBlock Text="Sniff" Classes="h1" />
-
-      <UniformGrid Columns="2" ColumnSpacing="8">
-        <RadioButton Classes="band" GroupName="SniffBand" IsChecked="{Binding IsHf}"
-                     ToolTip.Tip="Listen to a reader as a card">
+      <!-- The list of tools -->
+      <StackPanel Spacing="2" IsVisible="{Binding IsHome}">
+        <TextBlock Text="Tools" Classes="h1" />
+        <TextBlock Classes="caption" TextWrapping="Wrap"
+                   Text="Look at what goes over the air between readers and cards." />
+      </StackPanel>
+      <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8" IsVisible="{Binding IsHome}">
+        <Button Classes="tile source" Command="{Binding OpenHfCommand}"
+                ToolTip.Tip="Answer a reader as a card and record both sides">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Border Classes="iconwell blue" VerticalAlignment="Center">
               <PathIcon Data="{StaticResource Icon.sniff}" />
             </Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="HF" FontWeight="SemiBold" />
+              <TextBlock Text="Sniff HF" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
               <TextBlock Text="13.56 MHz · ISO14443-A" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
           </Grid>
-        </RadioButton>
-        <RadioButton Classes="band" GroupName="SniffBand" IsChecked="{Binding IsLf}"
-                     ToolTip.Tip="Record the raw signal at the antenna">
+        </Button>
+        <Button Classes="tile source" Command="{Binding OpenLfCommand}"
+                ToolTip.Tip="Record the raw signal at the antenna">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Border Classes="iconwell amber" VerticalAlignment="Center">
               <PathIcon Data="{StaticResource Icon.sniff}" />
             </Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="LF" FontWeight="SemiBold" />
+              <TextBlock Text="Sniff LF" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
               <TextBlock Text="125 kHz · raw signal" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
           </Grid>
-        </RadioButton>
+        </Button>
       </UniformGrid>
+
+      <!-- A tool: Back to the list, as in Add card. -->
+      <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10" IsVisible="{Binding !IsHome}">
+        <Button Classes="icon" Margin="-8,0,0,0" Command="{Binding BackCommand}"
+                ToolTip.Tip="Back to the tools" b:DialogKeys.IsBack="True" VerticalAlignment="Center">
+          <PathIcon Data="{StaticResource Icon.back}" />
+        </Button>
+        <Border Grid.Column="1" Classes="iconwell" Classes.blue="{Binding IsHf}" Classes.amber="{Binding IsLf}"
+                VerticalAlignment="Center">
+          <PathIcon Data="{StaticResource Icon.sniff}" />
+        </Border>
+        <TextBlock Grid.Column="2" Classes="h1" VerticalAlignment="Center"
+                   Text="{Binding IsHf, Converter={x:Static vm:ToolsViewModel.ToolTitle}}" />
+      </Grid>
 
       <!-- HF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsHf}">
@@ -146,7 +151,7 @@
                   c:ActionRow.Priority="2" ToolTip.Tip="Listen to the reader now">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.sniff}" />
-              <TextBlock Text="{Binding IsBusy, Converter={x:Static vm:SniffViewModel.CaptureLabel}}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding IsBusy, Converter={x:Static vm:ToolsViewModel.CaptureLabel}}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Command="{Binding HfLoadCommand}" IsEnabled="{Binding CanUseFiles}" c:ActionRow.Priority="1"
@@ -202,7 +207,7 @@
 
     <!-- ==================== Results ==================== -->
     <ScrollViewer Grid.Row="1" Margin="0,4,0,0">
-      <StackPanel Spacing="12" Margin="0,0,0,64">
+      <StackPanel Spacing="12">
 
         <!-- ========== HF ========== -->
         <StackPanel Spacing="12" IsVisible="{Binding IsHf}">
@@ -250,8 +255,9 @@
                       <!-- The key once found, else the actions to find it. -->
                       <StackPanel Orientation="Horizontal" Spacing="10"
                                   IsVisible="{Binding Key, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                        <Border Classes="keybadge">
-                          <SelectableTextBlock Classes="mono" FontSize="15" FontWeight="SemiBold" Text="{Binding Key}" />
+                        <Border Classes="keybadge" VerticalAlignment="Center">
+                          <SelectableTextBlock Classes="mono" FontSize="15" FontWeight="SemiBold" Text="{Binding Key}"
+                                               VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Classes="caption" VerticalAlignment="Center"
                                    Text="{Binding Method, StringFormat='via {0}'}" />
@@ -301,14 +307,14 @@
                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.ItemTemplate>
                   <DataTemplate x:DataType="m:HfAnnotatedFrame">
-                    <Grid ColumnDefinitions="36,*" Classes.dim="{Binding IsEncrypted}">
-                      <TextBlock Classes="caption" Text="{Binding Index}" VerticalAlignment="Top" />
-                      <c:InlineStack Grid.Column="1" Spacing="14" Classes.card="{Binding !Frame.IsReader}">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
-                          <TextBlock Classes="dir" Classes.card="{Binding !Frame.IsReader}" MinWidth="46"
-                                     Text="{Binding Frame.IsReader, Converter={x:Static vm:SniffViewModel.DirectionLabel}}" />
-                          <TextBlock Classes="mono" FontSize="12" Text="{Binding Frame.Hex}" />
-                        </StackPanel>
+                    <!-- Number, sender, then the bytes with their meaning beside them, or under the bytes when
+                         there is no room. -->
+                    <Grid ColumnDefinitions="36,54,*" Classes.dim="{Binding IsEncrypted}">
+                      <TextBlock Classes="caption" Text="{Binding Index}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                      <TextBlock Grid.Column="1" Classes="dir" Classes.card="{Binding !Frame.IsReader}" VerticalAlignment="Top"
+                                 Text="{Binding Frame.IsReader, Converter={x:Static vm:ToolsViewModel.DirectionLabel}}" />
+                      <c:InlineStack Grid.Column="2" Spacing="14">
+                        <TextBlock Classes="mono" FontSize="12" Text="{Binding Frame.Hex}" TextWrapping="Wrap" />
                         <TextBlock Classes="caption" Text="{Binding Label}" TextWrapping="Wrap" VerticalAlignment="Top" />
                       </c:InlineStack>
                     </Grid>
@@ -351,50 +357,78 @@
               </Grid>
               <Border CornerRadius="6" ClipToBounds="True"
                       Background="{actipro:ThemeResource Container2BackgroundBrush}">
-                <c:LfWaveform Height="200" Samples="{Binding Samples}" Zoom="{Binding Zoom}"
+                <c:LfWaveform Height="224" Margin="0,0,0,4" Samples="{Binding Samples}" Zoom="{Binding Zoom}"
+                              CursorIndex="{Binding CursorIndex}"
                               Threshold="{Binding Summary.Threshold, FallbackValue=0}"
                               GapThreshold="{Binding Summary.GapThreshold, FallbackValue=0}" />
               </Border>
-              <TextBlock Classes="caption" TextWrapping="Wrap"
-                         Text="{x:Static vm:SniffViewModel.WaveformHint}" />
-              <TextBlock Classes="caption" TextWrapping="Wrap"
-                         Text="The dashed line splits high from low for decoding; shaded stretches fall below the gap threshold (the field dropped out)." />
+              <TextBlock Classes="caption" Text="{Binding CursorText}" TextWrapping="Wrap" />
+              <WrapPanel ItemSpacing="16" LineSpacing="4">
+                <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
+                  <Border Width="14" Height="8" CornerRadius="2" Background="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+                  <TextBlock Text="Signal" />
+                </StackPanel>
+                <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
+                  <Line StartPoint="0,0" EndPoint="16,0" StrokeThickness="1.5" StrokeDashArray="2,2"
+                        Stroke="{actipro:ThemeResource DefaultForegroundBrushTertiary}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Summary.Threshold, StringFormat='Decode threshold 0x{0:X2}', FallbackValue=''}" />
+                </StackPanel>
+                <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
+                  <Line StartPoint="0,0" EndPoint="16,0" StrokeThickness="1.5" StrokeDashArray="1,2"
+                        Stroke="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Summary.GapThreshold, StringFormat='Gap threshold 0x{0:X2}', FallbackValue=''}" />
+                </StackPanel>
+                <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
+                  <Border Width="14" Height="10" CornerRadius="2" Background="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" Opacity="0.3" />
+                  <TextBlock Text="Field gap" />
+                </StackPanel>
+                <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
+                  <Border Width="2" Height="12" Background="{DynamicResource BrandAmberBrush}" />
+                  <TextBlock Text="Cursor" />
+                </StackPanel>
+                <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
+                  <Border Width="14" Height="10" CornerRadius="2" BorderThickness="1.5"
+                          BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+                  <TextBlock Text="View in the capture" />
+                </StackPanel>
+              </WrapPanel>
             </StackPanel>
           </Border>
 
           <Border Classes="card" IsVisible="{Binding HasCapture}">
-            <StackPanel Spacing="10">
-              <TextBlock Text="Manchester decode" Classes="h2" />
-              <WrapPanel ItemSpacing="12" LineSpacing="8">
-                <ComboBox ItemsSource="{Binding ClockDivisors}" SelectedItem="{Binding ClockDivisor}"
-                          MinWidth="120" VerticalAlignment="Center" ToolTip.Tip="Carrier cycles per bit">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Text="Manchester decode" Classes="h2" />
+                  <TextBlock Classes="caption" Text="{Binding DecodeText}" TextWrapping="Wrap" />
+                </StackPanel>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding ClockDivisors}" SelectedItem="{Binding ClockDivisor}"
+                          VerticalAlignment="Center" ToolTip.Tip="Carrier cycles per bit">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="x:Int32">
                       <TextBlock Text="{Binding StringFormat='RF/{0}'}" />
                     </DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
-                <CheckBox Content="Invert" IsChecked="{Binding Invert}" VerticalAlignment="Center"
+                <CheckBox Grid.Column="2" Content="Invert" IsChecked="{Binding Invert}" VerticalAlignment="Center"
                           ToolTip.Tip="Swap high and low: decodes the bits inverted" />
-              </WrapPanel>
-              <TextBlock Classes="caption" Text="{Binding DecodeText}" TextWrapping="Wrap" />
-
-              <StackPanel Spacing="10" IsVisible="{Binding HasBits}">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                  <SelectableTextBlock Classes="mono" Text="{Binding Bits}" TextWrapping="Wrap" />
-                  <Button Grid.Column="1" Classes="icon" VerticalAlignment="Top" b:CopyToClipboard.Text="{Binding Bits}">
-                    <PathIcon Data="{StaticResource Icon.copy}" />
-                  </Button>
-                </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                  <TextBlock Classes="caption" Text="Hex" VerticalAlignment="Center" />
-                  <SelectableTextBlock Grid.Column="1" Classes="mono" Text="{Binding BitsHex}" TextWrapping="Wrap"
-                                       VerticalAlignment="Center" />
-                  <Button Grid.Column="2" Classes="icon" b:CopyToClipboard.Text="{Binding BitsHex}">
-                    <PathIcon Data="{StaticResource Icon.copy}" />
-                  </Button>
-                </Grid>
-              </StackPanel>
+              </Grid>
+              <Grid Classes="facts" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12"
+                    RowSpacing="2" IsVisible="{Binding HasBits}">
+                <TextBlock Grid.Row="0" Classes="caption" Text="Bits" VerticalAlignment="Top" Margin="0,2,0,0" />
+                <SelectableTextBlock Grid.Row="0" Grid.Column="1" Classes="mono" FontSize="12" Text="{Binding Bits}"
+                                     TextWrapping="Wrap" VerticalAlignment="Center" />
+                <Button Grid.Row="0" Grid.Column="2" Classes="icon" VerticalAlignment="Top"
+                        b:CopyToClipboard.Text="{Binding BitsPlain}">
+                  <PathIcon Data="{StaticResource Icon.copy}" />
+                </Button>
+                <TextBlock Grid.Row="1" Classes="caption" Text="Hex" />
+                <SelectableTextBlock Grid.Row="1" Grid.Column="1" Classes="mono" FontSize="12" Text="{Binding BitsHex}"
+                                     TextWrapping="Wrap" VerticalAlignment="Center" />
+                <Button Grid.Row="1" Grid.Column="2" Classes="icon" b:CopyToClipboard.Text="{Binding BitsHex}">
+                  <PathIcon Data="{StaticResource Icon.copy}" />
+                </Button>
+              </Grid>
             </StackPanel>
           </Border>
 

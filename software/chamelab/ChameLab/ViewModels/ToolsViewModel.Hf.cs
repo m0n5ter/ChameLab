@@ -17,7 +17,7 @@ namespace ChameLab.ViewModels;
 /// keys from the authentications seen (mfkey32 from two, mfkey64 from one the card accepted). Captures save to and
 /// load from Proxmark3 <c>.trace</c> files.
 /// </summary>
-public sealed partial class SniffViewModel
+public sealed partial class ToolsViewModel
 {
     private bool? _isHfSupported;
     private int _hfSeconds = 5;
@@ -205,10 +205,8 @@ public sealed partial class SniffViewModel
 
     // ---- View helpers --------------------------------------------------
 
-    public static readonly Avalonia.Data.Converters.IValueConverter BandCaption =
-        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(hf => hf
-            ? "Listen to a 13.56 MHz reader as a card: see what it asks for and recover MIFARE Classic keys from its authentications."
-            : "Record the raw 125 kHz signal at the Chameleon's antenna and take it apart: levels, modulation and the bits it carries.");
+    public static readonly Avalonia.Data.Converters.IValueConverter ToolTitle =
+        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(hf => hf ? "Sniff HF" : "Sniff LF");
 
     public static readonly Avalonia.Data.Converters.IValueConverter DirectionLabel =
         new Avalonia.Data.Converters.FuncValueConverter<bool, string>(reader => reader ? "Reader" : "Card");

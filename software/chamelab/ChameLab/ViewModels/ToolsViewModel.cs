@@ -11,12 +11,13 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>
-/// The Sniff page, HF (see SniffViewModel.Hf.cs) and LF. LF sniffing records the 125 kHz antenna signal (<c>LF_SNIFF</c>), shows it as a plot, sums up its levels,
+/// The Tools page: a choice of tools, each opening its own view with a Back button (like Add card). HF sniffing
+/// is in ToolsViewModel.Hf.cs. LF sniffing records the 125 kHz antenna signal (<c>LF_SNIFF</c>), shows it as a plot, sums up its levels,
 /// guesses its modulation and decodes it as Manchester. Captures save to and load from raw <c>.bin</c> files
 /// (one byte per sample, the same as the CLI's <c>lf sniff --out</c>), so a saved one can be studied without
 /// a device.
 /// </summary>
-public sealed partial class SniffViewModel : PageViewModelBase
+public sealed partial class ToolsViewModel : PageViewModelBase
 {
     /// <summary>How long the firmware may wait for samples; its 4000-sample buffer fills in 32 ms.</summary>
     private const int CaptureTimeoutMs = 2000;
@@ -30,10 +31,11 @@ public sealed partial class SniffViewModel : PageViewModelBase
     private int _clockDivisor = 64;
     private bool _invert;
     private double _zoom = 1;
+    private int _cursorIndex = -1;
     private bool? _isSupported;
-    private bool _isHf = true;
+    private SniffTool _tool;
 
-    public SniffViewModel(DeviceService device) : base("Sniff", "sniff")
+    public ToolsViewModel(DeviceService device) : base("Tools", "tools")
     {
         _device = device;
         var idle = this.WhenAnyValue(x => x.IsBusy, busy => !busy);
@@ -44,6 +46,9 @@ public sealed partial class SniffViewModel : PageViewModelBase
         LoadCommand = ReactiveCommand.CreateFromTask(LoadAsync, idle);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, hasCapture);
         InitHf(idle);
+        OpenHfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Hf; });
+        OpenLfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Lf; });
+        BackCommand = ReactiveCommand.Create(() => { Tool = SniffTool.None; }, idle);
         _device.StateChanged += _ => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             this.RaisePropertyChanged(nameof(IsConnected));
@@ -72,23 +77,27 @@ public sealed partial class SniffViewModel : PageViewModelBase
 
     public bool IsUnsupported => IsSupported == false;
 
-    /// <summary>The 13.56 MHz part of the page is shown; else the 125 kHz one.</summary>
-    public bool IsHf
+    /// <summary>The tool shown; <see cref="SniffTool.None"/> for the list of tools.</summary>
+    public SniffTool Tool
     {
-        get => _isHf;
-        set
+        get => _tool;
+        private set
         {
-            if (value == _isHf) return;
-            this.RaiseAndSetIfChanged(ref _isHf, value);
+            this.RaiseAndSetIfChanged(ref _tool, value);
+            this.RaisePropertyChanged(nameof(IsHome));
+            this.RaisePropertyChanged(nameof(IsHf));
             this.RaisePropertyChanged(nameof(IsLf));
         }
     }
 
-    public bool IsLf
-    {
-        get => !_isHf;
-        set => IsHf = !value;
-    }
+    public bool IsHome => _tool == SniffTool.None;
+    public bool IsHf => _tool == SniffTool.Hf;
+    public bool IsLf => _tool == SniffTool.Lf;
+
+    public ICommand OpenHfCommand { get; }
+    public ICommand OpenLfCommand { get; }
+    /// <summary>Back from a tool to the list; what it captured stays for the next visit.</summary>
+    public ICommand BackCommand { get; }
 
     public override async Task OnActivatedAsync()
     {
@@ -117,6 +126,7 @@ public sealed partial class SniffViewModel : PageViewModelBase
             // Decode at the bit rate the capture appears to use.
             if (_modulation?.ClockDivisor is { } clock) _clockDivisor = clock;
             Zoom = 1;
+            CursorIndex = -1;
             this.RaisePropertyChanged(nameof(ClockDivisor));
             this.RaisePropertyChanged(nameof(HasCapture));
             this.RaisePropertyChanged(nameof(Summary));
@@ -221,10 +231,27 @@ public sealed partial class SniffViewModel : PageViewModelBase
 
     public string ZoomText => $"{_zoom:0.#}×";
 
+    /// <summary>Sample under the waveform's cursor; -1 for none.</summary>
+    public int CursorIndex
+    {
+        get => _cursorIndex;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _cursorIndex, value);
+            this.RaisePropertyChanged(nameof(CursorText));
+        }
+    }
+
+    /// <summary>Where the cursor is and what the signal reads there.</summary>
+    public string CursorText => _samples is { } s && _cursorIndex >= 0 && _cursorIndex < s.Length && _summary is { } sum
+        ? $"Sample {_cursorIndex} · {_cursorIndex * LfSniff.SampleUs / 1000.0:0.000} ms · 0x{s[_cursorIndex]:X2} " +
+          (s[_cursorIndex] < sum.GapThreshold ? "(gap)" : s[_cursorIndex] > sum.Threshold ? "(high)" : "(low)")
+        : WaveformHint;
+
     /// <summary>How to zoom and pan, for the input the device has.</summary>
     public static string WaveformHint { get; } = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()
-        ? "Pinch or the slider zooms, dragging pans."
-        : "The wheel, a pinch or the slider zooms, dragging pans.";
+        ? "Tap to read a sample. Pinch or the slider zooms, dragging pans; the strip below moves the view."
+        : "Point to read a sample. The wheel, a pinch or the slider zooms, dragging pans; the strip below moves the view.";
 
     // ---- Decode --------------------------------------------------------
 
@@ -259,6 +286,7 @@ public sealed partial class SniffViewModel : PageViewModelBase
         this.RaisePropertyChanged(nameof(DecodeText));
         this.RaisePropertyChanged(nameof(Bits));
         this.RaisePropertyChanged(nameof(BitsHex));
+        this.RaisePropertyChanged(nameof(BitsPlain));
     }
 
     public bool HasBits => _decode is { Bits.Count: > 0 };
@@ -271,8 +299,11 @@ public sealed partial class SniffViewModel : PageViewModelBase
         var d => $"{d.Bits.Count} bits · {d.Errors} {(d.Errors == 1 ? "break" : "breaks")} in the code",
     };
 
-    /// <summary>The decoded bits, 32 to a line.</summary>
-    public string Bits => _decode is { } d ? string.Join('\n', d.BitString.Chunk(32).Select(c => new string(c))) : "";
+    /// <summary>The decoded bits in groups of eight, wrapping with the width.</summary>
+    public string Bits => _decode is { } d ? string.Join(' ', d.BitString.Chunk(8).Select(c => new string(c))) : "";
+
+    /// <summary>The decoded bits in one run, for the clipboard.</summary>
+    public string BitsPlain => _decode?.BitString ?? "";
 
     public string BitsHex => _decode?.Hex ?? "";
 
@@ -288,3 +319,5 @@ public sealed partial class SniffViewModel : PageViewModelBase
             RowLabel = row => (row * 16).ToString("X4"),
         };
 }
+
+public enum SniffTool { None, Hf, Lf }
