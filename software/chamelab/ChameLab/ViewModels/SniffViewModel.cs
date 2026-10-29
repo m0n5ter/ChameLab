@@ -11,12 +11,12 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>
-/// LF sniffing: records the 125 kHz antenna signal (<c>LF_SNIFF</c>), shows it as a plot, sums up its levels,
+/// The Sniff page, HF (see SniffViewModel.Hf.cs) and LF. LF sniffing records the 125 kHz antenna signal (<c>LF_SNIFF</c>), shows it as a plot, sums up its levels,
 /// guesses its modulation and decodes it as Manchester. Captures save to and load from raw <c>.bin</c> files
 /// (one byte per sample, the same as the CLI's <c>lf sniff --out</c>), so a saved one can be studied without
 /// a device.
 /// </summary>
-public sealed class SniffViewModel : PageViewModelBase
+public sealed partial class SniffViewModel : PageViewModelBase
 {
     /// <summary>How long the firmware may wait for samples; its 4000-sample buffer fills in 32 ms.</summary>
     private const int CaptureTimeoutMs = 2000;
@@ -31,6 +31,7 @@ public sealed class SniffViewModel : PageViewModelBase
     private bool _invert;
     private double _zoom = 1;
     private bool? _isSupported;
+    private bool _isHf = true;
 
     public SniffViewModel(DeviceService device) : base("Sniff", "sniff")
     {
@@ -42,10 +43,12 @@ public sealed class SniffViewModel : PageViewModelBase
         CaptureCommand = ReactiveCommand.CreateFromTask(CaptureAsync, canCapture);
         LoadCommand = ReactiveCommand.CreateFromTask(LoadAsync, idle);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, hasCapture);
+        InitHf(idle);
         _device.StateChanged += _ => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             this.RaisePropertyChanged(nameof(IsConnected));
             IsSupported = null;
+            IsHfSupported = null;
         });
     }
 
@@ -69,16 +72,36 @@ public sealed class SniffViewModel : PageViewModelBase
 
     public bool IsUnsupported => IsSupported == false;
 
+    /// <summary>The 13.56 MHz part of the page is shown; else the 125 kHz one.</summary>
+    public bool IsHf
+    {
+        get => _isHf;
+        set
+        {
+            if (value == _isHf) return;
+            this.RaiseAndSetIfChanged(ref _isHf, value);
+            this.RaisePropertyChanged(nameof(IsLf));
+        }
+    }
+
+    public bool IsLf
+    {
+        get => !_isHf;
+        set => IsHf = !value;
+    }
+
     public override async Task OnActivatedAsync()
     {
-        if (!IsConnected || IsSupported is not null || _device.Client is not { } client) return;
+        if (!IsConnected || IsSupported is not null && IsHfSupported is not null || _device.Client is not { } client) return;
         try
         {
             var capabilities = await client.GetCapabilitiesAsync();
             // Firmware without the capability list returns none: then just try.
-            IsSupported = capabilities.Count == 0 ? null : capabilities.Contains((ushort)Command.LfSniff);
+            if (capabilities.Count == 0) return;
+            IsSupported = capabilities.Contains((ushort)Command.LfSniff);
+            IsHfSupported = capabilities.Contains((ushort)Command.Hf14aSniff);
         }
-        catch { IsSupported = null; }
+        catch { /* unknown: just try */ }
     }
 
     // ---- Capture -------------------------------------------------------

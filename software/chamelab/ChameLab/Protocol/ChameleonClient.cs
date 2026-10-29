@@ -585,6 +585,24 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return tags;
     }
 
+    /// <summary>
+    /// Records ISO14443-A traffic for <paramref name="timeoutMs"/> while the Chameleon answers a reader as the
+    /// card in its active slot: the reader's frames and its own answers, packed as <c>[bits:be16][bytes…]</c>
+    /// (bit 15 set for its answers). Needs emulator (tag) mode; an empty array when no reader spoke.
+    /// </summary>
+    public async Task<byte[]> Hf14aSniffAsync(int timeoutMs = 5000, CancellationToken ct = default)
+    {
+        timeoutMs = Math.Clamp(timeoutMs, 1, 30000);
+        var f = await conn.SendAsync(Command.Hf14aSniff, [(byte)(timeoutMs >> 8), (byte)timeoutMs],
+            timeoutMs: timeoutMs + 5000, ct: ct);
+        return f.Status switch
+        {
+            Status.Success or Status.HfTagOk => f.Data,
+            Status.HfTagNo => [],
+            _ => throw new ChameleonException($"HF sniff failed: {f.Status.Describe()}", f.Status),
+        };
+    }
+
     public async Task<Em410xTag> Em410xScanAsync(CancellationToken ct = default)
     {
         var f = await conn.SendAsync(Command.Em410xScan, timeoutMs: 4000, ct: ct);

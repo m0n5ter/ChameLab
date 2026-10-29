@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: HF sniffing on the Sniff page (HF / LF switch): for 3–30 s the Chameleon answers a reader as the card in its active slot and records the reader's frames and its own answers. Every frame is labelled (REQA, anticollision, SELECT, SAK, AUTH, nonces, Ultralight commands, ISO14443-4 APDUs with AID names and status words), the encrypted part of a MIFARE Classic session is marked, and the card, AIDs and authentications are summed up. Reader keys are recovered from its authentications in the app: mfkey32 from two tries on a block, mfkey64 from one the card accepted. Captures load and save as Proxmark3 .trace files
  - ChameLab: LF sniffing on the new Sniff page: records 32 ms of the 125 kHz antenna signal and shows it as a waveform (zoom with the wheel or slider, drag to pan) with its levels, field gaps, a modulation and clock guess and a Manchester decode at a chosen RF/n clock, plain or inverted. Captures load and save as raw .bin files, also without a device
 
 ## [v1.0.20][2026-10-29] · firmware v2.3.3-cl

@@ -1,5 +1,6 @@
 using System;
 using System.Buffers.Binary;
+using System.Linq;
 using ChameLab.Models;
 using Crapto1Sharp;
 
@@ -36,6 +37,27 @@ public static class Mfkey32Recovery
 
         var key = MfKey.MfKey32(uid, nt0, nr0, ar0, nt1, nr1, ar1);
         return key == ulong.MaxValue ? null : key;
+    }
+
+    /// <summary>
+    /// Recovers the key of a sniffed authentication group: mfkey64 from an exchange the card answered (its
+    /// encrypted <c>at</c> pins the key down from one run), else mfkey32 from two exchanges. Null when there is
+    /// neither, or no pair gives a unique key.
+    /// </summary>
+    public static (ulong Key, string Method)? Recover(HfAuthGroup group)
+    {
+        if (group.Exchanges.FirstOrDefault(e => e.AtEnc is not null) is { AtEnc: { } at } full)
+            return (MfKey.MfKey64(group.Uid, full.Nt, full.NrEnc, full.ArEnc, at), "mfkey64");
+        var list = group.Exchanges;
+        for (var i = 0; i < list.Count; i++)
+        for (var j = i + 1; j < list.Count; j++)
+        {
+            if (list[i].Nt == list[j].Nt && list[i].NrEnc == list[j].NrEnc) continue;
+            var key = MfKey.MfKey32(group.Uid, list[i].Nt, list[i].NrEnc, list[i].ArEnc,
+                list[j].Nt, list[j].NrEnc, list[j].ArEnc);
+            if (key != ulong.MaxValue) return (key, "mfkey32");
+        }
+        return null;
     }
 
     /// <summary>Reads a 4-byte big-endian word (MSB first), matching the device's hex order.</summary>
