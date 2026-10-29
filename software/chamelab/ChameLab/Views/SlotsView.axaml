@@ -451,12 +451,17 @@
               </Grid>
               <ContentControl Content="{Binding Lf}" ContentTemplate="{StaticResource SlotLed}" />
               <StackPanel Spacing="10" IsVisible="{Binding ShowLfCycle}">
-                <TextBlock Text="Time per card (1–10 bursts, about 0.33 seconds each)" Classes="caption" TextWrapping="Wrap" />
-                <NumericUpDown Minimum="1" Maximum="10" Increment="1" FormatString="0" Value="{Binding CycleBursts}" />
-                <StackPanel Spacing="6" IsVisible="{Binding ShowCycleGap}">
-                  <TextBlock Text="Silence between cards (seconds)" Classes="caption" />
-                  <NumericUpDown Minimum="0" Maximum="3" Increment="0.1" FormatString="0.0" Value="{Binding CycleGapSeconds}" />
-                </StackPanel>
+                <Grid ColumnDefinitions="*,160" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                  <TextBlock Text="Time per card, bursts" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             ToolTip.Tip="1–10 bursts per card; one burst is about 0.33 seconds" />
+                  <NumericUpDown Grid.Column="1" Classes="stepper" Minimum="1" Maximum="10" Increment="1"
+                                 FormatString="0" Value="{Binding CycleBursts}" />
+                  <TextBlock Grid.Row="1" Text="Silence between cards, s" VerticalAlignment="Center"
+                             TextTrimming="CharacterEllipsis" IsVisible="{Binding ShowCycleGap}" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="stepper" IsVisible="{Binding ShowCycleGap}"
+                                 Minimum="0" Maximum="3" Increment="0.1" FormatString="0.0" Value="{Binding CycleGapSeconds}" />
+                </Grid>
+                <TextBlock Text="One burst is about 0.33 seconds." Classes="caption" TextWrapping="Wrap" />
                 <TextBlock Text="Drag cards to change transmission order. Each presentation starts from the first card."
                            Classes="caption" TextWrapping="Wrap" />
               </StackPanel>
