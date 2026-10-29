@@ -53,16 +53,13 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private SlotSideViewModel? _pickerSide;
     private string? _pickerFilter;
-    private bool _pickingCycle;
     private bool _supportsLfCycle;
-    private string _cycleIds = "", _savedCycleIds = "";
     private int _cycleBursts = 1, _savedCycleBursts = 1;
 
-    public bool ShowLfCycle => _supportsLfCycle && Lf.Type == TagSpecificType.Em410x && Lf.HasCard;
-    public string CycleIds { get => _cycleIds; set => SetField(ref _cycleIds, value, nameof(CycleIds)); }
+    public LfSlotListViewModel LfCards { get; }
+    public bool ShowLfCycle => _supportsLfCycle && LfCards.Cards.Count > 1;
     public int CycleBursts { get => _cycleBursts; set => SetField(ref _cycleBursts, value, nameof(CycleBursts)); }
-    public ICommand AddCycleCardCommand { get; }
-    private bool IsCycleDirty => ShowLfCycle && (CycleIds != _savedCycleIds || CycleBursts != _savedCycleBursts);
+    private bool IsCycleDirty => LfCards.IsDirty || (ShowLfCycle && CycleBursts != _savedCycleBursts);
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
         Action onChanged, Action<CardSave> openCard)
@@ -78,10 +75,10 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         Lf = new SlotSideViewModel(TagSenseType.Lf, info, library, colors, OnLfChanged, OpenPicker, SaveToLibraryAsync, openCard);
         Hf.Partner = Lf;
         Lf.Partner = Hf;
+        LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard);
         SetEmulator(Emulator.Defaults);
 
         ClosePickerCommand = ReactiveCommand.Create(ClosePicker);
-        AddCycleCardCommand = ReactiveCommand.Create(() => { OpenPicker(Lf); _pickingCycle = true; RebuildPicker(); });
     }
 
     public int SlotIndex => _slot;
@@ -113,7 +110,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         ClearSaveError();
         Hf.Discard();
         Lf.Discard();
-        CycleIds = _savedCycleIds;
+        LfCards.Discard();
         CycleBursts = _savedCycleBursts;
         SetEmulator(_savedEmulator);
     }
@@ -123,6 +120,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     {
         Hf.OnLibraryChanged();
         Lf.OnLibraryChanged();
+        LfCards.OnLibraryChanged();
         if (IsPicking) RebuildPicker();
     }
 
@@ -143,11 +141,12 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private void OnLfChanged()
     {
         Hf.RaiseLed();
-        if (!Lf.HasCard)
-        {
-            CycleIds = "";
-            CycleBursts = 1;
-        }
+        LfCards?.RefreshPrimary();
+        OnLfListChanged();
+    }
+
+    private void OnLfListChanged()
+    {
         this.RaisePropertyChanged(nameof(ShowLfCycle));
         RaiseDirty();
     }
@@ -211,9 +210,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                 ? await client.GetEm410xCycleAsync() : new LfCardCycle(1, []);
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                _savedCycleIds = cycle.Text;
                 _savedCycleBursts = cycle.Bursts;
-                CycleIds = _savedCycleIds;
+                LfCards.Load(_supportsLfCycle, cycle);
                 CycleBursts = _savedCycleBursts;
                 this.RaisePropertyChanged(nameof(ShowLfCycle));
             });
@@ -285,7 +283,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             var kind = ShownKind;
             var emulator = CurrentEmulator;
             // Validate before writing either frequency, so invalid input leaves the device untouched.
-            var cycle = ShowLfCycle ? LfCardCycle.Parse(CycleIds, CycleBursts) : null;
+            var cycle = _supportsLfCycle && Lf.Type == TagSpecificType.Em410x ? LfCards.Cycle(CycleBursts) : null;
             var progress = new Progress<MifareProgress>(p => Notify($"Uploading {p.Done}/{p.Total}…"));
 
             await client.WithSlotLockAsync(async () =>
@@ -319,10 +317,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                 Lf.MarkSaved();
                 if (cycle is null)
                 {
-                    CycleIds = "";
                     CycleBursts = 1;
                 }
-                _savedCycleIds = CycleIds;
+                LfCards.MarkSaved();
                 _savedCycleBursts = CycleBursts;
                 _savedEmulator = emulator;
                 _savedKind = _fieldsKind = TypeKind;
@@ -365,7 +362,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     /// <summary>The dialog listing the saved cards of one frequency is open.</summary>
     public bool IsPicking => _pickerSide is not null;
 
-    public string PickerTitle => $"Choose a saved {_pickerSide?.Label} card";
+    public string PickerTitle => _pickerSide == Lf && LfCards.HasCards
+        ? "Add a saved LF card" : $"Choose a saved {_pickerSide?.Label} card";
 
     public string? PickerFilter
     {
@@ -396,11 +394,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 if (!ReferenceEquals(_pickerSide, side)) return;
-                var cycle = _pickingCycle;
                 ClosePicker();
-                if (cycle)
-                    CycleIds = string.IsNullOrWhiteSpace(CycleIds) ? Convert.ToHexString(value.Card.Uid)
-                        : CycleIds.TrimEnd() + Environment.NewLine + Convert.ToHexString(value.Card.Uid);
+                if (side == Lf) LfCards.Add(value.Card);
                 else side.Pick(value.Card);
             });
         }
@@ -410,7 +405,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private void OpenPicker(SlotSideViewModel side)
     {
-        _pickingCycle = false;
+        if (side == Lf && !LfCards.CanAdd) return;
         _pickerSide = side;
         _pickerFilter = null;
         this.RaisePropertyChanged(nameof(PickerFilter));
@@ -421,7 +416,6 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private void ClosePicker()
     {
-        _pickingCycle = false;
         _pickerSide = null;
         PickerCards.Clear();
         this.RaisePropertyChanged(nameof(IsPicking));
@@ -433,7 +427,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         PickerCards.Clear();
         if (_pickerSide is not { } side) return;
         foreach (var card in _library.Cards.Where(c => c.Sense == side.Sense).Select(c => new CardItemViewModel(c)))
-            if ((!_pickingCycle || card.Card.Tag is TagSpecificType.Em410x or TagSpecificType.Em410x64)
+            if ((side != Lf || LfCards.CanChoose(card.Card))
                 && card.Matches(_pickerFilter)) PickerCards.Add(card);
         this.RaisePropertyChanged(nameof(PickerHasNoCards));
         this.RaisePropertyChanged(nameof(PickerEmptyText));

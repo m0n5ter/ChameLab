@@ -123,6 +123,53 @@
       </Grid>
     </DataTemplate>
 
+    <DataTemplate x:Key="SlotLed" x:DataType="vm:SlotSideViewModel">
+        <!-- LED color -->
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
+          <TextBlock Grid.Column="0" Text="LED color" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+          <Border Grid.Column="1" Classes="segmented ledmode">
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
+                           ToolTip.Tip="The firmware's own color: green for HF, blue for LF, red for a slot with both">
+                <TextBlock Text="Default" FontWeight="SemiBold" />
+              </RadioButton>
+              <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"
+                           ToolTip.Tip="The color of the saved card (needs the ChameLab firmware)">
+                <TextBlock Text="Card" FontWeight="SemiBold" />
+              </RadioButton>
+              <RadioButton Classes="segment" IsChecked="{Binding IsColorCustom}" IsEnabled="{Binding SupportsColors}"
+                           ToolTip.Tip="A color of your choice (needs the ChameLab firmware)">
+                <TextBlock Text="Custom" FontWeight="SemiBold" />
+              </RadioButton>
+            </StackPanel>
+          </Border>
+          <Panel Grid.Column="2" VerticalAlignment="Center">
+            <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="The color the slot LED shows"
+                    Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+            <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="Pick the LED color">
+              <Border Classes="swatch" Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+              <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedLeft">
+                  <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
+                           SelectedItem="{Binding CustomColor}" Background="Transparent" BorderThickness="0"
+                           Tapped="OnSwatchTapped">
+                    <ListBox.ItemsPanel>
+                      <ItemsPanelTemplate><UniformGrid Columns="8" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <Border Classes="swatch" Background="{Binding Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </Flyout>
+              </Button.Flyout>
+            </Button>
+          </Panel>
+        </Grid>
+
+    </DataTemplate>
+
     <!-- One frequency of the slot: its card, choose / clear, and the LED color. -->
     <DataTemplate x:Key="SlotSide" x:DataType="vm:SlotSideViewModel">
       <StackPanel Spacing="12">
@@ -187,49 +234,7 @@
           </StackPanel>
         </Grid>
 
-        <!-- LED color -->
-        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
-          <TextBlock Grid.Column="0" Text="LED color" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-          <Border Grid.Column="1" Classes="segmented ledmode">
-            <StackPanel Orientation="Horizontal">
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
-                           ToolTip.Tip="The firmware's own color: green for HF, blue for LF, red for a slot with both">
-                <TextBlock Text="Default" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"
-                           ToolTip.Tip="The color of the saved card (needs the ChameLab firmware)">
-                <TextBlock Text="Card" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorCustom}" IsEnabled="{Binding SupportsColors}"
-                           ToolTip.Tip="A color of your choice (needs the ChameLab firmware)">
-                <TextBlock Text="Custom" FontWeight="SemiBold" />
-              </RadioButton>
-            </StackPanel>
-          </Border>
-          <Panel Grid.Column="2" VerticalAlignment="Center">
-            <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="The color the slot LED shows"
-                    Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-            <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="Pick the LED color">
-              <Border Classes="swatch" Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-              <Button.Flyout>
-                <Flyout Placement="BottomEdgeAlignedLeft">
-                  <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
-                           SelectedItem="{Binding CustomColor}" Background="Transparent" BorderThickness="0"
-                           Tapped="OnSwatchTapped">
-                    <ListBox.ItemsPanel>
-                      <ItemsPanelTemplate><UniformGrid Columns="8" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                    <ListBox.ItemTemplate>
-                      <DataTemplate>
-                        <Border Classes="swatch" Background="{Binding Converter={x:Static conv:HexBrushConverter.Instance}}" />
-                      </DataTemplate>
-                    </ListBox.ItemTemplate>
-                  </ListBox>
-                </Flyout>
-              </Button.Flyout>
-            </Button>
-          </Panel>
-        </Grid>
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource SlotLed}" />
 
       </StackPanel>
     </DataTemplate>
@@ -395,18 +400,72 @@
 
           <!-- ===================== LF ===================== -->
           <Border Classes="card">
-            <StackPanel Spacing="16">
-              <ContentControl Content="{Binding Lf}" ContentTemplate="{StaticResource SlotSide}" />
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <Border Classes="chip lf"><TextBlock Text="LF" /></Border>
+                <TextBlock Grid.Column="1" Text="125 kHz" Classes="caption" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{Binding LfCards.CountLabel}" Classes="caption" VerticalAlignment="Center" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding LfCards.Cards}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:LfSlotCardViewModel">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <Button Classes="cardtile" Command="{Binding OpenCommand}" IsEnabled="{Binding HasMatch}"
+                              ToolTip.Tip="Open this card in Cards" HorizontalAlignment="Stretch">
+                        <Border Classes="cardclip">
+                          <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14"
+                                DataContext="{Binding Item}" x:DataType="vm:CardItemViewModel">
+                            <Border Background="{Binding ColorBrush}" />
+                            <StackPanel Grid.Column="1" Margin="0,10">
+                              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
+                              <TextBlock Text="{Binding Summary}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <PathIcon Grid.Column="2" Data="{StaticResource Icon.edit}" Width="16" Height="16"
+                                      Opacity="0.6" VerticalAlignment="Center" />
+                          </Grid>
+                        </Border>
+                      </Button>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <StackPanel Spacing="2">
+                          <Button Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}" Padding="5,2"
+                                  ToolTip.Tip="Move card up" AutomationProperties.Name="Move card up">
+                            <PathIcon Data="{StaticResource Icon.moveUp}" Width="16" Height="16" />
+                          </Button>
+                          <Button Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" Padding="5,2"
+                                  ToolTip.Tip="Move card down" AutomationProperties.Name="Move card down">
+                            <PathIcon Data="{StaticResource Icon.moveDown}" Width="16" Height="16" />
+                          </Button>
+                        </StackPanel>
+                        <Button Command="{Binding SaveCommand}" IsVisible="{Binding !HasMatch}" Padding="6"
+                                ToolTip.Tip="Add this card to Saved cards" AutomationProperties.Name="Save card">
+                          <PathIcon Data="{StaticResource Icon.save}" Width="16" Height="16" />
+                        </Button>
+                        <Button Classes="danger" Command="{Binding RemoveCommand}" Padding="6"
+                                ToolTip.Tip="Remove card from slot" AutomationProperties.Name="Remove card from slot">
+                          <PathIcon Data="{StaticResource Icon.delete}" Width="16" Height="16" />
+                        </Button>
+                      </StackPanel>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !LfCards.HasCards}" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Command="{Binding Lf.PickCommand}" IsEnabled="{Binding LfCards.CanAdd}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.cards}" />
+                    <TextBlock Text="{Binding LfCards.ChooseLabel}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+              <ContentControl Content="{Binding Lf}" ContentTemplate="{StaticResource SlotLed}" />
               <StackPanel Spacing="10" IsVisible="{Binding ShowLfCycle}">
-                <TextBlock Text="Cycle additional EM410x cards" FontWeight="SemiBold" />
-                <TextBlock Text="The primary card goes first. Add up to seven UIDs below, one per line, in playback order. Leave empty to use only the primary card."
-                           Classes="caption" TextWrapping="Wrap" />
-                <TextBox Text="{Binding CycleIds}" AcceptsReturn="True" MinHeight="90"
-                         PlaceholderText="0123456789&#10;AABBCCDDEE" />
-                <Button Content="Add from saved cards" Command="{Binding AddCycleCardCommand}" />
                 <TextBlock Text="Time per card (1–10 bursts, about 0.33 seconds each)" Classes="caption" TextWrapping="Wrap" />
                 <NumericUpDown Minimum="1" Maximum="10" Increment="1" FormatString="0" Value="{Binding CycleBursts}" />
-                <TextBlock Text="Each presentation starts from the primary card. Some readers require removing the device after an unknown UID."
+                <TextBlock Text="Cards are transmitted in list order. Each presentation starts from the first card."
                            Classes="caption" TextWrapping="Wrap" />
               </StackPanel>
             </StackPanel>

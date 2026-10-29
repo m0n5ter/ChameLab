@@ -5,10 +5,14 @@ UIDs, in order, repeating while a reader's field remains present. A new field
 starts at the primary UID. This is supported by both Ultra and Lite firmware.
 Other LF protocols, including Electra, retain single-card emulation.
 
-In the slot editor, choose the primary EM410x card, then add additional cards
-from Saved cards or enter their ten-digit hexadecimal UIDs, one per line.
-Line order is transmission order; remove a line to remove a card. Save the
-slot to persist the list. An empty list disables cycling.
+The slot editor shows an ordered list of linked card tiles. Use **Choose saved**
+for the first card; the same button becomes **Add saved** to append compatible
+EM410x cards, up to eight total. Cards already in the list are excluded from
+the picker. Use each tile's arrows to move it and its delete button to remove
+it. The first tile is the primary card. Removing it promotes the next card;
+removing the last card clears the LF side. Save the slot to persist the list,
+or discard edits to restore the saved order. Previously stored UIDs absent
+from the library remain in the list and can be added to Saved cards.
 
 The time setting is 1–10 bursts per card. Each burst contains ten complete
 EM410x/64 frames (327.68 ms) and the existing field check (about 2 ms).
