@@ -35,12 +35,14 @@
                   AutomationProperties.Name="ChameLab - download update">
             <StackPanel Spacing="0">
               <StackPanel Orientation="Horizontal" Spacing="5">
-                <TextBlock Text="ChameLab" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Text="ChameLab" FontSize="16" FontWeight="SemiBold"
+                           Foreground="{actipro:ThemeResource DefaultForegroundBrush}" />
                 <PathIcon Data="{StaticResource Icon.upload}" Width="12" Height="12"
                           VerticalAlignment="Center" IsVisible="{Binding AppUpdate.IsUpdateAvailable}"
                           Foreground="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
               </StackPanel>
-              <TextBlock Text="{Binding Settings.AppVersion}" Classes="caption" FontSize="11" />
+              <TextBlock Text="{Binding Settings.AppVersion}" Classes="caption" FontSize="11"
+                         Foreground="{actipro:ThemeResource DefaultForegroundBrush}" />
             </StackPanel>
           </Button>
         </StackPanel>
