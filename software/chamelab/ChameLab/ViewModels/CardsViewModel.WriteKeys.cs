@@ -27,7 +27,7 @@ public sealed partial class CardsViewModel
     public bool ShowWriteSectors => IsMifareWrite;
     public bool ShowRecoveryTools => CanDump && (ShowDumpActions || IsDumpRunning);
     public bool ShowWriteProgress => false;
-    public bool ShowMfkey32 => true;
+    public bool ShowMfkey32 => IsCardOpen || _cardPrng is not null;
     public bool HasRequiredWriteKeys => !IsGen2Write || WriteRecovery.AllTargetKeysRecovered;
     public string? WriteKeyHint => IsGen2Write && WriteRecovery is { AllTargetKeysRecovered: false, AllPlannedSectorsWritten: false } && !IsWriting
         ? "Recover keys A and B for every sector of the target card. Writing is available when all sectors are green."

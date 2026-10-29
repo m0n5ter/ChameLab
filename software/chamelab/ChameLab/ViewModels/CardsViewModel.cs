@@ -84,7 +84,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool ShowDarkside => _classicDump is not null && _darksideAvailable && HasUnknownKeys;
     public bool ShowNested => _cardPrng == MifareClassicPrngType.Weak && HasKnownKeys && HasUnknownKeys;
     public bool ShowStaticNested => _cardPrng == MifareClassicPrngType.Static && HasKnownKeys && HasUnknownKeys;
-    public bool ShowStaticEncryptedNested => _classicDump is not null && HasUnknownKeys;
+    public bool ShowStaticEncryptedNested => _classicDump is not null && _cardPrng is not null && HasUnknownKeys;
     public bool ShowHardnested => _cardPrng == MifareClassicPrngType.Hard && HasKnownKeys && HasUnknownKeys;
     public bool CanRunHardnested => AppServices.Hardnested.UnavailableReason is null;
     public string? HardnestedWarning => ShowHardnested ? AppServices.Hardnested.UnavailableReason : null;
@@ -94,6 +94,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void UpdateRecoveryMethods()
     {
         this.RaisePropertyChanged(nameof(ShowCheckRecovery));
+        this.RaisePropertyChanged(nameof(ShowMfkey32));
         this.RaisePropertyChanged(nameof(ShowDarkside));
         this.RaisePropertyChanged(nameof(ShowNested));
         this.RaisePropertyChanged(nameof(ShowStaticNested));
@@ -574,6 +575,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             this.RaiseAndSetIfChanged(ref _pane, value);
             this.RaisePropertyChanged(nameof(IsAdding));
+            this.RaisePropertyChanged(nameof(ShowMfkey32));
             this.RaisePropertyChanged(nameof(IsCardOpen));
             this.RaisePropertyChanged(nameof(HasPane));
             this.RaisePropertyChanged(nameof(IsCardDirty));
@@ -1549,42 +1551,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             SetScanMatches(card);
             FormSource = $"{card.Tag.DisplayName()} — UID {t.UidHex}";
         });
-
-        var scannedDump = _classicDump;
-
-        // Probe MIFARE Classic specifics (support + PRNG) without failing the scan.
-        if (tags.Count > 0 && !CardFormats.GuessHfType(tags[0].Sak, tags[0].Atqa).IsUltralight())
-        {
-            string? prng = null;
-            MifareClassicPrngType? cardPrng = null;
-            var darkside = false;
-            try
-            {
-                if (await client.Mf1IsSupportedAsync())
-                {
-                    var p = await client.DetectNtLevelAsync();
-                    cardPrng = p;
-                    prng = p.Label();
-                    if (p != MifareClassicPrngType.Static)
-                    {
-                        try { darkside = await client.CheckDarksideAsync() == DarksideResult.Vulnerable; }
-                        catch (ChameleonException) { }
-                    }
-                }
-            }
-            catch { /* not a Classic card, or older firmware */ }
-
-            if (prng is not null)
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    // Lands on the editor this scan opened; another scan or a cancel since then drops it.
-                    if (scannedDump is null || !ReferenceEquals(scannedDump, _classicDump)) return;
-                    Prng = prng;
-                    _cardPrng = cardPrng;
-                    _darksideAvailable = darkside;
-                    UpdateRecoveryMethods();
-                });
-        }
 
         Notify($"Found {tags.Count} HF tag(s).");
     });
