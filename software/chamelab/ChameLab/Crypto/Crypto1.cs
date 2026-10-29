@@ -1,11 +1,9 @@
-using Crapto1Sharp.Extensions;
+using ChameLab.Crypto.Extensions;
 using System;
 using System.Runtime.CompilerServices;
-#if NET10
 using System.Numerics;
-#endif
 
-namespace Crapto1Sharp;
+namespace ChameLab.Crypto;
 
 /// <summary>
 /// Provides forward Crypto1 cipher operations, filter/parity helpers, and the
@@ -213,13 +211,7 @@ public static class Crypto1
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte EvenParity32(uint x)
     {
-#if NET10
         return (byte)(BitOperations.PopCount(x) & 1);
-#else
-        x ^= x >> 16;
-        x ^= x >> 8;
-        return EvenParity8((byte)x);
-#endif
     }
 
     /// <summary>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Crapto1Sharp.Extensions;
+namespace ChameLab.Crypto.Extensions;
 
 /// <summary>
 /// Provides bit, endian, and big-endian integer conversion helpers used by

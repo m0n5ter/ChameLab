@@ -25,8 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- MIFARE Classic key recovery (crapto1 port, GPL-3.0), kept as source with our fixes;
-         see software/external. -->
-    <ProjectReference Include="..\..\external\Crapto1Sharp\Crapto1Sharp\Crapto1Sharp.csproj" />
+    <!-- Crypto/ uses internals in tests (the candidate validation pipeline). -->
+    <InternalsVisibleTo Include="ChameLab.Tests" />
   </ItemGroup>
 </Project>

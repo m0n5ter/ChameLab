@@ -4,7 +4,7 @@ using System.Linq;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
-using Crapto1Sharp;
+using ChameLab.Crypto;
 using Xunit;
 
 namespace ChameLab.Tests;

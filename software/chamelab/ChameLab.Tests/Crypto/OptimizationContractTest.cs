@@ -1,5 +1,6 @@
-using Crapto1Sharp.Extensions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ChameLab.Crypto.Extensions;
+using ChameLab.Crypto;
+using Xunit;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -7,28 +8,27 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Crapto1Sharp.Test;
+namespace ChameLab.Tests.Crypto;
 
-[TestClass]
 public class OptimizationContractTest
 {
-    [TestMethod]
+    [Fact]
     public void Recovery32_Characterization_IsUnchanged()
     {
         var states = Crapto1.LfsrRecovery32(0, 0);
-        Assert.AreEqual(186674, states.Count);
-        Assert.AreEqual(0xAF7765E0518350C9UL, Hash(states));
+        Assert.Equal(186674, states.Count);
+        Assert.Equal(0xAF7765E0518350C9UL, Hash(states));
     }
 
-    [TestMethod]
+    [Fact]
     public void Recovery64_Characterization_IsUnchanged()
     {
         var states = Crapto1.LfsrRecovery64(0, 0);
-        Assert.AreEqual(1, states.Count);
-        Assert.AreEqual(0x08328807B4EB6FEDUL, Hash(states));
+        Assert.Single(states);
+        Assert.Equal(0x08328807B4EB6FEDUL, Hash(states));
     }
 
-    [TestMethod]
+    [Fact]
     public void VisitorAndListRecovery_AreIdenticalAcrossWorkspaceReuse()
     {
         var publicResult = Crapto1.LfsrRecovery32(0, 0);
@@ -46,13 +46,13 @@ public class OptimizationContractTest
                 return true;
             });
 
-        Assert.IsTrue(visit.Completed);
-        Assert.AreEqual(expected.Count, visit.VisitedCount);
-        CollectionAssert.AreEqual(publicResult.ToArray(), expected.ToArray());
-        CollectionAssert.AreEqual(expected.ToArray(), actual.ToArray());
+        Assert.True(visit.Completed);
+        Assert.Equal(expected.Count, visit.VisitedCount);
+        Assert.Equal(publicResult.ToArray(), expected.ToArray());
+        Assert.Equal(expected.ToArray(), actual.ToArray());
     }
 
-    [TestMethod]
+    [Fact]
     public void VisitorAndListRecovery64_AreIdenticalAcrossWorkspaceReuse()
     {
         var publicResult = Crapto1.LfsrRecovery64(0, 0);
@@ -70,12 +70,12 @@ public class OptimizationContractTest
                 return true;
             });
 
-        Assert.IsTrue(visit.Completed);
-        CollectionAssert.AreEqual(publicResult.ToArray(), workspaceResult.ToArray());
-        CollectionAssert.AreEqual(workspaceResult.ToArray(), visited.ToArray());
+        Assert.True(visit.Completed);
+        Assert.Equal(publicResult.ToArray(), workspaceResult.ToArray());
+        Assert.Equal(workspaceResult.ToArray(), visited.ToArray());
     }
 
-    [TestMethod]
+    [Fact]
     public void Visitor_CanStopRecovery()
     {
         using var workspace = new Crypto1RecoveryWorkspace();
@@ -85,18 +85,18 @@ public class OptimizationContractTest
             workspace,
             (in Crypto1State _) => false);
 
-        Assert.IsFalse(visit.Completed);
-        Assert.AreEqual(1, visit.VisitedCount);
+        Assert.False(visit.Completed);
+        Assert.Equal(1, visit.VisitedCount);
     }
 
-    [TestMethod]
+    [Fact]
     public void RecoveryFilterTable_MatchesScalarFilterExhaustively()
     {
         for (var i = 0u; i < 1u << 20; i++)
-            Assert.AreEqual(Crypto1.Filter(i), Crapto1.GetRecoveryFilterForTesting(i));
+            Assert.Equal(Crypto1.Filter(i), Crapto1.GetRecoveryFilterForTesting(i));
     }
 
-    [TestMethod]
+    [Fact]
     public void Workspace_DisposeClearsUsedRegionOnly()
     {
         var pool = new TrackingUIntPool();
@@ -108,21 +108,21 @@ public class OptimizationContractTest
             (in Crypto1State _) => false);
         workspace.Dispose();
 
-        Assert.AreEqual(2, pool.Returned.Count);
+        Assert.Equal(2, pool.Returned.Count);
         foreach (var array in pool.Returned)
         {
             var firstUnused = Array.IndexOf(array, TrackingUIntPool.Sentinel);
-            Assert.IsGreaterThan(0, firstUnused);
+            Assert.True(firstUnused > 0);
             for (var i = 0; i < firstUnused; i++)
-                Assert.AreEqual(0u, array[i]);
+                Assert.Equal(0u, array[i]);
             for (var i = firstUnused; i < array.Length; i++)
-                Assert.AreEqual(TrackingUIntPool.Sentinel, array[i]);
+                Assert.Equal(TrackingUIntPool.Sentinel, array[i]);
         }
-        Assert.ThrowsExactly<ObjectDisposedException>(
+        Assert.Throws<ObjectDisposedException>(
             () => Crapto1.LfsrRecovery32(0, 0, workspace));
     }
 
-    [TestMethod]
+    [Fact]
     public void SpanEncrypt_MatchesArrayApi()
     {
         var arrayState = new Crypto1State(0x1234567890ABUL);
@@ -138,13 +138,13 @@ public class OptimizationContractTest
             spanParity.AsSpan(1, 3),
             true);
 
-        CollectionAssert.AreEqual(arrayData, spanData);
-        CollectionAssert.AreEqual(arrayParity, spanParity);
-        Assert.AreEqual(arrayState.Odd, spanState.Odd);
-        Assert.AreEqual(arrayState.Even, spanState.Even);
+        Assert.Equal(arrayData, spanData);
+        Assert.Equal(arrayParity, spanParity);
+        Assert.Equal(arrayState.Odd, spanState.Odd);
+        Assert.Equal(arrayState.Even, spanState.Even);
     }
 
-    [TestMethod]
+    [Fact]
     public void SpanIntegerApis_MatchArrayApis()
     {
         const uint uintValue = 0x89ABCDEF;
@@ -154,13 +154,13 @@ public class OptimizationContractTest
         uintValue.WriteBytes(uintBytes);
         ulongValue.WriteBytes(ulongBytes);
 
-        CollectionAssert.AreEqual(uintValue.GetBytes(6), uintBytes.ToArray());
-        CollectionAssert.AreEqual(ulongValue.GetBytes(10), ulongBytes.ToArray());
-        Assert.AreEqual(uintValue, uintBytes.Slice(2).ToUInt32());
-        Assert.AreEqual(ulongValue, ulongBytes.Slice(2).ToUInt64());
+        Assert.Equal(uintValue.GetBytes(6), uintBytes.ToArray());
+        Assert.Equal(ulongValue.GetBytes(10), ulongBytes.ToArray());
+        Assert.Equal(uintValue, uintBytes.Slice(2).ToUInt32());
+        Assert.Equal(ulongValue, ulongBytes.Slice(2).ToUInt64());
     }
 
-    [TestMethod]
+    [Fact]
     public void NonceDistance_FirstUseIsThreadSafe()
     {
         var results = new int[64];
@@ -168,10 +168,10 @@ public class OptimizationContractTest
             0,
             results.Length,
             i => results[i] = Crapto1.NonceDistance(0xB830049B, 0xE9FAD974));
-        Assert.IsTrue(results.All(value => value == results[0]));
+        Assert.True(results.All(value => value == results[0]));
     }
 
-    [TestMethod]
+    [Fact]
     public void ValidationPipeline_StopsAfterSecondMatch()
     {
         var options = new MfKeyExecutionOptions { MaxDegreeOfParallelism = 1 };
@@ -183,13 +183,13 @@ public class OptimizationContractTest
             },
             options);
 
-        Assert.IsTrue(pipeline.Emit(default));
-        Assert.IsFalse(pipeline.Emit(default));
+        Assert.True(pipeline.Emit(default));
+        Assert.False(pipeline.Emit(default));
         pipeline.Finish();
-        Assert.AreEqual(2, pipeline.MatchCount);
+        Assert.Equal(2, pipeline.MatchCount);
     }
 
-    [TestMethod]
+    [Fact]
     public void ValidationPipeline_ProducerBlockedOnFullQueue_StopsAfterSecondMatch()
     {
         // Workers hold their first batches until the gate opens, so the producer fills the
@@ -213,11 +213,13 @@ public class OptimizationContractTest
             emitted++;
         pipeline.Finish();
 
-        Assert.IsTrue(emitted >= 4096 * 6, $"the producer stopped after {emitted} states");
-        Assert.IsTrue(pipeline.MatchCount >= 2);
+        // At least the four queued batches went in before the producer blocked (more when the
+        // workers had already taken theirs).
+        Assert.True(emitted >= 4096 * 4, $"the producer stopped after {emitted} states");
+        Assert.True(pipeline.MatchCount >= 2);
     }
 
-    [TestMethod]
+    [Fact]
     public void ValidationPipeline_PropagatesCancellation()
     {
         using var source = new CancellationTokenSource();
@@ -235,11 +237,11 @@ public class OptimizationContractTest
             },
             options);
 
-        Assert.ThrowsExactly<OperationCanceledException>(
+        Assert.Throws<OperationCanceledException>(
             () => pipeline.Emit(default));
     }
 
-    [TestMethod]
+    [Fact]
     public void MfKeyOptions_PropagatePreCanceledToken()
     {
         using var source = new CancellationTokenSource();
@@ -249,13 +251,13 @@ public class OptimizationContractTest
             CancellationToken = source.Token
         };
 
-        Assert.ThrowsExactly<OperationCanceledException>(
+        Assert.Throws<OperationCanceledException>(
             () => MfKey.MfKey32(0, 0, 0, 0, 0, 0, options));
-        Assert.ThrowsExactly<OperationCanceledException>(
+        Assert.Throws<OperationCanceledException>(
             () => MfKey.MfKey64(0, 0, 0, 0, 0, options));
     }
 
-    [TestMethod]
+    [Fact]
     public void ValidationPipeline_PropagatesWorkerException()
     {
         var options = new MfKeyExecutionOptions { MaxDegreeOfParallelism = 2 };
@@ -267,7 +269,7 @@ public class OptimizationContractTest
             },
             options);
 
-        Assert.ThrowsExactly<InvalidOperationException>(
+        Assert.Throws<InvalidOperationException>(
             () =>
             {
                 for (var i = 0; i < 4096; i++)
@@ -276,7 +278,7 @@ public class OptimizationContractTest
             });
     }
 
-    [TestMethod]
+    [Fact]
     public void RecoveryRangeSort_HandlesSortedReverseAndRandomInputs()
     {
         var random = new Random(123456);
@@ -300,9 +302,9 @@ public class OptimizationContractTest
 
             Crapto1.SortRecoveryRange(ranged, 1, values.Length);
 
-            Assert.AreEqual(uint.MaxValue, ranged[0]);
-            Assert.AreEqual(uint.MaxValue, ranged[ranged.Length - 1]);
-            CollectionAssert.AreEqual(
+            Assert.Equal(uint.MaxValue, ranged[0]);
+            Assert.Equal(uint.MaxValue, ranged[ranged.Length - 1]);
+            Assert.Equal(
                 expected,
                 ranged.Skip(1).Take(values.Length).ToArray());
         }
@@ -336,7 +338,7 @@ public class OptimizationContractTest
 
         public override void Return(uint[] array, bool clearArray = false)
         {
-            Assert.IsFalse(clearArray);
+            Assert.False(clearArray);
             Returned.Add(array);
         }
     }

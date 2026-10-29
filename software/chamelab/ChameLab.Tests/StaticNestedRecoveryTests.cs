@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using ChameLab.Protocol;
 using ChameLab.Services;
-using Crapto1Sharp;
+using ChameLab.Crypto;
 using Xunit;
 
 namespace ChameLab.Tests;

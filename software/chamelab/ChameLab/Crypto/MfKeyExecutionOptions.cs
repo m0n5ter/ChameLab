@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace Crapto1Sharp;
+namespace ChameLab.Crypto;
 
 /// <summary>
 /// Controls workspace reuse, parallelism, and cancellation for key recovery.
