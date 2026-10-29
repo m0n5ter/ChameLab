@@ -126,7 +126,7 @@
                   IsVisible="{Binding ShowStaticEncryptedNested}" AutomationProperties.Name="Static encrypted nested"
                   ToolTip.Tip="Recover keys on FM11RF08S and compatible cards using known backdoor keys">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.refresh}" />
+              <PathIcon Data="{StaticResource Icon.lock}" />
               <TextBlock Classes="action-label" Text="Static encrypted nested" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
