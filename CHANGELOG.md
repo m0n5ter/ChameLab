@@ -6,6 +6,9 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.0.21][2026-10-29] · firmware v2.3.3-cl
+ - ChameLab: the memory editor's Clear sector button uses danger styling and a delete icon
  - ChameLab: scanning a new card no longer probes MIFARE Classic recovery methods; Try keys and Check recovery methods are offered first, with attacks shown after an explicit check
  - ChameLab: mfkey32 no longer fails now and then with "The operation was canceled" when the nonces fit more than one key; it reports that no unique key was found. The Crapto1Sharp code, which carries the fix, is now part of ChameLab (ChameLab/Crypto)
  - ChameLab: new Tools page (in place of the old Sniff page) with Sniff HF and Sniff LF; each opens its own view with a Back button, like Add card. Its header (hint and one adaptive row of buttons) stays in place while the results scroll

@@ -1005,10 +1005,15 @@
                                        IsVisible="{Binding #MemoryEditor.SelectionStatus.Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
                           </Grid>
                         </Grid>
-                        <Button Grid.Column="1" Content="Clear" Command="{Binding Form.ClearSectorCommand}"
+                        <Button Grid.Column="1" Classes="danger" Command="{Binding Form.ClearSectorCommand}"
                                 VerticalAlignment="Center" IsVisible="{Binding Form.IsMifareClassic}"
                                 IsEnabled="{Binding !IsBusy}"
-                                ToolTip.Tip="Clear the selected sector and mark its blocks as unread" />
+                                ToolTip.Tip="Clear the selected sector and mark its blocks as unread">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <PathIcon Data="{StaticResource Icon.delete}" />
+                            <TextBlock Text="Clear" VerticalAlignment="Center" />
+                          </StackPanel>
+                        </Button>
                       </Grid>
                       <ScrollViewer x:Name="MemoryScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
                         <c:HexEditor x:Name="MemoryEditor" Buffer="{Binding Form?.SelectedMemory}" ShowGroupHeaders="False" />
