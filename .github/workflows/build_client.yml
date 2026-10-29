@@ -24,16 +24,28 @@ jobs:
         with:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           persist-credentials: false
+      # The client is built only when its sources change: software/dist is cached under a hash of the
+      # script, the native code, the spec, the requirements and this workflow. A cached client keeps the
+      # PyInstaller and packages it was built with. Bump v1 to force a rebuild.
+      - name: Restore the client built from this source
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: software/dist
+          key: client-v1-${{ matrix.name }}-${{ hashFiles('software/script/**', '!software/script/**/__pycache__/**', 'software/src/**', 'software/pyinstaller.spec', '.github/workflows/build_client.yml') }}
       - name: Set up Python
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install PyInstaller and client dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller
           pip install -r software/script/requirements.txt
       - name: Compile native code
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd software/src
           mkdir out
@@ -41,6 +53,7 @@ jobs:
           cmake ..
           cmake --build . --config Release
       - name: Run PyInstaller
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd software
           pyinstaller pyinstaller.spec

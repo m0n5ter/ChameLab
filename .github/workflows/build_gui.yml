@@ -80,13 +80,22 @@ jobs:
         with:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           persist-credentials: false
+      # Built only when its sources change: the result is cached under a hash of them (the same files
+      # ChameLab.Desktop builds it from) and the build arguments. Bump v1 to force a rebuild.
+      - name: Restore the native components built from these sources
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: native-hardnested
+          key: hardnested-v1-${{ matrix.rid }}-${{ hashFiles('software/src/HardnestedRecovery/**', 'software/src/crypto1.c', 'software/src/crapto1.c', 'software/src/bucketsort.c', 'software/src/parity.c', 'software/src/*.h') }}-${{ matrix.args }}
       - name: Build the original hardnested library and worker
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cmake -S software/src/HardnestedRecovery/native -B native-build -DCMAKE_BUILD_TYPE=Release ${{ matrix.args }}
           cmake --build native-build --config Release --target chamelab-hardnested-worker chamelab-hardnested-fixture --parallel
           cmake --install native-build --config Release --prefix "$PWD/native-hardnested" --component Hardnested
       - name: Verify recovery against a synthetic capture
-        if: matrix.rid != 'osx-x64'
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.rid != 'osx-x64'
         run: ctest --test-dir native-build -C Release --output-on-failure -R '^(missing_input|generate_capture|recover_capture)$'
       - name: Upload native components
         uses: actions/upload-artifact@v7
