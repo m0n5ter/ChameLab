@@ -18,6 +18,15 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 {
     public ChameleonConnection Connection => conn;
 
+    public async Task<LfCardCycle> GetEm410xCycleAsync(CancellationToken ct = default)
+    {
+        var frame = await conn.SendExpectAsync(Command.Em410xGetCycle, Status.Success, ct: ct);
+        return LfCardCycle.Decode(frame.Data);
+    }
+
+    public Task SetEm410xCycleAsync(LfCardCycle cycle, CancellationToken ct = default) =>
+        conn.SendExpectAsync(Command.Em410xSetCycle, Status.Success, cycle.Encode(), ct: ct);
+
     private readonly SemaphoreSlim _slotLock = new(1, 1);
 
     /// <summary>
@@ -1459,7 +1468,23 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var hf = await Side(TagSenseType.Hf);
         var lf = await Side(TagSenseType.Lf);
         var emulator = await ReadEmulatorSettingsAsync(slot, ct);
-        return new SlotContent(slot.Index, hf, lf, emulator);
+        LfCardCycle? cycle = null;
+        if (slot.LfType == TagSpecificType.Em410x &&
+            (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetCycle))
+        {
+            var previous = await GetActiveSlotAsync(ct);
+            try
+            {
+                await SetActiveSlotAsync(slot.Index, ct);
+                cycle = await GetEm410xCycleAsync(ct);
+            }
+            finally
+            {
+                if (previous != slot.Index && previous is >= 1 and <= 8)
+                    await SetActiveSlotAsync(previous, ct);
+            }
+        }
+        return new SlotContent(slot.Index, hf, lf, emulator, cycle);
     }
 
     /// <summary>
@@ -1495,6 +1520,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             await SetActiveSlotAsync(slot1Based, ct);
             await ApplyEmulatorSettingsAsync(content.Emulator, ct);
+        }
+        if (content.Lf is not null && content.LfCycle is { } cycle)
+        {
+            await SetActiveSlotAsync(slot1Based, ct);
+            await SetEm410xCycleAsync(cycle, ct);
         }
         await SaveSlotConfigAsync(ct);
     }

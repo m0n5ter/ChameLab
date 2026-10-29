@@ -51,7 +51,7 @@ bool is_tag_specific_type_valid(tag_specific_type_t tag_type) {
 /**
  * Tag data stored in flash. Total length must be aligned by 4 bytes (whole words).
  */
-static uint8_t m_tag_data_buffer_lf[20];  // LF card data buffer
+static uint8_t m_tag_data_buffer_lf[LF_EM410X_CYCLE_SIZE];  // LF card data buffer
 static uint16_t m_tag_data_lf_crc;
 static tag_data_buffer_t m_tag_data_lf = {sizeof(m_tag_data_buffer_lf), m_tag_data_buffer_lf, &m_tag_data_lf_crc};
 
@@ -237,6 +237,8 @@ static void load_data_by_tag_type(uint8_t slot, tag_specific_type_t tag_type) {
     // load data to the buffer according to the card slot currently activated.
     // If the length of data does not match the length of the buffer,
     // it may be caused by the firmware update at this time, the data must be deleted and rebuilt.
+    // Old records contain only one UID. Never inherit a previous slot's extension.
+    memset(buffer->buffer, 0, buffer->length);
     uint16_t length = buffer->length;
     bool ret = fds_read_sync(map_info.id, map_info.key, &length, buffer->buffer);
     if (false == ret) {

@@ -1,6 +1,7 @@
 #include "lf_tag_em.h"
 
 #include <stdint.h>
+#include <string.h>
 
 #include "bsp_delay.h"
 #include "fds_util.h"
@@ -39,6 +40,17 @@ static tag_specific_type_t m_tag_type = TAG_TYPE_UNDEFINED;
 // The pwm to broadcast modulated card id
 const nrfx_pwm_t m_broadcast = NRFX_PWM_INSTANCE(0);
 const nrf_pwm_sequence_t *m_pwm_seq = NULL;
+
+static nrf_pwm_values_wave_form_t m_cycle_values[LF_EM410X_CYCLE_MAX][64];
+static nrf_pwm_sequence_t m_cycle_sequences[LF_EM410X_CYCLE_MAX];
+static uint8_t m_cycle_count = 1, m_cycle_index = 0;
+static uint8_t m_cycle_bursts = 1, m_cycle_elapsed = 0;
+
+bool lf_em410x_cycle_valid(const uint8_t *data, uint16_t length) {
+    return length >= LF_EM410X_CYCLE_SIZE && data[5] == 0xC7 && data[6] == 1 &&
+           data[7] >= 2 && data[7] <= LF_EM410X_CYCLE_MAX &&
+           data[8] >= 1 && data[8] <= 10;
+}
 
 static void lf_field_lost(void) {
     // Open the incident interruption, so that the next event can be in and out normally
@@ -96,6 +108,8 @@ static void lpcomp_event_handler(nrf_lpcomp_event_t event) {
     // PWM has fully released LF_MOD, so ANT_NO_MOD() and the settle delay are
     // effective. NRFX_PWM_FLAG_LOOP kept the pin owned by the peripheral,
     // making the field check always read "present" due to self-drive on LF_RSSI.
+    m_cycle_index = m_cycle_elapsed = 0;
+    if (m_cycle_count > 1) m_pwm_seq = &m_cycle_sequences[0];
     nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
 
     NRF_LOG_INFO("LF FIELD DETECTED");
@@ -121,6 +135,11 @@ static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
     ANT_NO_MOD();
     bsp_delay_ms(2);  // let peak detector drain: ~2 ms time constant on LF_RSSI
     if (is_lf_field_exists()) {
+        if (m_cycle_count > 1 && ++m_cycle_elapsed >= m_cycle_bursts) {
+            m_cycle_elapsed = 0;
+            m_cycle_index = (m_cycle_index + 1) % m_cycle_count;
+            m_pwm_seq = &m_cycle_sequences[m_cycle_index];
+        }
         // Field still present — play another finite burst then check again.
         nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
     } else {
@@ -223,6 +242,8 @@ void lf_tag_125khz_sense_switch(bool enable) {
  * @param buffer   Data buffer
  */
 int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
+    m_cycle_count = 1;
+    m_cycle_index = m_cycle_elapsed = 0;
     // ensure buffer size is large enough for specific tag type,
     // so that tag data (e.g., card numbers) can be converted to corresponding pwm sequence here.
     if ((type == TAG_TYPE_EM410X || type == TAG_TYPE_EM410X_ELECTRA) && buffer->length >= lf_em410x_id_size(type)) {
@@ -231,6 +252,21 @@ int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
         void *codec = p->alloc();
         m_pwm_seq = p->modulator(codec, buffer->buffer);
         p->free(codec);
+        if (type == TAG_TYPE_EM410X && lf_em410x_cycle_valid(buffer->buffer, buffer->length)) {
+            m_cycle_count = buffer->buffer[7];
+            m_cycle_bursts = buffer->buffer[8];
+            // Precompute in thread context. ISR switches pointers only; no allocation
+            // or rewriting a waveform that EasyDMA might still be transmitting.
+            for (uint8_t i = 0; i < m_cycle_count; i++) {
+                uint8_t *uid = i == 0 ? buffer->buffer : buffer->buffer + 9 + (i - 1) * 5;
+                const nrf_pwm_sequence_t *seq = em410x_64.modulator(NULL, uid);
+                memcpy(m_cycle_values[i], seq->values.p_wave_form, sizeof(m_cycle_values[i]));
+                m_cycle_sequences[i] = *seq;
+                m_cycle_sequences[i].values.p_wave_form = m_cycle_values[i];
+            }
+            m_pwm_seq = &m_cycle_sequences[0];
+            return LF_EM410X_CYCLE_SIZE;
+        }
         NRF_LOG_INFO("load lf em410x%s data finish.", type == TAG_TYPE_EM410X_ELECTRA ? " electra" : "");
         return lf_em410x_id_size(type);
     }
@@ -311,6 +347,7 @@ int lf_tag_em410x_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffe
     // Make sure to load this tag before allowing saving
     // Just save the original card package directly
     if (m_tag_type == TAG_TYPE_EM410X) {
+        if (lf_em410x_cycle_valid(buffer->buffer, buffer->length)) return LF_EM410X_CYCLE_SIZE;
         return LF_EM410X_TAG_ID_SIZE;
     }
     if (m_tag_type == TAG_TYPE_EM410X_ELECTRA) {

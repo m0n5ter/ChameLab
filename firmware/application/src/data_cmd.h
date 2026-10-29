@@ -203,6 +203,8 @@
 
 #define DATA_CMD_EM410X_SET_EMU_ID              (5000)
 #define DATA_CMD_EM410X_GET_EMU_ID              (5001)
+#define DATA_CMD_EM410X_SET_CYCLE               (5902)
+#define DATA_CMD_EM410X_GET_CYCLE               (5903)
 #define DATA_CMD_HIDPROX_SET_EMU_ID             (5002)
 #define DATA_CMD_HIDPROX_GET_EMU_ID             (5003)
 #define DATA_CMD_VIKING_SET_EMU_ID              (5004)

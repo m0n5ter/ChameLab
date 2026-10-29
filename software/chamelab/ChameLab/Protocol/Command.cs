@@ -157,4 +157,6 @@ public enum Command : ushort
     // ChameLab-specific, numbered away from upstream's commands
     PyramidSetEmuId = 5900,
     PyramidGetEmuId = 5901,
+    Em410xSetCycle = 5902,
+    Em410xGetCycle = 5903,
 }

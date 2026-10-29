@@ -395,7 +395,21 @@
 
           <!-- ===================== LF ===================== -->
           <Border Classes="card">
-            <ContentControl Content="{Binding Lf}" ContentTemplate="{StaticResource SlotSide}" />
+            <StackPanel Spacing="16">
+              <ContentControl Content="{Binding Lf}" ContentTemplate="{StaticResource SlotSide}" />
+              <StackPanel Spacing="10" IsVisible="{Binding ShowLfCycle}">
+                <TextBlock Text="Cycle additional EM410x cards" FontWeight="SemiBold" />
+                <TextBlock Text="The primary card goes first. Add up to seven UIDs below, one per line, in playback order. Leave empty to use only the primary card."
+                           Classes="caption" TextWrapping="Wrap" />
+                <TextBox Text="{Binding CycleIds}" AcceptsReturn="True" MinHeight="90"
+                         PlaceholderText="0123456789&#10;AABBCCDDEE" />
+                <Button Content="Add from saved cards" Command="{Binding AddCycleCardCommand}" />
+                <TextBlock Text="Time per card (1–10 bursts, about 0.33 seconds each)" Classes="caption" TextWrapping="Wrap" />
+                <NumericUpDown Minimum="1" Maximum="10" Increment="1" FormatString="0" Value="{Binding CycleBursts}" />
+                <TextBlock Text="Each presentation starts from the primary card. Some readers require removing the device after an unknown UID."
+                           Classes="caption" TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
           </Border>
         </StackPanel>
       </ScrollViewer>
