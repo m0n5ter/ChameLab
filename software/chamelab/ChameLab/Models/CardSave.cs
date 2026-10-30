@@ -6,15 +6,20 @@ using ChameLab.Protocol;
 
 namespace ChameLab.Models;
 
-/// <summary>Ultralight / NTAG extras that are not part of the page data.</summary>
+/// <summary>Extras that are not part of the block / page data.</summary>
 public sealed class CardSaveExtra
 {
     public byte[] UltralightVersion { get; set; } = Array.Empty<byte>();
     public byte[] UltralightSignature { get; set; } = Array.Empty<byte>();
     public List<int> UltralightCounters { get; set; } = new();
 
-    public bool IsEmpty =>
-        UltralightVersion.Length == 0 && UltralightSignature.Length == 0 && UltralightCounters.Count == 0;
+    /// <summary>
+    /// MIFARE Classic sectors whose trailer was read but whose key A / key B is not known: the
+    /// trailer holds zeros there, not the key. Stored as "unknown" so older cards (without the
+    /// lists) keep treating every trailer key as real. ChameLab only (the Flutter app ignores them).
+    /// </summary>
+    public List<int> UnknownKeyA { get; set; } = new();
+    public List<int> UnknownKeyB { get; set; } = new();
 }
 
 /// <summary>
@@ -78,6 +83,8 @@ public sealed class CardSave
         if (Extra.UltralightVersion.Length > 0) extra["ultralightVersion"] = ToArray(Extra.UltralightVersion);
         if (Extra.UltralightCounters.Count > 0)
             extra["ultralightCounters"] = new JsonArray(Extra.UltralightCounters.Select(c => (JsonNode)c).ToArray());
+        if (Extra.UnknownKeyA.Count > 0) extra["unknownKeyA"] = ToSectors(Extra.UnknownKeyA);
+        if (Extra.UnknownKeyB.Count > 0) extra["unknownKeyB"] = ToSectors(Extra.UnknownKeyB);
         o["extra"] = extra;
         if (Folder.Length > 0) o["folder"] = Folder;
         return o;
@@ -112,6 +119,8 @@ public sealed class CardSave
             card.Extra.UltralightVersion = FromArray(extra["ultralightVersion"]);
             if (extra["ultralightCounters"] is JsonArray counters)
                 card.Extra.UltralightCounters = counters.Select(c => (int?)c ?? 0).ToList();
+            card.Extra.UnknownKeyA = FromSectors(extra["unknownKeyA"]);
+            card.Extra.UnknownKeyB = FromSectors(extra["unknownKeyB"]);
         }
         return card;
     }
@@ -125,6 +134,13 @@ public sealed class CardSave
     private static byte[] FromArray(JsonNode? node) => node is JsonArray a
         ? a.Select(v => (byte)((int?)v ?? 0)).ToArray()
         : Array.Empty<byte>();
+
+    private static JsonArray ToSectors(IEnumerable<int> sectors) =>
+        new(sectors.Distinct().Order().Select(s => (JsonNode)s).ToArray());
+
+    private static List<int> FromSectors(JsonNode? node) => node is JsonArray a
+        ? a.Select(v => (int?)v ?? -1).Where(s => s >= 0).Distinct().Order().ToList()
+        : new List<int>();
 
     private static TagSpecificType ParseTag(JsonNode? node)
     {

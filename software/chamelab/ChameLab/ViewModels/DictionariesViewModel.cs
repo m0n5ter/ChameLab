@@ -629,7 +629,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
     private Task ImportAsync() => RunAsync(async () =>
     {
-        var picked = await StorageService.OpenAsync("Import dictionary", "json", "dic", "txt");
+        var picked = await StorageService.OpenAsync("Import dictionary", "json", "dic", "keys", "txt");
         if (picked is not { } file) return;
 
         KeyDictionary dict;

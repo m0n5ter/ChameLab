@@ -78,6 +78,8 @@ public sealed class MifareWriteSession
         {
             copy.KeyA[s] = source.KeyA[s] is { } a ? (byte[])a.Clone() : null;
             copy.KeyB[s] = source.KeyB[s] is { } b ? (byte[])b.Clone() : null;
+            copy.KeyAUnknown[s] = source.KeyAUnknown[s];
+            copy.KeyBUnknown[s] = source.KeyBUnknown[s];
         }
         return copy;
     }

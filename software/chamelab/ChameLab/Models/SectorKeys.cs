@@ -24,6 +24,9 @@ public interface ISectorKeys
     int LastBlock { get; }
     /// <summary>Every block of the sector is present, independently of key authentication.</summary>
     bool IsRead { get; }
+    /// <summary>The read trailer holds the real key A / key B (not the zeros of an unknown key).</summary>
+    bool HasSavedKeyA { get; }
+    bool HasSavedKeyB { get; }
     KeyCellState KeyAState { get; }
     KeyCellState KeyBState { get; }
     /// <summary>Share of the candidate keys tried so far (0..1), or -1 when the total is unknown.</summary>

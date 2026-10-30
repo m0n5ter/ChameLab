@@ -974,7 +974,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                         blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Reading));
                         if (await ReadBlockWithEitherKeyAsync(block, dump.KeyA[s], dump.KeyB[s], ct) is { } data)
                         {
-                            dump.SetBlock(block, data);
+                            if (MifareClassic.IsTrailer(block)) dump.SetTrailerFromCard(s, data);
+                            else dump.SetBlock(block, data);
                             recovered++;
                             blocks?.Report(new MifareBlockProgress(block, 1, MifareBlockState.Read));
                         }
@@ -2162,9 +2163,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             // A cancelled trailer write may have committed before its acknowledgement was lost.
             // Include the planned trailer keys as fallbacks, even for an imported unauthenticated dump.
             var trailer = dump.GetBlock(MifareClassic.SectorTrailerBlock(s));
-            var sourceA = new[] { targetKeys?.KeyA[s], dump.KeyA[s], trailer is { Length: 16 } ? trailer[..6] : null }
+            var sourceA = new[] { targetKeys?.KeyA[s], dump.KeyA[s], trailer is { Length: 16 } && !dump.KeyAUnknown[s] ? trailer[..6] : null }
                 .OfType<byte[]>().ToArray();
-            var sourceB = new[] { targetKeys?.KeyB[s], dump.KeyB[s], trailer is { Length: 16 } ? trailer[10..] : null }
+            var sourceB = new[] { targetKeys?.KeyB[s], dump.KeyB[s], trailer is { Length: 16 } && !dump.KeyBUnknown[s] ? trailer[10..] : null }
                 .OfType<byte[]>().ToArray();
             var needsKeys = Enumerable.Range(first, count)
                 .Any(b => (b != 0 || !backdoorBlock0) && session.NeedsWrite(b));

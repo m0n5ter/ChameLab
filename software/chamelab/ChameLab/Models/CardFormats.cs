@@ -191,16 +191,24 @@ public static class CardFormats
         };
         for (var b = 0; b < dump.BlockCount; b++)
             card.Data.Add(dump.GetBlock(b) ?? Array.Empty<byte>());
+        for (var s = 0; s < dump.SectorCount; s++)
+        {
+            if (dump.GetBlock(MifareClassic.SectorTrailerBlock(s)) is null) continue;
+            if (dump.KeyAUnknown[s]) card.Extra.UnknownKeyA.Add(s);
+            if (dump.KeyBUnknown[s]) card.Extra.UnknownKeyB.Add(s);
+        }
         FillIdentityFromBlock0(card);
         return card;
     }
 
-    /// <summary>Rebuilds a MIFARE Classic dump from a saved card; empty rows stay unread.</summary>
+    /// <summary>Rebuilds a MIFARE Classic dump from a saved card; empty rows stay unread, unknown keys unknown.</summary>
     public static MifareDump ToMifareDump(this CardSave card)
     {
         var dump = new MifareDump(MifareClassic.FromSlotTagType(card.Tag), card.Uid, card.Atqa, card.Sak);
         for (var b = 0; b < Math.Min(card.Data.Count, dump.BlockCount); b++)
             if (card.Data[b].Length == 16) dump.SetBlock(b, card.Data[b]);
+        foreach (var s in card.Extra.UnknownKeyA.Where(s => s < dump.SectorCount)) dump.KeyAUnknown[s] = true;
+        foreach (var s in card.Extra.UnknownKeyB.Where(s => s < dump.SectorCount)) dump.KeyBUnknown[s] = true;
         return dump;
     }
 
@@ -358,25 +366,61 @@ public static class CardFormats
         return card;
     }
 
+    /// <summary>
+    /// MIFARE Classic Tool dump: "+Sector: n" headers, each followed by that sector's blocks.
+    /// Sectors MCT could not read are left out of the file and blocks it could not read are
+    /// all dashes; both stay unread. Each block lands at its sector's place, so a missing
+    /// sector does not shift the ones after it. A key MCT did not find (dashes) is kept as unknown.
+    /// </summary>
     public static CardSave FromMct(string text)
     {
-        var blocks = text.Split('\n')
-            .Select(l => l.Trim())
-            .Where(l => l.Length > 0 && !l.StartsWith("+Sector", StringComparison.Ordinal))
-            .Select(l => Hex.Parse(l.Replace('-', '0')))
-            .ToList();
-        if (blocks.Count == 0 || blocks[0].Length < 16)
+        var blocks = new Dictionary<int, byte[]>();
+        var unknownA = new List<int>();
+        var unknownB = new List<int>();
+        var sector = -1;
+        var index = 0;
+        foreach (var raw in text.Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0) continue;
+            if (line.StartsWith("+Sector", StringComparison.Ordinal))
+            {
+                if (!int.TryParse(line[(line.IndexOf(':') + 1)..].Trim(), out sector) || sector is < 0 or >= 40)
+                    throw new FormatException($"Bad sector header “{line}”.");
+                index = 0;
+                continue;
+            }
+            if (sector < 0) throw new FormatException("Block data before the first +Sector header.");
+            if (index >= MifareClassic.BlocksInSector(sector))
+                throw new FormatException($"Sector {sector} has more than {MifareClassic.BlocksInSector(sector)} blocks.");
+            var block = MifareClassic.SectorFirstBlock(sector) + index++;
+            // A key MCT did not find is dashes (zeros here, flagged unknown); a block of only dashes was not read.
+            if (line.Trim('-').Length == 0) continue;
+            var data = Hex.Parse(line.Replace('-', '0'));
+            if (data.Length != 16) throw new FormatException($"Block {block} is not 16 bytes.");
+            blocks[block] = data;
+            if (MifareClassic.IsTrailer(block))
+            {
+                if (line[..12].Contains('-')) unknownA.Add(sector);
+                if (line[20..].Contains('-')) unknownB.Add(sector);
+            }
+        }
+        if (!blocks.TryGetValue(0, out var b0))
             throw new FormatException("MIFARE Classic Tool dump has no block 0.");
 
-        var b0 = blocks[0];
+        var count = blocks.Keys.Max() + 1;
+        var tag = CardTags.MifareClassicForBlocks(count);
         var card = new CardSave
         {
             Uid = b0[..4],
             Sak = b0[5],
             Atqa = b0[6..8],
-            Data = blocks,
-            Tag = CardTags.MifareClassicForBlocks(blocks.Count),
+            Data = Enumerable.Range(0, tag.MifareClassicBlocks())
+                .Select(b => blocks.TryGetValue(b, out var d) ? d : Array.Empty<byte>()).ToList(),
+            Tag = tag,
         };
+        card.Extra.UnknownKeyA = unknownA;
+        card.Extra.UnknownKeyB = unknownB;
         card.Name = card.UidHex;
         return card;
     }

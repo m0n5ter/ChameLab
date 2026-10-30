@@ -98,10 +98,7 @@ public sealed partial class CardsViewModel
             if (ActionCard() is not { } card || !card.Tag.IsMifareClassic()) return Array.Empty<byte[]>();
             var dump = card.ToMifareDump();
             return dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
-                .Concat(Enumerable.Range(0, dump.SectorCount)
-                    .Select(s => dump.GetBlock(MifareClassic.SectorTrailerBlock(s)))
-                    .Where(b => b is { Length: 16 })
-                    .SelectMany(b => new[] { b![..6], b![10..] }))
+                .Concat(Enumerable.Range(0, dump.SectorCount).SelectMany(dump.TrailerKeys))
                 .DistinctBy(Convert.ToHexString).ToArray();
         }
         catch (FormatException) { return Array.Empty<byte[]>(); }

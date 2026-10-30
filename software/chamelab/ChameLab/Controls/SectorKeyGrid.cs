@@ -318,17 +318,13 @@ public class SectorKeyGrid : Control
                 WriteSquare(ctx, b, write);
                 continue;
             }
-            if (sectors[i].IsRead)
-            {
-                if (FoundBrush is { } readBrush)
-                {
-                    ctx.DrawRectangle(readBrush, null, new RoundedRect(a, Radius));
-                    ctx.DrawRectangle(readBrush, null, new RoundedRect(b, Radius));
-                }
-                continue;
-            }
-            Square(ctx, m, a, _anims[2 * i], sectors[i].KeyAState, sectors[i].KeyAProgress, now, ease, pulse);
-            Square(ctx, m, b, _anims[2 * i + 1], sectors[i].KeyBState, sectors[i].KeyBProgress, now, ease, pulse);
+            // A read sector shows its saved keys as found; a key its trailer does not hold
+            // (unknown, held as zeros) keeps its own search state.
+            var read = sectors[i].IsRead;
+            if (read && sectors[i].HasSavedKeyA && FoundBrush is { } readA) ctx.DrawRectangle(readA, null, new RoundedRect(a, Radius));
+            else Square(ctx, m, a, _anims[2 * i], sectors[i].KeyAState, sectors[i].KeyAProgress, now, ease, pulse);
+            if (read && sectors[i].HasSavedKeyB && FoundBrush is { } readB) ctx.DrawRectangle(readB, null, new RoundedRect(b, Radius));
+            else Square(ctx, m, b, _anims[2 * i + 1], sectors[i].KeyBState, sectors[i].KeyBProgress, now, ease, pulse);
         }
 
         if (SelectedSector >= 0 && SelectedSector < sectors.Count && SelectionBrush is ISolidColorBrush selectedBrush)

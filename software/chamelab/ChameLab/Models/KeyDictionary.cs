@@ -9,7 +9,7 @@ namespace ChameLab.Models;
 /// <summary>
 /// A named set of MIFARE Classic keys (6 bytes each). The JSON shape matches
 /// the Flutter ChameleonUltraGUI <c>Dictionary</c> so dictionaries move between
-/// the two apps; a plain <c>.dic</c> / <c>.txt</c> file (one hex key per line)
+/// the two apps; a plain <c>.dic</c> / <c>.keys</c> / <c>.txt</c> file (one hex key per line)
 /// also imports and exports.
 /// </summary>
 public sealed class KeyDictionary

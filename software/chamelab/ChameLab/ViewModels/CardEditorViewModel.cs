@@ -430,6 +430,7 @@ public sealed class CardEditorViewModel : ViewModelBase
                 .Select(MifareClassic.SectorOfBlock).ToArray();
             if (bad.Length > 0)
                 warnings.Add($"Invalid access bits in sector {string.Join(", ", bad)}: writing this to a card would lock the sector.");
+            if (UnknownKeyWarning is { } unknown) warnings.Add(unknown);
             if (OverflowBlocks > 0)
                 warnings.Add($"Sectors {MifareClassic.SectorOfBlock(blocks)}–{MifareClassic.SectorOfBlock(_data.Count - 1)} "
                     + $"don't fit a {_tag.DisplayName()} and will be dropped when the card is saved.");
@@ -459,9 +460,49 @@ public sealed class CardEditorViewModel : ViewModelBase
         }
         if (!MifareClassic.IsTrailer(block)) return sector;
         var part = col switch { < 6 => "Key A", < 9 => "Access bits", 9 => "User byte", _ => "Key B" };
+        if (col is < 6 or >= 10 && IsKeyUnknown(MifareClassic.SectorOfBlock(block), col < 6))
+            part += " (unknown, held as 00)";
         if (col is >= 6 and < 9 && _data[block].Length == 16)
             part += MifareClassic.AccessBitsValid(_data[block]) ? " (valid)" : " (INVALID)";
         return $"{sector} trailer · {part}";
+    }
+
+    // ---- Unknown MIFARE Classic keys -------------------------------------
+
+    /// <summary>
+    /// The saved card marks this key unknown and its trailer bytes are still the ones it was
+    /// opened with: typing a key in (or clearing the sector) makes it an ordinary value again.
+    /// </summary>
+    private bool IsKeyUnknown(int sector, bool keyA) =>
+        (keyA ? _source.Extra.UnknownKeyA : _source.Extra.UnknownKeyB).Contains(sector)
+        && StillUnknown(sector, keyA ? 0 : 10, _data);
+
+    private bool StillUnknown(int sector, int offset, IReadOnlyList<byte[]> data)
+    {
+        var t = MifareClassic.SectorTrailerBlock(sector);
+        return t < data.Count && data[t].Length == 16 && t < _source.Data.Count && _source.Data[t].Length == 16
+            && data[t].AsSpan(offset, 6).SequenceEqual(_source.Data[t].AsSpan(offset, 6));
+    }
+
+    private List<int> StillUnknown(IEnumerable<int> sectors, int offset, IReadOnlyList<byte[]> data) =>
+        sectors.Where(s => StillUnknown(s, offset, data)).Distinct().Order().ToList();
+
+    /// <summary>Sectors whose key A / key B is unknown, for the memory and write warnings; null when none.</summary>
+    public string? UnknownKeyWarning
+    {
+        get
+        {
+            if (!_tag.IsMifareClassic()) return null;
+            var blocks = Math.Min(_data.Count, _tag.MifareClassicBlocks());
+            var data = _data.Take(blocks).ToList();
+            var a = StillUnknown(_source.Extra.UnknownKeyA, 0, data);
+            var b = StillUnknown(_source.Extra.UnknownKeyB, 10, data);
+            if (a.Count == 0 && b.Count == 0) return null;
+            var parts = new List<string>();
+            if (a.Count > 0) parts.Add($"key A of sector{(a.Count > 1 ? "s" : "")} {string.Join(", ", a)}");
+            if (b.Count > 0) parts.Add($"key B of sector{(b.Count > 1 ? "s" : "")} {string.Join(", ", b)}");
+            return $"Unknown {string.Join(" and ", parts)}: held as 00, so writing this dump to a card sets that key to 000000000000.";
+        }
     }
 
     // Ultralight colors reuse the MIFARE Classic ones: UID = manufacturer, lock bytes = access
@@ -620,6 +661,8 @@ public sealed class CardEditorViewModel : ViewModelBase
         card.Atqa = atqa;
         card.Ats = ats;
         card.Data = _data.Take(_data.Count - OverflowBlocks).Select(d => (byte[])d.Clone()).ToList();
+        card.Extra.UnknownKeyA = _tag.IsMifareClassic() ? StillUnknown(_source.Extra.UnknownKeyA, 0, card.Data) : new();
+        card.Extra.UnknownKeyB = _tag.IsMifareClassic() ? StillUnknown(_source.Extra.UnknownKeyB, 10, card.Data) : new();
 
         // Generated defaults are editable memory, but were never read: only the rows the user
         // edited are kept, and a card with none of them edited is saved with no memory at all.

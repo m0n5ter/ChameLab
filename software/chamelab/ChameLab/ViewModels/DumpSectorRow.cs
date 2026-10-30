@@ -100,14 +100,17 @@ public sealed class DumpSectorRow : ReactiveObject, ISectorKeys, ISectorWritePro
             nameof(IsRead));
         var trailer = dump.GetBlock(LastBlock);
         // Display stored keys offline; authentication state still comes only from ApplyKey.
+        // An unknown key's trailer bytes are zeros, not the key, so it shows as unknown.
         this.RaiseAndSetIfChanged(ref _savedKeyA,
-            trailer is { Length: 16 } ? Convert.ToHexString(trailer.AsSpan(0, 6)) : null, nameof(KeyAText));
+            trailer is { Length: 16 } && !dump.KeyAUnknown[Sector] ? Convert.ToHexString(trailer.AsSpan(0, 6)) : null, nameof(KeyAText));
         this.RaiseAndSetIfChanged(ref _savedKeyB,
-            trailer is { Length: 16 } ? Convert.ToHexString(trailer.AsSpan(10, 6)) : null, nameof(KeyBText));
+            trailer is { Length: 16 } && !dump.KeyBUnknown[Sector] ? Convert.ToHexString(trailer.AsSpan(10, 6)) : null, nameof(KeyBText));
     }
 
     private string? _savedKeyA;
     private string? _savedKeyB;
+    public bool HasSavedKeyA => _savedKeyA is not null;
+    public bool HasSavedKeyB => _savedKeyB is not null;
 
     private KeyCellState _keyAState;
     private string? _keyA;

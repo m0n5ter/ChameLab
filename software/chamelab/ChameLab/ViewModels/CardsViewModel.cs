@@ -1256,8 +1256,14 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     public bool IsDumpRunning => DumpProgressText is not null;
-    public bool ShowDumpActions => CanDump && !IsDumpRunning && !IsDumpComplete;
-    public bool ShowDumpNotice => CanDump && !IsDumpRunning && !IsDumpComplete && !IsConnected;
+    public bool ShowDumpActions => CanDump && !IsDumpRunning && NeedsRecovery;
+    public bool ShowDumpNotice => CanDump && !IsDumpRunning && NeedsRecovery && !IsConnected;
+
+    /// <summary>Blocks are missing, or a read trailer lacks key A or key B (held as zeros).</summary>
+    private bool NeedsRecovery => !IsDumpComplete || HasMissingKeys;
+
+    private bool HasMissingKeys => _classicDump is { } d && Enumerable.Range(0, d.SectorCount)
+        .Any(s => (d.KeyAUnknown[s] && d.KeyA[s] is null) || (d.KeyBUnknown[s] && d.KeyB[s] is null));
     public string DumpNotice => "Connect a device to read memory and recover keys.";
 
     private void RaiseDumpToolbar()
@@ -1380,7 +1386,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         RaiseSaveLabel();
     }
 
-    public bool ShowCheckRecovery => _classicDump is not null && _cardPrng is null && !IsDumpComplete && HasUnknownKeys;
+    public bool ShowCheckRecovery => _classicDump is not null && _cardPrng is null && NeedsRecovery && HasUnknownKeys;
 
     private Task CheckRecoveryAsync() => RunAsync(async () =>
     {
@@ -1418,7 +1424,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
             {
                 var keys = kt == MfKeyType.A ? dump.KeyA : dump.KeyB;
-                if (keys[sector] is not null) continue;
+                if (keys[sector] is not null || (kt == MfKeyType.A ? dump.KeyAUnknown : dump.KeyBUnknown)[sector]) continue;
                 var key = kt == MfKeyType.A ? trailer[..6] : trailer[10..];
                 if (await client.Mf1AuthAsync(MifareClassic.SectorFirstBlock(sector), kt, key, ct))
                     keys[sector] = key;
@@ -1613,9 +1619,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var keys = BuildKeyDictionary();
         try
         {
-            // A saved full dump still needs its physical card's keys authenticated.
+            // A saved full dump still needs its physical card's keys authenticated, and so do
+            // sectors whose blocks are all there but whose key A or B is missing.
             // The normal continuation reader deliberately skips blocks already present.
-            if (IsDumpComplete && _classicDump is { } complete && HasUnknownKeys)
+            if ((IsDumpComplete || HasMissingKeys) && _classicDump is { } complete && HasUnknownKeys)
             {
                 DumpProgressText = "Checking dictionary keys…";
                 var progress = new PostedProgress<MifareKeyProgress>(IfKept<MifareKeyProgress>(cts, OnDumpKey));
@@ -1972,9 +1979,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
         if (_classicDump is { } saved)
             for (var sector = 0; sector < saved.SectorCount; sector++)
-                if (saved.GetBlock(MifareClassic.SectorTrailerBlock(sector)) is { Length: 16 } trailer)
-                    foreach (var key in new[] { trailer[..6], trailer[10..] })
-                        if (seen.Add(Convert.ToHexString(key))) keys.Add(key);
+                foreach (var key in saved.TrailerKeys(sector))
+                    if (seen.Add(Convert.ToHexString(key))) keys.Add(key);
         return keys;
     }
 
@@ -2455,10 +2461,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _ => string.Empty,
     };
 
-    public string? WriteWarning => !IsGen2Write ? null
-        : WriteGen2Block0
-            ? "WARNING: Incorrect block 0 data or sector access bits can permanently brick the card. Double-check the dump and the target card before writing."
-            : "WARNING: Incorrect sector access bits can permanently brick the card. Double-check the dump and the target card before writing.";
+    public string? WriteWarning
+    {
+        get
+        {
+            var gen2 = !IsGen2Write ? null
+                : WriteGen2Block0
+                    ? "WARNING: Incorrect block 0 data or sector access bits can permanently brick the card. Double-check the dump and the target card before writing."
+                    : "WARNING: Incorrect sector access bits can permanently brick the card. Double-check the dump and the target card before writing.";
+            var keys = IsMifareWrite ? _form?.UnknownKeyWarning : null;
+            return gen2 is null ? keys : keys is null ? gen2 : $"{gen2}\n{keys}";
+        }
+    }
 
     private void RaiseCardInfo()
     {

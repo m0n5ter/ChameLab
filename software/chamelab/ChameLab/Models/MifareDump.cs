@@ -73,6 +73,19 @@ public static class MifareClassic
             && (b8 >> 4) == (~b7 & 0x0F);         // C3 vs ~C3
     }
 
+    /// <summary>
+    /// Whether a card hands out key B when the trailer is read: only when the trailer's access
+    /// condition (C1 C2 C3) is 000, 010 or 001, where key B serves as data. Otherwise it reads as zeros.
+    /// </summary>
+    public static bool KeyBReadable(ReadOnlySpan<byte> trailer)
+    {
+        if (!AccessBitsValid(trailer)) return false;
+        var c1 = (trailer[7] >> 7) & 1;
+        var c2 = (trailer[8] >> 3) & 1;
+        var c3 = (trailer[8] >> 7) & 1;
+        return c1 == 0 && (c2 == 0 || c3 == 0);
+    }
+
     /// <summary>Transport trailer of a blank card: default keys, access bits FF 07 80, user byte 69.</summary>
     private static readonly byte[] BlankTrailer = Convert.FromHexString("FFFFFFFFFFFFFF078069FFFFFFFFFFFF");
 
@@ -169,6 +182,8 @@ public sealed class MifareDump
         _blocks = new byte[]?[MifareClassic.BlockCount(type)];
         KeyA = new byte[]?[MifareClassic.SectorCount(type)];
         KeyB = new byte[]?[MifareClassic.SectorCount(type)];
+        KeyAUnknown = new bool[MifareClassic.SectorCount(type)];
+        KeyBUnknown = new bool[MifareClassic.SectorCount(type)];
     }
 
     public MifareClassicType Type { get; }
@@ -182,6 +197,32 @@ public sealed class MifareDump
     /// <summary>Recovered key A / key B per sector (null = unknown).</summary>
     public byte[]?[] KeyA { get; }
     public byte[]?[] KeyB { get; }
+
+    /// <summary>
+    /// The trailer's key A / key B bytes are not the key (the card hides it and it was not
+    /// recovered), so they must not be shown or tried as one.
+    /// </summary>
+    public bool[] KeyAUnknown { get; }
+    public bool[] KeyBUnknown { get; }
+
+    /// <summary>
+    /// A sector trailer as read from a card: key A always comes back as zeros, key B too unless
+    /// the access bits make it readable. <see cref="FillRecoveredKeys"/> puts known keys in.
+    /// </summary>
+    public void SetTrailerFromCard(int sector, byte[] trailer)
+    {
+        SetBlock(MifareClassic.SectorTrailerBlock(sector), trailer);
+        KeyAUnknown[sector] = true;
+        KeyBUnknown[sector] = !MifareClassic.KeyBReadable(trailer);
+    }
+
+    /// <summary>The key bytes a read trailer really holds (not the zeros of an unknown key).</summary>
+    public IEnumerable<byte[]> TrailerKeys(int sector)
+    {
+        if (_blocks[MifareClassic.SectorTrailerBlock(sector)] is not { Length: 16 } trailer) yield break;
+        if (!KeyAUnknown[sector]) yield return trailer[..6];
+        if (!KeyBUnknown[sector]) yield return trailer[10..];
+    }
 
     public byte[]? GetBlock(int block) => _blocks[block];
     public void SetBlock(int block, byte[]? data) => _blocks[block] = data;
@@ -204,7 +245,7 @@ public sealed class MifareDump
     /// <summary>
     /// Writes each recovered key A / key B into the matching sector trailer that
     /// was read, so the dump carries the keys (a card returns the key bytes as
-    /// zeros when the trailer is read). Trailers that were not read are left alone.
+    /// zeros when the trailer is read), and marks them known. Trailers that were not read are left alone.
     /// </summary>
     public void FillRecoveredKeys()
     {
@@ -212,8 +253,8 @@ public sealed class MifareDump
         {
             var trailer = _blocks[MifareClassic.SectorTrailerBlock(s)];
             if (trailer is not { Length: 16 }) continue;
-            if (KeyA[s] is { Length: 6 } a) a.CopyTo(trailer, 0);
-            if (KeyB[s] is { Length: 6 } b) b.CopyTo(trailer, 10);
+            if (KeyA[s] is { Length: 6 } a) { a.CopyTo(trailer, 0); KeyAUnknown[s] = false; }
+            if (KeyB[s] is { Length: 6 } b) { b.CopyTo(trailer, 10); KeyBUnknown[s] = false; }
         }
     }
 

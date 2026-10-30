@@ -46,7 +46,7 @@
         </StackPanel>
         <c:ActionRow Grid.Column="1" Classes="library-actions" HorizontalAlignment="Right" VerticalAlignment="Center">
         <Button Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
-                VerticalAlignment="Center" ToolTip.Tip="Import a .dic / .txt / .json dictionary">
+                VerticalAlignment="Center" ToolTip.Tip="Import a .dic / .keys / .txt / .json dictionary">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.import}" />
             <TextBlock Text="Import" VerticalAlignment="Center" />
