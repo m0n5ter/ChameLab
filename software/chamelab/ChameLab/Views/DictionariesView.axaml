@@ -1,5 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="720"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:conv="using:ChameLab.Converters"
              xmlns:b="using:ChameLab.Behaviors"
@@ -89,7 +92,7 @@
           <StackPanel Orientation="Horizontal" Spacing="12">
             <PathIcon Data="{StaticResource Icon.key}" Width="22" Height="22" VerticalAlignment="Center" />
             <StackPanel Spacing="2">
-              <TextBlock Text="Known card keys" FontWeight="SemiBold" />
+              <TextBlock Text="Known card keys" FontWeight="SemiBold" FontSize="15" />
               <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
             </StackPanel>
           </StackPanel>
@@ -213,13 +216,6 @@
               <PathIcon Data="{StaticResource Icon.close}" />
             </Button>
           </Grid>
-          <StackPanel Grid.Row="1" Spacing="4">
-            <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
-            <TextBlock Text="Select a UID to edit its keys. Changes and deleted UIDs are applied when you save."
-                       Classes="caption" TextWrapping="Wrap" />
-            <TextBlock Text="One 6-byte key per row (11 22 33 44 55 66). Type or paste into the empty row to add a key; Delete removes selected rows."
-                       Classes="caption" TextWrapping="Wrap" />
-          </StackPanel>
           <TextBox Grid.Row="2" Text="{Binding KnownEditor.Filter}" PlaceholderText="Search by UID or card name">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
