@@ -69,7 +69,8 @@ public sealed class NdefEditorViewModel : ViewModelBase
 
     /// <param name="memory">The card's pages and type as they are now.</param>
     /// <param name="write">Writes a new data area (from page 4) and, when not null, the capability container (page 3).</param>
-    public NdefEditorViewModel(Func<(IReadOnlyList<byte[]> Pages, TagSpecificType Tag)> memory, Action<byte[], byte[]?> write)
+    public NdefEditorViewModel(
+        Func<(IReadOnlyList<byte[]> Pages, TagSpecificType Tag)> memory, Action<byte[], byte[]?> write)
     {
         _memory = memory;
         _write = write;
@@ -135,6 +136,14 @@ public sealed class NdefEditorViewModel : ViewModelBase
         {
             Records = Array.Empty<NdefRecordRow>();
             Summary = string.Empty;
+            Error = null;
+            return;
+        }
+        if (pages.All(p => p.Length == 0))
+        {
+            // Nothing read yet (a scan without a dump): there is no message to show, empty or not.
+            Records = Array.Empty<NdefRecordRow>();
+            Summary = "Memory not read yet: dump the card to see its records.";
             Error = null;
             return;
         }

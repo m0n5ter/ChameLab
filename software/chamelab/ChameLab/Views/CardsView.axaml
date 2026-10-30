@@ -923,8 +923,15 @@
           </Border>
 
           <!-- ===================== NDEF records (Ultralight / NTAG) ===================== -->
-          <Panel IsVisible="{Binding ShowMemoryEditor}">
-            <Border Classes="card" IsVisible="{Binding Form?.IsUltralight, TargetNullValue=False}">
+          <!-- Hidden as a whole, so the list's spacing doesn't leave a gap for the hidden card. -->
+          <Panel>
+            <Panel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="ShowMemoryEditor" />
+                <Binding ElementName="NdefCard" Path="IsVisible" />
+              </MultiBinding>
+            </Panel.IsVisible>
+            <Border x:Name="NdefCard" Classes="card" IsVisible="{Binding Form?.IsUltralight, TargetNullValue=False}">
               <StackPanel Spacing="10" DataContext="{Binding Form.Ndef}" x:DataType="vm:NdefEditorViewModel">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                   <StackPanel Spacing="2" VerticalAlignment="Center">
@@ -1085,8 +1092,15 @@
           </Panel>
 
           <!-- ===================== Password protection (Ultralight EV1 / NTAG21x) ===================== -->
-          <Panel IsVisible="{Binding ShowMemoryEditor}">
-            <Border Classes="card" IsVisible="{Binding Form?.HasPasswordConfig, TargetNullValue=False}">
+          <!-- Hidden as a whole, so the list's spacing doesn't leave a gap for the hidden card. -->
+          <Panel>
+            <Panel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="ShowMemoryEditor" />
+                <Binding ElementName="PasswordCard" Path="IsVisible" />
+              </MultiBinding>
+            </Panel.IsVisible>
+            <Border x:Name="PasswordCard" Classes="card" IsVisible="{Binding Form?.HasPasswordConfig, TargetNullValue=False}">
               <StackPanel Spacing="10" DataContext="{Binding Form}" x:DataType="vm:CardEditorViewModel">
                 <StackPanel Spacing="2">
                   <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />

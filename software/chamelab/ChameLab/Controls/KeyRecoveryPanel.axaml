@@ -49,7 +49,7 @@
               </Style>
             </Grid.Styles>
             <StackPanel Orientation="Horizontal" Spacing="0">
-              <Button x:Name="TryKeysButton" Command="{Binding DumpCommand}" Classes="dump-main responsive"
+              <Button x:Name="TryKeysButton" Command="{Binding DumpCommand}" Classes="dump-main responsive accent theme-outline"
                       Classes.ultralight="{Binding IsUltralightDump}"
                       Height="40" BorderThickness="0"
                       ToolTip.Tip="{Binding TryKeysTip}">

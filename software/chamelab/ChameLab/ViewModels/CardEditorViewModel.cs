@@ -30,7 +30,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     private bool _isDirty;
     private HexBuffer? _memory;
     private string? _memoryWarning;
-    private bool _generatedMemory;
+    // Blank-card memory for the current type and identity: shown in place of unread rows, never saved.
+    private List<byte[]>? _template;
     // Memory of another layout set aside by a type change; restored when switching back.
     private (TagSpecificType Tag, List<byte[]> Data)? _stash;
 
@@ -144,14 +145,14 @@ public sealed class CardEditorViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Fits the dump to a MIFARE Classic size: a bigger card gets blank sectors, a smaller one
+    /// Fits the dump to a MIFARE Classic size: a bigger card gets unread sectors, a smaller one
     /// sheds trailing sectors that hold nothing (blank or unread). Sectors with data stay until
     /// the card is saved, so switching back loses nothing; <see cref="MemoryWarning"/> says so.
     /// </summary>
     private void ResizeMifareClassic(int blocks)
     {
         if (_data.Count == 0) return;
-        for (var b = _data.Count; b < blocks; b++) _data.Add(MifareClassic.BlankBlock(b));
+        for (var b = _data.Count; b < blocks; b++) _data.Add(Array.Empty<byte>());
         while (_data.Count > blocks)
         {
             var first = MifareClassic.SectorFirstBlock(MifareClassic.SectorOfBlock(_data.Count - 1));
@@ -165,7 +166,7 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     /// <summary>
     /// Memory laid out for another type can't carry over: it is set aside (and comes back if
-    /// the type is switched back before saving) and a blank card of the new type takes its
+    /// the type is switched back before saving) and unread memory of the new type takes its
     /// place. A card with no memory stays identity only.
     /// </summary>
     private void AdaptMemory(TagSpecificType from, TagSpecificType to)
@@ -176,11 +177,7 @@ public sealed class CardEditorViewModel : ViewModelBase
             next = stashed.Data;
             _stash = null;
         }
-        else if (_data.Count > 0)
-        {
-            var (uid, sak, atqa) = IdentityBytes();
-            next = BlankMemory.Create(to, uid, sak, atqa);
-        }
+        else if (_data.Count > 0) next = UnreadRows(to);
         else return;
 
         if (_data.Any(d => d.Length > 0)) _stash = (from, _data);
@@ -191,6 +188,37 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// <summary>Memory of one type is valid for the other (all MIFARE Classic sizes share a layout).</summary>
     private static bool SameLayout(TagSpecificType a, TagSpecificType b) =>
         a == b || (a.IsMifareClassic() && b.IsMifareClassic());
+
+    /// <summary>One unread (empty) row per block / page of the type.</summary>
+    private static List<byte[]> UnreadRows(TagSpecificType tag) =>
+        Enumerable.Range(0, tag.IsMifareClassic() ? tag.MifareClassicBlocks() : tag.UltralightPages())
+            .Select(_ => Array.Empty<byte>()).ToList();
+
+    /// <summary>What a blank card of the current type and identity holds in a row; null past its end.</summary>
+    private byte[]? TemplateRow(int row)
+    {
+        if (!BlankMemory.Supports(_tag)) return null;
+        if (_template is null)
+        {
+            var (uid, sak, atqa) = IdentityBytes();
+            _template = BlankMemory.Create(_tag, uid, sak, atqa);
+        }
+        return row < _template.Count ? _template[row] : null;
+    }
+
+    /// <summary>
+    /// Template bytes that come from the card's identity (scanned or typed) rather than blank-card
+    /// defaults: MIFARE Classic block 0 UID / BCC / SAK / ATQA, Ultralight UID and check bytes.
+    /// </summary>
+    private bool KnownFromIdentity(int row, int col)
+    {
+        var uidLength = Hex.TryParse(_uid, out var uid) ? uid.Length : 0;
+        if (_tag.IsMifareClassic())
+            return row == 0 && uidLength switch { 4 => col < 8, 7 => col < 7, _ => false };
+        if (_tag.IsUltralight() && uidLength == 7)
+            return row < 2 || (row == 2 && col == 0);
+        return false;
+    }
 
     /// <summary>UID, SAK and ATQA as typed so far; unparsable fields count as empty.</summary>
     private (byte[] Uid, byte Sak, byte[] Atqa) IdentityBytes() => (
@@ -226,6 +254,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _uid, value);
+            IdentityChanged();
             this.RaisePropertyChanged(nameof(LfFields));
             this.RaisePropertyChanged(nameof(HasLfFields));
             RaisePyramidFields();
@@ -276,8 +305,15 @@ public sealed class CardEditorViewModel : ViewModelBase
             : Array.Empty<ScanResultRow>();
 
     public bool HasLfFields => LfFields.Count > 0;
-    public string Sak { get => _sak; set { this.RaiseAndSetIfChanged(ref _sak, value); Touch(); } }
-    public string Atqa { get => _atqa; set { this.RaiseAndSetIfChanged(ref _atqa, value); Touch(); } }
+    public string Sak { get => _sak; set { this.RaiseAndSetIfChanged(ref _sak, value); IdentityChanged(); Touch(); } }
+    public string Atqa { get => _atqa; set { this.RaiseAndSetIfChanged(ref _atqa, value); IdentityChanged(); Touch(); } }
+
+    /// <summary>Block 0 / the UID pages of the blank-card template follow the identity as it is typed.</summary>
+    private void IdentityChanged()
+    {
+        _template = null;
+        Memory?.TemplateChanged();
+    }
     public string Ats { get => _ats; set { this.RaiseAndSetIfChanged(ref _ats, value); Touch(); } }
 
     /// <summary>Something differs from the card the editor was opened with.</summary>
@@ -339,8 +375,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     {
         get
         {
-            if (_generatedMemory) return "Blank memory";
             var known = _data.Count(d => d.Length > 0);
+            if (known == 0 && _data.Count > 0) return "Not read";
             if (_tag.IsMifareClassic())
             {
                 // A sector counts once every one of its blocks was read (or entered).
@@ -370,7 +406,6 @@ public sealed class CardEditorViewModel : ViewModelBase
     private void SetData(List<byte[]> rows)
     {
         _data = rows;
-        _generatedMemory = false;
         RebuildRows();
         Touch();
     }
@@ -381,15 +416,11 @@ public sealed class CardEditorViewModel : ViewModelBase
         var mfc = _tag.IsMifareClassic();
         var ul = _tag.IsUltralight();
         var tag = _tag;
-        // Defaults only stand in for a card with no memory at all: rows that are there but empty
-        // were not read (e.g. a dump that found no keys) and must stay unread when saved.
-        if (_data.Count == 0 && BlankMemory.Supports(tag))
-        {
-            var (uid, sak, atqa) = IdentityBytes();
-            _data = BlankMemory.Create(tag, uid, sak, atqa);
-            _generatedMemory = true;
-        }
-        // A partial read retains every unread row; defaults only initialize a card with no memory.
+        // A card with no memory gets unread rows to edit; blank-card defaults are only their template,
+        // so nothing passes for read data, and only rows the user edits are saved.
+        _template = null;
+        if (_data.Count == 0 && BlankMemory.Supports(tag)) _data = UnreadRows(tag);
+        // A partial read retains every unread row.
         if (mfc)
             while (_data.Count < tag.MifareClassicBlocks()) _data.Add(Array.Empty<byte>());
         Memory = _data.Count == 0 ? null : new HexBuffer(_data, RowLength)
@@ -406,6 +437,8 @@ public sealed class CardEditorViewModel : ViewModelBase
             },
             Classify = (row, col) => mfc ? MifareCellKind(row, col) : ul ? UltralightCellKind(tag, row, col) : HexCellKind.Data,
             Describe = (row, col) => mfc ? DescribeMifare(row, col) : ul ? DescribeUltralight(tag, row, col) : null,
+            Template = TemplateRow,
+            TemplateKnown = KnownFromIdentity,
         };
         if (_memory is not null) _memory.Changed += OnMemoryChanged;
         UpdateSelectedMemory();
@@ -796,16 +829,9 @@ public sealed class CardEditorViewModel : ViewModelBase
         card.Extra.UnknownKeyA = _tag.IsMifareClassic() ? StillUnknown(_source.Extra.UnknownKeyA, 0, card.Data) : new();
         card.Extra.UnknownKeyB = _tag.IsMifareClassic() ? StillUnknown(_source.Extra.UnknownKeyB, 10, card.Data) : new();
 
-        // Generated defaults are editable memory, but were never read: only the rows the user
-        // edited are kept, and a card with none of them edited is saved with no memory at all.
-        if (_generatedMemory && Memory is { } memory)
-        {
-            for (var row = 0; row < card.Data.Count; row++)
-                if (!Enumerable.Range(0, card.Data[row].Length)
-                        .Any(col => memory.IsChanged((long)row * memory.RowLength + col)))
-                    card.Data[row] = Array.Empty<byte>();
-            if (card.Data.All(row => row.Length == 0)) card.Data.Clear();
-        }
+        // Rows a card without memory got for editing are saved only once one is entered; a dump
+        // that read nothing keeps its unread rows.
+        if (_source.Data.Count == 0 && card.Data.All(row => row.Length == 0)) card.Data.Clear();
 
         // Keep block 0 in step with an edited identity so dumps stay consistent.
         var identityChanged = !uid.SequenceEqual(_source.Uid) || sak != _source.Sak || !atqa.SequenceEqual(_source.Atqa);

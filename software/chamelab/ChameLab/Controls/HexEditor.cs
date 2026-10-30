@@ -427,11 +427,15 @@ public sealed class HexEditor : Control
         for (var col = 0; col < _perLine; col++)
         {
             var offset = (long)line * _perLine + col;
-            var b = read ? buf[offset] : (byte)0;
-            var brush = !read ? dim : buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(row, (int)(offset % buf.RowLength)), fg);
-            Add(read ? HexBytes[b] : "--", brush, ByteX(col) + _digitW);
+            // An unread row shows its template (blank-card defaults) dimmed, or dashes without one.
+            var template = read ? null : buf.TemplateAt(offset);
+            var b = read ? buf[offset] : template ?? 0;
+            var known = !read && buf.IsTemplateKnown(offset);
+            var brush = !read && !known ? dim
+                : buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(row, (int)(offset % buf.RowLength)), fg);
+            Add(read || template is not null ? HexBytes[b] : "--", brush, ByteX(col) + _digitW);
             if (_showAscii)
-                Add(read ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);
+                Add(read || template is not null ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);
         }
 
         var runs = new List<(IBrush, GlyphRun)>();
@@ -551,9 +555,10 @@ public sealed class HexEditor : Control
                     string hex, ascii;
                     if (!rowRead)
                     {
-                        brush = dim;
-                        hex = "--";
-                        ascii = "·";
+                        brush = buf.IsTemplateKnown(offset) ? KindBrush(buf.Classify(row, rowCol), fg) : dim;
+                        var template = buf.TemplateAt(offset);
+                        hex = template is { } t ? HexBytes[t] : "--";
+                        ascii = template is { } a ? AsciiBytes[a] : "·";
                     }
                     else
                     {
@@ -627,6 +632,8 @@ public sealed class HexEditor : Control
             var b = buf[_caret];
             value = $"{b:X2} {b,4} {Convert.ToString(b, 2).PadLeft(8, '0')}";
         }
+        else if (buf.IsTemplateKnown(_caret) && buf.TemplateAt(_caret) is { } k)
+            value = $"{k:X2} {k,4} {Convert.ToString(k, 2).PadLeft(8, '0')}";
         else value = "not read";
 
         StatusText = $"{buf.RowLabel(row).PadLeft(labelWidth)}:{col.ToString().PadLeft(colWidth, '0')}  " +
@@ -642,6 +649,14 @@ public sealed class HexEditor : Control
         else if (detail?.StartsWith(title + " trailer · ", StringComparison.Ordinal) == true)
             detail = detail[(title.Length + 11)..];
         var position = $"{buf.RowLabel(row)}:{col.ToString().PadLeft(colWidth, '0')}";
+        // Known without the block being read (the UID from the scan): the value, and where it comes from.
+        if (!HasSelection && buf.IsTemplateKnown(_caret) && buf.TemplateAt(_caret) is { } known)
+        {
+            const string note = "from the card's identity, block not read";
+            SelectionStatus = new(title, detail is null ? note : $"{detail} · {note}", position, known.ToString("X2"),
+                known.ToString(CultureInfo.InvariantCulture), Convert.ToString(known, 2).PadLeft(8, '0'), null);
+            return;
+        }
         SelectionStatus = !HasSelection && buf.IsRead(row)
             ? new(title, detail, position, buf[_caret].ToString("X2"), buf[_caret].ToString(CultureInfo.InvariantCulture),
                 Convert.ToString(buf[_caret], 2).PadLeft(8, '0'), null)

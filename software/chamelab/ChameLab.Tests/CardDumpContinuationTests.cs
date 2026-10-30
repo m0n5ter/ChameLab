@@ -132,7 +132,7 @@ public class CardDumpContinuationTests
     {
         var editor = new CardEditorViewModel(Card(TagSpecificType.Mifare4096));
         Assert.False(editor.IsDirty);
-        Assert.True(editor.HasData);
+        Assert.False(editor.HasData);
         editor.SelectedSector = 32;
         var sector = editor.SelectedMemory!;
         Assert.Equal(16, sector.RowCount);
@@ -149,7 +149,7 @@ public class CardDumpContinuationTests
         Assert.Empty(editor.Build().Data[127]);
         Assert.True(editor.SelectedMemory.Undo());
         Assert.False(editor.IsDirty);
-        Assert.True(editor.HasData);
+        Assert.False(editor.HasData);
     }
 
     [Theory]
@@ -167,10 +167,44 @@ public class CardDumpContinuationTests
         Assert.Empty(editor.Build().Data[1]);
         Assert.True(editor.SelectedMemory.Undo());
         Assert.Empty(editor.Build().Data);
+        Assert.False(editor.HasData);
         // Saved untouched, it reopens as the same blank memory instead of as read sectors.
         var reopened = new CardEditorViewModel(editor.Build(), restrictType: true);
         Assert.Equal(count, reopened.Memory!.RowCount);
         Assert.Empty(reopened.Build().Data);
+    }
+
+    [Fact]
+    public void EditingUnreadRowStartsFromBlankCardDefaults()
+    {
+        var editor = new CardEditorViewModel(Card(TagSpecificType.Mifare1024));
+        var memory = editor.Memory!;
+        // A trailer shows the default keys and access bits without being read.
+        Assert.False(memory.IsRead(3));
+        Assert.Equal((byte)0xFF, memory.TemplateAt(3 * 16));
+        Assert.Equal((byte)0x07, memory.TemplateAt(3 * 16 + 7));
+        memory.Write(3 * 16, [0xA0]);
+        var trailer = editor.Build().Data[3];
+        Assert.Equal(0xA0, trailer[0]);
+        Assert.Equal(Convert.FromHexString("FFFFFFFFFFFF078069FFFFFFFFFFFF")[..], trailer[1..]);
+        Assert.Null(memory.TemplateAt(3 * 16));
+    }
+
+    [Fact]
+    public void ScannedIdentityIsKnownInUnreadBlock0()
+    {
+        var editor = new CardEditorViewModel(Card());
+        var memory = editor.Memory!;
+        Assert.False(memory.IsRead(0));
+        // UID 01 02 03 04, BCC 04, SAK 08, ATQA 04 00: known; manufacturer data: a default.
+        Assert.Equal(new byte?[] { 1, 2, 3, 4, 4, 8, 4, 0 }, Enumerable.Range(0, 8).Select(i => memory.TemplateAt(i)));
+        Assert.All(Enumerable.Range(0, 8), i => Assert.True(memory.IsTemplateKnown(i)));
+        Assert.False(memory.IsTemplateKnown(8));
+        Assert.False(memory.IsTemplateKnown(16));
+        // Typing a new UID moves the known bytes along.
+        editor.Uid = "0A 0B 0C 0D";
+        Assert.Equal((byte)0x0A, memory.TemplateAt(0));
+        Assert.Empty(editor.Build().Data);
     }
 
     [Fact]
@@ -179,7 +213,7 @@ public class CardDumpContinuationTests
         var editor = new CardEditorViewModel(Card());
         var dump = editor.Build().ToMifareDump();
         editor.ReplaceContent(CardFormats.FromMifareDump(dump));
-        Assert.Equal("0/16 sectors", editor.DataSummary);
+        Assert.Equal("Not read", editor.DataSummary);
         var saved = editor.Build();
         Assert.Equal(64, saved.Data.Count);
         Assert.All(saved.Data, row => Assert.Empty(row));
@@ -201,7 +235,8 @@ public class CardDumpContinuationTests
         editor.SelectedSector = 32;
         editor.ClearSectorCommand.Execute(null);
         var cleared = editor.Build();
-        Assert.True(editor.IsDirty);
+        // Clearing unread blocks changes nothing.
+        Assert.Equal(!generated, editor.IsDirty);
         for (var block = 0; block < 256; block++)
         {
             if (block >= 128 && block < 144) Assert.Empty(Row(cleared, block));

@@ -17,7 +17,7 @@ public enum HexCellKind
 
 /// <summary>
 /// Memory edited by <see cref="HexEditor"/>: a list of equally long rows (blocks / pages / keys)
-/// where an empty row means "not read". Edits overwrite in place and can be undone. Card memory
+/// where an empty row means "not read" (optionally shown with a <see cref="Template"/>). Edits overwrite in place and can be undone. Card memory
 /// has a fixed size; with <see cref="CanResize"/> rows can also be inserted and removed, and
 /// pasting past the end adds rows.
 /// </summary>
@@ -43,6 +43,8 @@ public sealed class HexBuffer
         StartsGroup = row => parent.StartsGroup(firstRow + row);
         GroupHeader = row => parent.GroupHeader(firstRow + row);
         Describe = (row, col) => parent.Describe(firstRow + row, col);
+        Template = row => parent.Template(firstRow + row);
+        TemplateKnown = (row, col) => parent.TemplateKnown(firstRow + row, col);
     }
 
     /// <summary>A fixed range sharing edits, original bytes and undo history with this buffer.</summary>
@@ -101,6 +103,38 @@ public sealed class HexBuffer
     /// <summary>Short description of a position for the status line.</summary>
     public Func<int, int, string?> Describe { get; init; } = (_, _) => null;
 
+    /// <summary>
+    /// What an unread row holds on a blank card (e.g. default keys in a MIFARE trailer); null when
+    /// unknown. Shown dimmed in place of the unread row and the start of it once edited, so
+    /// defaults stand in for memory that was never read without passing for read data.
+    /// </summary>
+    public Func<int, byte[]?> Template { get; init; } = _ => null;
+
+    /// <summary>
+    /// The template byte is known rather than a default (e.g. the UID, which the scan tells
+    /// although it doesn't read block 0): drawn like data, while the row stays unread.
+    /// </summary>
+    public Func<int, int, bool> TemplateKnown { get; init; } = (_, _) => false;
+
+    /// <summary>The byte is unread but known from the <see cref="Template"/>.</summary>
+    public bool IsTemplateKnown(long offset) =>
+        TemplateAt(offset) is not null && TemplateKnown((int)(offset / RowLength), (int)(offset % RowLength));
+
+    /// <summary>The <see cref="Template"/> now gives other bytes: tells listeners (the editor redraws).</summary>
+    public void TemplateChanged()
+    {
+        if (_parent is { } parent) parent.TemplateChanged();
+        else _changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>The template byte at an unread position; null when the row is read or has no template.</summary>
+    public byte? TemplateAt(long offset)
+    {
+        var row = (int)(offset / RowLength);
+        if (row < 0 || row >= RowCount || IsRead(row)) return null;
+        return Template(row) is { } t && t.Length == RowLength ? t[offset % RowLength] : null;
+    }
+
     /// <summary>Raised after every edit, undo and redo.</summary>
     private event EventHandler? _changed;
     public event EventHandler? Changed
@@ -147,7 +181,7 @@ public sealed class HexBuffer
     /// <summary>Sets one nibble (half-byte) of a byte; <paramref name="high"/> picks the upper one.</summary>
     public void WriteNibble(long offset, bool high, int value)
     {
-        var old = IsRead(offset) ? this[offset] : (byte)0;
+        var old = IsRead(offset) ? this[offset] : TemplateAt(offset) ?? 0;
         var b = high ? (byte)((value << 4) | (old & 0x0F)) : (byte)((old & 0xF0) | value);
         // Typing both nibbles of one byte is a single undo step.
         var merge = !high && _typingOffset == offset;
@@ -216,7 +250,8 @@ public sealed class HexBuffer
         {
             var o = offset + i;
             var row = (int)(o / RowLength);
-            if (_rows[row].Length == 0) _rows[row] = new byte[RowLength];
+            if (_rows[row].Length == 0)
+                _rows[row] = Template(row) is { } t && t.Length == RowLength ? (byte[])t.Clone() : new byte[RowLength];
             _rows[row][o % RowLength] = bytes[i];
         }
 
