@@ -18,11 +18,6 @@ namespace ChameLab.ViewModels;
 /// </summary>
 public abstract class PageViewModelBase : ViewModelBase
 {
-    private bool _isBusy;
-    private string? _notice;
-    private string? _error;
-    private string? _saveError;
-
     protected PageViewModelBase(string title, string icon)
     {
         Title = title;
@@ -48,29 +43,29 @@ public abstract class PageViewModelBase : ViewModelBase
 
     public bool IsBusy
     {
-        get => _isBusy;
-        private set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>A passing confirmation (see <see cref="Notify"/>).</summary>
     public string? Notice
     {
-        get => _notice;
-        private set => this.RaiseAndSetIfChanged(ref _notice, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>The last failure on this page (see <see cref="ReportError"/>).</summary>
     public string? Error
     {
-        get => _error;
-        private set => this.RaiseAndSetIfChanged(ref _error, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>Why the open edits could not be saved (see <see cref="ReportSaveError"/>).</summary>
     public string? SaveError
     {
-        get => _saveError;
-        private set => this.RaiseAndSetIfChanged(ref _saveError, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>Called when the page becomes visible; override to refresh data.</summary>

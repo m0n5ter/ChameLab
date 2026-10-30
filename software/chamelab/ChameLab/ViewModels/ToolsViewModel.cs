@@ -24,7 +24,6 @@ public sealed partial class ToolsViewModel : PageViewModelBase
 
     private readonly DeviceService _device;
     private byte[]? _samples;
-    private string? _source;
     private LfSniffSummary? _summary;
     private LfModulationResult? _modulation;
     private LfManchesterDecode? _decode;
@@ -32,7 +31,6 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     private bool _invert;
     private double _zoom = 1;
     private int _cursorIndex = -1;
-    private bool? _isSupported;
     private SniffTool _tool;
 
     public ToolsViewModel(DeviceService device) : base("Tools", "tools")
@@ -67,10 +65,10 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     /// <summary>Whether the firmware has <c>LF_SNIFF</c>; null until asked (or without a device).</summary>
     public bool? IsSupported
     {
-        get => _isSupported;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _isSupported, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(IsUnsupported));
         }
     }
@@ -146,8 +144,8 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     /// <summary>Where the capture shown came from: the device and when, or the file it was loaded from.</summary>
     public string? Source
     {
-        get => _source;
-        private set => this.RaiseAndSetIfChanged(ref _source, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     private Task CaptureAsync() => RunAsync(async () =>

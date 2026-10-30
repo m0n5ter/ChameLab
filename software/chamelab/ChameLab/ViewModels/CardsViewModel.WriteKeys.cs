@@ -12,16 +12,17 @@ public sealed partial class CardsViewModel
 {
     private MifareWriteSession? _writeSession;
     private int _writeVersion;
-    private bool _isWriteSuccessful;
+
     public bool IsWriteSuccessful
     {
-        get => _isWriteSuccessful;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _isWriteSuccessful, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(CanChangeWriteOptions));
         }
     }
+
     public bool CanChangeWriteOptions => !IsBusy && _writeSession is null && !IsWriteSuccessful;
     public MifareKeyRecoveryViewModel WriteRecovery { get; }
     public bool ShowWriteSectors => IsMifareWrite;

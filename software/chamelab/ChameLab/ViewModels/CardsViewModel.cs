@@ -70,13 +70,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private CardSort _sort = LoadSort();
     // The folder shown; null shows the cards in no folder.
     private string? _folder;
-    private string? _progressText;
     private bool _isConnected;
     private IReadOnlyList<SlotInfo> _slotInfos = Array.Empty<SlotInfo>();
 
     // Add-a-card state
-    private string? _scanMissText;
-    private string? _prng;
     private MifareDump? _classicDump;
     private MifareClassicPrngType? _cardPrng;
     private bool _darksideAvailable;
@@ -102,8 +99,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(ShowHardnested));
         this.RaisePropertyChanged(nameof(HardnestedWarning));
     }
-    private string? _formSource;
-    private TagSpecificType _lfProtocol = TagSpecificType.Em410x;
+
     private bool _canDump;
     private bool _isUltralightDump;
     private string? _dumpPassword;
@@ -111,11 +107,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private string? _writeLfPassword;
     private string? _writeLfNewKey;
     private bool _hasDump;
-    private bool _isDumpComplete;
-    private string? _dumpProgressText;
     private CancellationTokenSource? _dumpCts;
-    private int _dumpKeyCount;
-    private bool _hasDumpStats;
     private IReadOnlyList<MifareBlockState> _dumpBlockStates = Array.Empty<MifareBlockState>();
     private string? _writeProgressText;
     private CancellationTokenSource? _writeCts;
@@ -625,47 +617,42 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public string? ProgressText
     {
-        get => _progressText;
-        private set => this.RaiseAndSetIfChanged(ref _progressText, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>Current operation shown on the first progress line; null when idle.</summary>
     public string? DumpProgressText
     {
-        get => _dumpProgressText;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _dumpProgressText, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             DumpProgressDetail = null;
             RaiseDumpToolbar();
             if (value is null) SetDumpKeyProgress(0, 0);
         }
     }
 
-    private bool _isDumpProgressSuccess;
-    private bool _isDumpProgressError;
-
     public bool IsDumpProgressSuccess
     {
-        get => _isDumpProgressSuccess;
-        private set => this.RaiseAndSetIfChanged(ref _isDumpProgressSuccess, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool IsDumpProgressError
     {
-        get => _isDumpProgressError;
-        private set => this.RaiseAndSetIfChanged(ref _isDumpProgressError, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
-
-    private string? _dumpProgressDetail;
 
     /// <summary>Target and counters shown on the second progress line.</summary>
     public string? DumpProgressDetail
     {
-        get => _dumpProgressDetail;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _dumpProgressDetail, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(ShowMfkey32CaptureCount));
             this.RaisePropertyChanged(nameof(ShowMfkey32FoundKey));
         }
@@ -1007,20 +994,17 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     // ---- The open folder's own header: rename in place, delete ------------
 
-    private bool _isRenamingFolder;
-    private string? _folderRenameText;
-
     /// <summary>The open folder's title is a field.</summary>
     public bool IsRenamingFolder
     {
-        get => _isRenamingFolder;
-        private set => this.RaiseAndSetIfChanged(ref _isRenamingFolder, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? FolderRenameText
     {
-        get => _folderRenameText;
-        set => this.RaiseAndSetIfChanged(ref _folderRenameText, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public ICommand RenameCurrentFolderCommand { get; }
@@ -1150,15 +1134,15 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public TagSpecificType LfProtocol
     {
-        get => _lfProtocol;
-        set => this.RaiseAndSetIfChanged(ref _lfProtocol, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = TagSpecificType.Em410x;
 
     /// <summary>Why the last scan produced no card (“No HF tag detected.”); null otherwise.</summary>
     public string? ScanMissText
     {
-        get => _scanMissText;
-        private set => this.RaiseAndSetIfChanged(ref _scanMissText, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>
@@ -1167,15 +1151,15 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// </summary>
     public string? Prng
     {
-        get => _prng;
-        private set => this.RaiseAndSetIfChanged(ref _prng, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>Where the card being added came from (“MIFARE Classic 1K, UID …”, “Imported from x.nfc”, “Manual entry”).</summary>
     public string? FormSource
     {
-        get => _formSource;
-        private set => this.RaiseAndSetIfChanged(ref _formSource, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>The open card supports memory reading, regardless of its source.</summary>
@@ -1246,10 +1230,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Every memory block or page was read; partial dumps can still be continued.</summary>
     public bool IsDumpComplete
     {
-        get => _isDumpComplete;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _isDumpComplete, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(ShowCheckRecovery));
             RaiseDumpToolbar();
         }
@@ -1886,8 +1870,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public bool HasDumpStats
     {
-        get => _hasDumpStats;
-        private set => this.RaiseAndSetIfChanged(ref _hasDumpStats, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     private static int ReadSectorCount(MifareDump dump) =>
@@ -1920,10 +1904,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Unique keys across the checked sources: what a dump will try per sector and key type.</summary>
     public int DumpKeyCount
     {
-        get => _dumpKeyCount;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _dumpKeyCount, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(DumpKeyCountText));
         }
     }
@@ -2331,28 +2315,25 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     // The magic card kind chosen or detected last; a set of blanks is usually one kind.
     private const string GenerationSetting = "cardsWriteGeneration";
-    private MagicGeneration _generation =
-        Enum.TryParse<MagicGeneration>(AppSettings.GetString(GenerationSetting), out var gen) ? gen : MagicGeneration.Gen2;
 
     private const string Gen2Block0Setting = "cardsWriteGen2Block0";
-    private bool _writeGen2Block0 = AppSettings.Get(Gen2Block0Setting) is JsonValue savedBlock0
-        && savedBlock0.TryGetValue<bool>(out var enabledBlock0) && enabledBlock0;
 
     public bool IsGen2Write => IsMifareWrite && SelectedGeneration == MagicGeneration.Gen2;
 
     public bool WriteGen2Block0
     {
-        get => _writeGen2Block0;
+        get;
         set
         {
-            if (_writeGen2Block0 == value) return;
-            this.RaiseAndSetIfChanged(ref _writeGen2Block0, value);
+            if (field == value) return;
+            this.RaiseAndSetIfChanged(ref field, value);
             AppSettings.Set(Gen2Block0Setting, value);
             this.RaisePropertyChanged(nameof(WriteInstructions));
             this.RaisePropertyChanged(nameof(WriteWarning));
             RefreshWritePreview();
         }
-    }
+    } = AppSettings.Get(Gen2Block0Setting) is JsonValue savedBlock0
+        && savedBlock0.TryGetValue<bool>(out var enabledBlock0) && enabledBlock0;
 
     /// <summary>The writer targets an Ultralight / NTAG card: only its user pages are written.</summary>
     public bool IsUltralightWrite => ActionTag?.IsUltralight() == true;
@@ -2445,11 +2426,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Which magic generation the MIFARE write targets.</summary>
     public MagicGeneration SelectedGeneration
     {
-        get => _generation;
+        get;
         set
         {
-            if (_generation == value) return;
-            this.RaiseAndSetIfChanged(ref _generation, value);
+            if (field == value) return;
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(WriteInstructions));
             this.RaisePropertyChanged(nameof(WriteWarning));
             this.RaisePropertyChanged(nameof(ShowWriteSectors));
@@ -2458,7 +2439,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             RaiseWriteKeyAvailability();
             AppSettings.Set(GenerationSetting, value.ToString());
         }
-    }
+    } = Enum.TryParse<MagicGeneration>(AppSettings.GetString(GenerationSetting), out var gen) ? gen : MagicGeneration.Gen2;
 
     public string WriteKind => ActionTag switch
     {

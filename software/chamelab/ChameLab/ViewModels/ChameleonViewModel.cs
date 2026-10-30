@@ -17,21 +17,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
 {
     private readonly DeviceService _device;
     private readonly CardLibrary _cards;
-    private DeviceInfo? _info;
-    private BatteryInfo? _battery;
-    private bool _readerMode;
     private bool _suppressModeWrite;
-    private AnimationMode _animationMode = AnimationMode.Full;
-    private int _sleepTimeout = 60;
-    private ButtonPressFunction _buttonAShort = ButtonPressFunction.None;
-    private ButtonPressFunction _buttonBShort = ButtonPressFunction.None;
-    private ButtonPressFunction _buttonALong = ButtonPressFunction.None;
-    private ButtonPressFunction _buttonBLong = ButtonPressFunction.None;
-    private int _longPressThreshold = 500;
-    private bool _supportsLongPressThreshold;
-    private bool _supportsBle;
-    private bool _blePairingEnabled;
-    private string _blePin = string.Empty;
     private Values _saved;
 
     public ChameleonViewModel(DeviceService device, CardLibrary cards, FirmwareUpdateViewModel firmware) : base("Chameleon", "dashboard")
@@ -130,20 +116,20 @@ public sealed class ChameleonViewModel : PageViewModelBase
 
     public DeviceInfo? Info
     {
-        get => _info;
-        private set => this.RaiseAndSetIfChanged(ref _info, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public BatteryInfo? Battery
     {
-        get => _battery;
-        private set => this.RaiseAndSetIfChanged(ref _battery, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool ReaderMode
     {
-        get => _readerMode;
-        set => this.RaiseAndSetIfChanged(ref _readerMode, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public ICommand RefreshCommand { get; }
@@ -162,69 +148,69 @@ public sealed class ChameleonViewModel : PageViewModelBase
 
     public AnimationMode AnimationMode
     {
-        get => _animationMode;
-        set => this.RaiseAndSetIfChanged(ref _animationMode, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = AnimationMode.Full;
 
     public int SleepTimeout
     {
-        get => _sleepTimeout;
-        set => this.RaiseAndSetIfChanged(ref _sleepTimeout, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = 60;
 
     public ButtonPressFunction ButtonAShort
     {
-        get => _buttonAShort;
-        set => this.RaiseAndSetIfChanged(ref _buttonAShort, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = ButtonPressFunction.None;
 
     public ButtonPressFunction ButtonBShort
     {
-        get => _buttonBShort;
-        set => this.RaiseAndSetIfChanged(ref _buttonBShort, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = ButtonPressFunction.None;
 
     public ButtonPressFunction ButtonALong
     {
-        get => _buttonALong;
-        set => this.RaiseAndSetIfChanged(ref _buttonALong, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = ButtonPressFunction.None;
 
     public ButtonPressFunction ButtonBLong
     {
-        get => _buttonBLong;
-        set => this.RaiseAndSetIfChanged(ref _buttonBLong, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = ButtonPressFunction.None;
 
     public int LongPressThreshold
     {
-        get => _longPressThreshold;
-        set => this.RaiseAndSetIfChanged(ref _longPressThreshold, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = 500;
 
     public bool SupportsLongPressThreshold
     {
-        get => _supportsLongPressThreshold;
-        private set => this.RaiseAndSetIfChanged(ref _supportsLongPressThreshold, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool SupportsBle
     {
-        get => _supportsBle;
-        private set => this.RaiseAndSetIfChanged(ref _supportsBle, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool BlePairingEnabled
     {
-        get => _blePairingEnabled;
-        set => this.RaiseAndSetIfChanged(ref _blePairingEnabled, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string BlePin
     {
-        get => _blePin;
-        set => this.RaiseAndSetIfChanged(ref _blePin, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
 
     /// <summary>A device setting differs from what the device holds (drives the save bar).</summary>
     public bool IsDirty => Current != _saved || !string.IsNullOrEmpty(BlePin);

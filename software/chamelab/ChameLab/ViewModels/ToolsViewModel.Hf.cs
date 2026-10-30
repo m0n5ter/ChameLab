@@ -19,10 +19,7 @@ namespace ChameLab.ViewModels;
 /// </summary>
 public sealed partial class ToolsViewModel
 {
-    private bool? _isHfSupported;
-    private int _hfSeconds = 5;
     private IReadOnlyList<HfFrame> _hfFrames = [];
-    private string? _hfSource;
     private HfSniffSummary? _hfSummary;
 
     private void InitHf(IObservable<bool> idle)
@@ -42,10 +39,10 @@ public sealed partial class ToolsViewModel
     /// <summary>Whether the firmware has <c>HF14A_SNIFF</c>; null until asked (or without a device).</summary>
     public bool? IsHfSupported
     {
-        get => _isHfSupported;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _isHfSupported, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(IsHfUnsupported));
         }
     }
@@ -57,9 +54,9 @@ public sealed partial class ToolsViewModel
     /// <summary>How long to listen, in seconds; the firmware takes up to 30.</summary>
     public int HfSeconds
     {
-        get => _hfSeconds;
-        set => this.RaiseAndSetIfChanged(ref _hfSeconds, Math.Clamp(value, 1, 30));
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, Math.Clamp(value, 1, 30));
+    } = 5;
 
     // ---- Capture -------------------------------------------------------
 
@@ -91,8 +88,8 @@ public sealed partial class ToolsViewModel
     /// <summary>Where the capture shown came from: the device and when, or the file it was loaded from.</summary>
     public string? HfSource
     {
-        get => _hfSource;
-        private set => this.RaiseAndSetIfChanged(ref _hfSource, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     private Task HfCaptureAsync() => RunAsync(async () =>
@@ -195,13 +192,11 @@ public sealed partial class ToolsViewModel
     public bool HfHasAuths => HfAuthGroups.Count > 0;
     public bool HfCanRecoverAll => HfAuthGroups.Count(g => g.CanRecover) > 1;
 
-    public ICommand HfRecoverAllCommand => _hfRecoverAll ??= ReactiveCommand.CreateFromTask(async () =>
+    public ICommand HfRecoverAllCommand => field ??= ReactiveCommand.CreateFromTask(async () =>
     {
         foreach (var g in HfAuthGroups.Where(g => g is { CanRecover: true, Key: null }).ToList())
             await g.RecoverAsync();
     });
-
-    private ICommand? _hfRecoverAll;
 
     // ---- View helpers --------------------------------------------------
 
@@ -219,10 +214,6 @@ public sealed partial class ToolsViewModel
 public sealed class HfAuthGroupViewModel : ViewModelBase
 {
     private readonly HfAuthGroup _group;
-    private string? _key;
-    private string? _result;
-    private string? _method;
-    private bool _isRecovering;
 
     public HfAuthGroupViewModel(HfAuthGroup group)
     {
@@ -255,27 +246,27 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
 
     public bool IsRecovering
     {
-        get => _isRecovering;
-        private set => this.RaiseAndSetIfChanged(ref _isRecovering, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? Key
     {
-        get => _key;
-        private set => this.RaiseAndSetIfChanged(ref _key, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>Which attack found <see cref="Key"/>: mfkey32 or mfkey64.</summary>
     public string? Method
     {
-        get => _method;
-        private set => this.RaiseAndSetIfChanged(ref _method, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? Result
     {
-        get => _result;
-        private set => this.RaiseAndSetIfChanged(ref _result, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public async Task RecoverAsync()

@@ -7,8 +7,6 @@ namespace ChameLab.ViewModels;
 public sealed class DumpKeySourceViewModel(string id, string name, IReadOnlyList<byte[]> keys, bool isSelected)
     : ReactiveObject
 {
-    private bool _isSelected = isSelected;
-
     /// <summary>Dictionary id, or <see cref="BuiltInId"/> for the built-in keys; keeps the choice across rebuilds.</summary>
     public string Id { get; } = id;
 
@@ -19,9 +17,9 @@ public sealed class DumpKeySourceViewModel(string id, string name, IReadOnlyList
 
     public bool IsSelected
     {
-        get => _isSelected;
-        set => this.RaiseAndSetIfChanged(ref _isSelected, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = isSelected;
 
     public const string BuiltInId = "";
 }

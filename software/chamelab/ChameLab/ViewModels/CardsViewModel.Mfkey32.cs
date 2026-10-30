@@ -11,33 +11,33 @@ namespace ChameLab.ViewModels;
 public sealed partial class CardsViewModel
 {
     private bool _mfkey32Running;
-    private bool _isMfkey32Done;
     private Task? _mfkey32Task;
-    private string? _mfkey32FoundKey;
-    private int? _mfkey32CapturedCount;
 
     public int? Mfkey32CapturedCount
     {
-        get => _mfkey32CapturedCount;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _mfkey32CapturedCount, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(ShowMfkey32CaptureCount));
             this.RaisePropertyChanged(nameof(Mfkey32CaptureText));
         }
     }
+
     public bool ShowMfkey32CaptureCount => DumpProgressDetail is null && Mfkey32FoundKey is null && Mfkey32CapturedCount is not null;
     public string Mfkey32CaptureText => $"Captured {Mfkey32CapturedCount} authentications";
+
     public string? Mfkey32FoundKey
     {
-        get => _mfkey32FoundKey;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _mfkey32FoundKey, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(ShowMfkey32FoundKey));
             this.RaisePropertyChanged(nameof(ShowMfkey32CaptureCount));
         }
     }
+
     public bool ShowMfkey32FoundKey => DumpProgressDetail is null && Mfkey32FoundKey is not null;
     public bool IsMfkey32Progress => _mfkey32Running || IsMfkey32Done;
 
@@ -70,10 +70,10 @@ public sealed partial class CardsViewModel
 
     public bool IsMfkey32Done
     {
-        get => _isMfkey32Done;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _isMfkey32Done, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(DumpStopLabel));
             this.RaisePropertyChanged(nameof(DumpStopTip));
             this.RaisePropertyChanged(nameof(IsMfkey32Progress));

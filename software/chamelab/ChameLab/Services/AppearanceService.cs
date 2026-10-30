@@ -23,10 +23,8 @@ public static class AppearanceService
     private const string ThemeSetting = "theme";
     public const string DefaultAccent = "Emerald";
 
-    private static IReadOnlyList<AccentOption>? _accents;
-
     /// <summary>Every Actipro hue, with its mid (500) shade as the swatch color.</summary>
-    public static IReadOnlyList<AccentOption> Accents => _accents ??= BuildAccents();
+    public static IReadOnlyList<AccentOption> Accents => field ??= BuildAccents();
 
     private static IReadOnlyList<AccentOption> BuildAccents()
     {

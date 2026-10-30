@@ -110,8 +110,6 @@ public sealed class HexEditor : Control
     private Pane _pane = Pane.Hex;
     private bool _dragging;
     private bool _pointerFocus, _movingCaret;
-    private string? _statusText, _statusDetail;
-    private HexSelectionStatus? _selectionStatus;
     private HexBuffer? _buffer;
     private readonly DispatcherTimer _blink;
     private bool _caretOn = true;
@@ -159,7 +157,7 @@ public sealed class HexEditor : Control
         {
             var was = _viewport;
             _viewport = e.EffectiveViewport;
-            if (was.Height <= 0 || Math.Abs(_viewport.Top - was.Top) > was.Height / 2 || _viewport.Height != was.Height)
+            if (was.Height <= 0 || Math.Abs(_viewport.Top - was.Top) > was.Height / 2 || Math.Abs(_viewport.Height - was.Height) > 1e-7)
                 InvalidateVisual();
             else _viewport = was;
         };
@@ -171,11 +169,13 @@ public sealed class HexEditor : Control
 
     public HexBuffer? Buffer { get => GetValue(BufferProperty); set => SetValue(BufferProperty, value); }
     public bool ShowGroupHeaders { get => GetValue(ShowGroupHeadersProperty); set => SetValue(ShowGroupHeadersProperty, value); }
+
     public HexSelectionStatus? SelectionStatus
     {
-        get => _selectionStatus;
-        private set => SetAndRaise(SelectionStatusProperty, ref _selectionStatus, value);
+        get;
+        private set => SetAndRaise(SelectionStatusProperty, ref field, value);
     }
+
     public FontFamily FontFamily { get => GetValue(FontFamilyProperty); set => SetValue(FontFamilyProperty, value); }
     public double FontSize { get => GetValue(FontSizeProperty); set => SetValue(FontSizeProperty, value); }
 
@@ -201,15 +201,15 @@ public sealed class HexEditor : Control
     /// </summary>
     public string? StatusText
     {
-        get => _statusText;
-        private set => SetAndRaise(StatusTextProperty, ref _statusText, value);
+        get;
+        private set => SetAndRaise(StatusTextProperty, ref field, value);
     }
 
     /// <summary>What the byte under the caret means (e.g. "Sector 0 · UID"), if known.</summary>
     public string? StatusDetail
     {
-        get => _statusDetail;
-        private set => SetAndRaise(StatusDetailProperty, ref _statusDetail, value);
+        get;
+        private set => SetAndRaise(StatusDetailProperty, ref field, value);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -275,7 +275,7 @@ public sealed class HexEditor : Control
         _typeface = new Typeface(FontFamily);
         var glyphMap = _typeface.GlyphTypeface.CharacterToGlyphMap;
         _canBatchText = Enumerable.Range(0x20, 0x7F - 0x20).Append(0xB7)
-            .All(c => glyphMap.ContainsGlyph(c));
+            .All(glyphMap.ContainsGlyph);
         _digitW = "0123456789ABCDEF".Max(c => Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace);
         _canBatchText &= "0123456789ABCDEF".All(c =>
             Math.Abs(Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace - _digitW) < 0.001);
@@ -445,7 +445,7 @@ public sealed class HexEditor : Control
             var info = new GlyphInfo[list.Count];
             for (var i = 0; i < info.Length; i++)
                 info[i] = new GlyphInfo(list[i].Glyph, i,
-                    i + 1 < info.Length ? list[i + 1].X - list[i].X : _digitW, default);
+                    i + 1 < info.Length ? list[i + 1].X - list[i].X : _digitW);
             runs.Add((brush, new GlyphRun(face, FontSize, ReadOnlyMemory<char>.Empty, info,
                 new Point(list[0].X, baseline))));
         }
@@ -885,55 +885,69 @@ public sealed class HexEditor : Control
     /// <summary>Copies the selection, or the whole row under the caret.</summary>
     private async void Copy()
     {
-        var buf = _buffer;
-        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-        if (buf is not { ViewLength: > 0 } || clipboard is null) return;
-
-        long from, to;
-        if (HasSelection) (from, to) = Selection();
-        else
+        try
         {
-            from = _caret - _caret % buf.RowLength;
-            to = from + buf.RowLength - 1;
-        }
+            var buf = _buffer;
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (buf is not { ViewLength: > 0 } || clipboard is null) return;
 
-        string text;
-        if (_pane == Pane.Ascii)
-        {
-            var sb = new StringBuilder();
-            for (var o = from; o <= to; o++)
-                sb.Append(buf.IsRead(o) && buf[o] is >= 0x20 and < 0x7F ? (char)buf[o] : '.');
-            text = sb.ToString();
-        }
-        else
-        {
-            text = string.Join(' ', Enumerable.Range(0, (int)(to - from + 1))
-                .Select(i => buf.IsRead(from + i) ? buf[from + i].ToString("X2") : "??"));
-        }
+            long from, to;
+            if (HasSelection) (from, to) = Selection();
+            else
+            {
+                from = _caret - _caret % buf.RowLength;
+                to = from + buf.RowLength - 1;
+            }
 
-        try { await clipboard.SetTextAsync(text); }
-        catch { /* clipboard unavailable (browser without permission) */ }
+            string text;
+            if (_pane == Pane.Ascii)
+            {
+                var sb = new StringBuilder();
+                for (var o = from; o <= to; o++)
+                    sb.Append(buf.IsRead(o) && buf[o] is >= 0x20 and < 0x7F ? (char)buf[o] : '.');
+                text = sb.ToString();
+            }
+            else
+            {
+                text = string.Join(' ', Enumerable.Range(0, (int)(to - from + 1))
+                    .Select(i => buf.IsRead(from + i) ? buf[from + i].ToString("X2") : "??"));
+            }
+
+            try { await clipboard.SetTextAsync(text); }
+            catch { /* clipboard unavailable (browser without permission) */ }
+        }
+        catch (Exception e)
+        {
+            // ignore
+        }
     }
 
     /// <summary>Overwrites from the caret (or selection start) with hex / text from the clipboard.</summary>
     private async void Paste()
     {
-        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-        if (_buffer is null or { IsReadOnly: true } || clipboard is null) return;
+        try
+        {
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (_buffer is null or { IsReadOnly: true } || clipboard is null) return;
 
-        string? text;
-        try { text = await clipboard.TryGetTextAsync(); }
-        catch { return; }
-        if (string.IsNullOrEmpty(text) || _buffer is not { } buf) return;
+            string? text;
+            try { text = await clipboard.TryGetTextAsync(); }
+            catch { return; }
+            if (string.IsNullOrEmpty(text) || _buffer is not { } buf) return;
 
-        byte[] bytes;
-        if (_pane == Pane.Ascii) bytes = Encoding.ASCII.GetBytes(text.Replace("\r", "").Replace("\n", ""));
-        else if (!Hex.TryParse(text, out bytes)) return;
+            byte[] bytes;
+            if (_pane == Pane.Ascii) bytes = Encoding.ASCII.GetBytes(text.Replace("\r", "").Replace("\n", ""));
+            else if (!Hex.TryParse(text, out bytes)) return;
 
-        var start = HasSelection ? Selection().from : _caret;
-        if (HasSelection) bytes = bytes.Take((int)(Selection().to - start + 1)).ToArray();
-        var written = buf.Write(start, bytes);
-        if (written > 0) GoTo(Math.Min(start + written, buf.ViewLength - 1));
+            var start = HasSelection ? Selection().from : _caret;
+            if (HasSelection) bytes = bytes.Take((int)(Selection().to - start + 1)).ToArray();
+            var written = buf.Write(start, bytes);
+            if (written > 0) GoTo(Math.Min(start + written, buf.ViewLength - 1));
+        }
+        catch (Exception e)
+        {
+            // ignore
+        }
     }
 
     private void SelectAll()

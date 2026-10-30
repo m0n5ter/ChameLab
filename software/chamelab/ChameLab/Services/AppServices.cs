@@ -14,10 +14,7 @@ public static class AppServices
 {
     private static DeviceService? _device;
     private static IKeyValueStore? _store;
-    private static CardLibrary? _cards;
-    private static DictionaryLibrary? _dictionaries;
     private static IReadOnlyList<IDfuLocator> _dfu = Array.Empty<IDfuLocator>();
-    private static FirmwareUpdateService? _firmware;
     private static IFeedbackPlayer? _feedback;
     public static IHardnestedEngine Hardnested { get; private set; } = new UnavailableHardnestedEngine();
 
@@ -27,11 +24,11 @@ public static class AppServices
     /// <summary>Persistent app data; files under LocalApplicationData unless a head overrides it.</summary>
     public static IKeyValueStore Store => _store ??= new FileKeyValueStore();
 
-    public static CardLibrary Cards => _cards ??= new CardLibrary(Store);
+    public static CardLibrary Cards => field ??= new CardLibrary(Store);
 
-    public static DictionaryLibrary Dictionaries => _dictionaries ??= new DictionaryLibrary(Store);
+    public static DictionaryLibrary Dictionaries => field ??= new DictionaryLibrary(Store);
 
-    public static FirmwareUpdateService Firmware => _firmware ??= new FirmwareUpdateService(Device, _dfu);
+    public static FirmwareUpdateService Firmware => field ??= new FirmwareUpdateService(Device, _dfu);
 
     /// <summary>Scan sounds and vibration; the desktop player unless a head registers its own.</summary>
     public static IFeedbackPlayer Feedback => _feedback ??= new DesktopFeedbackPlayer();

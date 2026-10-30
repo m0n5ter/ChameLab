@@ -11,7 +11,6 @@ namespace ChameLab.ViewModels;
 public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null) : ViewModelBase
 {
     private SlotInfo _info = info;
-    private bool _isActive = info.IsActive;
 
     /// <summary>The extra LF cards are named after the saved cards they match.</summary>
     public void OnLibraryChanged() => this.RaisePropertyChanged(nameof(LfNames));
@@ -82,7 +81,7 @@ public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null
 
     public bool IsActive
     {
-        get => _isActive;
-        set => this.RaiseAndSetIfChanged(ref _isActive, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = info.IsActive;
 }

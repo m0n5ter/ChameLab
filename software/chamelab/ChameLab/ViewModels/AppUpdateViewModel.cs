@@ -15,8 +15,6 @@ public enum AppUpdateState { None, Checking, UpToDate, Available, Failed }
 public sealed class AppUpdateViewModel : ViewModelBase
 {
     private AppUpdateState _state;
-    private string _message = string.Empty;
-    private AppRelease? _latest;
 
     public AppUpdateViewModel()
     {
@@ -49,14 +47,14 @@ public sealed class AppUpdateViewModel : ViewModelBase
     /// <summary>The outcome of the last check, for Settings; empty until one ran.</summary>
     public string Message
     {
-        get => _message;
-        private set => this.RaiseAndSetIfChanged(ref _message, value);
-    }
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
 
     public AppRelease? Latest
     {
-        get => _latest;
-        private set => this.RaiseAndSetIfChanged(ref _latest, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>The startup check: a failure (offline, rate limited) only shows up in Settings.</summary>

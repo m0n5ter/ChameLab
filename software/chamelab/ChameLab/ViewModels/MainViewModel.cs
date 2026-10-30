@@ -13,10 +13,6 @@ public sealed class MainViewModel : ViewModelBase
     private readonly DeviceService _device;
     private readonly ConnectViewModel _connect;
     private PageViewModelBase _currentPage;
-    private bool _isConnected;
-    private bool _isPaneOpen = true;
-    private string _deviceSummary = "Not connected";
-    private bool _isExitHintVisible;
     private DateTime _exitHintShownAt;
 
     /// <summary>How long a second Back press still counts as confirming the exit.</summary>
@@ -201,27 +197,27 @@ public sealed class MainViewModel : ViewModelBase
 
     public bool IsConnected
     {
-        get => _isConnected;
-        private set => this.RaiseAndSetIfChanged(ref _isConnected, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool IsPaneOpen
     {
-        get => _isPaneOpen;
-        set => this.RaiseAndSetIfChanged(ref _isPaneOpen, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = true;
 
     public string DeviceSummary
     {
-        get => _deviceSummary;
-        private set => this.RaiseAndSetIfChanged(ref _deviceSummary, value);
-    }
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = "Not connected";
 
     /// <summary>"Press Back again to exit", shown after a Back press on the start page.</summary>
     public bool IsExitHintVisible
     {
-        get => _isExitHintVisible;
-        private set => this.RaiseAndSetIfChanged(ref _isExitHintVisible, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>The page Back returns to before leaving the app: where the current session starts.</summary>

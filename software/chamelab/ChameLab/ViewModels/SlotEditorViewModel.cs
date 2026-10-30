@@ -55,21 +55,28 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private string? _pickerFilter;
     private bool _supportsLfCycle;
     private bool _supportsCycleGap;
-    private decimal _cycleGapSeconds, _savedCycleGapSeconds;
-    private int _cycleBursts = 1, _savedCycleBursts = 1;
+    private decimal _savedCycleGapSeconds;
+    private int _savedCycleBursts = 1;
 
     public LfSlotListViewModel LfCards { get; }
     public bool SupportsMultiLf => _supportsLfCycle;
     public bool ShowLfCycle => _supportsLfCycle && LfCards.Cards.Count > 1;
     public bool ShowCycleGap => _supportsCycleGap;
+
     public decimal CycleGapSeconds
     {
-        get => _cycleGapSeconds;
-        set => SetField(ref _cycleGapSeconds, Math.Clamp(decimal.Round(value, 1), 0m, 3m), nameof(CycleGapSeconds));
+        get;
+        set => SetField(ref field, Math.Clamp(decimal.Round(value, 1), 0m, 3m), nameof(CycleGapSeconds));
     }
-    public int CycleBursts { get => _cycleBursts; set => SetField(ref _cycleBursts, value, nameof(CycleBursts)); }
+
+    public int CycleBursts
+    {
+        get;
+        set => SetField(ref field, value, nameof(CycleBursts));
+    } = 1;
+
     private bool IsCycleDirty => SupportsMultiLf && (LfCards.IsDirty || (ShowLfCycle &&
-        (CycleBursts != _savedCycleBursts || CycleGapSeconds != _savedCycleGapSeconds)));
+                                                                         (CycleBursts != _savedCycleBursts || CycleGapSeconds != _savedCycleGapSeconds)));
 
     internal void SetLfCapabilities(IReadOnlyList<ushort> capabilities)
     {

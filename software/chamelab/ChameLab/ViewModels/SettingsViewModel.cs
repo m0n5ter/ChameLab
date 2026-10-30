@@ -11,8 +11,6 @@ public sealed class SettingsViewModel : PageViewModelBase
 {
     private readonly CardLibrary _cards;
     private readonly DictionaryLibrary _dictionaries;
-    private AccentOption _accent =
-        AppearanceService.Accents.First(a => a.Name == AppearanceService.LoadAccent());
 
     public SettingsViewModel(CardLibrary cards, DictionaryLibrary dictionaries, AppUpdateViewModel appUpdate)
         : base("Settings", "settings")
@@ -32,14 +30,14 @@ public sealed class SettingsViewModel : PageViewModelBase
     /// <summary>App accent color; applied and remembered as soon as it changes.</summary>
     public AccentOption Accent
     {
-        get => _accent;
+        get;
         set
         {
-            if (value is null || value == _accent) return;
-            this.RaiseAndSetIfChanged(ref _accent, value);
+            if (value is null || value == field) return;
+            this.RaiseAndSetIfChanged(ref field, value);
             AppearanceService.Apply(value.Name);
         }
-    }
+    } = AppearanceService.Accents.First(a => a.Name == AppearanceService.LoadAccent());
 
     /// <summary>Beep when a card scan or dump finishes; remembered as soon as it changes.</summary>
     public bool ScanSound

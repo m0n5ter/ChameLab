@@ -11,10 +11,9 @@ public static class AppSettings
 {
     private const string StoreKey = "settings";
 
-    private static JsonObject? _settings;
     private static readonly object Sync = new();
 
-    private static JsonObject Settings => _settings ??= Load();
+    private static JsonObject Settings => field ??= Load();
 
     /// <summary>A copy of the saved value, or null when none is saved.</summary>
     public static JsonNode? Get(string name)

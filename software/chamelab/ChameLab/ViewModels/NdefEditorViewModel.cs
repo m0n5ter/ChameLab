@@ -60,12 +60,7 @@ public sealed class NdefEditorViewModel : ViewModelBase
     private readonly Func<(IReadOnlyList<byte[]> Pages, TagSpecificType Tag)> _memory;
     private readonly Action<byte[], byte[]?> _write;
     private IReadOnlyList<NdefRecordRow> _records = Array.Empty<NdefRecordRow>();
-    private string _summary = string.Empty;
-    private string? _error;
     private bool _isEditing;
-    private string _usage = string.Empty;
-    private string? _editError;
-    private bool _canApply;
 
     /// <param name="memory">The card's pages and type as they are now.</param>
     /// <param name="write">Writes a new data area (from page 4) and, when not null, the capability container (page 3).</param>
@@ -98,10 +93,18 @@ public sealed class NdefEditorViewModel : ViewModelBase
     public bool HasRecords => _records.Count > 0;
 
     /// <summary>How many records the message has and how much of the card it takes.</summary>
-    public string Summary { get => _summary; private set => this.RaiseAndSetIfChanged(ref _summary, value); }
+    public string Summary
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
 
     /// <summary>Why the message can't be shown (not formatted, malformed, pages not read); null when fine.</summary>
-    public string? Error { get => _error; private set => this.RaiseAndSetIfChanged(ref _error, value); }
+    public string? Error
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
 
     public bool IsEditing
     {
@@ -112,12 +115,24 @@ public sealed class NdefEditorViewModel : ViewModelBase
     public ObservableCollection<NdefRecordEditorViewModel> EditRecords { get; } = new();
 
     /// <summary>Space the edited message takes, e.g. "58 of 137 bytes".</summary>
-    public string Usage { get => _usage; private set => this.RaiseAndSetIfChanged(ref _usage, value); }
+    public string Usage
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
 
     /// <summary>Why the edited message can't be applied; null when it can.</summary>
-    public string? EditError { get => _editError; private set => this.RaiseAndSetIfChanged(ref _editError, value); }
+    public string? EditError
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
 
-    public bool CanApply { get => _canApply; private set => this.RaiseAndSetIfChanged(ref _canApply, value); }
+    public bool CanApply
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
 
     public ICommand EditCommand { get; }
     public ICommand CancelCommand { get; }
@@ -250,7 +265,6 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     private NdefTnf _rawTnf = NdefTnf.WellKnown;
     private string _rawType = string.Empty;
     private string _rawPayload = string.Empty;
-    private string? _error;
 
     /// <summary>An editor for a record read from the card, in the kind that shows it best.</summary>
     public static NdefRecordEditorViewModel From(NdefRecord r, Action changed)
@@ -337,7 +351,11 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     public string RawPayload { get => _rawPayload; set { this.RaiseAndSetIfChanged(ref _rawPayload, value); Edited(); } }
 
     /// <summary>What is wrong with this record's fields; null when it builds.</summary>
-    public string? Error { get => _error; private set => this.RaiseAndSetIfChanged(ref _error, value); }
+    public string? Error
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
 
     private void Edited()
     {

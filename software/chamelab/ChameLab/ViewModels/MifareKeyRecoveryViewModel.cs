@@ -42,7 +42,6 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     private int _writeSector = -1;
     private DumpKeySourceViewModel? _knownKeySelection;
     private IDisposable? _knownKeySubscription;
-    private int _selectedSector;
     public MifareDump? Target { get; private set; }
     public Task? RunningTask { get; private set; }
 
@@ -118,11 +117,13 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public string TryKeysTip => "Find the target card's keys using the selected dictionaries and source keys";
     public string RecoverySectorHint => ShowWriteProgress
         ? "Hover a sector for written block counts and errors" : "Target card keys · hover a sector for key details";
+
     public int RecoverySelectedSector
     {
-        get => _selectedSector;
-        set => this.RaiseAndSetIfChanged(ref _selectedSector, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
+
     public string? DumpProgressText => _progress;
     public string? DumpProgressDetail => _detail;
     public int DumpKeyTried => _tried;

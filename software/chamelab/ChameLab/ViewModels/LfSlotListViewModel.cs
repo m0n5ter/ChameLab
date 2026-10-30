@@ -20,7 +20,6 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     private readonly Action<CardSave> _openCard;
     private CardSave[] _saved = [];
     private bool _syncing, _supportsCycle;
-    private LfSlotCardViewModel? _revealCard;
 
     public LfSlotListViewModel(SlotSideViewModel side, CardLibrary library, Action changed, Action<CardSave> openCard)
     {
@@ -32,11 +31,13 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     }
 
     public ObservableCollection<LfSlotCardViewModel> Cards { get; } = new();
+
     public LfSlotCardViewModel? RevealCard
     {
-        get => _revealCard;
-        private set => this.RaiseAndSetIfChanged(ref _revealCard, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
+
     public bool CanReorder => Cards.Count > 1;
     public IList ReorderItems => Cards;
     public string ReorderKey(object item) => Key(((LfSlotCardViewModel)item).Card);

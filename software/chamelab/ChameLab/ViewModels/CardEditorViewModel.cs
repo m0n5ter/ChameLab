@@ -27,9 +27,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     private string _atqa;
     private string _ats;
     private List<byte[]> _data;
-    private bool _isDirty;
     private HexBuffer? _memory;
-    private string? _memoryWarning;
+
     // Blank-card memory for the current type and identity: shown in place of unread rows, never saved.
     private List<byte[]>? _template;
     // Memory of another layout set aside by a type change; restored when switching back.
@@ -319,8 +318,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// <summary>Something differs from the card the editor was opened with.</summary>
     public bool IsDirty
     {
-        get => _isDirty;
-        private set => this.RaiseAndSetIfChanged(ref _isDirty, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     // ---- Memory --------------------------------------------------------
@@ -365,8 +364,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// <summary>Problems in the memory that would break the card (e.g. corrupt access bits).</summary>
     public string? MemoryWarning
     {
-        get => _memoryWarning;
-        private set => this.RaiseAndSetIfChanged(ref _memoryWarning, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool HasData => _data.Any(d => d.Length > 0);

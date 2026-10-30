@@ -9,8 +9,6 @@ public sealed class CardFolderViewModel : ViewModelBase
 {
     private string _name;
     private int _count;
-    private bool _isEditing;
-    private string? _editName;
 
     public CardFolderViewModel(string name, Action<CardFolderViewModel> open, Action<CardFolderViewModel> rename,
         Action<CardFolderViewModel> delete)
@@ -52,14 +50,14 @@ public sealed class CardFolderViewModel : ViewModelBase
     /// <summary>The name is being edited in its row.</summary>
     public bool IsEditing
     {
-        get => _isEditing;
-        set => this.RaiseAndSetIfChanged(ref _isEditing, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? EditName
     {
-        get => _editName;
-        set => this.RaiseAndSetIfChanged(ref _editName, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 }
 

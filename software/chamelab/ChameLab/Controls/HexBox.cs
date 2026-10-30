@@ -33,7 +33,6 @@ public class HexBox : TextBox
 
     private readonly TextBlock _counter = new() { VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
     private int[] _lengths = Array.Empty<int>();
-    private int _byteCount;
     private bool _normalizing;
     private int? _caretHold;
     private readonly List<(string Text, int Caret)> _undo = new();
@@ -57,8 +56,8 @@ public class HexBox : TextBox
 
     public int ByteCount
     {
-        get => _byteCount;
-        private set => SetAndRaise(ByteCountProperty, ref _byteCount, value);
+        get;
+        private set => SetAndRaise(ByteCountProperty, ref field, value);
     }
 
     private int MaxBytes => _lengths.Length > 0 ? _lengths.Max() : 0;

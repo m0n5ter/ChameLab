@@ -52,7 +52,6 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     private string _name;
     private string _color;
     private int _emptyRows;
-    private bool _isDirty;
 
     public DictionaryEditorViewModel(KeyDictionary source)
     {
@@ -108,8 +107,8 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
 
     public bool IsDirty
     {
-        get => _isDirty;
-        private set => this.RaiseAndSetIfChanged(ref _isDirty, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     private string? Describe(int row)
@@ -197,8 +196,6 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     private DictionariesPane _pane;
     private string? _filter;
     private DictionarySort _sort = LoadSort();
-    private string? _formSource;
-    private bool _confirmingDelete;
     private bool _rebuilding;
 
     // Page margins 56 + list 280 + gap 18 + details 420 (see DictionariesView).
@@ -474,8 +471,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     /// <summary>Where the new dictionary came from (“New dictionary”, “Imported from x.dic”).</summary>
     public string? FormSource
     {
-        get => _formSource;
-        private set => this.RaiseAndSetIfChanged(ref _formSource, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public static IReadOnlyList<string> Palette => CardEditorViewModel.Palette;
@@ -548,10 +545,10 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
     public bool IsConfirmingDelete
     {
-        get => _confirmingDelete;
+        get;
         private set
         {
-            this.RaiseAndSetIfChanged(ref _confirmingDelete, value);
+            this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(IsAsking));
         }
     }

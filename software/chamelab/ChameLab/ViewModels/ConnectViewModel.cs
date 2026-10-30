@@ -15,8 +15,6 @@ namespace ChameLab.ViewModels;
 public sealed class ConnectViewModel : PageViewModelBase
 {
     private readonly DeviceService _device;
-    private TransportCandidate? _selected;
-    private string _manualEndpoint = "127.0.0.1:4321";
 
     public ConnectViewModel(DeviceService device) : base("Connect", "link")
     {
@@ -34,16 +32,14 @@ public sealed class ConnectViewModel : PageViewModelBase
 
     public TransportCandidate? Selected
     {
-        get => _selected;
-        set => this.RaiseAndSetIfChanged(ref _selected, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
-
-    private bool _hasCandidates;
 
     public bool HasCandidates
     {
-        get => _hasCandidates;
-        private set => this.RaiseAndSetIfChanged(ref _hasCandidates, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     private bool HasUsb => _device.Scanners.Any(s => s.Kind == TransportKind.Serial);
@@ -89,9 +85,9 @@ public sealed class ConnectViewModel : PageViewModelBase
 
     public string ManualEndpoint
     {
-        get => _manualEndpoint;
-        set => this.RaiseAndSetIfChanged(ref _manualEndpoint, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = "127.0.0.1:4321";
 
     public ICommand ScanCommand { get; }
     public ICommand PickCommand { get; }

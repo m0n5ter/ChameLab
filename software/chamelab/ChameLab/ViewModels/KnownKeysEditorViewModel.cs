@@ -53,7 +53,6 @@ public sealed class KnownKeysEditorViewModel : ViewModelBase
     private readonly CardLibrary _cards;
     private readonly List<KnownUidViewModel> _items = new();
     private readonly HashSet<string> _deleted = new(StringComparer.Ordinal);
-    private KnownUidViewModel? _selected;
     private string? _filter;
 
     public KnownKeysEditorViewModel(KnownCardKeys known, CardLibrary cards)
@@ -66,11 +65,13 @@ public sealed class KnownKeysEditorViewModel : ViewModelBase
     }
 
     public ObservableCollection<KnownUidViewModel> Uids { get; } = new();
+
     public KnownUidViewModel? Selected
     {
-        get => _selected;
-        set => this.RaiseAndSetIfChanged(ref _selected, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
+
     public string? Filter
     {
         get => _filter;

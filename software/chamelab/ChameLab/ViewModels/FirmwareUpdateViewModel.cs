@@ -26,18 +26,11 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     private readonly FirmwareUpdateService _service;
 
     private FirmwareCheckState _checkState;
-    private string _checkMessage = string.Empty;
     private FirmwareRelease? _latest;
     private DeviceModel _latestModel;
     private DateTime _checkedAt;
-    private string _currentVersion = "-";
 
     private FirmwareDialog _dialog;
-    private string _installTitle = string.Empty;
-    private string _stepText = string.Empty;
-    private double _progress;
-    private bool _progressKnown;
-    private string? _error;
 
     // What the dialog installs: a release to download, or a package file picked by the user.
     private FirmwareRelease? _pendingRelease;
@@ -90,9 +83,9 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
 
     public string CheckMessage
     {
-        get => _checkMessage;
-        private set => this.RaiseAndSetIfChanged(ref _checkMessage, value);
-    }
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
 
     public FirmwareRelease? Latest
     {
@@ -102,9 +95,9 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
 
     public string CurrentVersion
     {
-        get => _currentVersion;
-        private set => this.RaiseAndSetIfChanged(ref _currentVersion, value);
-    }
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = "-";
 
     public FirmwareDialog Dialog
     {
@@ -132,9 +125,9 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
 
     public string InstallTitle
     {
-        get => _installTitle;
-        private set => this.RaiseAndSetIfChanged(ref _installTitle, value);
-    }
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
 
     public string InstallHint => _overBle
         ? "The device restarts into its bootloader, gets the new firmware over Bluetooth and reconnects. Slots and settings are kept. Keep it close to the phone and this app open until it is done."
@@ -149,27 +142,27 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
 
     public string StepText
     {
-        get => _stepText;
-        private set => this.RaiseAndSetIfChanged(ref _stepText, value);
-    }
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
 
     /// <summary>0..100 while the step reports progress.</summary>
     public double Progress
     {
-        get => _progress;
-        private set => this.RaiseAndSetIfChanged(ref _progress, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool ProgressKnown
     {
-        get => _progressKnown;
-        private set => this.RaiseAndSetIfChanged(ref _progressKnown, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? Error
     {
-        get => _error;
-        private set => this.RaiseAndSetIfChanged(ref _error, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     /// <summary>Called on every connect: shows the device version and checks for a newer release.</summary>
