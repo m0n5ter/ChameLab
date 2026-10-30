@@ -34,6 +34,7 @@ public sealed class KnownUidViewModel : ViewModelBase
     public string DisplayUid => Hex.Spaced(Convert.FromHexString(Uid));
     public string CardNames { get; }
     public bool HasCardNames => CardNames.Length > 0;
+    public string CardNamesText => HasCardNames ? $"({CardNames})" : "";
     public string KnownKeyCountText
     {
         get

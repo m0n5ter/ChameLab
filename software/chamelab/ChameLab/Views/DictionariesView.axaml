@@ -85,7 +85,7 @@
       </Grid>
 
       <StackPanel Grid.Row="1" Spacing="10">
-        <Button Command="{Binding OpenKnownKeysCommand}" HorizontalAlignment="Stretch"
+        <Button Classes="accent theme-outline" Command="{Binding OpenKnownKeysCommand}" HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Stretch" Height="NaN" Padding="16,12"
                 ToolTip.Tip="Edit known keys grouped by card UID">
           <StackPanel Orientation="Horizontal" Spacing="12">
@@ -206,44 +206,48 @@
 
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsKnownKeys}"
               IsEnabled="{Binding !IsAsking}">
-        <!-- Keep the header, guidance and search fixed; only the working area scrolls. -->
+        <!-- Keep the header and search fixed; cards and keys share the rest of the height, and the working
+             area scrolls only once the pane is shorter than their minimums. -->
         <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="Known card keys" Classes="h1" />
-            <Button Grid.Column="1" Classes="icon" Command="{Binding CloseCommand}" ToolTip.Tip="Close"
+          <Grid ColumnDefinitions="Auto,*">
+            <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
+                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
                     b:DialogKeys.IsBack="True">
-              <PathIcon Data="{StaticResource Icon.close}" />
+              <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
+            <TextBlock Grid.Column="1" Text="Known card keys" Classes="h1" VerticalAlignment="Center" />
           </Grid>
           <TextBox Grid.Row="1" Text="{Binding KnownEditor.Filter}" PlaceholderText="Search by UID or card name">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
             </TextBox.InnerLeftContent>
           </TextBox>
-          <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-          <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
-          <Grid MinHeight="104" MaxHeight="180">
+          <ScrollViewer Grid.Row="2" Name="KnownScroll" Classes="reservebar" VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled">
+          <c:BalancedSplit MinHeight="{Binding #KnownScroll.Bounds.Height}">
+          <Grid MinHeight="104">
             <ListBox ItemsSource="{Binding KnownEditor.Uids}" SelectedItem="{Binding KnownEditor.Selected}"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:KnownUidViewModel">
-                  <StackPanel Spacing="2">
-                    <TextBlock Text="{Binding DisplayUid}" FontFamily="Cascadia Code,Consolas,Menlo,monospace" />
-                    <TextBlock Text="{Binding CardNames}" Classes="caption" IsVisible="{Binding HasCardNames}"
-                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding CardNames}" />
-                  </StackPanel>
+                  <!-- One line: the UID, then the card names sliding along when they don't fit. -->
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                    <TextBlock Text="{Binding DisplayUid}" FontWeight="Bold" TextWrapping="NoWrap" />
+                    <c:Marquee Grid.Column="1" IsVisible="{Binding HasCardNames}" ToolTip.Tip="{Binding CardNames}">
+                      <TextBlock Text="{Binding CardNamesText}" TextWrapping="NoWrap" />
+                    </c:Marquee>
+                  </Grid>
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
             <TextBlock Text="No cards match the search." Classes="caption" Margin="8"
                        IsVisible="{Binding KnownEditor.NoMatches}" />
           </Grid>
-          <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="12"
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"
                 IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
               <StackPanel Spacing="2" VerticalAlignment="Center">
-                <TextBlock Text="{Binding KnownEditor.Selected.DisplayUid}" FontWeight="Bold" TextWrapping="Wrap"
-                           FontFamily="Cascadia Code,Consolas,Menlo,monospace" />
+                <TextBlock Text="{Binding KnownEditor.Selected.DisplayUid}" FontWeight="Bold" TextWrapping="Wrap" />
                 <TextBlock Text="{Binding KnownEditor.Selected.KnownKeyCountText}" Classes="caption" />
               </StackPanel>
               <Button Grid.Column="1" Classes="danger" Command="{Binding KnownEditor.DeleteUidCommand}"
@@ -254,13 +258,13 @@
                 </StackPanel>
               </Button>
           </Grid>
-          <Border Grid.Row="2" Classes="inset" Padding="8,6" MinHeight="220" MaxHeight="400"
+          <Border Classes="inset" Padding="8,6" MinHeight="120"
                   IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
               <c:HexEditor Buffer="{Binding KnownEditor.Selected.Form.Keys}" />
             </ScrollViewer>
           </Border>
-        </Grid>
+        </c:BalancedSplit>
         </ScrollViewer>
         </Grid>
       </Border>
@@ -334,10 +338,7 @@
       <Border Grid.Row="2" Classes="savebar">
         <Border.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <MultiBinding Converter="{x:Static BoolConverters.Or}">
-              <Binding Path="IsDirty" />
-              <Binding Path="IsKnownKeys" />
-            </MultiBinding>
+            <Binding Path="IsDirty" />
             <Binding Path="!IsConfirmingLeave" />
             <Binding Path="!IsConfirmingDelete" />
           </MultiBinding>

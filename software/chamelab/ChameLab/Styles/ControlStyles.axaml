@@ -235,23 +235,23 @@
     <Setter Property="Height" Value="14" />
   </Style>
 
-  <!-- Primary / accent action. -->
-  <Style Selector="Button.accent">
+  <!-- Primary / accent action; theme-outline keeps Actipro's outline accent look. -->
+  <Style Selector="Button.accent:not(.theme-outline)">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="16,9" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
-  <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+  <Style Selector="Button.accent:pointerover:not(.theme-outline) /template/ ContentPresenter">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccentPointerOver}" />
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
   </Style>
-  <Style Selector="Button.accent:pressed /template/ ContentPresenter">
+  <Style Selector="Button.accent:pressed:not(.theme-outline) /template/ ContentPresenter">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccentPressed}" />
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
   </Style>
-  <Style Selector="Button.accent:disabled /template/ ContentPresenter">
+  <Style Selector="Button.accent:disabled:not(.theme-outline) /template/ ContentPresenter">
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
     <Setter Property="Opacity" Value="0.5" />
   </Style>
@@ -999,6 +999,12 @@
     <!-- Actipro's default theme always reserves a column for the bar; the overlay theme doesn't. -->
     <Setter Property="Theme" Value="{actipro:ControlTheme ScrollViewerOverlay}" />
     <Setter Property="AllowAutoHide" Value="True" />
+  </Style>
+  <!-- Over controls of its own (buttons, nested lists) a floating bar gets in the way: give it a column
+       while it shows. -->
+  <Style Selector=".compact ScrollViewer.reservebar">
+    <Setter Property="Theme" Value="{actipro:ControlTheme ScrollViewer}" />
+    <Setter Property="AllowAutoHide" Value="False" />
   </Style>
   <Style Selector=".compact ScrollBar">
     <Setter Property="actipro:ThemeProperties.ScrollBarHasLineButtons" Value="False" />

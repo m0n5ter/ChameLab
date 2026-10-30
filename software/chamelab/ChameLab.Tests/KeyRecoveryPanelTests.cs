@@ -8,6 +8,7 @@ using Xunit;
 
 namespace ChameLab.Tests;
 
+[Collection(AppSettingsCollection.Name)]
 public class KeyRecoveryPanelTests
 {
     [Fact]

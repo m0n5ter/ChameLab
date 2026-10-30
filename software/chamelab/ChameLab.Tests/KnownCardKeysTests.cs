@@ -9,6 +9,7 @@ using Xunit;
 
 namespace ChameLab.Tests;
 
+[Collection(AppSettingsCollection.Name)]
 public class KnownCardKeysTests
 {
     private static readonly byte[] Uid = Convert.FromHexString("01020304");
@@ -70,26 +71,34 @@ public class KnownCardKeysTests
     [Fact]
     public void DumpUsesOnlyMatchingUidKeysFirstAndHonorsToggle()
     {
-        var store = new MemoryKeyValueStore();
-        AppServices.Register([], store);
-        var library = new DictionaryLibrary(store);
-        library.KnownKeys.Remember(Uid, [Key]);
-        var otherKey = Convert.FromHexString("123456ABCDEF");
-        library.KnownKeys.Remember([4, 3, 2, 1], [otherKey]);
-        var vm = new CardsViewModel(new DeviceService([]), new CardLibrary(store), library);
-        typeof(CardsViewModel).GetField("_classicDump", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .SetValue(vm, new MifareDump(MifareClassicType.Mini, Uid));
-        var build = typeof(CardsViewModel).GetMethod("BuildKeyDictionary", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        byte[][] Keys() => ((System.Collections.Generic.IReadOnlyList<byte[]>)build.Invoke(vm, null)!).ToArray();
+        const string setting = "dumpUncheckedDictionaries";
+        var original = AppSettings.Get(setting);
+        try
+        {
+            // Every source checked, whatever earlier runs saved.
+            AppSettings.Set(setting, null);
+            var store = new MemoryKeyValueStore();
+            AppServices.Register([], store);
+            var library = new DictionaryLibrary(store);
+            library.KnownKeys.Remember(Uid, [Key]);
+            var otherKey = Convert.FromHexString("123456ABCDEF");
+            library.KnownKeys.Remember([4, 3, 2, 1], [otherKey]);
+            var vm = new CardsViewModel(new DeviceService([]), new CardLibrary(store), library);
+            typeof(CardsViewModel).GetField("_classicDump", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .SetValue(vm, new MifareDump(MifareClassicType.Mini, Uid));
+            var build = typeof(CardsViewModel).GetMethod("BuildKeyDictionary", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            byte[][] Keys() => ((System.Collections.Generic.IReadOnlyList<byte[]>)build.Invoke(vm, null)!).ToArray();
 
-        Assert.Equal(KnownCardKeys.Id, vm.DumpKeySources[0].Id);
-        Assert.Equal(Key, Keys()[0]);
-        Assert.Single(Keys(), k => k.SequenceEqual(Key));
-        Assert.DoesNotContain(Keys(), k => k.SequenceEqual(otherKey));
-        vm.DumpKeySources[0].IsSelected = false;
-        Assert.Equal(MifareClassic.DefaultKeys[0], Keys()[0]);
-        vm.DumpKeySources[0].IsSelected = true;
-        Assert.Equal(Key, Keys()[0]);
+            Assert.Equal(KnownCardKeys.Id, vm.DumpKeySources[0].Id);
+            Assert.Equal(Key, Keys()[0]);
+            Assert.Single(Keys(), k => k.SequenceEqual(Key));
+            Assert.DoesNotContain(Keys(), k => k.SequenceEqual(otherKey));
+            vm.DumpKeySources[0].IsSelected = false;
+            Assert.Equal(MifareClassic.DefaultKeys[0], Keys()[0]);
+            vm.DumpKeySources[0].IsSelected = true;
+            Assert.Equal(Key, Keys()[0]);
+        }
+        finally { AppSettings.Set(setting, original); }
     }
 
     [Fact]
