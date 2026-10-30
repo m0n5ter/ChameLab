@@ -2,6 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using System.Runtime.CompilerServices;
 using ChameLab.Behaviors;
 using ChameLab.ViewModels;
 
@@ -9,6 +11,13 @@ namespace ChameLab.Views;
 
 public partial class SlotsView : UserControl
 {
+    private readonly ConditionalWeakTable<ListBox, ListReorder> _lfReorders = new();
+
+    private void OnLfCardListLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is ListBox list && list.FindAncestorOfType<ScrollViewer>() is { } scroll)
+            _lfReorders.GetValue(list, key => new ListReorder(key, scroll));
+    }
     public SlotsView()
     {
         InitializeComponent();

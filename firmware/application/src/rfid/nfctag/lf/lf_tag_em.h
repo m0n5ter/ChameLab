@@ -6,6 +6,13 @@
 #include "tag_emulation.h"
 
 #define LF_EM410X_TAG_ID_SIZE 5
+// First five bytes remain the primary UID for legacy commands. V1 extension:
+// magic, version, total count, bursts, seven extra UIDs. V2 appends silence
+// in 100 ms units and three padding bytes; v1 records retain zero silence.
+#define LF_EM410X_CYCLE_MAX 8
+#define LF_EM410X_CYCLE_V1_SIZE 44
+#define LF_EM410X_CYCLE_SIZE 48
+bool lf_em410x_cycle_valid(const uint8_t *data, uint16_t length);
 #define LF_EM410X_ELECTRA_TAG_ID_SIZE 13
 #define LF_IOPROX_TAG_ID_SIZE 16
 #define LF_HIDPROX_TAG_ID_SIZE 13

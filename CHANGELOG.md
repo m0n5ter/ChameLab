@@ -8,6 +8,8 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 ## [unreleased][unreleased]
  - ChameLab: switching pages is instant: the pages are built in the background while the app is idle, and then only shown or hidden (it used to be rebuilt and cross-faded every time, about half a second on phones). Pages keep their scroll position between visits
 
+ - Firmware v2.3.4-cl: an LF slot can cycle through up to eight EM410x cards, with configurable time per card and 0–3 seconds of silence between cards in 0.1-second steps. Lists and timing settings persist across restarts and follow slots when swapped; existing single-card slots remain compatible.
+
 ## [v1.0.21][2026-10-29] · firmware v2.3.3-cl
  - ChameLab: the memory editor's Clear sector button uses danger styling and a delete icon
  - ChameLab: scanning a new card no longer probes MIFARE Classic recovery methods; Try keys and Check recovery methods are offered first, with attacks shown after an explicit check

@@ -18,6 +18,27 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 {
     public ChameleonConnection Connection => conn;
 
+    public async Task<LfCardCycle> GetEm410xCycleAsync(CancellationToken ct = default)
+    {
+        var frame = await conn.SendExpectAsync(Command.Em410xGetCycle, Status.Success, ct: ct);
+        var cycle = LfCardCycle.Decode(frame.Data);
+        if (!(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetCycleGap)) return cycle;
+        var gap = await conn.SendExpectAsync(Command.Em410xGetCycleGap, Status.Success, ct: ct);
+        if (gap.Data.Length != 1 || gap.Data[0] > 30) throw new ArgumentException("Invalid LF cycle silence response.");
+        return cycle with { GapSteps = gap.Data[0] };
+    }
+
+    public async Task SetEm410xCycleAsync(LfCardCycle cycle, CancellationToken ct = default)
+    {
+        var payload = cycle.Encode();
+        if (cycle.GapSteps > 0 && !(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xSetCycleGap))
+            throw new NotSupportedException("Update the firmware to configure silence between LF cards.");
+        await conn.SendExpectAsync(Command.Em410xSetCycle, Status.Success, payload, ct: ct);
+        // SET_CYCLE also clears a previous gap, preserving the legacy wire format.
+        if (cycle.GapSteps > 0)
+            await conn.SendExpectAsync(Command.Em410xSetCycleGap, Status.Success, [(byte)cycle.GapSteps], ct: ct);
+    }
+
     private readonly SemaphoreSlim _slotLock = new(1, 1);
 
     /// <summary>
@@ -1459,7 +1480,23 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var hf = await Side(TagSenseType.Hf);
         var lf = await Side(TagSenseType.Lf);
         var emulator = await ReadEmulatorSettingsAsync(slot, ct);
-        return new SlotContent(slot.Index, hf, lf, emulator);
+        LfCardCycle? cycle = null;
+        if (slot.LfType == TagSpecificType.Em410x &&
+            (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetCycle))
+        {
+            var previous = await GetActiveSlotAsync(ct);
+            try
+            {
+                await SetActiveSlotAsync(slot.Index, ct);
+                cycle = await GetEm410xCycleAsync(ct);
+            }
+            finally
+            {
+                if (previous != slot.Index && previous is >= 1 and <= 8)
+                    await SetActiveSlotAsync(previous, ct);
+            }
+        }
+        return new SlotContent(slot.Index, hf, lf, emulator, cycle);
     }
 
     /// <summary>
@@ -1495,6 +1532,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             await SetActiveSlotAsync(slot1Based, ct);
             await ApplyEmulatorSettingsAsync(content.Emulator, ct);
+        }
+        if (content.Lf is not null && content.LfCycle is { } cycle)
+        {
+            await SetActiveSlotAsync(slot1Based, ct);
+            await SetEm410xCycleAsync(cycle, ct);
         }
         await SaveSlotConfigAsync(ct);
     }

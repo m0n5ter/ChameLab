@@ -53,6 +53,33 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private SlotSideViewModel? _pickerSide;
     private string? _pickerFilter;
+    private bool _supportsLfCycle;
+    private bool _supportsCycleGap;
+    private decimal _cycleGapSeconds, _savedCycleGapSeconds;
+    private int _cycleBursts = 1, _savedCycleBursts = 1;
+
+    public LfSlotListViewModel LfCards { get; }
+    public bool SupportsMultiLf => _supportsLfCycle;
+    public bool ShowLfCycle => _supportsLfCycle && LfCards.Cards.Count > 1;
+    public bool ShowCycleGap => _supportsCycleGap;
+    public decimal CycleGapSeconds
+    {
+        get => _cycleGapSeconds;
+        set => SetField(ref _cycleGapSeconds, Math.Clamp(decimal.Round(value, 1), 0m, 3m), nameof(CycleGapSeconds));
+    }
+    public int CycleBursts { get => _cycleBursts; set => SetField(ref _cycleBursts, value, nameof(CycleBursts)); }
+    private bool IsCycleDirty => SupportsMultiLf && (LfCards.IsDirty || (ShowLfCycle &&
+        (CycleBursts != _savedCycleBursts || CycleGapSeconds != _savedCycleGapSeconds)));
+
+    internal void SetLfCapabilities(IReadOnlyList<ushort> capabilities)
+    {
+        _supportsLfCycle = capabilities.Contains((ushort)Command.Em410xSetCycle) && capabilities.Contains((ushort)Command.Em410xGetCycle);
+        _supportsCycleGap = _supportsLfCycle && capabilities.Contains((ushort)Command.Em410xSetCycleGap) && capabilities.Contains((ushort)Command.Em410xGetCycleGap);
+        this.RaisePropertyChanged(nameof(SupportsMultiLf));
+        this.RaisePropertyChanged(nameof(ShowLfCycle));
+        this.RaisePropertyChanged(nameof(ShowCycleGap));
+        RaiseDirty();
+    }
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
         Action onChanged, Action<CardSave> openCard)
@@ -68,6 +95,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         Lf = new SlotSideViewModel(TagSenseType.Lf, info, library, colors, OnLfChanged, OpenPicker, SaveToLibraryAsync, openCard);
         Hf.Partner = Lf;
         Lf.Partner = Hf;
+        LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard);
         SetEmulator(Emulator.Defaults);
 
         ClosePickerCommand = ReactiveCommand.Create(ClosePicker);
@@ -90,7 +118,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     };
 
     /// <summary>Anything differs from what the slot holds (drives the save bar).</summary>
-    public bool IsDirty => Hf.IsDirty || Lf.IsDirty || IsEmulatorDirty;
+    public bool IsDirty => Hf.IsDirty || Lf.IsDirty || IsEmulatorDirty || IsCycleDirty;
 
     private bool IsEmulatorDirty => ShownKind != EmulatorKind.None && CurrentEmulator != _savedEmulator;
 
@@ -102,6 +130,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         ClearSaveError();
         Hf.Discard();
         Lf.Discard();
+        LfCards.Discard();
+        CycleBursts = _savedCycleBursts;
+        CycleGapSeconds = _savedCycleGapSeconds;
         SetEmulator(_savedEmulator);
     }
 
@@ -110,6 +141,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     {
         Hf.OnLibraryChanged();
         Lf.OnLibraryChanged();
+        LfCards.OnLibraryChanged();
         if (IsPicking) RebuildPicker();
     }
 
@@ -130,6 +162,13 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private void OnLfChanged()
     {
         Hf.RaiseLed();
+        LfCards?.RefreshPrimary();
+        OnLfListChanged();
+    }
+
+    private void OnLfListChanged()
+    {
+        this.RaisePropertyChanged(nameof(ShowLfCycle));
         RaiseDirty();
     }
 
@@ -187,6 +226,20 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             await client.SetActiveSlotAsync(_slot);
             await LoadUidAsync(client, Hf);
             await LoadUidAsync(client, Lf);
+            var capabilities = await client.GetCapabilitiesAsync();
+            var supportsCycle = capabilities.Contains((ushort)Command.Em410xSetCycle) && capabilities.Contains((ushort)Command.Em410xGetCycle);
+            var cycle = supportsCycle && Lf.SavedType == TagSpecificType.Em410x
+                ? await client.GetEm410xCycleAsync() : new LfCardCycle(1, []);
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                SetLfCapabilities(capabilities);
+                _savedCycleBursts = cycle.Bursts;
+                LfCards.Load(_supportsLfCycle, cycle);
+                CycleBursts = _savedCycleBursts;
+                CycleGapSeconds = _savedCycleGapSeconds = cycle.GapSteps / 10m;
+                this.RaisePropertyChanged(nameof(ShowCycleGap));
+                this.RaisePropertyChanged(nameof(ShowLfCycle));
+            });
             await LoadEmulatorAsync(client);
         });
     });
@@ -254,6 +307,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             if (client is null) return;
             var kind = ShownKind;
             var emulator = CurrentEmulator;
+            // Validate before writing either frequency, so invalid input leaves the device untouched.
+            var cycle = _supportsLfCycle && Lf.Type == TagSpecificType.Em410x
+                ? LfCards.Cycle(CycleBursts, (int)(CycleGapSeconds * 10m)) : null;
             var progress = new Progress<MifareProgress>(p => Notify($"Uploading {p.Done}/{p.Total}…"));
 
             await client.WithSlotLockAsync(async () =>
@@ -261,6 +317,11 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                 await client.SetActiveSlotAsync(_slot);
                 await Hf.WriteAsync(client, _slot, progress);
                 await Lf.WriteAsync(client, _slot, progress);
+                if (cycle is not null)
+                {
+                    await client.SetActiveSlotAsync(_slot);
+                    await client.SetEm410xCycleAsync(cycle);
+                }
                 if (kind != EmulatorKind.None)
                 {
                     await client.SetActiveSlotAsync(_slot);
@@ -280,6 +341,14 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             {
                 Hf.MarkSaved();
                 Lf.MarkSaved();
+                if (cycle is null)
+                {
+                    CycleBursts = 1;
+                    CycleGapSeconds = 0;
+                }
+                LfCards.MarkSaved();
+                _savedCycleBursts = CycleBursts;
+                _savedCycleGapSeconds = CycleGapSeconds;
                 _savedEmulator = emulator;
                 _savedKind = _fieldsKind = TypeKind;
                 RaiseDirty();
@@ -321,7 +390,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     /// <summary>The dialog listing the saved cards of one frequency is open.</summary>
     public bool IsPicking => _pickerSide is not null;
 
-    public string PickerTitle => $"Choose a saved {_pickerSide?.Label} card";
+    public string PickerTitle => SupportsMultiLf && _pickerSide == Lf && LfCards.HasCards
+        ? "Add a saved LF card" : $"Choose a saved {_pickerSide?.Label} card";
 
     public string? PickerFilter
     {
@@ -353,15 +423,22 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             {
                 if (!ReferenceEquals(_pickerSide, side)) return;
                 ClosePicker();
-                side.Pick(value.Card);
+                PickSavedCard(side, value.Card);
             });
         }
     }
 
     public ICommand ClosePickerCommand { get; }
 
+    internal void PickSavedCard(SlotSideViewModel side, CardSave card)
+    {
+        if (side == Lf && SupportsMultiLf) LfCards.Add(card);
+        else side.Pick(card);
+    }
+
     private void OpenPicker(SlotSideViewModel side)
     {
+        if (side == Lf && SupportsMultiLf && !LfCards.CanAdd) return;
         _pickerSide = side;
         _pickerFilter = null;
         this.RaisePropertyChanged(nameof(PickerFilter));
@@ -383,7 +460,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         PickerCards.Clear();
         if (_pickerSide is not { } side) return;
         foreach (var card in _library.Cards.Where(c => c.Sense == side.Sense).Select(c => new CardItemViewModel(c)))
-            if (card.Matches(_pickerFilter)) PickerCards.Add(card);
+            if ((side != Lf || !SupportsMultiLf || LfCards.CanChoose(card.Card))
+                && card.Matches(_pickerFilter)) PickerCards.Add(card);
         this.RaisePropertyChanged(nameof(PickerHasNoCards));
         this.RaisePropertyChanged(nameof(PickerEmptyText));
     }

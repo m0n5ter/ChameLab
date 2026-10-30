@@ -83,7 +83,7 @@ public sealed record SlotEmulatorSettings(Mf1EmulatorSettings? Mf1, Mf0EmulatorS
 public sealed record SlotSide(CardSave Card, string Nick, string? Color, bool Enabled);
 
 /// <summary>Everything a slot holds: its HF and LF cards (null when empty) and the HF emulator settings.</summary>
-public sealed record SlotContent(int Index, SlotSide? Hf, SlotSide? Lf, SlotEmulatorSettings Emulator)
+public sealed record SlotContent(int Index, SlotSide? Hf, SlotSide? Lf, SlotEmulatorSettings Emulator, LfCardCycle? LfCycle = null)
 {
     public IEnumerable<CardSave> Cards => new[] { Hf?.Card, Lf?.Card }.OfType<CardSave>();
 }

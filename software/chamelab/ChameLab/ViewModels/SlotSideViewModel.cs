@@ -117,6 +117,13 @@ public sealed class SlotSideViewModel : ViewModelBase
     public string SavedNick => _savedNick;
     public string? SavedColor => ColorOf(_savedMode, _savedCustom);
 
+    /// <summary>The LF identity being edited, including an identity absent from the library.</summary>
+    public CardSave CurrentCard() => _pending ?? new CardSave
+    {
+        Tag = Type, Name = Name, Uid = _savedUid?.ToArray() ?? [],
+        Color = EffectiveColor ?? CardSave.DefaultColor,
+    };
+
     /// <summary>Saving the card to the library named it; the slot now carries that name.</summary>
     public void Renamed(string nick, byte[] uid)
     {
