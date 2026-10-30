@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using ChameLab.Models;
 using ChameLab.Protocol;
+using ChameLab.Services;
 using ReactiveUI;
 
 namespace ChameLab.ViewModels;
@@ -8,14 +10,19 @@ namespace ChameLab.ViewModels;
 /// <summary>Row for one of the eight emulation slots.</summary>
 public sealed class SlotItemViewModel : ViewModelBase
 {
+    private readonly CardLibrary? _library;
     private SlotInfo _info;
     private bool _isActive;
 
-    public SlotItemViewModel(SlotInfo info)
+    public SlotItemViewModel(SlotInfo info, CardLibrary? library = null)
     {
         _info = info;
+        _library = library;
         _isActive = info.IsActive;
     }
+
+    /// <summary>The extra LF cards are named after the saved cards they match.</summary>
+    public void OnLibraryChanged() => this.RaisePropertyChanged(nameof(LfNames));
 
     /// <summary>Takes the slot as read back from the device, keeping this row (and the list selection).</summary>
     public void Update(SlotInfo info)
@@ -26,7 +33,7 @@ public sealed class SlotItemViewModel : ViewModelBase
                  {
                      nameof(Info), nameof(HfNick), nameof(LfNick), nameof(HfType), nameof(LfType),
                      nameof(HasHf), nameof(HasLf), nameof(IsEmpty), nameof(HfLed), nameof(LfLed), nameof(LedLeft), nameof(LedRight),
-                     nameof(HfLabel), nameof(LfLabel), nameof(HfTypeLabel), nameof(LfTypeLabel), nameof(Summary),
+                     nameof(HfLabel), nameof(LfLabel), nameof(LfNames), nameof(HfTypeLabel), nameof(LfTypeLabel), nameof(Summary),
                  })
             this.RaisePropertyChanged(name);
     }
@@ -60,6 +67,16 @@ public sealed class SlotItemViewModel : ViewModelBase
     public string LfLabel => HasLf
         ? (!string.IsNullOrEmpty(_info.LfNick) ? _info.LfNick : _info.LfType.DisplayName())
         : "—";
+
+    /// <summary>Every card of the LF side in the order it cycles through them: its own card, then the extra ones.</summary>
+    public string LfNames => HasLf
+        ? string.Join("  •  ", _info.LfCycleIds.Select(ExtraName).Prepend(LfLabel))
+        : "—";
+
+    private string ExtraName(byte[] uid) =>
+        _library?.Cards.FirstOrDefault(c => c.Sense == TagSenseType.Lf &&
+            ChameleonClient.SlotTypeFor(c.Tag) == TagSpecificType.Em410x && c.Uid.AsSpan().SequenceEqual(uid))?.Name
+        ?? $"EM410x {Convert.ToHexString(uid)}";
 
     /// <summary>Type of each card, under its name in the slot tile; a dash (hidden) when the frequency is empty.</summary>
     public string HfTypeLabel => HasHf ? _info.HfType.DisplayName() : "—";

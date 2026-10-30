@@ -216,6 +216,30 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return slots;
     }
 
+    /// <summary>
+    /// Reads the extra cards of every EM410x slot into <see cref="SlotInfo.LfCycleIds"/>. Switches the active
+    /// slot to read each one and then back, so run it under the slot lock.
+    /// </summary>
+    public async Task ReadLfCyclesAsync(IReadOnlyList<SlotInfo> slots, CancellationToken ct = default)
+    {
+        var lf = slots.Where(s => s.LfType == TagSpecificType.Em410x && s.LfEnabled).ToList();
+        if (lf.Count == 0 || !(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetCycle)) return;
+        var previous = await GetActiveSlotAsync(ct);
+        try
+        {
+            foreach (var slot in lf)
+            {
+                await SetActiveSlotAsync(slot.Index, ct);
+                try { slot.LfCycleIds = (await GetEm410xCycleAsync(ct)).ExtraIds; }
+                catch (ChameleonException) { /* shown with its own card only */ }
+            }
+        }
+        finally
+        {
+            if (previous is >= 1 and <= 8) await SetActiveSlotAsync(previous, ct);
+        }
+    }
+
     private static void ParseNicks(byte[] data, List<SlotInfo> slots)
     {
         var i = 0;

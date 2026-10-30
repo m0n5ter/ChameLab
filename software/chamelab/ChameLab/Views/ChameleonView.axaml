@@ -233,35 +233,39 @@
               <!-- Scoped to the slot so the bindings below never walk through a null ActiveItem. -->
               <WrapPanel ItemSpacing="20" LineSpacing="6" HorizontalAlignment="Center"
                          DataContext="{Binding ActiveItem}" x:DataType="vm:SlotItemViewModel">
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
                   <Border Classes="chip hf" Classes.off="{Binding !HasHf}">
                     <TextBlock Text="HF" />
                   </Border>
-                  <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasHf}"
+                  <Ellipse Grid.Column="1" Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasHf}"
                            Fill="{Binding HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
                   <!-- Name and type as runs of one line, so they share a baseline. -->
-                  <TextBlock VerticalAlignment="Center" IsVisible="{Binding HasHf}">
-                    <Run Text="{Binding HfNick}" FontWeight="Bold" />
-                    <Run Text="{Binding HfTypeLabel}" FontSize="12"
-                         Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
-                  </TextBlock>
-                  <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center"
+                  <c:Marquee Grid.Column="2" VerticalAlignment="Center" IsVisible="{Binding HasHf}">
+                    <TextBlock>
+                      <Run Text="{Binding HfNick}" FontWeight="Bold" />
+                      <Run Text="{Binding HfTypeLabel}" FontSize="12"
+                           Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+                    </TextBlock>
+                  </c:Marquee>
+                  <TextBlock Grid.Column="2" Classes="caption" Text="Empty" VerticalAlignment="Center"
                              IsVisible="{Binding !HasHf}" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                </Grid>
+                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
                   <Border Classes="chip lf" Classes.off="{Binding !HasLf}">
                     <TextBlock Text="LF" />
                   </Border>
-                  <Ellipse Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasLf}"
+                  <Ellipse Grid.Column="1" Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasLf}"
                            Fill="{Binding LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-                  <TextBlock VerticalAlignment="Center" IsVisible="{Binding HasLf}">
-                    <Run Text="{Binding LfNick}" FontWeight="Bold" />
-                    <Run Text="{Binding LfTypeLabel}" FontSize="12"
-                         Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
-                  </TextBlock>
-                  <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center"
+                  <c:Marquee Grid.Column="2" VerticalAlignment="Center" IsVisible="{Binding HasLf}">
+                    <TextBlock>
+                      <Run Text="{Binding LfNames}" FontWeight="Bold" />
+                      <Run Text="{Binding LfTypeLabel}" FontSize="12"
+                           Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+                    </TextBlock>
+                  </c:Marquee>
+                  <TextBlock Grid.Column="2" Classes="caption" Text="Empty" VerticalAlignment="Center"
                              IsVisible="{Binding !HasLf}" />
-                </StackPanel>
+                </Grid>
               </WrapPanel>
             </Border>
           </StackPanel>

@@ -178,6 +178,9 @@ public sealed class HexEditor : Control
     }
     public FontFamily FontFamily { get => GetValue(FontFamilyProperty); set => SetValue(FontFamilyProperty, value); }
     public double FontSize { get => GetValue(FontSizeProperty); set => SetValue(FontSizeProperty, value); }
+
+    /// <summary>Height of one line of bytes at the current font size.</summary>
+    public double LineHeight => Math.Ceiling(FontSize * 1.45);
     public IBrush? Foreground { get => GetValue(ForegroundProperty); set => SetValue(ForegroundProperty, value); }
     public IBrush? LabelBrush { get => GetValue(LabelBrushProperty); set => SetValue(LabelBrushProperty, value); }
     public IBrush? DimBrush { get => GetValue(DimBrushProperty); set => SetValue(DimBrushProperty, value); }
@@ -276,7 +279,7 @@ public sealed class HexEditor : Control
         _digitW = "0123456789ABCDEF".Max(c => Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace);
         _canBatchText &= "0123456789ABCDEF".All(c =>
             Math.Abs(Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace - _digitW) < 0.001);
-        _lineH = Math.Ceiling(FontSize * 1.45);
+        _lineH = LineHeight;
         _byteGap = _digitW * 0.6;
         _groupGap = _digitW * 0.6;
         _byteStride = 2 * _digitW + _byteGap;

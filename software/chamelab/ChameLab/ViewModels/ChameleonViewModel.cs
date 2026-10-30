@@ -16,6 +16,7 @@ namespace ChameLab.ViewModels;
 public sealed class ChameleonViewModel : PageViewModelBase
 {
     private readonly DeviceService _device;
+    private readonly CardLibrary _cards;
     private DeviceInfo? _info;
     private BatteryInfo? _battery;
     private bool _readerMode;
@@ -33,9 +34,14 @@ public sealed class ChameleonViewModel : PageViewModelBase
     private string _blePin = string.Empty;
     private Values _saved;
 
-    public ChameleonViewModel(DeviceService device, FirmwareUpdateViewModel firmware) : base("Chameleon", "dashboard")
+    public ChameleonViewModel(DeviceService device, CardLibrary cards, FirmwareUpdateViewModel firmware) : base("Chameleon", "dashboard")
     {
         _device = device;
+        _cards = cards;
+        _cards.Changed += () => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            foreach (var slot in Slots) slot.OnLibraryChanged();
+        });
         Firmware = firmware;
         RefreshCommand = ReactiveCommand.CreateFromTask(OnActivatedAsync);
         ToggleModeCommand = ReactiveCommand.CreateFromTask(ToggleModeAsync);
@@ -255,7 +261,12 @@ public sealed class ChameleonViewModel : PageViewModelBase
         SlotInfo[] slots = [];
         try
         {
-            slots = (await client.GetAllSlotsAsync()).ToArray();
+            slots = await client.WithSlotLockAsync(async () =>
+            {
+                var all = (await client.GetAllSlotsAsync()).ToArray();
+                await client.ReadLfCyclesAsync(all);
+                return all;
+            });
             active = slots.FirstOrDefault(s => s.IsActive)?.Index ?? 1;
         }
         catch { /* older firmware */ }
@@ -265,7 +276,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
             Info = info;
             Battery = bat;
             Slots.Clear();
-            foreach (var slot in slots) Slots.Add(new SlotItemViewModel(slot));
+            foreach (var slot in slots) Slots.Add(new SlotItemViewModel(slot, _cards));
             _activeSlot = 0;
             ActiveSlot = active;
             _suppressModeWrite = true;

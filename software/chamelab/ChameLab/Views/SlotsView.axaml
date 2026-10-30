@@ -77,7 +77,7 @@
         <Grid ColumnDefinitions="8,*" ColumnSpacing="14">
           <Border Grid.Column="0" Background="{Binding ColorBrush}" />
           <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
+            <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
             <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
           </StackPanel>
         </Grid>
@@ -85,6 +85,7 @@
     </DataTemplate>
 
     <!-- A slot: its number, then the HF card above the LF card (name, type below), a line between them.
+         An LF side that cycles through several cards lists all their names on its line.
          The list rows and the editor header. An empty frequency keeps its two lines, hidden, so every
          slot is the same height; "Empty" sits centered over them. -->
     <DataTemplate x:Key="SlotTile" x:DataType="vm:SlotItemViewModel">
@@ -99,7 +100,7 @@
           </Border>
           <Panel Grid.Column="1">
             <StackPanel Classes.ghost="{Binding !HasHf}">
-              <TextBlock Text="{Binding HfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <c:Marquee><TextBlock Text="{Binding HfLabel}" FontWeight="SemiBold" /></c:Marquee>
               <TextBlock Text="{Binding HfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
@@ -113,7 +114,7 @@
           </Border>
           <Panel Grid.Column="1">
             <StackPanel Classes.ghost="{Binding !HasLf}">
-              <TextBlock Text="{Binding LfLabel}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <c:Marquee><TextBlock Text="{Binding LfNames}" FontWeight="SemiBold" /></c:Marquee>
               <TextBlock Text="{Binding LfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
@@ -188,8 +189,7 @@
                   DataContext="{Binding Match}" x:DataType="vm:CardItemViewModel">
               <Border Grid.Column="0" Background="{Binding ColorBrush}" />
               <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
-                           TextTrimming="CharacterEllipsis" />
+                <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
                 <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
                            TextTrimming="CharacterEllipsis" />
               </StackPanel>
@@ -202,7 +202,7 @@
         <!-- A card that is not in Saved cards. -->
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding IsUnmatched}">
           <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+            <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" /></c:Marquee>
             <TextBlock Classes="caption" Text="{Binding UnmatchedSummary}" TextTrimming="CharacterEllipsis" />
           </StackPanel>
           <Button Grid.Column="1" VerticalAlignment="Center" Command="{Binding SaveToLibraryCommand}"
@@ -423,7 +423,7 @@
                       <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
                         <Border Background="{Binding Item.ColorBrush}" />
                         <StackPanel Grid.Column="1" Margin="0,10">
-                          <TextBlock Text="{Binding Item.Name}" FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
+                          <c:Marquee><TextBlock Text="{Binding Item.Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
                           <TextBlock Text="{Binding Item.Summary}" Classes="caption" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">

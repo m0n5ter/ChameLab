@@ -47,7 +47,11 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         DiscardAndLeaveCommand = ReactiveCommand.Create(() => ResolveLeave(run: true));
         StayCommand = ReactiveCommand.Create(() => ResolveLeave(run: false));
 
-        _cards.Changed += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => _editor?.OnLibraryChanged());
+        _cards.Changed += () => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            _editor?.OnLibraryChanged();
+            foreach (var slot in Slots) slot.OnLibraryChanged();
+        });
         _device.StateChanged += s => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             IsConnected = s == ConnectionState.Connected;
@@ -178,7 +182,12 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     {
         var client = _device.Client;
         if (client is null) return;
-        var slots = await client.GetAllSlotsAsync();
+        var slots = await client.WithSlotLockAsync(async () =>
+        {
+            var all = await client.GetAllSlotsAsync();
+            await client.ReadLfCyclesAsync(all);
+            return all;
+        });
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             if (Slots.Count == slots.Count && Slots.Select(s => s.Index).SequenceEqual(slots.Select(s => s.Index)))
@@ -192,7 +201,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
                 try
                 {
                     Slots.Clear();
-                    foreach (var s in slots) Slots.Add(new SlotItemViewModel(s));
+                    foreach (var s in slots) Slots.Add(new SlotItemViewModel(s, _cards));
                 }
                 finally { _rebuilding = false; }
                 _selected = Slots.FirstOrDefault(s => s.Index == openIndex);

@@ -124,7 +124,7 @@
                   <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
                     <Border Grid.Column="0" Background="{Binding ColorBrush}" />
                     <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" TextTrimming="CharacterEllipsis" />
+                      <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
                       <TextBlock Text="{Binding CountLabel}" Classes="caption" TextWrapping="NoWrap" />
                     </StackPanel>
                     <PathIcon Grid.Column="2" Data="{StaticResource Icon.key}" Width="16" Height="16"
@@ -225,8 +225,9 @@
           <ScrollViewer Grid.Row="2" Name="KnownScroll" Classes="reservebar" VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Disabled">
           <c:BalancedSplit MinHeight="{Binding #KnownScroll.Bounds.Height}">
-          <Grid MinHeight="104">
-            <ListBox ItemsSource="{Binding KnownEditor.Uids}" SelectedItem="{Binding KnownEditor.Selected}"
+          <!-- MinHeight: three rows, kept in step with the theme's row height by the code-behind. -->
+          <Grid Name="KnownCards" MinHeight="104">
+            <ListBox Name="KnownList" ItemsSource="{Binding KnownEditor.Uids}" SelectedItem="{Binding KnownEditor.Selected}"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
               <ListBox.ItemTemplate>
@@ -258,10 +259,10 @@
                 </StackPanel>
               </Button>
           </Grid>
-          <Border Classes="inset" Padding="8,6" MinHeight="120"
+          <Border Name="KnownKeysBox" Classes="inset" Padding="8,6" MinHeight="80"
                   IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-              <c:HexEditor Buffer="{Binding KnownEditor.Selected.Form.Keys}" />
+              <c:HexEditor Name="KnownKeysEditor" Buffer="{Binding KnownEditor.Selected.Form.Keys}" />
             </ScrollViewer>
           </Border>
         </c:BalancedSplit>

@@ -29,7 +29,7 @@ public sealed class MainViewModel : ViewModelBase
 
         Firmware = new FirmwareUpdateViewModel(device, firmware);
         _connect = new ConnectViewModel(device);
-        Chameleon = new ChameleonViewModel(device, Firmware);
+        Chameleon = new ChameleonViewModel(device, cards, Firmware);
         Slots = new SlotsViewModel(device, cards);
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries, cards);
