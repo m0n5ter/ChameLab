@@ -57,6 +57,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         _atqa = Hex.Spaced(SwapAtqa(source.Atqa));
         _ats = Hex.Spaced(source.Ats);
         _data = source.Data.Select(d => (byte[])d.Clone()).ToList();
+        Ndef = new NdefEditorViewModel(() => (_data, _tag), WriteNdef);
         RebuildRows();
         _baseline = Fingerprint();
         ClearSectorCommand = ReactiveCommand.Create(() => SelectedMemory?.ClearRows(0, SelectedMemory.RowCount));
@@ -117,6 +118,7 @@ public sealed class CardEditorViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(IsUltralight));
         this.RaisePropertyChanged(nameof(HasUltralightConfig));
         this.RaisePropertyChanged(nameof(UltralightKeyLegend));
+        this.RaisePropertyChanged(nameof(HasPasswordConfig));
         this.RaisePropertyChanged(nameof(LfFields));
         this.RaisePropertyChanged(nameof(HasLfFields));
         this.RaisePropertyChanged(nameof(IsPyramid));
@@ -420,6 +422,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     {
         this.RaisePropertyChanged(nameof(HasData));
         this.RaisePropertyChanged(nameof(DataSummary));
+        Ndef?.Refresh();
+        RaiseProtection();
 
         var warnings = new List<string>();
         if (_tag.IsMifareClassic())
@@ -572,6 +576,134 @@ public sealed class CardEditorViewModel : ViewModelBase
 
     /// <summary>Legend of the key-colored pages: the password or, on Ultralight C, the 3DES key.</summary>
     public string UltralightKeyLegend => _tag == TagSpecificType.Mf0Icu2 ? "■ 3DES key" : "■ PWD/PACK";
+
+    // ---- NDEF ----------------------------------------------------------
+
+    /// <summary>The NDEF message in an Ultralight / NTAG card's memory: viewed and edited as records.</summary>
+    public NdefEditorViewModel Ndef { get; }
+
+    /// <summary>Puts a new NDEF data area (from page 4) and capability container into the memory as one edit each.</summary>
+    private void WriteNdef(byte[] area, byte[]? capabilityContainer)
+    {
+        if (Memory is not { } memory) return;
+        if (capabilityContainer is not null) memory.Write(3 * 4, capabilityContainer);
+        // Rows past the message that were not read stay unread; read ones are zeroed.
+        var end = area.Length;
+        while (end > 0 && area[end - 1] == 0 && !memory.IsRead((Type2Ndef.FirstPage * 4 + end - 1) / 4)) end--;
+        memory.Write(Type2Ndef.FirstPage * 4, area.AsSpan(0, end));
+    }
+
+    // ---- Password protection (Ultralight EV1 / NTAG21x) ------------------
+
+    /// <summary>The type keeps a password in its configuration pages.</summary>
+    public bool HasPasswordConfig => _tag.UltralightCfg0Page() > 0;
+
+    /// <summary>The settings as the memory holds them; null when the configuration pages were not read.</summary>
+    public UltralightProtection? Protection => UltralightProtection.FromPages(_data, _tag);
+
+    public bool HasProtection => Protection is not null;
+
+    public string ProtectionSummary => Protection?.Summary(_tag)
+        ?? "The configuration pages were not read. Dump the card with its password to see them.";
+
+    /// <summary>AUTH0 lies within the memory: pages from it on need the password.</summary>
+    public bool IsProtected
+    {
+        get => Protection?.IsEnabled(_tag) == true;
+        set
+        {
+            if (value == IsProtected) return;
+            SetProtection(p => p with { Auth0 = value ? (byte)Math.Max(Type2Ndef.FirstPage, (int)_lastAuth0) : UltralightProtection.Off });
+        }
+    }
+
+    // AUTH0 to come back to when protection is switched on again.
+    private byte _lastAuth0 = Type2Ndef.FirstPage;
+
+    /// <summary>First protected page (AUTH0), as typed.</summary>
+    public decimal? ProtectFrom
+    {
+        get => Protection is { } p && p.IsEnabled(_tag) ? p.Auth0 : null;
+        set
+        {
+            if (value is not { } page || page < 0 || page >= _tag.UltralightPages()) return;
+            _lastAuth0 = (byte)page;
+            SetProtection(p => p with { Auth0 = (byte)page });
+        }
+    }
+
+    public int LastPage => Math.Max(0, _tag.UltralightPages() - 1);
+
+    /// <summary>PROT: reading needs the password too, not just writing.</summary>
+    public bool ReadProtected
+    {
+        get => Protection?.ReadProtected == true;
+        set => SetProtection(p => p with { ReadProtected = value });
+    }
+
+    /// <summary>AUTHLIM choices: 0 (no limit) to 7.</summary>
+    public IReadOnlyList<int> AuthLimits { get; } = Enumerable.Range(0, 8).ToArray();
+
+    public int AuthLimit
+    {
+        get => Protection?.AuthLimit ?? 0;
+        set => SetProtection(p => p with { AuthLimit = Math.Clamp(value, 0, 7) });
+    }
+
+    /// <summary>What an AUTHLIM value means on this type.</summary>
+    public string AuthLimitText => AuthLimit == 0 ? "No limit"
+        : $"{UltralightProtection.Attempts(_tag, AuthLimit)} wrong attempts, then the card is locked for good";
+
+    /// <summary>PWD as hex; only a complete 4-byte value goes into the memory.</summary>
+    public string Password
+    {
+        get => Protection is { } p ? Hex.Spaced(p.Pwd) : string.Empty;
+        set
+        {
+            if (Hex.TryParse(value, out var pwd) && pwd.Length == 4) SetProtection(p => p with { Pwd = pwd });
+        }
+    }
+
+    /// <summary>PACK (the card's answer to the password) as hex; only a complete 2-byte value is kept.</summary>
+    public string Pack
+    {
+        get => Protection is { } p ? Hex.Spaced(p.Pack) : string.Empty;
+        set
+        {
+            if (Hex.TryParse(value, out var pack) && pack.Length == 2) SetProtection(p => p with { Pack = pack });
+        }
+    }
+
+    /// <summary>Writes changed settings into the configuration pages (one undoable edit).</summary>
+    private void SetProtection(Func<UltralightProtection, UltralightProtection> change)
+    {
+        if (Protection is not { } current || Memory is not { } memory) return;
+        var next = change(current);
+        var cfg0 = _tag.UltralightCfg0Page();
+        var pages = new byte[16];
+        for (var i = 0; i < 4; i++) _data[cfg0 + i].CopyTo(pages, i * 4);
+        pages[3] = next.Auth0;
+        pages[4] = next.Access(pages[4]);
+        next.Pwd.CopyTo(pages, 8);
+        next.Pack.CopyTo(pages, 12);
+        memory.Write((long)cfg0 * 4, pages);
+    }
+
+    private void RaiseProtection()
+    {
+        if (Protection is { } p && p.IsEnabled(_tag)) _lastAuth0 = p.Auth0;
+        this.RaisePropertyChanged(nameof(Protection));
+        this.RaisePropertyChanged(nameof(HasProtection));
+        this.RaisePropertyChanged(nameof(ProtectionSummary));
+        this.RaisePropertyChanged(nameof(IsProtected));
+        this.RaisePropertyChanged(nameof(ProtectFrom));
+        this.RaisePropertyChanged(nameof(LastPage));
+        this.RaisePropertyChanged(nameof(ReadProtected));
+        this.RaisePropertyChanged(nameof(AuthLimit));
+        this.RaisePropertyChanged(nameof(AuthLimitText));
+        this.RaisePropertyChanged(nameof(Password));
+        this.RaisePropertyChanged(nameof(Pack));
+    }
 
     /// <summary>
     /// Replaces identity and memory with freshly read data (e.g. a dump of the

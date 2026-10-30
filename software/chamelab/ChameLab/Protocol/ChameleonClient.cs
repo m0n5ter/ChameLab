@@ -1878,14 +1878,22 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// (first a Pending tick covering every page of the card, so a listener can size itself).
     /// </summary>
     /// <param name="pwd">Optional 4-byte PWD of the target card when its pages are write-protected.</param>
+    /// <param name="protection">
+    /// Password settings to put on the target card after the user pages: PWD and PACK first, then
+    /// PROT / AUTHLIM and AUTH0 last, so the card is never protected by a password not yet set.
+    /// The other configuration bits of the target stay as they are; a card whose configuration
+    /// is locked (CFGLCK) is refused.
+    /// </param>
     public async Task<IReadOnlyList<int>> WriteUltralightUserPagesAsync(
         CardSave card, byte[]? pwd = null,
         IProgress<MifareProgress>? progress = null, CancellationToken ct = default,
-        IProgress<MifareBlockProgress>? pages = null)
+        IProgress<MifareBlockProgress>? pages = null, UltralightProtection? protection = null)
     {
         if (pwd is { Length: 0 }) pwd = null;
         if (pwd is { Length: not 4 })
             throw new ArgumentException("The password must be 4 bytes.");
+        if (protection is not null && (protection.Pwd.Length != 4 || protection.Pack.Length != 2))
+            throw new ArgumentException("The new password must be 4 bytes and the PACK 2 bytes.");
 
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
@@ -1894,16 +1902,30 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         if (tags[0].Sak != 0x00)
             throw new ChameleonException($"Not an Ultralight / NTAG card (SAK {tags[0].Sak:X2}).", Status.HfTagNo);
 
-        var (first, end) = UltralightUserPages(card.Tag);
+        var (first, end) = (4, card.Tag.UltralightUserEnd());
         var targets = Enumerable.Range(first, Math.Max(0, Math.Min(end, card.Data.Count) - first))
             .Where(p => card.Data[p].Length == 4)
             .ToList();
-        pages?.Report(new MifareBlockProgress(0, Math.Max(card.Tag.UltralightPages(), card.Data.Count), MifareBlockState.Pending));
 
         var failed = new List<int>();
         var written = 0;
         try
         {
+            // The configuration pages sit at the end of the target's memory, so its model decides where.
+            var cfg0 = -1;
+            var size = Math.Max(card.Tag.UltralightPages(), card.Data.Count);
+            if (protection is not null)
+            {
+                var (type, _) = await IdentifyUltralightCoreAsync(ct);
+                cfg0 = type?.UltralightCfg0Page() ?? -1;
+                if (cfg0 <= 0)
+                    throw new ChameleonException(
+                        $"The card on the reader ({type?.DisplayName() ?? "unknown model"}) has no password to set.", Status.HfTagNo);
+                size = Math.Max(size, type!.Value.UltralightPages());
+            }
+            pages?.Report(new MifareBlockProgress(0, size, MifareBlockState.Pending));
+            var total = targets.Count + (protection is null ? 0 : 4);
+
             if (pwd is not null && (await UltralightCommandAsync(PwdAuth(pwd), ct)).Length != 2)
                 throw new ChameleonException("The card did not accept the password.", Status.HfTagNo);
 
@@ -1917,7 +1939,45 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 live = ok;
                 if (ok) written++; else failed.Add(page);
                 pages?.Report(new MifareBlockProgress(page, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
-                progress?.Report(new MifareProgress(i + 1, targets.Count, written));
+                progress?.Report(new MifareProgress(i + 1, total, written));
+            }
+
+            if (protection is not null)
+            {
+                // Only on a complete write: a card protected over half-written pages is hard to fix.
+                if (failed.Count > 0) return failed;
+                ct.ThrowIfCancellationRequested();
+
+                // CFG0, CFG1 and (as zeros) PWD / PACK, to keep the bits not being set.
+                var cfg = await UltralightReadAsync(cfg0, live, pwd, ct)
+                    ?? throw new ChameleonException(
+                        "Could not read the card's configuration pages. If they are read-protected, enter the card's current password.",
+                        Status.HfTagNo);
+                live = true;
+                if ((cfg[4] & UltralightProtection.AccessCfgLock) != 0)
+                    throw new ChameleonException("The card's configuration is locked (CFGLCK), so its password can't be changed.", Status.HfTagNo);
+
+                var steps = new (int Page, byte[] Data)[]
+                {
+                    (cfg0 + 2, protection.Pwd),
+                    (cfg0 + 3, [protection.Pack[0], protection.Pack[1], cfg[14], cfg[15]]),
+                    (cfg0 + 1, [protection.Access(cfg[4]), cfg[5], cfg[6], cfg[7]]),
+                    (cfg0, [cfg[0], cfg[1], cfg[2], protection.Auth0]),
+                };
+                for (var i = 0; i < steps.Length; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var (page, data) = steps[i];
+                    pages?.Report(new MifareBlockProgress(page, 1, MifareBlockState.Reading));
+                    var ok = await UltralightWritePageAsync(page, data, live, pwd, ct);
+                    live = ok;
+                    // From the new PWD on, a reselect authenticates with it.
+                    if (ok && i == 0 && pwd is not null) pwd = protection.Pwd;
+                    if (ok) written++; else failed.Add(page);
+                    pages?.Report(new MifareBlockProgress(page, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
+                    progress?.Report(new MifareProgress(targets.Count + i + 1, total, written));
+                    if (!ok) break; // later steps would protect the card with settings only half written
+                }
             }
         }
         finally
@@ -1925,18 +1985,6 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             if (!conn.IsClosed) await FieldOffAsync(CancellationToken.None);
         }
         return failed;
-    }
-
-    /// <summary>
-    /// User memory of an Ultralight type as [first, end): from page 4 up to the dynamic lock
-    /// bytes, the configuration pages or (Ultralight C) the counter / AUTH pages.
-    /// </summary>
-    private static (int First, int End) UltralightUserPages(TagSpecificType t)
-    {
-        var end = t.UltralightPages();
-        if (t.UltralightDynamicLockPage() is > 0 and var dyn) end = Math.Min(end, dyn);
-        if (t.UltralightCfg0Page() is > 0 and var cfg0) end = Math.Min(end, cfg0);
-        return (4, end);
     }
 
     /// <summary>WRITE (0xA2) of one page, retrying transient RF failures; true when the card ACKs.</summary>

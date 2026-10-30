@@ -63,6 +63,18 @@ public static class CardTags
     /// <summary>Ultralight C: the 3DES key occupies pages 0x2C–0x2F; AUTH0 / AUTH1 are 0x2A / 0x2B.</summary>
     public const int UlcFirstKeyPage = 0x2C;
 
+    /// <summary>
+    /// End (exclusive) of the user memory of an Ultralight type, which starts at page 4: the
+    /// dynamic lock bytes, the configuration pages or (Ultralight C) the counter / AUTH pages.
+    /// </summary>
+    public static int UltralightUserEnd(this TagSpecificType t)
+    {
+        var end = t.UltralightPages();
+        if (t.UltralightDynamicLockPage() is > 0 and var dyn) end = Math.Min(end, dyn);
+        if (t.UltralightCfg0Page() is > 0 and var cfg0) end = Math.Min(end, cfg0);
+        return end;
+    }
+
     /// <summary>Ultralight EV1 and NTAG21x carry one-way counters.</summary>
     public static bool HasUltralightCounters(this TagSpecificType t) =>
         t is TagSpecificType.Mf0Ul11 or TagSpecificType.Mf0Ul21

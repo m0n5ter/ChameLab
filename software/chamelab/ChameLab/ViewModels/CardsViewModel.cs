@@ -2231,6 +2231,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             WriteBlockStates = Array.Empty<MifareBlockState>();
             ResetWriteRecovery();
+            // A clone of a protected card is protected alike unless unticked.
+            WriteProtection = _form?.IsProtected == true;
+            this.RaisePropertyChanged(nameof(CanWriteProtection));
+            this.RaisePropertyChanged(nameof(WriteProtectionText));
         }
     }
 
@@ -2372,6 +2376,28 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         : key.Length == 4 ? null
         : "The password is 4 bytes.";
 
+    /// <summary>The card's password settings (Ultralight EV1 / NTAG21x) can be put on the target card.</summary>
+    public bool CanWriteProtection => IsUltralightWrite && _form?.HasProtection == true;
+
+    private bool _writeProtection;
+
+    /// <summary>Also write PWD, PACK, PROT / AUTHLIM and AUTH0 from the card onto the target.</summary>
+    public bool WriteProtection
+    {
+        get => _writeProtection;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _writeProtection, value);
+            this.RaisePropertyChanged(nameof(WriteProtectionText));
+        }
+    }
+
+    public string? WriteProtectionText => _form is not { HasProtection: true } form ? null
+        : !_writeProtection ? "The target card keeps its own password settings."
+        : form.IsProtected
+            ? $"{form.ProtectionSummary} New password {form.Password}, PACK {form.Pack}. Keep the password: without it the protected pages can't be changed."
+            : "Protection is switched off on the target card (AUTH0 = FF); its password is set to " + form.Password + ".";
+
     /// <summary>
     /// Optional 4-byte password of an already-locked T55xx tag, tried before the firmware's
     /// defaults to unlock it. Left empty for a blank tag.
@@ -2455,7 +2481,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     : "Place a Gen2 / CUID magic card on the reader. Block 0 is skipped, so the card keeps its UID. Other blocks are written using the source dump's keys or the selected dictionaries.",
         },
         { } t when t.IsUltralight() =>
-            "Place an Ultralight / NTAG card of the same size or larger on the reader. The user pages are written; the UID, lock bytes, capability container and configuration (password, AUTH0) are left as they are, so the card keeps its own UID.",
+            "Place an Ultralight / NTAG card of the same size or larger on the reader. The user pages are written; the UID, lock bytes and capability container are left as they are, so the card keeps its own UID. The password settings are written only when ticked below.",
         { } t when t.SenseType() == TagSenseType.Lf =>
             "Place a blank T55xx tag on the reader. Writing the wrong data can brick a tag, so double-check the card.",
         _ => string.Empty,
@@ -2489,6 +2515,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(IsLfWrite));
         this.RaisePropertyChanged(nameof(WriteUnit));
         this.RaisePropertyChanged(nameof(WritePasswordError));
+        this.RaisePropertyChanged(nameof(CanWriteProtection));
+        this.RaisePropertyChanged(nameof(WriteProtectionText));
         this.RaisePropertyChanged(nameof(WriteLfPasswordError));
         this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
         this.RaisePropertyChanged(nameof(WriteKind));
@@ -2667,7 +2695,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (card.Tag.IsUltralight())
             {
                 var pwd = Hex.TryParse(WritePassword, out var k) && k.Length > 0 ? k : null;
-                failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress);
+                var protection = WriteProtection ? UltralightProtection.FromPages(card.Data, card.Tag) : null;
+                if (protection is not null && !protection.IsEnabled(card.Tag))
+                    protection = protection with { Auth0 = UltralightProtection.Off };
+                failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress, protection);
             }
             else if (session is not null)
             {

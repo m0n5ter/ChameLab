@@ -694,7 +694,7 @@
                 <!-- Ultralight / NTAG: optional password of the target card -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsUltralightWrite}">
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                    <TextBlock Text="Password" Classes="caption" VerticalAlignment="Center" />
+                    <TextBlock Text="Card password" Classes="caption" VerticalAlignment="Center" />
                     <c:HexBox Grid.Column="1" Text="{Binding WritePassword}" ByteLengths="4"
                               IsEnabled="{Binding !IsBusy}" PlaceholderText="Optional"
                               ToolTip.Tip="PWD (4 bytes) of the target card, when its pages are write-protected" />
@@ -702,6 +702,14 @@
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WritePasswordError}"
                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                              IsVisible="{Binding WritePasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </StackPanel>
+
+                <!-- Ultralight EV1 / NTAG21x: put the card's password settings on the target too -->
+                <StackPanel Spacing="4" IsVisible="{Binding CanWriteProtection}">
+                  <CheckBox Content="Write password settings" IsChecked="{Binding WriteProtection}"
+                            IsEnabled="{Binding !IsBusy}"
+                            ToolTip.Tip="After the pages: PWD, PACK, read protection, attempt limit and AUTH0 from this card" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteProtectionText}" />
                 </StackPanel>
 
                 <!-- T55xx: current password (to unlock a locked tag) and the new password it's locked with -->
@@ -913,6 +921,210 @@
               </Grid>
             </StackPanel>
           </Border>
+
+          <!-- ===================== NDEF records (Ultralight / NTAG) ===================== -->
+          <Panel IsVisible="{Binding ShowMemoryEditor}">
+            <Border Classes="card" IsVisible="{Binding Form?.IsUltralight, TargetNullValue=False}">
+              <StackPanel Spacing="10" DataContext="{Binding Form.Ndef}" x:DataType="vm:NdefEditorViewModel">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="NDEF" Classes="overline" />
+                    <TextBlock Classes="caption" Text="{Binding Summary}" IsVisible="{Binding !IsEditing}" />
+                    <TextBlock Classes="caption" Text="{Binding Usage}" IsVisible="{Binding IsEditing}" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Command="{Binding EditCommand}" IsVisible="{Binding !IsEditing}"
+                          VerticalAlignment="Center" ToolTip.Tip="Add, change, reorder or remove records">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.edit}" />
+                      <TextBlock Text="Edit" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </Grid>
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Error}"
+                           Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}">
+                  <TextBlock.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="Error" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                      <Binding Path="!IsEditing" />
+                    </MultiBinding>
+                  </TextBlock.IsVisible>
+                </TextBlock>
+
+                <!-- Records on the card; click one to copy its content. -->
+                <ItemsControl ItemsSource="{Binding Records}" IsVisible="{Binding !IsEditing}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Spacing="6" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:NdefRecordRow">
+                      <Button Classes="copycell" b:CopyToClipboard.Text="{Binding Value}" ToolTip.Tip="{Binding Detail}"
+                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="2">
+                          <TextBlock Text="{Binding Kind}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Value}" Classes="mono" FontSize="14" TextWrapping="Wrap"
+                                     IsVisible="{Binding HasValue}" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Editing a working copy; Apply puts it into the memory below. -->
+                <StackPanel Spacing="10" IsVisible="{Binding IsEditing}" b:BringIntoViewOnShow.IsEnabled="True">
+                  <ItemsControl ItemsSource="{Binding EditRecords}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:NdefRecordEditorViewModel">
+                        <Border Classes="inset" Padding="10" b:BringIntoViewOnShow.IsEnabled="True">
+                          <StackPanel Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="4">
+                              <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}" HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                  <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                                  </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                              </ComboBox>
+                              <Button Grid.Column="1" Classes="icon" Content="↑" ToolTip.Tip="Move up"
+                                      Command="{Binding $parent[ItemsControl].((vm:NdefEditorViewModel)DataContext).MoveUpCommand}"
+                                      CommandParameter="{Binding}" />
+                              <Button Grid.Column="2" Classes="icon" Content="↓" ToolTip.Tip="Move down"
+                                      Command="{Binding $parent[ItemsControl].((vm:NdefEditorViewModel)DataContext).MoveDownCommand}"
+                                      CommandParameter="{Binding}" />
+                              <Button Grid.Column="3" Classes="icon" ToolTip.Tip="Remove the record"
+                                      Command="{Binding $parent[ItemsControl].((vm:NdefEditorViewModel)DataContext).RemoveCommand}"
+                                      CommandParameter="{Binding}">
+                                <PathIcon Data="{StaticResource Icon.delete}" />
+                              </Button>
+                            </Grid>
+
+                            <TextBox Text="{Binding Uri}" IsVisible="{Binding IsLink}"
+                                     PlaceholderText="https://example.com, tel:+1555…, mailto:…" />
+
+                            <Grid ColumnDefinitions="*,80" ColumnSpacing="8" IsVisible="{Binding IsText}">
+                              <TextBox Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="Text" />
+                              <TextBox Grid.Column="1" Text="{Binding Language}" PlaceholderText="en" VerticalAlignment="Top"
+                                       ToolTip.Tip="Language code, e.g. en, de, ru" />
+                            </Grid>
+
+                            <StackPanel Spacing="8" IsVisible="{Binding IsWifi}">
+                              <TextBox Text="{Binding Ssid}" PlaceholderText="Network name (SSID)" />
+                              <ComboBox ItemsSource="{Binding WifiAuths}" SelectedItem="{Binding WifiAuth}" HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                  <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                                  </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                              </ComboBox>
+                              <TextBox Text="{Binding WifiKey}" PlaceholderText="Password" IsVisible="{Binding HasWifiKey}" />
+                            </StackPanel>
+
+                            <TextBox Text="{Binding Package}" IsVisible="{Binding IsAndroidApp}"
+                                     PlaceholderText="Package name, e.g. com.example.app" />
+
+                            <StackPanel Spacing="8" IsVisible="{Binding IsMime}">
+                              <TextBox Text="{Binding MimeType}" PlaceholderText="MIME type, e.g. text/plain" />
+                              <TextBox Text="{Binding MimeContent}" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="Content" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="8" IsVisible="{Binding IsRaw}">
+                              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <ComboBox ItemsSource="{Binding Tnfs}" SelectedItem="{Binding RawTnf}" HorizontalAlignment="Stretch"
+                                          ToolTip.Tip="Type name format">
+                                  <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                      <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                                    </DataTemplate>
+                                  </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBox Grid.Column="1" Text="{Binding RawType}" PlaceholderText="Type" />
+                              </Grid>
+                              <c:HexBox Text="{Binding RawPayload}" PlaceholderText="Payload (hex)" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Error}"
+                                       Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                                       IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding EditError}"
+                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                             IsVisible="{Binding EditError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                    <DropDownButton ToolTip.Tip="Add a record at the end of the message">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.add}" />
+                        <TextBlock Text="Add record" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <DropDownButton.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                          <MenuItem Header="Link (URI)" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Link}" />
+                          <MenuItem Header="Text" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Text}" />
+                          <MenuItem Header="Wi-Fi network" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Wifi}" />
+                          <MenuItem Header="Android app" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.AndroidApp}" />
+                          <MenuItem Header="MIME data" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Mime}" />
+                          <MenuItem Header="Raw record" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Raw}" />
+                        </MenuFlyout>
+                      </DropDownButton.Flyout>
+                    </DropDownButton>
+                    <Button Grid.Column="2" Content="Cancel" Command="{Binding CancelCommand}" />
+                    <Button Grid.Column="3" Classes="accent" Content="Apply" Command="{Binding ApplyCommand}"
+                            ToolTip.Tip="Put the message into the card's memory" />
+                  </Grid>
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="Apply puts the message into the memory below. Save the card, then load it into a slot or write it to a tag." />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </Panel>
+
+          <!-- ===================== Password protection (Ultralight EV1 / NTAG21x) ===================== -->
+          <Panel IsVisible="{Binding ShowMemoryEditor}">
+            <Border Classes="card" IsVisible="{Binding Form?.HasPasswordConfig, TargetNullValue=False}">
+              <StackPanel Spacing="10" DataContext="{Binding Form}" x:DataType="vm:CardEditorViewModel">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
+                </StackPanel>
+                <StackPanel Spacing="10" IsVisible="{Binding HasProtection}">
+                  <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
+                            ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
+                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Password (PWD)" Classes="caption" />
+                      <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Answer (PACK)" Classes="caption" />
+                      <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
+                                ToolTip.Tip="What the card answers to the right password; readers may check it" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="From page (AUTH0)" Classes="caption" />
+                      <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
+                                     FormatString="0" IsEnabled="{Binding IsProtected}" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
+                      <ComboBox ItemsSource="{Binding AuthLimits}" SelectedItem="{Binding AuthLimit}"
+                                HorizontalAlignment="Stretch" ToolTip.Tip="{Binding AuthLimitText}" />
+                    </StackPanel>
+                  </c:FlowGrid>
+                  <CheckBox Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}"
+                            IsEnabled="{Binding IsProtected}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AuthLimitText}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </Panel>
 
           <!-- Memory dump / continuation for scanned, saved, imported and manual cards. -->
           <Border x:Name="MemoryCard" Classes="card" IsVisible="{Binding ShowMemoryEditor}">

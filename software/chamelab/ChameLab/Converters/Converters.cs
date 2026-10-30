@@ -48,6 +48,9 @@ public sealed class EnumLabelConverter : IValueConverter
         TagSpecificType t => t.DisplayName(),
         CardSort s => s.Label(),
         DictionarySort s => s.Label(),
+        NdefRecordKind k => k.Label(),
+        NdefWifiAuth a => a.WifiAuthLabel(),
+        NdefTnf t => t.Label(),
         null => null,
         _ => value.ToString(),
     };
