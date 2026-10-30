@@ -8,27 +8,21 @@ using ChameLab.Transport;
 
 namespace ChameLab.Protocol;
 
-public sealed class ChameleonException : Exception
+public sealed class ChameleonException(string message, Status status) : Exception(message)
 {
-    public Status Status { get; }
-    public ChameleonException(string message, Status status) : base(message) => Status = status;
+    public Status Status { get; } = status;
 }
 
 /// <summary>The link to the device is gone (unplugged, out of range or closed); no command can succeed.</summary>
-public sealed class ChameleonDisconnectedException : IOException
-{
-    public ChameleonDisconnectedException(Exception? inner = null)
-        : base("The Chameleon was disconnected.", inner) { }
-}
+public sealed class ChameleonDisconnectedException(Exception? inner = null) : IOException("The Chameleon was disconnected.", inner);
 
 /// <summary>
 /// Owns a transport, runs a background read loop, and exposes an async
 /// request/response API. Responses are matched to requests by command id,
 /// mirroring the firmware's one-outstanding-request-per-command contract.
 /// </summary>
-public sealed class ChameleonConnection : IAsyncDisposable
+public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
 {
-    private readonly ITransport _transport;
     private readonly FrameParser _parser = new();
     private readonly ConcurrentDictionary<Command, TaskCompletionSource<ChameleonFrame>> _pending = new();
     private readonly CancellationTokenSource _cts = new();
@@ -37,10 +31,8 @@ public sealed class ChameleonConnection : IAsyncDisposable
     private Task? _readLoop;
     private volatile bool _closed;
 
-    public ChameleonConnection(ITransport transport) => _transport = transport;
-
-    public ITransport Transport => _transport;
-    public bool IsConnected => _transport.IsConnected;
+    public ITransport Transport => transport;
+    public bool IsConnected => transport.IsConnected;
 
     /// <summary>The link dropped or was disposed: every further command fails at once.</summary>
     public bool IsClosed => _closed;
@@ -50,7 +42,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
 
     public async Task OpenAsync(CancellationToken ct = default)
     {
-        await _transport.ConnectAsync(ct);
+        await transport.ConnectAsync(ct);
         _readLoop = Task.Run(() => ReadLoopAsync(_cts.Token));
     }
 
@@ -61,7 +53,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
         {
             while (!ct.IsCancellationRequested)
             {
-                var n = await _transport.ReadAsync(buffer, ct);
+                var n = await transport.ReadAsync(buffer, ct);
                 if (n <= 0) continue;
                 foreach (var frame in _parser.Push(buffer.AsMemory(0, n)))
                 {
@@ -120,7 +112,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
             await _writeLock.WaitAsync(timeoutCts.Token);
             try
             {
-                await _transport.WriteAsync(frame, timeoutCts.Token);
+                await transport.WriteAsync(frame, timeoutCts.Token);
             }
             catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
             {
@@ -161,7 +153,7 @@ public sealed class ChameleonConnection : IAsyncDisposable
         _cts.Cancel();
         // Close the transport before awaiting the read loop: some streams (SerialPort on
         // Windows) ignore the cancellation token, so only closing unblocks a pending read.
-        await _transport.DisposeAsync();
+        await transport.DisposeAsync();
         if (_readLoop is { } loop)
         {
             try { await loop.WaitAsync(TimeSpan.FromSeconds(2)); } catch { /* ignore */ }

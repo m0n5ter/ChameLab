@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ChameLab.Models;
 
-using ChameLab.Protocol;
+using Protocol;
 
 public enum DeviceModel { Ultra = 0, Lite = 1 }
 

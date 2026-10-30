@@ -34,7 +34,7 @@ public static class Crypto1
     public static byte Crypto1Bit(this ref Crypto1State _state, byte @in = 0, bool isEncrypted = false)
     {
         uint feedin;
-        byte ret = Filter(_state.Odd);
+        var ret = Filter(_state.Odd);
 
         feedin = ret & (isEncrypted ? 1u : 0u);
         feedin ^= @in != 0 ? 1u : 0u;
@@ -42,7 +42,7 @@ public static class Crypto1
         feedin ^= LF_POLY_EVEN & _state.Even;
         _state.Even = _state.Even << 1 | EvenParity32(feedin);
 
-        uint x = _state.Odd;
+        var x = _state.Odd;
         _state.Odd = _state.Even;
         _state.Even = x;
 
@@ -63,7 +63,7 @@ public static class Crypto1
     {
         byte ret = 0;
 
-        for (int i = 0; i < 8; ++i)
+        for (var i = 0; i < 8; ++i)
             ret |= (byte)(_state.Crypto1Bit(@in.Bit(i), isEncrypted) << i);
 
         return ret;
@@ -84,7 +84,7 @@ public static class Crypto1
     {
         uint ret = 0;
 
-        for (int i = 0; i < 32; ++i)
+        for (var i = 0; i < 32; ++i)
             ret |= (uint)_state.Crypto1Bit(@in.BeBit(i), isEncrypted) << (i ^ 24);
 
         return ret;

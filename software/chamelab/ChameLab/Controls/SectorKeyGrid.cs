@@ -21,7 +21,7 @@ namespace ChameLab.Controls;
 /// The MIFARE Classic dump key grid: one cell per sector, laid out <see cref="Columns"/> per row
 /// (16 by default, so a 1K card is one row and a 4K card three). Each cell is two stacked squares
 /// (key A on top, key B below) colored by the sector's key-search state. Drawn as one control (like
-/// <see cref="BlockStrip"/>) so its colors come from themed styles and it redraws on every tick.
+/// <see cref="BlockStrip"/>) so its colors come from themed styles, and it redraws on every tick.
 /// A searching square fills from left to right with the share of candidate keys tried and pulses;
 /// a square that settles (found / not found) gives off a short ring; the hovered sector is outlined.
 /// </summary>
@@ -34,7 +34,7 @@ public class SectorKeyGrid : Control
         AvaloniaProperty.Register<SectorKeyGrid, IReadOnlyList<ISectorKeys>?>(nameof(Sectors));
 
     public static readonly StyledProperty<int> SelectedSectorProperty =
-        AvaloniaProperty.Register<SectorKeyGrid, int>(nameof(SelectedSector), 0,
+        AvaloniaProperty.Register<SectorKeyGrid, int>(nameof(SelectedSector),
             defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public static readonly StyledProperty<int> ColumnsProperty =
@@ -348,7 +348,7 @@ public class SectorKeyGrid : Control
         public void Dispose() { }
 
         public void Render(ImmediateDrawingContext context) => context.DrawRectangle(
-            new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Colors.Transparent), new ImmutablePen(new ImmutableSolidColorBrush(color)), box,
+            new ImmutableSolidColorBrush(Colors.Transparent), new ImmutablePen(new ImmutableSolidColorBrush(color)), box,
             radius, radius, new BoxShadows(new BoxShadow { Color = color, Blur = blur }));
     }
 
@@ -415,7 +415,7 @@ public class SectorKeyGrid : Control
             using (ctx.PushClip(shape))
                 ctx.DrawRectangle(fill, null, new Rect(r.X, r.Y, r.Width * write.WriteProgress, r.Height));
         if (write.WriteState == SectorWriteState.Writing && SearchingBrush is { } active)
-            ctx.DrawRectangle(null, new Pen(active, 1), new RoundedRect(r.Deflate(0.5), Radius));
+            ctx.DrawRectangle(null, new Pen(active), new RoundedRect(r.Deflate(0.5), Radius));
     }
 
     /// <summary>"A" / "B" in the gutter at the start of every row, centered on its square.</summary>

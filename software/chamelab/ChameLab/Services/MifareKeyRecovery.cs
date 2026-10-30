@@ -20,16 +20,9 @@ public sealed record KeyRecoveryProgress(
     string Status, int Sector = -1, MfKeyType KeyType = MfKeyType.A, KeyMark Mark = KeyMark.None, byte[]? Key = null, string? Detail = null);
 
 /// <summary>Runs one selected recovery method, preserving keys already found in the shared dump.</summary>
-public sealed class MifareKeyRecovery
+public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null)
 {
-    private readonly ChameleonClient _client;
-    private readonly IHardnestedEngine _hardnested;
-
-    public MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null)
-    {
-        _client = client;
-        _hardnested = hardnested ?? new UnavailableHardnestedEngine();
-    }
+    private readonly IHardnestedEngine _hardnested = hardnested ?? new UnavailableHardnestedEngine();
 
     public async Task RecoverAsync(
         MifareDump dump, MifareRecoveryMethod method,
@@ -37,8 +30,8 @@ public sealed class MifareKeyRecovery
     {
         if (method == MifareRecoveryMethod.Hardnested && _hardnested.UnavailableReason is { } unavailable)
             throw new NotSupportedException(unavailable);
-        await _client.SetDeviceModeAsync(DeviceMode.Reader, ct);
-        var tags = await _client.Hf14aScanAsync(ct);
+        await client.SetDeviceModeAsync(DeviceMode.Reader, ct);
+        var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count == 0)
             throw new ChameleonException("No HF tag detected on the reader.", Status.HfTagNo);
         if (!dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
@@ -66,7 +59,7 @@ public sealed class MifareKeyRecovery
             return;
         }
 
-        var prng = await _client.DetectNtLevelAsync(ct);
+        var prng = await client.DetectNtLevelAsync(ct);
         var isStatic = method == MifareRecoveryMethod.StaticNested;
         var isHardnested = method == MifareRecoveryMethod.Hardnested;
         if (prng != (isHardnested ? MifareClassicPrngType.Hard :
@@ -74,7 +67,7 @@ public sealed class MifareKeyRecovery
             throw new InvalidOperationException("This recovery method is not supported by the card's PRNG.");
         if (FirstKnownKey(dump) is null)
             throw new InvalidOperationException("Recover at least one key before starting nested recovery.");
-        if (isHardnested && !(await _client.GetCapabilitiesAsync(ct)).Contains((ushort)Command.Mf1HardnestedAcquire))
+        if (isHardnested && !(await client.GetCapabilitiesAsync(ct)).Contains((ushort)Command.Mf1HardnestedAcquire))
             throw new NotSupportedException("This device firmware does not support hardnested nonce collection.");
 
         for (var s = 0; s < dump.SectorCount; s++)
@@ -112,7 +105,7 @@ public sealed class MifareKeyRecovery
     private async Task StaticEncryptedNestedAsync(MifareDump dump, Action<int, MfKeyType, byte[]> store,
         IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
     {
-        var capabilities = await _client.GetCapabilitiesAsync(ct);
+        var capabilities = await client.GetCapabilitiesAsync(ct);
         if (!capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
             !capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
             throw new NotSupportedException("This device firmware does not support static encrypted nested recovery.");
@@ -122,14 +115,14 @@ public sealed class MifareKeyRecovery
             progress?.Report(new KeyRecoveryProgress("Collecting static encrypted nonces…", Detail: $"Backdoor key {backdoor}"));
             try
             {
-                capture = await _client.GetStaticEncryptedNestedNoncesAsync(Convert.FromHexString(backdoor), dump.SectorCount, ct);
+                capture = await client.GetStaticEncryptedNestedNoncesAsync(Convert.FromHexString(backdoor), dump.SectorCount, ct);
                 break;
             }
             catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth) { }
         }
         if (capture is not { } data)
             throw new InvalidOperationException("The card did not accept any known backdoor key.");
-        var tags = await _client.Hf14aScanAsync(ct);
+        var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException("The card was removed or changed. Scan it again before continuing.");
 
@@ -162,7 +155,7 @@ public sealed class MifareKeyRecovery
                         progress?.Report(new KeyRecoveryProgress("Checking static encrypted candidates…", s, type,
                             KeyMark.Checking, Detail: $"Candidates {i + 1}–{Math.Min(i + 64, candidates.Count)}/{candidates.Count}"));
                         var batch = candidates.Skip(i).Take(64).Select(KeyBytes).ToArray();
-                        var hit = await _client.CheckMifareKeysOnBlockAsync(MifareClassic.SectorTrailerBlock(s), type, batch, ct);
+                        var hit = await client.CheckMifareKeysOnBlockAsync(MifareClassic.SectorTrailerBlock(s), type, batch, ct);
                         if (hit is not null) return hit;
                     }
                     return null;
@@ -195,11 +188,11 @@ public sealed class MifareKeyRecovery
     {
         var sector = MifareClassic.SectorOfBlock(target);
         var updates = new RecoveryProgress(progress, sector, targetType);
-        var source = new ChameleonHardnestedSource(_client, uid, seed.Block, seed.Type, seed.Key, target, targetType);
+        var source = new ChameleonHardnestedSource(client, uid, seed.Block, seed.Type, seed.Key, target, targetType);
         var capture = await HardnestedCollector.CollectAsync(source, authenticationUid, updates, ct);
         updates.Report("Calculating hardnested key candidates…");
         var candidate = await _hardnested.RecoverAsync(capture, updates, ct);
-        var tags = await _client.Hf14aScanAsync(ct);
+        var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count != 1 || !uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException("The card was removed or changed. Scan it again before continuing.");
         return candidate is { } key ? new[] { key } : Array.Empty<ulong>();
@@ -220,7 +213,7 @@ public sealed class MifareKeyRecovery
                 if ((kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is not null) continue;
                 var target = MifareClassic.SectorTrailerBlock(sector);
                 progress?.Report(new KeyRecoveryProgress("Checking darkside vulnerability…", sector, kt, KeyMark.Checking));
-                if (await _client.CheckDarksideAsync(ct, target, kt) != DarksideResult.Vulnerable)
+                if (await client.CheckDarksideAsync(ct, target, kt) != DarksideResult.Vulnerable)
                 {
                     progress?.Report(new KeyRecoveryProgress("Key is not vulnerable to darkside.", sector, kt));
                     continue;
@@ -232,7 +225,7 @@ public sealed class MifareKeyRecovery
                     ct.ThrowIfCancellationRequested();
                     var detail = $"Attempt {tries + 1}/5";
                     progress?.Report(new KeyRecoveryProgress("Collecting darkside nonces…", sector, kt, KeyMark.Checking, Detail: detail));
-                    var (uid, item) = await _client.GetDarksideAsync(target, kt, tries == 0, 15, ct);
+                    var (uid, item) = await client.GetDarksideAsync(target, kt, tries == 0, 15, ct);
                     items.Add(item);
                     if (uid != 0) authUid = uid;
                     progress?.Report(new KeyRecoveryProgress("Calculating darkside candidates…", sector, kt, KeyMark.Checking, Detail: detail));
@@ -249,9 +242,9 @@ public sealed class MifareKeyRecovery
     {
         var updates = new RecoveryProgress(progress, MifareClassic.SectorOfBlock(target), targetKeyType);
         updates.Report("Measuring nested nonce distance…");
-        var dist = await _client.GetNtDistanceAsync(seed.Block, seed.Type, seed.Key, ct);
+        var dist = await client.GetNtDistanceAsync(seed.Block, seed.Type, seed.Key, ct);
         updates.Report("Collecting nested nonces…");
-        var nonces = await _client.GetNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, isStatic: false, ct);
+        var nonces = await client.GetNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, isStatic: false, ct);
         if (nonces.Count < 2) return Array.Empty<ulong>();
         updates.Report("Calculating nested candidates…");
         return NestedRecovery.Recover(
@@ -273,7 +266,7 @@ public sealed class MifareKeyRecovery
             progress?.Report(new KeyRecoveryProgress(
                 attempt == 0 ? "Collecting static nested nonces…" : "No consistent candidates; collecting again…",
                 sector, targetKeyType, KeyMark.Checking, Detail: detail));
-            var capture = await _client.GetStaticNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, ct);
+            var capture = await client.GetStaticNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, ct);
             var nonces = capture.Nonces;
             progress?.Report(new KeyRecoveryProgress("Calculating static nested candidates…", sector, targetKeyType, KeyMark.Checking, Detail: detail));
             var candidates = await Task.Run(() => StaticNestedRecovery.Recover(
@@ -303,7 +296,7 @@ public sealed class MifareKeyRecovery
 
     private async Task<bool> TryAuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
     {
-        try { return await _client.Mf1AuthAsync(block, keyType, key, ct); }
+        try { return await client.Mf1AuthAsync(block, keyType, key, ct); }
         catch (ChameleonException) { return false; }
     }
 

@@ -1929,7 +1929,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             if (pwd is not null && (await UltralightCommandAsync(PwdAuth(pwd), ct)).Length != 2)
                 throw new ChameleonException("The card did not accept the password.", Status.HfTagNo);
 
-            bool live = pwd is not null; // still selected (and authenticated) after PWD_AUTH
+            var live = pwd is not null; // still selected (and authenticated) after PWD_AUTH
             for (var i = 0; i < targets.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();

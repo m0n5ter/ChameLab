@@ -41,7 +41,7 @@ public struct Crypto1State
     {
         Odd = 0;
         Even = 0;
-        for (int i = 47; i > 0; i -= 2)
+        for (var i = 47; i > 0; i -= 2)
         {
             Odd = Odd << 1 | key.Bit((i - 1) ^ 7);
             Even = Even << 1 | key.Bit(i ^ 7);
@@ -58,7 +58,7 @@ public struct Crypto1State
         get
         {
             ulong lfsr = 0L;
-            for (int i = 23; i >= 0; --i)
+            for (var i = 23; i >= 0; --i)
             {
                 lfsr = lfsr << 1 | Odd.Bit(i ^ 3);
                 lfsr = lfsr << 1 | Even.Bit(i ^ 3);

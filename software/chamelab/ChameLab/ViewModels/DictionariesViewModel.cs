@@ -18,10 +18,9 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>One dictionary in the list.</summary>
-public sealed class DictionaryItemViewModel : ViewModelBase
+public sealed class DictionaryItemViewModel(KeyDictionary dict) : ViewModelBase
 {
-    public DictionaryItemViewModel(KeyDictionary dict) => Dictionary = dict;
-    public KeyDictionary Dictionary { get; }
+    public KeyDictionary Dictionary { get; } = dict;
     public string Name => string.IsNullOrWhiteSpace(Dictionary.Name) ? "No name" : Dictionary.Name;
     public string CountLabel => Dictionary.Count == 1 ? "1 key" : $"{Dictionary.Count} keys";
     public IBrush ColorBrush => HexBrushConverter.Brush(Dictionary.Color) ?? Brushes.OrangeRed;

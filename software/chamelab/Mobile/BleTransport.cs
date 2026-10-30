@@ -32,11 +32,9 @@ internal static class NordicUart
 /// on the TX characteristic are buffered into a channel that <see cref="ReadAsync"/>
 /// drains; <see cref="WriteAsync"/> chunks frames to the negotiated MTU on RX.
 /// </summary>
-public sealed class BleTransport : ITransport
+public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
 {
-    private readonly Guid _deviceId;
-    private readonly string _displayName;
-    private readonly IAdapter _adapter;
+    private readonly IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
 
     private IDevice? _device;
     private ICharacteristic? _rx;
@@ -48,15 +46,8 @@ public sealed class BleTransport : ITransport
     private byte[] _pending = Array.Empty<byte>();
     private int _pendingOffset;
 
-    public BleTransport(Guid deviceId, string displayName)
-    {
-        _deviceId = deviceId;
-        _displayName = displayName;
-        _adapter = CrossBluetoothLE.Current.Adapter;
-    }
-
     public TransportKind Kind => TransportKind.Ble;
-    public string DisplayName => _displayName;
+    public string DisplayName => displayName;
     public bool IsConnected => _device?.State == DeviceState.Connected;
 
     public async Task ConnectAsync(CancellationToken ct = default)
@@ -64,7 +55,7 @@ public sealed class BleTransport : ITransport
         // StopWatching cancels the window, but native scan cleanup is asynchronous.
         await BleScanner.WaitForScanAsync(ct);
         // Android's default transport may pick BR/EDR for a device it has not cached as LE.
-        _device = await _adapter.ConnectToKnownDeviceAsync(_deviceId,
+        _device = await _adapter.ConnectToKnownDeviceAsync(deviceId,
             new ConnectParameters(autoConnect: false, forceBleTransport: true), ct);
 
         // Larger MTU greatly improves throughput; ignore if unsupported.
@@ -110,7 +101,7 @@ public sealed class BleTransport : ITransport
 
     private void HandleDrop(IDevice? device)
     {
-        if (device?.Id == _deviceId)
+        if (device?.Id == deviceId)
             _incoming.Writer.TryComplete();
     }
 

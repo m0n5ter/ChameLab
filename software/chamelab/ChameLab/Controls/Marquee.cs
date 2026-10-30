@@ -34,7 +34,7 @@ public class Marquee : Decorator
     protected override Size ArrangeOverride(Size finalSize)
     {
         if (Child is not { } child) return finalSize;
-        if (child.RenderTransform != _shift) child.RenderTransform = _shift;
+        if (!Equals(child.RenderTransform, _shift)) child.RenderTransform = _shift;
         child.Arrange(new Rect(0, 0, Math.Max(finalSize.Width, child.DesiredSize.Width), finalSize.Height));
         _overflow = child.DesiredSize.Width - finalSize.Width;
         if (_overflow > 0.5) Start();

@@ -233,13 +233,11 @@ public sealed class NdefEditorViewModel : ViewModelBase
 }
 
 /// <summary>One record being edited: the fields of its kind, turned into an <see cref="NdefRecord"/> by <see cref="Build"/>.</summary>
-public sealed class NdefRecordEditorViewModel : ViewModelBase
+public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action changed, NdefRecord? original = null) : ViewModelBase
 {
-    private readonly Action _changed;
-    private readonly NdefRecord? _original;
-    private readonly byte[] _id;
-    private bool _modified;
-    private NdefRecordKind _kind;
+    private readonly byte[] _id = original?.Id ?? [];
+    private bool _modified = original is null;
+    private NdefRecordKind _kind = kind;
     private string _uri = "https://";
     private string _text = string.Empty;
     private string _language = "en";
@@ -253,15 +251,6 @@ public sealed class NdefRecordEditorViewModel : ViewModelBase
     private string _rawType = string.Empty;
     private string _rawPayload = string.Empty;
     private string? _error;
-
-    public NdefRecordEditorViewModel(NdefRecordKind kind, Action changed, NdefRecord? original = null)
-    {
-        _kind = kind;
-        _changed = changed;
-        _original = original;
-        _id = original?.Id ?? [];
-        _modified = original is null;
-    }
 
     /// <summary>An editor for a record read from the card, in the kind that shows it best.</summary>
     public static NdefRecordEditorViewModel From(NdefRecord r, Action changed)
@@ -353,7 +342,7 @@ public sealed class NdefRecordEditorViewModel : ViewModelBase
     private void Edited()
     {
         _modified = true;
-        _changed();
+        changed();
     }
 
     /// <summary>
@@ -364,7 +353,7 @@ public sealed class NdefRecordEditorViewModel : ViewModelBase
     {
         try
         {
-            var record = !_modified && _original is not null ? _original : Create() with { Id = _id };
+            var record = !_modified && original is not null ? original : Create() with { Id = _id };
             Error = null;
             return record;
         }

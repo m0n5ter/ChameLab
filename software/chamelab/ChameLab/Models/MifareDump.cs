@@ -169,41 +169,30 @@ public readonly record struct MifareKeyProgress(
 /// each sector. Supports import/export of raw <c>.bin</c> and Proxmark
 /// <c>.eml</c> files.
 /// </summary>
-public sealed class MifareDump
+public sealed class MifareDump(MifareClassicType type, byte[]? uid = null, byte[]? atqa = null, byte sak = 0)
 {
-    private readonly byte[]?[] _blocks;
+    private readonly byte[]?[] _blocks = new byte[]?[MifareClassic.BlockCount(type)];
 
-    public MifareDump(MifareClassicType type, byte[]? uid = null, byte[]? atqa = null, byte sak = 0)
-    {
-        Type = type;
-        Uid = uid ?? Array.Empty<byte>();
-        Atqa = atqa ?? Array.Empty<byte>();
-        Sak = sak;
-        _blocks = new byte[]?[MifareClassic.BlockCount(type)];
-        KeyA = new byte[]?[MifareClassic.SectorCount(type)];
-        KeyB = new byte[]?[MifareClassic.SectorCount(type)];
-        KeyAUnknown = new bool[MifareClassic.SectorCount(type)];
-        KeyBUnknown = new bool[MifareClassic.SectorCount(type)];
-    }
-
-    public MifareClassicType Type { get; }
-    public byte[] Uid { get; private set; }
-    public byte[] Atqa { get; }
-    public byte Sak { get; }
+    public MifareClassicType Type { get; } = type;
+    public byte[] Uid { get; private set; } = uid ?? Array.Empty<byte>();
+    public byte[] Atqa { get; } = atqa ?? Array.Empty<byte>();
+    public byte Sak { get; } = sak;
 
     public int BlockCount => _blocks.Length;
     public int SectorCount => MifareClassic.SectorCount(Type);
 
     /// <summary>Recovered key A / key B per sector (null = unknown).</summary>
-    public byte[]?[] KeyA { get; }
-    public byte[]?[] KeyB { get; }
+    public byte[]?[] KeyA { get; } = new byte[]?[MifareClassic.SectorCount(type)];
+
+    public byte[]?[] KeyB { get; } = new byte[]?[MifareClassic.SectorCount(type)];
 
     /// <summary>
     /// The trailer's key A / key B bytes are not the key (the card hides it and it was not
     /// recovered), so they must not be shown or tried as one.
     /// </summary>
-    public bool[] KeyAUnknown { get; }
-    public bool[] KeyBUnknown { get; }
+    public bool[] KeyAUnknown { get; } = new bool[MifareClassic.SectorCount(type)];
+
+    public bool[] KeyBUnknown { get; } = new bool[MifareClassic.SectorCount(type)];
 
     /// <summary>
     /// A sector trailer as read from a card: key A always comes back as zeros, key B too unless

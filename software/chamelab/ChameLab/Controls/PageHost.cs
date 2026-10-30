@@ -76,7 +76,7 @@ public class PageHost : Panel
         if (_shown is not null)
         {
             // A text box left focused on a hidden page would keep the keyboard up and take keys.
-            if (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is Visual focused &&
+            if (TopLevel.GetTopLevel(this)?.FocusManager.GetFocusedElement() is Visual focused &&
                 (ReferenceEquals(focused, _shown) || _shown.IsVisualAncestorOf(focused)))
                 Focus();
             _shown.IsVisible = false;

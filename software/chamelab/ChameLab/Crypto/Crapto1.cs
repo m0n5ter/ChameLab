@@ -130,7 +130,7 @@ public static class Crapto1
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void UpdateContribution(ref uint item, uint mask1, uint mask2)
     {
-        uint p = item >> 25;
+        var p = item >> 25;
 
         p = p << 1 | Crypto1.EvenParity32(item & mask1);
         p = p << 1 | Crypto1.EvenParity32(item & mask2);

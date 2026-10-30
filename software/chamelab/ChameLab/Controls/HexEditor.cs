@@ -803,7 +803,7 @@ public sealed class HexEditor : Control
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         var cmd = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
         long line = _perLine;
-        long last = _buffer.ViewLength - 1;
+        var last = _buffer.ViewLength - 1;
         e.Handled = true;
 
         switch (e.Key)

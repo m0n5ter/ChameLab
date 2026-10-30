@@ -468,7 +468,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     // ---- Leaving unsaved work -------------------------------------------
 
-    private System.Action? _pendingLeave;
+    private Action? _pendingLeave;
 
     /// <summary>The open card (saved and edited, or new) would be lost by navigating away.</summary>
     private bool HasUnsavedWork => _pane switch
@@ -479,7 +479,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     };
 
     /// <summary>Runs <paramref name="next"/> now, or holds it until the user saves or discards.</summary>
-    private void LeaveThen(System.Action next)
+    private void LeaveThen(Action next)
     {
         if (!HasUnsavedWork) { next(); return; }
         _pendingLeave = next;
@@ -1295,6 +1295,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Drops the new card and goes back to choosing a source; the list unlocks.</summary>
     private void CancelAdd()
     {
+        // The writer or slot list opened for the new card goes with it.
+        Action = CardAction.None;
         ResetAddState();
         Form = null;
     }
@@ -1704,7 +1706,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <paramref name="cts"/> (and has set <see cref="_dumpCts"/>).
     /// </summary>
     private async Task MifareDumpBodyAsync(
-        Protocol.ChameleonClient client, IReadOnlyList<byte[]> keys, MifareClassicType? type, CancellationTokenSource cts, bool read = true,
+        ChameleonClient client, IReadOnlyList<byte[]> keys, MifareClassicType? type, CancellationTokenSource cts, bool read = true,
         bool finish = true)
     {
         // Posted (not Progress<T>) so ticks reach the UI in order: a "found" key must not be
@@ -2054,7 +2056,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private sealed record SlotUpdate(CardSave Card, IReadOnlyList<int> Slots);
 
     private SlotUpdate? _slotUpdate;
-    private System.Action? _afterSlotUpdate;
+    private Action? _afterSlotUpdate;
 
     /// <summary>
     /// After an edit that changes what the device emulates, asks whether to re-upload

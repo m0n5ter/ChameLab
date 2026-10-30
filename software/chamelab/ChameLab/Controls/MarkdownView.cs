@@ -215,7 +215,7 @@ public partial class MarkdownView : StackPanel
                 var start = block.Length;
                 var run = Run(block, g[6].Success ? g[6].Value : url, weight, style);
                 run.Foreground = LinkForeground;
-                run.TextDecorations = Avalonia.Media.TextDecorations.Underline;
+                run.TextDecorations = TextDecorations.Underline;
                 target.Add(run);
                 if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) block.Links.Add((start, block.Length, uri));
             }

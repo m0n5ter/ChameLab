@@ -54,30 +54,22 @@ internal static partial class WebBluetoothInterop
 /// browser's Web Bluetooth API. Bytes cross the JS boundary base64-encoded.
 /// </summary>
 [SupportedOSPlatform("browser")]
-public sealed class WebBluetoothTransport : ITransport
+public sealed class WebBluetoothTransport(string id, string name) : ITransport
 {
-    private readonly string _id;
-    private readonly string _name;
     private bool _open;
     private byte[] _pending = Array.Empty<byte>();
     private int _pendingOffset;
 
-    public WebBluetoothTransport(string id, string name)
-    {
-        _id = id;
-        _name = name;
-    }
-
     public TransportKind Kind => TransportKind.Ble;
-    public string DisplayName => _name;
-    public bool IsConnected => _open && WebBluetoothInterop.IsConnected(_id);
+    public string DisplayName => name;
+    public bool IsConnected => _open && WebBluetoothInterop.IsConnected(id);
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         await WebBluetoothInterop.EnsureModuleAsync();
         try
         {
-            await WebBluetoothInterop.Connect(_id);
+            await WebBluetoothInterop.Connect(id);
         }
         catch (JSException ex)
         {
@@ -89,7 +81,7 @@ public sealed class WebBluetoothTransport : ITransport
 
     public async Task WriteAsync(ReadOnlyMemory<byte> data, CancellationToken ct = default)
     {
-        await WebBluetoothInterop.WriteBase64(_id, Convert.ToBase64String(data.Span));
+        await WebBluetoothInterop.WriteBase64(id, Convert.ToBase64String(data.Span));
     }
 
     public async Task<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
@@ -100,7 +92,7 @@ public sealed class WebBluetoothTransport : ITransport
         string b64;
         try
         {
-            b64 = await WebBluetoothInterop.ReadBase64(_id);
+            b64 = await WebBluetoothInterop.ReadBase64(id);
         }
         catch (JSException)
         {
@@ -123,7 +115,7 @@ public sealed class WebBluetoothTransport : ITransport
     public async ValueTask DisposeAsync()
     {
         _open = false;
-        try { await WebBluetoothInterop.Close(_id); } catch { /* ignore */ }
+        try { await WebBluetoothInterop.Close(id); } catch { /* ignore */ }
     }
 }
 

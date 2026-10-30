@@ -8,18 +8,10 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>Row for one of the eight emulation slots.</summary>
-public sealed class SlotItemViewModel : ViewModelBase
+public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null) : ViewModelBase
 {
-    private readonly CardLibrary? _library;
-    private SlotInfo _info;
-    private bool _isActive;
-
-    public SlotItemViewModel(SlotInfo info, CardLibrary? library = null)
-    {
-        _info = info;
-        _library = library;
-        _isActive = info.IsActive;
-    }
+    private SlotInfo _info = info;
+    private bool _isActive = info.IsActive;
 
     /// <summary>The extra LF cards are named after the saved cards they match.</summary>
     public void OnLibraryChanged() => this.RaisePropertyChanged(nameof(LfNames));
@@ -74,7 +66,7 @@ public sealed class SlotItemViewModel : ViewModelBase
         : "-";
 
     private string ExtraName(byte[] uid) =>
-        _library?.Cards.FirstOrDefault(c => c.Sense == TagSenseType.Lf &&
+        library?.Cards.FirstOrDefault(c => c.Sense == TagSenseType.Lf &&
             ChameleonClient.SlotTypeFor(c.Tag) == TagSpecificType.Em410x && c.Uid.AsSpan().SequenceEqual(uid))?.Name
         ?? $"EM410x {Convert.ToHexString(uid)}";
 
