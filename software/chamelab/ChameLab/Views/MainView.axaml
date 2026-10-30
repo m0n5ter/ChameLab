@@ -249,8 +249,8 @@
             </Grid>
           </Border>
 
-          <!-- Pages stay built once visited: switching tabs only flips which one is visible. -->
-          <c:PageHost Grid.Row="0" Page="{Binding CurrentPage}" />
+          <!-- Pages are built ahead and stay built: switching tabs only flips which one is visible. -->
+          <c:PageHost Grid.Row="0" Page="{Binding CurrentPage}" Preload="{Binding NavPages}" />
 
           <!-- Thin activity bar while the current page talks to the device. -->
           <ProgressBar Grid.Row="0" VerticalAlignment="Top" IsIndeterminate="True" Height="3" MinHeight="3"
