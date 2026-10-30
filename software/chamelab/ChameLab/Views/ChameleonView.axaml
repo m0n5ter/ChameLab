@@ -403,8 +403,8 @@
                 <PathIcon Data="{StaticResource Icon.sleep}" />
               </Border>
               <TextBlock Text="Sleep timeout" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Idle seconds before sleep (0–255)." />
-              <NumericUpDown Classes="control stepper" Minimum="0" Maximum="255" Increment="1"
+              <TextBlock Classes="caption" Text="Idle seconds before sleep (5–60)." />
+              <NumericUpDown Classes="control stepper" Minimum="5" Maximum="60" Increment="1"
                              FormatString="0" Value="{Binding SleepTimeout}" />
             </c:SettingRow>
 

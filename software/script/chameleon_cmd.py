@@ -1777,7 +1777,7 @@ class ChameleonCMD:
     @expect_response(Status.SUCCESS)
     def get_sleep_timeout(self):
         """
-        Get the wake timeout (in seconds) after a button wakeup
+        Get the inactivity timeout (in seconds) before deep sleep
         """
         resp = self.device.send_cmd_sync(Command.GET_SLEEP_TIMEOUT)
         if resp.status == Status.SUCCESS:
@@ -1787,7 +1787,7 @@ class ChameleonCMD:
     @expect_response(Status.SUCCESS)
     def set_sleep_timeout(self, seconds: int):
         """
-        Set the wake timeout (in seconds) after a button wakeup
+        Set the inactivity timeout (in seconds) before deep sleep
         """
         data = struct.pack("!B", seconds)
         return self.device.send_cmd_sync(Command.SET_SLEEP_TIMEOUT, data)
@@ -1957,7 +1957,7 @@ class ChameleonCMD:
         settings[5] = settings_get_long_button_press_config('B'); // long B button press mode
         settings[6] = settings_get_ble_pairing_enable(); // does device require pairing
         settings[7:13] = settings_get_ble_pairing_key(); // BLE pairing key
-        settings[13] = sleep_timeout in seconds; // wake timeout after button wakeup
+        settings[13] = sleep_timeout in seconds; // inactivity timeout before deep sleep
         """
         resp = self.device.send_cmd_sync(Command.GET_DEVICE_SETTINGS)
         if resp.status == Status.SUCCESS:
