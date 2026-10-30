@@ -56,6 +56,10 @@
       <div class="tile"><h3>Slots</h3>
         <p>All eight slots at a glance, with each card's name and LED color. Drag to reorder,
           tap to activate, edit HF and LF separately.</p></div>
+      <div class="tile"><h3>Multi-card LF <span class="badge">Only here</span></h3>
+        <p>One LF slot holds up to eight EM410x cards and presents them to a reader one after
+          another, with a set time per card and optional silence between them. No other
+          Chameleon firmware or app can do this.</p></div>
       <div class="tile"><h3>Read and dump</h3>
         <p>ISO14443-A and LF scans. MIFARE Classic Mini, 1K and 4K dumps with your key
           dictionaries, edited as hex and emulated in one tap.</p></div>
@@ -70,6 +74,14 @@
       <div class="tile"><h3>Device settings</h3>
         <p>LED animation, button actions, long-press threshold, sleep timeout, BLE pairing,
           factory reset and firmware updates over USB or Bluetooth.</p></div>
+      <div class="tile"><h3>HF and LF sniffing</h3>
+        <p>Record a reader talking to the card in the active slot, every frame labelled, with
+          MIFARE Classic keys recovered on the spot. Capture the 125 kHz signal as a zoomable
+          waveform and decode it.</p></div>
+      <div class="tile"><h3>Stop anything</h3>
+        <p>Every long operation (dumps, key recovery attacks, writing magic cards, sniffing)
+          has a Stop button and leaves the device ready for the next one. In
+          ChameleonUltraGUI many of them can only be waited out.</p></div>
     </div>
     <p class="note">The web version needs Chrome or Edge on a desktop: Firefox and Safari do not
       support Web Serial.</p>
@@ -85,6 +97,8 @@
         <tbody>
           <tr><td>Graphical interface</td><td class="y">✓</td><td class="y">✓</td><td class="n">terminal</td></tr>
           <tr><td>Runs in the browser, nothing to install</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
+          <tr><td>Multi-card LF: up to 8 EM410x cards in one slot</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
+          <tr><td>Stop any long operation</td><td class="y">✓</td><td class="n">partly</td><td class="n">Ctrl+C</td></tr>
           <tr><td>Per-card slot LED colors</td><td class="y">✓</td><td class="n">–</td><td class="y">✓</td></tr>
           <tr><td>Import Proxmark3, Flipper, MCT, .bin / .eml</td><td class="y">✓</td><td class="n">partly</td><td class="n">partly</td></tr>
           <tr><td>Key recovery (darkside, nested, hardnested)</td><td class="y" aria-label="Supported">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
@@ -102,7 +116,7 @@
       <li><b>Cards first.</b> Read a card, save it to the library, put it into any slot, and the
         slot shows which saved card it holds, matched by UID.</li>
     </ul>
-    <p class="note">Still on the roadmap: HF / LF sniffing, QR sharing and translations.</p>
+    <p class="note">Still on the roadmap: QR sharing and translations.</p>
   </section>
 
   <section id="firmware">
@@ -112,9 +126,26 @@
       what is new in it.</p>
 
     <!-- Filled in from the releases below; this is what shows until they load -->
-    <div class="release-head"><h3 id="fw-version">v2.3.3-cl</h3><span id="fw-date">Oct 24, 2026, 16:50 UTC</span></div>
+    <div class="release-head"><h3 id="fw-version">v2.3.4-cl</h3><span id="fw-date">Oct 30, 2026</span></div>
 
-    <h3>Slot LED colors <span class="badge">New</span></h3>
+    <h3>Multi-card LF <span class="badge">New</span> <span class="badge">Only here</span></h3>
+    <p>An LF slot can hold up to eight EM410x cards. While a reader's field is present, the
+      slot sends the first card, then the next, and so on in a loop; a new field starts again
+      at the first card. Neither the stock firmware nor any other app or firmware for the
+      Chameleon can do this.</p>
+    <ul class="changes">
+      <li><b>Time per card:</b> 1–10 bursts, each ten complete EM410x frames (about 0.33 s).
+        Eight cards at one burst each take about 2.6 s per pass.</li>
+      <li><b>Silence between cards:</b> 0–3 s in 0.1 s steps, for readers that need a gap
+        to accept the next card.</li>
+      <li><b>Kept with the slot:</b> the list and timing survive restarts and follow the slot
+        when slots are swapped. Single-card slots work as before.</li>
+    </ul>
+    <p class="meta">Build the list in the ChameLab slot editor from your saved cards and drag to
+      reorder. Apps use the new commands 5902–5905; the details are in
+      <a href="https://github.com/m0n5ter/ChameLab/blob/main/docs/lf-card-cycle.md">LF card cycling</a>.</p>
+
+    <h3>Slot LED colors</h3>
     <p>Each card in a slot can have its own LED color, so you can tell which card is active by
       looking at the device. The RGB lines are driven by PWM, so any color works, not only the
       seven primary mixes. A slot that holds both an HF and an LF card alternates between their
@@ -134,7 +165,7 @@
       standard color. Apps use the new <code>DATA_CMD_SET_SLOT_COLOR</code> (1900) and
       <code>DATA_CMD_GET_ALL_SLOT_COLORS</code> (1901) commands.</p>
 
-    <h3>Also in this release</h3>
+    <h3>Earlier fixes</h3>
     <ul class="changes">
       <li><b>No more full flash after slot switching</b> <span class="badge fix">Fix</span>:
         flash records stayed open after reading, so they could never be garbage-collected.

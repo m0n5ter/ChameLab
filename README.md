@@ -22,6 +22,9 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
 
 - **Slots** — all eight slots at a glance, with each card's name and LED color. Drag to
   reorder, tap to activate, edit HF and LF separately.
+- **Multi-card LF** — one LF slot can hold up to eight EM410x cards and present them to a
+  reader one after another, with a set time per card and optional silence between them.
+  No other Chameleon firmware or app can do this; see [LF card cycling](docs/lf-card-cycle.md).
 - **Read and dump** — ISO14443-A and LF scans. MIFARE Classic Mini, 1K and 4K dumps with
   your key dictionaries, edited as hex and emulated in one tap.
 - **Saved cards** — a card library with search and color tags. Imports
@@ -37,6 +40,9 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
   load and save as raw `.bin`, the same as the CLI's `lf sniff --out`.
 - **Device settings** — LED animation, button actions, long-press threshold, sleep
   timeout, BLE pairing, factory reset and firmware updates over USB or Bluetooth.
+- **Stop anything** — every long operation (dumps, key recovery attacks, writing magic
+  cards, sniffing) has a Stop button and leaves the device in a usable state. In
+  ChameleonUltraGUI many of them can only be waited out.
 
 Key recovery includes Darkside, Nested, Static nested and mfkey32, plus the
 original native Hardnested solver on desktop. Hardnested needs a known key and
@@ -56,6 +62,10 @@ Sources, architecture and build steps: [software/chamelab](software/chamelab).
 The ChameLab firmware runs on both ChameleonUltra and ChameleonLite and moves together
 with the app: features are added on both sides and shipped in the same release.
 
+- **Multi-card LF** — an LF slot cycles through up to eight EM410x cards while a reader's
+  field is present: 1–10 bursts per card and 0–3 seconds of silence between cards. The
+  list and timing are saved with the slot and follow it when slots are swapped. This is
+  unique to ChameLab: neither the stock firmware nor other apps have it.
 - **Slot LED colors** — each card in a slot can have its own LED color, so you can tell
   which card is active by looking at the device. A slot that holds both an HF and an LF
   card alternates between their two colors.
@@ -105,7 +115,7 @@ command, for example `hw slot color`.
 
 Releases are tagged with the ChameLab version (`v1.0.8`), which goes up with every
 release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSION)
-(`2.3.2-cl`) and changes only when the firmware does.
+(`2.3.4-cl`) and changes only when the firmware does.
 
 ## Repository
 

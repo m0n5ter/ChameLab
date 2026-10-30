@@ -6,8 +6,10 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
- - ChameLab: switching pages is instant: the pages are built in the background while the app is idle, and then only shown or hidden (it used to be rebuilt and cross-faded every time, about half a second on phones). Pages keep their scroll position between visits
 
+## [v1.1.22][2026-10-30] · firmware v2.3.4-cl
+ - Website and README: describe multi-card LF (up to eight EM410x cards cycling in one slot, unique to ChameLab) and stopping any long operation; HF / LF sniffing is no longer listed as on the roadmap
+ - ChameLab: switching pages is instant: the pages are built in the background while the app is idle, and then only shown or hidden (it used to be rebuilt and cross-faded every time, about half a second on phones). Pages keep their scroll position between visits
  - Firmware v2.3.4-cl: an LF slot can cycle through up to eight EM410x cards, with configurable time per card and 0–3 seconds of silence between cards in 0.1-second steps. Lists and timing settings persist across restarts and follow slots when swapped; existing single-card slots remain compatible.
 
 ## [v1.0.21][2026-10-29] · firmware v2.3.3-cl
