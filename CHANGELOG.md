@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: switching pages is instant: the pages are built in the background while the app is idle, and then only shown or hidden (it used to be rebuilt and cross-faded every time, about half a second on phones). Pages keep their scroll position between visits
 
 ## [v1.0.21][2026-10-29] · firmware v2.3.3-cl
  - ChameLab: the memory editor's Clear sector button uses danger styling and a delete icon
