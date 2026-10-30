@@ -932,7 +932,7 @@
               </MultiBinding>
             </Panel.IsVisible>
             <Border x:Name="NdefCard" Classes="card" IsVisible="{Binding Form?.IsUltralight, TargetNullValue=False}">
-              <StackPanel Spacing="10" DataContext="{Binding Form.Ndef}" x:DataType="vm:NdefEditorViewModel">
+              <StackPanel Spacing="10" DataContext="{Binding Form?.Ndef}" x:DataType="vm:NdefEditorViewModel">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                   <StackPanel Spacing="2" VerticalAlignment="Center">
                     <TextBlock Text="NDEF" Classes="overline" />
@@ -1212,21 +1212,21 @@
                       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12"
                               VerticalAlignment="Center">
-                          <TextBlock Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Title}" />
-                          <TextBlock Grid.Column="1" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Detail}"
+                          <TextBlock Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus?.Title}" />
+                          <TextBlock Grid.Column="1" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus?.Detail}"
                                      TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                     ToolTip.Tip="{Binding #MemoryEditor.SelectionStatus.Detail}" />
-                          <TextBlock Grid.Row="1" Classes="caption mono" Text="{Binding #MemoryEditor.SelectionStatus.Position}" />
+                                     ToolTip.Tip="{Binding #MemoryEditor.SelectionStatus?.Detail}" />
+                          <TextBlock Grid.Row="1" Classes="caption mono" Text="{Binding #MemoryEditor.SelectionStatus?.Position}" />
                           <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                            <TextBlock Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Hex}"
+                            <TextBlock Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus?.Hex}"
                                        Foreground="{StaticResource BrandBlueBrush}" />
-                            <TextBlock Grid.Column="1" Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Decimal}"
+                            <TextBlock Grid.Column="1" Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus?.Decimal}"
                                        Foreground="{StaticResource BrandAmberBrush}" />
-                            <TextBlock Grid.Column="2" Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus.Binary}"
+                            <TextBlock Grid.Column="2" Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus?.Binary}"
                                        Foreground="{StaticResource HexKeyBBrush}" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.ColumnSpan="3" Classes="caption mono" Text="{Binding #MemoryEditor.SelectionStatus.Note}"
+                            <TextBlock Grid.ColumnSpan="3" Classes="caption mono" Text="{Binding #MemoryEditor.SelectionStatus?.Note}"
                                        TextTrimming="CharacterEllipsis"
-                                       IsVisible="{Binding #MemoryEditor.SelectionStatus.Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                       IsVisible="{Binding #MemoryEditor.SelectionStatus?.Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
                           </Grid>
                         </Grid>
                         <Button Grid.Column="1" Classes="danger" Command="{Binding Form?.ClearSectorCommand}"
