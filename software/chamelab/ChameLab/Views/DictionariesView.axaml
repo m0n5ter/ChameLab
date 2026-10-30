@@ -208,7 +208,7 @@
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsKnownKeys}"
               IsEnabled="{Binding !IsAsking}">
         <!-- Keep the header, guidance and search fixed; only the working area scrolls. -->
-        <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
+        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="Known card keys" Classes="h1" />
             <Button Grid.Column="1" Classes="icon" Command="{Binding CloseCommand}" ToolTip.Tip="Close"
@@ -216,12 +216,12 @@
               <PathIcon Data="{StaticResource Icon.close}" />
             </Button>
           </Grid>
-          <TextBox Grid.Row="2" Text="{Binding KnownEditor.Filter}" PlaceholderText="Search by UID or card name">
+          <TextBox Grid.Row="1" Text="{Binding KnownEditor.Filter}" PlaceholderText="Search by UID or card name">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
             </TextBox.InnerLeftContent>
           </TextBox>
-          <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
           <Grid MinHeight="104" MaxHeight="180">
             <ListBox ItemsSource="{Binding KnownEditor.Uids}" SelectedItem="{Binding KnownEditor.Selected}"
