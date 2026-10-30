@@ -19,7 +19,7 @@ public static class NestedRecovery
     /// Recovers candidate 48-bit keys from two nested nonce samples. <paramref name="dist"/>
     /// is the PRNG distance from the known key's nonce (device <c>Mf1DetectNtDist</c>); the
     /// <c>par</c> bytes carry the three low parity bits of each sample. Candidates are ordered
-    /// most-frequent first — try them in that order.
+    /// most-frequent first; try them in that order.
     /// </summary>
     public static IReadOnlyList<ulong> Recover(
         uint uid, uint dist,

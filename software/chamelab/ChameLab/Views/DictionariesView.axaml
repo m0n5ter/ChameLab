@@ -248,8 +248,8 @@
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"
                 IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
               <StackPanel Spacing="2" VerticalAlignment="Center">
-                <TextBlock Text="{Binding KnownEditor.Selected.DisplayUid}" FontWeight="Bold" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding KnownEditor.Selected.KnownKeyCountText}" Classes="caption" />
+                <TextBlock Text="{Binding KnownEditor.Selected?.DisplayUid}" FontWeight="Bold" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding KnownEditor.Selected?.KnownKeyCountText}" Classes="caption" />
               </StackPanel>
               <Button Grid.Column="1" Classes="danger" Command="{Binding KnownEditor.DeleteUidCommand}"
                       HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -262,7 +262,7 @@
           <Border Name="KnownKeysBox" Classes="inset" Padding="8,6" MinHeight="80"
                   IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-              <c:HexEditor Name="KnownKeysEditor" Buffer="{Binding KnownEditor.Selected.Form.Keys}" />
+              <c:HexEditor Name="KnownKeysEditor" Buffer="{Binding KnownEditor.Selected?.Form.Keys}" />
             </ScrollViewer>
           </Border>
         </c:BalancedSplit>

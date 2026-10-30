@@ -19,8 +19,8 @@ namespace ChameLab.Controls;
 
 /// <summary>
 /// The MIFARE Classic dump key grid: one cell per sector, laid out <see cref="Columns"/> per row
-/// (16 by default, so a 1K card is one row and a 4K card three). Each cell is two stacked squares —
-/// key A on top, key B below — colored by the sector's key-search state. Drawn as one control (like
+/// (16 by default, so a 1K card is one row and a 4K card three). Each cell is two stacked squares
+/// (key A on top, key B below) colored by the sector's key-search state. Drawn as one control (like
 /// <see cref="BlockStrip"/>) so its colors come from themed styles and it redraws on every tick.
 /// A searching square fills from left to right with the share of candidate keys tried and pulses;
 /// a square that settles (found / not found) gives off a short ring; the hovered sector is outlined.

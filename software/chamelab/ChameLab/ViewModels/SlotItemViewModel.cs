@@ -62,16 +62,16 @@ public sealed class SlotItemViewModel : ViewModelBase
 
     public string HfLabel => HasHf
         ? (!string.IsNullOrEmpty(_info.HfNick) ? _info.HfNick : _info.HfType.DisplayName())
-        : "—";
+        : "-";
 
     public string LfLabel => HasLf
         ? (!string.IsNullOrEmpty(_info.LfNick) ? _info.LfNick : _info.LfType.DisplayName())
-        : "—";
+        : "-";
 
     /// <summary>Every card of the LF side in the order it cycles through them: its own card, then the extra ones.</summary>
     public string LfNames => HasLf
         ? string.Join("  •  ", _info.LfCycleIds.Select(ExtraName).Prepend(LfLabel))
-        : "—";
+        : "-";
 
     private string ExtraName(byte[] uid) =>
         _library?.Cards.FirstOrDefault(c => c.Sense == TagSenseType.Lf &&
@@ -79,8 +79,8 @@ public sealed class SlotItemViewModel : ViewModelBase
         ?? $"EM410x {Convert.ToHexString(uid)}";
 
     /// <summary>Type of each card, under its name in the slot tile; a dash (hidden) when the frequency is empty.</summary>
-    public string HfTypeLabel => HasHf ? _info.HfType.DisplayName() : "—";
-    public string LfTypeLabel => HasLf ? _info.LfType.DisplayName() : "—";
+    public string HfTypeLabel => HasHf ? _info.HfType.DisplayName() : "-";
+    public string LfTypeLabel => HasLf ? _info.LfType.DisplayName() : "-";
 
     public string Summary => IsEmpty
         ? "Empty slot"

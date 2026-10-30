@@ -127,11 +127,11 @@ public static class MfKeyTypeExtensions
 /// </summary>
 public enum MagicGeneration
 {
-    /// <summary>Gen1a (UID / "magic") — magic wakeup, then raw writes with no keys.</summary>
+    /// <summary>Gen1a (UID / "magic"): magic wakeup, then raw writes with no keys.</summary>
     Gen1a,
-    /// <summary>Gen2 / CUID / FUID — a normal MIFARE where block 0 is writable with the usual keys.</summary>
+    /// <summary>Gen2 / CUID / FUID: a normal MIFARE where block 0 is writable with the usual keys.</summary>
     Gen2,
-    /// <summary>Gen3 / APDU — a normal MIFARE where block 0 is set with a backdoor command.</summary>
+    /// <summary>Gen3 / APDU: a normal MIFARE where block 0 is set with a backdoor command.</summary>
     Gen3,
 }
 

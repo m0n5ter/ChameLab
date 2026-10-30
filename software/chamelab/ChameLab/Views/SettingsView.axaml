@@ -2,17 +2,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:svc="using:ChameLab.Services"
+             xmlns:c="using:ChameLab.Controls"
              x:Class="ChameLab.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
   <UserControl.Styles>
-    <!-- One setting: icon, title + description, and its control on the right. -->
-    <Style Selector="Grid.setting > :is(Control).control">
+    <!-- One setting: icon, title + description, and its control (SettingRow stacks them when narrow). -->
+    <Style Selector=":is(Control).setting > :is(Control).control">
       <Setter Property="Width" Value="220" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <Style Selector=".compact Grid.setting > :is(Control).control">
+    <Style Selector=".compact :is(Control).setting > :is(Control).control">
       <Setter Property="Width" Value="160" />
+    </Style>
+    <!-- Stacked (narrow) rows: a slimmer control leaves the description room. -->
+    <Style Selector=":is(Control).setting.stacked > :is(Control).control">
+      <Setter Property="Width" Value="140" />
+    </Style>
+    <Style Selector=":is(Control).setting.stacked > NumericUpDown.control, :is(Control).setting.stacked > TextBox.control">
+      <Setter Property="Width" Value="116" />
     </Style>
     <Style Selector="Separator.row">
       <Setter Property="Margin" Value="0,14" />
@@ -32,15 +40,13 @@
 
       <!-- Appearance (app-side, applies immediately) -->
       <Border Classes="card">
-        <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-          <Border Grid.Column="0" Classes="iconwell green">
+        <c:SettingRow Classes="setting">
+          <Border Classes="iconwell green">
             <Border Width="16" Height="16" CornerRadius="4" Background="{Binding Accent.Swatch}" />
           </Border>
-          <StackPanel Grid.Column="1" VerticalAlignment="Center">
-            <TextBlock Text="Accent color" FontWeight="SemiBold" />
-            <TextBlock Classes="caption" Text="Color of buttons, toggles and highlights in this app." />
-          </StackPanel>
-          <ComboBox Grid.Column="2" Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
+          <TextBlock Text="Accent color" FontWeight="SemiBold" />
+          <TextBlock Classes="caption" Text="Buttons, toggles and highlights." />
+          <ComboBox Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="svc:AccentOption">
                 <StackPanel Orientation="Horizontal" Spacing="10">
@@ -51,38 +57,33 @@
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-        </Grid>
+        </c:SettingRow>
       </Border>
 
       <!-- Scan feedback (app-side, applies immediately) -->
       <Border Classes="card">
         <StackPanel>
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-            <Border Grid.Column="0" Classes="iconwell amber">
+          <c:SettingRow Classes="setting">
+            <Border Classes="iconwell amber">
               <PathIcon Data="{StaticResource Icon.volume}" />
             </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Scan sounds" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" TextWrapping="Wrap" Text="Beep when a card scan or dump finishes, and buzz when no card is found." />
-            </StackPanel>
-            <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+            <TextBlock Text="Scan sounds" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="Beep when a scan finishes, buzz when no card is found." />
+            <ToggleSwitch VerticalAlignment="Center" OnContent="" OffContent=""
                           IsChecked="{Binding ScanSound}" />
-          </Grid>
+          </c:SettingRow>
 
           <Separator Classes="row" IsVisible="{Binding CanVibrate}" />
 
-          <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
-                IsVisible="{Binding CanVibrate}">
-            <Border Grid.Column="0" Classes="iconwell amber">
+          <c:SettingRow Classes="setting" IsVisible="{Binding CanVibrate}">
+            <Border Classes="iconwell amber">
               <PathIcon Data="{StaticResource Icon.vibrate}" />
             </Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Vibration" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" TextWrapping="Wrap" Text="Vibrate when a card scan or dump finishes." />
-            </StackPanel>
-            <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+            <TextBlock Text="Vibration" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="Vibrate when a card scan or dump finishes." />
+            <ToggleSwitch VerticalAlignment="Center" OnContent="" OffContent=""
                           IsChecked="{Binding ScanVibration}" />
-          </Grid>
+          </c:SettingRow>
         </StackPanel>
       </Border>
 

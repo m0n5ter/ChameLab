@@ -821,13 +821,13 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             throw new ChameleonException(
                 "Wrote the tag but could not read it back to confirm. It may be locked with a different " +
-                "password, or it is not a writable T55xx — enter the tag's current password and try again.",
+                "password, or it is not a writable T55xx. Enter the tag's current password and try again.",
                 e.Status);
         }
         if (!readBack.AsSpan().SequenceEqual(id))
             throw new ChameleonException(
                 "The tag read back a different ID, so the write did not take. It is most likely locked with a " +
-                "different password — enter the tag's current password and try again.",
+                "different password. Enter the tag's current password and try again.",
                 Status.LfTagOk);
     }
 
@@ -2102,9 +2102,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// <summary>
     /// Writes a MIFARE Classic dump onto a magic card physically on the reader.
     /// <list type="bullet">
-    /// <item>Gen1a — magic wakeup, then every block (block 0 included) is written raw with no keys.</item>
-    /// <item>Gen2 / CUID — finds the target's sector keys using the source dump's keys, then the dictionary; block 0 is skipped unless explicitly enabled.</item>
-    /// <item>Gen3 — data blocks are written like Gen2, and block 0 is set with the backdoor command.</item>
+    /// <item>Gen1a: magic wakeup, then every block (block 0 included) is written raw with no keys.</item>
+    /// <item>Gen2 / CUID: finds the target's sector keys using the source dump's keys, then the dictionary; block 0 is skipped unless explicitly enabled.</item>
+    /// <item>Gen3: data blocks are written like Gen2, and block 0 is set with the backdoor command.</item>
     /// </list>
     /// Returns the blocks that could not be written. Per-block states go to <paramref name="blocks"/>
     /// (first a Pending tick covering the whole card, so a listener can size itself).
@@ -2290,7 +2290,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// <summary>
     /// Writes one block on a Gen1a card. Each attempt resets the field, replays the
     /// magic wakeup (0x40 at 7 bits, then 0x43), then sends 0xA0 + block and the 16
-    /// data bytes — the same per-block unlock the reference client uses, retried a few times.
+    /// data bytes: the same per-block unlock the reference client uses, retried a few times.
     /// </summary>
     private async Task<bool> Gen1aWriteBlockAsync(int block, byte[] data, CancellationToken ct)
     {

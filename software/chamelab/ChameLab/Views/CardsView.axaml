@@ -1003,8 +1003,8 @@
                                        IsVisible="{Binding #MemoryEditor.SelectionStatus.Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
                           </Grid>
                         </Grid>
-                        <Button Grid.Column="1" Classes="danger" Command="{Binding Form.ClearSectorCommand}"
-                                VerticalAlignment="Center" IsVisible="{Binding Form.IsMifareClassic}"
+                        <Button Grid.Column="1" Classes="danger" Command="{Binding Form?.ClearSectorCommand}"
+                                VerticalAlignment="Center" IsVisible="{Binding Form?.IsMifareClassic, TargetNullValue=False}"
                                 IsEnabled="{Binding !IsBusy}"
                                 ToolTip.Tip="Clear the selected sector and mark its blocks as unread">
                           <StackPanel Orientation="Horizontal" Spacing="6">

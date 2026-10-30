@@ -215,7 +215,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
 
     public string ClockText => _modulation is { ClockDivisor: { } clock, RunSamples: { } run }
         ? $"RF/{clock} · shortest run {run} samples ({run * LfSniff.SampleUs} µs)"
-        : "—";
+        : "-";
 
     // ---- Waveform ------------------------------------------------------
 

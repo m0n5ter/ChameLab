@@ -119,7 +119,7 @@ public static class CardTags
         atqa is [0x00, not 0x00] && t.DefaultSakAtqa(false) is not null ? new[] { atqa[1], atqa[0] } : atqa;
 
     /// <summary>
-    /// Swaps the two ATQA bytes between device order (low byte first, 04 00 — how it is stored,
+    /// Swaps the two ATQA bytes between device order (low byte first, 04 00, how it is stored,
     /// sent and written into block 0) and the high-byte-first form shown to the user (00 04, as in
     /// ChameleonUltraGUI). A value that is not 2 bytes is returned unchanged.
     /// </summary>

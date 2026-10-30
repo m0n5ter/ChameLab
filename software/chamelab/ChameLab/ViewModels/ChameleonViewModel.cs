@@ -54,7 +54,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         ClearBondsCommand = ReactiveCommand.CreateFromTask(ClearBondsAsync);
         FactoryResetCommand = ReactiveCommand.CreateFromTask(FactoryResetAsync);
 
-        // Writing the mode on user toggles only — not when we load the current value.
+        // Writing the mode on user toggles only, not when we load the current value.
         this.WhenAnyValue(x => x.ReaderMode)
             .Skip(1)
             .Subscribe(ignored => { if (!_suppressModeWrite) { _ = ToggleModeAsync(); } });

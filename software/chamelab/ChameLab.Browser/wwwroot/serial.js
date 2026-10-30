@@ -37,7 +37,7 @@ export async function requestPort() {
     }
 }
 
-// JSON {usbVendorId, usbProductId} — used to flag Chameleon (VID 0x6868 = 26728).
+// JSON {usbVendorId, usbProductId}, used to flag Chameleon (VID 0x6868 = 26728).
 export function portInfo(index) {
     const p = ports[index];
     if (!p || !p.getInfo) return "{}";

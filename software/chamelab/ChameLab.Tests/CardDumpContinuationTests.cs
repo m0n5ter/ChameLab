@@ -123,8 +123,8 @@ public class CardDumpContinuationTests
         Assert.Equal(KeyCellState.Unknown, sector.KeyBState);
         Assert.Null(Dump(vm).KeyA[0]);
         Assert.Null(Dump(vm).KeyB[0]);
-        Assert.Equal("—", vm.DumpSectors[1].KeyAText);
-        Assert.Equal("—", vm.DumpSectors[1].KeyBText);
+        Assert.Equal("-", vm.DumpSectors[1].KeyAText);
+        Assert.Equal("-", vm.DumpSectors[1].KeyBText);
     }
 
     [Fact]

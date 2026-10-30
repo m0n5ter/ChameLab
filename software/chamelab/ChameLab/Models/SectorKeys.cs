@@ -29,7 +29,7 @@ public interface ISectorKeys
     /// <summary>Share of the candidate keys tried so far (0..1), or -1 when the total is unknown.</summary>
     double KeyAProgress { get; }
     double KeyBProgress { get; }
-    /// <summary>Human text for the tooltip (hex key, "searching 12/40", "—", or placeholder).</summary>
+    /// <summary>Human text for the tooltip (hex key, "searching 12/40", "-", or placeholder).</summary>
     string KeyAText { get; }
     string KeyBText { get; }
 }

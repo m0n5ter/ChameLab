@@ -359,8 +359,8 @@
                       Background="{actipro:ThemeResource Container2BackgroundBrush}">
                 <c:LfWaveform Height="224" Margin="0,0,0,4" Samples="{Binding Samples}" Zoom="{Binding Zoom}"
                               CursorIndex="{Binding CursorIndex}"
-                              Threshold="{Binding Summary.Threshold, FallbackValue=0}"
-                              GapThreshold="{Binding Summary.GapThreshold, FallbackValue=0}" />
+                              Threshold="{Binding Summary?.Threshold, TargetNullValue=0}"
+                              GapThreshold="{Binding Summary?.GapThreshold, TargetNullValue=0}" />
               </Border>
               <TextBlock Classes="caption" Text="{Binding CursorText}" TextWrapping="Wrap" />
               <WrapPanel ItemSpacing="16" LineSpacing="4">
@@ -371,12 +371,12 @@
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Line StartPoint="0,0" EndPoint="16,0" StrokeThickness="1.5" StrokeDashArray="2,2"
                         Stroke="{actipro:ThemeResource DefaultForegroundBrushTertiary}" VerticalAlignment="Center" />
-                  <TextBlock Text="{Binding Summary.Threshold, StringFormat='Decode threshold 0x{0:X2}', FallbackValue=''}" />
+                  <TextBlock Text="{Binding Summary?.Threshold, StringFormat='Decode threshold 0x{0:X2}', TargetNullValue=''}" />
                 </StackPanel>
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Line StartPoint="0,0" EndPoint="16,0" StrokeThickness="1.5" StrokeDashArray="1,2"
                         Stroke="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" VerticalAlignment="Center" />
-                  <TextBlock Text="{Binding Summary.GapThreshold, StringFormat='Gap threshold 0x{0:X2}', FallbackValue=''}" />
+                  <TextBlock Text="{Binding Summary?.GapThreshold, StringFormat='Gap threshold 0x{0:X2}', TargetNullValue=''}" />
                 </StackPanel>
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Border Width="14" Height="10" CornerRadius="2" Background="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" Opacity="0.3" />

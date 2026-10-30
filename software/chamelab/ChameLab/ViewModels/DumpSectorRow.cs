@@ -130,7 +130,7 @@ public sealed class DumpSectorRow : ReactiveObject, ISectorKeys, ISectorWritePro
         KeyCellState.Found => key ?? string.Empty,
         KeyCellState.Searching => progress is null ? "searching…" : $"searching {progress}",
         KeyCellState.NotFound => "not found",
-        _ => key ?? "—",
+        _ => key ?? "-",
     };
 
     /// <summary>Return interrupted searches to the untried state, keeping confirmed keys.</summary>

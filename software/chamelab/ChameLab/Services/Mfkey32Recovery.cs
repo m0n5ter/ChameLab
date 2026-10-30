@@ -16,7 +16,7 @@ public static class Mfkey32Recovery
     /// <summary>
     /// Computes the sector key from two distinct <paramref name="a"/>/<paramref name="b"/>
     /// auth exchanges on the same block and key type. Returns the 48-bit key, or
-    /// <c>null</c> when no (or more than one) candidate validates — capture more nonces then.
+    /// <c>null</c> when no (or more than one) candidate validates; capture more nonces then.
     /// </summary>
     public static ulong? Recover(DetectionLog a, DetectionLog b)
     {

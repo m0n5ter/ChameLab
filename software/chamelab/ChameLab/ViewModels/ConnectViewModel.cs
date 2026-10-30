@@ -82,9 +82,9 @@ public sealed class ConnectViewModel : PageViewModelBase
             : "Plug the Chameleon in, then press Rescan and allow this page to use it (Chrome or Edge)."
         : (HasUsb, HasBle) switch
         {
-            (true, true) => "Plug the Chameleon in, or press a button on it to wake it up for Bluetooth — it will show up here on its own.",
-            (false, true) => "Turn Bluetooth on and press a button on the Chameleon to wake it up — it will show up here on its own.",
-            _ => "Plug the Chameleon in — it will show up here on its own.",
+            (true, true) => "Plug the Chameleon in, or press a button on it to wake it up for Bluetooth. It will show up here on its own.",
+            (false, true) => "Turn Bluetooth on and press a button on the Chameleon to wake it up. It will show up here on its own.",
+            _ => "Plug the Chameleon in. It will show up here on its own.",
         };
 
     public string ManualEndpoint

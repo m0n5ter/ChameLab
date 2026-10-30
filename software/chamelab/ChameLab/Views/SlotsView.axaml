@@ -487,9 +487,9 @@
           </MultiBinding>
         </Border.IsVisible>
         <StackPanel>
-          <DockPanel Classes="saveerror" IsVisible="{Binding Editor.SaveError, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <DockPanel Classes="saveerror" IsVisible="{Binding Editor?.SaveError, Converter={x:Static ObjectConverters.IsNotNull}}">
             <PathIcon Data="{StaticResource Icon.error}" />
-            <TextBlock Text="{Binding Editor.SaveError}" />
+            <TextBlock Text="{Binding Editor?.SaveError}" />
           </DockPanel>
           <c:ActionBar>
             <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />

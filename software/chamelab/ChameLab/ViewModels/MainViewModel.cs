@@ -135,7 +135,7 @@ public sealed class MainViewModel : ViewModelBase
             if (at < 0) NavItems.Insert(i, wanted[i]);
             else if (at != i) NavItems.Move(at, i);
         }
-        RaiseNavSelection();
+        if (!_swappingNavPages) RaiseNavSelection();
     }
 
     /// <summary>
@@ -295,13 +295,13 @@ public sealed class MainViewModel : ViewModelBase
     private Task DisconnectAsync() => _device.DisconnectAsync();
 
     /// <summary>
-    /// Swaps the listed pages. Our CollectionChanged handler runs before the tab bar's, so a selection
-    /// raised mid-swap would point the ListBox at an index it has not seen yet: the selection reads as
-    /// none until the swap is done.
+    /// Swaps the listed pages. Our CollectionChanged handler runs before the tab bar's, so any selection
+    /// raised mid-swap (even none) makes the ListBox read an index it has not caught up with: the
+    /// selection is raised only once the swap is done.
     /// </summary>
     private void SetNavPages(IReadOnlyList<PageViewModelBase> pages)
     {
-        _clearingNavSelection = true;
+        _swappingNavPages = true;
         try
         {
             NavPages.Clear();
@@ -309,10 +309,12 @@ public sealed class MainViewModel : ViewModelBase
         }
         finally
         {
-            _clearingNavSelection = false;
+            _swappingNavPages = false;
         }
         RaiseNavSelection();
     }
+
+    private bool _swappingNavPages;
 
     private void OnStateChanged(ConnectionState state)
     {

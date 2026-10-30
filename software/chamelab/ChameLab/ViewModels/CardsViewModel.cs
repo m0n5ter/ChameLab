@@ -1171,7 +1171,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         private set => this.RaiseAndSetIfChanged(ref _prng, value);
     }
 
-    /// <summary>Where the card being added came from (“MIFARE Classic 1K — UID …”, “Imported from x.nfc”, “Manual entry”).</summary>
+    /// <summary>Where the card being added came from (“MIFARE Classic 1K, UID …”, “Imported from x.nfc”, “Manual entry”).</summary>
     public string? FormSource
     {
         get => _formSource;
@@ -1549,7 +1549,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             _scannedAts = card.Ats;
             Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
-            FormSource = $"{card.Tag.DisplayName()} — UID {t.UidHex}";
+            FormSource = $"{card.Tag.DisplayName()}, UID {t.UidHex}";
         });
 
         Notify($"Found {tags.Count} HF tag(s).");
@@ -1749,7 +1749,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 RaiseSaveLabel();
             });
             Notify(stopped
-                ? $"Dump stopped — kept {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}."
+                ? $"Dump stopped. Kept {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}."
                 : $"Read {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}.");
         }
         finally
@@ -1812,7 +1812,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 if (Form is { } form) form.ReplaceContent(result.Card);
                 else Form = new CardEditorViewModel(result.Card, sameFrequency: true);
                 _applyingDump = false;
-                FormSource = $"{result.Card.Tag.DisplayName()} — UID {Hex.Compact(result.Card.Uid)}";
+                FormSource = $"{result.Card.Tag.DisplayName()}, UID {Hex.Compact(result.Card.Uid)}";
                 IsDumpComplete = result.PagesRead == result.PageCount;
                 SetScanMatches(result.Card);
                 _hasDump = true;
@@ -1845,7 +1845,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (r.KeyAccepted is { } accepted)
             rows.Add(new(r.Card.Tag == TagSpecificType.Mf0Icu2 ? "3DES key" : "Password", accepted
                 ? r.Pack is { } pack ? $"accepted · PACK {Hex.Spaced(pack)}" : "accepted"
-                : "not accepted — protected pages were left unread"));
+                : "not accepted; protected pages were left unread"));
         if (r.LockedFrom is { } locked)
             rows.Add(new("Protected", locked == r.PageCount - 1 ? $"page {locked}" : $"pages {locked}–{r.PageCount - 1}"));
         if (extra.UltralightSignature.Length > 0) rows.Add(new("Signature", Hex.Compact(extra.UltralightSignature)));
@@ -2451,7 +2451,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         { } t when t.IsUltralight() =>
             "Place an Ultralight / NTAG card of the same size or larger on the reader. The user pages are written; the UID, lock bytes, capability container and configuration (password, AUTH0) are left as they are, so the card keeps its own UID.",
         { } t when t.SenseType() == TagSenseType.Lf =>
-            "Place a blank T55xx tag on the reader. Writing the wrong data can brick a tag — double-check the card.",
+            "Place a blank T55xx tag on the reader. Writing the wrong data can brick a tag, so double-check the card.",
         _ => string.Empty,
     };
 

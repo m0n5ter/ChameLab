@@ -68,13 +68,20 @@
         <Setter Property="Columns" Value="1" />
       </Style>
     </ContainerQuery>
-    <!-- One setting: icon, title + description, and its control on the right. -->
-    <Style Selector="Grid.setting > :is(Control).control">
+    <!-- One setting: icon, title + description, and its control (SettingRow stacks them when narrow). -->
+    <Style Selector=":is(Control).setting > :is(Control).control">
       <Setter Property="Width" Value="220" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <Style Selector=".compact Grid.setting > :is(Control).control">
+    <Style Selector=".compact :is(Control).setting > :is(Control).control">
       <Setter Property="Width" Value="160" />
+    </Style>
+    <!-- Stacked (narrow) rows: a slimmer control leaves the description room. -->
+    <Style Selector=":is(Control).setting.stacked > :is(Control).control">
+      <Setter Property="Width" Value="140" />
+    </Style>
+    <Style Selector=":is(Control).setting.stacked > NumericUpDown.control, :is(Control).setting.stacked > TextBox.control">
+      <Setter Property="Width" Value="116" />
     </Style>
     <!-- The save bar sits under the scrolling page, lined up with its cards. -->
     <Style Selector="Border.savebar.pagebar">
@@ -110,7 +117,7 @@
         </Grid>
 
         <!-- Hero: battery + mode -->
-        <Panel Container.Name="hero" Container.Sizing="Width">
+        <Panel>
           <UniformGrid Classes="cols2">
             <Border Classes="card">
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
@@ -288,14 +295,14 @@
               <Border Classes="inset">
                 <StackPanel Spacing="2">
                   <TextBlock Text="FIRMWARE" Classes="overline" />
-                  <TextBlock Text="{Binding Info?.FirmwareVersion, TargetNullValue='—'}" Classes="value" />
+                  <TextBlock Text="{Binding Info?.FirmwareVersion, TargetNullValue='-'}" Classes="value" />
                 </StackPanel>
               </Border>
               <Border Classes="inset">
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
                     <TextBlock Text="GIT VERSION" Classes="overline" />
-                    <TextBlock Text="{Binding Info?.GitVersion, TargetNullValue='—'}" Classes="value mono" />
+                    <TextBlock Text="{Binding Info?.GitVersion, TargetNullValue='-'}" Classes="value mono" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
                           b:CopyToClipboard.Text="{Binding Info?.GitVersion}">
@@ -307,7 +314,7 @@
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
                     <TextBlock Text="CHIP ID" Classes="overline" />
-                    <TextBlock Text="{Binding Info?.ChipId, TargetNullValue='—'}" Classes="value mono" />
+                    <TextBlock Text="{Binding Info?.ChipId, TargetNullValue='-'}" Classes="value mono" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
                           b:CopyToClipboard.Text="{Binding Info?.ChipId}">
@@ -319,7 +326,7 @@
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
                     <TextBlock Text="BLE ADDRESS" Classes="overline" />
-                    <TextBlock Text="{Binding Info?.Address, TargetNullValue='—'}" Classes="value mono" />
+                    <TextBlock Text="{Binding Info?.Address, TargetNullValue='-'}" Classes="value mono" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
                           b:CopyToClipboard.Text="{Binding Info?.Address}">
@@ -371,173 +378,152 @@
                          Text="Behavior and controls. Save sends your changes to the device and keeps them after a reboot." />
             </StackPanel>
             <!-- LED animation -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-              <Border Grid.Column="0" Classes="iconwell amber">
+            <c:SettingRow Classes="setting">
+              <Border Classes="iconwell amber">
                 <PathIcon Data="{StaticResource Icon.led}" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="LED animation" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Light pattern shown when the device wakes." />
-              </StackPanel>
-              <ComboBox Grid.Column="2" Classes="control"
+              <TextBlock Text="LED animation" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Light pattern on wake-up." />
+              <ComboBox Classes="control"
                         ItemsSource="{Binding AnimationModes}"
                         SelectedItem="{Binding AnimationMode}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" TextTrimming="CharacterEllipsis" />
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" />
 
             <!-- Sleep timeout -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-              <Border Grid.Column="0" Classes="iconwell blue">
+            <c:SettingRow Classes="setting">
+              <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.sleep}" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Sleep timeout" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Seconds of inactivity before the device sleeps (0–255)." />
-              </StackPanel>
-              <NumericUpDown Grid.Column="2" Classes="control stepper" Minimum="0" Maximum="255" Increment="1"
+              <TextBlock Text="Sleep timeout" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Idle seconds before sleep (0–255)." />
+              <NumericUpDown Classes="control stepper" Minimum="0" Maximum="255" Increment="1"
                              FormatString="0" Value="{Binding SleepTimeout}" />
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" />
 
             <!-- Button A -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-              <Border Grid.Column="0" Classes="iconwell green">
+            <c:SettingRow Classes="setting">
+              <Border Classes="iconwell green">
                 <TextBlock Text="A" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Button A" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Action on a short press." />
-              </StackPanel>
-              <ComboBox Grid.Column="2" Classes="control"
+              <TextBlock Text="Button A" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Action on a short press." />
+              <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonAShort}">
                 <ComboBox.ItemTemplate>
-                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" TextTrimming="CharacterEllipsis" /></DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" />
 
             <!-- Button A (long press) -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-              <Border Grid.Column="0" Classes="iconwell green">
+            <c:SettingRow Classes="setting">
+              <Border Classes="iconwell green">
                 <TextBlock Text="A" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Button A — long press" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Action on a long press." />
-              </StackPanel>
-              <ComboBox Grid.Column="2" Classes="control"
+              <TextBlock Text="Button A (long press)" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Action on a long press." />
+              <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonALong}">
                 <ComboBox.ItemTemplate>
-                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" TextTrimming="CharacterEllipsis" /></DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" />
 
             <!-- Button B -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-              <Border Grid.Column="0" Classes="iconwell green">
+            <c:SettingRow Classes="setting">
+              <Border Classes="iconwell green">
                 <TextBlock Text="B" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Button B" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Action on a short press." />
-              </StackPanel>
-              <ComboBox Grid.Column="2" Classes="control"
+              <TextBlock Text="Button B" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Action on a short press." />
+              <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBShort}">
                 <ComboBox.ItemTemplate>
-                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" TextTrimming="CharacterEllipsis" /></DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" />
 
             <!-- Button B (long press) -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-              <Border Grid.Column="0" Classes="iconwell green">
+            <c:SettingRow Classes="setting">
+              <Border Classes="iconwell green">
                 <TextBlock Text="B" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Button B — long press" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Action on a long press." />
-              </StackPanel>
-              <ComboBox Grid.Column="2" Classes="control"
+              <TextBlock Text="Button B (long press)" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Action on a long press." />
+              <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBLong}">
                 <ComboBox.ItemTemplate>
-                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                  <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" TextTrimming="CharacterEllipsis" /></DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" IsVisible="{Binding SupportsLongPressThreshold}" />
 
             <!-- Long-press threshold -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
-                  IsVisible="{Binding SupportsLongPressThreshold}">
-              <Border Grid.Column="0" Classes="iconwell blue">
+            <c:SettingRow Classes="setting" IsVisible="{Binding SupportsLongPressThreshold}">
+              <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.button}" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Long-press threshold" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="How long a press counts as a long press (ms)." />
-              </StackPanel>
-              <NumericUpDown Grid.Column="2" Classes="control stepper" Minimum="100" Maximum="2000" Increment="50"
+              <TextBlock Text="Long-press threshold" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Hold time for a long press (ms)." />
+              <NumericUpDown Classes="control stepper" Minimum="100" Maximum="2000" Increment="50"
                              FormatString="0" Value="{Binding LongPressThreshold}" />
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
 
             <!-- BLE pairing -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
-                  IsVisible="{Binding SupportsBle}">
-              <Border Grid.Column="0" Classes="iconwell blue">
+            <c:SettingRow Classes="setting" IsVisible="{Binding SupportsBle}">
+              <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.ble}" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Bluetooth pairing" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Require a PIN to connect over Bluetooth LE." />
-              </StackPanel>
-              <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
+              <TextBlock Text="Bluetooth pairing" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="Require a PIN to connect over Bluetooth LE." />
+              <ToggleSwitch VerticalAlignment="Center" OnContent="" OffContent=""
                             IsChecked="{Binding BlePairingEnabled}" />
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
 
             <!-- BLE PIN -->
-            <Grid Classes="setting" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14"
-                  IsVisible="{Binding SupportsBle}">
-              <Border Grid.Column="0" Classes="iconwell blue">
+            <c:SettingRow Classes="setting" IsVisible="{Binding SupportsBle}">
+              <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.key}" />
               </Border>
-              <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="Pairing PIN" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="6 digits. Leave blank to keep the current PIN. Default is 123456." />
-              </StackPanel>
-              <TextBox Grid.Column="2" Classes="control mono" MaxLength="6" Text="{Binding BlePin}"
-                       PlaceholderText="••••••" />
-            </Grid>
+              <TextBlock Text="Pairing PIN" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="6 digits. Blank keeps the current PIN." />
+              <TextBox Classes="control mono" MaxLength="6" Text="{Binding BlePin}"
+                       PlaceholderText="••••••" ToolTip.Tip="The default PIN is 123456." />
+            </c:SettingRow>
           </StackPanel>
         </Border>
 
         <!-- Danger zone -->
         <Border Classes="card" BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}">
-          <StackPanel Spacing="14">
+          <StackPanel>
             <!-- Bonded BLE devices -->
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" IsVisible="{Binding SupportsBle}">
               <StackPanel Grid.Column="0" VerticalAlignment="Center">

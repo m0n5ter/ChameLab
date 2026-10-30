@@ -26,7 +26,7 @@ public partial class CardsView : UserControl
     /// The memory scroll has already brought the caret into view; the request must
     /// not travel on to the pane scroll, which would scroll to the caret's position
     /// as if the inner scroll weren't there (jumping up to the card details). The
-    /// pane only needs to show the memory scroll itself — a no-op when it is visible.
+    /// pane only needs to show the memory scroll itself; a no-op when it is visible.
     /// </summary>
     private void OnMemoryBringIntoView(object? sender, RequestBringIntoViewEventArgs e)
     {

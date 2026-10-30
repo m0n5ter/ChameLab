@@ -30,7 +30,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     private FirmwareRelease? _latest;
     private DeviceModel _latestModel;
     private DateTime _checkedAt;
-    private string _currentVersion = "—";
+    private string _currentVersion = "-";
 
     private FirmwareDialog _dialog;
     private string _installTitle = string.Empty;
@@ -211,7 +211,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
                     ? $"{_latest.Version} is available, but has no package for this model"
                     : CanInstall
                         ? $"{_latest.Version} is available"
-                        : $"{_latest.Version} is available — connect over USB or Bluetooth to install it";
+                        : $"{_latest.Version} is available. Connect over USB or Bluetooth to install it";
             }
         }
         catch (Exception ex)

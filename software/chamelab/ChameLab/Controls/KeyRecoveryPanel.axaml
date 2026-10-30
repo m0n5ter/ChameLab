@@ -192,7 +192,7 @@
                  IsVisible="{Binding ShowDumpNotice}" />
 
     <!-- MIFARE Classic: a key grid, one cell per sector (16 per row), each cell two
-         stacked squares — key A over key B — colored by the key-search state. The
+         stacked squares (key A over key B) colored by the key-search state. The
          searching key and its tried/total count show in the progress line above. -->
     <StackPanel Spacing="6" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding HasDumpSectors}">
       <c:SectorKeyGrid Sectors="{Binding DumpSectors}" SelectedSector="{Binding RecoverySelectedSector, Mode=TwoWay}"
