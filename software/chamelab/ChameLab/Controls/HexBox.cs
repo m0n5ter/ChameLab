@@ -18,7 +18,7 @@ namespace ChameLab.Controls;
 /// Text box for a short hex value (UID, SAK, ATQA…). Accepts only hex digits,
 /// shows them upper-case in space-separated byte pairs, overwrites once the
 /// value is full and shows the byte count, flagged when the length isn't one
-/// of <see cref="ByteLengths"/>. Pasting "04:a1-b2 c3" or "0x04A1" just works.
+/// of <see cref="ByteLengths"/> (a longer value set from outside is kept, not cut). Pasting "04:a1-b2 c3" or "0x04A1" just works.
 /// With a maximum length, its natural width fits a full value, so layouts that size
 /// by content (e.g. <see cref="FlowGrid"/>) don't reflow while it is typed.
 /// </summary>
@@ -206,7 +206,9 @@ public class HexBox : TextBox
         var clean = new string(text.Where(c => !char.IsWhiteSpace(c) && c != ':' && c != '-').ToArray());
         if (clean.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) clean = clean[2..];
         var digits = new string(clean.Where(Uri.IsHexDigit).ToArray()).ToUpperInvariant();
-        if (MaxBytes > 0 && digits.Length > MaxBytes * 2) digits = digits[..(MaxBytes * 2)];
+        // Only typed / pasted input is capped. A value set from outside is kept whole (flagged by the
+        // counter): a binding may hand over a longer ID before ByteLengths catches up with its type.
+        if (raw is not null && MaxBytes > 0 && digits.Length > MaxBytes * 2) digits = digits[..(MaxBytes * 2)];
 
         var sb = new StringBuilder(digits.Length * 3 / 2);
         for (var i = 0; i < digits.Length; i++)
