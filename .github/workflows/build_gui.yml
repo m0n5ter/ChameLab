@@ -263,11 +263,18 @@ jobs:
 
   build_ios:
     name: Build GUI (iOS, ${{ matrix.rid }})
-    runs-on: macos-latest
+    runs-on: macos-26
     needs: version
+    # Keep the Apple toolchain and workload set together. Installing the latest
+    # iOS workload can require an Xcode not yet available on hosted runners.
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      IOS_DOTNET_VERSION: '10.0.302'
+      IOS_WORKLOAD_VERSION: '10.0.302.0'
     permissions:
       contents: read
     strategy:
+      fail-fast: false
       matrix:
         rid: [ios-arm64, iossimulator-arm64]
     steps:
@@ -279,9 +286,14 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: ${{ env.IOS_DOTNET_VERSION }}
+      - name: Select the pinned .NET SDK and Xcode
+        run: |
+          dotnet new globaljson --sdk-version "$IOS_DOTNET_VERSION" --roll-forward disable
+          dotnet --version
+          xcodebuild -version
       - name: Install the iOS workload
-        run: dotnet workload install ios
+        run: dotnet workload install ios --version "$IOS_WORKLOAD_VERSION"
       - name: Build the app with the native hardnested engine
         run: >
           dotnet build software/chamelab/ChameLab.iOS/ChameLab.iOS.csproj
