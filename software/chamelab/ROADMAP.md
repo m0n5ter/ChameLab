@@ -7,7 +7,7 @@ Tick `[x]` as things land, and drop finished items over time.
 
 ## Done
 - Backdoor / static encrypted nested (FM11RF08S and compatible cards), managed solver on all platforms
-- Darkside, Nested, Static nested and mfkey32 key recovery; Hardnested on desktop
+- Darkside, Nested, Static nested and mfkey32 key recovery; Hardnested on desktop, Android, iOS and the web
 - Per-sector key grid with found-key marks; stopping a dump keeps what was read and
   a partial dump can be continued
 - Dictionary selection for dumps, shared with target-card key recovery; recovered keys

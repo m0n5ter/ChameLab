@@ -124,7 +124,7 @@ key. This managed solver works on every platform and requires firmware commands
 2014 and 2015. Keep the card on the reader throughout recovery. Stop preserves
 recovered keys; an in-flight collection or key batch finishes before stopping.
 
-## Hardnested (desktop)
+## Hardnested
 
 Hardnested recovery is available for hardened-PRNG MIFARE Classic cards when at
 least one key is known. Scan the card, find a seed key with the dictionary or
@@ -139,8 +139,54 @@ device acquisition, cancellation waits for the current batch response (up to
 30 seconds), since the firmware has no command-abort operation. Native crashes
 and memory exhaustion do not terminate the GUI. Only one solver runs at a time.
 
-Android, iOS and Browser show a resource-requirements warning instead of enabling
-Hardnested. Other recovery methods remain available.
+Android and iOS call the native C library through P/Invoke on a background thread.
+These embedded builds use a single solver thread, so errors and cooperative
+cancellation can unwind safely to the API boundary. All solver allocations and
+open capture streams are released on success, failure or cancellation. Progress
+is passed back to the UI. Desktop keeps its parallel worker implementation.
+
+The browser runs the same embedded core as a separate WebAssembly module in a
+Web Worker. Each attempt gets a fresh worker; Stop terminates it immediately and
+releases its memory. Calculations stay on the device. SharedArrayBuffer and
+cross-origin isolation headers are not required. Device access still depends on
+the browser supporting Web Serial or Web Bluetooth, including on mobile browsers.
+
+Embedded builds cap solver allocations at 1792 MiB. The core's nonce bitsets alone
+use 1 GiB, and the app, browser and operating system need additional memory.
+Low-memory devices may fail recovery; the budget cannot prevent the operating
+system from killing an app under overall memory pressure. Single-thread recovery
+can be slower than the desktop worker. Acquisition cancellation still waits for
+the device's current batch response on all platforms.
+
+All builds need Python 3, CMake 3.24+, Git and the platform C toolchain. Mobile and
+web app builds invoke `../src/HardnestedRecovery/native/build-embedded.py`
+automatically. It uses the Android NDK (r28+, `ANDROID_NDK_HOME` or the SDK's
+`ndk/` directory), Xcode on macOS for iOS, and an activated standalone Emscripten
+SDK 3.1.74+ for the web. The custom Emscripten bundled with .NET is used for the
+app runtime, but cannot build this standalone solver's setjmp/longjmp code.
+Android supports `android-arm64` and `android-x64`, including 16 KiB page sizes.
+iOS builds support `ios-arm64`, `iossimulator-arm64` and `iossimulator-x64`.
+
+```bash
+# Android: install the NDK once, then build the app and bundled libraries.
+sdkmanager "ndk;28.2.13676358"
+dotnet build ChameLab.Android -c Release
+
+# iOS: build on macOS; configure your signing identity for installation on a phone.
+dotnet build ChameLab.iOS -c Release -r ios-arm64
+
+# Web: the solver module is copied to wwwroot/hardnested/ during publish.
+# Install/activate emsdk 3.1.74 and source emsdk_env.sh (emsdk_env.bat on Windows).
+dotnet publish ChameLab.Browser -c Release
+```
+
+To reuse prebuilt components, pass `-p:BuildHardnested=false` and
+`-p:HardnestedNativeDirectory=/absolute/path/to/output`. That directory contains
+ABI subdirectories with `.so` files on Android, the solver and liblzma `.a`
+archives on iOS, or `hardnested.js` and `hardnested.wasm` for the browser. The build
+fails if the required files are absent. CI verifies known-key WebAssembly
+recovery and builds Android plus unsigned iOS device/simulator apps; iOS device
+installation still requires signing.
 
 Desktop builds require CMake 3.24+, Git, and a C compiler (MSVC on Windows, GCC or
 Clang on Linux, Xcode command-line tools on macOS). The first build fetches the

@@ -320,6 +320,9 @@ uint64_t CRACK_STATES_BITSLICED(uint32_t cuid, uint8_t *best_first_bytes, statel
     }
     // bitslice every odd state to every block of even states
     for (uint32_t const *restrict p_odd = p->states[ODD_STATE]; p_odd < p->states[ODD_STATE] + p->len[ODD_STATE]; ++p_odd) {
+#ifdef CHAMELAB_EMBEDDED
+        if (((p_odd - p->states[ODD_STATE]) & 63) == 0) hn_poll();
+#endif
         // early abort
         if (*keys_found) {
             goto out;
@@ -358,6 +361,9 @@ uint64_t CRACK_STATES_BITSLICED(uint32_t cuid, uint8_t *best_first_bytes, statel
 
         uint32_t *restrict p_even = p->states[EVEN_STATE];
         for (uint32_t block_idx = 0; block_idx < bitsliced_blocks; ++block_idx, p_even += MAX_BITSLICES) {
+#ifdef CHAMELAB_EMBEDDED
+            if ((block_idx & 255) == 0) hn_poll();
+#endif
 
 #ifdef DEBUG_KEY_ELIMINATION
             // if (known_target_key != -1 && bucket_contains_test_key[block_idx] && *p_odd == test_state[ODD_STATE]) {

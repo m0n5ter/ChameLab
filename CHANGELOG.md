@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: Hardnested recovery on Android, iOS and the web; local native/WebAssembly calculation with progress, cancellation and a bounded solver memory budget
  - Firmware v2.3.5-cl: the sleep timeout now applies to every restart of the sleep timer, not only after a button wakeup: button presses, end of HF / LF emulation, BLE disconnect and USB power loss no longer cut the remaining awake time to a fixed 3–4 seconds
  - ChameLab: the Sleep timeout setting is limited to the 5–60 seconds the firmware accepts
 

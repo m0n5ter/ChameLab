@@ -4,6 +4,8 @@
     <TargetFramework>net10.0-ios</TargetFramework>
     <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <HardnestedPlatform>ios</HardnestedPlatform>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,9 +17,11 @@
     <!-- Shared Nordic-UART BLE transport, compiled into each mobile head. -->
     <Compile Include="..\Mobile\BleTransport.cs" Link="BleTransport.cs" />
     <Compile Include="..\Mobile\BleDfu.cs" Link="BleDfu.cs" />
+    <Compile Include="..\Mobile\InProcessHardnestedEngine.cs" Link="InProcessHardnestedEngine.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
   </ItemGroup>
+  <Import Project="../Mobile/Hardnested.targets" />
 </Project>

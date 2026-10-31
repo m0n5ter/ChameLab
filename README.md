@@ -45,8 +45,9 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
   ChameleonUltraGUI many of them can only be waited out.
 
 Key recovery includes Darkside, Nested, Static nested and mfkey32, plus the
-original native Hardnested solver on desktop. Hardnested needs a known key and
-substantial memory; mobile and browser builds show a resource-requirements warning.
+original native Hardnested solver on desktop, Android, iOS and the web. Hardnested
+needs a known key and substantial memory. Mobile and web calculations run locally;
+devices with insufficient memory report an error.
 
 Not there yet: editing slot data in place, backdoor key recovery,
 QR sharing and translations. The full list is in the

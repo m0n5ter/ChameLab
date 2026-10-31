@@ -171,11 +171,25 @@ jobs:
       - name: Install the WebAssembly workload
         # Links SkiaSharp's native assets into the WASM output
         run: dotnet workload install wasm-tools
+      - name: Set up standalone Emscripten for hardnested
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install 3.1.74
+          "$RUNNER_TEMP/emsdk/emsdk" activate 3.1.74
+          echo "$RUNNER_TEMP/emsdk/upstream/emscripten" >> "$GITHUB_PATH"
+      - name: Build and verify the hardnested WebAssembly module
+        run: |
+          cmake -S software/src/HardnestedRecovery/native -B native-fixture-build -DCMAKE_BUILD_TYPE=Release
+          cmake --build native-fixture-build --target chamelab-hardnested-fixture --parallel
+          native-fixture-build/chamelab-hardnested-fixture synthetic-nonces.txt
+          python3 software/src/HardnestedRecovery/native/build-embedded.py web --build-dir native-web-build --output native-hardnested-web --test-capture synthetic-nonces.txt
+          node software/src/HardnestedRecovery/native/tests/browser-worker.mjs native-hardnested-web/hardnested.js synthetic-nonces.txt
       - name: Publish
         run: >
           dotnet publish software/chamelab/ChameLab.Browser/ChameLab.Browser.csproj
           -c Release
           -p:Version=${{ needs.version.outputs.version }}
+          -p:BuildHardnested=false -p:HardnestedNativeDirectory="$PWD/native-hardnested-web"
           -o publish
       - name: Upload the web app
         uses: actions/upload-artifact@v7
@@ -206,6 +220,10 @@ jobs:
           java-version: '17'
       - name: Install the Android workload
         run: dotnet workload install android
+      - name: Build the hardnested Android libraries
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
+          ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358" python3 software/src/HardnestedRecovery/native/build-embedded.py android --build-dir native-android-build --output native-hardnested-android
       - name: Prepare the signing key
         id: signing
         env:
@@ -232,6 +250,7 @@ jobs:
           -p:Version=${{ needs.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }}
           -p:ApplicationVersion=${{ needs.version.outputs.code }}
+          -p:BuildHardnested=false -p:HardnestedNativeDirectory="$PWD/native-hardnested-android"
           ${{ steps.signing.outputs.args }}
           -o publish
       - name: Name the APK for release
@@ -241,3 +260,36 @@ jobs:
         with:
           name: release-artifacts-gui-android
           path: chamelab-android.apk
+
+  build_ios:
+    name: Build GUI (iOS, ${{ matrix.rid }})
+    runs-on: macos-latest
+    needs: version
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        rid: [ios-arm64, iossimulator-arm64]
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install the iOS workload
+        run: dotnet workload install ios
+      - name: Build the app with the native hardnested engine
+        run: >
+          dotnet build software/chamelab/ChameLab.iOS/ChameLab.iOS.csproj
+          -c Release -r ${{ matrix.rid }}
+          -p:Version=${{ needs.version.outputs.version }}
+          -p:EnableCodeSigning=false
+      - name: Upload the unsigned app
+        uses: actions/upload-artifact@v7
+        with:
+          name: gui-${{ matrix.rid }}-unsigned
+          path: software/chamelab/ChameLab.iOS/bin/Release/net10.0-ios/${{ matrix.rid }}/*.app

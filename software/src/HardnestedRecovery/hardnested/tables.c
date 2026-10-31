@@ -67109,7 +67109,22 @@ static bitflip_info bf_one[0x400] = {//init all lengths to 0 with static
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef CHAMELAB_EMBEDDED
+static void *hn_lzma_alloc(void *opaque, size_t count, size_t size) {
+    (void)opaque;
+    return hn_calloc(count, size);
+}
+static void hn_lzma_free(void *opaque, void *ptr) {
+    (void)opaque;
+    hn_free(ptr);
+}
+static const lzma_allocator hn_lzma_allocator = {hn_lzma_alloc, hn_lzma_free, NULL};
+#endif
+
 void lzma_init_decoder(lzma_stream *strm) {
+#ifdef CHAMELAB_EMBEDDED
+    strm->allocator = &hn_lzma_allocator;
+#endif
     // Initialize a .xz decoder. The decoder supports a memory usage limit
     // and a set of flags.
     //

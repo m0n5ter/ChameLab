@@ -4,6 +4,9 @@
     <TargetFramework>net10.0-android</TargetFramework>
     <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+    <HardnestedPlatform>android</HardnestedPlatform>
     <ApplicationId>io.github.m0n5ter.chamelab</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -29,9 +32,11 @@
     <Compile Include="..\Mobile\BleTransport.cs" Link="BleTransport.cs" />
     <Compile Include="..\Mobile\BleDfu.cs" Link="BleDfu.cs" />
     <Compile Include="..\Mobile\UsbCdcTransport.cs" Link="UsbCdcTransport.cs" />
+    <Compile Include="..\Mobile\InProcessHardnestedEngine.cs" Link="InProcessHardnestedEngine.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
   </ItemGroup>
+  <Import Project="../Mobile/Hardnested.targets" />
 </Project>

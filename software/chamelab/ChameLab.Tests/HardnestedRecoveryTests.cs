@@ -79,12 +79,30 @@ public class HardnestedRecoveryTests
     }
 
     [Fact]
-    public async Task UnsupportedEngine_ReportsPlatformRestriction()
+    public async Task UnsupportedEngine_ReportsMissingComponent()
     {
         var engine = new UnavailableHardnestedEngine();
-        Assert.Contains("desktop", engine.UnavailableReason, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("not available", engine.UnavailableReason, StringComparison.OrdinalIgnoreCase);
         await Assert.ThrowsAsync<NotSupportedException>(() =>
             engine.RecoverAsync(new HardnestedCapture(1, Array.Empty<HardnestedSample>()), null, default));
+    }
+
+    [Fact]
+    public void CaptureCodec_UsesUnsignedDecimalAndFourParityBits()
+    {
+        var capture = new HardnestedCapture(1, new[] {
+            new HardnestedSample(0xFFFFFFFF, 15), new HardnestedSample(0, 0)
+        });
+        Assert.Equal("4294967295|15\n0|0\n", HardnestedCaptureCodec.Encode(capture));
+    }
+
+    [Fact]
+    public void CaptureCodec_RejectsEmptyAndInvalidParity()
+    {
+        Assert.Throws<ArgumentException>(() => HardnestedCaptureCodec.Encode(
+            new HardnestedCapture(1, Array.Empty<HardnestedSample>())));
+        Assert.Throws<ArgumentException>(() => HardnestedCaptureCodec.Encode(
+            new HardnestedCapture(1, new[] { new HardnestedSample(1, 16) })));
     }
 
     private sealed class Source(Func<bool, CancellationToken, IReadOnlyList<HardnestedSample>> read) : IHardnestedNonceSource

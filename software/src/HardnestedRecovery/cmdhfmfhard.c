@@ -138,6 +138,9 @@ static void print_progress_header(void) {
 }
 
 void hardnested_print_progress(uint32_t nonces, const char *activity, float brute_force, uint64_t min_diff_print_time) {
+#ifdef CHAMELAB_EMBEDDED
+    hn_progress(activity);
+#endif
     static uint64_t last_print_time = 0;
     if (msclock() - last_print_time > min_diff_print_time) {
         last_print_time = msclock();
@@ -366,6 +369,9 @@ static void init_part_sum_bitarrays(void) {
     for (odd_even_t odd_even = EVEN_STATE; odd_even <= ODD_STATE; odd_even++) {
         //PrintAndLogEx(INFO, "(%d, %" PRIu16 ")...", odd_even, part_sum_a0);
         for (uint32_t state = 0; state < (1 << 20); state++) {
+#ifdef CHAMELAB_EMBEDDED
+            if ((state & 4095) == 0) hn_poll();
+#endif
             uint16_t part_sum_a0 = PartialSumProperty(state, odd_even) / 2;
             for (uint16_t low_bits = 0; low_bits < 1 << 4; low_bits++) {
                 set_bit24(part_sum_a0_bitarrays[odd_even][part_sum_a0], state << 4 | low_bits);
@@ -1019,6 +1025,9 @@ __attribute__((force_align_arg_pointer))
     if (hardnested_stage & CHECK_1ST_BYTES) {
         // for (uint16_t bitflip = 0x001; bitflip < 0x200; bitflip++) {
         for (uint16_t bitflip_idx = 0; bitflip_idx < num_1st_byte_effective_bitflips; bitflip_idx++) {
+#ifdef CHAMELAB_EMBEDDED
+            hn_poll();
+#endif
             uint16_t bitflip = all_effective_bitflip[bitflip_idx];
             if (time_budget && timeout()) {
 #if defined (DEBUG_REDUCTION)
@@ -1472,7 +1481,13 @@ static bool all_bitflips_match(uint8_t byte, uint32_t state, odd_even_t odd_even
 static void
 bitarray_to_list(uint8_t byte, uint32_t *bitarray, uint32_t *state_list, uint32_t *len, odd_even_t odd_even) {
     uint32_t *p = state_list;
+#ifdef CHAMELAB_EMBEDDED
+    uint32_t checked_states = 0;
+#endif
     for (uint32_t state = next_state(bitarray, -1L); state < (1 << 24); state = next_state(bitarray, state)) {
+#ifdef CHAMELAB_EMBEDDED
+        if ((checked_states++ & 255) == 0) hn_poll();
+#endif
         if (all_bitflips_match(byte, state, odd_even)) {
             *p++ = state;
         }
@@ -1884,7 +1899,9 @@ mfnestedhard(uint8_t blockNo, uint8_t keyType, uint8_t *key, uint8_t trgBlockNo,
     brute_force_per_second = brute_force_benchmark();
     // set the correct locale for the stats printing
     write_stats = true;
+#ifndef CHAMELAB_EMBEDDED
     setlocale(LC_NUMERIC, "");
+#endif
 
     start_time = msclock();
     print_progress_header();

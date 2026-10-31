@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 project(ChameLabHardnested C)
+option(CHAMELAB_EMBEDDED "Build the bounded, cancellable single-thread mobile/WebAssembly engine" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build configuration" FORCE)
@@ -19,6 +20,9 @@ set(XZ_TOOL_SCRIPTS OFF CACHE BOOL "" FORCE)
 set(XZ_DOC OFF CACHE BOOL "" FORCE)
 set(XZ_NLS OFF CACHE BOOL "" FORCE)
 set(XZ_DOXYGEN OFF CACHE BOOL "" FORCE)
+if(CHAMELAB_EMBEDDED)
+    set(XZ_THREADS no CACHE STRING "Embedded solver uses one thread" FORCE)
+endif()
 FetchContent_Declare(xz
     GIT_REPOSITORY https://github.com/tukaani-project/xz
     GIT_TAG v5.8.1
@@ -27,7 +31,11 @@ FetchContent_MakeAvailable(xz)
 
 set(RECOVERY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
 set(COMMON_DIR ${RECOVERY_DIR}/..)
-add_library(chamelab-hardnested SHARED
+set(HARDNESTED_LIBRARY_TYPE SHARED)
+if(CHAMELAB_EMBEDDED AND (IOS OR EMSCRIPTEN))
+    set(HARDNESTED_LIBRARY_TYPE STATIC)
+endif()
+add_library(chamelab-hardnested ${HARDNESTED_LIBRARY_TYPE}
     hardnested_api.c
     ${COMMON_DIR}/crypto1.c
     ${COMMON_DIR}/crapto1.c
@@ -61,6 +69,53 @@ else()
     if(WIN32)
         target_sources(chamelab-hardnested PRIVATE ${COMMON_DIR}/compat/fmemopen/libfmemopen.c)
     endif()
+endif()
+
+if(CHAMELAB_EMBEDDED)
+    if(MSVC)
+        message(FATAL_ERROR "Embedded builds require Clang/GCC (Android NDK, Xcode or Emscripten)")
+    endif()
+    target_sources(chamelab-hardnested PRIVATE embedded_runtime.c)
+    set_source_files_properties(embedded_runtime.c PROPERTIES COMPILE_DEFINITIONS HN_RUNTIME_IMPLEMENTATION)
+    target_include_directories(chamelab-hardnested PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_compile_definitions(chamelab-hardnested PRIVATE CHAMELAB_EMBEDDED)
+    target_compile_options(chamelab-hardnested PRIVATE
+        -include ${CMAKE_CURRENT_SOURCE_DIR}/embedded_runtime.h -O3)
+    set_target_properties(chamelab-hardnested PROPERTIES OUTPUT_NAME chamelab-hardnested-embedded)
+    if(NOT EMSCRIPTEN)
+        install(TARGETS chamelab-hardnested
+            ARCHIVE DESTINATION . COMPONENT Hardnested
+            LIBRARY DESTINATION . COMPONENT Hardnested)
+    endif()
+    if(IOS)
+        install(TARGETS liblzma ARCHIVE DESTINATION . COMPONENT Hardnested)
+    endif()
+    add_executable(hardnested-embedded-tests EXCLUDE_FROM_ALL tests/embedded_test.c)
+    target_include_directories(hardnested-embedded-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(hardnested-embedded-tests PRIVATE chamelab-hardnested)
+    if(EMSCRIPTEN)
+        # Use native Wasm exception handling for safe setjmp/longjmp unwinding.
+        target_compile_options(chamelab-hardnested PRIVATE -fwasm-exceptions -sSUPPORT_LONGJMP=wasm)
+        set_target_properties(hardnested-embedded-tests PROPERTIES SUFFIX .cjs)
+        target_link_options(hardnested-embedded-tests PRIVATE -O3
+            -fwasm-exceptions -sSUPPORT_LONGJMP=wasm
+            -sSINGLE_FILE=1 -sENVIRONMENT=node -sNODERAWFS=1 -sEXIT_RUNTIME=1
+            -sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=2147483648
+            -sSTACK_SIZE=8388608 -sABORTING_MALLOC=0)
+        add_executable(hardnested-wasm wasm_entry.c)
+        target_link_libraries(hardnested-wasm PRIVATE chamelab-hardnested)
+        set_target_properties(hardnested-wasm PROPERTIES OUTPUT_NAME hardnested SUFFIX .js)
+        target_link_options(hardnested-wasm PRIVATE
+            --no-entry -O3 -fwasm-exceptions -sSUPPORT_LONGJMP=wasm
+            "-sEXPORTED_FUNCTIONS=['_chamelab_hardnested_embedded','_malloc','_free']"
+            "-sEXPORTED_RUNTIME_METHODS=['FS','ccall']"
+            -sMODULARIZE=1 -sEXPORT_ES6=1 -sENVIRONMENT=worker,node
+            -sALLOW_MEMORY_GROWTH=1 -sMAXIMUM_MEMORY=2147483648
+            -sSTACK_SIZE=8388608 -sABORTING_MALLOC=0 -sFILESYSTEM=1)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/hardnested.js ${CMAKE_CURRENT_BINARY_DIR}/hardnested.wasm
+            DESTINATION . COMPONENT Hardnested)
+    endif()
+    return()
 endif()
 
 add_executable(chamelab-hardnested-worker worker.c)

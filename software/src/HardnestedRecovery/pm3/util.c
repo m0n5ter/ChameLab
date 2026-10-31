@@ -61,7 +61,9 @@ uint8_t g_printAndLog = PRINTANDLOG_PRINT | PRINTANDLOG_LOG;
 
 // determine number of logical CPU cores (use for multithreaded functions)
 int num_CPUs(void) {
-#if defined(_WIN32)
+#if defined(CHAMELAB_EMBEDDED)
+    return 1;
+#elif defined(_WIN32)
 #include <sysinfoapi.h>
     SYSTEM_INFO sysinfo;
     GetSystemInfo(&sysinfo);

@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+    <HardnestedPlatform>web</HardnestedPlatform>
     <!-- Link SkiaSharp/HarfBuzz native assets into the WASM output. Requires the
          wasm-tools workload (`dotnet workload install wasm-tools`). -->
     <WasmBuildNative>true</WasmBuildNative>
@@ -16,4 +17,5 @@
   <ItemGroup>
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
   </ItemGroup>
+  <Import Project="../Mobile/Hardnested.targets" />
 </Project>

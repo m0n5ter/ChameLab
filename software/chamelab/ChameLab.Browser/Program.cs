@@ -18,7 +18,8 @@ internal sealed partial class Program
         var bluetooth = WebBluetoothInterop.IsAvailable();
         var scanners = new List<ITransportScanner> { new WebSerialScanner() };
         if (bluetooth) scanners.Add(new WebBluetoothScanner());
-        AppServices.Register(scanners, new LocalStorageStore(), feedback: new WebFeedbackPlayer());
+        AppServices.Register(scanners, new LocalStorageStore(), feedback: new WebFeedbackPlayer(),
+            hardnested: new WebHardnestedEngine());
 
         return BuildAvaloniaApp()
             .WithInterFont()

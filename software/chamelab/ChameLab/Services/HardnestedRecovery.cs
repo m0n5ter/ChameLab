@@ -19,8 +19,7 @@ public interface IHardnestedEngine
 public sealed class UnavailableHardnestedEngine : IHardnestedEngine
 {
     public string UnavailableReason =>
-        "Hardnested is available only in the desktop version of ChameLab. " +
-        "Recovery is disabled on this platform because of its high memory and CPU requirements.";
+        "The hardnested engine is not available in this build of ChameLab.";
 
     public Task<ulong?> RecoverAsync(HardnestedCapture capture, IProgress<string>? progress, CancellationToken ct) =>
         throw new NotSupportedException(UnavailableReason);

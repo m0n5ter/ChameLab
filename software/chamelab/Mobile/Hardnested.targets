@@ -1,0 +1,41 @@
+<Project>
+  <PropertyGroup>
+    <BuildHardnested Condition="'$(BuildHardnested)' == ''">true</BuildHardnested>
+    <HardnestedPython Condition="'$(HardnestedPython)' == '' and $([MSBuild]::IsOSPlatform('Windows'))">python</HardnestedPython>
+    <HardnestedPython Condition="'$(HardnestedPython)' == ''">python3</HardnestedPython>
+    <HardnestedNativeDirectory Condition="'$(HardnestedNativeDirectory)' == ''">$(MSBuildProjectDirectory)/obj/hardnested-output/$(HardnestedPlatform)/$(RuntimeIdentifier)</HardnestedNativeDirectory>
+    <HardnestedScript>$(MSBuildThisFileDirectory)../../src/HardnestedRecovery/native/build-embedded.py</HardnestedScript>
+    <HardnestedBuildDirectory>$(MSBuildProjectDirectory)/obj/hardnested-native/$(HardnestedPlatform)/$(RuntimeIdentifier)</HardnestedBuildDirectory>
+  </PropertyGroup>
+  <Target Name="BuildEmbeddedHardnested" BeforeTargets="PrepareForBuild"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(BuildHardnested)' == 'true'">
+    <Exec Command="&quot;$(HardnestedPython)&quot; &quot;$(HardnestedScript)&quot; $(HardnestedPlatform) --rid &quot;$(RuntimeIdentifier)&quot; --build-dir &quot;$(HardnestedBuildDirectory)&quot; --output &quot;$(HardnestedNativeDirectory)&quot;" />
+  </Target>
+  <!-- Explicit items work on a clean build too, before generated files exist. -->
+  <ItemGroup Condition="'$(HardnestedPlatform)' == 'web'">
+    <Content Include="$(HardnestedNativeDirectory)/hardnested.js" Link="wwwroot/hardnested/hardnested.js" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(HardnestedNativeDirectory)/hardnested.wasm" Link="wwwroot/hardnested/hardnested.wasm" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="IncludeEmbeddedHardnested" BeforeTargets="AssignTargetPaths;_ResolveNativeLibraries;ResolveNativeReferences" DependsOnTargets="BuildEmbeddedHardnested"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup Condition="'$(HardnestedPlatform)' == 'android'">
+      <AndroidNativeLibrary Include="$(HardnestedNativeDirectory)/arm64-v8a/libchamelab-hardnested-embedded.so" Condition="'$(RuntimeIdentifier)' == '' or '$(RuntimeIdentifier)' == 'android-arm64'" />
+      <AndroidNativeLibrary Include="$(HardnestedNativeDirectory)/x86_64/libchamelab-hardnested-embedded.so" Condition="'$(RuntimeIdentifier)' == '' or '$(RuntimeIdentifier)' == 'android-x64'" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(HardnestedPlatform)' == 'ios'">
+      <NativeReference Include="$(HardnestedNativeDirectory)/libchamelab-hardnested-embedded.a">
+        <Kind>Static</Kind>
+        <ForceLoad>true</ForceLoad>
+      </NativeReference>
+      <NativeReference Include="$(HardnestedNativeDirectory)/liblzma.a">
+        <Kind>Static</Kind>
+        <ForceLoad>false</ForceLoad>
+      </NativeReference>
+    </ItemGroup>
+    <Error Condition="'$(HardnestedPlatform)' == 'android' and '@(AndroidNativeLibrary)' == ''" Text="The Android hardnested native libraries are missing." />
+    <Error Condition="'$(HardnestedPlatform)' == 'android' and ('$(RuntimeIdentifier)' == '' or '$(RuntimeIdentifier)' == 'android-arm64') and !Exists('$(HardnestedNativeDirectory)/arm64-v8a/libchamelab-hardnested-embedded.so')" Text="The Android arm64 hardnested library is missing." />
+    <Error Condition="'$(HardnestedPlatform)' == 'android' and ('$(RuntimeIdentifier)' == '' or '$(RuntimeIdentifier)' == 'android-x64') and !Exists('$(HardnestedNativeDirectory)/x86_64/libchamelab-hardnested-embedded.so')" Text="The Android x64 hardnested library is missing." />
+    <Error Condition="'$(HardnestedPlatform)' == 'ios' and (!Exists('$(HardnestedNativeDirectory)/libchamelab-hardnested-embedded.a') or !Exists('$(HardnestedNativeDirectory)/liblzma.a'))" Text="The iOS hardnested native libraries are missing." />
+    <Error Condition="'$(HardnestedPlatform)' == 'web' and (!Exists('$(HardnestedNativeDirectory)/hardnested.js') or !Exists('$(HardnestedNativeDirectory)/hardnested.wasm'))" Text="The hardnested WebAssembly module is missing." />
+  </Target>
+</Project>
