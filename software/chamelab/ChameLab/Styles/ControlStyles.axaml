@@ -545,6 +545,19 @@
     <Setter Property="Width" Value="18" />
     <Setter Property="Height" Value="18" />
   </Style>
+  <!-- Narrow fields (phone width, stacked setting rows) keep room for the value: slimmer buttons. -->
+  <Style Selector=".compact NumericUpDown.stepper /template/ ButtonSpinner /template/ RepeatButton#PART_DecreaseButton,
+                   .compact NumericUpDown.stepper /template/ ButtonSpinner /template/ RepeatButton#PART_IncreaseButton,
+                   :is(Control).setting.stacked > NumericUpDown.stepper /template/ ButtonSpinner /template/ RepeatButton#PART_DecreaseButton,
+                   :is(Control).setting.stacked > NumericUpDown.stepper /template/ ButtonSpinner /template/ RepeatButton#PART_IncreaseButton">
+    <Setter Property="Width" Value="30" />
+    <Setter Property="MinWidth" Value="0" />
+  </Style>
+  <Style Selector=".compact NumericUpDown.stepper /template/ ButtonSpinner /template/ RepeatButton.step > PathIcon,
+                   :is(Control).setting.stacked > NumericUpDown.stepper /template/ ButtonSpinner /template/ RepeatButton.step > PathIcon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+  </Style>
 
   <!-- ==================== Navigation ==================== -->
 
