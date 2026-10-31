@@ -133,6 +133,17 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
         foreach (var row in Cards) row.Refresh();
     }
 
+    /// <summary>
+    /// The UID the slot emulates was read after the list was laid out: the saved first card is
+    /// the one with that UID, so the row it refreshed to doesn't count as an edit.
+    /// </summary>
+    public void PrimaryUidRead(TagSpecificType type, byte[] uid)
+    {
+        if (_saved.Length == 0 || ChameleonClient.SlotTypeFor(_saved[0].Tag) != type) return;
+        _saved[0] = new CardSave { Tag = _saved[0].Tag, Name = _saved[0].Name, Uid = uid.ToArray() };
+        Notify();
+    }
+
     public void MarkSaved()
     {
         _saved = Cards.Select(c => c.Card).ToArray();

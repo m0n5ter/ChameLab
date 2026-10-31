@@ -41,6 +41,21 @@ public class LfSlotListTests
     }
 
     [Fact]
+    public void UidReadAfterLoadIsNotAnEdit()
+    {
+        var library = new CardLibrary(new MemoryKeyValueStore());
+        var info = new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x };
+        var side = new SlotSideViewModel(TagSenseType.Lf, info, library, true, () => { }, _ => { }, _ => System.Threading.Tasks.Task.CompletedTask, _ => { });
+        var list = new LfSlotListViewModel(side, library, () => { }, _ => { });
+        list.Load(true, new LfCardCycle(1, []));
+        side.UidRead(TagSpecificType.Em410x, Card(1).Uid);
+        list.RefreshPrimary();
+        Assert.True(list.IsDirty);
+        list.PrimaryUidRead(TagSpecificType.Em410x, Card(1).Uid);
+        Assert.False(list.IsDirty);
+    }
+
+    [Fact]
     public void RefusesDuplicateAndIncompatibleCards()
     {
         var (list, _, _) = Create();
