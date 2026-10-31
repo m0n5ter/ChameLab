@@ -469,9 +469,14 @@
   <Style Selector="RadioButton.segment:checked /template/ Border#PART_Bg">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
   </Style>
+  <!-- Unavailable segments get dim text and a neutral pill instead of a faded accent, which read as a
+       murky dark block against the container. -->
   <Style Selector="RadioButton.segment:disabled">
-    <Setter Property="Opacity" Value="0.45" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushDisabled}" />
     <Setter Property="Cursor" Value="Arrow" />
+  </Style>
+  <Style Selector="RadioButton.segment:checked:disabled /template/ Border#PART_Bg">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
   </Style>
   <Style Selector="RadioButton.segment PathIcon">
     <Setter Property="Width" Value="16" />

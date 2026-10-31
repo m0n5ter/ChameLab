@@ -65,9 +65,6 @@
     <Style Selector="Border.segmented.ledmode RadioButton.segment /template/ Border#PART_Bg">
       <Setter Property="Padding" Value="10,5" />
     </Style>
-    <Style Selector="RadioButton.segment:disabled">
-      <Setter Property="Opacity" Value="0.45" />
-    </Style>
   </UserControl.Styles>
 
   <UserControl.Resources>
