@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - Firmware v2.3.5-cl / ChameLab: multi-card LF works with every emulated LF type (EM410x, Electra, HID Prox, ioProx, Viking, PAC, Jablotron, IDTECK, Pyramid), mixed freely in one list; a burst lasts 0.16–0.65 s depending on the type. The cycle commands are replaced by 5907–5909, which carry each card's type and the silence; lists saved by earlier firmware are dropped (each slot keeps its own card), and earlier firmware shows the single-card LF editor. Uploading a card of any LF type now stops emulation meanwhile and clears the slot's list
  - Firmware v2.3.5-cl / ChameLab: connecting and opening Slots no longer runs the slot LED animation several times: a new command reads the multi-card LF lists of all slots at once, without switching the active slot (older firmware keeps the previous way)
  - ChameLab: Hardnested recovery on Android, iOS and the web; local native/WebAssembly calculation with progress, cancellation and a bounded solver memory budget
  - Firmware v2.3.5-cl: the sleep timeout now applies to every restart of the sleep timer, not only after a button wakeup: button presses, end of HF / LF emulation, BLE disconnect and USB power loss no longer cut the remaining awake time to a fixed 3–4 seconds

@@ -61,13 +61,13 @@ public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null
 
     /// <summary>Every card of the LF side in the order it cycles through them: its own card, then the extra ones.</summary>
     public string LfNames => HasLf
-        ? string.Join("  •  ", _info.LfCycleIds.Select(ExtraName).Prepend(LfLabel))
+        ? string.Join("  •  ", _info.LfCycleCards.Select(ExtraName).Prepend(LfLabel))
         : "-";
 
-    private string ExtraName(byte[] uid) =>
+    private string ExtraName(LfCycleCard card) =>
         library?.Cards.FirstOrDefault(c => c.Sense == TagSenseType.Lf &&
-            ChameleonClient.SlotTypeFor(c.Tag) == TagSpecificType.Em410x && c.Uid.AsSpan().SequenceEqual(uid))?.Name
-        ?? $"EM410x {Convert.ToHexString(uid)}";
+            ChameleonClient.SlotTypeFor(c.Tag) == card.Type && c.Uid.AsSpan().SequenceEqual(card.Id))?.Name
+        ?? LfSlotListViewModel.DefaultName(card);
 
     /// <summary>Type of each card, under its name in the slot tile; a dash (hidden) when the frequency is empty.</summary>
     public string HfTypeLabel => HasHf ? _info.HfType.DisplayName() : "-";

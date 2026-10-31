@@ -57,7 +57,7 @@
         <p>All eight slots at a glance, with each card's name and LED color. Drag to reorder,
           tap to activate, edit HF and LF separately.</p></div>
       <div class="tile"><h3>Multi-card LF <span class="badge">Only here</span></h3>
-        <p>One LF slot holds up to eight EM410x cards and presents them to a reader one after
+        <p>One LF slot holds up to eight LF cards of any emulated type, in any mix, and presents them to a reader one after
           another, with a set time per card and optional silence between them. No other
           Chameleon firmware or app can do this.</p></div>
       <div class="tile"><h3>Read and dump</h3>
@@ -97,7 +97,7 @@
         <tbody>
           <tr><td>Graphical interface</td><td class="y">✓</td><td class="y">✓</td><td class="n">terminal</td></tr>
           <tr><td>Runs in the browser, nothing to install</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
-          <tr><td>Multi-card LF: up to 8 EM410x cards in one slot</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
+          <tr><td>Multi-card LF: up to 8 LF cards of any type in one slot</td><td class="y">✓</td><td class="n">–</td><td class="n">–</td></tr>
           <tr><td>Stop any long operation</td><td class="y">✓</td><td class="n">partly</td><td class="n">Ctrl+C</td></tr>
           <tr><td>Per-card slot LED colors</td><td class="y">✓</td><td class="n">–</td><td class="y">✓</td></tr>
           <tr><td>Import Proxmark3, Flipper, MCT, .bin / .eml</td><td class="y">✓</td><td class="n">partly</td><td class="n">partly</td></tr>
@@ -129,20 +129,21 @@
     <div class="release-head"><h3 id="fw-version">v2.3.4-cl</h3><span id="fw-date">Oct 30, 2026</span></div>
 
     <h3>Multi-card LF <span class="badge">New</span> <span class="badge">Only here</span></h3>
-    <p>An LF slot can hold up to eight EM410x cards. While a reader's field is present, the
+    <p>An LF slot can hold up to eight cards of any emulated LF type (EM410x, Electra, HID Prox,
+      ioProx, Viking, PAC, Jablotron, IDTECK, Pyramid), mixed in any order. While a reader's field is present, the
       slot sends the first card, then the next, and so on in a loop; a new field starts again
       at the first card. Neither the stock firmware nor any other app or firmware for the
       Chameleon can do this.</p>
     <ul class="changes">
-      <li><b>Time per card:</b> 1–10 bursts, each ten complete EM410x frames (about 0.33 s).
-        Eight cards at one burst each take about 2.6 s per pass.</li>
+      <li><b>Time per card:</b> 1–10 bursts, each ten complete frames of the card (about 0.33 s
+        for EM410x, 0.16–0.65 s for the other types). Eight EM410x cards at one burst each take about 2.6 s per pass.</li>
       <li><b>Silence between cards:</b> 0–3 s in 0.1 s steps, for readers that need a gap
         to accept the next card.</li>
       <li><b>Kept with the slot:</b> the list and timing survive restarts and follow the slot
         when slots are swapped. Single-card slots work as before.</li>
     </ul>
     <p class="meta">Build the list in the ChameLab slot editor from your saved cards and drag to
-      reorder. Apps use the new commands 5902–5905; the details are in
+      reorder. Apps use the commands 5907–5909; the details are in
       <a href="https://github.com/m0n5ter/ChameLab/blob/main/docs/lf-card-cycle.md">LF card cycling</a>.</p>
 
     <h3>Slot LED colors</h3>

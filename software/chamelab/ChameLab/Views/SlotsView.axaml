@@ -457,14 +457,14 @@
                 <Grid ColumnDefinitions="*,160" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                   <StackPanel VerticalAlignment="Center" Spacing="2">
                     <TextBlock Text="Time per card, bursts" TextTrimming="CharacterEllipsis"
-                               ToolTip.Tip="1–10 bursts per card; one burst is about 0.33 seconds" />
-                    <TextBlock Text="One burst ≈ 0.33 s." Classes="caption" TextTrimming="CharacterEllipsis" />
+                               ToolTip.Tip="1–10 bursts per card; one burst is ten frames of the card: about 0.33 seconds for EM410x, from 0.16 (Viking, IDTECK) to 0.66 (Electra, Jablotron) for the other types" />
+                    <TextBlock Text="One burst ≈ 0.16–0.66 s by card type." Classes="caption" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                   <NumericUpDown Grid.Column="1" Classes="stepper" Minimum="1" Maximum="10" Increment="1"
                                  FormatString="0" Value="{Binding CycleBursts}" />
                   <TextBlock Grid.Row="1" Text="Silence between cards, s" VerticalAlignment="Center"
-                             TextTrimming="CharacterEllipsis" IsVisible="{Binding ShowCycleGap}" />
-                  <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="stepper" IsVisible="{Binding ShowCycleGap}"
+                             TextTrimming="CharacterEllipsis" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="stepper"
                                  Minimum="0" Maximum="3" Increment="0.1" FormatString="0.0" Value="{Binding CycleGapSeconds}" />
                 </Grid>
               </StackPanel>

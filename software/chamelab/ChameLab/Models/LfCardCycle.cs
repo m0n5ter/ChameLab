@@ -1,71 +1,85 @@
 using System;
 using System.Linq;
+using ChameLab.Protocol;
 
 namespace ChameLab.Models;
 
-/// <summary>Additional EM410x UIDs; the slot's primary card is always first.</summary>
-public sealed record LfCardCycle(int Bursts, byte[][] ExtraIds, int GapSteps = 0)
+/// <summary>A card the LF side cycles through: an emulated LF slot type and its emulator data.</summary>
+public sealed record LfCycleCard(TagSpecificType Type, byte[] Id)
 {
-    public static LfCardCycle Parse(string text, int bursts)
-    {
-        if (bursts is < 1 or > 10) throw new ArgumentException("Time per card must be between 1 and 10 bursts.");
-        var lines = text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (lines.Length > 7) throw new ArgumentException("A slot can hold seven additional cards (eight total).");
-        var ids = lines.Select(line =>
-        {
-            var hex = line.Replace(" ", "").Replace(":", "").Replace("-", "");
-            if (hex.Length != 10 || !hex.All(Uri.IsHexDigit))
-                throw new ArgumentException("Each additional EM410x UID must contain exactly 10 hexadecimal digits.");
-            return Convert.FromHexString(hex);
-        }).ToArray();
-        if (ids.Select(Convert.ToHexString).Distinct().Count() != ids.Length)
-            throw new ArgumentException("The list contains duplicate UIDs.");
-        return new LfCardCycle(bursts, ids);
-    }
+    /// <summary>Slot types whose card can cycle with others: every emulated LF type.</summary>
+    public static bool CanCycle(TagSpecificType slotType) =>
+        ChameleonClient.SlotTypeFor(slotType) == slotType && slotType.LfIdLength() > 0;
+
+    public bool IsValid => CanCycle(Type) && Id.Length == Type.LfIdLength();
+
+    public bool SameAs(LfCycleCard other) => Type == other.Type && Id.AsSpan().SequenceEqual(other.Id);
+}
+
+/// <summary>Additional LF cards of any emulated type; the slot's own card is always first.</summary>
+public sealed record LfCardCycle(int Bursts, LfCycleCard[] Extras, int GapSteps = 0)
+{
+    /// <summary>Largest LF emulator data; each card is zero-padded to it on the wire.</summary>
+    private const int MaxIdLength = 16;
+    /// <summary>One extra card on the wire: tag type (u16, big-endian) and 16 data bytes.</summary>
+    public const int EntrySize = 2 + MaxIdLength;
+    private const int MaxExtras = 7;
 
     public byte[] Encode()
     {
-        if (Bursts is < 1 or > 10 || GapSteps is < 0 or > 30 || ExtraIds.Length > 7 || ExtraIds.Any(id => id.Length != 5))
-            throw new ArgumentException("Invalid EM410x cycle.");
-        var data = new byte[2 + 5 * ExtraIds.Length];
+        if (Bursts is < 1 or > 10 || GapSteps is < 0 or > 30 || Extras.Length > MaxExtras || Extras.Any(c => !c.IsValid))
+            throw new ArgumentException("Invalid LF card cycle.");
+        var data = new byte[3 + EntrySize * Extras.Length];
         data[0] = (byte)Bursts;
-        data[1] = (byte)ExtraIds.Length;
-        for (var i = 0; i < ExtraIds.Length; i++) ExtraIds[i].CopyTo(data, 2 + 5 * i);
+        data[1] = (byte)GapSteps;
+        data[2] = (byte)Extras.Length;
+        for (var i = 0; i < Extras.Length; i++)
+        {
+            var o = 3 + EntrySize * i;
+            data[o] = (byte)((ushort)Extras[i].Type >> 8);
+            data[o + 1] = (byte)Extras[i].Type;
+            Extras[i].Id.CopyTo(data, o + 2);
+        }
         return data;
     }
 
-    public static LfCardCycle Decode(byte[] data)
+    public static LfCardCycle Decode(ReadOnlySpan<byte> data)
     {
-        if (data.Length < 2 || data[0] is < 1 or > 10 || data[1] > 7 || data.Length != 2 + 5 * data[1])
-            throw new ArgumentException("Invalid EM410x cycle response.");
-        return new LfCardCycle(data[0], Enumerable.Range(0, data[1]).Select(i => data[(2 + 5 * i)..(7 + 5 * i)]).ToArray());
+        if (data.Length < 3 || data[0] is < 1 or > 10 || data[1] > 30 || data[2] > MaxExtras ||
+            data.Length != 3 + EntrySize * data[2])
+            throw new ArgumentException("Invalid LF card cycle response.");
+        var extras = new LfCycleCard[data[2]];
+        for (var i = 0; i < extras.Length; i++)
+        {
+            var entry = data.Slice(3 + EntrySize * i, EntrySize);
+            var type = (TagSpecificType)((entry[0] << 8) | entry[1]);
+            if (!LfCycleCard.CanCycle(type)) throw new ArgumentException("Invalid LF card cycle response.");
+            extras[i] = new LfCycleCard(type, entry.Slice(2, type.LfIdLength()).ToArray());
+        }
+        return new LfCardCycle(data[0], extras, data[1]);
     }
 
-    /// <summary>Size of one slot's entry in the all-slots reply (flag, bursts, count, silence, primary + 7 UIDs).</summary>
-    public const int AllCyclesEntrySize = 4 + 5 * 8;
+    /// <summary>Size of one slot's entry in the all-slots reply (type, own card, cycle zero-padded to seven cards).</summary>
+    public const int AllCyclesEntrySize = 2 + MaxIdLength + 3 + EntrySize * MaxExtras;
 
-    /// <summary>Decodes the all-slots reply: one entry per slot, null where the LF card is not EM410x.</summary>
+    /// <summary>Decodes the all-slots reply: one entry per slot, null where the slot has no emulated LF card.</summary>
     public static LfCardCycle?[] DecodeAll(byte[] data)
     {
         if (data.Length == 0 || data.Length % AllCyclesEntrySize != 0)
-            throw new ArgumentException("Invalid EM410x cycles response.");
+            throw new ArgumentException("Invalid LF card cycles response.");
         var result = new LfCardCycle?[data.Length / AllCyclesEntrySize];
         for (var slot = 0; slot < result.Length; slot++)
         {
             var e = data.AsSpan(slot * AllCyclesEntrySize, AllCyclesEntrySize);
-            if (e[0] == 0) continue;
-            if (e[1] is < 1 or > 10 || e[2] > 7 || e[3] > 30)
-                throw new ArgumentException("Invalid EM410x cycles response.");
-            var ids = new byte[e[2]][];
-            for (var i = 0; i < ids.Length; i++) ids[i] = e.Slice(9 + 5 * i, 5).ToArray();
-            result[slot] = new LfCardCycle(e[1], ids, e[3]);
+            if (e[0] == 0 && e[1] == 0) continue;
+            var count = e[2 + MaxIdLength + 2];
+            if (count > MaxExtras) throw new ArgumentException("Invalid LF card cycles response.");
+            result[slot] = Decode(e.Slice(2 + MaxIdLength, 3 + EntrySize * count));
         }
         return result;
     }
 
-    /// <summary>The same timing and cards (records compare the UID arrays by reference).</summary>
+    /// <summary>The same timing and cards (records compare the card arrays by reference).</summary>
     public bool SameAs(LfCardCycle other) => Bursts == other.Bursts && GapSteps == other.GapSteps &&
-        ExtraIds.Length == other.ExtraIds.Length && ExtraIds.Zip(other.ExtraIds).All(p => p.First.AsSpan().SequenceEqual(p.Second));
-
-    public string Text => string.Join(Environment.NewLine, ExtraIds.Select(Convert.ToHexString));
+        Extras.Length == other.Extras.Length && Extras.Zip(other.Extras).All(p => p.First.SameAs(p.Second));
 }

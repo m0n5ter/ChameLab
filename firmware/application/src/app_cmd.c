@@ -1258,119 +1258,118 @@ static bool get_active_em410x_type(tag_specific_type_t *tag_type_out, uint16_t *
     return false;
 }
 
+// The active slot's LF type, if it is one that can be emulated.
+static bool get_active_lf_type(tag_specific_type_t *tag_type_out, uint16_t *id_size_out) {
+    tag_slot_specific_type_t tag_types;
+    tag_emulation_get_specific_types_by_slot(tag_emulation_get_slot(), &tag_types);
+    *tag_type_out = tag_types.tag_lf;
+    *id_size_out = lf_tag_id_size(tag_types.tag_lf);
+    return *id_size_out != 0;
+}
+
+// Replaces the card of an LF slot of `type`, clearing its card cycle. The emulation is
+// stopped meanwhile: a cycle's interrupts read the cards from the buffer.
+static void lf_replace_card(tag_specific_type_t type, const uint8_t *data, uint16_t size) {
+    tag_data_buffer_t *buffer = get_buffer_by_tag_type(type);
+    bool sensing = get_device_mode() != DEVICE_MODE_READER;
+    if (sensing) tag_emulation_sense_end();
+    memset(buffer->buffer, 0, buffer->length);
+    memcpy(buffer->buffer, data, size);
+    tag_emulation_load_by_buffer(type, false);
+    if (sensing) tag_emulation_sense_run();
+}
+
 static data_frame_tx_t *cmd_processor_em410x_set_emu_id(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     tag_specific_type_t tag_type;
     uint16_t id_size;
     if (!get_active_em410x_type(&tag_type, &id_size) || length != id_size) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(tag_type);
-    bool sensing = get_device_mode() != DEVICE_MODE_READER;
-    if (sensing) tag_emulation_sense_end();
-    memset(buffer->buffer, 0, buffer->length); // Replacing a card clears its old cycle.
-    memcpy(buffer->buffer, data, id_size);
-    tag_emulation_load_by_buffer(tag_type, false);
-    if (sensing) tag_emulation_sense_run();
+    lf_replace_card(tag_type, data, id_size);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
-// Wire payload: bursts (1..10), extra count (0..7), extra UIDs (5 bytes each).
-// One burst is ten complete EM410x/64 frames (~328 ms), plus the field check.
-static data_frame_tx_t *cmd_processor_em410x_set_cycle(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+// Wire payload: bursts (1..10), silence between cards in 100 ms steps (0..30), extra count (0..7),
+// then per extra card its tag type (u16, big-endian) and 16 data bytes (its emulator data,
+// zero-padded). One burst is ten complete frames of the card, so its length depends on the
+// protocol (EM410x/64 ~328 ms, Electra ~655 ms).
+#define LF_CYCLE_PAYLOAD_MAX (3 + (LF_CYCLE_MAX - 1) * LF_CYCLE_ENTRY_SIZE)
+static data_frame_tx_t *cmd_processor_lf_set_cycle(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     tag_specific_type_t type;
     uint16_t size;
-    if (!get_active_em410x_type(&type, &size) || type != TAG_TYPE_EM410X ||
-        length < 2 || data[0] < 1 || data[0] > 10 || data[1] >= LF_EM410X_CYCLE_MAX ||
-        length != 2 + data[1] * LF_EM410X_TAG_ID_SIZE) {
+    if (!get_active_lf_type(&type, &size) || length < 3 || data[0] < 1 || data[0] > 10 || data[1] > 30 ||
+        data[2] >= LF_CYCLE_MAX || length != 3 + data[2] * LF_CYCLE_ENTRY_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    }
+    for (uint8_t i = 0; i < data[2]; i++) {
+        const uint8_t *entry = data + 3 + i * LF_CYCLE_ENTRY_SIZE;
+        if (lf_tag_id_size((tag_specific_type_t)((entry[0] << 8) | entry[1])) == 0)
+            return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
     tag_data_buffer_t *buffer = get_buffer_by_tag_type(type);
     bool sensing = get_device_mode() != DEVICE_MODE_READER;
     if (sensing) tag_emulation_sense_end();
-    memset(buffer->buffer + 5, 0, buffer->length - 5);
-    if (data[1]) {
-        buffer->buffer[5] = 0xC7;
-        buffer->buffer[6] = 1;
-        buffer->buffer[7] = data[1] + 1;
-        buffer->buffer[8] = data[0];
-        memcpy(buffer->buffer + 9, data + 2, length - 2);
+    memset(buffer->buffer + size, 0, buffer->length - size);
+    // A single card keeps the record only to retain a nonzero silence.
+    if (data[2] || data[1]) {
+        buffer->buffer[LF_CYCLE_MARKER] = 0xC7;
+        buffer->buffer[LF_CYCLE_VERSION] = 4;
+        buffer->buffer[LF_CYCLE_COUNT] = data[2] + 1;
+        buffer->buffer[LF_CYCLE_BURSTS] = data[0];
+        buffer->buffer[LF_CYCLE_SILENCE] = data[1];
+        memcpy(buffer->buffer + LF_CYCLE_EXTRAS, data + 3, length - 3);
     }
     tag_emulation_load_by_buffer(type, false);
     if (sensing) tag_emulation_sense_run();
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
-static data_frame_tx_t *cmd_processor_em410x_get_cycle(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
-    tag_specific_type_t type;
-    uint16_t size;
-    if (length || !get_active_em410x_type(&type, &size) || type != TAG_TYPE_EM410X) {
-        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
-    }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(type);
-    uint8_t response[2 + (LF_EM410X_CYCLE_MAX - 1) * LF_EM410X_TAG_ID_SIZE] = {1, 0};
-    if (lf_em410x_cycle_valid(buffer->buffer, buffer->length)) {
-        response[0] = buffer->buffer[8];
-        response[1] = buffer->buffer[7] - 1;
-        memcpy(response + 2, buffer->buffer + 9, response[1] * LF_EM410X_TAG_ID_SIZE);
-    }
-    return data_frame_make(cmd, STATUS_SUCCESS, 2 + response[1] * LF_EM410X_TAG_ID_SIZE, response);
+// Writes a record's cycle in the wire payload format; returns its length.
+static uint16_t lf_cycle_payload(const uint8_t *record, uint16_t record_length, uint8_t *out) {
+    out[0] = 1;
+    out[1] = out[2] = 0;
+    if (!lf_cycle_valid(record, record_length)) return 3;
+    out[0] = record[LF_CYCLE_BURSTS];
+    out[1] = record[LF_CYCLE_SILENCE];
+    out[2] = record[LF_CYCLE_COUNT] - 1;
+    memcpy(out + 3, record + LF_CYCLE_EXTRAS, out[2] * LF_CYCLE_ENTRY_SIZE);
+    return 3 + out[2] * LF_CYCLE_ENTRY_SIZE;
 }
 
-// Silence between cards, in 100 ms steps (0..30). Separate commands keep
-// the original cycle payload compatible with existing clients and firmware.
-static data_frame_tx_t *cmd_processor_em410x_set_cycle_gap(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+static data_frame_tx_t *cmd_processor_lf_get_cycle(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     tag_specific_type_t type;
     uint16_t size;
-    if (length != 1 || data[0] > 30 || !get_active_em410x_type(&type, &size) || type != TAG_TYPE_EM410X)
+    if (length || !get_active_lf_type(&type, &size)) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
-    bool sensing = get_device_mode() != DEVICE_MODE_READER;
-    if (sensing) tag_emulation_sense_end();
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(type);
-    if (!lf_em410x_cycle_valid(buffer->buffer, buffer->length)) {
-        memset(buffer->buffer + 5, 0, buffer->length - 5);
-        buffer->buffer[5] = 0xC7;
-        buffer->buffer[7] = 1;
-        buffer->buffer[8] = 1;
     }
-    buffer->buffer[6] = 2;
-    buffer->buffer[44] = data[0];
-    tag_emulation_load_by_buffer(type, false);
-    if (sensing) tag_emulation_sense_run();
-    return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
-}
-
-static data_frame_tx_t *cmd_processor_em410x_get_cycle_gap(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
-    tag_specific_type_t type;
-    uint16_t size;
-    if (length || !get_active_em410x_type(&type, &size) || type != TAG_TYPE_EM410X)
-        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     tag_data_buffer_t *buffer = get_buffer_by_tag_type(type);
-    uint8_t gap = lf_em410x_cycle_valid(buffer->buffer, buffer->length) && buffer->buffer[6] == 2 ? buffer->buffer[44] : 0;
-    return data_frame_make(cmd, STATUS_SUCCESS, 1, &gap);
+    uint8_t response[LF_CYCLE_PAYLOAD_MAX];
+    return data_frame_make(cmd, STATUS_SUCCESS, lf_cycle_payload(buffer->buffer, buffer->length, response), response);
 }
 
 // The cycle of every slot in one reply, so a client never has to switch the active slot (and run the
-// LED slot animation) just to read them. Per slot, fixed 44 bytes:
-//   [0] 1 = LF card is EM410x, 0 = not (the rest is zero)
-//   [1] bursts  [2] extra count (0..7)  [3] silence (0..30)  [4..8] primary UID  [9..43] 7 extra UIDs
+// LED slot animation) just to read them. Per slot, fixed 147 bytes:
+//   [0..1] LF tag type (u16, big-endian; 0 = no emulated LF card, and the rest is zero)
+//   [2..17] the slot's card (zero-padded)  [18..] the get-cycle payload, zero-padded
 // The active slot is read from RAM (it may hold unsaved edits), the others from flash.
-#define EM410X_ALL_CYCLES_ENTRY_SIZE (4 + LF_EM410X_TAG_ID_SIZE * LF_EM410X_CYCLE_MAX)
-static data_frame_tx_t *cmd_processor_em410x_get_all_cycles(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+#define LF_ALL_CYCLES_ENTRY_SIZE (2 + LF_MAX_TAG_ID_SIZE + LF_CYCLE_PAYLOAD_MAX)
+static data_frame_tx_t *cmd_processor_lf_get_all_cycles(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     if (length) return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
-    static uint8_t response[TAG_MAX_SLOT_NUM * EM410X_ALL_CYCLES_ENTRY_SIZE];
+    static uint8_t response[TAG_MAX_SLOT_NUM * LF_ALL_CYCLES_ENTRY_SIZE];
     memset(response, 0, sizeof(response));
     uint8_t active = tag_emulation_get_slot();
     for (uint8_t slot = 0; slot < TAG_MAX_SLOT_NUM; slot++) {
         tag_slot_specific_type_t tag_types;
         tag_emulation_get_specific_types_by_slot(slot, &tag_types);
-        if (tag_types.tag_lf != TAG_TYPE_EM410X) continue;
-        uint8_t *entry = response + slot * EM410X_ALL_CYCLES_ENTRY_SIZE;
+        uint16_t id_size = lf_tag_id_size(tag_types.tag_lf);
+        if (id_size == 0) continue;
+        uint8_t *entry = response + slot * LF_ALL_CYCLES_ENTRY_SIZE;
         // Word-aligned: FDS records are read in 4-byte words.
-        uint32_t record_words[(LF_EM410X_CYCLE_SIZE + 3) / 4] = {0};
+        uint32_t record_words[(LF_CYCLE_SIZE + 3) / 4] = {0};
         const uint8_t *record = (const uint8_t *)record_words;
         uint16_t record_length = 0;
         if (slot == active) {
-            tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_EM410X);
+            tag_data_buffer_t *buffer = get_buffer_by_tag_type(tag_types.tag_lf);
             record = buffer->buffer;
             record_length = buffer->length;
         } else {
@@ -1379,15 +1378,10 @@ static data_frame_tx_t *cmd_processor_em410x_get_all_cycles(uint16_t cmd, uint16
             record_length = sizeof(record_words);
             if (!fds_read_sync(map_info.id, map_info.key, &record_length, (uint8_t *)record_words)) record_length = 0;
         }
-        entry[0] = 1;
-        entry[1] = 1;
-        if (record_length >= LF_EM410X_TAG_ID_SIZE) memcpy(entry + 4, record, LF_EM410X_TAG_ID_SIZE);
-        if (lf_em410x_cycle_valid(record, record_length)) {
-            entry[1] = record[8];
-            entry[2] = record[7] - 1;
-            entry[3] = record[6] == 2 ? record[44] : 0;
-            memcpy(entry + 9, record + 9, entry[2] * LF_EM410X_TAG_ID_SIZE);
-        }
+        entry[0] = tag_types.tag_lf >> 8;
+        entry[1] = tag_types.tag_lf;
+        if (record_length >= id_size) memcpy(entry + 2, record, id_size);
+        lf_cycle_payload(record, record_length, entry + 2 + LF_MAX_TAG_ID_SIZE);
     }
     return data_frame_make(cmd, STATUS_SUCCESS, sizeof(response), response);
 }
@@ -1410,9 +1404,7 @@ static data_frame_tx_t *cmd_processor_hidprox_set_emu_id(uint16_t cmd, uint16_t 
     if (length != LF_HIDPROX_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_HID_PROX);
-    memcpy(buffer->buffer, data, LF_HIDPROX_TAG_ID_SIZE);
-    tag_emulation_load_by_buffer(TAG_TYPE_HID_PROX, false);
+    lf_replace_card(TAG_TYPE_HID_PROX, data, LF_HIDPROX_TAG_ID_SIZE);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
@@ -1430,9 +1422,7 @@ static data_frame_tx_t *cmd_processor_ioprox_set_emu_id(uint16_t cmd, uint16_t s
     if (length != LF_IOPROX_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_IOPROX);
-    memcpy(buffer->buffer, data, LF_IOPROX_TAG_ID_SIZE);
-    tag_emulation_load_by_buffer(TAG_TYPE_IOPROX, false);
+    lf_replace_card(TAG_TYPE_IOPROX, data, LF_IOPROX_TAG_ID_SIZE);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
@@ -1440,9 +1430,7 @@ static data_frame_tx_t *cmd_processor_idteck_set_emu_id(uint16_t cmd, uint16_t s
     if (length != LF_IDTECK_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_IDTECK);
-    memcpy(buffer->buffer, data, LF_IDTECK_TAG_ID_SIZE);
-    tag_emulation_load_by_buffer(TAG_TYPE_IDTECK, false);
+    lf_replace_card(TAG_TYPE_IDTECK, data, LF_IDTECK_TAG_ID_SIZE);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
@@ -1576,9 +1564,7 @@ static data_frame_tx_t *cmd_processor_viking_set_emu_id(uint16_t cmd, uint16_t s
     if (length != LF_VIKING_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_VIKING);
-    memcpy(buffer->buffer, data, LF_VIKING_TAG_ID_SIZE);
-    tag_emulation_load_by_buffer(TAG_TYPE_VIKING, false);
+    lf_replace_card(TAG_TYPE_VIKING, data, LF_VIKING_TAG_ID_SIZE);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
@@ -1596,9 +1582,7 @@ static data_frame_tx_t *cmd_processor_pac_set_emu_id(uint16_t cmd, uint16_t stat
     if (length != LF_PAC_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_PAC);
-    memcpy(buffer->buffer, data, LF_PAC_TAG_ID_SIZE);
-    tag_emulation_load_by_buffer(TAG_TYPE_PAC, false);
+    lf_replace_card(TAG_TYPE_PAC, data, LF_PAC_TAG_ID_SIZE);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
@@ -1616,9 +1600,7 @@ static data_frame_tx_t *cmd_processor_jablotron_set_emu_id(uint16_t cmd, uint16_
     if (length != LF_JABLOTRON_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_JABLOTRON);
-    memcpy(buffer->buffer, data, LF_JABLOTRON_TAG_ID_SIZE);
-    tag_emulation_load_by_buffer(TAG_TYPE_JABLOTRON, false);
+    lf_replace_card(TAG_TYPE_JABLOTRON, data, LF_JABLOTRON_TAG_ID_SIZE);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
@@ -1636,9 +1618,7 @@ static data_frame_tx_t *cmd_processor_pyramid_set_emu_id(uint16_t cmd, uint16_t 
     if (length != LF_PYRAMID_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_FARPOINTE_PYRAMID);
-    memcpy(buffer->buffer, data, LF_PYRAMID_TAG_ID_SIZE);
-    tag_emulation_load_by_buffer(TAG_TYPE_FARPOINTE_PYRAMID, false);
+    lf_replace_card(TAG_TYPE_FARPOINTE_PYRAMID, data, LF_PYRAMID_TAG_ID_SIZE);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
@@ -3547,11 +3527,9 @@ static cmd_data_map_t m_data_cmd_map[] = {
 
     {    DATA_CMD_EM410X_SET_EMU_ID,              NULL,                      cmd_processor_em410x_set_emu_id,             NULL                   },
     {    DATA_CMD_EM410X_GET_EMU_ID,              NULL,                      cmd_processor_em410x_get_emu_id,             NULL                   },
-    {    DATA_CMD_EM410X_SET_CYCLE,               NULL,                      cmd_processor_em410x_set_cycle,              NULL                   },
-    {    DATA_CMD_EM410X_GET_CYCLE,               NULL,                      cmd_processor_em410x_get_cycle,              NULL                   },
-    {    DATA_CMD_EM410X_SET_CYCLE_GAP,           NULL,                      cmd_processor_em410x_set_cycle_gap,          NULL                   },
-    {    DATA_CMD_EM410X_GET_CYCLE_GAP,           NULL,                      cmd_processor_em410x_get_cycle_gap,          NULL                   },
-    {    DATA_CMD_EM410X_GET_ALL_CYCLES,          NULL,                      cmd_processor_em410x_get_all_cycles,         NULL                   },
+    {    DATA_CMD_LF_SET_CYCLE,                   NULL,                      cmd_processor_lf_set_cycle,                  NULL                   },
+    {    DATA_CMD_LF_GET_CYCLE,                   NULL,                      cmd_processor_lf_get_cycle,                  NULL                   },
+    {    DATA_CMD_LF_GET_ALL_CYCLES,              NULL,                      cmd_processor_lf_get_all_cycles,             NULL                   },
     {    DATA_CMD_HIDPROX_SET_EMU_ID,             NULL,                      cmd_processor_hidprox_set_emu_id,            NULL                   },
     {    DATA_CMD_HIDPROX_GET_EMU_ID,             NULL,                      cmd_processor_hidprox_get_emu_id,            NULL                   },
     {    DATA_CMD_IOPROX_SET_EMU_ID,              NULL,                      cmd_processor_ioprox_set_emu_id,             NULL                   },

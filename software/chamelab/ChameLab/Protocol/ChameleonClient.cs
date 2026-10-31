@@ -18,36 +18,24 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 {
     public ChameleonConnection Connection => conn;
 
-    public async Task<LfCardCycle> GetEm410xCycleAsync(CancellationToken ct = default)
+    public async Task<LfCardCycle> GetLfCycleAsync(CancellationToken ct = default)
     {
-        var frame = await conn.SendExpectAsync(Command.Em410xGetCycle, Status.Success, ct: ct);
-        var cycle = LfCardCycle.Decode(frame.Data);
-        if (!(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetCycleGap)) return cycle;
-        var gap = await conn.SendExpectAsync(Command.Em410xGetCycleGap, Status.Success, ct: ct);
-        if (gap.Data.Length != 1 || gap.Data[0] > 30) throw new ArgumentException("Invalid LF cycle silence response.");
-        return cycle with { GapSteps = gap.Data[0] };
+        var frame = await conn.SendExpectAsync(Command.LfGetCycle, Status.Success, ct: ct);
+        return LfCardCycle.Decode(frame.Data);
     }
 
     /// <summary>
-    /// The cycle of every slot (index 0 = slot 1; null where the LF card is not EM410x), read without
-    /// switching the active slot. Needs <see cref="Command.Em410xGetAllCycles"/>.
+    /// The cycle of every slot (index 0 = slot 1; null where the slot has no emulated LF card),
+    /// read without switching the active slot.
     /// </summary>
-    public async Task<LfCardCycle?[]> GetAllEm410xCyclesAsync(CancellationToken ct = default)
+    public async Task<LfCardCycle?[]> GetAllLfCyclesAsync(CancellationToken ct = default)
     {
-        var frame = await conn.SendExpectAsync(Command.Em410xGetAllCycles, Status.Success, ct: ct);
+        var frame = await conn.SendExpectAsync(Command.LfGetAllCycles, Status.Success, ct: ct);
         return LfCardCycle.DecodeAll(frame.Data);
     }
 
-    public async Task SetEm410xCycleAsync(LfCardCycle cycle, CancellationToken ct = default)
-    {
-        var payload = cycle.Encode();
-        if (cycle.GapSteps > 0 && !(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xSetCycleGap))
-            throw new NotSupportedException("Update the firmware to configure silence between LF cards.");
-        await conn.SendExpectAsync(Command.Em410xSetCycle, Status.Success, payload, ct: ct);
-        // SET_CYCLE also clears a previous gap, preserving the legacy wire format.
-        if (cycle.GapSteps > 0)
-            await conn.SendExpectAsync(Command.Em410xSetCycleGap, Status.Success, [(byte)cycle.GapSteps], ct: ct);
-    }
+    public async Task SetLfCycleAsync(LfCardCycle cycle, CancellationToken ct = default) =>
+        await conn.SendExpectAsync(Command.LfSetCycle, Status.Success, cycle.Encode(), ct: ct);
 
     private readonly SemaphoreSlim _slotLock = new(1, 1);
 
@@ -233,36 +221,15 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     }
 
     /// <summary>
-    /// Reads the card cycle of every EM410x slot into <see cref="SlotInfo.LfCycle"/>. One command when the
-    /// firmware has it; older firmware switches the active slot to read each one and then back (each switch
-    /// runs the LED slot animation), so run it under the slot lock.
+    /// Reads the card cycle of every LF slot into <see cref="SlotInfo.LfCycle"/> in one
+    /// command, without switching the active slot. Firmware without it has no card cycles.
     /// </summary>
     public async Task ReadLfCyclesAsync(IReadOnlyList<SlotInfo> slots, CancellationToken ct = default)
     {
-        var lf = slots.Where(s => s.LfType == TagSpecificType.Em410x && s.LfEnabled).ToList();
-        if (lf.Count == 0) return;
-        var caps = await GetCapabilitiesAsync(ct);
-        if (caps.Contains((ushort)Command.Em410xGetAllCycles))
-        {
-            var all = await GetAllEm410xCyclesAsync(ct);
-            foreach (var slot in lf) slot.LfCycle = all[slot.Index - 1];
-            return;
-        }
-        if (!caps.Contains((ushort)Command.Em410xGetCycle)) return;
-        var previous = await GetActiveSlotAsync(ct);
-        try
-        {
-            foreach (var slot in lf)
-            {
-                await SetActiveSlotAsync(slot.Index, ct);
-                try { slot.LfCycle = await GetEm410xCycleAsync(ct); }
-                catch (ChameleonException) { /* shown with its own card only */ }
-            }
-        }
-        finally
-        {
-            if (previous is >= 1 and <= 8) await SetActiveSlotAsync(previous, ct);
-        }
+        var lf = slots.Where(s => LfCycleCard.CanCycle(s.LfType) && s.LfEnabled).ToList();
+        if (lf.Count == 0 || !(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.LfGetAllCycles)) return;
+        var all = await GetAllLfCyclesAsync(ct);
+        foreach (var slot in lf) slot.LfCycle = all[slot.Index - 1];
     }
 
     private static void ParseNicks(byte[] data, List<SlotInfo> slots)
@@ -1531,25 +1498,10 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var lf = await Side(TagSenseType.Lf);
         var emulator = await ReadEmulatorSettingsAsync(slot, ct);
         LfCardCycle? cycle = null;
-        if (slot.LfType == TagSpecificType.Em410x &&
-            (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetAllCycles))
+        if (LfCycleCard.CanCycle(slot.LfType) &&
+            (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.LfGetAllCycles))
         {
-            cycle = (await GetAllEm410xCyclesAsync(ct))[slot.Index - 1];
-        }
-        else if (slot.LfType == TagSpecificType.Em410x &&
-            (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Em410xGetCycle))
-        {
-            var previous = await GetActiveSlotAsync(ct);
-            try
-            {
-                await SetActiveSlotAsync(slot.Index, ct);
-                cycle = await GetEm410xCycleAsync(ct);
-            }
-            finally
-            {
-                if (previous != slot.Index && previous is >= 1 and <= 8)
-                    await SetActiveSlotAsync(previous, ct);
-            }
+            cycle = (await GetAllLfCyclesAsync(ct))[slot.Index - 1];
         }
         return new SlotContent(slot.Index, hf, lf, emulator, cycle);
     }
@@ -1591,7 +1543,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         if (content.Lf is not null && content.LfCycle is { } cycle)
         {
             await SetActiveSlotAsync(slot1Based, ct);
-            await SetEm410xCycleAsync(cycle, ct);
+            await SetLfCycleAsync(cycle, ct);
         }
         await SaveSlotConfigAsync(ct);
     }

@@ -51,8 +51,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     public bool HasCards => Cards.Count > 0;
     public string ChooseLabel => HasCards ? "Add saved" : "Choose saved";
     public string CountLabel => $"{Cards.Count} / 8";
-    public bool CanAdd => !HasCards || (_supportsCycle && Cards.Count < 8 &&
-        ChameleonClient.SlotTypeFor(Cards[0].Card.Tag) == TagSpecificType.Em410x);
+    public bool CanAdd => !HasCards || (_supportsCycle && Cards.Count < 8 && CanCycle(Cards[0].Card));
     public bool IsDirty => !Cards.Select(c => Key(c.Card)).SequenceEqual(_saved.Select(Key));
     private static string Key(CardSave card) => $"{(int)ChameleonClient.SlotTypeFor(card.Tag)}:{Convert.ToHexString(card.Uid)}";
 
@@ -62,14 +61,20 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
         _supportsCycle = supportsCycle;
         Cards.Clear();
         if (_side.HasCard) Cards.Add(Row(_side.CurrentCard()));
-        foreach (var uid in cycle.ExtraIds)
-            Cards.Add(Row(new CardSave { Tag = TagSpecificType.Em410x, Uid = uid.ToArray(), Name = $"EM410x {Convert.ToHexString(uid)}" }));
+        foreach (var extra in cycle.Extras)
+            Cards.Add(Row(new CardSave { Tag = extra.Type, Uid = extra.Id.ToArray(), Name = DefaultName(extra) }));
         MarkSaved();
     }
 
+    /// <summary>The name of a cycled card that is not in the card library.</summary>
+    public static string DefaultName(LfCycleCard card) => $"{card.Type.DisplayName()} {Convert.ToHexString(card.Id)}";
+
+    // Cards of any emulated LF type can be mixed in one cycle.
+    private static bool CanCycle(CardSave card) => ToCycleCard(card).IsValid;
+    private static LfCycleCard ToCycleCard(CardSave card) => new(ChameleonClient.SlotTypeFor(card.Tag), card.Uid.ToArray());
+
     public bool CanChoose(CardSave card) => CanAdd && card.Sense == TagSenseType.Lf &&
-        (!HasCards || (ChameleonClient.SlotTypeFor(card.Tag) == TagSpecificType.Em410x && card.Uid.Length == 5)) &&
-        Cards.All(row => Key(row.Card) != Key(card));
+        (!HasCards || CanCycle(card)) && Cards.All(row => Key(row.Card) != Key(card));
 
     public void Add(CardSave card)
     {
@@ -160,7 +165,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
 
     public LfCardCycle Cycle(int bursts, int gapSteps = 0)
     {
-        var cycle = new LfCardCycle(bursts, Cards.Skip(1).Select(c => c.Card.Uid.ToArray()).ToArray(), gapSteps);
+        var cycle = new LfCardCycle(bursts, Cards.Skip(1).Select(c => ToCycleCard(c.Card)).ToArray(), gapSteps);
         cycle.Encode(); // Validate before any slot writes.
         return cycle;
     }

@@ -54,7 +54,6 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private SlotSideViewModel? _pickerSide;
     private string? _pickerFilter;
     private bool _supportsLfCycle;
-    private bool _supportsCycleGap;
     private decimal _savedCycleGapSeconds;
     private int _savedCycleBursts = 1;
     // The cycle the LF cards were loaded with while multi-LF is supported, else null.
@@ -63,7 +62,6 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     public LfSlotListViewModel LfCards { get; }
     public bool SupportsMultiLf => _supportsLfCycle;
     public bool ShowLfCycle => _supportsLfCycle && LfCards.Cards.Count > 1;
-    public bool ShowCycleGap => _supportsCycleGap;
 
     public decimal CycleGapSeconds
     {
@@ -82,11 +80,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     internal void SetLfCapabilities(IReadOnlyList<ushort> capabilities)
     {
-        _supportsLfCycle = capabilities.Contains((ushort)Command.Em410xSetCycle) && capabilities.Contains((ushort)Command.Em410xGetCycle);
-        _supportsCycleGap = _supportsLfCycle && capabilities.Contains((ushort)Command.Em410xSetCycleGap) && capabilities.Contains((ushort)Command.Em410xGetCycleGap);
+        _supportsLfCycle = capabilities.Contains((ushort)Command.LfSetCycle) && capabilities.Contains((ushort)Command.LfGetCycle);
         this.RaisePropertyChanged(nameof(SupportsMultiLf));
         this.RaisePropertyChanged(nameof(ShowLfCycle));
-        this.RaisePropertyChanged(nameof(ShowCycleGap));
         RaiseDirty();
     }
 
@@ -107,7 +103,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard);
         // Lay the LF cards out from what the slot list read, so they don't change shape once the device answers.
         if (device.Client?.Capabilities is { } capabilities) SetLfCapabilities(capabilities);
-        LoadCycle(info.LfType == TagSpecificType.Em410x ? info.LfCycle ?? new LfCardCycle(1, []) : new LfCardCycle(1, []));
+        LoadCycle(LfCycleCard.CanCycle(info.LfType) ? info.LfCycle ?? new LfCardCycle(1, []) : new LfCardCycle(1, []));
         SetEmulator(Emulator.Defaults);
 
         ClosePickerCommand = ReactiveCommand.Create(ClosePicker);
@@ -239,9 +235,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             await LoadUidAsync(client, Hf);
             await LoadUidAsync(client, Lf);
             var capabilities = await client.GetCapabilitiesAsync();
-            var supportsCycle = capabilities.Contains((ushort)Command.Em410xSetCycle) && capabilities.Contains((ushort)Command.Em410xGetCycle);
-            var cycle = supportsCycle && Lf.SavedType == TagSpecificType.Em410x
-                ? await client.GetEm410xCycleAsync() : new LfCardCycle(1, []);
+            var supportsCycle = capabilities.Contains((ushort)Command.LfSetCycle) && capabilities.Contains((ushort)Command.LfGetCycle);
+            var cycle = supportsCycle && LfCycleCard.CanCycle(Lf.SavedType)
+                ? await client.GetLfCycleAsync() : new LfCardCycle(1, []);
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 SetLfCapabilities(capabilities);
@@ -331,7 +327,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             var kind = ShownKind;
             var emulator = CurrentEmulator;
             // Validate before writing either frequency, so invalid input leaves the device untouched.
-            var cycle = _supportsLfCycle && Lf.Type == TagSpecificType.Em410x
+            var cycle = _supportsLfCycle && LfCycleCard.CanCycle(Lf.Type)
                 ? LfCards.Cycle(CycleBursts, (int)(CycleGapSeconds * 10m)) : null;
             var progress = new Progress<MifareProgress>(p => Notify($"Uploading {p.Done}/{p.Total}…"));
 
@@ -343,7 +339,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                 if (cycle is not null)
                 {
                     await client.SetActiveSlotAsync(_slot);
-                    await client.SetEm410xCycleAsync(cycle);
+                    await client.SetLfCycleAsync(cycle);
                 }
                 if (kind != EmulatorKind.None)
                 {

@@ -43,8 +43,39 @@ static tag_specific_type_t m_tag_type = TAG_TYPE_UNDEFINED;
 const nrfx_pwm_t m_broadcast = NRFX_PWM_INSTANCE(0);
 const nrf_pwm_sequence_t *m_pwm_seq = NULL;
 
-static nrf_pwm_values_wave_form_t m_cycle_values[LF_EM410X_CYCLE_MAX][64];
-static nrf_pwm_sequence_t m_cycle_sequences[LF_EM410X_CYCLE_MAX];
+typedef struct {
+    tag_specific_type_t type;
+    const protocol *proto;
+    uint16_t id_size;
+} lf_tag_protocol_t;
+
+// The emulated LF types. Their modulators don't use a codec, so they are called with NULL.
+static const lf_tag_protocol_t m_lf_protocols[] = {
+    {TAG_TYPE_EM410X,            &em410x_64,      LF_EM410X_TAG_ID_SIZE},
+    {TAG_TYPE_EM410X_ELECTRA,    &em410x_electra, LF_EM410X_ELECTRA_TAG_ID_SIZE},
+    {TAG_TYPE_HID_PROX,          &hidprox,        LF_HIDPROX_TAG_ID_SIZE},
+    {TAG_TYPE_IOPROX,            &ioprox,         LF_IOPROX_TAG_ID_SIZE},
+    {TAG_TYPE_VIKING,            &viking,         LF_VIKING_TAG_ID_SIZE},
+    {TAG_TYPE_PAC,               &pac,            LF_PAC_TAG_ID_SIZE},
+    {TAG_TYPE_JABLOTRON,         &jablotron,      LF_JABLOTRON_TAG_ID_SIZE},
+    {TAG_TYPE_IDTECK,            &idteck,         LF_IDTECK_TAG_ID_SIZE},
+    {TAG_TYPE_FARPOINTE_PYRAMID, &pyramid,        LF_PYRAMID_TAG_ID_SIZE},
+};
+
+static const lf_tag_protocol_t *lf_protocol(tag_specific_type_t type) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(m_lf_protocols); i++) {
+        if (m_lf_protocols[i].type == type) return &m_lf_protocols[i];
+    }
+    return NULL;
+}
+
+uint16_t lf_tag_id_size(tag_specific_type_t type) {
+    const lf_tag_protocol_t *p = lf_protocol(type);
+    return p ? p->id_size : 0;
+}
+
+// The loaded LF buffer while it holds a cycle; the interrupts read the cards from it.
+static const uint8_t *m_cycle_record = NULL;
 static uint8_t m_cycle_count = 1, m_cycle_index = 0;
 static uint8_t m_cycle_bursts = 1, m_cycle_elapsed = 0;
 static uint8_t m_cycle_gap_steps = 0;
@@ -52,11 +83,34 @@ static volatile bool m_gap_active = false;
 static bool m_gap_timer_created = false;
 APP_TIMER_DEF(m_cycle_gap_timer);
 
-bool lf_em410x_cycle_valid(const uint8_t *data, uint16_t length) {
-    if (length < LF_EM410X_CYCLE_V1_SIZE || data[5] != 0xC7 ||
-        data[7] > LF_EM410X_CYCLE_MAX || data[8] < 1 || data[8] > 10) return false;
-    if (data[6] == 1) return data[7] >= 2;
-    return data[6] == 2 && length >= LF_EM410X_CYCLE_SIZE && data[7] >= 1 && data[44] <= 30;
+static tag_specific_type_t lf_cycle_entry_type(const uint8_t *data, uint8_t index) {
+    const uint8_t *entry = data + LF_CYCLE_EXTRAS + (index - 1) * LF_CYCLE_ENTRY_SIZE;
+    return (tag_specific_type_t)((entry[0] << 8) | entry[1]);
+}
+
+bool lf_cycle_valid(const uint8_t *data, uint16_t length) {
+    if (length < LF_CYCLE_SIZE || data[LF_CYCLE_MARKER] != 0xC7 || data[LF_CYCLE_VERSION] != 4 ||
+        data[LF_CYCLE_COUNT] < 1 || data[LF_CYCLE_COUNT] > LF_CYCLE_MAX ||
+        data[LF_CYCLE_BURSTS] < 1 || data[LF_CYCLE_BURSTS] > 10 || data[LF_CYCLE_SILENCE] > 30)
+        return false;
+    for (uint8_t i = 1; i < data[LF_CYCLE_COUNT]; i++) {
+        if (lf_protocol(lf_cycle_entry_type(data, i)) == NULL) return false;
+    }
+    return true;
+}
+
+/**
+ * @brief Makes card `index` of the cycle the one to send: builds its waveform and sets its PWM base clock.
+ * Waveforms are built in their protocol's buffer, shared by the cards of that protocol, so call
+ * only while PWM is stopped (EasyDMA no longer reads the previous card's waveform).
+ */
+static void cycle_select(uint8_t index) {
+    tag_specific_type_t type = index == 0 ? m_tag_type : lf_cycle_entry_type(m_cycle_record, index);
+    const uint8_t *data = index == 0 ? m_cycle_record : m_cycle_record + LF_CYCLE_EXTRAS + (index - 1) * LF_CYCLE_ENTRY_SIZE + 2;
+    m_cycle_index = index;
+    m_pwm_seq = lf_protocol(type)->proto->modulator(NULL, (uint8_t *)data);
+    // PSK1 cards need the 1 MHz base clock, the others 125 kHz (see pwm_init).
+    m_broadcast.p_registers->PRESCALER = IS_PSK1_TYPE(type) ? NRF_PWM_CLK_1MHz : NRF_PWM_CLK_125kHz;
 }
 
 static void cycle_gap_stop(void) {
@@ -122,8 +176,8 @@ static void lpcomp_event_handler(nrf_lpcomp_event_t event) {
     // PWM has fully released LF_MOD, so ANT_NO_MOD() and the settle delay are
     // effective. NRFX_PWM_FLAG_LOOP kept the pin owned by the peripheral,
     // making the field check always read "present" due to self-drive on LF_RSSI.
-    m_cycle_index = m_cycle_elapsed = 0;
-    if (m_cycle_count > 1) m_pwm_seq = &m_cycle_sequences[0];
+    m_cycle_elapsed = 0;
+    if (m_cycle_count > 1 && m_cycle_index != 0) cycle_select(0);
     nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
 
     NRF_LOG_INFO("LF FIELD DETECTED");
@@ -167,8 +221,7 @@ static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
     if (is_lf_field_exists()) {
         if (m_cycle_count > 1 && ++m_cycle_elapsed >= m_cycle_bursts) {
             m_cycle_elapsed = 0;
-            m_cycle_index = (m_cycle_index + 1) % m_cycle_count;
-            m_pwm_seq = &m_cycle_sequences[m_cycle_index];
+            cycle_select((m_cycle_index + 1) % m_cycle_count);
             if (m_cycle_gap_steps) {
                 // Look like a removed card for the whole gap: keep the modulation
                 // switch closed so the antenna is detuned and barely loads the
@@ -264,10 +317,6 @@ static enum {
     LF_SENSE_STATE_ENABLE,
 } m_lf_sense_state = LF_SENSE_STATE_NONE;
 
-static uint16_t lf_em410x_id_size(tag_specific_type_t type) {
-    return type == TAG_TYPE_EM410X_ELECTRA ? LF_EM410X_ELECTRA_TAG_ID_SIZE : LF_EM410X_TAG_ID_SIZE;
-}
-
 /**
  * @brief switchLfFieldInductionToEnableTheState
  */
@@ -296,151 +345,40 @@ int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
     m_cycle_count = 1;
     m_cycle_gap_steps = 0;
     m_cycle_index = m_cycle_elapsed = 0;
+    m_cycle_record = NULL;
     // ensure buffer size is large enough for specific tag type,
     // so that tag data (e.g., card numbers) can be converted to corresponding pwm sequence here.
-    if ((type == TAG_TYPE_EM410X || type == TAG_TYPE_EM410X_ELECTRA) && buffer->length >= lf_em410x_id_size(type)) {
-        const protocol *p = type == TAG_TYPE_EM410X_ELECTRA ? &em410x_electra : &em410x_64;
-        m_tag_type = type;
-        void *codec = p->alloc();
-        m_pwm_seq = p->modulator(codec, buffer->buffer);
-        p->free(codec);
-        if (type == TAG_TYPE_EM410X && lf_em410x_cycle_valid(buffer->buffer, buffer->length)) {
-            m_cycle_count = buffer->buffer[7];
-            m_cycle_bursts = buffer->buffer[8];
-            m_cycle_gap_steps = buffer->buffer[6] == 2 ? buffer->buffer[44] : 0;
-            // Precompute in thread context. ISR switches pointers only; no allocation
-            // or rewriting a waveform that EasyDMA might still be transmitting.
-            for (uint8_t i = 0; i < m_cycle_count; i++) {
-                uint8_t *uid = i == 0 ? buffer->buffer : buffer->buffer + 9 + (i - 1) * 5;
-                const nrf_pwm_sequence_t *seq = em410x_64.modulator(NULL, uid);
-                memcpy(m_cycle_values[i], seq->values.p_wave_form, sizeof(m_cycle_values[i]));
-                m_cycle_sequences[i] = *seq;
-                m_cycle_sequences[i].values.p_wave_form = m_cycle_values[i];
-            }
-            m_pwm_seq = &m_cycle_sequences[0];
-            return buffer->buffer[6] == 2 ? LF_EM410X_CYCLE_SIZE : LF_EM410X_CYCLE_V1_SIZE;
-        }
-        NRF_LOG_INFO("load lf em410x%s data finish.", type == TAG_TYPE_EM410X_ELECTRA ? " electra" : "");
-        return lf_em410x_id_size(type);
+    const lf_tag_protocol_t *p = lf_protocol(type);
+    if (p == NULL || buffer->length < p->id_size) {
+        NRF_LOG_ERROR("no valid data exists in buffer for tag type: %d.", type);
+        return 0;
     }
-
-    if (type == TAG_TYPE_HID_PROX && buffer->length >= LF_HIDPROX_TAG_ID_SIZE) {
-        m_tag_type = type;
-        void *codec = hidprox.alloc();
-        m_pwm_seq = hidprox.modulator(codec, buffer->buffer);
-        hidprox.free(codec);
-        NRF_LOG_INFO("load lf hidprox data finish.");
-        return LF_HIDPROX_TAG_ID_SIZE;
+    m_tag_type = type;
+    m_pwm_seq = p->proto->modulator(NULL, buffer->buffer);
+    if (lf_cycle_valid(buffer->buffer, buffer->length)) {
+        // The other cards are modulated when their turn comes (cycle_select): a waveform can
+        // take kilobytes, too much to keep one per card.
+        m_cycle_record = buffer->buffer;
+        m_cycle_count = buffer->buffer[LF_CYCLE_COUNT];
+        m_cycle_bursts = buffer->buffer[LF_CYCLE_BURSTS];
+        m_cycle_gap_steps = buffer->buffer[LF_CYCLE_SILENCE];
+        NRF_LOG_INFO("load lf data of type %d with %d cards finish.", type, m_cycle_count);
+        return LF_CYCLE_SIZE;
     }
-
-    if (type == TAG_TYPE_IOPROX && buffer->length >= LF_IOPROX_TAG_ID_SIZE) {
-        m_tag_type = type;
-        void *codec = ioprox.alloc();
-        m_pwm_seq = ioprox.modulator(codec, buffer->buffer);
-        ioprox.free(codec);
-        NRF_LOG_INFO("load lf ioprox data finish.");
-        return LF_IOPROX_TAG_ID_SIZE;
-    }
-
-    if (type == TAG_TYPE_VIKING && buffer->length >= LF_VIKING_TAG_ID_SIZE) {
-        m_tag_type = type;
-        void *codec = viking.alloc();
-        m_pwm_seq = viking.modulator(codec, buffer->buffer);
-        viking.free(codec);
-        NRF_LOG_INFO("load lf viking data finish.");
-        return LF_VIKING_TAG_ID_SIZE;
-    }
-
-    if (type == TAG_TYPE_PAC && buffer->length >= LF_PAC_TAG_ID_SIZE) {
-        m_tag_type = type;
-        void *codec = pac.alloc();
-        m_pwm_seq = pac.modulator(codec, buffer->buffer);
-        pac.free(codec);
-        NRF_LOG_INFO("load lf pac data finish.");
-        return LF_PAC_TAG_ID_SIZE;
-    }
-
-    if (type == TAG_TYPE_JABLOTRON && buffer->length >= LF_JABLOTRON_TAG_ID_SIZE) {
-        m_tag_type = type;
-        void *codec = jablotron.alloc();
-        m_pwm_seq = jablotron.modulator(codec, buffer->buffer);
-        jablotron.free(codec);
-        NRF_LOG_INFO("load lf jablotron data finish.");
-        return LF_JABLOTRON_TAG_ID_SIZE;
-    }
-
-    if (type == TAG_TYPE_IDTECK && buffer->length >= LF_IDTECK_TAG_ID_SIZE) {
-        m_tag_type = type;
-        void *codec = idteck.alloc();
-        m_pwm_seq = idteck.modulator(codec, buffer->buffer);
-        idteck.free(codec);
-        NRF_LOG_INFO("load lf idteck data finish.");
-        return LF_IDTECK_TAG_ID_SIZE;
-    }
-
-    if (type == TAG_TYPE_FARPOINTE_PYRAMID && buffer->length >= LF_PYRAMID_TAG_ID_SIZE) {
-        m_tag_type = type;
-        void *codec = pyramid.alloc();
-        m_pwm_seq = pyramid.modulator(codec, buffer->buffer);
-        pyramid.free(codec);
-        NRF_LOG_INFO("load lf pyramid data finish.");
-        return LF_PYRAMID_TAG_ID_SIZE;
-    }
-
-    NRF_LOG_ERROR("no valid data exists in buffer for tag type: %d.", type);
-    return 0;
+    NRF_LOG_INFO("load lf data of type %d finish.", type);
+    return p->id_size;
 }
 
-/** @brief Id card deposit card number before callback
+/** @brief LF card data save callback
  * @param type      Refined tag type
  * @param buffer    Data buffer
  * @return The length of the data that needs to be saved is that it does not save when 0
  */
-int lf_tag_em410x_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
+int lf_tag_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
     // Make sure to load this tag before allowing saving
-    // Just save the original card package directly
-    if (m_tag_type == TAG_TYPE_EM410X) {
-        if (lf_em410x_cycle_valid(buffer->buffer, buffer->length))
-            return buffer->buffer[6] == 2 ? LF_EM410X_CYCLE_SIZE : LF_EM410X_CYCLE_V1_SIZE;
-        return LF_EM410X_TAG_ID_SIZE;
-    }
-    if (m_tag_type == TAG_TYPE_EM410X_ELECTRA) {
-        return LF_EM410X_ELECTRA_TAG_ID_SIZE;
-    }
-    return 0;
-}
-
-/** @brief Id card deposit card number before callback
- * @param type      Refined tag type
- * @param buffer    Data buffer
- * @return The length of the data that needs to be saved is that it does not save when 0
- */
-int lf_tag_hidprox_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
-    // Make sure to load this tag before allowing saving
-    // Just save the original card package directly
-    return m_tag_type == TAG_TYPE_HID_PROX ? LF_HIDPROX_TAG_ID_SIZE : 0;
-}
-
-/** @brief Id card deposit card number before callback
- * @param type      Refined tag type
- * @param buffer    Data buffer
- * @return The length of the data that needs to be saved is that it does not save when 0
- */
-int lf_tag_ioprox_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
-    // Make sure to load this tag before allowing saving
-    // Just save the original card package directly
-    return m_tag_type == TAG_TYPE_IOPROX ? LF_IOPROX_TAG_ID_SIZE : 0;
-}
-
-/** @brief Id card deposit card number before callback
- * @param type      Refined tag type
- * @param buffer    Data buffer
- * @return The length of the data that needs to be saved is that it does not save when 0
- */
-int lf_tag_viking_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
-    // Make sure to load this tag before allowing saving
-    // Just save the original card package directly
-    return m_tag_type == TAG_TYPE_VIKING ? LF_VIKING_TAG_ID_SIZE : 0;
+    if (m_tag_type != type) return 0;
+    if (lf_cycle_valid(buffer->buffer, buffer->length)) return LF_CYCLE_SIZE;
+    return lf_tag_id_size(type);
 }
 
 bool lf_tag_data_factory(uint8_t slot, tag_specific_type_t tag_type, uint8_t *tag_id, uint16_t length) {
@@ -513,29 +451,16 @@ bool lf_tag_viking_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
 }
 
-int lf_tag_pac_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
-    return m_tag_type == TAG_TYPE_PAC ? LF_PAC_TAG_ID_SIZE : 0;
-}
-
 bool lf_tag_pac_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     // default id: 8 ASCII bytes
     uint8_t tag_id[8] = {'C', 'A', 'R', 'D', '0', '0', '0', '1'};
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
 }
 
-int lf_tag_jablotron_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
-    return m_tag_type == TAG_TYPE_JABLOTRON ? LF_JABLOTRON_TAG_ID_SIZE : 0;
-}
-
 bool lf_tag_jablotron_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     // default id: 5 bytes (top bit must be 0)
     uint8_t tag_id[5] = {0x01, 0xB6, 0x69, 0x00, 0x00};
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
-}
-
-/** @brief IDTECK data save callback. */
-int lf_tag_idteck_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
-    return m_tag_type == TAG_TYPE_IDTECK ? LF_IDTECK_TAG_ID_SIZE : 0;
 }
 
 /** @brief IDTECK default frame: preamble "IDTK" + 32-bit placeholder card data. */
@@ -545,11 +470,6 @@ bool lf_tag_idteck_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
         0xDE, 0xAD, 0xBE, 0xEF,   // default card data
     };
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
-}
-
-/** @brief Pyramid data save callback. */
-int lf_tag_pyramid_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
-    return m_tag_type == TAG_TYPE_FARPOINTE_PYRAMID ? LF_PYRAMID_TAG_ID_SIZE : 0;
 }
 
 /** @brief Pyramid default frame: full 128-bit on-air frame, replayed verbatim. */
