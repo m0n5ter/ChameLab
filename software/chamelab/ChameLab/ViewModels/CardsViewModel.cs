@@ -220,6 +220,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DetectCommand = ReactiveCommand.CreateFromTask(DetectAsync, connected);
         ResetFiltersCommand = ReactiveCommand.Create(ResetFilters, this.WhenAnyValue(x => x.HasFilters));
         NewFolderCommand = ReactiveCommand.Create(NewFolder);
+        OpenNewFolderCommand = ReactiveCommand.Create(OpenNewFolder);
         RenameCurrentFolderCommand = ReactiveCommand.Create(BeginRenameCurrentFolder);
         ShowRootCommand = ReactiveCommand.Create(() => ShowFolder(null));
 
@@ -948,12 +949,27 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(CardFolderLabel));
     }
 
+    /// <summary>The list's New folder: opens the new folder with its title being renamed, as the navigation
+    /// pane (where <see cref="NewFolderCommand"/> renames it) may be hidden.</summary>
+    public ICommand OpenNewFolderCommand { get; }
+
     private void NewFolder()
+    {
+        if (AddFolder() is { } folder) BeginRename(folder);
+    }
+
+    private void OpenNewFolder()
+    {
+        if (AddFolder() is not { } folder) return;
+        ShowFolder(folder);
+        BeginRenameCurrentFolder();
+    }
+
+    private CardFolderViewModel? AddFolder()
     {
         var name = "New folder";
         for (var n = 2; _library.FindFolder(name) is not null; n++) name = $"New folder {n}";
-        if (!_library.AddFolder(name)) return;
-        if (Folders.FirstOrDefault(f => f.Name == name) is { } folder) BeginRename(folder);
+        return _library.AddFolder(name) ? Folders.FirstOrDefault(f => f.Name == name) : null;
     }
 
     private void BeginRename(CardFolderViewModel folder)

@@ -44,6 +44,9 @@ public class ActionRow : Panel
     public static int GetPriority(Control control) => control.GetValue(PriorityProperty);
     public static void SetPriority(Control control, int value) => control.SetValue(PriorityProperty, value);
 
+    /// <summary>The row's width with every label hidden, as of the last measure.</summary>
+    public double IconicWidth { get; private set; }
+
     private List<Control> Visible() => Children.Where(c => c.IsVisible).ToList();
 
     /// <summary>Visible buttons in the order they lose their label.</summary>
@@ -68,7 +71,9 @@ public class ActionRow : Panel
         var icon = order.Select(c => WidthOf(c, iconic: true)).ToArray();
 
         var limit = availableSize.Width;
-        var width = full.Sum() + Math.Max(0, order.Count - 1) * Spacing;
+        var gaps = Math.Max(0, order.Count - 1) * Spacing;
+        IconicWidth = icon.Sum() + gaps;
+        var width = full.Sum() + gaps;
         var collapsed = 0;
         while (width > limit && collapsed < order.Count)
         {
@@ -113,11 +118,13 @@ public class ActionRow : Panel
             LayoutRows(finalSize.Width, arrange: true);
             return finalSize;
         }
+        // Stretched buttons take the row's height, so icon-only ones match their labeled neighbors.
         var x = 0.0;
         foreach (var child in Visible())
         {
             var size = child.DesiredSize;
-            child.Arrange(new Rect(x, (finalSize.Height - size.Height) / 2, size.Width, size.Height));
+            var height = child.VerticalAlignment == VerticalAlignment.Stretch ? finalSize.Height : size.Height;
+            child.Arrange(new Rect(x, (finalSize.Height - height) / 2, size.Width, height));
             x += size.Width + Spacing;
         }
         return finalSize;

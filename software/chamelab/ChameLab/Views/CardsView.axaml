@@ -168,14 +168,16 @@
     <!-- Locked while a new card is open: save it or cancel to get back to the list. -->
     <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,Auto,*"
           IsEnabled="{Binding !ListLocked}">
-      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
         <!-- Back from a folder to Cards, also when the navigation pane is hidden (narrow, or closed). -->
         <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0" VerticalAlignment="Center"
                 IsVisible="{Binding IsInFolder}" Command="{Binding ShowRootCommand}"
                 ToolTip.Tip="Back to Cards" b:DialogKeys.IsBack="True">
           <PathIcon Data="{StaticResource Icon.back}" />
         </Button>
-        <StackPanel Grid.Column="1" Spacing="2">
+        <!-- Short of room, the buttons drop their labels (Add card last); then the title trims. -->
+        <c:TitleRow Grid.Column="1">
+        <StackPanel Spacing="2">
           <!-- A folder's title, renamed in place (Rename beside Add card). -->
           <!-- Renaming: the title stays, unseen, so the header keeps its size; the field lies over it. -->
           <Panel Classes.renaming="{Binding IsRenamingFolder}">
@@ -187,15 +189,22 @@
           </Panel>
           <TextBlock Classes="caption" Text="{Binding CountText}" />
         </StackPanel>
-        <!-- The open folder's Rename and Delete, as tall as Add card (the row stretches them to it). -->
-        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" VerticalAlignment="Center">
+        <!-- The open folder's Rename and Delete; short of room Delete drops its label first, then Rename.
+             New folder only in Cards: folders are one level. -->
+        <c:ActionRow>
           <Button Command="{Binding RenameCurrentFolderCommand}" ToolTip.Tip="Rename folder"
-                  VerticalAlignment="Stretch" IsVisible="{Binding IsInFolder}">
-            <PathIcon Data="{StaticResource Icon.edit}" />
-          </Button>
-          <Button Classes="danger" ToolTip.Tip="Delete folder" VerticalAlignment="Stretch"
                   IsVisible="{Binding IsInFolder}">
-            <PathIcon Data="{StaticResource Icon.delete}" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.edit}" />
+              <TextBlock Text="Rename" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Button Classes="danger" ToolTip.Tip="Delete folder"
+                  IsVisible="{Binding IsInFolder}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.delete}" />
+              <TextBlock Text="Delete" VerticalAlignment="Center" />
+            </StackPanel>
             <Button.Flyout>
               <Flyout Placement="BottomEdgeAlignedRight">
                 <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
@@ -209,13 +218,22 @@
               </Flyout>
             </Button.Flyout>
           </Button>
-          <Button Classes="accent" Command="{Binding AddCommand}" ToolTip.Tip="Scan, import or enter a new card">
+          <Button Command="{Binding OpenNewFolderCommand}" IsVisible="{Binding !IsInFolder}"
+                  ToolTip.Tip="New folder">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.add}" />
-              <TextBlock Text="Add card" Classes="wide-only" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.folderAdd}" />
+              <TextBlock Text="New folder" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-        </StackPanel>
+          <Button Classes="accent" Command="{Binding AddCommand}" c:ActionRow.Priority="1"
+                  ToolTip.Tip="Scan, import or enter a new card">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.add}" />
+              <TextBlock Text="Add card" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </c:ActionRow>
+        </c:TitleRow>
       </Grid>
 
       <StackPanel Grid.Row="1" Spacing="8" IsVisible="{Binding !IsEmpty}">
