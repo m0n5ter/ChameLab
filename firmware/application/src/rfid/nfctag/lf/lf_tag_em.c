@@ -47,7 +47,7 @@ static nrf_pwm_values_wave_form_t m_cycle_values[LF_EM410X_CYCLE_MAX][64];
 static nrf_pwm_sequence_t m_cycle_sequences[LF_EM410X_CYCLE_MAX];
 static uint8_t m_cycle_count = 1, m_cycle_index = 0;
 static uint8_t m_cycle_bursts = 1, m_cycle_elapsed = 0;
-static uint8_t m_cycle_gap_steps = 0, m_gap_remaining = 0;
+static uint8_t m_cycle_gap_steps = 0;
 static volatile bool m_gap_active = false;
 static bool m_gap_timer_created = false;
 APP_TIMER_DEF(m_cycle_gap_timer);
@@ -60,6 +60,7 @@ bool lf_em410x_cycle_valid(const uint8_t *data, uint16_t length) {
 }
 
 static void cycle_gap_stop(void) {
+    if (m_gap_active) ANT_NO_MOD();  // release the antenna short held during the gap
     m_gap_active = false;
     if (m_gap_timer_created) APP_ERROR_CHECK(app_timer_stop(m_cycle_gap_timer));
 }
@@ -142,16 +143,17 @@ static void lpcomp_init(void) {
 static void cycle_gap_tick(void *context) {
     (void)context;
     if (!m_gap_active || !m_is_lf_emulating) return;
+    // Silence is over: un-short the antenna so it is resonant again, let the
+    // peak detector settle and only then look at the reader field.
+    m_gap_active = false;
+    ANT_NO_MOD();
+    bsp_delay_ms(2);
     if (!is_lf_field_exists()) {
         lf_field_lost();
         return;
     }
-    if (--m_gap_remaining) {
-        APP_ERROR_CHECK(app_timer_start(m_cycle_gap_timer, APP_TIMER_TICKS(100), NULL));
-    } else {
-        m_gap_active = false;
-        nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
-    }
+    TAG_FIELD_LED_ON()
+    nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
 }
 
 static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
@@ -168,11 +170,18 @@ static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
             m_cycle_index = (m_cycle_index + 1) % m_cycle_count;
             m_pwm_seq = &m_cycle_sequences[m_cycle_index];
             if (m_cycle_gap_steps) {
-                // PWM is stopped and LF_MOD is clear. Check the reader field every
-                // 100 ms while silent; never busy-wait for a multi-second gap in an ISR.
-                m_gap_remaining = m_cycle_gap_steps;
+                // Look like a removed card for the whole gap: keep the modulation
+                // switch closed so the antenna is detuned and barely loads the
+                // reader field (an idle resonant coil still looks like "card
+                // present" to readers that wait for removal before reading the
+                // next card), and turn the field LED off. The field can't be
+                // sensed while the coil is shorted, so it is checked once when
+                // the gap ends. Never busy-wait for a multi-second gap in an ISR.
                 m_gap_active = true;
-                APP_ERROR_CHECK(app_timer_start(m_cycle_gap_timer, APP_TIMER_TICKS(100), NULL));
+                nrf_gpio_pin_set(LF_MOD);
+                TAG_FIELD_LED_OFF()
+                APP_ERROR_CHECK(app_timer_start(m_cycle_gap_timer,
+                                                APP_TIMER_TICKS(100 * (uint32_t)m_cycle_gap_steps), NULL));
                 return;
             }
         }
