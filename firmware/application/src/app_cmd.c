@@ -1349,6 +1349,49 @@ static data_frame_tx_t *cmd_processor_em410x_get_cycle_gap(uint16_t cmd, uint16_
     return data_frame_make(cmd, STATUS_SUCCESS, 1, &gap);
 }
 
+// The cycle of every slot in one reply, so a client never has to switch the active slot (and run the
+// LED slot animation) just to read them. Per slot, fixed 44 bytes:
+//   [0] 1 = LF card is EM410x, 0 = not (the rest is zero)
+//   [1] bursts  [2] extra count (0..7)  [3] silence (0..30)  [4..8] primary UID  [9..43] 7 extra UIDs
+// The active slot is read from RAM (it may hold unsaved edits), the others from flash.
+#define EM410X_ALL_CYCLES_ENTRY_SIZE (4 + LF_EM410X_TAG_ID_SIZE * LF_EM410X_CYCLE_MAX)
+static data_frame_tx_t *cmd_processor_em410x_get_all_cycles(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if (length) return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    static uint8_t response[TAG_MAX_SLOT_NUM * EM410X_ALL_CYCLES_ENTRY_SIZE];
+    memset(response, 0, sizeof(response));
+    uint8_t active = tag_emulation_get_slot();
+    for (uint8_t slot = 0; slot < TAG_MAX_SLOT_NUM; slot++) {
+        tag_slot_specific_type_t tag_types;
+        tag_emulation_get_specific_types_by_slot(slot, &tag_types);
+        if (tag_types.tag_lf != TAG_TYPE_EM410X) continue;
+        uint8_t *entry = response + slot * EM410X_ALL_CYCLES_ENTRY_SIZE;
+        // Word-aligned: FDS records are read in 4-byte words.
+        uint32_t record_words[(LF_EM410X_CYCLE_SIZE + 3) / 4] = {0};
+        const uint8_t *record = (const uint8_t *)record_words;
+        uint16_t record_length = 0;
+        if (slot == active) {
+            tag_data_buffer_t *buffer = get_buffer_by_tag_type(TAG_TYPE_EM410X);
+            record = buffer->buffer;
+            record_length = buffer->length;
+        } else {
+            fds_slot_record_map_t map_info;
+            get_fds_map_by_slot_sense_type_for_dump(slot, TAG_SENSE_LF, &map_info);
+            record_length = sizeof(record_words);
+            if (!fds_read_sync(map_info.id, map_info.key, &record_length, (uint8_t *)record_words)) record_length = 0;
+        }
+        entry[0] = 1;
+        entry[1] = 1;
+        if (record_length >= LF_EM410X_TAG_ID_SIZE) memcpy(entry + 4, record, LF_EM410X_TAG_ID_SIZE);
+        if (lf_em410x_cycle_valid(record, record_length)) {
+            entry[1] = record[8];
+            entry[2] = record[7] - 1;
+            entry[3] = record[6] == 2 ? record[44] : 0;
+            memcpy(entry + 9, record + 9, entry[2] * LF_EM410X_TAG_ID_SIZE);
+        }
+    }
+    return data_frame_make(cmd, STATUS_SUCCESS, sizeof(response), response);
+}
+
 static data_frame_tx_t *cmd_processor_em410x_get_emu_id(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     tag_specific_type_t tag_type;
     uint16_t id_size;
@@ -3508,6 +3551,7 @@ static cmd_data_map_t m_data_cmd_map[] = {
     {    DATA_CMD_EM410X_GET_CYCLE,               NULL,                      cmd_processor_em410x_get_cycle,              NULL                   },
     {    DATA_CMD_EM410X_SET_CYCLE_GAP,           NULL,                      cmd_processor_em410x_set_cycle_gap,          NULL                   },
     {    DATA_CMD_EM410X_GET_CYCLE_GAP,           NULL,                      cmd_processor_em410x_get_cycle_gap,          NULL                   },
+    {    DATA_CMD_EM410X_GET_ALL_CYCLES,          NULL,                      cmd_processor_em410x_get_all_cycles,         NULL                   },
     {    DATA_CMD_HIDPROX_SET_EMU_ID,             NULL,                      cmd_processor_hidprox_set_emu_id,            NULL                   },
     {    DATA_CMD_HIDPROX_GET_EMU_ID,             NULL,                      cmd_processor_hidprox_get_emu_id,            NULL                   },
     {    DATA_CMD_IOPROX_SET_EMU_ID,              NULL,                      cmd_processor_ioprox_set_emu_id,             NULL                   },

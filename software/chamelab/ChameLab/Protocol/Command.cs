@@ -161,4 +161,5 @@ public enum Command : ushort
     Em410xGetCycle = 5903,
     Em410xSetCycleGap = 5904,
     Em410xGetCycleGap = 5905,
+    Em410xGetAllCycles = 5906,
 }

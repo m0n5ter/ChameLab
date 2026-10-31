@@ -126,6 +126,41 @@ public class LfCardCycleProtocolTests
         }
     }
 
+    [Fact]
+    public async Task ReadsAllCyclesWithoutSwitchingSlots()
+    {
+        var all = new byte[8 * LfCardCycle.AllCyclesEntrySize];
+        // Slot 2: EM410x, 3 bursts, one extra card, silence 12.
+        var e = 1 * LfCardCycle.AllCyclesEntrySize;
+        all[e] = 1; all[e + 1] = 3; all[e + 2] = 1; all[e + 3] = 12;
+        new byte[] { 1, 2, 3, 4, 5 }.CopyTo(all, e + 4);
+        new byte[] { 0xAA, 0xBB, 0xCC, 0xDD, 0xEE }.CopyTo(all, e + 9);
+        // Slot 4: EM410x without a cycle.
+        e = 3 * LfCardCycle.AllCyclesEntrySize;
+        all[e] = 1; all[e + 1] = 1;
+        var transport = new CycleTransport { SupportsGap = true, AllCycles = all };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        var slots = Enumerable.Range(1, 8).Select(i => new SlotInfo
+        {
+            Index = i,
+            LfType = i is 2 or 4 ? TagSpecificType.Em410x : TagSpecificType.Undefined,
+            LfEnabled = i is 2 or 4,
+        }).ToList();
+        await client.ReadLfCyclesAsync(slots);
+        Assert.Equal(3, slots[1].LfCycle!.Bursts);
+        Assert.Equal(12, slots[1].LfCycle!.GapSteps);
+        Assert.Equal("AABBCCDDEE", slots[1].LfCycle!.Text);
+        Assert.Empty(slots[3].LfCycle!.ExtraIds);
+        Assert.Null(slots[0].LfCycle);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.SetActiveSlot or Command.Em410xGetCycle);
+    }
+
+    [Fact]
+    public void DecodeAllRejectsBadLength() =>
+        Assert.Throws<ArgumentException>(() => LfCardCycle.DecodeAll(new byte[LfCardCycle.AllCyclesEntrySize + 1]));
+
     private sealed class CycleTransport : ITransport
     {
         private readonly Channel<byte[]> _replies = Channel.CreateUnbounded<byte[]>();
@@ -134,6 +169,7 @@ public class LfCardCycleProtocolTests
         public byte[] Cycle { get; private set; } = [1, 0];
         public bool SupportsCycle { get; init; } = true;
         public bool SupportsGap { get; init; }
+        public byte[]? AllCycles { get; init; }
         public byte Gap { get; private set; }
         private byte _active;
         public TransportKind Kind => TransportKind.Tcp;
@@ -154,6 +190,8 @@ public class LfCardCycleProtocolTests
                     Command.Em410xGetCycle => Cycle,
                     Command.Em410xGetCycleGap => [Gap],
                     Command.GetActiveSlot => [_active],
+                    Command.Em410xGetAllCycles when AllCycles is not null => AllCycles,
+                    Command.GetDeviceCapabilities when AllCycles is not null => [0x17, 0x0E, 0x17, 0x0F, 0x17, 0x10, 0x17, 0x11, 0x17, 0x12],
                     Command.GetDeviceCapabilities when SupportsCycle && SupportsGap => [0x17, 0x0E, 0x17, 0x0F, 0x17, 0x10, 0x17, 0x11],
                     Command.GetDeviceCapabilities when SupportsCycle => [0x17, 0x0E, 0x17, 0x0F],
                     Command.Em410xGetEmuId => [(byte)((ushort)TagSpecificType.Em410x >> 8), (byte)TagSpecificType.Em410x, 0, 1, 2, 3, 4],

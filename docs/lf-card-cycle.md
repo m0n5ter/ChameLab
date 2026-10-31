@@ -50,6 +50,13 @@ Both commands operate on the active slot and require the EM410x tag type.
 | Get EM410x cycle | 5903 | Empty | bursts: u8, extra count: u8, extra UIDs: count × 5 bytes |
 | Set EM410x cycle silence | 5904 | silence: u8 (0–30, in 100 ms units) | Success, empty payload |
 | Get EM410x cycle silence | 5905 | Empty | silence: u8 (0–30, in 100 ms units) |
+| Get all EM410x cycles | 5906 | Empty | 8 × 44 bytes, one entry per slot (see below) |
+
+Get all EM410x cycles reads every slot without switching the active slot, so
+clients avoid the LED slot animation. Each 44-byte entry is: is EM410x (u8, 1 or
+0; a zero entry is all zeros), bursts, extra count, silence, primary UID (5 bytes),
+then seven five-byte extra UID positions (unused positions are zero). The active
+slot is read from RAM, including unsaved edits; the others from flash.
 
 Bursts must be 1–10 and extra count 0–7. Invalid types, lengths and ranges
 return `STATUS_PAR_ERR` without modifying the slot. Count zero clears cycling;

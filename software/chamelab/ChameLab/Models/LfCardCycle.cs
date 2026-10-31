@@ -41,6 +41,28 @@ public sealed record LfCardCycle(int Bursts, byte[][] ExtraIds, int GapSteps = 0
         return new LfCardCycle(data[0], Enumerable.Range(0, data[1]).Select(i => data[(2 + 5 * i)..(7 + 5 * i)]).ToArray());
     }
 
+    /// <summary>Size of one slot's entry in the all-slots reply (flag, bursts, count, silence, primary + 7 UIDs).</summary>
+    public const int AllCyclesEntrySize = 4 + 5 * 8;
+
+    /// <summary>Decodes the all-slots reply: one entry per slot, null where the LF card is not EM410x.</summary>
+    public static LfCardCycle?[] DecodeAll(byte[] data)
+    {
+        if (data.Length == 0 || data.Length % AllCyclesEntrySize != 0)
+            throw new ArgumentException("Invalid EM410x cycles response.");
+        var result = new LfCardCycle?[data.Length / AllCyclesEntrySize];
+        for (var slot = 0; slot < result.Length; slot++)
+        {
+            var e = data.AsSpan(slot * AllCyclesEntrySize, AllCyclesEntrySize);
+            if (e[0] == 0) continue;
+            if (e[1] is < 1 or > 10 || e[2] > 7 || e[3] > 30)
+                throw new ArgumentException("Invalid EM410x cycles response.");
+            var ids = new byte[e[2]][];
+            for (var i = 0; i < ids.Length; i++) ids[i] = e.Slice(9 + 5 * i, 5).ToArray();
+            result[slot] = new LfCardCycle(e[1], ids, e[3]);
+        }
+        return result;
+    }
+
     /// <summary>The same timing and cards (records compare the UID arrays by reference).</summary>
     public bool SameAs(LfCardCycle other) => Bursts == other.Bursts && GapSteps == other.GapSteps &&
         ExtraIds.Length == other.ExtraIds.Length && ExtraIds.Zip(other.ExtraIds).All(p => p.First.AsSpan().SequenceEqual(p.Second));

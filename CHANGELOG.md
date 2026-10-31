@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - Firmware v2.3.5-cl / ChameLab: connecting and opening Slots no longer runs the slot LED animation several times: a new command reads the multi-card LF lists of all slots at once, without switching the active slot (older firmware keeps the previous way)
  - ChameLab: Hardnested recovery on Android, iOS and the web; local native/WebAssembly calculation with progress, cancellation and a bounded solver memory budget
  - Firmware v2.3.5-cl: the sleep timeout now applies to every restart of the sleep timer, not only after a button wakeup: button presses, end of HF / LF emulation, BLE disconnect and USB power loss no longer cut the remaining awake time to a fixed 3–4 seconds
  - Firmware v2.3.5-cl: multi-card LF silence between cards now looks like the card was taken away: the antenna is detuned (shorted) and the field LED is off for the whole gap, so readers that wait for the previous card to be removed see the next one
