@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using ChameLab.Models;
 using ChameLab.Crypto;
 
@@ -27,13 +28,16 @@ public static class DarksideRecovery
     /// Recovers candidate 48-bit keys from one or more darkside rounds. Returns an empty list
     /// when nothing validated (collect more rounds, especially for the parity-zero case).
     /// </summary>
-    public static IReadOnlyList<ulong> Recover(uint uid, IReadOnlyList<DarksideItem> items)
+    public static IReadOnlyList<ulong> Recover(uint uid, IReadOnlyList<DarksideItem> items,
+        CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         List<ulong>? last = null;
 
         foreach (var item in items)
         {
-            var keys = Nonce2Key(uid, item.Nt, item.Nr, item.Ar, item.Par, item.Ks1);
+            ct.ThrowIfCancellationRequested();
+            var keys = Nonce2Key(uid, item.Nt, item.Nr, item.Ar, item.Par, item.Ks1, ct);
             if (keys.Count == 0) continue;
 
             if (item.Par == 0)
@@ -41,7 +45,7 @@ public static class DarksideRecovery
                 // Parity-zero attack: a single round yields a huge set; the real key is the
                 // one shared by consecutive rounds.
                 if (last is null) { last = keys; continue; }
-                var inter = Intersect(last, keys);
+                var inter = Intersect(last, keys, ct);
                 if (inter.Count == 0) { last = keys; continue; }
                 return inter;
             }
@@ -53,7 +57,8 @@ public static class DarksideRecovery
     }
 
     /// <summary>pm3 <c>nonce2key</c>: unpack the keystream/parity, run the common-prefix attack, roll each state back to its key.</summary>
-    private static List<ulong> Nonce2Key(uint uid, uint nt, uint nr, uint ar, ulong parInfo, ulong ksInfo)
+    private static List<ulong> Nonce2Key(uint uid, uint nt, uint nr, uint ar, ulong parInfo, ulong ksInfo,
+        CancellationToken ct)
     {
         // The low three bits of nr are the ones the attack sweeps; clear them.
         nr &= 0xFFFFFF1F;
@@ -69,11 +74,12 @@ public static class DarksideRecovery
             par[7 - pos] = row;
         }
 
-        var states = LfsrCommonPrefix(nr, ar, ks3x, par, parInfo == 0);
+        var states = LfsrCommonPrefix(nr, ar, ks3x, par, parInfo == 0, ct);
 
         var keys = new List<ulong>(states.Count);
         foreach (var found in states)
         {
+            ct.ThrowIfCancellationRequested();
             var state = found;
             state.LfsrRollbackWord(uid ^ nt, false);
             keys.Add(state.Lfsr);
@@ -82,10 +88,11 @@ public static class DarksideRecovery
     }
 
     /// <summary>pm3 <c>lfsr_common_prefix</c>: combine the odd/even 21-bit prefix candidates and keep the states that survive the parity check.</summary>
-    private static List<Crypto1State> LfsrCommonPrefix(uint pfx, uint rr, byte[] ks, byte[][] par, bool noPar)
+    private static List<Crypto1State> LfsrCommonPrefix(uint pfx, uint rr, byte[] ks, byte[][] par, bool noPar,
+        CancellationToken ct)
     {
-        var odd = LfsrPrefixKs(ks, 1);
-        var even = LfsrPrefixKs(ks, 0);
+        var odd = LfsrPrefixKs(ks, 1, ct);
+        var even = LfsrPrefixKs(ks, 0, ct);
         var result = new List<Crypto1State>();
 
         foreach (var oCand in odd)
@@ -94,6 +101,7 @@ public static class DarksideRecovery
             var o = oCand;
             foreach (var eCand in even)
             {
+                ct.ThrowIfCancellationRequested();
                 var e = eCand;
                 for (var top = 0; top < 64; top++)
                 {
@@ -109,11 +117,12 @@ public static class DarksideRecovery
     }
 
     /// <summary>pm3 <c>lfsr_prefix_ks</c>: the 21-bit partial states whose filtered output matches the observed keystream.</summary>
-    private static List<uint> LfsrPrefixKs(byte[] ks, int isOdd)
+    private static List<uint> LfsrPrefixKs(byte[] ks, int isOdd, CancellationToken ct)
     {
         var candidates = new List<uint>();
         for (uint i = 0; i < 1u << 21; i++)
         {
+            if ((i & 0xFFF) == 0) ct.ThrowIfCancellationRequested();
             var good = true;
             for (var c = 0; good && c < 8; c++)
             {
@@ -159,13 +168,16 @@ public static class DarksideRecovery
         return good != 0 ? sl : null;
     }
 
-    private static List<ulong> Intersect(List<ulong> a, List<ulong> b)
+    private static List<ulong> Intersect(List<ulong> a, List<ulong> b, CancellationToken ct)
     {
         var set = new HashSet<ulong>(a);
         var outp = new List<ulong>();
         var seen = new HashSet<ulong>();
         foreach (var k in b)
+        {
+            ct.ThrowIfCancellationRequested();
             if (set.Contains(k) && seen.Add(k)) outp.Add(k);
+        }
         return outp;
     }
 }

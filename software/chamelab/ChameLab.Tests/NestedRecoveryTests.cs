@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ChameLab.Crypto;
@@ -31,6 +33,16 @@ public class NestedRecoveryTests
         var p1 = P(ntp, 16) ^ P(ntEnc, 16) ^ (int)((ks1 >> 8) & 1);
         var p2 = P(ntp, 8) ^ P(ntEnc, 8) ^ (int)(ks1 & 1);
         return (byte)(p0 | (p1 << 1) | (p2 << 2));
+    }
+
+    [Fact]
+    public void Nested_RejectsCancelledRecovery()
+    {
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() => NestedRecovery.Recover(
+            Uid, 14, 0, 0, 0, 0, 0, 0, stop.Token));
     }
 
     [Fact]

@@ -153,6 +153,7 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
           <Button Classes="progress-action" Command="{Binding CancelDumpCommand}" b:DialogKeys.IsCancel="True"
                   AutomationProperties.Name="{Binding DumpStopLabel}"
+                  Classes.danger="{Binding !IsMfkey32Done}"
                   Classes.success="{Binding IsMfkey32Done}" ToolTip.Tip="{Binding DumpStopTip}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.close}" IsVisible="{Binding !IsMfkey32Done}" />

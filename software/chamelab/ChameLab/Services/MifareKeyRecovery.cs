@@ -229,7 +229,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                     items.Add(item);
                     if (uid != 0) authUid = uid;
                     progress?.Report(new KeyRecoveryProgress("Calculating darkside candidates…", sector, kt, KeyMark.Checking, Detail: detail));
-                    var hit = await FirstWorkingKeyAsync(target, kt, DarksideRecovery.Recover(authUid, items), progress, ct, detail);
+                    var candidates = await Task.Run(() => DarksideRecovery.Recover(authUid, items, ct), ct);
+                    var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct, detail);
                     if (hit is { } key) { store(sector, kt, key); return; }
                 }
                 progress?.Report(new KeyRecoveryProgress("Key not recovered for this sector.", sector, kt));
@@ -247,10 +248,10 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         var nonces = await client.GetNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, isStatic: false, ct);
         if (nonces.Count < 2) return Array.Empty<ulong>();
         updates.Report("Calculating nested candidates…");
-        return NestedRecovery.Recover(
+        return await Task.Run(() => NestedRecovery.Recover(
             dist.Uid, dist.Distance,
             nonces[0].Nt, nonces[0].NtEnc, nonces[0].Parity,
-            nonces[1].Nt, nonces[1].NtEnc, nonces[1].Parity);
+            nonces[1].Nt, nonces[1].NtEnc, nonces[1].Parity, ct), ct);
     }
 
     private async Task<IReadOnlyList<ulong>> StaticNestedSectorAsync(

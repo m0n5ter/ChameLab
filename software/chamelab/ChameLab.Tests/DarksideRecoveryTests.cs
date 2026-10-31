@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using ChameLab.Models;
 using ChameLab.Services;
 using Xunit;
@@ -12,6 +13,16 @@ namespace ChameLab.Tests;
 /// </summary>
 public class DarksideRecoveryTests
 {
+    [Fact]
+    public void Recover_Cancelled_Throws()
+    {
+        using var stop = new CancellationTokenSource();
+        stop.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() =>
+            DarksideRecovery.Recover(0x12345678, [new(0, 0, 1, 0, 0)], stop.Token));
+    }
+
     [Fact]
     public void Recover_NoItems_ReturnsEmpty()
     {

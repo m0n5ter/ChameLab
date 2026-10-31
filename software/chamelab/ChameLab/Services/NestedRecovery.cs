@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ChameLab.Crypto;
 
 namespace ChameLab.Services;
@@ -24,8 +25,10 @@ public static class NestedRecovery
     public static IReadOnlyList<ulong> Recover(
         uint uid, uint dist,
         uint nt0, uint nt0Enc, byte par0,
-        uint nt1, uint nt1Enc, byte par1)
+        uint nt1, uint nt1Enc, byte par1,
+        CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         var pnk = new List<(uint Ntp, uint Ks1)>();
 
         for (var i = 0; i < 2; i++)
@@ -50,7 +53,7 @@ public static class NestedRecovery
             }
         }
 
-        return NestedCore.Run(pnk, uid);
+        return NestedCore.Run(pnk, uid, ct);
     }
 
     /// <summary>
@@ -71,15 +74,18 @@ public static class NestedRecovery
 /// </summary>
 internal static class NestedCore
 {
-    public static IReadOnlyList<ulong> Run(IReadOnlyList<(uint Ntp, uint Ks1)> pnk, uint authUid)
+    public static IReadOnlyList<ulong> Run(IReadOnlyList<(uint Ntp, uint Ks1)> pnk, uint authUid,
+        CancellationToken ct = default)
     {
         var counts = new Dictionary<ulong, int>();
 
         foreach (var (ntp, ks1) in pnk)
         {
+            ct.ThrowIfCancellationRequested();
             var seed = ntp ^ authUid;
             foreach (var found in Crapto1.LfsrRecovery32(ks1, seed))
             {
+                ct.ThrowIfCancellationRequested();
                 var state = found;
                 // The pm3 recovery list is terminated by the empty state; skip it so a
                 // spurious all-zero key is not counted.
