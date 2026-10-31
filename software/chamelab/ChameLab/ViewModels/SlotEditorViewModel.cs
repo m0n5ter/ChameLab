@@ -57,6 +57,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private bool _supportsCycleGap;
     private decimal _savedCycleGapSeconds;
     private int _savedCycleBursts = 1;
+    // The cycle the LF cards were loaded with while multi-LF is supported, else null.
+    private LfCardCycle? _shownCycle;
 
     public LfSlotListViewModel LfCards { get; }
     public bool SupportsMultiLf => _supportsLfCycle;
@@ -103,6 +105,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         Hf.Partner = Lf;
         Lf.Partner = Hf;
         LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard);
+        // Lay the LF cards out from what the slot list read, so they don't change shape once the device answers.
+        if (device.Client?.Capabilities is { } capabilities) SetLfCapabilities(capabilities);
+        LoadCycle(info.LfType == TagSpecificType.Em410x ? info.LfCycle ?? new LfCardCycle(1, []) : new LfCardCycle(1, []));
         SetEmulator(Emulator.Defaults);
 
         ClosePickerCommand = ReactiveCommand.Create(ClosePicker);
@@ -240,16 +245,22 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 SetLfCapabilities(capabilities);
-                _savedCycleBursts = cycle.Bursts;
-                LfCards.Load(_supportsLfCycle, cycle);
-                CycleBursts = _savedCycleBursts;
-                CycleGapSeconds = _savedCycleGapSeconds = cycle.GapSteps / 10m;
-                this.RaisePropertyChanged(nameof(ShowCycleGap));
-                this.RaisePropertyChanged(nameof(ShowLfCycle));
+                // Reloading the same cycle would only rebuild the rows (and drop edits made meanwhile).
+                if (_shownCycle is null || !_shownCycle.SameAs(cycle)) LoadCycle(cycle);
             });
             await LoadEmulatorAsync(client);
         });
     });
+
+    private void LoadCycle(LfCardCycle cycle)
+    {
+        _shownCycle = _supportsLfCycle ? cycle : null;
+        _savedCycleBursts = cycle.Bursts;
+        LfCards.Load(_supportsLfCycle, cycle);
+        CycleBursts = _savedCycleBursts;
+        CycleGapSeconds = _savedCycleGapSeconds = cycle.GapSteps / 10m;
+        this.RaisePropertyChanged(nameof(ShowLfCycle));
+    }
 
     // The saved card is matched by the UID the slot emulates, not just its name.
     private static async Task LoadUidAsync(ChameleonClient client, SlotSideViewModel side)

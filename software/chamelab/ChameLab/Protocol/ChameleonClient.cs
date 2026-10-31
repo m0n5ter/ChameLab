@@ -115,14 +115,20 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return new BatteryInfo(mv, pct);
     }
 
+    private IReadOnlyList<ushort>? _capabilities;
+
+    /// <summary>The commands the firmware supports once read (they can't change while connected), else null.</summary>
+    public IReadOnlyList<ushort>? Capabilities => _capabilities;
+
     public async Task<IReadOnlyList<ushort>> GetCapabilitiesAsync(CancellationToken ct = default)
     {
+        if (_capabilities is { } known) return known;
         var f = await conn.SendAsync(Command.GetDeviceCapabilities, ct: ct);
         var list = new List<ushort>();
         if (f.Status == Status.Success)
             for (var i = 0; i + 1 < f.Data.Length; i += 2)
                 list.Add(BinaryPrimitives.ReadUInt16BigEndian(f.Data.AsSpan(i)));
-        return list;
+        return _capabilities = list;
     }
 
     /// <summary>Gathers everything needed for the dashboard in one call.</summary>
@@ -217,7 +223,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     }
 
     /// <summary>
-    /// Reads the extra cards of every EM410x slot into <see cref="SlotInfo.LfCycleIds"/>. Switches the active
+    /// Reads the card cycle of every EM410x slot into <see cref="SlotInfo.LfCycle"/>. Switches the active
     /// slot to read each one and then back, so run it under the slot lock.
     /// </summary>
     public async Task ReadLfCyclesAsync(IReadOnlyList<SlotInfo> slots, CancellationToken ct = default)
@@ -230,7 +236,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             foreach (var slot in lf)
             {
                 await SetActiveSlotAsync(slot.Index, ct);
-                try { slot.LfCycleIds = (await GetEm410xCycleAsync(ct)).ExtraIds; }
+                try { slot.LfCycle = await GetEm410xCycleAsync(ct); }
                 catch (ChameleonException) { /* shown with its own card only */ }
             }
         }

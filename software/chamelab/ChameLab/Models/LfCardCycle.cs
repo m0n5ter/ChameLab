@@ -41,5 +41,9 @@ public sealed record LfCardCycle(int Bursts, byte[][] ExtraIds, int GapSteps = 0
         return new LfCardCycle(data[0], Enumerable.Range(0, data[1]).Select(i => data[(2 + 5 * i)..(7 + 5 * i)]).ToArray());
     }
 
+    /// <summary>The same timing and cards (records compare the UID arrays by reference).</summary>
+    public bool SameAs(LfCardCycle other) => Bursts == other.Bursts && GapSteps == other.GapSteps &&
+        ExtraIds.Length == other.ExtraIds.Length && ExtraIds.Zip(other.ExtraIds).All(p => p.First.AsSpan().SequenceEqual(p.Second));
+
     public string Text => string.Join(Environment.NewLine, ExtraIds.Select(Convert.ToHexString));
 }

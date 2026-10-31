@@ -62,8 +62,9 @@ public sealed class SlotInfo
     /// <summary>LED color of the HF / LF card as #RRGGBB, null = the firmware's default HF/LF color.</summary>
     public string? HfColor { get; set; }
     public string? LfColor { get; set; }
-    /// <summary>UIDs of the EM410x cards the LF card cycles through after its own (filled by ReadLfCyclesAsync).</summary>
-    public byte[][] LfCycleIds { get; set; } = [];
+    /// <summary>The EM410x cards the LF card cycles through after its own (filled by ReadLfCyclesAsync).</summary>
+    public LfCardCycle? LfCycle { get; set; }
+    public byte[][] LfCycleIds => LfCycle?.ExtraIds ?? [];
     public bool IsActive { get; set; }
 }
 
