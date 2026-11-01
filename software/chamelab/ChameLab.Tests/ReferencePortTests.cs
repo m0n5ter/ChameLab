@@ -56,32 +56,42 @@ public class ReferencePortTests
             case "mfkey":
                 DetectionLog Log(int index) => new(3, MfKeyType.A, false, Bytes(U(v, "uid")),
                     Bytes(U(v, $"nt{index}")), Bytes(U(v, $"nr{index}")), Bytes(U(v, $"ar{index}")));
-                Assert.Equal(key, Mfkey32Recovery.Recover(Log(0), Log(1)));
+                Assert.Equal(key, Assert.Single(KeyRecoveryEngineTests.RoundTrip(new(KeyRecoveryOperation.Mfkey32)
+                    { Logs = [Log(0), Log(1)] })));
                 break;
             case "nested":
-                var nestedKeys = NestedRecovery.Recover(U(v, "uid"), U(v, "distance"),
-                    U(v, "nt0"), U(v, "enc0"), (byte)U(v, "par0"),
-                    U(v, "nt1"), U(v, "enc1"), (byte)U(v, "par1"));
+                var nestedKeys = KeyRecoveryEngineTests.RoundTrip(new(KeyRecoveryOperation.Nested)
+                {
+                    Uid = U(v, "uid"), Distance = U(v, "distance"),
+                    Nonces = [new(U(v, "nt0"), U(v, "enc0"), (byte)U(v, "par0")),
+                        new(U(v, "nt1"), U(v, "enc1"), (byte)U(v, "par1"))],
+                });
                 Assert.Contains(key, nestedKeys);
                 Assert.Equal(v.GetProperty("cKeys").EnumerateArray()
                     .Select(k => ulong.Parse(k.GetString()!, NumberStyles.HexNumber)).Order(), nestedKeys.Order());
                 break;
             case "static":
-                Assert.Contains(key, StaticNestedRecovery.Recover(U(v, "uid"), (MfKeyType)U(v, "knownType"),
-                    U(v, "nonce"), U(v, "enc0"), U(v, "nonce"), U(v, "enc1")));
+                Assert.Contains(key, KeyRecoveryEngineTests.RoundTrip(new(KeyRecoveryOperation.StaticNested)
+                {
+                    Uid = U(v, "uid"), KeyType = (MfKeyType)U(v, "knownType"),
+                    Nonces = [new(U(v, "nonce"), U(v, "enc0"), 0), new(U(v, "nonce"), U(v, "enc1"), 0)],
+                }));
                 break;
             case "darkside":
-                var keys = DarksideRecovery.Recover(U(v, "uid"), new[]
+                var keys = KeyRecoveryEngineTests.RoundTrip(new(KeyRecoveryOperation.Darkside)
                 {
-                    new DarksideItem(U(v, "nt"), H(v, "ks"), H(v, "par"), U(v, "nr"), U(v, "ar")),
+                    Uid = U(v, "uid"),
+                    Items = [new DarksideItem(U(v, "nt"), H(v, "ks"), H(v, "par"), U(v, "nr"), U(v, "ar"))],
                 });
                 Assert.Equal((int)U(v, "cCount"), keys.Count);
                 Assert.Equal(v.GetProperty("cContains").GetBoolean(), keys.Contains(key));
                 break;
             case "darkside-zero":
                 DarksideItem Item(int index) => new(U(v, "nt"), H(v, $"ks{index}"), 0, U(v, $"nr{index}"), U(v, "ar"));
-                Assert.Empty(DarksideRecovery.Recover(U(v, "uid"), new[] { Item(0) }));
-                var intersection = DarksideRecovery.Recover(U(v, "uid"), new[] { Item(0), Item(1) });
+                Assert.Empty(KeyRecoveryEngineTests.RoundTrip(new(KeyRecoveryOperation.Darkside)
+                    { Uid = U(v, "uid"), Items = [Item(0)] }));
+                var intersection = KeyRecoveryEngineTests.RoundTrip(new(KeyRecoveryOperation.Darkside)
+                    { Uid = U(v, "uid"), Items = [Item(0), Item(1)] });
                 Assert.Equal(v.GetProperty("cKeys").EnumerateArray()
                     .Select(k => ulong.Parse(k.GetString()!, NumberStyles.HexNumber)).Order(), intersection.Order());
                 Assert.Contains(key, intersection);

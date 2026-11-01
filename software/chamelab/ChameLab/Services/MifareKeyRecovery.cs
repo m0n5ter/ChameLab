@@ -21,9 +21,10 @@ public sealed record KeyRecoveryProgress(
 
 /// <summary>Runs one selected recovery method, preserving keys already found in the shared dump.</summary>
 public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null,
-    KnownCardKeys? knownKeys = null)
+    KnownCardKeys? knownKeys = null, IKeyRecoveryEngine? keyRecovery = null)
 {
     private readonly IHardnestedEngine _hardnested = hardnested ?? new UnavailableHardnestedEngine();
+    private readonly IKeyRecoveryEngine _keyRecovery = keyRecovery ?? AppServices.KeyRecovery;
 
     public async Task RecoverAsync(
         MifareDump dump, MifareRecoveryMethod method,
@@ -170,7 +171,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             {
                 if (known is not null) return new[] { KeyValue(known) };
                 progress?.Report(new KeyRecoveryProgress("Calculating static encrypted candidates…", s, type, KeyMark.Checking));
-                return await Task.Run(() => StaticEncryptedNestedRecovery.Recover(data.Uid, nonce, ct), ct);
+                return await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.StaticEncryptedNested)
+                    { Uid = data.Uid, Nonces = [nonce] }, ct);
             }
             var aKeys = await Candidates(a, MfKeyType.A, dump.KeyA[s]);
             var bKeys = await Candidates(b, MfKeyType.B, dump.KeyB[s]);
@@ -181,7 +183,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                 var other = type == MfKeyType.A ? b : a;
                 var keys = type == MfKeyType.A ? aKeys : bKeys;
                 var otherKeys = type == MfKeyType.A ? bKeys : aKeys;
-                var filtered = await Task.Run(() => StaticEncryptedNestedRecovery.Filter(nonce.Nt, keys, other.Nt, otherKeys, ct), ct);
+                var filtered = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.FilterStaticEncrypted)
+                    { Nonces = [nonce, other], Keys = keys.ToArray(), OtherKeys = otherKeys.ToArray() }, ct);
                 async Task<byte[]?> Check(IReadOnlyList<ulong> candidates)
                 {
                     for (var i = 0; i < candidates.Count; i += 64)
@@ -264,7 +267,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                     items.Add(item);
                     if (uid != 0) authUid = uid;
                     progress?.Report(new KeyRecoveryProgress("Calculating darkside candidates…", sector, kt, KeyMark.Checking, Detail: detail));
-                    var candidates = await Task.Run(() => DarksideRecovery.Recover(authUid, items, ct), ct);
+                    var candidates = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.Darkside)
+                        { Uid = authUid, Items = items.ToArray() }, ct);
                     var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct, detail);
                     if (hit is { } key) { store(sector, kt, key); return; }
                 }
@@ -283,10 +287,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         var nonces = await client.GetNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, isStatic: false, ct);
         if (nonces.Count < 2) return Array.Empty<ulong>();
         updates.Report("Calculating nested candidates…");
-        return await Task.Run(() => NestedRecovery.Recover(
-            dist.Uid, dist.Distance,
-            nonces[0].Nt, nonces[0].NtEnc, nonces[0].Parity,
-            nonces[1].Nt, nonces[1].NtEnc, nonces[1].Parity, ct), ct);
+        return await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.Nested)
+            { Uid = dist.Uid, Distance = dist.Distance, Nonces = [nonces[0], nonces[1]] }, ct);
     }
 
     private async Task<IReadOnlyList<ulong>> StaticNestedSectorAsync(
@@ -305,10 +307,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             var capture = await client.GetStaticNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, ct);
             var nonces = capture.Nonces;
             progress?.Report(new KeyRecoveryProgress("Calculating static nested candidates…", sector, targetKeyType, KeyMark.Checking, Detail: detail));
-            var candidates = await Task.Run(() => StaticNestedRecovery.Recover(
-                capture.Uid, seed.Type,
-                nonces[0].Nt, nonces[0].NtEnc,
-                nonces[1].Nt, nonces[1].NtEnc, ct), ct);
+            var candidates = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.StaticNested)
+                { Uid = capture.Uid, KeyType = seed.Type, Nonces = [nonces[0], nonces[1]] }, ct);
             if (candidates.Count > 0) return candidates;
         }
         return Array.Empty<ulong>();

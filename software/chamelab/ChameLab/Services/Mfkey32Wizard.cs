@@ -11,8 +11,10 @@ namespace ChameLab.Services;
 public sealed record Mfkey32Progress(string Status, int? CapturedCount = null, string? KeyFound = null);
 
 /// <summary>Collects reader authentications using the card's existing slot, then reads the physical card.</summary>
-public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKeys)
+public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKeys,
+    IKeyRecoveryEngine? keyRecovery = null)
 {
+    private readonly IKeyRecoveryEngine _keyRecovery = keyRecovery ?? AppServices.KeyRecovery;
     public static SlotInfo? FindSlot(IEnumerable<SlotInfo> slots, CardSave card) =>
         slots.Where(s => ChameleonClient.SlotHoldsCard(s, card))
             .OrderByDescending(s => s.IsActive).ThenBy(s => s.Index).FirstOrDefault();
@@ -85,7 +87,7 @@ public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKey
                     && l.Uid.AsSpan().SequenceEqual(card.Uid.AsSpan(card.Uid.Length - 4))).ToList();
             progress.Report(new("Hold Chameleon to the reader.", logs.Count));
             if (logs.Count >= 2) progress.Report(new("Recovering keys…", logs.Count));
-            var keys = await Task.Run(() => Recover(logs, attempted, ct), ct);
+            var keys = await RecoverAsync(logs, attempted, ct);
             if (keys.Count > 0) return keys;
             await Task.Delay(1200, ct);
         }
@@ -106,7 +108,7 @@ public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKey
         }
     }
 
-    private static IReadOnlyList<byte[]> Recover(List<DetectionLog> logs, HashSet<string> attempted, CancellationToken ct)
+    private async Task<IReadOnlyList<byte[]>> RecoverAsync(List<DetectionLog> logs, HashSet<string> attempted, CancellationToken ct)
     {
         var keys = new Dictionary<string, byte[]>();
         foreach (var group in logs.GroupBy(l => (l.Block, l.KeyType)))
@@ -119,7 +121,10 @@ public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKey
                     var a = distinct[i];
                     var b = distinct[j];
                     if (!attempted.Add($"{a.Block}:{a.KeyChar}:{a.NtHex}{a.NrHex}{a.ArHex}:{b.NtHex}{b.NrHex}{b.ArHex}")) continue;
-                    if (Mfkey32Recovery.Recover(a, b) is not { } key) continue;
+                    var recovered = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.Mfkey32)
+                        { Logs = [a, b] }, ct);
+                    if (recovered.Count == 0) continue;
+                    var key = recovered[0];
                     var hex = key.ToString("X12");
                     keys[hex] = Convert.FromHexString(hex);
                     break;
