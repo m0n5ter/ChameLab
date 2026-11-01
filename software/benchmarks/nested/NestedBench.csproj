@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../chamelab/ChameLab/Services/NestedRecovery.cs" Link="NestedRecovery.cs" />
+    <Compile Include="../../chamelab/ChameLab/Crypto/Crypto1.cs" Link="Crypto1.cs" />
+    <Compile Include="../../chamelab/ChameLab/Crypto/Crypto1State.cs" Link="Crypto1State.cs" />
+    <Compile Include="../../chamelab/ChameLab/Crypto/Crapto1.cs" Link="Crapto1.cs" />
+    <Compile Include="../../chamelab/ChameLab/Crypto/Crypto1RecoveryWorkspace.cs" Link="Crypto1RecoveryWorkspace.cs" />
+    <Compile Include="../../chamelab/ChameLab/Crypto/Extensions/UIntExtension.cs" Link="UIntExtension.cs" />
+  </ItemGroup>
+</Project>

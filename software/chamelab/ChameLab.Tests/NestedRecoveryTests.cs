@@ -46,6 +46,23 @@ public class NestedRecoveryTests
     }
 
     [Fact]
+    public void Nested_ParallelAndSequentialCandidatesAreIdentical()
+    {
+        uint ntp0 = 0xABCDEF01, ntp1 = 0x55AA33CC;
+        var (enc0, ks0) = Encrypt(ntp0);
+        var (enc1, ks1) = Encrypt(ntp1);
+        var sequential = NestedRecovery.RecoverCore(Uid, 14,
+            ntp0, enc0, Parity(ntp0, enc0, ks0), ntp1, enc1, Parity(ntp1, enc1, ks1), default, 1);
+        var parallel = NestedRecovery.RecoverCore(Uid, 14,
+            ntp0, enc0, Parity(ntp0, enc0, ks0), ntp1, enc1, Parity(ntp1, enc1, ks1), default, 4);
+
+        Assert.Contains(Key, sequential);
+        Assert.Equal(sequential, parallel);
+        Assert.Equal(sequential, NestedRecovery.Recover(Uid, 14,
+            ntp0, enc0, Parity(ntp0, enc0, ks0), ntp1, enc1, Parity(ntp1, enc1, ks1)));
+    }
+
+    [Fact]
     public void Nested_RecoversKnownKey()
     {
         // Two nested samples with the target plaintext nonce sitting at the middle of the

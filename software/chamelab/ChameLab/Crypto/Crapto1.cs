@@ -148,6 +148,7 @@ public static class Crapto1
     /// <param name="m1">The first feedback contribution mask.</param>
     /// <param name="m2">The second feedback contribution mask.</param>
     /// <param name="in">The two input contribution bits.</param>
+    /// <param name="filters">The cached filter lookup table.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ExtendTable(
         PooledBuffer<uint> table,
@@ -156,16 +157,17 @@ public static class Crapto1
         uint bit,
         uint m1,
         uint m2,
-        uint @in)
+        uint @in,
+        byte[] filters)
     {
         @in <<= 24;
+        var values = table.Array;
         var i = start;
         while (i <= end)
         {
-            var values = table.Array;
             values[i] <<= 1;
-            var filter0 = RecoveryFilter(values[i]);
-            var filter1 = RecoveryFilter(values[i] | 1);
+            var filter0 = filters[(int)(values[i] & FilterTableMask)];
+            var filter1 = filters[(int)((values[i] | 1) & FilterTableMask)];
 
             if ((filter0 ^ filter1) != 0)
             {
@@ -175,8 +177,12 @@ public static class Crapto1
             }
             else if (filter0 == bit)
             {
-                table.EnsureCapacity(end + 2);
-                values = table.Array;
+                if (end + 2 > values.Length)
+                {
+                    table.MarkUsed(end + 1);
+                    table.EnsureCapacity(end + 2);
+                    values = table.Array;
+                }
                 values[++end] = values[i + 1];
                 values[i + 1] = values[i] | 1;
                 UpdateContribution(ref values[i], m1, m2);
@@ -201,20 +207,22 @@ public static class Crapto1
     /// <param name="start">The absolute first candidate index.</param>
     /// <param name="end">The absolute last candidate index, updated in place.</param>
     /// <param name="bit">The expected keystream bit.</param>
+    /// <param name="filters">The cached filter lookup table.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ExtendTableSimple(
         PooledBuffer<uint> table,
         int start,
         ref int end,
-        uint bit)
+        uint bit,
+        byte[] filters)
     {
+        var values = table.Array;
         var i = start;
         while (i <= end)
         {
-            var values = table.Array;
             values[i] <<= 1;
-            var filter0 = RecoveryFilter(values[i]);
-            var filter1 = RecoveryFilter(values[i] | 1);
+            var filter0 = filters[(int)(values[i] & FilterTableMask)];
+            var filter1 = filters[(int)((values[i] | 1) & FilterTableMask)];
 
             if ((filter0 ^ filter1) != 0)
             {
@@ -222,8 +230,12 @@ public static class Crapto1
             }
             else if (filter0 == bit)
             {
-                table.EnsureCapacity(end + 2);
-                values = table.Array;
+                if (end + 2 > values.Length)
+                {
+                    table.MarkUsed(end + 1);
+                    table.EnsureCapacity(end + 2);
+                    values = table.Array;
+                }
                 values[++end] = values[++i];
                 values[i] = values[i - 1] | 1;
             }
@@ -290,6 +302,8 @@ public static class Crapto1
     /// <param name="rem">The number of remaining recursive extension rounds.</param>
     /// <param name="emit">The sink that receives each completed state.</param>
     /// <param name="in">The remaining input contribution bits.</param>
+    /// <param name="filters">The cached filter lookup table.</param>
+    /// <param name="scratch">Optional scratch space for unordered high-byte grouping.</param>
     /// <returns><see langword="false"/> when the sink requests early termination.</returns>
     private static bool Recover(
         PooledBuffer<uint> odd,
@@ -302,7 +316,9 @@ public static class Crapto1
         uint eks,
         int rem,
         Func<Crypto1State, bool> emit,
-        uint @in)
+        uint @in,
+        byte[] filters,
+        uint[]? scratch)
     {
         if (rem == -1)
         {
@@ -339,7 +355,7 @@ public static class Crapto1
                 oks & 1,
                 Crypto1.LF_POLY_EVEN << 1 | 1,
                 Crypto1.LF_POLY_ODD << 1,
-                0u);
+                0u, filters);
             if (oddEnd < oddStart)
                 return true;
 
@@ -350,9 +366,51 @@ public static class Crapto1
                 eks & 1,
                 Crypto1.LF_POLY_ODD,
                 Crypto1.LF_POLY_EVEN << 1 | 1,
-                @in & 3);
+                @in & 3, filters);
             if (evenEnd < evenStart)
                 return true;
+        }
+
+        if (scratch != null && scratch.Length >= oddEnd - oddStart + 1 &&
+            scratch.Length >= evenEnd - evenStart + 1)
+        {
+            // Recovery only needs matching contribution bytes, not a full sort.
+            // Each recursion owns its boundaries; scratch is reused sequentially.
+            Span<int> oddGroups = stackalloc int[257];
+            Span<int> evenGroups = stackalloc int[257];
+            GroupRecoveryRange(odd.Array, oddStart, oddEnd, scratch, oddGroups);
+            GroupRecoveryRange(even.Array, evenStart, evenEnd, scratch, evenGroups);
+            for (var group = 255; group >= 0; group--)
+            {
+                if (oddGroups[group] == oddGroups[group + 1] ||
+                    evenGroups[group] == evenGroups[group + 1]) continue;
+                var oEnd = oddGroups[group + 1] - 1;
+                var eEnd = evenGroups[group + 1] - 1;
+                var oPositive = PartitionZeroContributions(odd.Array, oddGroups[group], oEnd);
+                var ePositive = PartitionZeroContributions(even.Array, evenGroups[group], eEnd);
+                var oZeroEnd = oPositive - 1;
+                var eZeroEnd = ePositive - 1;
+
+                // FindGroupStart uses a strict > comparison with the high byte.
+                // Consequently zero low-bit entries are paired individually after
+                // the positive range, rather than forming a Cartesian product.
+                // Retain that behavior, including duplicate/sentinel multiplicities.
+                if (oPositive <= oEnd || ePositive <= eEnd)
+                {
+                    var oStart = oPositive <= oEnd ? oPositive : oZeroEnd--;
+                    var eStart = ePositive <= eEnd ? ePositive : eZeroEnd--;
+                    if (!Recover(odd, oStart, oEnd, oks, even, eStart, eEnd, eks,
+                            rem, emit, @in, filters, scratch)) return false;
+                }
+                while (oZeroEnd >= oddGroups[group] && eZeroEnd >= evenGroups[group])
+                {
+                    if (!Recover(odd, oZeroEnd, oZeroEnd, oks, even, eZeroEnd, eZeroEnd, eks,
+                            rem, emit, @in, filters, scratch)) return false;
+                    oZeroEnd--;
+                    eZeroEnd--;
+                }
+            }
+            return true;
         }
 
         SortRecoveryRange(odd.Array, oddStart, oddEnd - oddStart + 1);
@@ -379,7 +437,7 @@ public static class Crapto1
                         eks,
                         rem,
                         emit,
-                        @in))
+                        @in, filters, scratch))
                     return false;
                 oddEnd--;
                 evenEnd--;
@@ -394,6 +452,37 @@ public static class Crapto1
             }
         }
         return true;
+    }
+
+    /// <summary>Moves zero low-bit contributions ahead of the positive range.</summary>
+    private static int PartitionZeroContributions(uint[] values, int start, int end)
+    {
+        var positive = start;
+        for (var i = start; i <= end; i++)
+        {
+            if ((values[i] & 0xffffff) != 0) continue;
+            (values[positive], values[i]) = (values[i], values[positive]);
+            positive++;
+        }
+        return positive;
+    }
+
+    /// <summary>Groups candidates by their high contribution byte in linear time.</summary>
+    private static void GroupRecoveryRange(uint[] values, int start, int end,
+        uint[] scratch, Span<int> boundaries)
+    {
+        boundaries.Clear();
+        for (var i = start; i <= end; i++) boundaries[(int)(values[i] >> 24) + 1]++;
+        boundaries[0] = start;
+        for (var i = 1; i <= 256; i++) boundaries[i] += boundaries[i - 1];
+        Span<int> next = stackalloc int[256];
+        boundaries.Slice(0, 256).CopyTo(next);
+        for (var i = start; i <= end; i++)
+        {
+            var value = values[i];
+            scratch[next[(int)(value >> 24)]++ - start] = value;
+        }
+        scratch.AsSpan(0, end - start + 1).CopyTo(values.AsSpan(start));
     }
 
     /// <summary>
@@ -532,12 +621,18 @@ public static class Crapto1
     /// <param name="in">The associated 32-bit input contribution.</param>
     /// <param name="workspace">The already-acquired recovery workspace.</param>
     /// <param name="emit">The sink that receives completed states.</param>
+    /// <param name="scratch">
+    /// Optional scratch space enabling linear high-byte grouping. This changes
+    /// emission order but retains the complete multiset of states.
+    /// Omit to retain the public producer's characterized ordering.
+    /// </param>
     /// <returns><see langword="false"/> when the sink requests early termination.</returns>
     internal static bool Recover32Core(
         uint ks2,
         uint @in,
         Crypto1RecoveryWorkspace workspace,
-        Func<Crypto1State, bool> emit)
+        Func<Crypto1State, bool> emit,
+        uint[]? scratch = null)
     {
         var oks = 0u;
         var eks = 0u;
@@ -557,10 +652,11 @@ public static class Crapto1
         evenValues[0] = 0;
         var oddEnd = 0;
         var evenEnd = 0;
+        var filters = RecoveryFilters.Value;
 
         for (var i = 1u << 20; (int)i >= 0; --i)
         {
-            var filter = RecoveryFilter(i);
+            var filter = filters[(int)(i & FilterTableMask)];
             if (filter == (oks & 1))
                 oddValues[++oddEnd] = i;
             if (filter == (eks & 1))
@@ -571,8 +667,8 @@ public static class Crapto1
 
         for (var i = 0; i < 4; i++)
         {
-            ExtendTableSimple(odd, 0, ref oddEnd, (oks >>= 1) & 1);
-            ExtendTableSimple(even, 0, ref evenEnd, (eks >>= 1) & 1);
+            ExtendTableSimple(odd, 0, ref oddEnd, (oks >>= 1) & 1, filters);
+            ExtendTableSimple(even, 0, ref evenEnd, (eks >>= 1) & 1, filters);
         }
 
         @in = (@in >> 16 & 0xff) | (@in << 16) | (@in & 0xff00);
@@ -587,7 +683,7 @@ public static class Crapto1
             eks,
             11,
             emit,
-            @in << 1);
+            @in << 1, filters, scratch);
     }
 
     /// <summary>
