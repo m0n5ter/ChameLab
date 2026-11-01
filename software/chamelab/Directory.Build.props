@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Every configuration (Debug and Release) builds warning-free. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

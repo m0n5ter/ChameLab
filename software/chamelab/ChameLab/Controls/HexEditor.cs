@@ -916,7 +916,7 @@ public sealed class HexEditor : Control
             try { await clipboard.SetTextAsync(text); }
             catch { /* clipboard unavailable (browser without permission) */ }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // ignore
         }
@@ -944,7 +944,7 @@ public sealed class HexEditor : Control
             var written = buf.Write(start, bytes);
             if (written > 0) GoTo(Math.Min(start + written, buf.ViewLength - 1));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // ignore
         }
