@@ -2,5 +2,8 @@
   <PropertyGroup>
     <!-- Every configuration (Debug and Release) builds warning-free. -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- IL2104 is the trimmer's one-line summary for package assemblies (Actipro, Avalonia
+         designer support) that we can't fix; our own assemblies still get per-call trim warnings. -->
+    <NoWarn>$(NoWarn);IL2104</NoWarn>
   </PropertyGroup>
 </Project>
