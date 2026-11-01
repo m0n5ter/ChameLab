@@ -421,7 +421,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
                 }, 0, 0, p.Key));
             Refresh();
         }));
-        await new MifareKeyRecovery(client, _hardnested).RecoverAsync(target, method, progress, ct);
+        await new MifareKeyRecovery(client, _hardnested, _dictionaries.KnownKeys).RecoverAsync(target, method, progress, ct);
         Refresh();
     }
 

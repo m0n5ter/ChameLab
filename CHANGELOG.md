@@ -6,6 +6,10 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.1.24][2026-11-01] · firmware v2.3.7-cl
+ - ChameLab: Nested, Static nested and Hardnested try keys already found for the card before attacking each unknown sector key, for both A and B; keys with more successful uses are tried first. A final pass checks newly found keys against earlier unresolved sectors without repeating rejected combinations; RF errors are retried rather than remembered as wrong keys
+ - ChameLab: confirmed keys are saved to Known card keys immediately during recovery, including when recovery is later stopped
  - Firmware v2.3.7-cl: ISO14443-4 (T=CL) emulation no longer truncates reader commands of 32 bytes or more (e.g. an EMV GPO with a full PDOL); the received bit count wrapped at 256
  - Firmware v2.3.7-cl: BLE advertising is no longer restarted while a client is connected; it resumes on disconnect
 

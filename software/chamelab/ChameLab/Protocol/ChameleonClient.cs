@@ -832,7 +832,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// Authenticates and returns the device status: <see cref="Status.HfTagOk"/>, <see cref="Status.MfErrAuth"/>
     /// for a wrong key, or an RF error (tag lost, CRC, parity…) that says nothing about the key.
     /// </summary>
-    private async Task<Status> Mf1AuthStatusAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
+    internal async Task<Status> Mf1AuthStatusAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
     {
         if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[8];

@@ -1650,7 +1650,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpProgressText = "Starting recovery…";
         try
         {
-            var recovery = new MifareKeyRecovery(client, AppServices.Hardnested);
+            var recovery = new MifareKeyRecovery(client, AppServices.Hardnested, _dictionaries.KnownKeys);
             var progress = new PostedProgress<KeyRecoveryProgress>(IfKept<KeyRecoveryProgress>(cts, OnRecoverProgress));
             try { await recovery.RecoverAsync(dump, method, progress, cts.Token); }
             catch (OperationCanceledException) when (cts.IsCancellationRequested) { }

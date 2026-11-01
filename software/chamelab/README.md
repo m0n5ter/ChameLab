@@ -112,6 +112,18 @@ The Android USB transport supports normal device commands, scans and card dumps.
 Firmware updates on Android currently use BLE; USB bootloader flashing is not
 implemented in the Android build. iOS continues to use BLE and TCP.
 
+## Reusing recovered keys
+
+Nested, static nested, and hardnested first try the current card's known unique
+keys for each missing sector key, checking both A and B independently. Each
+successful authentication raises that key's priority for subsequent checks in
+the recovery run; keys with more successful uses are tried first. An attack
+runs only if those keys do not authenticate. Each confirmed key is immediately
+saved to **Known card keys** under the card's full UID and becomes available for
+subsequent sectors. A final pass tries newly found keys on earlier unresolved
+sectors without repeating combinations already rejected by the card. RF errors
+are retried and are not remembered as wrong keys.
+
 ## Static encrypted nested
 
 Choose **Static encrypted nested** in the card or target-card recovery panel

@@ -558,7 +558,12 @@ public class MifareWorkflowTests
     {
         var dump = KnownCard();
         dump.KeyB[4] = null;
-        var transport = new CardTransport { Prng = prng };
+        var transport = new CardTransport
+        {
+            Prng = prng,
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (Status.MfErrAuth, Array.Empty<byte>()) : null,
+        };
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
 
@@ -567,9 +572,263 @@ public class MifareWorkflowTests
         var requests = transport.Requests.FindAll(r => r.Command == acquire);
         Assert.Equal(method == MifareRecoveryMethod.StaticNested ? 3 : 1, requests.Count);
         Assert.All(requests, request => Assert.Equal(new byte[] { (byte)MfKeyType.B, 19 }, request.Data[8..]));
-        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock
-            || r.Command == Command.Mf1DarksideAcquire);
+        var auth = Assert.Single(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
+        Assert.Equal(new byte[] { (byte)MfKeyType.B, 19 }.Concat(Key), auth.Data);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1DarksideAcquire);
         Assert.Equal(Key, dump.KeyA[4]);
+    }
+
+    [Fact]
+    public async Task Hardnested_ReusesNewKeyAndRevisitsEarlierFailuresWithoutRepeatingRejectedKeys()
+    {
+        var dump = KnownCard();
+        dump.KeyB[0] = dump.KeyA[1] = dump.KeyA[2] = dump.KeyB[3] = dump.KeyB[4] = null;
+        var store = new MemoryKeyValueStore();
+        var known = new KnownCardKeys(store);
+        var savedBeforeNextSector = false;
+        var counter = 0;
+        var transport = new CardTransport
+        {
+            Prng = MifareClassicPrngType.Hard,
+            Response = request => request.Command switch
+            {
+                Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
+                Command.Mf1AuthOneKeyBlock => (request.Data[1] is 3 or 11 or 15
+                    && request.Data[2..].SequenceEqual(new byte[6]) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>()),
+                Command.Mf1HardnestedAcquire when request.Data[10] != 11 => (Status.HfErrStat, Array.Empty<byte>()),
+                Command.Mf1HardnestedAcquire => (Status.HfTagOk, HardnestedBatch(ref counter)),
+                _ => null,
+            },
+            OnRequest = request =>
+            {
+                if (request.Command != Command.Mf1AuthOneKeyBlock || request.Data[1] != 15) return;
+                Assert.Equal(new byte[6], Assert.Single(new KnownCardKeys(store).ForUid(dump.Uid)));
+                savedBeforeNextSector = true;
+            },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var engine = new HardnestedEngine();
+        var updates = new List<KeyRecoveryProgress>();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection), engine, known)
+            .RecoverAsync(dump, MifareRecoveryMethod.Hardnested,
+                new CallbackProgress<KeyRecoveryProgress>(updates.Add));
+
+        Assert.Equal(1, engine.Calls);
+        Assert.True(savedBeforeNextSector);
+        Assert.Equal(new byte[6], dump.KeyB[0]);
+        Assert.Equal(new byte[6], dump.KeyA[2]);
+        Assert.Equal(new byte[6], dump.KeyB[3]);
+        Assert.Null(dump.KeyA[1]);
+        Assert.Null(dump.KeyB[4]);
+        Assert.Equal(3, updates.Count(p => p.Mark == KeyMark.Found));
+        var auth = transport.Requests.Where(r => r.Command == Command.Mf1AuthOneKeyBlock).ToArray();
+        Assert.Equal(9, auth.Length);
+        Assert.All(auth.GroupBy(r => Convert.ToHexString(r.Data)), group => Assert.Single(group));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1HardnestedAcquire && r.Data[10] == 15);
+        var lastAuth = auth[^1];
+        Assert.Equal(new byte[] { (byte)MfKeyType.A, 7 }.Concat(new byte[6]), lastAuth.Data);
+    }
+
+    [Theory]
+    [InlineData(MifareRecoveryMethod.Nested, MifareClassicPrngType.Weak)]
+    [InlineData(MifareRecoveryMethod.StaticNested, MifareClassicPrngType.Static)]
+    [InlineData(MifareRecoveryMethod.Hardnested, MifareClassicPrngType.Hard)]
+    public async Task Recovery_PrioritizesKeysBySuccessfulUsesAcrossSectorsAndTypes(
+        MifareRecoveryMethod method, MifareClassicPrngType prng)
+    {
+        var other = Convert.FromHexString("112233445566");
+        var dump = KnownCard();
+        dump.KeyB[4] = other;
+        dump.KeyA[0] = dump.KeyB[0] = dump.KeyA[1] = dump.KeyB[1] = null;
+        var transport = new CardTransport
+        {
+            Prng = prng,
+            Response = request => request.Command switch
+            {
+                Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
+                Command.Mf1AuthOneKeyBlock => (request.Data[2..].SequenceEqual(
+                    request.Data[1] == 7 && request.Data[0] == (byte)MfKeyType.A ? Key : other)
+                    ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>()),
+                _ => null,
+            },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection), new HardnestedEngine()).RecoverAsync(dump, method);
+
+        // The second key moves ahead immediately; after two successes it keeps its
+        // lead even when the first key subsequently opens another sector.
+        var auth = transport.Requests.Where(r => r.Command == Command.Mf1AuthOneKeyBlock).ToArray();
+        var expected = new[]
+        {
+            new byte[] { (byte)MfKeyType.A, 3 }.Concat(Key).ToArray(),
+            new byte[] { (byte)MfKeyType.A, 3 }.Concat(other).ToArray(),
+            new byte[] { (byte)MfKeyType.B, 3 }.Concat(other).ToArray(),
+            new byte[] { (byte)MfKeyType.A, 7 }.Concat(other).ToArray(),
+            new byte[] { (byte)MfKeyType.A, 7 }.Concat(Key).ToArray(),
+            new byte[] { (byte)MfKeyType.B, 7 }.Concat(other).ToArray(),
+        };
+        Assert.Equal(expected.Select(Convert.ToHexString), auth.Select(r => Convert.ToHexString(r.Data)));
+        Assert.Equal(other, dump.KeyA[0]);
+        Assert.Equal(other, dump.KeyB[0]);
+        Assert.Equal(Key, dump.KeyA[1]);
+        Assert.Equal(other, dump.KeyB[1]);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire
+            or Command.Mf1StaticNestedAcquire or Command.Mf1HardnestedAcquire);
+    }
+
+    [Fact]
+    public async Task Recovery_PreservesOriginalKeyOrderWhenSuccessCountsAreEqual()
+    {
+        var other = Convert.FromHexString("112233445566");
+        var dump = KnownCard();
+        dump.KeyB[4] = other;
+        dump.KeyA[0] = dump.KeyB[0] = dump.KeyA[1] = null;
+        var transport = new CardTransport
+        {
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (request.Data[2..].SequenceEqual(request.Data[1] == 3 && request.Data[0] == (byte)MfKeyType.A
+                    ? other : Key) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>()) : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection)).RecoverAsync(dump, MifareRecoveryMethod.Nested);
+
+        var auth = transport.Requests.Where(r => r.Command == Command.Mf1AuthOneKeyBlock).ToArray();
+        Assert.Equal(5, auth.Length);
+        Assert.Equal(new byte[] { (byte)MfKeyType.A, 7 }.Concat(Key), auth[^1].Data);
+        Assert.Equal(Key, dump.KeyA[1]);
+    }
+
+    [Theory]
+    [InlineData(MifareRecoveryMethod.Nested, MifareClassicPrngType.Weak)]
+    [InlineData(MifareRecoveryMethod.StaticNested, MifareClassicPrngType.Static)]
+    [InlineData(MifareRecoveryMethod.Hardnested, MifareClassicPrngType.Hard)]
+    public async Task Recovery_TriesUniqueExistingKeysForBothTypesBeforeStartingAnyAttack(
+        MifareRecoveryMethod method, MifareClassicPrngType prng)
+    {
+        var dump = KnownCard();
+        dump.KeyA[0] = dump.KeyB[0] = dump.KeyA[2] = dump.KeyB[4] = null;
+        var known = new KnownCardKeys(new MemoryKeyValueStore());
+        var changes = 0;
+        known.Changed += () => changes++;
+        var transport = new CardTransport
+        {
+            Prng = prng,
+            Response = request => request.Command == Command.GetDeviceCapabilities
+                ? (Status.Success, new byte[] { 0x07, 0xdd }) : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var engine = new HardnestedEngine();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection), engine, known).RecoverAsync(dump, method);
+
+        Assert.All(dump.KeyA.Concat(dump.KeyB), key => Assert.Equal(Key, key));
+        Assert.Equal(0, engine.Calls);
+        Assert.Equal(4, transport.Requests.Count(r => r.Command == Command.Mf1AuthOneKeyBlock));
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire
+            or Command.Mf1StaticNestedAcquire or Command.Mf1HardnestedAcquire or Command.Mf1DetectNtDist);
+        Assert.Equal(Key, Assert.Single(known.ForUid(dump.Uid)));
+        Assert.Equal(1, changes);
+    }
+
+    [Theory]
+    [InlineData(Status.HfTagNo)]
+    [InlineData(Status.HfErrCrc)]
+    [InlineData(Status.HfErrParity)]
+    public async Task Recovery_DoesNotCacheRfFailuresAsWrongKeys(Status failure)
+    {
+        var dump = KnownCard();
+        dump.KeyB[4] = null;
+        var attempts = 0;
+        var transport = new CardTransport
+        {
+            Response = request => request.Command == Command.Mf1AuthOneKeyBlock
+                ? (++attempts <= 4 ? failure : Status.HfTagOk, Array.Empty<byte>()) : null,
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection)).RecoverAsync(dump, MifareRecoveryMethod.Nested);
+
+        Assert.Equal(Key, dump.KeyB[4]);
+        Assert.Equal(5, attempts);
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1NestedAcquire);
+    }
+
+    [Fact]
+    public async Task Recovery_PersistsConfirmedKeyBeforeCancellationInNextSector()
+    {
+        var dump = KnownCard();
+        dump.KeyB[0] = dump.KeyA[1] = null;
+        var store = new MemoryKeyValueStore();
+        var known = new KnownCardKeys(store);
+        using var stop = new CancellationTokenSource();
+        var counter = 0;
+        var transport = new CardTransport
+        {
+            Prng = MifareClassicPrngType.Hard,
+            Response = request => request.Command switch
+            {
+                Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
+                Command.Mf1HardnestedAcquire => (Status.HfTagOk, HardnestedBatch(ref counter)),
+                Command.Mf1AuthOneKeyBlock => (request.Data[2..].SequenceEqual(new byte[6])
+                    ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>()),
+                _ => null,
+            },
+            OnRequest = request =>
+            {
+                if (request.Command != Command.Mf1AuthOneKeyBlock || request.Data[1] != 7) return;
+                Assert.Equal(new byte[6], Assert.Single(new KnownCardKeys(store).ForUid(dump.Uid)));
+                stop.Cancel();
+            },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            new MifareKeyRecovery(new ChameleonClient(connection), new HardnestedEngine(), known)
+                .RecoverAsync(dump, MifareRecoveryMethod.Hardnested, ct: stop.Token));
+
+        Assert.Equal(new byte[6], dump.KeyB[0]);
+        Assert.Null(dump.KeyA[1]);
+        Assert.Equal(new byte[6], Assert.Single(new KnownCardKeys(store).ForUid(dump.Uid)));
+    }
+
+    [Theory]
+    [InlineData(0UL, 2)]
+    [InlineData(0xFFFFFFFFFFFFUL, 1)]
+    public async Task Recovery_DoesNotRememberUnconfirmedCandidatesOrRepeatRejectedKey(ulong candidate, int authCount)
+    {
+        var dump = KnownCard();
+        dump.KeyB[4] = null;
+        var known = new KnownCardKeys(new MemoryKeyValueStore());
+        var counter = 0;
+        var transport = new CardTransport
+        {
+            Prng = MifareClassicPrngType.Hard,
+            Response = request => request.Command switch
+            {
+                Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
+                Command.Mf1HardnestedAcquire => (Status.HfTagOk, HardnestedBatch(ref counter)),
+                Command.Mf1AuthOneKeyBlock => (Status.MfErrAuth, Array.Empty<byte>()),
+                _ => null,
+            },
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection), new HardnestedEngine { Result = candidate }, known)
+            .RecoverAsync(dump, MifareRecoveryMethod.Hardnested);
+
+        Assert.Null(dump.KeyB[4]);
+        Assert.Empty(known.ForUid(dump.Uid));
+        Assert.Equal(authCount, transport.Requests.Count(r => r.Command == Command.Mf1AuthOneKeyBlock));
     }
 
     [Fact]
@@ -619,6 +878,7 @@ public class MifareWorkflowTests
             Command.Hf14aScan => (Status.HfTagOk, Convert.FromHexString("070401024D4F4E5304000900")),
             Command.Mf1StaticNestedAcquire => (Status.HfTagOk,
                 Convert.FromHexString("4D4F4E53009080A22B7C6E42009080A21DE65248")),
+            Command.Mf1AuthOneKeyBlock when request.Data[2..].SequenceEqual(Key) => (Status.MfErrAuth, Array.Empty<byte>()),
             _ => null,
         };
         await using var connection = new ChameleonConnection(transport);
@@ -633,7 +893,7 @@ public class MifareWorkflowTests
 
         Assert.Equal(Convert.FromHexString("112233445566"), dump.KeyB[4]);
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1StaticNestedAcquire);
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
+        Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1AuthOneKeyBlock));
     }
 
     [Theory]
@@ -685,9 +945,13 @@ public class MifareWorkflowTests
         var transport = new CardTransport
         {
             Prng = MifareClassicPrngType.Static,
-            Response = request => request.Command == Command.Mf1StaticNestedAcquire
-                ? (Status.HfTagOk, Convert.FromHexString("7C048D13009080A24B5B5AB9009080A248D9A6C1"))
-                : null,
+            Response = request => request.Command switch
+            {
+                Command.Mf1StaticNestedAcquire => (Status.HfTagOk,
+                    Convert.FromHexString("7C048D13009080A24B5B5AB9009080A248D9A6C1")),
+                Command.Mf1AuthOneKeyBlock when request.Data[2..].SequenceEqual(Key) => (Status.MfErrAuth, Array.Empty<byte>()),
+                _ => null,
+            },
         };
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
@@ -699,7 +963,7 @@ public class MifareWorkflowTests
         var acquire = Assert.Single(transport.Requests, r => r.Command == Command.Mf1StaticNestedAcquire);
         Assert.Equal((byte)MfKeyType.B, acquire.Data[0]);
         Assert.Equal((byte)MfKeyType.A, acquire.Data[8]);
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
+        Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1AuthOneKeyBlock));
     }
 
     [Fact]
@@ -746,6 +1010,7 @@ public class MifareWorkflowTests
         {
             Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
             Command.Mf1HardnestedAcquire => (Status.HfTagOk, HardnestedBatch(ref counter)),
+            Command.Mf1AuthOneKeyBlock when request.Data[2..].SequenceEqual(Key) => (Status.MfErrAuth, Array.Empty<byte>()),
             _ => null,
         };
         await using var connection = new ChameleonConnection(transport);
@@ -761,7 +1026,9 @@ public class MifareWorkflowTests
         Assert.Equal(new byte[6], dump.KeyB[4]);
         Assert.All(transport.Requests.Where(request => request.Command == Command.Mf1HardnestedAcquire), request =>
             Assert.Equal(new byte[] { (byte)MfKeyType.B, 19 }, request.Data[9..]));
-        var auth = Assert.Single(transport.Requests, request => request.Command == Command.Mf1AuthOneKeyBlock);
+        Assert.Equal(2, transport.Requests.Count(request => request.Command == Command.Mf1AuthOneKeyBlock));
+        var auth = Assert.Single(transport.Requests, request => request.Command == Command.Mf1AuthOneKeyBlock
+            && request.Data[2..].SequenceEqual(new byte[6]));
         Assert.Equal(new byte[6], auth.Data[2..]);
     }
 
@@ -817,6 +1084,7 @@ public class MifareWorkflowTests
             Command.GetDeviceCapabilities => (Status.Success, new byte[] { 0x07, 0xdd }),
             Command.Mf1HardnestedAcquire => (Status.HfTagOk, HardnestedBatch(ref counter)),
             Command.Hf14aScan when changed => (Status.HfTagOk, new byte[] { 4, 9, 8, 7, 6, 4, 0, 9, 0 }),
+            Command.Mf1AuthOneKeyBlock => (Status.MfErrAuth, Array.Empty<byte>()),
             _ => null,
         };
         await using var connection = new ChameleonConnection(transport);
@@ -828,7 +1096,8 @@ public class MifareWorkflowTests
                 .RecoverAsync(dump, MifareRecoveryMethod.Hardnested));
 
         Assert.Null(dump.KeyB[4]);
-        Assert.DoesNotContain(transport.Requests, request => request.Command == Command.Mf1AuthOneKeyBlock);
+        var auth = Assert.Single(transport.Requests, request => request.Command == Command.Mf1AuthOneKeyBlock);
+        Assert.Equal(Key, auth.Data[2..]);
     }
 
     [Fact]
@@ -857,12 +1126,15 @@ public class MifareWorkflowTests
     {
         public string? UnavailableReason => null;
         public HardnestedCapture? Capture { get; private set; }
+        public int Calls { get; private set; }
+        public ulong? Result { get; init; } = 0;
         public Action? OnRecover { get; init; }
         public Task<ulong?> RecoverAsync(HardnestedCapture capture, IProgress<string>? progress, CancellationToken ct)
         {
             Capture = capture;
+            Calls++;
             OnRecover?.Invoke();
-            return Task.FromResult<ulong?>(0);
+            return Task.FromResult(Result);
         }
     }
 

@@ -20,7 +20,8 @@ public sealed record KeyRecoveryProgress(
     string Status, int Sector = -1, MfKeyType KeyType = MfKeyType.A, KeyMark Mark = KeyMark.None, byte[]? Key = null, string? Detail = null);
 
 /// <summary>Runs one selected recovery method, preserving keys already found in the shared dump.</summary>
-public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null)
+public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null,
+    KnownCardKeys? knownKeys = null)
 {
     private readonly IHardnestedEngine _hardnested = hardnested ?? new UnavailableHardnestedEngine();
 
@@ -37,6 +38,10 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         if (!dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException("The card changed. Scan it again before continuing.");
         var authUid = ReadUid(tags[0].Uid);
+        var reusable = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
+            .DistinctBy(KeyValue).ToDictionary(KeyValue);
+        var successes = new Dictionary<ulong, int>();
+        var rejected = new HashSet<(int Block, MfKeyType Type, ulong Key)>();
 
         bool Known(int s, MfKeyType kt) => (kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[s] is not null;
         void Mark(int s, MfKeyType kt, KeyMark mark, string status) =>
@@ -44,7 +49,28 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         void Store(int s, MfKeyType kt, byte[] key)
         {
             (kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[s] = key;
+            var value = KeyValue(key);
+            reusable.TryAdd(value, key);
+            successes[value] = successes.GetValueOrDefault(value) + 1;
             progress?.Report(new KeyRecoveryProgress("Found a key.", s, kt, KeyMark.Found, key));
+            knownKeys?.Remember(dump.Uid, [key]);
+        }
+        async Task<bool> TryKnownKeysAsync(int s, MfKeyType kt)
+        {
+            var block = MifareClassic.SectorTrailerBlock(s);
+            var keys = reusable.Where(k => !rejected.Contains((block, kt, k.Key)))
+                .OrderByDescending(k => successes.GetValueOrDefault(k.Key)).ToArray();
+            if (keys.Length == 0) return false;
+            for (var i = 0; i < keys.Length; i++)
+            {
+                progress?.Report(new KeyRecoveryProgress("Checking previously found keys…", s, kt,
+                    KeyMark.Checking, Detail: $"Known key {i + 1}/{keys.Length}"));
+                if (!await TryAuthAsync(block, kt, keys[i].Value, ct, rejected)) continue;
+                Store(s, kt, keys[i].Value);
+                return true;
+            }
+            Mark(s, kt, KeyMark.None, "No known key was confirmed for this sector.");
+            return false;
         }
 
         if (method == MifareRecoveryMethod.Darkside)
@@ -75,6 +101,7 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             {
                 ct.ThrowIfCancellationRequested();
                 if (Known(s, kt)) continue;
+                if (await TryKnownKeysAsync(s, kt)) continue;
                 var seed = FirstKnownKey(dump)!.Value;
                 var target = MifareClassic.SectorTrailerBlock(s);
                 Mark(s, kt, KeyMark.Checking,
@@ -88,7 +115,7 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                         ? await StaticNestedSectorAsync(seed, target, kt, progress, ct)
                         : await NestedSectorAsync(seed, target, kt, progress, ct);
                     Mark(s, kt, KeyMark.Checking, $"Checking {candidates.Count} recovered key candidates…");
-                    var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct);
+                    var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct, rejected: rejected);
                     if (hit is { } key) Store(s, kt, key);
                     else Mark(s, kt, KeyMark.None, "Key not recovered for this sector.");
                 }
@@ -96,6 +123,14 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                 {
                     Mark(s, kt, KeyMark.None, "Nonce collection failed for this sector.");
                 }
+            }
+        // A later sector may reveal a key for an earlier failed attack. Only untested
+        // combinations (and inconclusive RF failures) need another authentication.
+        for (var s = 0; s < dump.SectorCount; s++)
+            foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
+            {
+                ct.ThrowIfCancellationRequested();
+                if (!Known(s, kt)) await TryKnownKeysAsync(s, kt);
             }
         progress?.Report(new KeyRecoveryProgress("Recovery finished."));
     }
@@ -280,7 +315,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
     }
 
     private async Task<byte[]?> FirstWorkingKeyAsync(int block, MfKeyType keyType, IReadOnlyList<ulong> candidates,
-        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, string? detail = null)
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, string? detail = null,
+        HashSet<(int Block, MfKeyType Type, ulong Key)>? rejected = null)
     {
         for (var i = 0; i < candidates.Count; i++)
         {
@@ -290,15 +326,31 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                 MifareClassic.SectorOfBlock(block), keyType, KeyMark.Checking,
                 Detail: detail is null ? counter : $"{detail} · {counter}"));
             var key = KeyBytes(candidates[i]);
-            if (await TryAuthAsync(block, keyType, key, ct)) return key;
+            if (await TryAuthAsync(block, keyType, key, ct, rejected)) return key;
         }
         return null;
     }
 
-    private async Task<bool> TryAuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
+    private async Task<bool> TryAuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct,
+        HashSet<(int Block, MfKeyType Type, ulong Key)>? rejected = null)
     {
-        try { return await client.Mf1AuthAsync(block, keyType, key, ct); }
-        catch (ChameleonException) { return false; }
+        var combination = (block, keyType, KeyValue(key));
+        if (rejected?.Contains(combination) == true) return false;
+        for (var attempt = 0; attempt < 4; attempt++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var status = await client.Mf1AuthStatusAsync(block, keyType, key, ct);
+            if (status == Status.HfTagOk) return true;
+            if (status == Status.MfErrAuth)
+            {
+                rejected?.Add(combination);
+                return false;
+            }
+            if (status is not (Status.HfTagNo or Status.HfErrStat or Status.HfErrCrc
+                or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts))
+                throw new ChameleonException("Could not authenticate a key.", status);
+        }
+        return false;
     }
 
     // ---- small helpers ----------------------------------------------------
