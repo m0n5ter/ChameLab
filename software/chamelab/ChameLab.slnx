@@ -1,4 +1,7 @@
-﻿<Solution>
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+  </Folder>
   <Project Path="ChameLab.Android/ChameLab.Android.csproj">
     <Deploy />
   </Project>
