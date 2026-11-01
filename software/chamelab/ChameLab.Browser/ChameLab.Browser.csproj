@@ -8,6 +8,9 @@
     <!-- Link SkiaSharp/HarfBuzz native assets into the WASM output. Requires the
          wasm-tools workload (`dotnet workload install wasm-tools`). -->
     <WasmBuildNative>true</WasmBuildNative>
+    <!-- Recovery loops need compiled Wasm, rather than the IL interpreter.
+         AOT runs on publish; retain fast local Debug builds. -->
+    <RunAOTCompilation Condition="'$(Configuration)' == 'Release' and '$(RunAOTCompilation)' == ''">true</RunAOTCompilation>
   </PropertyGroup>
 
   <ItemGroup>

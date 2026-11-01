@@ -578,6 +578,139 @@ public class MifareWorkflowTests
         Assert.Equal(Key, dump.KeyA[4]);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Nested_SkipsGrowingKnownKeyListAndFallsBackIfRecoveryFails(bool nestedSucceeds)
+    {
+        var other = Convert.FromHexString("111111111111");
+        var recovered = Convert.FromHexString("A0A1A2A3A4A5");
+        var next = Convert.FromHexString("112233445566");
+        var dump = KnownCard();
+        dump.KeyB[4] = other;
+        dump.KeyB[0] = dump.KeyA[1] = null;
+        var clock = new RecoveryClock();
+        var transport = TimedNestedTransport(clock, request => request.Data[2..].SequenceEqual(
+            request.Data[1] == 3 ? recovered : nestedSucceeds ? next : Key));
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var engine = new TimedNestedEngine(clock, call => call == 1 ? [0xA0A1A2A3A4A5UL] :
+            nestedSucceeds ? [0x112233445566UL] : [0xA0A1A2A3A4A5UL]);
+        var updates = new List<KeyRecoveryProgress>();
+
+        await new MifareKeyRecovery(new ChameleonClient(connection), keyRecovery: engine, timeProvider: clock)
+            .RecoverAsync(dump, MifareRecoveryMethod.Nested, new CallbackProgress<KeyRecoveryProgress>(updates.Add));
+
+        Assert.Equal(recovered, dump.KeyB[0]);
+        Assert.Equal(nestedSucceeds ? next : Key, dump.KeyA[1]);
+        Assert.Equal(2, engine.Calls);
+        Assert.Equal(TimeSpan.FromMilliseconds(nestedSucceeds ? 280 : 320), clock.GetElapsedTime(0));
+        // First missing key calibrates both paths: 2 * 40 ms for reuse, then
+        // 10 + 10 + 40 + 40 = 100 ms for acquisition, solving and verification.
+        var firstAuth = transport.Requests.Where(r => r.Command == Command.Mf1AuthOneKeyBlock && r.Data[1] == 3);
+        Assert.Equal(new[] { Key, other, recovered }.Select(Convert.ToHexString),
+            firstAuth.Select(r => Convert.ToHexString(r.Data[2..])));
+        // The new unique key raises the next reuse estimate to 120 ms, so the
+        // 100 ms attack must start before authenticating any known key on block 7.
+        var collect = transport.Requests.FindIndex(r => r.Command == Command.Mf1NestedAcquire && r.Data[9] == 7);
+        var authenticate = transport.Requests.FindIndex(r => r.Command == Command.Mf1AuthOneKeyBlock && r.Data[1] == 7);
+        Assert.True(collect >= 0 && collect < authenticate);
+        var secondAuth = transport.Requests.Where(r => r.Command == Command.Mf1AuthOneKeyBlock && r.Data[1] == 7);
+        Assert.Equal((nestedSucceeds ? new[] { next } : new[] { recovered, Key }).Select(Convert.ToHexString),
+            secondAuth.Select(r => Convert.ToHexString(r.Data[2..])));
+        var choice = Assert.Single(updates, p => p.Status == "Using nested instead of checking known keys…");
+        Assert.Contains("120 ms", choice.Detail);
+        Assert.Contains("100 ms", choice.Detail);
+    }
+
+    [Fact]
+    public async Task Nested_FailedAttackDoesNotCalibrateAShortRecoveryTime()
+    {
+        var dump = KnownCard();
+        dump.KeyB[4] = Convert.FromHexString("111111111111");
+        dump.KeyB[0] = dump.KeyA[1] = null;
+        var clock = new RecoveryClock();
+        var transport = TimedNestedTransport(clock, r => r.Data[1] == 7 && r.Data[2..].SequenceEqual(Key));
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var engine = new TimedNestedEngine(clock, _ => []);
+
+        await new MifareKeyRecovery(new ChameleonClient(connection), keyRecovery: engine, timeProvider: clock)
+            .RecoverAsync(dump, MifareRecoveryMethod.Nested);
+
+        Assert.Null(dump.KeyB[0]);
+        Assert.Equal(Key, dump.KeyA[1]);
+        Assert.Equal(1, engine.Calls);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1NestedAcquire && r.Data[9] == 7);
+    }
+
+    [Fact]
+    public async Task Nested_TimingStartsFreshForTheNextRun()
+    {
+        var dump = KnownCard();
+        dump.KeyB[4] = Convert.FromHexString("111111111111");
+        dump.KeyB[0] = null;
+        var clock = new RecoveryClock();
+        var transport = TimedNestedTransport(clock, r => r.Data[2..].SequenceEqual(
+            r.Data[1] == 3 ? Convert.FromHexString("A0A1A2A3A4A5") : Key));
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var engine = new TimedNestedEngine(clock, _ => [0xA0A1A2A3A4A5UL]);
+        var recovery = new MifareKeyRecovery(new ChameleonClient(connection), keyRecovery: engine, timeProvider: clock);
+        await recovery.RecoverAsync(dump, MifareRecoveryMethod.Nested);
+        Assert.Equal(1, engine.Calls);
+
+        dump.KeyA[2] = null;
+        transport.Requests.Clear();
+        await recovery.RecoverAsync(dump, MifareRecoveryMethod.Nested);
+
+        Assert.Equal(Key, dump.KeyA[2]);
+        Assert.Equal(1, engine.Calls);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1NestedAcquire);
+        Assert.Equal(11, Assert.Single(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock).Data[1]);
+    }
+
+    private sealed class RecoveryClock : TimeProvider
+    {
+        private long _ticks;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() => Interlocked.Read(ref _ticks);
+        public void Advance(int milliseconds) => Interlocked.Add(ref _ticks, TimeSpan.FromMilliseconds(milliseconds).Ticks);
+    }
+
+    private sealed class TimedNestedEngine(RecoveryClock clock, Func<int, IReadOnlyList<ulong>> result) : IKeyRecoveryEngine
+    {
+        public int Calls { get; private set; }
+        public Task<IReadOnlyList<ulong>> RecoverAsync(KeyRecoveryRequest request, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            Assert.Equal(KeyRecoveryOperation.Nested, request.Operation);
+            clock.Advance(40);
+            return Task.FromResult(result(++Calls));
+        }
+    }
+
+    private static CardTransport TimedNestedTransport(RecoveryClock clock, Func<ChameleonFrame, bool> authenticate) => new()
+    {
+        Response = request =>
+        {
+            switch (request.Command)
+            {
+                case Command.Mf1AuthOneKeyBlock:
+                    clock.Advance(40);
+                    return (authenticate(request) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>());
+                case Command.Mf1DetectNtDist:
+                    clock.Advance(10);
+                    return (Status.HfTagOk, new byte[8]);
+                case Command.Mf1NestedAcquire:
+                    clock.Advance(10);
+                    return (Status.HfTagOk, new byte[18]);
+                default:
+                    return null;
+            }
+        }
+    };
+
     [Fact]
     public async Task Hardnested_ReusesNewKeyAndRevisitsEarlierFailuresWithoutRepeatingRejectedKeys()
     {

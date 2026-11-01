@@ -91,6 +91,18 @@ dotnet workload install wasm-tools
 dotnet run --project ChameLab.Browser -c Debug
 ```
 
+For browser recovery performance, use a published Release build:
+
+```bash
+dotnet publish ChameLab.Browser -c Release
+```
+
+Release publishing enables managed WebAssembly AOT, including the recovery code
+executed in Web Workers. This increases publish time and download size but avoids
+interpreting the CPU-heavy Crypto1 loops. Debug builds keep the interpreter for
+fast iteration. Pass `-p:RunAOTCompilation=false` to publish without AOT when
+comparing performance or investigating build issues.
+
 ```bash
 # Android (needs the matching Android SDK platform installed once)
 dotnet build -t:InstallAndroidDependencies -f net10.0-android ChameLab.Android

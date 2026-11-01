@@ -21,10 +21,11 @@ public sealed record KeyRecoveryProgress(
 
 /// <summary>Runs one selected recovery method, preserving keys already found in the shared dump.</summary>
 public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null,
-    KnownCardKeys? knownKeys = null, IKeyRecoveryEngine? keyRecovery = null)
+    KnownCardKeys? knownKeys = null, IKeyRecoveryEngine? keyRecovery = null, TimeProvider? timeProvider = null)
 {
     private readonly IHardnestedEngine _hardnested = hardnested ?? new UnavailableHardnestedEngine();
     private readonly IKeyRecoveryEngine _keyRecovery = keyRecovery ?? AppServices.KeyRecovery;
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     public async Task RecoverAsync(
         MifareDump dump, MifareRecoveryMethod method,
@@ -43,6 +44,7 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             .DistinctBy(KeyValue).ToDictionary(KeyValue);
         var successes = new Dictionary<ulong, int>();
         var rejected = new HashSet<(int Block, MfKeyType Type, ulong Key)>();
+        var timing = method == MifareRecoveryMethod.Nested ? new NestedRecoveryTiming() : null;
 
         bool Known(int s, MfKeyType kt) => (kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[s] is not null;
         void Mark(int s, MfKeyType kt, KeyMark mark, string status) =>
@@ -66,7 +68,10 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             {
                 progress?.Report(new KeyRecoveryProgress("Checking previously found keys…", s, kt,
                     KeyMark.Checking, Detail: $"Known key {i + 1}/{keys.Length}"));
-                if (!await TryAuthAsync(block, kt, keys[i].Value, ct, rejected)) continue;
+                var started = timing is null ? 0 : _timeProvider.GetTimestamp();
+                var confirmed = await TryAuthAsync(block, kt, keys[i].Value, ct, rejected);
+                timing?.RecordKeyAttempt(_timeProvider.GetElapsedTime(started));
+                if (!confirmed) continue;
                 Store(s, kt, keys[i].Value);
                 return true;
             }
@@ -102,14 +107,22 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             {
                 ct.ThrowIfCancellationRequested();
                 if (Known(s, kt)) continue;
-                if (await TryKnownKeysAsync(s, kt)) continue;
-                var seed = FirstKnownKey(dump)!.Value;
                 var target = MifareClassic.SectorTrailerBlock(s);
+                var untestedKeys = reusable.Count(k => !rejected.Contains((target, kt, k.Key)));
+                var knownFirst = timing?.ShouldCheckKnownKeys(untestedKeys) ?? true;
+                if (knownFirst && await TryKnownKeysAsync(s, kt)) continue;
+                if (!knownFirst && untestedKeys > 0 &&
+                    timing?.EstimateKnownKeys(untestedKeys) is { } knownCost && timing.RecoveryTime is { } nestedCost)
+                    progress?.Report(new KeyRecoveryProgress("Using nested instead of checking known keys…", s, kt,
+                        KeyMark.Checking, Detail: $"Known keys ({untestedKeys}): {knownCost.TotalMilliseconds:F0} ms · " +
+                        $"nested: {nestedCost.TotalMilliseconds:F0} ms"));
+                var seed = FirstKnownKey(dump)!.Value;
                 Mark(s, kt, KeyMark.Checking,
                     isHardnested ? "Collecting nonces (hardnested)…" :
                     isStatic ? "Collecting nonces (static nested)…" : "Collecting nonces (nested)…");
                 try
                 {
+                    var started = timing is null ? 0 : _timeProvider.GetTimestamp();
                     var candidates = isHardnested
                         ? await HardnestedSectorAsync(dump.Uid, authUid, seed, target, kt, progress, ct)
                         : isStatic
@@ -117,13 +130,20 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                         : await NestedSectorAsync(seed, target, kt, progress, ct);
                     Mark(s, kt, KeyMark.Checking, $"Checking {candidates.Count} recovered key candidates…");
                     var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct, rejected: rejected);
-                    if (hit is { } key) Store(s, kt, key);
+                    if (hit is { } key)
+                    {
+                        timing?.RecordRecovery(_timeProvider.GetElapsedTime(started));
+                        Store(s, kt, key);
+                    }
                     else Mark(s, kt, KeyMark.None, "Key not recovered for this sector.");
                 }
                 catch (ChameleonException)
                 {
                     Mark(s, kt, KeyMark.None, "Nonce collection failed for this sector.");
                 }
+                // A fast attack is only the preferred first path. Preserve reuse
+                // as a fallback, with rejected combinations filtered as usual.
+                if (!knownFirst && !Known(s, kt)) await TryKnownKeysAsync(s, kt);
             }
         // A later sector may reveal a key for an earlier failed attack. Only untested
         // combinations (and inconclusive RF failures) need another authentication.
