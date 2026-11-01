@@ -7,6 +7,12 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.1.25][2026-11-01] · firmware v2.3.7-cl
+ - ChameLab: faster managed Nested recovery with reusable Crypto1 workspaces, linear state grouping, table-based key extraction and radix sorting; desktop and mobile use available CPU cores for independent nonce candidates
+ - ChameLab: Nested compares measured recovery and authentication times when choosing whether to try known keys before a fresh attack, avoiding long key-reuse passes when recovery is faster
+ - ChameLab web: Nested, Static nested, Static encrypted nested, Darkside and mfkey32 calculations run in a reusable Web Worker, keeping the interface responsive and allowing Stop to interrupt calculation immediately
+ - ChameLab web: Release publishing enables managed WebAssembly AOT to speed up key recovery; the algorithms remain C#, with a larger download and longer publish time
+
 ## [v1.1.24][2026-11-01] · firmware v2.3.7-cl
  - ChameLab: Nested, Static nested and Hardnested try keys already found for the card before attacking each unknown sector key, for both A and B; keys with more successful uses are tried first. A final pass checks newly found keys against earlier unresolved sectors without repeating rejected combinations; RF errors are retried rather than remembered as wrong keys
  - ChameLab: confirmed keys are saved to Known card keys immediately during recovery, including when recovery is later stopped
