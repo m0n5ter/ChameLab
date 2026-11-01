@@ -6,6 +6,8 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - Firmware v2.3.7-cl: ISO14443-4 (T=CL) emulation no longer truncates reader commands of 32 bytes or more (e.g. an EMV GPO with a full PDOL); the received bit count wrapped at 256
+ - Firmware v2.3.7-cl: BLE advertising is no longer restarted while a client is connected; it resumes on disconnect
 
 ## [v1.1.23][2026-10-31] · firmware v2.3.6-cl
  - Firmware v2.3.6-cl / ChameLab: multi-card LF works with every emulated LF type (EM410x, Electra, HID Prox, ioProx, Viking, PAC, Jablotron, IDTECK, Pyramid), mixed freely in one list; a burst lasts 0.16–0.65 s depending on the type. The cycle commands are replaced by 5907–5909, which carry each card's type and the silence; lists saved by earlier firmware are dropped (each slot keeps its own card), and earlier firmware shows the single-card LF editor. Uploading a card of any LF type now stops emulation meanwhile and clears the slot's list
