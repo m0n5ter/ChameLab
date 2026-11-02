@@ -34,6 +34,7 @@ SRC_FILES += \
   $(PROJ_DIR)/rfid/nfctag/hf/nfc_mf0_ntag.c \
   $(PROJ_DIR)/rfid/nfctag/hf/nfc_seos.c \
   $(PROJ_DIR)/rfid/nfctag/lf/lf_tag_em.c \
+  $(PROJ_DIR)/rfid/nfctag/lf/lf_cycle_record.c \
   $(PROJ_DIR)/rfid/nfctag/lf/utils/fskdemod.c \
   $(PROJ_DIR)/rfid/nfctag/lf/utils/circular_buffer.c \
   $(PROJ_DIR)/rfid/nfctag/lf/utils/manchester.c \

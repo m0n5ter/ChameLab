@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include "lf_cycle_record.h"
 #include "rfid_main.h"
 #include "tag_emulation.h"
 
@@ -14,25 +15,14 @@
 #define LF_JABLOTRON_TAG_ID_SIZE 5
 #define LF_IDTECK_TAG_ID_SIZE 8
 #define LF_PYRAMID_TAG_ID_SIZE 16
-#define LF_MAX_TAG_ID_SIZE 16
 // Card cycle record. The slot's own card stays first for the legacy commands
-// (zero-padded to 16 bytes), then marker, version, total card count, three
+// (zero-padded to 16 bytes), then marker, version, total card count, five
 // reserved bytes (word alignment; once held bursts and silence) and up to seven
 // extra cards. Each extra card is its tag type (u16, big-endian) and 16 data
 // bytes, so cards of any LF type can be mixed in one cycle. On each field
 // appearance the firmware emulates the next card in the list (see lf_tag_em.c);
 // there is no per-card timing. The size stays word-aligned and unchanged from
-// the previous format so records written by it still load (as a single card).
-#define LF_CYCLE_MAX 8
-#define LF_CYCLE_MARKER 16
-#define LF_CYCLE_VERSION 17
-#define LF_CYCLE_COUNT 18
-#define LF_CYCLE_EXTRAS 24
-#define LF_CYCLE_ENTRY_SIZE (2 + LF_MAX_TAG_ID_SIZE)
-#define LF_CYCLE_SIZE 152
-bool lf_cycle_valid(const uint8_t *data, uint16_t length);
-// Emulator data size of an LF tag type; 0 if the type is not emulated.
-uint16_t lf_tag_id_size(tag_specific_type_t type);
+// the previous format: v4 lists are read in full and upgraded to v5 on save.
 
 void lf_tag_125khz_sense_switch(bool enable);
 int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer);

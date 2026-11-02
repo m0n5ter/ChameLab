@@ -65,11 +65,15 @@ zero-padded), then the Get LF cycle payload zero-padded to seven extra cards. Th
 is read from RAM, including unsaved edits; the others from flash.
 
 The LF flash record begins with the slot's own card, padded to 16 bytes. Cycling extends it:
-marker `C7`, version `05`, total card count, three reserved bytes (kept for word alignment;
+marker `C7`, version `05`, total card count, five reserved bytes (kept for word alignment;
 the format once carried bursts and silence here), then seven 18-byte extra card positions
 (unused positions are zero). Only a list of two or more cards gets a record; a single card is
-just its own card. Lists stored by earlier firmware (versions `01`–`04`) are not read; the
-slot keeps its own card.
+just its own card. Format `04`, used by firmware v2.3.6-cl and v2.3.7-cl, has the same card
+layout and remains readable: all cards and their order are preserved, and the old timing
+settings are ignored. The next slot save upgrades the record to `05`, clearing the obsolete
+timing bytes. Format `05` lists written by v2.3.8-cl remain unchanged. Lists that v2.3.8-cl
+ignored can be recovered too, provided their flash records have not been overwritten.
+Earlier EM410x-only formats (`01` and `02`) are not read; the slot keeps its own card.
 
 ## Hardware verification
 
@@ -81,3 +85,8 @@ across sleep (tap, wait for the device to sleep, tap again — the next card sho
 restarts at the first card after a battery pull, and restarts at the first card when switching
 to another slot and back. Also check restart persistence of the list itself, slot swaps, and
 replacing/clearing a cycling slot on real Ultra and Lite devices.
+
+When testing an update, populate several slots with two/eight-card format `04` lists, including
+mixed LF types, then update without resetting flash. Check the active slot and the other slots
+in the app before switching or saving them; all cards and their order must remain. Save the
+slots, reboot and check again. Repeat with current format `05` lists.

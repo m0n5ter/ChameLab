@@ -105,16 +105,6 @@ static tag_specific_type_t lf_cycle_entry_type(const uint8_t *data, uint8_t inde
     return (tag_specific_type_t)((entry[0] << 8) | entry[1]);
 }
 
-bool lf_cycle_valid(const uint8_t *data, uint16_t length) {
-    if (length < LF_CYCLE_SIZE || data[LF_CYCLE_MARKER] != 0xC7 || data[LF_CYCLE_VERSION] != 5 ||
-        data[LF_CYCLE_COUNT] < 2 || data[LF_CYCLE_COUNT] > LF_CYCLE_MAX)
-        return false;
-    for (uint8_t i = 1; i < data[LF_CYCLE_COUNT]; i++) {
-        if (lf_protocol(lf_cycle_entry_type(data, i)) == NULL) return false;
-    }
-    return true;
-}
-
 /**
  * @brief Makes card `index` of the cycle the one to send: builds its waveform and sets its PWM base clock.
  * Waveforms are built in their protocol's buffer, shared by the cards of that protocol, so call
@@ -357,7 +347,7 @@ int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
 int lf_tag_data_savecb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
     // Make sure to load this tag before allowing saving
     if (m_tag_type != type) return 0;
-    if (lf_cycle_valid(buffer->buffer, buffer->length)) return LF_CYCLE_SIZE;
+    if (lf_cycle_prepare_save(buffer->buffer, buffer->length)) return LF_CYCLE_SIZE;
     return lf_tag_id_size(type);
 }
 
