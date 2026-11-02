@@ -27,7 +27,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
         _library = library;
         _changed = changed;
         _openCard = openCard;
-        Load(false, new LfCardCycle(1, []));
+        Load(false, new LfCardCycle([]));
     }
 
     public ObservableCollection<LfSlotCardViewModel> Cards { get; } = new();
@@ -163,9 +163,9 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
         Notify();
     }
 
-    public LfCardCycle Cycle(int bursts, int gapSteps = 0)
+    public LfCardCycle Cycle()
     {
-        var cycle = new LfCardCycle(bursts, Cards.Skip(1).Select(c => ToCycleCard(c.Card)).ToArray(), gapSteps);
+        var cycle = new LfCardCycle(Cards.Skip(1).Select(c => ToCycleCard(c.Card)).ToArray());
         cycle.Encode(); // Validate before any slot writes.
         return cycle;
     }

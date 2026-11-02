@@ -29,7 +29,7 @@ public class LfSlotListTests
         var side = new SlotSideViewModel(TagSenseType.Lf, info, library, true, () => { }, _ => { }, _ => System.Threading.Tasks.Task.CompletedTask, _ => { });
         if (held) side.UidRead(TagSpecificType.Em410x, Card(1).Uid);
         var list = new LfSlotListViewModel(side, library, () => { }, _ => { });
-        list.Load(supported, new LfCardCycle(1, []));
+        list.Load(supported, new LfCardCycle([]));
         return (list, side, library);
     }
 
@@ -43,7 +43,7 @@ public class LfSlotListTests
         Assert.False(list.CanAdd);
         Assert.Equal("Add saved", list.ChooseLabel);
         Assert.Equal(Card(1).Uid, side.CurrentCard().Uid);
-        Assert.Equal(7, list.Cycle(2).Extras.Length);
+        Assert.Equal(7, list.Cycle().Extras.Length);
         Assert.True(list.IsDirty);
     }
 
@@ -54,7 +54,7 @@ public class LfSlotListTests
         var info = new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x };
         var side = new SlotSideViewModel(TagSenseType.Lf, info, library, true, () => { }, _ => { }, _ => System.Threading.Tasks.Task.CompletedTask, _ => { });
         var list = new LfSlotListViewModel(side, library, () => { }, _ => { });
-        list.Load(true, new LfCardCycle(1, []));
+        list.Load(true, new LfCardCycle([]));
         side.UidRead(TagSpecificType.Em410x, Card(1).Uid);
         list.RefreshPrimary();
         Assert.True(list.IsDirty);
@@ -81,7 +81,7 @@ public class LfSlotListTests
         list.Add(Card(2));
         list.Remove(list.Cards[0]);
         Assert.Equal(Card(2).Uid, side.CurrentCard().Uid);
-        Assert.Empty(list.Cycle(1).Extras);
+        Assert.Empty(list.Cycle().Extras);
         list.Remove(list.Cards[0]);
         Assert.False(side.HasCard);
         Assert.True(side.IsDirty);
@@ -99,8 +99,8 @@ public class LfSlotListTests
         side.CustomColor = "#00FF00";
         list.Move(list.Cards[2], -2);
         Assert.Equal(Card(3).Uid, side.CurrentCard().Uid);
-        Assert.Equal("010002" + "0064" + "0000000001" + new string('0', 22) + "0064" + "0000000002" + new string('0', 22),
-            Convert.ToHexString(list.Cycle(1).Encode()));
+        Assert.Equal("02" + "0064" + "0000000001" + new string('0', 22) + "0064" + "0000000002" + new string('0', 22),
+            Convert.ToHexString(list.Cycle().Encode()));
         Assert.Equal(SlotColorMode.Custom, side.ColorMode);
         Assert.Equal("#00FF00", side.CustomColor);
         Assert.True(list.CanReorder);
@@ -111,7 +111,7 @@ public class LfSlotListTests
     public void ReturningToSavedOrderRestoresCleanPrimary()
     {
         var (list, side, _) = Create(held: true);
-        list.Load(true, new LfCardCycle(1, [Extra(2)]));
+        list.Load(true, new LfCardCycle([Extra(2)]));
         list.Move(list.Cards[1], -1);
         Assert.True(list.IsDirty);
         Assert.True(side.IsDirty);
@@ -124,7 +124,7 @@ public class LfSlotListTests
     public void DiscardRestoresDeletedAndReorderedCards()
     {
         var (list, side, _) = Create(held: true);
-        list.Load(true, new LfCardCycle(1, [Extra(2), Extra(3)]));
+        list.Load(true, new LfCardCycle([Extra(2), Extra(3)]));
         list.Remove(list.Cards[0]);
         list.Move(list.Cards[1], -1);
         side.Discard(); list.Discard();
@@ -139,7 +139,7 @@ public class LfSlotListTests
         var (list, _, library) = Create(held: true);
         var second = Card(2);
         library.Add(second);
-        list.Load(true, new LfCardCycle(1, [Extra(2)]));
+        list.Load(true, new LfCardCycle([Extra(2)]));
         Assert.False(list.Cards[0].HasMatch);
         Assert.True(list.Cards[1].HasMatch);
         Assert.Equal("Door 2", list.Cards[1].Item.Name);
@@ -170,7 +170,7 @@ public class LfSlotListTests
         Assert.Equal(4, list.Cards.Count);
         Assert.Equal(TagSpecificType.Viking, side.Type);
         Assert.Equal(new[] { TagSpecificType.HidProx, TagSpecificType.Em410x, TagSpecificType.Idteck },
-            list.Cycle(1).Extras.Select(c => c.Type));
+            list.Cycle().Extras.Select(c => c.Type));
         // A card whose data doesn't fit its type can't be cycled.
         Assert.False(list.CanChoose(new CardSave { Tag = TagSpecificType.HidProx, Uid = new byte[5] }));
     }
@@ -190,7 +190,7 @@ public class LfSlotListTests
     public void DragUsesStableIdentityAndKeepsOrderUnsavedUntilSlotSave()
     {
         var (list, side, _) = Create(held: true);
-        list.Load(true, new LfCardCycle(1, [Extra(2), Extra(3)]));
+        list.Load(true, new LfCardCycle([Extra(2), Extra(3)]));
         var row = list.Cards[2];
         var key = list.ReorderKey(row);
         list.MoveItem(2, 0);
@@ -206,7 +206,7 @@ public class LfSlotListTests
     {
         var (list, _, _) = Create(held: true);
         Assert.Null(list.RevealCard);
-        list.Load(true, new LfCardCycle(1, [Extra(2)]));
+        list.Load(true, new LfCardCycle([Extra(2)]));
         Assert.Null(list.RevealCard);
         list.Add(Card(3));
         var added = list.Cards[^1];
@@ -222,29 +222,6 @@ public class LfSlotListTests
     }
 
     [Fact]
-    public void SilenceEditsUseTenthsAndDiscardWithTheSlot()
-    {
-        var library = new CardLibrary(new MemoryKeyValueStore());
-        var editor = new SlotEditorViewModel(new DeviceService([]), library,
-            new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x }, () => { }, _ => { });
-        editor.SetLfCapabilities([(ushort)Command.LfSetCycle, (ushort)Command.LfGetCycle]);
-        editor.Lf.UidRead(TagSpecificType.Em410x, Card(1).Uid);
-        editor.LfCards.Load(true, new LfCardCycle(1, [Extra(2)]));
-        Assert.False(editor.IsDirty);
-        editor.CycleGapSeconds = 1.24m;
-        Assert.Equal(1.2m, editor.CycleGapSeconds);
-        Assert.True(editor.IsDirty);
-        Assert.Equal(12, editor.LfCards.Cycle(editor.CycleBursts, (int)(editor.CycleGapSeconds * 10)).GapSteps);
-        editor.Discard();
-        Assert.Equal(0, editor.CycleGapSeconds);
-        Assert.False(editor.IsDirty);
-        editor.CycleGapSeconds = 4;
-        Assert.Equal(3, editor.CycleGapSeconds);
-        editor.CycleGapSeconds = -1;
-        Assert.Equal(0, editor.CycleGapSeconds);
-    }
-
-    [Fact]
     public void LegacyFirmwareUsesOriginalPickerAndReplacesExistingLfCard()
     {
         var library = new CardLibrary(new MemoryKeyValueStore());
@@ -256,7 +233,6 @@ public class LfSlotListTests
         editor.SetLfCapabilities([]);
         editor.Lf.UidRead(TagSpecificType.Em410x, first.Uid);
         Assert.False(editor.SupportsMultiLf);
-        Assert.False(editor.ShowLfCycle);
         Assert.False(editor.IsDirty);
         editor.Lf.PickCommand.Execute(null);
         Assert.True(editor.IsPicking);
@@ -299,14 +275,14 @@ public class LfSlotListTests
         list.Add(Card(3));
         Assert.Equal(3, list.Cards.Count);
         Assert.Equal(new[] { TagSpecificType.Em410xElectra, TagSpecificType.Em410x },
-            list.Cycle(1).Extras.Select(c => c.Type));
-        Assert.Equal(ElectraCard(2).Uid, list.Cycle(1).Extras[0].Id);
+            list.Cycle().Extras.Select(c => c.Type));
+        Assert.Equal(ElectraCard(2).Uid, list.Cycle().Extras[0].Id);
         // An Electra card moved first becomes the slot's own card, with the EM410x cards after it.
         list.Move(list.Cards[1], -1);
         Assert.Equal(TagSpecificType.Em410xElectra, side.Type);
         Assert.Equal(ElectraCard(2).Uid, side.CurrentCard().Uid);
         Assert.True(list.CanAdd);
-        Assert.Equal(new[] { TagSpecificType.Em410x, TagSpecificType.Em410x }, list.Cycle(1).Extras.Select(c => c.Type));
+        Assert.Equal(new[] { TagSpecificType.Em410x, TagSpecificType.Em410x }, list.Cycle().Extras.Select(c => c.Type));
     }
 
     [Fact]
@@ -314,7 +290,7 @@ public class LfSlotListTests
     {
         var (list, _, _) = Create(held: true);
         var electra = new LfCycleCard(TagSpecificType.Em410xElectra, ElectraCard(2).Uid);
-        list.Load(true, new LfCardCycle(1, [electra]));
+        list.Load(true, new LfCardCycle([electra]));
         Assert.Equal(TagSpecificType.Em410xElectra, list.Cards[1].Card.Tag);
         Assert.Equal(TagSpecificType.Em410xElectra.DisplayName() + " " + Convert.ToHexString(electra.Id), list.Cards[1].Card.Name);
         Assert.False(list.IsDirty);

@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "bsp_delay.h"
-#include "app_timer.h"
 #include "fds_util.h"
 #include "nrf_gpio.h"
 #include "nrf_soc.h"
@@ -77,11 +76,29 @@ uint16_t lf_tag_id_size(tag_specific_type_t type) {
 // The loaded LF buffer while it holds a cycle; the interrupts read the cards from it.
 static const uint8_t *m_cycle_record = NULL;
 static uint8_t m_cycle_count = 1, m_cycle_index = 0;
-static uint8_t m_cycle_bursts = 1, m_cycle_elapsed = 0;
-static uint8_t m_cycle_gap_steps = 0;
-static volatile bool m_gap_active = false;
-static bool m_gap_timer_created = false;
-APP_TIMER_DEF(m_cycle_gap_timer);
+
+// Cycle position persists across sleep in retention register GPREGRET(0): the LF field wakes
+// the chip from System OFF through a reset, so RAM cannot carry it. Bits 1-3 hold the slot the
+// position belongs to, so switching slots restarts at the first card; bits 4-6 hold the next
+// card index. Bit 0 is the bootloader's DFU-enter flag and must stay clear. Power-on reset
+// clears the register, so a battery pull also restarts at the first card.
+#define LF_POS_SLOT_Pos 1
+#define LF_POS_SLOT_Msk (7UL << LF_POS_SLOT_Pos)
+#define LF_POS_INDEX_Pos 4
+#define LF_POS_INDEX_Msk (7UL << LF_POS_INDEX_Pos)
+
+static void lf_cycle_pos_get(uint8_t *slot, uint8_t *index) {
+    uint32_t v = 0;
+    sd_power_gpregret_get(0, &v);
+    *slot = (v & LF_POS_SLOT_Msk) >> LF_POS_SLOT_Pos;
+    *index = (v & LF_POS_INDEX_Msk) >> LF_POS_INDEX_Pos;
+}
+
+static void lf_cycle_pos_set(uint8_t slot, uint8_t index) {
+    sd_power_gpregret_clr(0, LF_POS_SLOT_Msk | LF_POS_INDEX_Msk);
+    sd_power_gpregret_set(0, (((uint32_t)slot << LF_POS_SLOT_Pos) & LF_POS_SLOT_Msk) |
+                                 (((uint32_t)index << LF_POS_INDEX_Pos) & LF_POS_INDEX_Msk));
+}
 
 static tag_specific_type_t lf_cycle_entry_type(const uint8_t *data, uint8_t index) {
     const uint8_t *entry = data + LF_CYCLE_EXTRAS + (index - 1) * LF_CYCLE_ENTRY_SIZE;
@@ -89,9 +106,8 @@ static tag_specific_type_t lf_cycle_entry_type(const uint8_t *data, uint8_t inde
 }
 
 bool lf_cycle_valid(const uint8_t *data, uint16_t length) {
-    if (length < LF_CYCLE_SIZE || data[LF_CYCLE_MARKER] != 0xC7 || data[LF_CYCLE_VERSION] != 4 ||
-        data[LF_CYCLE_COUNT] < 1 || data[LF_CYCLE_COUNT] > LF_CYCLE_MAX ||
-        data[LF_CYCLE_BURSTS] < 1 || data[LF_CYCLE_BURSTS] > 10 || data[LF_CYCLE_SILENCE] > 30)
+    if (length < LF_CYCLE_SIZE || data[LF_CYCLE_MARKER] != 0xC7 || data[LF_CYCLE_VERSION] != 5 ||
+        data[LF_CYCLE_COUNT] < 2 || data[LF_CYCLE_COUNT] > LF_CYCLE_MAX)
         return false;
     for (uint8_t i = 1; i < data[LF_CYCLE_COUNT]; i++) {
         if (lf_protocol(lf_cycle_entry_type(data, i)) == NULL) return false;
@@ -113,14 +129,7 @@ static void cycle_select(uint8_t index) {
     m_broadcast.p_registers->PRESCALER = IS_PSK1_TYPE(type) ? NRF_PWM_CLK_1MHz : NRF_PWM_CLK_125kHz;
 }
 
-static void cycle_gap_stop(void) {
-    if (m_gap_active) ANT_NO_MOD();  // release the antenna short held during the gap
-    m_gap_active = false;
-    if (m_gap_timer_created) APP_ERROR_CHECK(app_timer_stop(m_cycle_gap_timer));
-}
-
 static void lf_field_lost(void) {
-    cycle_gap_stop();
     // Open the incident interruption, so that the next event can be in and out normally
     g_is_tag_emulating = false;  // Reset the flag in the emulation
     m_is_lf_emulating = false;
@@ -172,12 +181,25 @@ static void lpcomp_event_handler(nrf_lpcomp_event_t event) {
     set_slot_light_color(RGB_BLUE);
     TAG_FIELD_LED_ON()
 
+    // Each field appearance emulates the next card of the cycle, so a reader reads one steady
+    // card per presentation (the cleanest "card present" transition) and advancing is a fresh
+    // tap. The position is kept in GPREGRET across the reset that an LF-field wake causes.
+    if (m_cycle_count > 1) {
+        uint8_t slot = tag_emulation_get_slot(), index;
+        uint8_t stored_slot;
+        lf_cycle_pos_get(&stored_slot, &index);
+        if (stored_slot != slot || index >= m_cycle_count) index = 0;
+        cycle_select(index);
+        lf_cycle_pos_set(slot, (index + 1) % m_cycle_count);
+    } else {
+        // Single card: m_pwm_seq is already the slot's own card. Still record the slot, so a
+        // later return to a cycle slot restarts at its first card.
+        lf_cycle_pos_set(tag_emulation_get_slot(), 0);
+    }
     // Play a finite burst then stop — field check happens in EVT_STOPPED after
     // PWM has fully released LF_MOD, so ANT_NO_MOD() and the settle delay are
     // effective. NRFX_PWM_FLAG_LOOP kept the pin owned by the peripheral,
     // making the field check always read "present" due to self-drive on LF_RSSI.
-    m_cycle_elapsed = 0;
-    if (m_cycle_count > 1 && m_cycle_index != 0) cycle_select(0);
     nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
 
     NRF_LOG_INFO("LF FIELD DETECTED");
@@ -194,22 +216,6 @@ static void lpcomp_init(void) {
     APP_ERROR_CHECK(err_code);
 }
 
-static void cycle_gap_tick(void *context) {
-    (void)context;
-    if (!m_gap_active || !m_is_lf_emulating) return;
-    // Silence is over: un-short the antenna so it is resonant again, let the
-    // peak detector settle and only then look at the reader field.
-    m_gap_active = false;
-    ANT_NO_MOD();
-    bsp_delay_ms(2);
-    if (!is_lf_field_exists()) {
-        lf_field_lost();
-        return;
-    }
-    TAG_FIELD_LED_ON()
-    nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
-}
-
 static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
     if (event_type != NRFX_PWM_EVT_STOPPED) {
         return;
@@ -219,26 +225,8 @@ static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
     ANT_NO_MOD();
     bsp_delay_ms(2);  // let peak detector drain: ~2 ms time constant on LF_RSSI
     if (is_lf_field_exists()) {
-        if (m_cycle_count > 1 && ++m_cycle_elapsed >= m_cycle_bursts) {
-            m_cycle_elapsed = 0;
-            cycle_select((m_cycle_index + 1) % m_cycle_count);
-            if (m_cycle_gap_steps) {
-                // Look like a removed card for the whole gap: keep the modulation
-                // switch closed so the antenna is detuned and barely loads the
-                // reader field (an idle resonant coil still looks like "card
-                // present" to readers that wait for removal before reading the
-                // next card), and turn the field LED off. The field can't be
-                // sensed while the coil is shorted, so it is checked once when
-                // the gap ends. Never busy-wait for a multi-second gap in an ISR.
-                m_gap_active = true;
-                nrf_gpio_pin_set(LF_MOD);
-                TAG_FIELD_LED_OFF()
-                APP_ERROR_CHECK(app_timer_start(m_cycle_gap_timer,
-                                                APP_TIMER_TICKS(100 * (uint32_t)m_cycle_gap_steps), NULL));
-                return;
-            }
-        }
-        // Field still present — play another finite burst then check again.
+        // Field still present — replay the same card (the one chosen at field onset) and
+        // check again. Advancing to the next card happens on the next field appearance.
         nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
     } else {
         // Field gone — clean up.
@@ -269,10 +257,6 @@ static void pwm_init(void) {
 }
 
 static void lf_sense_enable(void) {
-    if (!m_gap_timer_created) {
-        APP_ERROR_CHECK(app_timer_create(&m_cycle_gap_timer, APP_TIMER_MODE_SINGLE_SHOT, cycle_gap_tick));
-        m_gap_timer_created = true;
-    }
     // PWM bit timing divides HFCLK by a fixed ratio. On HFINT (64 MHz RC,
     // ±1.5% at 25°C after factory trim, wider over temperature) this gives a
     // chip-to-chip spread that NRZ readers — which see cumulative error across
@@ -302,7 +286,6 @@ static void lf_sense_enable(void) {
 }
 
 static void lf_sense_disable(void) {
-    cycle_gap_stop();
     m_is_lf_emulating = false;
     nrfx_pwm_uninit(&m_broadcast);
     nrfx_lpcomp_uninit();
@@ -343,8 +326,7 @@ void lf_tag_125khz_sense_switch(bool enable) {
  */
 int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
     m_cycle_count = 1;
-    m_cycle_gap_steps = 0;
-    m_cycle_index = m_cycle_elapsed = 0;
+    m_cycle_index = 0;
     m_cycle_record = NULL;
     // ensure buffer size is large enough for specific tag type,
     // so that tag data (e.g., card numbers) can be converted to corresponding pwm sequence here.
@@ -360,8 +342,6 @@ int lf_tag_data_loadcb(tag_specific_type_t type, tag_data_buffer_t *buffer) {
         // take kilobytes, too much to keep one per card.
         m_cycle_record = buffer->buffer;
         m_cycle_count = buffer->buffer[LF_CYCLE_COUNT];
-        m_cycle_bursts = buffer->buffer[LF_CYCLE_BURSTS];
-        m_cycle_gap_steps = buffer->buffer[LF_CYCLE_SILENCE];
         NRF_LOG_INFO("load lf data of type %d with %d cards finish.", type, m_cycle_count);
         return LF_CYCLE_SIZE;
     }

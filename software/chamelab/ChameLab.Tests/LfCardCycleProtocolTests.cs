@@ -24,8 +24,8 @@ public class LfCardCycleProtocolTests
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
         var client = new ChameleonClient(connection);
-        var cycle = new LfCardCycle(2, [Em("0001020304"), Electra("FFEEDDCCBB0102030405060708"),
-            new LfCycleCard(TagSpecificType.HidProx, new byte[13]), new LfCycleCard(TagSpecificType.Idteck, new byte[8])], 17);
+        var cycle = new LfCardCycle([Em("0001020304"), Electra("FFEEDDCCBB0102030405060708"),
+            new LfCycleCard(TagSpecificType.HidProx, new byte[13]), new LfCycleCard(TagSpecificType.Idteck, new byte[8])]);
         await client.SetLfCycleAsync(cycle);
         var loaded = await client.GetLfCycleAsync();
         Assert.True(cycle.SameAs(loaded));
@@ -40,7 +40,7 @@ public class LfCardCycleProtocolTests
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
         var client = new ChameleonClient(connection);
-        var cycle = new LfCardCycle(5, [Electra("AABBCCDDEE0000000000000001")], 30);
+        var cycle = new LfCardCycle([Electra("AABBCCDDEE0000000000000001")]);
         var card = new CardSave { Tag = TagSpecificType.Em410x, Uid = Convert.FromHexString("0001020304") };
         await client.WriteSlotContentAsync(3, new SlotContent(1, null, new SlotSide(card, "Door", null, true), SlotEmulatorSettings.None, cycle));
         var commands = transport.Requests.Select(r => r.Command).ToList();
@@ -56,8 +56,9 @@ public class LfCardCycleProtocolTests
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
         var client = new ChameleonClient(connection);
-        await Assert.ThrowsAsync<ArgumentException>(() => client.SetLfCycleAsync(new LfCardCycle(1, [Em("000102030405")])));
-        await Assert.ThrowsAsync<ArgumentException>(() => client.SetLfCycleAsync(new LfCardCycle(1, [], 31)));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.SetLfCycleAsync(new LfCardCycle([Em("000102030405")])));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.SetLfCycleAsync(
+            new LfCardCycle(Enumerable.Range(0, 8).Select(i => Em(i.ToString("X10"))).ToArray())));
         Assert.Empty(transport.Requests);
     }
 
@@ -67,7 +68,7 @@ public class LfCardCycleProtocolTests
     public async Task SlotReadPreservesCycleAndActiveSlotAndSupportsOldFirmware(bool supported)
     {
         var all = new byte[8 * LfCardCycle.AllCyclesEntrySize];
-        var cycle = new LfCardCycle(4, [Em("AABBCCDDEE")], 17);
+        var cycle = new LfCardCycle([Em("AABBCCDDEE")]);
         var e = 2 * LfCardCycle.AllCyclesEntrySize;
         all[e + 1] = (byte)TagSpecificType.Em410x;
         cycle.Encode().CopyTo(all, e + 18);
@@ -87,14 +88,14 @@ public class LfCardCycleProtocolTests
     public async Task ReadsAllCyclesWithoutSwitchingSlots()
     {
         var all = new byte[8 * LfCardCycle.AllCyclesEntrySize];
-        // Slot 2: Electra, 3 bursts, silence 12, one extra EM410x card.
+        // Slot 2: Electra with one extra EM410x card.
         var e = 1 * LfCardCycle.AllCyclesEntrySize;
         all[e + 1] = (byte)TagSpecificType.Em410xElectra;
         Convert.FromHexString("01020304050607080910111213").CopyTo(all, e + 2);
-        Convert.FromHexString("030C01" + "0064" + "AABBCCDDEE").CopyTo(all, e + 18);
+        Convert.FromHexString("01" + "0064" + "AABBCCDDEE").CopyTo(all, e + 18);
         // Slot 4: Viking without a cycle.
         e = 3 * LfCardCycle.AllCyclesEntrySize;
-        all[e + 1] = (byte)TagSpecificType.Viking; all[e + 18] = 1;
+        all[e + 1] = (byte)TagSpecificType.Viking;
         var transport = new CycleTransport { AllCycles = all };
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
@@ -106,8 +107,6 @@ public class LfCardCycleProtocolTests
             LfEnabled = i is 2 or 4,
         }).ToList();
         await client.ReadLfCyclesAsync(slots);
-        Assert.Equal(3, slots[1].LfCycle!.Bursts);
-        Assert.Equal(12, slots[1].LfCycle!.GapSteps);
         Assert.True(Em("AABBCCDDEE").SameAs(slots[1].LfCycleCards.Single()));
         Assert.Empty(slots[3].LfCycleCards);
         Assert.Null(slots[0].LfCycle);
@@ -123,7 +122,7 @@ public class LfCardCycleProtocolTests
         private readonly Channel<byte[]> _replies = Channel.CreateUnbounded<byte[]>();
         private readonly FrameParser _parser = new();
         public List<ChameleonFrame> Requests { get; } = [];
-        public byte[] Cycle { get; private set; } = [1, 0, 0];
+        public byte[] Cycle { get; private set; } = [0];
         public byte[]? AllCycles { get; init; }
         private byte _active;
         public TransportKind Kind => TransportKind.Tcp;
@@ -135,7 +134,7 @@ public class LfCardCycleProtocolTests
             foreach (var request in _parser.Push(data))
             {
                 Requests.Add(request);
-                if (request.Command == Command.Em410xSetEmuId) Cycle = [1, 0, 0];
+                if (request.Command == Command.Em410xSetEmuId) Cycle = [0];
                 if (request.Command == Command.LfSetCycle) Cycle = request.Data.ToArray();
                 if (request.Command == Command.SetActiveSlot) _active = request.Data[0];
                 byte[] payload = request.Command switch

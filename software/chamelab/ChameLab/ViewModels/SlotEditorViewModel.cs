@@ -54,35 +54,18 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private SlotSideViewModel? _pickerSide;
     private string? _pickerFilter;
     private bool _supportsLfCycle;
-    private decimal _savedCycleGapSeconds;
-    private int _savedCycleBursts = 1;
     // The cycle the LF cards were loaded with while multi-LF is supported, else null.
     private LfCardCycle? _shownCycle;
 
     public LfSlotListViewModel LfCards { get; }
     public bool SupportsMultiLf => _supportsLfCycle;
-    public bool ShowLfCycle => _supportsLfCycle && LfCards.Cards.Count > 1;
 
-    public decimal CycleGapSeconds
-    {
-        get;
-        set => SetField(ref field, Math.Clamp(decimal.Round(value, 1), 0m, 3m), nameof(CycleGapSeconds));
-    }
-
-    public int CycleBursts
-    {
-        get;
-        set => SetField(ref field, value, nameof(CycleBursts));
-    } = 1;
-
-    private bool IsCycleDirty => SupportsMultiLf && (LfCards.IsDirty || (ShowLfCycle &&
-                                                                         (CycleBursts != _savedCycleBursts || CycleGapSeconds != _savedCycleGapSeconds)));
+    private bool IsCycleDirty => SupportsMultiLf && LfCards.IsDirty;
 
     internal void SetLfCapabilities(IReadOnlyList<ushort> capabilities)
     {
         _supportsLfCycle = capabilities.Contains((ushort)Command.LfSetCycle) && capabilities.Contains((ushort)Command.LfGetCycle);
         this.RaisePropertyChanged(nameof(SupportsMultiLf));
-        this.RaisePropertyChanged(nameof(ShowLfCycle));
         RaiseDirty();
     }
 
@@ -103,7 +86,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard);
         // Lay the LF cards out from what the slot list read, so they don't change shape once the device answers.
         if (device.Client?.Capabilities is { } capabilities) SetLfCapabilities(capabilities);
-        LoadCycle(LfCycleCard.CanCycle(info.LfType) ? info.LfCycle ?? new LfCardCycle(1, []) : new LfCardCycle(1, []));
+        LoadCycle(LfCycleCard.CanCycle(info.LfType) ? info.LfCycle ?? new LfCardCycle([]) : new LfCardCycle([]));
         SetEmulator(Emulator.Defaults);
 
         ClosePickerCommand = ReactiveCommand.Create(ClosePicker);
@@ -139,8 +122,6 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         Hf.Discard();
         Lf.Discard();
         LfCards.Discard();
-        CycleBursts = _savedCycleBursts;
-        CycleGapSeconds = _savedCycleGapSeconds;
         SetEmulator(_savedEmulator);
     }
 
@@ -176,7 +157,6 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private void OnLfListChanged()
     {
-        this.RaisePropertyChanged(nameof(ShowLfCycle));
         RaiseDirty();
     }
 
@@ -237,7 +217,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             var capabilities = await client.GetCapabilitiesAsync();
             var supportsCycle = capabilities.Contains((ushort)Command.LfSetCycle) && capabilities.Contains((ushort)Command.LfGetCycle);
             var cycle = supportsCycle && LfCycleCard.CanCycle(Lf.SavedType)
-                ? await client.GetLfCycleAsync() : new LfCardCycle(1, []);
+                ? await client.GetLfCycleAsync() : new LfCardCycle([]);
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 SetLfCapabilities(capabilities);
@@ -251,11 +231,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private void LoadCycle(LfCardCycle cycle)
     {
         _shownCycle = _supportsLfCycle ? cycle : null;
-        _savedCycleBursts = cycle.Bursts;
         LfCards.Load(_supportsLfCycle, cycle);
-        CycleBursts = _savedCycleBursts;
-        CycleGapSeconds = _savedCycleGapSeconds = cycle.GapSteps / 10m;
-        this.RaisePropertyChanged(nameof(ShowLfCycle));
     }
 
     // The saved card is matched by the UID the slot emulates, not just its name.
@@ -328,7 +304,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             var emulator = CurrentEmulator;
             // Validate before writing either frequency, so invalid input leaves the device untouched.
             var cycle = _supportsLfCycle && LfCycleCard.CanCycle(Lf.Type)
-                ? LfCards.Cycle(CycleBursts, (int)(CycleGapSeconds * 10m)) : null;
+                ? LfCards.Cycle() : null;
             var progress = new Progress<MifareProgress>(p => Notify($"Uploading {p.Done}/{p.Total}…"));
 
             await client.WithSlotLockAsync(async () =>
@@ -360,14 +336,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             {
                 Hf.MarkSaved();
                 Lf.MarkSaved();
-                if (cycle is null)
-                {
-                    CycleBursts = 1;
-                    CycleGapSeconds = 0;
-                }
                 LfCards.MarkSaved();
-                _savedCycleBursts = CycleBursts;
-                _savedCycleGapSeconds = CycleGapSeconds;
                 _savedEmulator = emulator;
                 _savedKind = _fieldsKind = TypeKind;
                 RaiseDirty();

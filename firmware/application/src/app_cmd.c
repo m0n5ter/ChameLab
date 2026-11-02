@@ -1289,20 +1289,19 @@ static data_frame_tx_t *cmd_processor_em410x_set_emu_id(uint16_t cmd, uint16_t s
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 
-// Wire payload: bursts (1..10), silence between cards in 100 ms steps (0..30), extra count (0..7),
-// then per extra card its tag type (u16, big-endian) and 16 data bytes (its emulator data,
-// zero-padded). One burst is ten complete frames of the card, so its length depends on the
-// protocol (EM410x/64 ~328 ms, Electra ~655 ms).
-#define LF_CYCLE_PAYLOAD_MAX (3 + (LF_CYCLE_MAX - 1) * LF_CYCLE_ENTRY_SIZE)
+// Wire payload: extra count (0..7), then per extra card its tag type (u16, big-endian) and 16
+// data bytes (its emulator data, zero-padded). The firmware emulates the next card of the list
+// on each field appearance, so there is no per-card timing.
+#define LF_CYCLE_PAYLOAD_MAX (1 + (LF_CYCLE_MAX - 1) * LF_CYCLE_ENTRY_SIZE)
 static data_frame_tx_t *cmd_processor_lf_set_cycle(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     tag_specific_type_t type;
     uint16_t size;
-    if (!get_active_lf_type(&type, &size) || length < 3 || data[0] < 1 || data[0] > 10 || data[1] > 30 ||
-        data[2] >= LF_CYCLE_MAX || length != 3 + data[2] * LF_CYCLE_ENTRY_SIZE) {
+    if (!get_active_lf_type(&type, &size) || length < 1 || data[0] >= LF_CYCLE_MAX ||
+        length != 1 + data[0] * LF_CYCLE_ENTRY_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    for (uint8_t i = 0; i < data[2]; i++) {
-        const uint8_t *entry = data + 3 + i * LF_CYCLE_ENTRY_SIZE;
+    for (uint8_t i = 0; i < data[0]; i++) {
+        const uint8_t *entry = data + 1 + i * LF_CYCLE_ENTRY_SIZE;
         if (lf_tag_id_size((tag_specific_type_t)((entry[0] << 8) | entry[1])) == 0)
             return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
@@ -1310,14 +1309,12 @@ static data_frame_tx_t *cmd_processor_lf_set_cycle(uint16_t cmd, uint16_t status
     bool sensing = get_device_mode() != DEVICE_MODE_READER;
     if (sensing) tag_emulation_sense_end();
     memset(buffer->buffer + size, 0, buffer->length - size);
-    // A single card keeps the record only to retain a nonzero silence.
-    if (data[2] || data[1]) {
+    // Only a real cycle (two cards or more) gets a record; a single card is just its own card.
+    if (data[0]) {
         buffer->buffer[LF_CYCLE_MARKER] = 0xC7;
-        buffer->buffer[LF_CYCLE_VERSION] = 4;
-        buffer->buffer[LF_CYCLE_COUNT] = data[2] + 1;
-        buffer->buffer[LF_CYCLE_BURSTS] = data[0];
-        buffer->buffer[LF_CYCLE_SILENCE] = data[1];
-        memcpy(buffer->buffer + LF_CYCLE_EXTRAS, data + 3, length - 3);
+        buffer->buffer[LF_CYCLE_VERSION] = 5;
+        buffer->buffer[LF_CYCLE_COUNT] = data[0] + 1;
+        memcpy(buffer->buffer + LF_CYCLE_EXTRAS, data + 1, length - 1);
     }
     tag_emulation_load_by_buffer(type, false);
     if (sensing) tag_emulation_sense_run();
@@ -1326,14 +1323,11 @@ static data_frame_tx_t *cmd_processor_lf_set_cycle(uint16_t cmd, uint16_t status
 
 // Writes a record's cycle in the wire payload format; returns its length.
 static uint16_t lf_cycle_payload(const uint8_t *record, uint16_t record_length, uint8_t *out) {
-    out[0] = 1;
-    out[1] = out[2] = 0;
-    if (!lf_cycle_valid(record, record_length)) return 3;
-    out[0] = record[LF_CYCLE_BURSTS];
-    out[1] = record[LF_CYCLE_SILENCE];
-    out[2] = record[LF_CYCLE_COUNT] - 1;
-    memcpy(out + 3, record + LF_CYCLE_EXTRAS, out[2] * LF_CYCLE_ENTRY_SIZE);
-    return 3 + out[2] * LF_CYCLE_ENTRY_SIZE;
+    out[0] = 0;
+    if (!lf_cycle_valid(record, record_length)) return 1;
+    out[0] = record[LF_CYCLE_COUNT] - 1;
+    memcpy(out + 1, record + LF_CYCLE_EXTRAS, out[0] * LF_CYCLE_ENTRY_SIZE);
+    return 1 + out[0] * LF_CYCLE_ENTRY_SIZE;
 }
 
 static data_frame_tx_t *cmd_processor_lf_get_cycle(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {

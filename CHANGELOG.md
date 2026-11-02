@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - Firmware v2.3.8-cl / ChameLab: multi-card LF now emulates the next card of the list on each appearance of the reader's field — one steady card per tap, wrapping back to the first — instead of looping through the cards while the field is present. This is the cleanest transition for access readers, so the per-card bursts and the silence between cards are gone; the cycle commands 5907–5909 no longer carry them. The next position is kept across sleep in a retention register (a battery pull or switching slots restarts at the first card). Lists saved by earlier firmware are dropped (each slot keeps its own card)
 
 ## [v1.1.25][2026-11-01] · firmware v2.3.7-cl
  - ChameLab: faster managed Nested recovery with reusable Crypto1 workspaces, linear state grouping, table-based key extraction and radix sorting; desktop and mobile use available CPU cores for independent nonce candidates
