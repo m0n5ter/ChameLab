@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ChameLab.Models;
@@ -44,6 +45,7 @@ public class StaticEncryptedNestedRecoveryTests
         var error = (byte)(Crypto1.OddParity8((byte)(nt & 255)) ^ Crypto1.OddParity8((byte)enc) ^ stream);
         var keys = StaticEncryptedNestedRecovery.Recover(uid, new NestedNonce(nt, enc, error));
         Assert.Contains(key, keys);
+        Assert.Equal(ReferenceCandidates(uid, new NestedNonce(nt, enc, error)), keys.Order());
         Assert.DoesNotContain(key, StaticEncryptedNestedRecovery.Recover(uid, new NestedNonce(nt, enc, (byte)(error ^ 1))));
         // Every result must explain the complete captured nonce, not just its parity.
         Assert.All(keys, candidate =>
@@ -51,6 +53,83 @@ public class StaticEncryptedNestedRecoveryTests
             var check = new Crypto1State(candidate);
             Assert.Equal(enc, nt ^ Crypto1.Crypto1Word(ref check, uid ^ nt, false));
         });
+    }
+
+    [Theory]
+    [InlineData(0u, 0u, 0u, (byte)0)]
+    [InlineData(0u, 0u, 0u, (byte)1)]
+    [InlineData(0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, (byte)15)]
+    public void GroupedRecovery_MatchesOriginalIncludingZeroStates(uint uid, uint nt, uint enc, byte parity)
+    {
+        var nonce = new NestedNonce(nt, enc, parity);
+        var keys = StaticEncryptedNestedRecovery.Recover(uid, nonce);
+        Assert.Equal(ReferenceCandidates(uid, nonce), keys.Order());
+        Assert.Equal(keys.Count, keys.Distinct().Count());
+    }
+
+    // Preserve the original list producer, full-word parity calculation and bitwise
+    // rollback as an independent oracle for the grouped/table implementation.
+    private static IEnumerable<ulong> ReferenceCandidates(uint uid, NestedNonce nonce)
+    {
+        var result = new HashSet<ulong>();
+        var input = uid ^ nonce.Nt;
+        var parity = (nonce.Parity & 1) ^ Crypto1.OddParity8((byte)nonce.NtEnc);
+        foreach (var recovered in Crapto1.LfsrRecovery32(nonce.Nt ^ nonce.NtEnc, input))
+        {
+            var state = recovered;
+            if (state is { Odd: 0, Even: 0 }) continue;
+            var next = state;
+            var stream = (next.Crypto1Word(0, false) >> 24) & 1;
+            if (Crypto1.OddParity8((byte)nonce.Nt) != (parity ^ stream)) continue;
+            state.LfsrRollbackWord(input, false);
+            result.Add(state.Lfsr);
+        }
+        return result.Order();
+    }
+
+    [Fact]
+    public void SeedJumpTable_MatchesReferenceForEveryNonceAndKeyByte()
+    {
+        // The original C uses inverse sequence indices, including its zero-index underflow.
+        var indices = new ushort[1 << 16];
+        var sequence = new ushort[1 << 16];
+        ushort x = 1;
+        for (var i = 1; i < sequence.Length; i++)
+        {
+            var value = (ushort)((x << 8) | (x >> 8));
+            indices[value] = (ushort)i;
+            sequence[i] = value;
+            x = (ushort)((x >> 1) | ((x ^ (x >> 2) ^ (x >> 3) ^ (x >> 5)) << 15));
+        }
+        ushort Previous(ushort value) => sequence[indices[value] == 1 ? 65535 : unchecked((ushort)(indices[value] - 1))];
+        byte[] a = [0, 8, 9, 4, 6, 11, 1, 15, 12, 5, 2, 13, 10, 14, 3, 7];
+        byte[] b = [0, 13, 1, 14, 4, 10, 15, 7, 5, 3, 8, 6, 9, 2, 12, 11];
+        ushort Reference(uint nt, ulong key)
+        {
+            var value = (ushort)(nt >> 16);
+            for (var i = 0; i < 14; i++) value = Previous(value);
+            for (var i = 0; i < 6; i++)
+            {
+                var lo = (int)((key >> (8 * i)) & 15);
+                var hi = (int)((key >> (8 * i + 4)) & 15);
+                value ^= (ushort)((i % 2 == 0 ? a[lo] : b[lo]) | ((i % 2 == 0 ? b[hi] : a[hi]) << 4));
+                for (var j = 0; j < 8; j++) value = Previous(value);
+            }
+            return value;
+        }
+        for (uint value = 0; value < 65536; value++)
+        {
+            var nt = value << 16;
+            Assert.Equal(Reference(nt, 0), StaticEncryptedNestedRecovery.Seed(nt, 0));
+            var key = (value * 0x9E3779B97F4A7C15UL) & 0xFFFFFFFFFFFFUL;
+            Assert.Equal(Reference(nt, key), StaticEncryptedNestedRecovery.Seed(nt, key));
+        }
+        for (var position = 0; position < 6; position++)
+        for (ulong value = 0; value < 256; value++)
+        {
+            var key = value << (8 * position);
+            Assert.Equal(Reference(0, key), StaticEncryptedNestedRecovery.Seed(0, key));
+        }
     }
 
     [Fact]
@@ -71,6 +150,20 @@ public class StaticEncryptedNestedRecoveryTests
         Assert.NotEmpty(filtered);
         Assert.True(filtered.Count < keys.Length);
         Assert.All(filtered, key => Assert.Equal(seed, StaticEncryptedNestedRecovery.Seed(ntA, key)));
+    }
+
+    [Fact]
+    public void PairFilter_PreservesOrderAndDuplicatesAndHandlesEmptySides()
+    {
+        const uint ntA = 0xD14191B3, ntB = 0x12345678;
+        ulong[] keys = [0, 0x112233445566, 0, ulong.MaxValue, 42, 42];
+        ulong[] others = Enumerable.Range(0, 65536).Select(i => (ulong)i).ToArray();
+        var seeds = others.Select(key => StaticEncryptedNestedRecovery.Seed(ntB, key)).ToHashSet();
+        var expected = keys.Where(key => seeds.Contains(StaticEncryptedNestedRecovery.Seed(ntA, key))).ToArray();
+        Assert.NotEmpty(expected);
+        Assert.Equal(expected, StaticEncryptedNestedRecovery.Filter(ntA, keys, ntB, others));
+        Assert.Empty(StaticEncryptedNestedRecovery.Filter(ntA, [], ntB, others));
+        Assert.Empty(StaticEncryptedNestedRecovery.Filter(ntA, keys, ntB, []));
     }
 
     [Fact]

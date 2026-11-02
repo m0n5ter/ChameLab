@@ -148,6 +148,10 @@ key. This managed solver works on every platform and requires firmware commands
 2014 and 2015. Keep the card on the reader throughout recovery. Stop preserves
 recovered keys; an in-flight collection or key batch finishes before stopping.
 
+The solver streams recovered states, uses table-based key rollback and seed
+filtering, and checks the last parity bit directly. Reproducible CPU benchmarks
+and validation are in [benchmarks/static-encrypted](../benchmarks/static-encrypted/README.md).
+
 ## Hardnested
 
 Hardnested recovery is available for hardened-PRNG MIFARE Classic cards when at

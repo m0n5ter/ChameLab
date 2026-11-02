@@ -1,3 +1,5 @@
+using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using ChameLab.Models;
@@ -13,36 +15,56 @@ public static class StaticEncryptedNestedRecovery
         ct.ThrowIfCancellationRequested();
         var keys = new HashSet<ulong>();
         var input = uid ^ nonce.Nt;
-        var encryptedParity = (nonce.Parity & 1) ^ Crypto1.OddParity8((byte)nonce.NtEnc);
-        foreach (var recovered in Crapto1.LfsrRecovery32(nonce.Nt ^ nonce.NtEnc, input))
+        var parityStream = (nonce.Parity & 1) ^ Crypto1.OddParity8((byte)nonce.NtEnc) ^
+            Crypto1.OddParity8((byte)nonce.Nt);
+        var inputContribution = NestedKeyTransform.GetInputContribution(input);
+        using var workspace = new Crypto1RecoveryWorkspace();
+        var scratch = ArrayPool<uint>.Shared.Rent(Crypto1RecoveryWorkspace.Recovery32BufferLength);
+        workspace.Enter();
+        try
         {
-            ct.ThrowIfCancellationRequested();
-            var state = recovered;
-            if (state is { Odd: 0, Even: 0 }) continue;
-            // The state is immediately after nT, so the next keystream bit encrypts its last parity bit.
-            var next = state;
-            var parityStream = (next.Crypto1Word(0, false) >> 24) & 1;
-            if (Crypto1.OddParity8((byte)nonce.Nt) != (encryptedParity ^ parityStream)) continue;
-            state.LfsrRollbackWord(input, false);
-            keys.Add(state.Lfsr);
+            // Consume states directly; contribution grouping avoids comparison sorting.
+            // The first filter bit after nT encrypts its last parity bit: no clocking is needed.
+            Crapto1.Recover32Core(nonce.Nt ^ nonce.NtEnc, input, workspace, state =>
+            {
+                ct.ThrowIfCancellationRequested();
+                if (state is not { Odd: 0, Even: 0 } && Crypto1.Filter(state.Odd) == parityStream)
+                    keys.Add(NestedKeyTransform.GetKey(state, inputContribution));
+                return true;
+            }, scratch);
         }
+        finally
+        {
+            workspace.Exit();
+            Array.Clear(scratch);
+            ArrayPool<uint>.Shared.Return(scratch);
+        }
+        ct.ThrowIfCancellationRequested();
         return new List<ulong>(keys);
     }
 
     private static readonly ushort[] Previous = BuildPrevious();
+    private static readonly ushort[] Previous8 = BuildPrevious8();
     private static readonly byte[] A = [0, 8, 9, 4, 6, 11, 1, 15, 12, 5, 2, 13, 10, 14, 3, 7];
     private static readonly byte[] B = [0, 13, 1, 14, 4, 10, 15, 7, 5, 3, 8, 6, 9, 2, 12, 11];
 
-    public static ushort Seed(uint nt, ulong key)
+    public static ushort Seed(uint nt, ulong key) => SeedFromNonce(RollbackNonce(nt), key);
+
+    private static ushort RollbackNonce(uint nt)
     {
         var value = (ushort)(nt >> 16);
         for (var i = 0; i < 14; i++) value = Previous[value];
+        return value;
+    }
+
+    private static ushort SeedFromNonce(ushort value, ulong key)
+    {
         for (var i = 0; i < 6; i++)
         {
             var lo = (int)((key >> (8 * i)) & 15);
             var hi = (int)((key >> (8 * i + 4)) & 15);
             value ^= (ushort)((i % 2 == 0 ? A[lo] : B[lo]) | ((i % 2 == 0 ? B[hi] : A[hi]) << 4));
-            for (var j = 0; j < 8; j++) value = Previous[value];
+            value = Previous8[value];
         }
         return value;
     }
@@ -53,13 +75,20 @@ public static class StaticEncryptedNestedRecovery
         // Equal nonces do not satisfy the RF08S pair-filter precondition.
         ct.ThrowIfCancellationRequested();
         if (nt == otherNt) return keys;
-        var seeds = new HashSet<ushort>();
-        foreach (var key in otherKeys) { ct.ThrowIfCancellationRequested(); seeds.Add(Seed(otherNt, key)); }
+        if (keys.Count == 0 || otherKeys.Count == 0) return Array.Empty<ulong>();
+        var seeds = new bool[1 << 16];
+        var otherNonce = RollbackNonce(otherNt);
+        foreach (var key in otherKeys)
+        {
+            ct.ThrowIfCancellationRequested();
+            seeds[SeedFromNonce(otherNonce, key)] = true;
+        }
+        var nonce = RollbackNonce(nt);
         var result = new List<ulong>();
         foreach (var key in keys)
         {
             ct.ThrowIfCancellationRequested();
-            if (seeds.Contains(Seed(nt, key))) result.Add(key);
+            if (seeds[SeedFromNonce(nonce, key)]) result.Add(key);
         }
         return result;
     }
@@ -76,6 +105,19 @@ public static class StaticEncryptedNestedRecovery
         }
         // Match the reference's inverse-table underflow for a zero nonce.
         result[0] = result[0x0100];
+        return result;
+    }
+
+    private static ushort[] BuildPrevious8()
+    {
+        // Compose the actual transition, including its special zero behavior.
+        var result = new ushort[1 << 16];
+        for (var i = 0; i < result.Length; i++)
+        {
+            var value = (ushort)i;
+            for (var j = 0; j < 8; j++) value = Previous[value];
+            result[i] = value;
+        }
         return result;
     }
 }

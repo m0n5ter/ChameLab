@@ -1,0 +1,322 @@
+{
+  "runtime": ".NET 10.0.14",
+  "os": "Microsoft Windows 10.0.26100",
+  "architecture": "X64",
+  "logicalCpus": 20,
+  "iterations": 7,
+  "warmups": 2,
+  "rows": [
+    {
+      "name": "C reference",
+      "operation": "recovery",
+      "mode": "baseline",
+      "medianMs": 289.3365,
+      "samplesMs": [
+        302.8577,
+        292.4365,
+        283.2959,
+        284.9077,
+        286.2441,
+        289.3365,
+        290.0981
+      ],
+      "allocatedBytes": [
+        5358920,
+        5358920,
+        5358920,
+        5358920,
+        5358920,
+        5358920,
+        5358920
+      ],
+      "candidates": 44075,
+      "fingerprint": "79007A0A206AF947"
+    },
+    {
+      "name": "C reference",
+      "operation": "recovery",
+      "mode": "optimized",
+      "medianMs": 202.057,
+      "samplesMs": [
+        216.7632,
+        214.6012,
+        192.7308,
+        202.057,
+        201.8411,
+        199.2213,
+        208.8437
+      ],
+      "allocatedBytes": [
+        3261736,
+        3261736,
+        3261736,
+        3261736,
+        3261736,
+        3261736,
+        3261736
+      ],
+      "candidates": 44075,
+      "fingerprint": "79007A0A206AF947"
+    },
+    {
+      "name": "key 000000000000",
+      "operation": "recovery",
+      "mode": "baseline",
+      "medianMs": 356.2804,
+      "samplesMs": [
+        353.4057,
+        355.0459,
+        356.2804,
+        346.419,
+        376.1378,
+        366.6285,
+        363.7459
+      ],
+      "allocatedBytes": [
+        8764464,
+        8764464,
+        8764464,
+        8764464,
+        8764464,
+        8764464,
+        8764464
+      ],
+      "candidates": 78669,
+      "fingerprint": "09B6D26C2119A92A"
+    },
+    {
+      "name": "key 000000000000",
+      "operation": "recovery",
+      "mode": "optimized",
+      "medianMs": 255.3469,
+      "samplesMs": [
+        252.9253,
+        270.0878,
+        255.3469,
+        264.2072,
+        242.8246,
+        266.3215,
+        251.2883
+      ],
+      "allocatedBytes": [
+        6667280,
+        6667280,
+        6667280,
+        6667280,
+        6667280,
+        6667280,
+        6667280
+      ],
+      "candidates": 78669,
+      "fingerprint": "09B6D26C2119A92A"
+    },
+    {
+      "name": "key FFFFFFFFFFFF",
+      "operation": "recovery",
+      "mode": "baseline",
+      "medianMs": 286.9922,
+      "samplesMs": [
+        310.8309,
+        286.9922,
+        276.0787,
+        267.3213,
+        286.3077,
+        290.4174,
+        329.67
+      ],
+      "allocatedBytes": [
+        5358920,
+        5358920,
+        5358920,
+        5358920,
+        5358920,
+        5358920,
+        5358920
+      ],
+      "candidates": 44075,
+      "fingerprint": "79007A0A206AF947"
+    },
+    {
+      "name": "key FFFFFFFFFFFF",
+      "operation": "recovery",
+      "mode": "optimized",
+      "medianMs": 210.2743,
+      "samplesMs": [
+        210.2743,
+        209.8971,
+        204.4476,
+        214.5589,
+        211.6693,
+        203.4185,
+        268.0452
+      ],
+      "allocatedBytes": [
+        3261736,
+        3261736,
+        3261736,
+        3261736,
+        3261736,
+        3261736,
+        3261736
+      ],
+      "candidates": 44075,
+      "fingerprint": "79007A0A206AF947"
+    },
+    {
+      "name": "key 112233445566",
+      "operation": "recovery",
+      "mode": "baseline",
+      "medianMs": 515.3568,
+      "samplesMs": [
+        441.4941,
+        569.7777,
+        578.7898,
+        475.2928,
+        569.1183,
+        515.3568,
+        491.0582
+      ],
+      "allocatedBytes": [
+        5303624,
+        5303624,
+        5303624,
+        5303624,
+        5303624,
+        5303624,
+        5303624
+      ],
+      "candidates": 37163,
+      "fingerprint": "FE9CE317ACDC2483"
+    },
+    {
+      "name": "key 112233445566",
+      "operation": "recovery",
+      "mode": "optimized",
+      "medianMs": 364.4317,
+      "samplesMs": [
+        372.8463,
+        417.6228,
+        358.1597,
+        394.301,
+        325.8102,
+        364.4317,
+        297.3277
+      ],
+      "allocatedBytes": [
+        3206440,
+        3206440,
+        3206440,
+        3206440,
+        3206440,
+        3206440,
+        3206440
+      ],
+      "candidates": 37163,
+      "fingerprint": "FE9CE317ACDC2483"
+    },
+    {
+      "name": "other keys 65536",
+      "operation": "filter",
+      "mode": "baseline",
+      "medianMs": 34.1682,
+      "samplesMs": [
+        37.7776,
+        34.1682,
+        32.0588,
+        31.4735,
+        32.5654,
+        39.2536,
+        37.5805
+      ],
+      "allocatedBytes": [
+        3376280,
+        3376280,
+        3376280,
+        3376280,
+        3376280,
+        3376280,
+        3376280
+      ],
+      "candidates": 65536,
+      "fingerprint": "DA623AEA584F3F25"
+    },
+    {
+      "name": "other keys 65536",
+      "operation": "filter",
+      "mode": "optimized",
+      "medianMs": 4.8691,
+      "samplesMs": [
+        5.1105,
+        5.179,
+        4.8691,
+        4.8691,
+        3.5417,
+        4.1334,
+        4.5963
+      ],
+      "allocatedBytes": [
+        1114560,
+        1114560,
+        1114560,
+        1114560,
+        1114560,
+        1114560,
+        1114560
+      ],
+      "candidates": 65536,
+      "fingerprint": "DA623AEA584F3F25"
+    },
+    {
+      "name": "other keys 1",
+      "operation": "filter",
+      "mode": "baseline",
+      "medianMs": 14.888,
+      "samplesMs": [
+        15.3701,
+        16.8558,
+        14.888,
+        21.9311,
+        13.1577,
+        12.3282,
+        12.0386
+      ],
+      "allocatedBytes": [
+        320,
+        320,
+        320,
+        320,
+        320,
+        320,
+        320
+      ],
+      "candidates": 1,
+      "fingerprint": "94F28BAA79CFC618"
+    },
+    {
+      "name": "other keys 1",
+      "operation": "filter",
+      "mode": "optimized",
+      "medianMs": 1.9703,
+      "samplesMs": [
+        2.0741,
+        1.9703,
+        2.5657,
+        2.4998,
+        1.7807,
+        1.7276,
+        1.6889
+      ],
+      "allocatedBytes": [
+        65712,
+        65712,
+        65712,
+        65712,
+        65712,
+        65712,
+        65712
+      ],
+      "candidates": 1,
+      "fingerprint": "94F28BAA79CFC618"
+    }
+  ]
+}

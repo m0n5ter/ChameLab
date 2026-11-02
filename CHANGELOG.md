@@ -7,6 +7,10 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.1.28][2026-11-02] · firmware v2.3.10-cl
+ - ChameLab: faster Static encrypted nested recovery: candidate calculation is about 1.4× faster and RF08S A/B seed filtering is 7–7.5× faster in local Windows Release benchmarks. Candidate sets remain identical to the original solver; reproducible benchmarks and regression checks are included
+ - Website: a user guide with screenshots covers connecting, slots, card reading, key recovery, dictionaries, sniffing and device settings
+
 ## [v1.1.27][2026-11-02] · firmware v2.3.10-cl
  - Firmware: preserve multi-card LF lists when updating from firmware v2.3.6-cl / v2.3.7-cl: read both record formats 04 and 05, keeping every card and its order while ignoring obsolete timing settings. Lists in format 04 are upgraded to 05 on the next slot save. This also recovers lists ignored by v2.3.8-cl if their flash records have not been overwritten
  - Firmware: opening the USB serial port (DTR) stops Bluetooth advertising and disconnects any active BLE client for the whole USB session, preventing BLE radio events from interrupting LF timing. Closing the port or unplugging USB restores advertising; connecting USB only for charging keeps Bluetooth available
