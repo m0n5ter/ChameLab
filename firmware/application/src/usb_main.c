@@ -2,6 +2,7 @@
 #include "syssleep.h"
 #include "settings.h"
 #include "dataframe.h"
+#include "ble_main.h"
 
 #include "app_usbd.h"
 #include "app_usbd_cdc_acm.h"
@@ -43,6 +44,11 @@ volatile bool g_usb_port_opened = false;
 volatile bool g_usb_led_marquee_enable = true;
 static uint8_t cdc_data_buffer[NRF_DRV_USBD_EPSIZE];
 
+static void usb_port_set_open(bool open) {
+    g_usb_port_opened = open;
+    ble_usb_cdc_set_open(open);
+}
+
 /** @brief User event handler @ref app_usbd_cdc_acm_user_ev_handler_t */
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst, app_usbd_cdc_acm_user_event_t event) {
 
@@ -55,13 +61,13 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst, app_usb
             UNUSED_VARIABLE(ret);
 
             NRF_LOG_INFO("CDC ACM port opened");
-            g_usb_port_opened = true;
+            usb_port_set_open(true);
             break;
         }
 
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
             NRF_LOG_INFO("CDC ACM port closed");
-            g_usb_port_opened = false;
+            usb_port_set_open(false);
             g_usb_led_marquee_enable = true;
             break;
 
@@ -99,6 +105,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event) {
 
         case APP_USBD_EVT_STOPPED:
             NRF_LOG_INFO("USB STOPPED");
+            usb_port_set_open(false);
             app_usbd_disable();
             break;
 
@@ -115,6 +122,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event) {
             sleep_timer_start(settings_get_sleep_timeout());
             NRF_LOG_INFO("USB power removed");
             g_usb_connected = false;
+            usb_port_set_open(false);
             g_usb_led_marquee_enable = false;
             app_usbd_stop();
             break;

@@ -830,6 +830,17 @@ static data_frame_tx_t *cmd_processor_mf1_manipulate_value_block(uint16_t cmd, u
     return data_frame_make(cmd, status, 0, NULL);
 }
 
+static data_frame_tx_t *cmd_processor_lf_edge_capture(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if (length != 0) return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    static uint16_t intervals[1024];
+    size_t count;
+    bool captured = em410x_capture_intervals(intervals, 1024, 350, &count);
+    if (!captured)
+        return data_frame_make(cmd, STATUS_LF_TAG_NO_FOUND, 0, NULL);
+    for (size_t i = 0; i < count; i++) intervals[i] = U16HTONS(intervals[i]);
+    return data_frame_make(cmd, STATUS_LF_TAG_OK, count * sizeof(uint16_t), (uint8_t *)intervals);
+}
+
 static data_frame_tx_t *cmd_processor_em410x_scan(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     uint8_t card_buffer[2 + LF_EM410X_ELECTRA_TAG_ID_SIZE] = {0x00};
     status = scan_em410x(card_buffer);
@@ -3444,6 +3455,7 @@ static cmd_data_map_t m_data_cmd_map[] = {
     {    DATA_CMD_MF1_CHECK_KEYS_ON_BLOCK,      before_hf_reader_run,        cmd_processor_mf1_check_keys_on_block,       after_hf_reader_run    },
 
     {    DATA_CMD_EM410X_SCAN,                  before_reader_run,           cmd_processor_em410x_scan,                   NULL                   },
+    {    DATA_CMD_LF_EDGE_CAPTURE,              before_reader_run,           cmd_processor_lf_edge_capture,               NULL                   },
     {    DATA_CMD_EM410X_WRITE_TO_T55XX,        before_reader_run,           cmd_processor_em410x_write_to_t55xx,         NULL                   },
     {    DATA_CMD_EM410X_ELECTRA_WRITE_TO_T55XX, before_reader_run,           cmd_processor_em410x_electra_write_to_t55xx, NULL                   },
     {    DATA_CMD_HIDPROX_SCAN,                 before_reader_run,           cmd_processor_hidprox_scan,                  NULL                   },

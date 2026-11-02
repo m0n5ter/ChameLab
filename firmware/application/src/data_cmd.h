@@ -224,6 +224,7 @@
 #define DATA_CMD_PYRAMID_GET_EMU_ID             (5901)
 
 #define DATA_CMD_EM4X05_SCAN                    (3030)
+#define DATA_CMD_LF_EDGE_CAPTURE                (3033)
 #define DATA_CMD_EM4X05_READSNIFF               (3032)
 #define DATA_CMD_LF_SNIFF                       (3031)
 

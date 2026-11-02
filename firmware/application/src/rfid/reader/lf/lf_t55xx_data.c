@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #include "bsp_delay.h"
 #include "hex_utils.h"
 #include "lf_125khz_radio.h"
@@ -125,11 +127,22 @@ void t55xx_send_cmd(uint8_t opcode, uint32_t *passwd, uint8_t lock_bit, uint32_t
  * @param blk_count the number of blocks to write
  */
 void t55xx_write_data(uint32_t passwd, uint32_t *blks, uint8_t blk_count) {
-    // write control bits (blk0) & data (w/wo passwd)
-    for (uint8_t i = 0; i < blk_count; i++) {
+    if (blk_count == 0) return;
+
+    // A blank tag ignores password-mode writes. Store its password while open,
+    // before enabling PWD in block 0; already-protected tags use the password
+    // established by t55xx_reset_passwd().
+    t55xx_send_cmd(T5577_OPCODE_PAGE0, &passwd, 0, &passwd, 7);
+    t55xx_send_cmd(T5577_OPCODE_PAGE0, NULL, 0, &passwd, 7);
+
+    // Keep the previous configuration until every data block has been written.
+    // This also avoids changing the authentication mode partway through a clone.
+    for (uint8_t i = 1; i < blk_count; i++) {
         t55xx_send_cmd(T5577_OPCODE_PAGE0, &passwd, 0, &blks[i], i);
         t55xx_send_cmd(T5577_OPCODE_PAGE0, NULL, 0, &blks[i], i);
     }
+    t55xx_send_cmd(T5577_OPCODE_PAGE0, &passwd, 0, &blks[0], 0);
+    t55xx_send_cmd(T5577_OPCODE_PAGE0, NULL, 0, &blks[0], 0);
     t55xx_send_cmd(T5577_OPCODE_RESET, NULL, 0, NULL, 0);
 }
 

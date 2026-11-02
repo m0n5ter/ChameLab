@@ -23,6 +23,7 @@
 #include "dataframe.h"
 #include "hw_connect.h"
 #include "settings.h"
+#include "ble_radio_policy.h"
 
 #define NRF_LOG_MODULE_NAME ble_main
 #include "nrf_log.h"
@@ -92,6 +93,8 @@ uint16_t          batt_lvl_in_milli_volts = 0;
 uint8_t           percentage_batt_lvl = 0;
 static nrf_saadc_value_t adc_buf[ADC_BUF_COUNT][ADC_BUF_SIZE];
 static uint16_t   m_conn_handle          = BLE_CONN_HANDLE_INVALID;                 /**< Handle of the current connection. */
+static ble_radio_policy_t m_radio_policy;
+static void ble_radio_apply(ble_radio_event_t event);
 static uint16_t   m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3;            /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 lf_adc_callback_t m_lf_adc_callback      = NULL;
 
@@ -434,6 +437,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
             g_is_ble_connected = true;
+            ble_radio_apply(BLE_RADIO_CONNECTED);
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
@@ -443,6 +447,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
             g_is_ble_connected = false;
             // call sleep_timer_start *after* unsetting g_is_ble_connected
             sleep_timer_start(settings_get_sleep_timeout());
+            ble_radio_apply(BLE_RADIO_DISCONNECTED);
             break;
 
         case BLE_GAP_EVT_PHY_UPDATE_REQUEST: {
@@ -569,6 +574,8 @@ static void advertising_init(void) {
     init.config.ble_adv_fast_enabled  = true;
     init.config.ble_adv_fast_interval = APP_ADV_INTERVAL;
     init.config.ble_adv_fast_timeout  = 0;
+    // Restart through our USB-aware policy, never directly from the SDK observer.
+    init.config.ble_adv_on_disconnect_disabled = true;
     init.evt_handler = on_adv_evt;
 
     err_code = ble_advertising_init(&m_advertising, &init);
@@ -607,21 +614,47 @@ static void whitelist_set(pm_peer_id_list_skip_t skip) {
 
 /**@brief Function for starting advertising.
  */
-void advertising_start(bool erase_bonds) {
-    if (erase_bonds == true && settings_get_ble_pairing_enable_first_load()) {
-        // Advertising is started by PM_EVT_PEERS_DELETE_SUCCEEDED event.
-        // So we don't call `ble_advertising_start()` after `delete_bonds_all()`.
-        delete_bonds_all();
-    } else {
-        // The only peripheral link is in use, advertising restarts when it disconnects
-        if (m_conn_handle != BLE_CONN_HANDLE_INVALID) {
-            return;
-        }
+static void ble_radio_apply(ble_radio_event_t event) {
+    // USB callbacks run in the main loop and BLE events in an application IRQ.
+    // Keep policy changes and their SDK actions together across those contexts.
+    CRITICAL_REGION_ENTER();
+    uint8_t actions = ble_radio_policy_update(&m_radio_policy, event);
+    if (actions & BLE_RADIO_STOP_ADV) {
+        ret_code_t ret = sd_ble_gap_adv_stop(m_advertising.adv_handle);
+        if (ret != NRF_ERROR_INVALID_STATE) APP_ERROR_CHECK(ret);
+    }
+    if (actions & BLE_RADIO_DISCONNECT) {
+        ret_code_t ret = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+        if (ret != NRF_ERROR_INVALID_STATE && ret != BLE_ERROR_INVALID_CONN_HANDLE) APP_ERROR_CHECK(ret);
+    }
+    if (actions & BLE_RADIO_START_ADV) {
         if (settings_get_ble_pairing_enable_first_load()) {
             whitelist_set(PM_PEER_ID_LIST_SKIP_NO_ID_ADDR);
         }
         ret_code_t ret = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-        APP_ERROR_CHECK(ret);
+        // A connection may already exist in the SoftDevice while its event is
+        // waiting for this critical region to finish.
+        if (ret == NRF_ERROR_INVALID_STATE || ret == NRF_ERROR_CONN_COUNT) {
+            m_radio_policy.advertising = false;
+        } else {
+            APP_ERROR_CHECK(ret);
+        }
+    }
+    CRITICAL_REGION_EXIT();
+}
+
+void ble_usb_cdc_set_open(bool open) {
+    ble_radio_apply(open ? BLE_RADIO_USB_OPEN : BLE_RADIO_USB_CLOSE);
+}
+
+void advertising_start(bool erase_bonds) {
+    if (erase_bonds == true && settings_get_ble_pairing_enable_first_load()) {
+        // Advertising is started by PM_EVT_PEERS_DELETE_SUCCEEDED event.
+        // So we don't call `ble_advertising_start()` after `delete_bonds_all()`.
+        advertising_stop();
+        delete_bonds_all();
+    } else {
+        ble_radio_apply(BLE_RADIO_REQUEST_START);
     }
 }
 
@@ -629,7 +662,7 @@ void advertising_start(bool erase_bonds) {
  * @brief Function for stop advertising.
  */
 void advertising_stop(void) {
-    sd_ble_gap_adv_stop(m_advertising.adv_handle);
+    ble_radio_apply(BLE_RADIO_REQUEST_STOP);
 }
 
 /**@brief Function for handling Peer Manager events.

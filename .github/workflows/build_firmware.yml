@@ -42,6 +42,15 @@ jobs:
             firmware/tests/test_lf_cycle_record.c firmware/application/src/rfid/nfctag/lf/lf_cycle_record.c \
             -o "$RUNNER_TEMP/test-lf-cycle-record"
           "$RUNNER_TEMP/test-lf-cycle-record"
+      - name: Test LF acquisition and T5577 writes
+        run: python3 firmware/tests/test_lf_em410x_read.py
+      - name: Test USB and Bluetooth ownership
+        run: |
+          cc -std=c99 -Wall -Wextra -Werror \
+            -I firmware/application/src/utils \
+            firmware/tests/test_ble_radio_policy.c firmware/application/src/utils/ble_radio_policy.c \
+            -o "$RUNNER_TEMP/test-ble-radio-policy"
+          "$RUNNER_TEMP/test-ble-radio-policy"
       - name: Work out the firmware version
         id: version
         # firmware/VERSION is bumped only when the firmware changes; commits to firmware/ after
