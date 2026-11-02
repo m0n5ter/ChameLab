@@ -6,7 +6,11 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
- - Firmware v2.3.8-cl / ChameLab: multi-card LF now emulates the next card of the list on each appearance of the reader's field — one steady card per tap, wrapping back to the first — instead of looping through the cards while the field is present. This is the cleanest transition for access readers, so the per-card bursts and the silence between cards are gone; the cycle commands 5907–5909 no longer carry them. The next position is kept across sleep in a retention register (a battery pull or switching slots restarts at the first card). Lists saved by earlier firmware are dropped (each slot keeps its own card)
+
+## [v1.1.26][2026-11-02] · firmware v2.3.8-cl
+ - Firmware v2.3.8-cl / ChameLab: multi-card LF emulates one steady card per reader-field appearance and advances to the next card on the next tap, wrapping back to the first after the last card. The next position survives sleep; a battery pull or switching slots restarts at the first card
+ - ChameLab: the multi-card LF editor no longer has time-per-card or silence settings; cycle commands 5907–5909 no longer carry those fields. Update the app and firmware together. Updating the firmware drops lists saved by earlier firmware, while keeping each slot's own card; add the extra cards again after updating
+ - CLI / source checkout: `Read-Mfc4k.ps1` runs MIFARE Classic 4K key recovery and reading through the CLI, records recovery, reading and total times in `report.json`, and saves a partial dump after every sector
 
 ## [v1.1.25][2026-11-01] · firmware v2.3.7-cl
  - ChameLab: faster managed Nested recovery with reusable Crypto1 workspaces, linear state grouping, table-based key extraction and radix sorting; desktop and mobile use available CPU cores for independent nonce candidates
