@@ -33,6 +33,10 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     private List<byte[]>? _template;
     // Memory of another layout set aside by a type change; restored when switching back.
     private (TagSpecificType Tag, List<byte[]> Data)? _stash;
+    // A card entered by hand: its memory is a blank card's, all of it known rather than unread.
+    private readonly bool _blankMemory;
+    // The blank memory last laid down; rows still holding it follow identity edits (block 0, UID pages).
+    private List<byte[]>? _blank;
 
     /// <param name="restrictType">
     /// A saved card: offer only the tag types its data stays valid for (see
@@ -41,9 +45,13 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     /// <param name="sameFrequency">
     /// A scanned tag: offer only types of its frequency (no MIFARE for an LF scan, no EM410x for HF).
     /// </param>
-    public CardEditorViewModel(CardSave source, bool restrictType = false, bool sameFrequency = false)
+    /// <param name="blankMemory">
+    /// A card entered by hand: memory it lacks is filled with a factory-blank card's, which is saved with it.
+    /// </param>
+    public CardEditorViewModel(CardSave source, bool restrictType = false, bool sameFrequency = false, bool blankMemory = false)
     {
         _source = source;
+        _blankMemory = blankMemory;
         IsTypeRestricted = restrictType && source.Tag != TagSpecificType.Undefined;
         TagChoices = IsTypeRestricted ? source.Tag.CompatibleTypes()
             : sameFrequency && source.Tag != TagSpecificType.Undefined
@@ -102,6 +110,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
             AdaptIdentity(old, value);
             if (old.IsMifareClassic() && value.IsMifareClassic()) ResizeMifareClassic(value.MifareClassicBlocks());
             else AdaptMemory(old, value);
+            if (_blank is not null) _blank = BlankRows(value);
             SetTag(value);
         }
     }
@@ -151,7 +160,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     private void ResizeMifareClassic(int blocks)
     {
         if (_data.Count == 0) return;
-        for (var b = _data.Count; b < blocks; b++) _data.Add(Array.Empty<byte>());
+        for (var b = _data.Count; b < blocks; b++) _data.Add(_blankMemory ? MifareClassic.BlankBlock(b) : Array.Empty<byte>());
         while (_data.Count > blocks)
         {
             var first = MifareClassic.SectorFirstBlock(MifareClassic.SectorOfBlock(_data.Count - 1));
@@ -176,6 +185,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
             next = stashed.Data;
             _stash = null;
         }
+        else if (_blankMemory) next = Clone(_blank = BlankRows(to));
         else if (_data.Count > 0) next = UnreadRows(to);
         else return;
 
@@ -187,6 +197,15 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     /// <summary>Memory of one type is valid for the other (all MIFARE Classic sizes share a layout).</summary>
     private static bool SameLayout(TagSpecificType a, TagSpecificType b) =>
         a == b || (a.IsMifareClassic() && b.IsMifareClassic());
+
+    /// <summary>A blank card of <paramref name="tag"/> with the identity typed so far.</summary>
+    private List<byte[]> BlankRows(TagSpecificType tag)
+    {
+        var (uid, sak, atqa) = IdentityBytes();
+        return BlankMemory.Create(tag, uid, sak, atqa);
+    }
+
+    private static List<byte[]> Clone(List<byte[]> rows) => rows.Select(r => (byte[])r.Clone()).ToList();
 
     /// <summary>One unread (empty) row per block / page of the type.</summary>
     private static List<byte[]> UnreadRows(TagSpecificType tag) =>
@@ -311,6 +330,24 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     private void IdentityChanged()
     {
         _template = null;
+        if (_blank is { } old && BlankMemory.Supports(_tag))
+        {
+            // Rows of a hand-entered card left as laid down are blank-card memory too, so they follow as well.
+            var next = BlankRows(_tag);
+            var changed = false;
+            for (var row = 0; row < Math.Min(_data.Count, Math.Min(old.Count, next.Count)); row++)
+            {
+                if (!_data[row].AsSpan().SequenceEqual(old[row]) || old[row].AsSpan().SequenceEqual(next[row])) continue;
+                _data[row] = (byte[])next[row].Clone();
+                changed = true;
+            }
+            _blank = next;
+            if (changed)
+            {
+                RebuildRows();
+                return;
+            }
+        }
         Memory?.TemplateChanged();
     }
     public string Ats { get => _ats; set { this.RaiseAndSetIfChanged(ref _ats, value); Touch(); } }
@@ -418,7 +455,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
         // A card with no memory gets unread rows to edit; blank-card defaults are only their template,
         // so nothing passes for read data, and only rows the user edits are saved.
         _template = null;
-        if (_data.Count == 0 && BlankMemory.Supports(tag)) _data = UnreadRows(tag);
+        if (_data.Count == 0 && BlankMemory.Supports(tag)) _data = _blankMemory ? Clone(_blank = BlankRows(tag)) : UnreadRows(tag);
         // A partial read retains every unread row.
         if (mfc)
             while (_data.Count < tag.MifareClassicBlocks()) _data.Add(Array.Empty<byte>());
@@ -473,8 +510,6 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
                 warnings.Add($"Sectors {MifareClassic.SectorOfBlock(blocks)}–{MifareClassic.SectorOfBlock(_data.Count - 1)} "
                     + $"don't fit a {_tag.DisplayName()} and will be dropped when the card is saved.");
         }
-        if (_stash is { } stashed)
-            warnings.Add($"The {stashed.Tag.DisplayName()} memory is set aside: switch back to restore it, saving drops it.");
         MemoryWarning = warnings.Count == 0 ? null : string.Join(" ", warnings);
     }
 
@@ -805,6 +840,21 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     }
 
     // ---- Build ---------------------------------------------------------
+
+    /// <summary>The card as entered so far, unvalidated: identity fields that don't parse yet count as empty.</summary>
+    public CardSave Draft()
+    {
+        var (uid, sak, atqa) = IdentityBytes();
+        var card = _source.Clone();
+        card.Id = _source.Id;
+        card.Tag = _tag;
+        card.Uid = uid;
+        card.Sak = sak;
+        card.Atqa = atqa;
+        card.Ats = Hex.TryParse(_ats, out var ats) ? ats : Array.Empty<byte>();
+        card.Data = _data.Take(_data.Count - OverflowBlocks).Select(d => (byte[])d.Clone()).ToList();
+        return card;
+    }
 
     /// <summary>Validates the form and returns the updated card; throws with a user-facing message.</summary>
     public CardSave Build()

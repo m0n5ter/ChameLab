@@ -311,17 +311,88 @@ public class CardDumpContinuationTests
         Assert.True(visibilityChanged > 0);
     }
 
-    [Fact]
-    public void ManualCardCanBeReadOnceIdentityIsEntered()
+    private static CardsViewModel AddManual()
     {
         var store = new MemoryKeyValueStore();
         var vm = new CardsViewModel(new DeviceService([]), new CardLibrary(store), new DictionaryLibrary(store));
         vm.AddCommand.Execute(null);
         vm.ManualCommand.Execute(null);
-        Assert.True(vm.CanDump);
+        return vm;
+    }
+
+    [Fact]
+    public void ManualClassicCardIsABlankCardWithEveryBlockAndKeyKnown()
+    {
+        var vm = AddManual();
+        // Shown before any identity is typed.
+        Assert.True(vm.IsDumpComplete);
+        Assert.False(vm.ShowRecoveryTools);
         vm.Form!.Uid = "01020304";
-        Assert.True(vm.ShowCheckRecovery);
+
+        Assert.True(vm.CanDump);
+        Assert.True(vm.IsDumpComplete);
+        Assert.False(vm.ShowDumpActions);
+        Assert.False(vm.ShowRecoveryTools);
+        Assert.False(vm.ShowDumpNotice);
+        Assert.False(vm.ShowDumpHint);
+        Assert.Equal("Save card", vm.AddSaveLabel);
+        Assert.Equal(16, vm.DumpSectors.Count);
+        Assert.All(vm.DumpSectors, s =>
+        {
+            Assert.True(s.IsRead);
+            Assert.Equal(KeyCellState.Found, s.KeyAState);
+            Assert.Equal(KeyCellState.Found, s.KeyBState);
+        });
+
+        var card = vm.Form.Build();
+        Assert.Equal(64, card.Data.Count);
+        Assert.Equal(new byte[] { 1, 2, 3, 4, 4, 8, 4, 0 }, card.Data[0][..8]);
+        Assert.Equal(MifareClassic.BlankBlock(3), card.Data[3]);
         Assert.Equal(new byte[] { 1, 2, 3, 4 }, Dump(vm).Uid);
+    }
+
+    [Fact]
+    public void ManualCardIdentityFollowsIntoUntouchedBlankRowsOnly()
+    {
+        var vm = AddManual();
+        vm.Form!.Uid = "01020304";
+        vm.Form.Uid = "0A0B0C0D";
+        Assert.Equal(new byte[] { 0x0A, 0x0B, 0x0C, 0x0D, 0x0A ^ 0x0B ^ 0x0C ^ 0x0D }, vm.Form.Build().Data[0][..5]);
+
+        vm.Form.Memory!.Write(15, [0xAB]);
+        vm.Form.Uid = "01020304";
+        Assert.Equal(0x0A, vm.Form.Memory[0]);
+        Assert.Equal(0xAB, vm.Form.Memory[15]);
+    }
+
+    [Fact]
+    public void ManualCardOfAnotherTypeGetsThatTypesBlankMemory()
+    {
+        var vm = AddManual();
+        vm.Form!.Tag = TagSpecificType.Mifare4096;
+        Assert.Equal(40, vm.DumpSectors.Count);
+        Assert.True(vm.IsDumpComplete);
+        Assert.All(vm.DumpSectors, s => Assert.Equal(KeyCellState.Found, s.KeyBState));
+
+        vm.Form.Tag = TagSpecificType.Ntag213;
+        Assert.True(vm.IsUltralightDump);
+        Assert.True(vm.IsDumpComplete);
+        Assert.False(vm.ShowDumpActions);
+        Assert.False(vm.ShowDumpPassword);
+        Assert.Equal(45, vm.DumpBlockStates.Count);
+        Assert.All(vm.DumpBlockStates, s => Assert.Equal(MifareBlockState.Read, s));
+        Assert.Equal(new byte[] { 0xE1, 0x10, 0x12, 0x00 }, vm.Form.Draft().Data[3]);
+    }
+
+    [Fact]
+    public void SavedManualCardCanBeReadAgain()
+    {
+        var vm = AddManual();
+        vm.Form!.Uid = "01020304";
+        vm.Form.Memory!.ClearRows(4, 4);
+        var card = vm.Form.Build();
+        var reopened = Open(card);
+        Assert.True(reopened.ShowDumpActions);
     }
 
     [Theory]

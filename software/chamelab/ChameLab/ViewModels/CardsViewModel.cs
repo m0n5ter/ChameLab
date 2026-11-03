@@ -107,6 +107,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private string? _writeLfPassword;
     private string? _writeLfNewKey;
     private bool _hasDump;
+    // The card being added is entered by hand: there is no physical card to read or recover keys from.
+    private bool _isManual;
     private CancellationTokenSource? _dumpCts;
     private IReadOnlyList<MifareBlockState> _dumpBlockStates = Array.Empty<MifareBlockState>();
     private string? _writeProgressText;
@@ -447,6 +449,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         SetSlotUpdate(null);
         if (value is not null)
         {
+            // Once saved, a card entered by hand is read and recovered like any other.
+            _isManual = false;
             Form = new CardEditorViewModel(value.Card, restrictType: true);
             Pane = CardsPane.Card;
         }
@@ -1260,14 +1264,14 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     public bool IsDumpRunning => DumpProgressText is not null;
-    public bool ShowDumpActions => CanDump && !IsDumpRunning && NeedsRecovery;
-    public bool ShowDumpNotice => CanDump && !IsDumpRunning && NeedsRecovery && !IsConnected;
+    public bool ShowDumpActions => CanDump && !_isManual && !IsDumpRunning && NeedsRecovery;
+    public bool ShowDumpNotice => ShowDumpActions && !IsConnected;
 
     /// <summary>The Ultralight password goes with the Read button: gone once every page is read.</summary>
     public bool ShowDumpPassword => IsUltralightDump && ShowDumpActions;
 
     /// <summary>The hint over the dump button: until the first dump, or for Ultralight while Read is offered.</summary>
-    public bool ShowDumpHint => IsUltralightDump ? ShowDumpPassword : NeedsDump;
+    public bool ShowDumpHint => IsUltralightDump ? ShowDumpPassword : NeedsDump && !_isManual;
 
     /// <summary>Blocks are missing, or a read trailer lacks key A or key B (held as zeros).</summary>
     private bool NeedsRecovery => !IsDumpComplete || HasMissingKeys;
@@ -1320,6 +1324,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Prng = null;
         FormSource = null;
         _hasDump = false;
+        _isManual = false;
         // Leaving the add pane stops a dump still in flight.
         ClearDump();
         CanDump = false;
@@ -1378,13 +1383,15 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (CanDump && Form is { } form)
             {
-                var card = form.Build();
+                // A card entered by hand shows its memory while its identity is still being typed.
+                var card = _isManual ? form.Draft() : form.Build();
                 _scannedAts = card.Ats;
                 if (tag.IsMifareClassic())
                 {
                     // Saved trailer keys are candidates until authenticated on the physical card.
                     _classicDump = card.ToMifareDump();
                     RefreshDumpReadState();
+                    if (_isManual) ApplyTrailerKeys(_classicDump);
                     IsDumpComplete = _classicDump.RecoveredBlocks == _classicDump.BlockCount;
                 }
                 else
@@ -1403,6 +1410,19 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         RebuildKeySources();
         UpdateRecoveryMethods();
         RaiseSaveLabel();
+    }
+
+    /// <summary>A card entered by hand has no physical card to authenticate against: its trailer keys are its keys.</summary>
+    private void ApplyTrailerKeys(MifareDump dump)
+    {
+        for (var sector = 0; sector < Math.Min(dump.SectorCount, DumpSectors.Count); sector++)
+        {
+            if (dump.GetBlock(MifareClassic.SectorTrailerBlock(sector)) is not { Length: 16 } trailer) continue;
+            dump.KeyA[sector] = trailer[..6];
+            dump.KeyB[sector] = trailer[10..];
+            DumpSectors[sector].ApplyKey(new MifareKeyProgress(sector, MfKeyType.A, MifareKeyPhase.Found, 0, 0, dump.KeyA[sector]));
+            DumpSectors[sector].ApplyKey(new MifareKeyProgress(sector, MfKeyType.B, MifareKeyPhase.Found, 0, 0, dump.KeyB[sector]));
+        }
     }
 
     public bool ShowCheckRecovery => _classicDump is not null && _cardPrng is null && NeedsRecovery && HasUnknownKeys;
@@ -1535,10 +1555,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void BeginManual()
     {
         ResetAddState();
+        _isManual = true;
         // Starts as a MIFARE Classic 1K with its usual SAK / ATQA; changing the type adapts them.
+        // Its memory is that of a factory-blank card of the type, all of it known.
         var card = new CardSave { Name = "New card", Tag = TagSpecificType.Mifare1024 };
         if (card.Tag.DefaultSakAtqa(sevenByteUid: false) is { } id) { card.Sak = id.Sak; card.Atqa = id.Atqa; }
-        Form = new CardEditorViewModel(card);
+        Form = new CardEditorViewModel(card, blankMemory: true);
         FormSource = "Manual entry";
     }
 
