@@ -7,6 +7,9 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.2.30][2026-11-03] · firmware v2.3.10-cl
+ - ChameLab: smooth touch scrolling of the card editor and its memory on phones: the memory editor no longer redraws every line on each frame while the page scrolls it into or out of view
+
 ## [v1.2.29][2026-11-03] · firmware v2.3.10-cl
  - ChameLab: the dump button of an Ultralight / NTAG card reads "Read" instead of "Try keys", since these cards are read without key dictionaries
  - ChameLab: an Ultralight EV1 / NTAG dump sends the entered password only when the card's configuration needs it (read-protected pages, protected configuration or a protected NFC counter), so an open card doesn't spend its AUTHLIM attempts on a wrong password
