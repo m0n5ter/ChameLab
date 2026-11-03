@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:b="using:ChameLab.Behaviors"
              xmlns:c="using:ChameLab.Controls"
@@ -63,12 +64,12 @@
               <Button IsVisible="{Binding !IsUltralightDump}" ToolTip.Tip="{Binding DumpKeyCountText}"
                       Height="40" Width="40" Padding="0" CornerRadius="0,8,8,0" BorderThickness="1,0,0,0"
                       BorderBrush="{Binding #TryKeysButton.BorderBrush}"
-                      AutomationProperties.Name="Key dictionaries">
+                      AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
                 <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
                 <Button.Flyout>
                   <Flyout Placement="BottomEdgeAlignedLeft">
                     <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
-                      <TextBlock Text="KEY DICTIONARIES" Classes="overline" />
+                      <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline" />
                       <ItemsControl ItemsSource="{Binding DumpKeySources}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
@@ -96,11 +97,11 @@
                     CornerRadius="8" IsHitTestVisible="False" />
           </Grid>
           <Button Classes="responsive" Command="{Binding CheckRecoveryCommand}"
-                  ToolTip.Tip="Check recovery methods" AutomationProperties.Name="Check recovery methods"
+                  ToolTip.Tip="{x:Static loc:Strings.KeyRecovery_CheckRecoveryMethods}" AutomationProperties.Name="{x:Static loc:Strings.KeyRecovery_CheckRecoveryMethods}"
                   IsVisible="{Binding ShowCheckRecovery}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.search}" />
-              <TextBlock Classes="action-label" Text="Check recovery methods" VerticalAlignment="Center" />
+              <TextBlock Classes="action-label" Text="{x:Static loc:Strings.KeyRecovery_CheckRecoveryMethods}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding DarksideCommand}" ToolTip.Tip="Darkside" AutomationProperties.Name="Darkside"
@@ -126,7 +127,7 @@
           </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding StaticEncryptedNestedCommand}"
                   IsVisible="{Binding ShowStaticEncryptedNested}" AutomationProperties.Name="Static enс nested"
-                  ToolTip.Tip="Recover keys on FM11RF08S and compatible cards using known backdoor keys">
+                  ToolTip.Tip="{x:Static loc:Strings.KeyRecovery_RecoverKeysOnFM11RF08SAndCompatible}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <c:AttackIcon Label="SEN" />
               <TextBlock Classes="action-label" Text="Static encrypted nested" VerticalAlignment="Center" />
@@ -208,38 +209,38 @@
       <WrapPanel ItemSpacing="14" LineSpacing="4" Margin="16,0,0,0" IsVisible="{Binding !ShowWriteProgress}">
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend read" Margin="0" />
-          <TextBlock Text="OK" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Common_OK}" Classes="caption" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend searching" Margin="0" />
-          <TextBlock Text="Searching" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.KeyRecovery_Searching}" Classes="caption" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend nokey" Margin="0" />
-          <TextBlock Text="No key" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Common_NoKey}" Classes="caption" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend" Margin="0" />
-          <TextBlock Text="Not tried" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Common_NotTried}" Classes="caption" />
         </StackPanel>
         <TextBlock Text="{Binding RecoverySectorHint}" Classes="caption" />
       </WrapPanel>
       <WrapPanel ItemSpacing="14" LineSpacing="4" Margin="16,0,0,0" IsVisible="{Binding ShowWriteProgress}">
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend read" Margin="0" />
-          <TextBlock Text="Written" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Common_Written}" Classes="caption" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend searching" Margin="0" />
-          <TextBlock Text="Writing" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Common_Writing}" Classes="caption" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend writeerror" Margin="0" />
-          <TextBlock Text="Error" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Common_Error}" Classes="caption" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="5">
           <Border Classes="blockcell blocklegend" Margin="0" />
-          <TextBlock Text="Pending" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Common_Pending}" Classes="caption" />
         </StackPanel>
         <TextBlock Text="{Binding RecoverySectorHint}" Classes="caption" />
       </WrapPanel>

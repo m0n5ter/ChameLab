@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="720"
@@ -41,22 +42,22 @@
       <!-- Measure the title first; give actions the remaining finite width so they collapse by priority. -->
       <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="12">
         <StackPanel Grid.Column="0" Spacing="2">
-          <TextBlock Text="Key dictionaries" Classes="h1" TextWrapping="NoWrap" />
+          <TextBlock Text="{x:Static loc:Strings.Common_KeyDictionaries}" Classes="h1" TextWrapping="NoWrap" />
           <TextBlock Classes="caption" Text="{Binding CountText}" TextWrapping="NoWrap" />
         </StackPanel>
         <c:ActionRow Grid.Column="1" Classes="library-actions" HorizontalAlignment="Right" VerticalAlignment="Center">
         <Button Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
-                VerticalAlignment="Center" ToolTip.Tip="Import a .dic / .keys / .txt / .json dictionary">
+                VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ImportADicKeysTxtJson}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.import}" />
-            <TextBlock Text="Import" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static loc:Strings.Dictionaries_Import}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
         <Button Classes="accent" Command="{Binding NewCommand}" VerticalAlignment="Center" c:ActionRow.Priority="1"
-                ToolTip.Tip="Start a new dictionary">
+                ToolTip.Tip="{x:Static loc:Strings.Dictionaries_StartANewDictionary}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.add}" />
-            <TextBlock Text="New dictionary" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static loc:Strings.Dictionaries_NewDictionary}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
         </c:ActionRow>
@@ -66,20 +67,20 @@
             IsVisible="{Binding !IsEmpty}">
         <ComboBox Grid.Column="0" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
                   VerticalAlignment="Center"
-                  ToolTip.Tip="Order of the list. In Manual, drag dictionaries to arrange them.">
+                  ToolTip.Tip="{x:Static loc:Strings.Dictionaries_OrderOfTheListInManual}">
           <ComboBox.ItemTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <TextBox Classes="library-search" Text="{Binding Filter}" PlaceholderText="Search by name or key">
+        <TextBox Classes="library-search" Text="{Binding Filter}" PlaceholderText="{x:Static loc:Strings.Dictionaries_SearchByNameOrKey}">
           <TextBox.InnerLeftContent>
             <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
           </TextBox.InnerLeftContent>
         </TextBox>
         <Button Grid.Column="2" Classes="icon library-clear" Command="{Binding ResetFiltersCommand}"
-                VerticalAlignment="Center" ToolTip.Tip="Clear search">
+                VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ClearSearch}">
           <PathIcon Data="{StaticResource Icon.close}" />
         </Button>
       </Grid>
@@ -87,11 +88,11 @@
       <StackPanel Grid.Row="1" Spacing="10">
         <Button Classes="accent theme-outline" Command="{Binding OpenKnownKeysCommand}" HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Stretch" Height="NaN" Padding="16,12"
-                ToolTip.Tip="Edit known keys grouped by card UID">
+                ToolTip.Tip="{x:Static loc:Strings.Dictionaries_EditKnownKeysGroupedByCard}">
           <StackPanel Orientation="Horizontal" Spacing="12">
             <PathIcon Data="{StaticResource Icon.key}" Width="22" Height="22" VerticalAlignment="Center" />
             <StackPanel Spacing="2">
-              <TextBlock Text="Known card keys" FontWeight="SemiBold" FontSize="15" />
+              <TextBlock Text="{x:Static loc:Strings.Dictionaries_KnownCardKeys}" FontWeight="SemiBold" FontSize="15" />
               <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
             </StackPanel>
           </StackPanel>
@@ -103,13 +104,13 @@
       <Border Grid.Row="3" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
         <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
           <PathIcon Data="{StaticResource Icon.key}" Width="40" Height="40" Opacity="0.4" HorizontalAlignment="Center" />
-          <TextBlock Text="No dictionaries yet" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Text="{x:Static loc:Strings.Dictionaries_NoDictionariesYet}" FontWeight="SemiBold" HorizontalAlignment="Center" />
           <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360"
-                     Text="Press + to start a dictionary of MIFARE Classic keys, or import a .dic file. Card dumps try these keys (plus the built-in defaults)." />
+                     Text="{x:Static loc:Strings.Dictionaries_PressToStartADictionaryOf}" />
         </StackPanel>
       </Border>
 
-      <TextBlock Grid.Row="3" Classes="caption" Text="No dictionaries match the search."
+      <TextBlock Grid.Row="3" Classes="caption" Text="{x:Static loc:Strings.Dictionaries_NoDictionariesMatchTheSearch}"
                  IsVisible="{Binding NoMatches}" VerticalAlignment="Top" />
 
       <!-- In manual order the dictionaries can be dragged into place (ListReorder). Reaches past the
@@ -147,11 +148,11 @@
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,Auto,*">
             <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
-                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
+                    Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
-            <Button Grid.Column="1" Classes="colorpick" Margin="0,0,12,0" ToolTip.Tip="Dictionary color">
+            <Button Grid.Column="1" Classes="colorpick" Margin="0,0,12,0" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_DictionaryColor}">
               <Border Background="{Binding Form?.Color, Converter={x:Static conv:HexBrushConverter.Instance}}" />
               <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
@@ -171,7 +172,7 @@
               </Button.Flyout>
             </Button>
             <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="0">
-              <TextBox Classes="titlebox" Text="{Binding Form?.Name}" MaxLength="64" PlaceholderText="Dictionary name" />
+              <TextBox Classes="titlebox" Text="{Binding Form?.Name}" MaxLength="64" PlaceholderText="{x:Static loc:Strings.Dictionaries_DictionaryName}" />
               <TextBlock Text="{Binding FormSource}" Classes="caption" TextWrapping="Wrap"
                          IsVisible="{Binding IsNew}" />
               <TextBlock Text="{Binding Form?.KeyCountText}" Classes="caption" TextWrapping="Wrap" />
@@ -180,24 +181,24 @@
 
           <c:ActionRow>
             <Button Command="{Binding DuplicateCommand}" IsVisible="{Binding IsOpen}"
-                    ToolTip.Tip="Save a copy of this dictionary">
+                    ToolTip.Tip="{x:Static loc:Strings.Dictionaries_SaveACopyOfThisDictionary}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.copy}" />
-                <TextBlock Text="Duplicate" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Duplicate}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
             <Button Command="{Binding ExportCommand}" IsEnabled="{Binding CanUseFiles}" c:ActionRow.Priority="1"
-                    ToolTip.Tip="Save as a .dic file (one key per line)">
+                    ToolTip.Tip="{x:Static loc:Strings.Dictionaries_SaveAsADicFileOne}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.export}" />
-                <TextBlock Text="Export" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Export}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
             <Button Classes="danger" Command="{Binding DeleteCommand}" IsVisible="{Binding IsOpen}"
-                    ToolTip.Tip="Delete this dictionary">
+                    ToolTip.Tip="{x:Static loc:Strings.Dictionaries_DeleteThisDictionary}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.delete}" />
-                <TextBlock Text="Delete" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Delete}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </c:ActionRow>
@@ -211,13 +212,13 @@
         <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
           <Grid ColumnDefinitions="Auto,*">
             <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
-                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
+                    Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
-            <TextBlock Grid.Column="1" Text="Known card keys" Classes="h1" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.Dictionaries_KnownCardKeys}" Classes="h1" VerticalAlignment="Center" />
           </Grid>
-          <TextBox Grid.Row="1" Text="{Binding KnownEditor.Filter}" PlaceholderText="Search by UID or card name">
+          <TextBox Grid.Row="1" Text="{Binding KnownEditor.Filter}" PlaceholderText="{x:Static loc:Strings.Dictionaries_SearchByUIDOrCardName}">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
             </TextBox.InnerLeftContent>
@@ -242,7 +243,7 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-            <TextBlock Text="No cards match the search." Classes="caption" Margin="8"
+            <TextBlock Text="{x:Static loc:Strings.Dictionaries_NoCardsMatchTheSearch}" Classes="caption" Margin="8"
                        IsVisible="{Binding KnownEditor.NoMatches}" />
           </Grid>
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"
@@ -255,7 +256,7 @@
                       HorizontalAlignment="Right" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.delete}" />
-                  <TextBlock Text="Forget card" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static loc:Strings.Dictionaries_ForgetCard}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
           </Grid>
@@ -275,7 +276,7 @@
         <StackPanel Spacing="8" HorizontalAlignment="Center" Margin="0,20">
           <PathIcon Data="{StaticResource Icon.key}" Width="34" Height="34" Opacity="0.4" HorizontalAlignment="Center" />
           <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="280" TextWrapping="Wrap"
-                     Text="Select a dictionary to see and edit its keys, or press + to start one." />
+                     Text="{x:Static loc:Strings.Dictionaries_SelectADictionaryToSeeAnd}" />
         </StackPanel>
       </Border>
 
@@ -283,13 +284,13 @@
       <Border Grid.Row="1" Classes="card" IsVisible="{Binding IsEditorPane}" IsEnabled="{Binding !IsAsking}">
         <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
           <StackPanel Grid.Row="0" Spacing="2">
-            <TextBlock Text="KEYS" Classes="overline" />
+            <TextBlock Text="{x:Static loc:Strings.Dictionaries_KeysHeader}" Classes="overline" />
             <TextBlock Classes="caption" TextWrapping="Wrap"
-                       Text="One key per row. Type hex into the empty row at the end to add a key, or paste a list there. Enter opens a row, Delete removes the selected rows." />
+                       Text="{x:Static loc:Strings.Dictionaries_OneKeyPerRowTypeHex}" />
           </StackPanel>
           <WrapPanel Grid.Row="1" Classes="hexlegend">
-            <TextBlock Classes="access" Text="■ Repeated" />
-            <TextBlock Classes="changed" Text="■ Modified" />
+            <TextBlock Classes="access" Text="{x:Static loc:Strings.Dictionaries_Repeated}" />
+            <TextBlock Classes="changed" Text="{x:Static loc:Strings.Common_Modified}" />
           </WrapPanel>
           <!-- Fixed-width position/value part, then the meaning (as under card memory). -->
           <TextBlock Grid.Row="2" Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
@@ -325,11 +326,11 @@
             <TextBlock Text="{Binding SaveError}" />
           </DockPanel>
           <c:ActionBar>
-            <Button Content="Discard" Command="{Binding CancelNewCommand}" />
+            <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding CancelNewCommand}" />
             <Button Classes="accent" Command="{Binding SaveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.save}" />
-                <TextBlock Text="Save dictionary" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Dictionaries_SaveDictionary}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </c:ActionBar>
@@ -350,12 +351,12 @@
             <TextBlock Text="{Binding SaveError}" />
           </DockPanel>
           <c:ActionBar>
-            <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" IsVisible="{Binding IsDirty}" />
-            <Button Content="Discard" Command="{Binding DiscardCommand}" />
+            <TextBlock Text="{x:Static loc:Strings.Common_UnsavedChanges}" VerticalAlignment="Center" FontWeight="SemiBold" IsVisible="{Binding IsDirty}" />
+            <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardCommand}" />
             <Button Classes="accent" Command="{Binding SaveCommand}" IsEnabled="{Binding IsDirty}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.save}" />
-                <TextBlock Text="Save" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </c:ActionBar>
@@ -366,13 +367,13 @@
         <c:ActionBar>
           <TextBlock Text="{Binding LeaveText}" VerticalAlignment="Center"
                      FontWeight="SemiBold" TextWrapping="Wrap" />
-          <Button Content="Cancel" Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
-                  ToolTip.Tip="Keep editing this dictionary" />
-          <Button Content="Discard" Command="{Binding DiscardAndLeaveCommand}" />
+          <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
+                  ToolTip.Tip="{x:Static loc:Strings.Dictionaries_KeepEditingThisDictionary}" />
+          <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardAndLeaveCommand}" />
           <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}" b:DialogKeys.IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="Save" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </c:ActionBar>
@@ -385,13 +386,13 @@
           </MultiBinding>
         </Border.IsVisible>
         <c:ActionBar>
-          <TextBlock Text="Delete this dictionary permanently?" VerticalAlignment="Center"
+          <TextBlock Text="{x:Static loc:Strings.Dictionaries_DeleteThisDictionaryPermanently}" VerticalAlignment="Center"
                      FontWeight="SemiBold" TextWrapping="Wrap" />
-          <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" b:DialogKeys.IsCancel="True" />
+          <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelDeleteCommand}" b:DialogKeys.IsCancel="True" />
           <Button Classes="danger solid" Command="{Binding ConfirmDeleteCommand}" b:DialogKeys.IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.delete}" />
-              <TextBlock Text="Delete" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Delete}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </c:ActionBar>

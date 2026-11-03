@@ -21,4 +21,1246 @@
   <data name="Settings_LanguageCaption" xml:space="preserve">
     <value>Применится после перезапуска приложения.</value>
   </data>
+  <data name="Cards_125KHzCardsOnly" xml:space="preserve">
+    <value>Только карты 125 кГц</value>
+  </data>
+  <data name="Cards_1356MHz" xml:space="preserve">
+    <value>13,56 МГц</value>
+  </data>
+  <data name="Cards_1356MHzCardsOnly" xml:space="preserve">
+    <value>Только карты 13,56 МГц</value>
+  </data>
+  <data name="Cards_26BitFormat" xml:space="preserve">
+    <value>26-битный формат</value>
+  </data>
+  <data name="Cards_AlreadySavedHeader" xml:space="preserve">
+    <value>УЖЕ СОХРАНЕНА</value>
+  </data>
+  <data name="Cards_AssignToSlotHeader" xml:space="preserve">
+    <value>ЗАГРУЗИТЬ В СЛОТ</value>
+  </data>
+  <data name="Cards_AccessBits" xml:space="preserve">
+    <value>■ Биты доступа</value>
+  </data>
+  <data name="Cards_AddACard" xml:space="preserve">
+    <value>Добавить карту</value>
+  </data>
+  <data name="Cards_AddARecordAtTheEnd" xml:space="preserve">
+    <value>Добавить запись в конец сообщения</value>
+  </data>
+  <data name="Cards_AddRecord" xml:space="preserve">
+    <value>Добавить запись</value>
+  </data>
+  <data name="Cards_AfterThePagesWriteTheSettings" xml:space="preserve">
+    <value>После страниц записать на целевую карту настройки ниже</value>
+  </data>
+  <data name="Cards_All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Cards_AndroidApp" xml:space="preserve">
+    <value>Приложение Android</value>
+  </data>
+  <data name="Cards_AssignToSlot" xml:space="preserve">
+    <value>Загрузить в слот</value>
+  </data>
+  <data name="Cards_BackToCards" xml:space="preserve">
+    <value>Назад к картам</value>
+  </data>
+  <data name="Cards_BinDump" xml:space="preserve">
+    <value>Дамп .bin</value>
+  </data>
+  <data name="Cards_Block0" xml:space="preserve">
+    <value>■ Блок 0</value>
+  </data>
+  <data name="Cards_CardDetailsHeader" xml:space="preserve">
+    <value>СВЕДЕНИЯ О КАРТЕ</value>
+  </data>
+  <data name="Cards_CardColor" xml:space="preserve">
+    <value>Цвет карты</value>
+  </data>
+  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
+    <value>Файл карты, совместимый с приложением на Flutter</value>
+  </data>
+  <data name="Cards_CardName" xml:space="preserve">
+    <value>Название карты</value>
+  </data>
+  <data name="Cards_CardNumber065535" xml:space="preserve">
+    <value>Номер карты (0–65535)</value>
+  </data>
+  <data name="Cards_CardType" xml:space="preserve">
+    <value>Тип карты</value>
+  </data>
+  <data name="Cards_CardsOfBothFrequencies" xml:space="preserve">
+    <value>Карты обеих частот</value>
+  </data>
+  <data name="Cards_ClearSearchAndFilters" xml:space="preserve">
+    <value>Сбросить поиск и фильтры</value>
+  </data>
+  <data name="Cards_ClearTheSelectedSectorAndMark" xml:space="preserve">
+    <value>Очистить выбранный сектор и пометить его блоки как непрочитанные</value>
+  </data>
+  <data name="Cards_ClickToCopy" xml:space="preserve">
+    <value>Нажмите, чтобы скопировать</value>
+  </data>
+  <data name="Cards_Config" xml:space="preserve">
+    <value>■ Конфигурация</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToLoadThis" xml:space="preserve">
+    <value>Подключите Chameleon, чтобы загрузить эту карту в слот.</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToScanTags" xml:space="preserve">
+    <value>Подключите Chameleon, чтобы сканировать метки.</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToWriteCards" xml:space="preserve">
+    <value>Подключите Chameleon, чтобы записывать карты.</value>
+  </data>
+  <data name="Cards_ContactVCard" xml:space="preserve">
+    <value>Контакт (vCard)</value>
+  </data>
+  <data name="Cards_Content" xml:space="preserve">
+    <value>Содержимое</value>
+  </data>
+  <data name="Cards_CreateACardByEnteringIts" xml:space="preserve">
+    <value>Создать карту, указав её тип и UID / ID</value>
+  </data>
+  <data name="Cards_CurrentCardPassword" xml:space="preserve">
+    <value>Текущий пароль карты</value>
+  </data>
+  <data name="Cards_CurrentPassword" xml:space="preserve">
+    <value>Текущий пароль</value>
+  </data>
+  <data name="Cards_DegreesEastNegativeWest" xml:space="preserve">
+    <value>Градусы восточной долготы (отрицательные — западной)</value>
+  </data>
+  <data name="Cards_DegreesNorthNegativeSouth" xml:space="preserve">
+    <value>Градусы северной широты (отрицательные — южной)</value>
+  </data>
+  <data name="Cards_DeleteThisCard" xml:space="preserve">
+    <value>Удалить эту карту</value>
+  </data>
+  <data name="Cards_DeleteThisCardPermanently" xml:space="preserve">
+    <value>Удалить эту карту навсегда?</value>
+  </data>
+  <data name="Cards_Detect" xml:space="preserve">
+    <value>Определить</value>
+  </data>
+  <data name="Cards_DumpTheCardFirstToSave" xml:space="preserve">
+    <value>Сначала снимите дамп карты, чтобы сохранить и её память.</value>
+  </data>
+  <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
+    <value>Изменения сразу попадают в память. Перетащите запись, чтобы переместить её.</value>
+  </data>
+  <data name="Cards_Email" xml:space="preserve">
+    <value>Эл. почта</value>
+  </data>
+  <data name="Cards_EmailAddress" xml:space="preserve">
+    <value>Адрес эл. почты</value>
+  </data>
+  <data name="Cards_EmailOptional" xml:space="preserve">
+    <value>Эл. почта (необязательно)</value>
+  </data>
+  <data name="Cards_EmlDump" xml:space="preserve">
+    <value>Дамп .eml</value>
+  </data>
+  <data name="Cards_EmulateThisCardInOneOf" xml:space="preserve">
+    <value>Эмулировать эту карту в одном из слотов устройства</value>
+  </data>
+  <data name="Cards_EnterManually" xml:space="preserve">
+    <value>Ввести вручную</value>
+  </data>
+  <data name="Cards_EveryPageAsHex" xml:space="preserve">
+    <value>Все страницы в hex</value>
+  </data>
+  <data name="Cards_FoldersHeader" xml:space="preserve">
+    <value>ПАПКИ</value>
+  </data>
+  <data name="Cards_FacilityCode0255" xml:space="preserve">
+    <value>Код объекта (0–255)</value>
+  </data>
+  <data name="Cards_HoldATagAgainstTheDevice" xml:space="preserve">
+    <value>Приложите метку к устройству и отсканируйте её, импортируйте файл или введите карту вручную.</value>
+  </data>
+  <data name="Cards_ImportFile" xml:space="preserve">
+    <value>Импорт файла</value>
+  </data>
+  <data name="Cards_ImportJSONFlipperNfcRfidProxmark3" xml:space="preserve">
+    <value>Импорт JSON, Flipper .nfc/.rfid, Proxmark3 JSON, MCT, .bin или .eml</value>
+  </data>
+  <data name="Cards_JSONNfcBinEml" xml:space="preserve">
+    <value>JSON, .nfc, .bin, .eml…</value>
+  </data>
+  <data name="Cards_Keep" xml:space="preserve">
+    <value>Оставить</value>
+  </data>
+  <data name="Cards_KeepCurrent" xml:space="preserve">
+    <value>Оставить текущий</value>
+  </data>
+  <data name="Cards_KeepEditingThisCard" xml:space="preserve">
+    <value>Продолжить редактирование карты</value>
+  </data>
+  <data name="Cards_KeepTheOldVersionInThe" xml:space="preserve">
+    <value>Оставить в слотах старую версию</value>
+  </data>
+  <data name="Cards_KeyA" xml:space="preserve">
+    <value>■ Ключ A</value>
+  </data>
+  <data name="Cards_KeyB" xml:space="preserve">
+    <value>■ Ключ B</value>
+  </data>
+  <data name="Cards_LFProtocol" xml:space="preserve">
+    <value>Протокол LF</value>
+  </data>
+  <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
+    <value>Код языка, например en, de, ru</value>
+  </data>
+  <data name="Cards_LatitudeEG488584" xml:space="preserve">
+    <value>Широта, например 48.8584</value>
+  </data>
+  <data name="Cards_LeaveTheTargetCardsPasswordPACK" xml:space="preserve">
+    <value>Не менять пароль, PACK, AUTH0, PROT и лимит попыток целевой карты</value>
+  </data>
+  <data name="Cards_LinkURI" xml:space="preserve">
+    <value>Ссылка (URI)</value>
+  </data>
+  <data name="Cards_Location" xml:space="preserve">
+    <value>Местоположение</value>
+  </data>
+  <data name="Cards_LockBytes" xml:space="preserve">
+    <value>■ Байты блокировки</value>
+  </data>
+  <data name="Cards_LongitudeEG22945" xml:space="preserve">
+    <value>Долгота, например 2.2945</value>
+  </data>
+  <data name="Cards_MagicGenerationHeader" xml:space="preserve">
+    <value>ПОКОЛЕНИЕ MAGIC</value>
+  </data>
+  <data name="Cards_MemoryHeader" xml:space="preserve">
+    <value>ПАМЯТЬ</value>
+  </data>
+  <data name="Cards_MIMEData" xml:space="preserve">
+    <value>Данные MIME</value>
+  </data>
+  <data name="Cards_MIMETypeEGTextPlain" xml:space="preserve">
+    <value>Тип MIME, например text/plain</value>
+  </data>
+  <data name="Cards_MessageOptional" xml:space="preserve">
+    <value>Сообщение (необязательно)</value>
+  </data>
+  <data name="Cards_MoveThisCardToAFolder" xml:space="preserve">
+    <value>Переместить карту в папку</value>
+  </data>
+  <data name="Cards_Name" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="Cards_NetworkNameSSID" xml:space="preserve">
+    <value>Имя сети (SSID)</value>
+  </data>
+  <data name="Cards_NewPassword" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="Cards_NoCardsInThisFolderYet" xml:space="preserve">
+    <value>В этой папке пока нет карт. Перетащите на неё карты в панели навигации или добавьте карту здесь.</value>
+  </data>
+  <data name="Cards_NoCardsMatchTheSearchAnd" xml:space="preserve">
+    <value>Нет карт, подходящих под поиск и фильтры.</value>
+  </data>
+  <data name="Cards_NoCardsYet" xml:space="preserve">
+    <value>Карт пока нет</value>
+  </data>
+  <data name="Cards_NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="Cards_OnlyTypesThatKeepThisCards" xml:space="preserve">
+    <value>Предлагаются только типы, с которыми данные карты остаются корректными. Для другого типа добавьте новую карту.</value>
+  </data>
+  <data name="Cards_OpenTheSavedCard" xml:space="preserve">
+    <value>Открыть сохранённую карту</value>
+  </data>
+  <data name="Cards_Optional" xml:space="preserve">
+    <value>Необязательно</value>
+  </data>
+  <data name="Cards_Optional2" xml:space="preserve">
+    <value>необязательно</value>
+  </data>
+  <data name="Cards_OrderOfTheListInManual" xml:space="preserve">
+    <value>Порядок списка. В режиме «Вручную» перетаскивайте карты.</value>
+  </data>
+  <data name="Cards_OrganizationOptional" xml:space="preserve">
+    <value>Организация (необязательно)</value>
+  </data>
+  <data name="Cards_PasswordProtectionHeader" xml:space="preserve">
+    <value>ЗАЩИТА ПАРОЛЕМ</value>
+  </data>
+  <data name="Cards_PWD4BytesForNTAGUltralight" xml:space="preserve">
+    <value>PWD (4 байта) для NTAG / Ultralight EV1 или ключ 3DES (16 байт) для Ultralight C</value>
+  </data>
+  <data name="Cards_PWD4BytesOfTheTarget" xml:space="preserve">
+    <value>PWD (4 байта) целевой карты, если её страницы защищены от записи</value>
+  </data>
+  <data name="Cards_PackageNameEGComExample" xml:space="preserve">
+    <value>Имя пакета, например com.example.app</value>
+  </data>
+  <data name="Cards_Password" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
+  <data name="Cards_Password4BytesOfAnAlready" xml:space="preserve">
+    <value>Пароль (4 байта) уже заблокированной метки T55xx. Для чистой метки оставьте пустым; стандартные пароли прошивки тоже проверяются.</value>
+  </data>
+  <data name="Cards_Password4BytesTheTagIs" xml:space="preserve">
+    <value>Пароль (4 байта), которым метка блокируется после записи. Если пусто, остаётся текущий пароль, а для чистой метки — стандартный пароль прошивки (20206666).</value>
+  </data>
+  <data name="Cards_PasswordOptional" xml:space="preserve">
+    <value>Пароль (необязательно)</value>
+  </data>
+  <data name="Cards_PasswordSettings" xml:space="preserve">
+    <value>Настройки пароля</value>
+  </data>
+  <data name="Cards_PayloadHex" xml:space="preserve">
+    <value>Данные (hex)</value>
+  </data>
+  <data name="Cards_PhoneNumber" xml:space="preserve">
+    <value>Номер телефона</value>
+  </data>
+  <data name="Cards_PhoneNumberEG1555" xml:space="preserve">
+    <value>Номер телефона, например +7 900 000-00-00</value>
+  </data>
+  <data name="Cards_PhoneOptional" xml:space="preserve">
+    <value>Телефон (необязательно)</value>
+  </data>
+  <data name="Cards_PressToScanACardImport" xml:space="preserve">
+    <value>Нажмите +, чтобы отсканировать карту, импортировать файл или ввести её вручную. Сохранённые карты можно эмулировать в любом слоте или записать на метку.</value>
+  </data>
+  <data name="Cards_ProbeTheCardOnTheReader" xml:space="preserve">
+    <value>Проверить карту на считывателе и выбрать её поколение</value>
+  </data>
+  <data name="Cards_Proxmark3EmlDumpHexText" xml:space="preserve">
+    <value>Дамп Proxmark3 .eml (hex-текст)</value>
+  </data>
+  <data name="Cards_RawMemoryDumpReadableByMost" xml:space="preserve">
+    <value>Сырой дамп памяти, читается большинством программ для MIFARE</value>
+  </data>
+  <data name="Cards_RawRecord" xml:space="preserve">
+    <value>Сырая запись</value>
+  </data>
+  <data name="Cards_Reading" xml:space="preserve">
+    <value>Чтение</value>
+  </data>
+  <data name="Cards_ReloadSlots" xml:space="preserve">
+    <value>Перечитать слоты</value>
+  </data>
+  <data name="Cards_RemoveTheRecord" xml:space="preserve">
+    <value>Удалить запись</value>
+  </data>
+  <data name="Cards_SaveACopyOfThisCard" xml:space="preserve">
+    <value>Сохранить копию этой карты</value>
+  </data>
+  <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
+    <value>Сохранить в JSON (совместим с приложением на Flutter)</value>
+  </data>
+  <data name="Cards_SaveTheCardToAFile" xml:space="preserve">
+    <value>Сохранить карту в файл</value>
+  </data>
+  <data name="Cards_ScanA125KHzTagOf" xml:space="preserve">
+    <value>Сканировать метку 125 кГц выбранного ниже протокола</value>
+  </data>
+  <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
+    <value>Сканировать метку ISO14443-A; устройство перейдёт в режим считывателя</value>
+  </data>
+  <data name="Cards_ScanHF" xml:space="preserve">
+    <value>Сканировать HF</value>
+  </data>
+  <data name="Cards_ScanImportOrEnterANew" xml:space="preserve">
+    <value>Отсканировать, импортировать или ввести новую карту</value>
+  </data>
+  <data name="Cards_ScanLF" xml:space="preserve">
+    <value>Сканировать LF</value>
+  </data>
+  <data name="Cards_SelectACardToEditEmulate" xml:space="preserve">
+    <value>Выберите карту, чтобы редактировать, эмулировать или записать её, или нажмите +, чтобы добавить новую.</value>
+  </data>
+  <data name="Cards_SubjectOptional" xml:space="preserve">
+    <value>Тема (необязательно)</value>
+  </data>
+  <data name="Cards_TagType" xml:space="preserve">
+    <value>Тип метки</value>
+  </data>
+  <data name="Cards_Text" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="Cards_TextMessageSMS" xml:space="preserve">
+    <value>Текстовое сообщение (SMS)</value>
+  </data>
+  <data name="Cards_TheCardReplacesTheSlotsCurrent" xml:space="preserve">
+    <value>Карта заменит текущее содержимое слота, слот станет активным и сохранится во флеш-памяти.</value>
+  </data>
+  <data name="Cards_TheCardsRandomNumberGeneratorMeasured" xml:space="preserve">
+    <value>Генератор случайных чисел карты, определённый при сканировании</value>
+  </data>
+  <data name="Cards_TheNDEFRecordsInTheMemory" xml:space="preserve">
+    <value>Записи NDEF в памяти</value>
+  </data>
+  <data name="Cards_ThisCardHasNoTagType" xml:space="preserve">
+    <value>У карты не задан тип метки. Выберите его ниже и сохраните перед эмуляцией.</value>
+  </data>
+  <data name="Cards_Type" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Cards_TypeAndUIDByHand" xml:space="preserve">
+    <value>Тип и UID вручную</value>
+  </data>
+  <data name="Cards_TypeNameFormat" xml:space="preserve">
+    <value>Формат имени типа</value>
+  </data>
+  <data name="Cards_UID" xml:space="preserve">
+    <value>■ UID</value>
+  </data>
+  <data name="Cards_UploadTheSavedCardToThese" xml:space="preserve">
+    <value>Загрузить сохранённую карту в эти слоты</value>
+  </data>
+  <data name="Cards_WebsiteOptional" xml:space="preserve">
+    <value>Сайт (необязательно)</value>
+  </data>
+  <data name="Cards_WiFiNetwork" xml:space="preserve">
+    <value>Сеть Wi-Fi</value>
+  </data>
+  <data name="Cards_Write" xml:space="preserve">
+    <value>Записать</value>
+  </data>
+  <data name="Cards_WriteAnother" xml:space="preserve">
+    <value>Записать ещё</value>
+  </data>
+  <data name="Cards_WriteBlock0UID" xml:space="preserve">
+    <value>Записать блок 0 (UID)</value>
+  </data>
+  <data name="Cards_WriteNew" xml:space="preserve">
+    <value>Записать новый</value>
+  </data>
+  <data name="Cards_WriteOntoAT55xxTagLF" xml:space="preserve">
+    <value>Записать на метку T55xx (LF), magic-карту (MIFARE Classic) или в пользовательские страницы карты Ultralight / NTAG</value>
+  </data>
+  <data name="Cards_WriteTheSameCardToAnother" xml:space="preserve">
+    <value>Записать ту же карту на другую метку с теми же параметрами</value>
+  </data>
+  <data name="Cards_WriteTheSourceDumpsManufacturerBlock" xml:space="preserve">
+    <value>Записать блок производителя и UID из исходного дампа. Неверные данные в блоке 0 могут навсегда вывести целевую карту из строя.</value>
+  </data>
+  <data name="Chameleon_6DigitsBlankKeepsTheCurrent" xml:space="preserve">
+    <value>6 цифр. Если пусто, PIN не меняется.</value>
+  </data>
+  <data name="Chameleon_ActiveSlotHeader" xml:space="preserve">
+    <value>АКТИВНЫЙ СЛОТ</value>
+  </data>
+  <data name="Chameleon_ActionOnALongPress" xml:space="preserve">
+    <value>Действие при долгом нажатии.</value>
+  </data>
+  <data name="Chameleon_ActionOnAShortPress" xml:space="preserve">
+    <value>Действие при коротком нажатии.</value>
+  </data>
+  <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
+    <value>Все слоты, их имена, данные эмулятора и настройки будут стёрты. После этого устройство отключится.</value>
+  </data>
+  <data name="Chameleon_BatteryHeader" xml:space="preserve">
+    <value>БАТАРЕЯ</value>
+  </data>
+  <data name="Chameleon_BleAddressHeader" xml:space="preserve">
+    <value>АДРЕС BLE</value>
+  </data>
+  <data name="Chameleon_BehaviorAndControlsSaveSendsYour" xml:space="preserve">
+    <value>Поведение и управление. «Сохранить» отправляет изменения на устройство, и они сохраняются после перезагрузки.</value>
+  </data>
+  <data name="Chameleon_BluetoothPairing" xml:space="preserve">
+    <value>Сопряжение по Bluetooth</value>
+  </data>
+  <data name="Chameleon_ButtonA" xml:space="preserve">
+    <value>Кнопка A</value>
+  </data>
+  <data name="Chameleon_ButtonALongPress" xml:space="preserve">
+    <value>Кнопка A (долгое нажатие)</value>
+  </data>
+  <data name="Chameleon_ButtonB" xml:space="preserve">
+    <value>Кнопка B</value>
+  </data>
+  <data name="Chameleon_ButtonBLongPress" xml:space="preserve">
+    <value>Кнопка B (долгое нажатие)</value>
+  </data>
+  <data name="Chameleon_ChipIdHeader" xml:space="preserve">
+    <value>ID ЧИПА</value>
+  </data>
+  <data name="Chameleon_ClearAllBondedBLEDevices" xml:space="preserve">
+    <value>Удалить все сопряжённые BLE-устройства?</value>
+  </data>
+  <data name="Chameleon_ClearBondedDevices" xml:space="preserve">
+    <value>Удалить сопряжённые устройства</value>
+  </data>
+  <data name="Chameleon_ClearBonds" xml:space="preserve">
+    <value>Удалить сопряжения</value>
+  </data>
+  <data name="Chameleon_ClearBonds2" xml:space="preserve">
+    <value>Удалить сопряжения…</value>
+  </data>
+  <data name="Chameleon_CurrentDeviceSettingsWillBeReplaced" xml:space="preserve">
+    <value>Текущие настройки устройства будут заменены заводскими.</value>
+  </data>
+  <data name="Chameleon_DeviceSettingsHeader" xml:space="preserve">
+    <value>НАСТРОЙКИ УСТРОЙСТВА</value>
+  </data>
+  <data name="Chameleon_DeviceStatusFirmwareAndSettings" xml:space="preserve">
+    <value>Состояние устройства, прошивка и настройки.</value>
+  </data>
+  <data name="Chameleon_Emulator" xml:space="preserve">
+    <value>Эмулятор</value>
+  </data>
+  <data name="Chameleon_EraseEverything" xml:space="preserve">
+    <value>Стереть всё</value>
+  </data>
+  <data name="Chameleon_FirmwareHeader" xml:space="preserve">
+    <value>ПРОШИВКА</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateHeader" xml:space="preserve">
+    <value>ОБНОВЛЕНИЕ ПРОШИВКИ</value>
+  </data>
+  <data name="Chameleon_FactoryReset" xml:space="preserve">
+    <value>Сброс к заводским</value>
+  </data>
+  <data name="Chameleon_FactoryReset2" xml:space="preserve">
+    <value>Сброс к заводским…</value>
+  </data>
+  <data name="Chameleon_FactoryResetTheChameleon" xml:space="preserve">
+    <value>Сбросить Chameleon к заводским настройкам?</value>
+  </data>
+  <data name="Chameleon_ForgetsEveryPhoneAndTabletPaired" xml:space="preserve">
+    <value>Забывает все телефоны и планшеты, сопряжённые по Bluetooth LE.</value>
+  </data>
+  <data name="Chameleon_GitVersionHeader" xml:space="preserve">
+    <value>ВЕРСИЯ GIT</value>
+  </data>
+  <data name="Chameleon_HardwareAndFirmwareIdentity" xml:space="preserve">
+    <value>Сведения об оборудовании и прошивке</value>
+  </data>
+  <data name="Chameleon_HoldTimeForALongPress" xml:space="preserve">
+    <value>Время удержания для долгого нажатия (мс).</value>
+  </data>
+  <data name="Chameleon_IdleSecondsBeforeSleep560" xml:space="preserve">
+    <value>Секунд бездействия до сна (5–60).</value>
+  </data>
+  <data name="Chameleon_InstallADFUPackageUltraDfu" xml:space="preserve">
+    <value>Установить пакет DFU (ultra-dfu-app.zip / lite-dfu-app.zip)</value>
+  </data>
+  <data name="Chameleon_InstallFromFile" xml:space="preserve">
+    <value>Установить из файла…</value>
+  </data>
+  <data name="Chameleon_LEDAnimation" xml:space="preserve">
+    <value>Анимация светодиодов</value>
+  </data>
+  <data name="Chameleon_LightPatternOnWakeUp" xml:space="preserve">
+    <value>Световой эффект при пробуждении.</value>
+  </data>
+  <data name="Chameleon_LongPressThreshold" xml:space="preserve">
+    <value>Порог долгого нажатия</value>
+  </data>
+  <data name="Chameleon_NextFilledSlot" xml:space="preserve">
+    <value>Следующий заполненный слот</value>
+  </data>
+  <data name="Chameleon_NotAvailable" xml:space="preserve">
+    <value>Недоступно</value>
+  </data>
+  <data name="Chameleon_OperatingModeHeader" xml:space="preserve">
+    <value>РЕЖИМ РАБОТЫ</value>
+  </data>
+  <data name="Chameleon_PairedPhonesAndTabletsWillHave" xml:space="preserve">
+    <value>Телефонам и планшетам придётся заново выполнить сопряжение; возможно, сначала нужно будет удалить Chameleon из их списка Bluetooth.</value>
+  </data>
+  <data name="Chameleon_PairingPIN" xml:space="preserve">
+    <value>PIN для сопряжения</value>
+  </data>
+  <data name="Chameleon_PreviousFilledSlot" xml:space="preserve">
+    <value>Предыдущий заполненный слот</value>
+  </data>
+  <data name="Chameleon_Reader" xml:space="preserve">
+    <value>Считыватель</value>
+  </data>
+  <data name="Chameleon_Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="Chameleon_ReleaseNotes" xml:space="preserve">
+    <value>Что нового</value>
+  </data>
+  <data name="Chameleon_ReloadDeviceInformation" xml:space="preserve">
+    <value>Перечитать сведения об устройстве</value>
+  </data>
+  <data name="Chameleon_RequireAPINToConnectOver" xml:space="preserve">
+    <value>Запрашивать PIN при подключении по Bluetooth LE.</value>
+  </data>
+  <data name="Chameleon_Reset" xml:space="preserve">
+    <value>Сброс…</value>
+  </data>
+  <data name="Chameleon_ResetAllSettings" xml:space="preserve">
+    <value>Сбросить все настройки?</value>
+  </data>
+  <data name="Chameleon_ResetSettings" xml:space="preserve">
+    <value>Сбросить настройки</value>
+  </data>
+  <data name="Chameleon_ResetToDefaults" xml:space="preserve">
+    <value>Сбросить по умолчанию</value>
+  </data>
+  <data name="Chameleon_RestoresFactorySettingsForLEDsSleep" xml:space="preserve">
+    <value>Возвращает заводские настройки светодиодов, сна и кнопок.</value>
+  </data>
+  <data name="Chameleon_SendTheseValuesToTheDevice" xml:space="preserve">
+    <value>Отправить эти значения на устройство и сохранить после перезагрузки</value>
+  </data>
+  <data name="Chameleon_SleepTimeout" xml:space="preserve">
+    <value>Тайм-аут сна</value>
+  </data>
+  <data name="Chameleon_TheDefaultPINIs123456" xml:space="preserve">
+    <value>PIN по умолчанию — 123456.</value>
+  </data>
+  <data name="Chameleon_TheDevicePresentsTheActiveSlot" xml:space="preserve">
+    <value>Устройство представляется считывателям картой из активного слота.</value>
+  </data>
+  <data name="Chameleon_TheDeviceScansExternalCardsAnd" xml:space="preserve">
+    <value>Устройство сканирует внешние карты и метки.</value>
+  </data>
+  <data name="Chameleon_ThisModelHasNoBatteryGauge" xml:space="preserve">
+    <value>У этой модели нет датчика заряда.</value>
+  </data>
+  <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
+    <value>Стирает ВСЕ данные: все слоты, их имена, сохранённое содержимое эмулятора и настройки. Отменить это нельзя.</value>
+  </data>
+  <data name="Common_125KHz" xml:space="preserve">
+    <value>125 кГц</value>
+  </data>
+  <data name="Common_AddCard" xml:space="preserve">
+    <value>Добавить карту</value>
+  </data>
+  <data name="Common_BackToTheList" xml:space="preserve">
+    <value>Назад к списку</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Common_Card" xml:space="preserve">
+    <value>Карта</value>
+  </data>
+  <data name="Common_CheckGitHubForANewerRelease" xml:space="preserve">
+    <value>Проверить новый релиз на GitHub</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Common_DeleteFolder" xml:space="preserve">
+    <value>Удалить папку</value>
+  </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>Не сохранять</value>
+  </data>
+  <data name="Common_Duplicate" xml:space="preserve">
+    <value>Дублировать</value>
+  </data>
+  <data name="Common_Empty" xml:space="preserve">
+    <value>Пусто</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Common_Export" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
+    <value>Её карты не удаляются: они вернутся в «Карты».</value>
+  </data>
+  <data name="Common_KeyDictionaries" xml:space="preserve">
+    <value>Словари ключей</value>
+  </data>
+  <data name="Common_Modified" xml:space="preserve">
+    <value>■ Изменено</value>
+  </data>
+  <data name="Common_NewFolder" xml:space="preserve">
+    <value>Новая папка</value>
+  </data>
+  <data name="Common_NoKey" xml:space="preserve">
+    <value>Нет ключа</value>
+  </data>
+  <data name="Common_NotTried" xml:space="preserve">
+    <value>Не проверялся</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Pending" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
+  <data name="Common_Rename" xml:space="preserve">
+    <value>Переименовать</value>
+  </data>
+  <data name="Common_RenameFolder" xml:space="preserve">
+    <value>Переименовать папку</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Common_SearchByNameTypeOrUID" xml:space="preserve">
+    <value>Поиск по имени, типу или UID</value>
+  </data>
+  <data name="Common_UnsavedChanges" xml:space="preserve">
+    <value>Несохранённые изменения</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="Common_Writing" xml:space="preserve">
+    <value>Запись</value>
+  </data>
+  <data name="Common_Written" xml:space="preserve">
+    <value>Записан</value>
+  </data>
+  <data name="Connect_Connect" xml:space="preserve">
+    <value>Подключить</value>
+  </data>
+  <data name="Connect_ConnectThroughAUSBSerialTCP" xml:space="preserve">
+    <value>Подключение через мост USB-serial → TCP или симулятор.</value>
+  </data>
+  <data name="Connect_ConnectYourChameleon" xml:space="preserve">
+    <value>Подключите Chameleon</value>
+  </data>
+  <data name="Connect_DetectedDevices" xml:space="preserve">
+    <value>Найденные устройства</value>
+  </data>
+  <data name="Connect_NetworkBridgeTCP" xml:space="preserve">
+    <value>Сетевой мост (TCP)</value>
+  </data>
+  <data name="Connect_NoDevicesDetected" xml:space="preserve">
+    <value>Устройства не найдены</value>
+  </data>
+  <data name="Connect_PairOverBluetooth" xml:space="preserve">
+    <value>Сопряжение по Bluetooth</value>
+  </data>
+  <data name="Connect_PickAChameleonInTheBrowsers" xml:space="preserve">
+    <value>Выберите Chameleon в окне Bluetooth браузера</value>
+  </data>
+  <data name="Connect_Rescan" xml:space="preserve">
+    <value>Искать снова</value>
+  </data>
+  <data name="Connect_ScanAgain" xml:space="preserve">
+    <value>Сканировать снова</value>
+  </data>
+  <data name="Dictionaries_ClearSearch" xml:space="preserve">
+    <value>Сбросить поиск</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
+    <value>Удалить этот словарь</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionaryPermanently" xml:space="preserve">
+    <value>Удалить этот словарь навсегда?</value>
+  </data>
+  <data name="Dictionaries_DictionaryColor" xml:space="preserve">
+    <value>Цвет словаря</value>
+  </data>
+  <data name="Dictionaries_DictionaryName" xml:space="preserve">
+    <value>Название словаря</value>
+  </data>
+  <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
+    <value>Редактировать известные ключи, сгруппированные по UID карты</value>
+  </data>
+  <data name="Dictionaries_ForgetCard" xml:space="preserve">
+    <value>Забыть карту</value>
+  </data>
+  <data name="Dictionaries_Import" xml:space="preserve">
+    <value>Импорт</value>
+  </data>
+  <data name="Dictionaries_ImportADicKeysTxtJson" xml:space="preserve">
+    <value>Импортировать словарь .dic / .keys / .txt / .json</value>
+  </data>
+  <data name="Dictionaries_KeysHeader" xml:space="preserve">
+    <value>КЛЮЧИ</value>
+  </data>
+  <data name="Dictionaries_KeepEditingThisDictionary" xml:space="preserve">
+    <value>Продолжить редактирование словаря</value>
+  </data>
+  <data name="Dictionaries_KnownCardKeys" xml:space="preserve">
+    <value>Известные ключи карт</value>
+  </data>
+  <data name="Dictionaries_NewDictionary" xml:space="preserve">
+    <value>Новый словарь</value>
+  </data>
+  <data name="Dictionaries_NoCardsMatchTheSearch" xml:space="preserve">
+    <value>Нет карт, подходящих под поиск.</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
+    <value>Нет словарей, подходящих под поиск.</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
+    <value>Словарей пока нет</value>
+  </data>
+  <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
+    <value>Один ключ в строке. Чтобы добавить ключ, введите hex в пустую строку в конце или вставьте туда список. Enter открывает строку, Delete удаляет выбранные строки.</value>
+  </data>
+  <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
+    <value>Порядок списка. В режиме «Вручную» перетаскивайте словари.</value>
+  </data>
+  <data name="Dictionaries_PressToStartADictionaryOf" xml:space="preserve">
+    <value>Нажмите +, чтобы создать словарь ключей MIFARE Classic, или импортируйте файл .dic. При снятии дампа проверяются эти ключи (и встроенные стандартные).</value>
+  </data>
+  <data name="Dictionaries_Repeated" xml:space="preserve">
+    <value>■ Повтор</value>
+  </data>
+  <data name="Dictionaries_SaveACopyOfThisDictionary" xml:space="preserve">
+    <value>Сохранить копию этого словаря</value>
+  </data>
+  <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
+    <value>Сохранить в файл .dic (один ключ в строке)</value>
+  </data>
+  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
+    <value>Сохранить словарь</value>
+  </data>
+  <data name="Dictionaries_SearchByNameOrKey" xml:space="preserve">
+    <value>Поиск по названию или ключу</value>
+  </data>
+  <data name="Dictionaries_SearchByUIDOrCardName" xml:space="preserve">
+    <value>Поиск по UID или названию карты</value>
+  </data>
+  <data name="Dictionaries_SelectADictionaryToSeeAnd" xml:space="preserve">
+    <value>Выберите словарь, чтобы просмотреть и изменить его ключи, или нажмите +, чтобы создать новый.</value>
+  </data>
+  <data name="Dictionaries_StartANewDictionary" xml:space="preserve">
+    <value>Создать новый словарь</value>
+  </data>
+  <data name="KeyRecovery_CheckRecoveryMethods" xml:space="preserve">
+    <value>Проверить методы восстановления</value>
+  </data>
+  <data name="KeyRecovery_KeyDictionariesHeader" xml:space="preserve">
+    <value>СЛОВАРИ КЛЮЧЕЙ</value>
+  </data>
+  <data name="KeyRecovery_RecoverKeysOnFM11RF08SAndCompatible" xml:space="preserve">
+    <value>Восстановить ключи карт FM11RF08S и совместимых с помощью известных backdoor-ключей</value>
+  </data>
+  <data name="KeyRecovery_Searching" xml:space="preserve">
+    <value>Поиск</value>
+  </data>
+  <data name="Main_ConnectedDeviceHeader" xml:space="preserve">
+    <value>ПОДКЛЮЧЁННОЕ УСТРОЙСТВО</value>
+  </data>
+  <data name="Main_ChameLabDownloadUpdate" xml:space="preserve">
+    <value>ChameLab — загрузить обновление</value>
+  </data>
+  <data name="Main_Disconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Main_DisconnectFromTheDevice" xml:space="preserve">
+    <value>Отключиться от устройства</value>
+  </data>
+  <data name="Main_Dismiss" xml:space="preserve">
+    <value>Скрыть</value>
+  </data>
+  <data name="Main_IfTheDeviceStaysInIts" xml:space="preserve">
+    <value>Если устройство осталось в загрузчике (мигают светодиоды 4 и 5), «Повторить» установит прошивку заново.</value>
+  </data>
+  <data name="Main_Install" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
+    <value>Её карты останутся в «Картах»</value>
+  </data>
+  <data name="Main_NavigationHeader" xml:space="preserve">
+    <value>НАВИГАЦИЯ</value>
+  </data>
+  <data name="Main_NoDeviceHeader" xml:space="preserve">
+    <value>НЕТ УСТРОЙСТВА</value>
+  </data>
+  <data name="Main_NoDeviceAttached" xml:space="preserve">
+    <value>Устройство не подключено</value>
+  </data>
+  <data name="Main_NoDeviceOpenConnectToAttach" xml:space="preserve">
+    <value>Нет устройства. Откройте «Подключение», чтобы подключить его.</value>
+  </data>
+  <data name="Main_Offline" xml:space="preserve">
+    <value>Не в сети</value>
+  </data>
+  <data name="Main_Online" xml:space="preserve">
+    <value>В сети</value>
+  </data>
+  <data name="Main_PressBackAgainToExit" xml:space="preserve">
+    <value>Нажмите «Назад» ещё раз для выхода</value>
+  </data>
+  <data name="Main_Retry" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
+    <value>Переключить светлую / тёмную тему</value>
+  </data>
+  <data name="Main_ToggleNavigation" xml:space="preserve">
+    <value>Показать / скрыть навигацию</value>
+  </data>
+  <data name="Protection_AnswerPACK" xml:space="preserve">
+    <value>Ответ (PACK)</value>
+  </data>
+  <data name="Protection_AttemptLimitAUTHLIM" xml:space="preserve">
+    <value>Лимит попыток (AUTHLIM)</value>
+  </data>
+  <data name="Protection_FromPageAUTH0" xml:space="preserve">
+    <value>Со страницы (AUTH0)</value>
+  </data>
+  <data name="Protection_PROTWithoutThePasswordTheProtected" xml:space="preserve">
+    <value>PROT: без пароля защищённые страницы нельзя даже прочитать</value>
+  </data>
+  <data name="Protection_PagesFromTheChosenOneOn" xml:space="preserve">
+    <value>Страницы начиная с выбранной требуют пароль (AUTH0)</value>
+  </data>
+  <data name="Protection_PasswordPWD" xml:space="preserve">
+    <value>Пароль (PWD)</value>
+  </data>
+  <data name="Protection_ProtectReading" xml:space="preserve">
+    <value>Защитить чтение</value>
+  </data>
+  <data name="Protection_ProtectWithAPassword" xml:space="preserve">
+    <value>Защитить паролем</value>
+  </data>
+  <data name="Protection_WhatTheCardAnswersToThe" xml:space="preserve">
+    <value>Ответ карты на верный пароль; считыватели могут его проверять</value>
+  </data>
+  <data name="Protection_WrongPasswordsBeforeTheCardLocks" xml:space="preserve">
+    <value>Неверных паролей до окончательной блокировки карты</value>
+  </data>
+  <data name="Settings_AccentColor" xml:space="preserve">
+    <value>Цвет акцента</value>
+  </data>
+  <data name="Settings_AppSettingsTheyApplyRightAway" xml:space="preserve">
+    <value>Настройки приложения. Применяются сразу и работают без устройства; настройки самого Chameleon — на его странице.</value>
+  </data>
+  <data name="Settings_Backup" xml:space="preserve">
+    <value>Резервная копия</value>
+  </data>
+  <data name="Settings_BeepWhenAScanFinishesBuzz" xml:space="preserve">
+    <value>Сигнал по окончании сканирования и гудок, если карта не найдена.</value>
+  </data>
+  <data name="Settings_ButtonsTogglesAndHighlights" xml:space="preserve">
+    <value>Кнопки, переключатели и выделение.</value>
+  </data>
+  <data name="Settings_CheckForUpdates" xml:space="preserve">
+    <value>Проверить обновления</value>
+  </data>
+  <data name="Settings_CrossPlatformClientForTheChameleon" xml:space="preserve">
+    <value>Кроссплатформенный клиент для Chameleon Ultra на Avalonia. Документация по устройству, прошивке и протоколу: github.com/RfidResearchGroup/ChameleonUltra</value>
+  </data>
+  <data name="Settings_Download" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="Settings_ExportBackup" xml:space="preserve">
+    <value>Экспорт копии</value>
+  </data>
+  <data name="Settings_ExportOrImportYourSavedCards" xml:space="preserve">
+    <value>Экспорт и импорт сохранённых карт и словарей ключей.</value>
+  </data>
+  <data name="Settings_ImportBackup" xml:space="preserve">
+    <value>Импорт копии</value>
+  </data>
+  <data name="Settings_OpenTheReleasePage" xml:space="preserve">
+    <value>Открыть страницу релиза</value>
+  </data>
+  <data name="Settings_ScanSounds" xml:space="preserve">
+    <value>Звуки сканирования</value>
+  </data>
+  <data name="Settings_Settings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="Settings_VibrateWhenACardScanOr" xml:space="preserve">
+    <value>Вибрация по окончании сканирования или снятия дампа.</value>
+  </data>
+  <data name="Settings_Vibration" xml:space="preserve">
+    <value>Вибрация</value>
+  </data>
+  <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
+    <value>Цвет на ваш выбор (нужна прошивка ChameLab)</value>
+  </data>
+  <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
+    <value>Добавить карту в «Сохранённые карты»</value>
+  </data>
+  <data name="Slots_ChooseSaved" xml:space="preserve">
+    <value>Выбрать сохранённую</value>
+  </data>
+  <data name="Slots_ConnectAChameleonToSeeAnd" xml:space="preserve">
+    <value>Подключите Chameleon, чтобы просматривать и изменять его восемь слотов эмуляции.</value>
+  </data>
+  <data name="Slots_Custom" xml:space="preserve">
+    <value>Свой</value>
+  </data>
+  <data name="Slots_Default" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
+    <value>Перетаскивайте карты, чтобы изменить порядок. При каждом появлении поля считывателя устройство выдаёт следующую карту по очереди.</value>
+  </data>
+  <data name="Slots_EmulationSlots" xml:space="preserve">
+    <value>Слоты эмуляции</value>
+  </data>
+  <data name="Slots_Gen1AMagicMode" xml:space="preserve">
+    <value>Режим magic Gen1A</value>
+  </data>
+  <data name="Slots_Gen2MagicMode" xml:space="preserve">
+    <value>Режим magic Gen2</value>
+  </data>
+  <data name="Slots_KeepEditingThisSlot" xml:space="preserve">
+    <value>Продолжить редактирование слота</value>
+  </data>
+  <data name="Slots_LEDColor" xml:space="preserve">
+    <value>Цвет светодиода</value>
+  </data>
+  <data name="Slots_MifareClassicEmulatorHeader" xml:space="preserve">
+    <value>ЭМУЛЯТОР MIFARE CLASSIC</value>
+  </data>
+  <data name="Slots_NoSlotsToShow" xml:space="preserve">
+    <value>Нет слотов для отображения</value>
+  </data>
+  <data name="Slots_OpenThisCardInCards" xml:space="preserve">
+    <value>Открыть эту карту в «Картах»</value>
+  </data>
+  <data name="Slots_PRNGType" xml:space="preserve">
+    <value>Тип PRNG</value>
+  </data>
+  <data name="Slots_PasswordDetection" xml:space="preserve">
+    <value>Перехват паролей</value>
+  </data>
+  <data name="Slots_PickTheLEDColor" xml:space="preserve">
+    <value>Выберите цвет светодиода</value>
+  </data>
+  <data name="Slots_PutOneOfYourSavedCards" xml:space="preserve">
+    <value>Поместить на эту частоту одну из сохранённых карт</value>
+  </data>
+  <data name="Slots_ReadTheCardFromTheSlot" xml:space="preserve">
+    <value>Прочитать карту из слота и добавить в «Сохранённые карты»</value>
+  </data>
+  <data name="Slots_RemoveCardFromSlot" xml:space="preserve">
+    <value>Убрать карту из слота</value>
+  </data>
+  <data name="Slots_RemoveTheCardFromThisFrequency" xml:space="preserve">
+    <value>Убрать карту с этой частоты</value>
+  </data>
+  <data name="Slots_ResetOnFieldOff" xml:space="preserve">
+    <value>Сброс при пропадании поля</value>
+  </data>
+  <data name="Slots_SaveCard" xml:space="preserve">
+    <value>Сохранить карту</value>
+  </data>
+  <data name="Slots_SaveSlot" xml:space="preserve">
+    <value>Сохранить слот</value>
+  </data>
+  <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
+    <value>Выберите слот, чтобы сделать его активным и изменить.</value>
+  </data>
+  <data name="Slots_TheColorOfTheSavedCard" xml:space="preserve">
+    <value>Цвет сохранённой карты (нужна прошивка ChameLab)</value>
+  </data>
+  <data name="Slots_TheColorTheSlotLEDShows" xml:space="preserve">
+    <value>Цвет светодиода слота</value>
+  </data>
+  <data name="Slots_TheFirmwaresOwnColorGreenFor" xml:space="preserve">
+    <value>Цвет прошивки: зелёный для HF, синий для LF, красный для слота с обеими</value>
+  </data>
+  <data name="Slots_UIDMagicMode" xml:space="preserve">
+    <value>Режим magic UID</value>
+  </data>
+  <data name="Slots_UltralightNtagEmulatorHeader" xml:space="preserve">
+    <value>ЭМУЛЯТОР ULTRALIGHT / NTAG</value>
+  </data>
+  <data name="Slots_UseUIDSAKATQAFromBlock" xml:space="preserve">
+    <value>Брать UID/SAK/ATQA из блока 0</value>
+  </data>
+  <data name="Slots_WriteMode" xml:space="preserve">
+    <value>Режим записи</value>
+  </data>
+  <data name="Slots_WriteTheSlotToTheDevice" xml:space="preserve">
+    <value>Записать слот на устройство и сохранить во флеш-память</value>
+  </data>
+  <data name="Tools_125KHzRawSignal" xml:space="preserve">
+    <value>125 кГц · сырой сигнал</value>
+  </data>
+  <data name="Tools_1356MHzISO14443A" xml:space="preserve">
+    <value>13,56 МГц · ISO14443-A</value>
+  </data>
+  <data name="Tools_AGuessFromTheLengthsOf" xml:space="preserve">
+    <value>Оценка по длинам высоких и низких участков</value>
+  </data>
+  <data name="Tools_AnswerAReaderAsACard" xml:space="preserve">
+    <value>Отвечать считывателю как карта и записывать обе стороны</value>
+  </data>
+  <data name="Tools_BackToTheTools" xml:space="preserve">
+    <value>Назад к инструментам</value>
+  </data>
+  <data name="Tools_Bits" xml:space="preserve">
+    <value>Биты</value>
+  </data>
+  <data name="Tools_Capture" xml:space="preserve">
+    <value>Захват</value>
+  </data>
+  <data name="Tools_CarrierCyclesPerBit" xml:space="preserve">
+    <value>Периодов несущей на бит</value>
+  </data>
+  <data name="Tools_Clock" xml:space="preserve">
+    <value>Тактовая частота</value>
+  </data>
+  <data name="Tools_ComputeTheKeyFromTheseAuthentications" xml:space="preserve">
+    <value>Вычислить ключ по этим аутентификациям</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA" xml:space="preserve">
+    <value>Подключите Chameleon для захвата. Сохранённую трассу Proxmark3 (.trace) можно загрузить и без него.</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA2" xml:space="preserve">
+    <value>Подключите Chameleon для захвата. Сохранённый захват (.bin) можно загрузить и без него.</value>
+  </data>
+  <data name="Tools_CopyAll" xml:space="preserve">
+    <value>Копировать всё</value>
+  </data>
+  <data name="Tools_CopyTheSelectedFramesOrAll" xml:space="preserve">
+    <value>Копировать выбранные кадры или все</value>
+  </data>
+  <data name="Tools_Cursor" xml:space="preserve">
+    <value>Курсор</value>
+  </data>
+  <data name="Tools_FieldGap" xml:space="preserve">
+    <value>Пропадание поля</value>
+  </data>
+  <data name="Tools_Frames" xml:space="preserve">
+    <value>Кадры</value>
+  </data>
+  <data name="Tools_Gaps" xml:space="preserve">
+    <value>Паузы</value>
+  </data>
+  <data name="Tools_HowLongToListen" xml:space="preserve">
+    <value>Сколько слушать</value>
+  </data>
+  <data name="Tools_Invert" xml:space="preserve">
+    <value>Инвертировать</value>
+  </data>
+  <data name="Tools_ListenToTheReaderNow" xml:space="preserve">
+    <value>Слушать считыватель</value>
+  </data>
+  <data name="Tools_Load" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="Tools_LookAtWhatGoesOverThe" xml:space="preserve">
+    <value>Смотрите, что передаётся по радиоканалу между считывателями и картами.</value>
+  </data>
+  <data name="Tools_MIFAREClassicKeys" xml:space="preserve">
+    <value>Ключи MIFARE Classic</value>
+  </data>
+  <data name="Tools_ManchesterDecode" xml:space="preserve">
+    <value>Декодирование Manchester</value>
+  </data>
+  <data name="Tools_Mfkey32v2Command" xml:space="preserve">
+    <value>Команда mfkey32v2</value>
+  </data>
+  <data name="Tools_Modulation" xml:space="preserve">
+    <value>Модуляция</value>
+  </data>
+  <data name="Tools_OneBytePerCarrierCycleSelect" xml:space="preserve">
+    <value>Один байт на период несущей; выделите байты и скопируйте их (Ctrl+C или контекстное меню).</value>
+  </data>
+  <data name="Tools_OpenAProxmark3TraceTrace" xml:space="preserve">
+    <value>Открыть трассу Proxmark3 (.trace)</value>
+  </data>
+  <data name="Tools_OpenARawCaptureBinOne" xml:space="preserve">
+    <value>Открыть сырой захват (.bin): один байт на отсчёт</value>
+  </data>
+  <data name="Tools_Range" xml:space="preserve">
+    <value>Диапазон</value>
+  </data>
+  <data name="Tools_RecordTheLFFieldNow" xml:space="preserve">
+    <value>Записать поле LF</value>
+  </data>
+  <data name="Tools_RecordTheRawSignalAtThe" xml:space="preserve">
+    <value>Записать сырой сигнал на антенне</value>
+  </data>
+  <data name="Tools_RecoverAll" xml:space="preserve">
+    <value>Восстановить все</value>
+  </data>
+  <data name="Tools_RecoverKey" xml:space="preserve">
+    <value>Восстановить ключ</value>
+  </data>
+  <data name="Tools_Samples" xml:space="preserve">
+    <value>Отсчёты</value>
+  </data>
+  <data name="Tools_SaveEverySampleAsARaw" xml:space="preserve">
+    <value>Сохранить все отсчёты в сырой файл .bin</value>
+  </data>
+  <data name="Tools_SaveTheFramesAsAProxmark3" xml:space="preserve">
+    <value>Сохранить кадры как трассу Proxmark3 (.trace)</value>
+  </data>
+  <data name="Tools_Session" xml:space="preserve">
+    <value>Сеанс</value>
+  </data>
+  <data name="Tools_Signal" xml:space="preserve">
+    <value>Сигнал</value>
+  </data>
+  <data name="Tools_SniffHF" xml:space="preserve">
+    <value>Сниффинг HF</value>
+  </data>
+  <data name="Tools_SniffLF" xml:space="preserve">
+    <value>Сниффинг LF</value>
+  </data>
+  <data name="Tools_Summary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="Tools_SwapHighAndLowDecodesThe" xml:space="preserve">
+    <value>Поменять высокий и низкий уровни: биты декодируются инвертированно</value>
+  </data>
+  <data name="Tools_TheChameleonAnswersAReaderAs" xml:space="preserve">
+    <value>Chameleon отвечает считывателю как карта из активного слота и записывает обе стороны: команды считывателя и свои ответы. Держите его у считывателя, пока идёт прослушивание.</value>
+  </data>
+  <data name="Tools_TheReadersKeyFromItsAuthentications" xml:space="preserve">
+    <value>Ключ считывателя по его аутентификациям: mfkey32 нужны две попытки на одном блоке, mfkey64 — одна, принятая картой.</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoHFSniffing" xml:space="preserve">
+    <value>В этой прошивке нет сниффинга HF. Обновите прошивку Chameleon, чтобы им пользоваться.</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoLFSniffing" xml:space="preserve">
+    <value>В этой прошивке нет сниффинга LF. Обновите прошивку Chameleon, чтобы им пользоваться (у Chameleon Lite нет считывателя).</value>
+  </data>
+  <data name="Tools_Tools" xml:space="preserve">
+    <value>Инструменты</value>
+  </data>
+  <data name="Tools_TurnsTheFieldOnAndRecords" xml:space="preserve">
+    <value>Включает поле и записывает 32 мс сигнала антенны, по одному отсчёту на период несущей (8 мкс). Держите метку у антенны, пока идёт запись.</value>
+  </data>
+  <data name="Tools_ViewInTheCapture" xml:space="preserve">
+    <value>Показать в захвате</value>
+  </data>
+  <data name="Tools_Waveform" xml:space="preserve">
+    <value>Осциллограмма</value>
+  </data>
+  <data name="Tools_Zoom" xml:space="preserve">
+    <value>Масштаб</value>
+  </data>
+  <data name="Common_DeleteFolderPrompt" xml:space="preserve">
+    <value>Удалить папку «{0}»?</value>
+  </data>
+  <data name="Chameleon_BatteryVolts" xml:space="preserve">
+    <value>{0:F2} В</value>
+  </data>
+  <data name="Chameleon_FirmwareInstalled" xml:space="preserve">
+    <value>Установлена: {0}</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateTo" xml:space="preserve">
+    <value>Обновить до {0}</value>
+  </data>
+  <data name="Settings_Version" xml:space="preserve">
+    <value>Версия {0}</value>
+  </data>
+  <data name="Tools_Seconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="Tools_ViaMethod" xml:space="preserve">
+    <value>через {0}</value>
+  </data>
+  <data name="Tools_DecodeThreshold" xml:space="preserve">
+    <value>Порог декодирования 0x{0:X2}</value>
+  </data>
+  <data name="Tools_GapThreshold" xml:space="preserve">
+    <value>Порог паузы 0x{0:X2}</value>
+  </data>
 </root>

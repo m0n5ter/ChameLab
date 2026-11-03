@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:t="using:ChameLab.Transport"
              xmlns:conv="using:ChameLab.Converters"
@@ -24,7 +25,7 @@
         </Image>
         <StackPanel x:Name="HeroText" Grid.Row="1" Grid.ColumnSpan="2" Spacing="8" Margin="0,16,0,0"
                     VerticalAlignment="Center">
-          <TextBlock x:Name="HeroTitle" Text="Connect your Chameleon" Classes="h1" HorizontalAlignment="Center" />
+          <TextBlock x:Name="HeroTitle" Text="{x:Static loc:Strings.Connect_ConnectYourChameleon}" Classes="h1" HorizontalAlignment="Center" />
           <TextBlock x:Name="HeroCaption" Classes="caption" HorizontalAlignment="Center" TextAlignment="Center"
                      MaxWidth="380" TextWrapping="Wrap"
                      Text="{Binding IntroHint}" />
@@ -36,13 +37,13 @@
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="14">
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="5">
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-              <TextBlock Text="Detected devices" Classes="h2" />
+              <TextBlock Text="{x:Static loc:Strings.Connect_DetectedDevices}" Classes="h2" />
               <TextBlock Classes="caption" Text="{Binding ScanHint}" TextWrapping="Wrap" />
             </StackPanel>
-            <Button Grid.Column="1" Command="{Binding ScanCommand}" ToolTip.Tip="Scan again" VerticalAlignment="Center">
+            <Button Grid.Column="1" Command="{Binding ScanCommand}" ToolTip.Tip="{x:Static loc:Strings.Connect_ScanAgain}" VerticalAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.refresh}" />
-                <TextBlock Text="Rescan" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Connect_Rescan}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </Grid>
@@ -84,7 +85,7 @@
               <PathIcon Data="{Binding PrimaryKind, Converter={x:Static conv:IconGeometryConverter.Instance}}"
                         Width="28" Height="28" Opacity="0.5"
                         HorizontalAlignment="Center" />
-              <TextBlock Text="No devices detected" FontWeight="SemiBold" HorizontalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Connect_NoDevicesDetected}" FontWeight="SemiBold" HorizontalAlignment="Center" />
               <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="320"
                          Text="{Binding EmptyHint}" TextWrapping="Wrap" />
             </StackPanel>
@@ -94,10 +95,10 @@
             <!-- Web Bluetooth: a new device can only be picked in the browser's own chooser. -->
             <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Command="{Binding PickCommand}" IsVisible="{Binding CanPick}"
-                    ToolTip.Tip="Pick a Chameleon in the browser's Bluetooth chooser">
+                    ToolTip.Tip="{x:Static loc:Strings.Connect_PickAChameleonInTheBrowsers}">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <PathIcon Data="{StaticResource Icon.ble}" />
-                <TextBlock Text="Pair over Bluetooth" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Connect_PairOverBluetooth}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
 
@@ -105,7 +106,7 @@
                     Command="{Binding ConnectCommand}">
               <StackPanel Orientation="Horizontal" Spacing="10">
                 <PathIcon Data="{StaticResource Icon.link}" Width="24" Height="24" />
-                <TextBlock Text="Connect" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Connect_Connect}" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -117,16 +118,16 @@
         <Expander.Header>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <PathIcon Data="{StaticResource Icon.tcp}" Width="16" Height="16" />
-            <TextBlock Text="Network bridge (TCP)" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static loc:Strings.Connect_NetworkBridgeTCP}" FontWeight="SemiBold" VerticalAlignment="Center" />
           </StackPanel>
         </Expander.Header>
         <StackPanel Spacing="10">
           <TextBlock Classes="caption"
-                     Text="Connect through a USB-serial → TCP bridge or a simulator." />
+                     Text="{x:Static loc:Strings.Connect_ConnectThroughAUSBSerialTCP}" />
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <TextBox Grid.Column="0" Text="{Binding ManualEndpoint}" PlaceholderText="host:port"
                      Classes="mono" />
-            <Button Grid.Column="1" Content="Connect" Command="{Binding ConnectManualCommand}" />
+            <Button Grid.Column="1" Content="{x:Static loc:Strings.Connect_Connect}" Command="{Binding ConnectManualCommand}" />
           </Grid>
         </StackPanel>
       </Expander>

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:b="using:ChameLab.Behaviors"
              xmlns:c="using:ChameLab.Controls"
@@ -94,7 +95,7 @@
               <TextBlock Text="{Binding HfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
-            <TextBlock Text="Empty" Classes="caption" VerticalAlignment="Center" IsVisible="{Binding !HasHf}" />
+            <TextBlock Text="{x:Static loc:Strings.Common_Empty}" Classes="caption" VerticalAlignment="Center" IsVisible="{Binding !HasHf}" />
           </Panel>
         </Grid>
         <Border Grid.Row="1" Grid.Column="1" Classes="tilesep" />
@@ -108,7 +109,7 @@
               <TextBlock Text="{Binding LfTypeLabel}" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
-            <TextBlock Text="Empty" Classes="caption" VerticalAlignment="Center" IsVisible="{Binding !HasLf}" />
+            <TextBlock Text="{x:Static loc:Strings.Common_Empty}" Classes="caption" VerticalAlignment="Center" IsVisible="{Binding !HasLf}" />
           </Panel>
         </Grid>
       </Grid>
@@ -117,27 +118,27 @@
     <DataTemplate x:Key="SlotLed" x:DataType="vm:SlotSideViewModel">
         <!-- LED color -->
         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
-          <TextBlock Grid.Column="0" Text="LED color" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+          <TextBlock Grid.Column="0" Text="{x:Static loc:Strings.Slots_LEDColor}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
           <Border Grid.Column="1" Classes="segmented compact">
             <StackPanel Orientation="Horizontal">
               <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
-                           ToolTip.Tip="The firmware's own color: green for HF, blue for LF, red for a slot with both">
-                <TextBlock Text="Default" FontWeight="SemiBold" />
+                           ToolTip.Tip="{x:Static loc:Strings.Slots_TheFirmwaresOwnColorGreenFor}">
+                <TextBlock Text="{x:Static loc:Strings.Slots_Default}" FontWeight="SemiBold" />
               </RadioButton>
               <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"
-                           ToolTip.Tip="The color of the saved card (needs the ChameLab firmware)">
-                <TextBlock Text="Card" FontWeight="SemiBold" />
+                           ToolTip.Tip="{x:Static loc:Strings.Slots_TheColorOfTheSavedCard}">
+                <TextBlock Text="{x:Static loc:Strings.Common_Card}" FontWeight="SemiBold" />
               </RadioButton>
               <RadioButton Classes="segment" IsChecked="{Binding IsColorCustom}" IsEnabled="{Binding SupportsColors}"
-                           ToolTip.Tip="A color of your choice (needs the ChameLab firmware)">
-                <TextBlock Text="Custom" FontWeight="SemiBold" />
+                           ToolTip.Tip="{x:Static loc:Strings.Slots_AColorOfYourChoiceNeeds}">
+                <TextBlock Text="{x:Static loc:Strings.Slots_Custom}" FontWeight="SemiBold" />
               </RadioButton>
             </StackPanel>
           </Border>
           <Panel Grid.Column="2" VerticalAlignment="Center">
-            <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="The color the slot LED shows"
+            <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="{x:Static loc:Strings.Slots_TheColorTheSlotLEDShows}"
                     Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-            <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="Pick the LED color">
+            <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="{x:Static loc:Strings.Slots_PickTheLEDColor}">
               <Border Classes="swatch" Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
               <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
@@ -173,7 +174,7 @@
 
         <!-- A saved card: its tile opens it in Cards. -->
         <Button Classes="cardtile" IsVisible="{Binding HasMatch}" Command="{Binding OpenCardCommand}"
-                ToolTip.Tip="Open this card in Cards">
+                ToolTip.Tip="{x:Static loc:Strings.Slots_OpenThisCardInCards}">
           <Border Classes="cardclip">
             <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14"
                   DataContext="{Binding Match}" x:DataType="vm:CardItemViewModel">
@@ -196,29 +197,29 @@
             <TextBlock Classes="caption" Text="{Binding UnmatchedSummary}" TextTrimming="CharacterEllipsis" />
           </StackPanel>
           <Button Grid.Column="1" VerticalAlignment="Center" Command="{Binding SaveToLibraryCommand}"
-                  ToolTip.Tip="Read the card from the slot and add it to Saved cards">
+                  ToolTip.Tip="{x:Static loc:Strings.Slots_ReadTheCardFromTheSlot}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="Save" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </Grid>
 
         <!-- No card: "Empty" on the line of the buttons. -->
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-          <TextBlock Classes="caption" Text="Empty" VerticalAlignment="Center" IsVisible="{Binding IsEmpty}" />
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Common_Empty}" VerticalAlignment="Center" IsVisible="{Binding IsEmpty}" />
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-            <Button Command="{Binding PickCommand}" ToolTip.Tip="Put one of your saved cards into this frequency">
+            <Button Command="{Binding PickCommand}" ToolTip.Tip="{x:Static loc:Strings.Slots_PutOneOfYourSavedCards}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.cards}" />
-                <TextBlock Text="Choose saved" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Slots_ChooseSaved}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
             <Button Classes="danger" Command="{Binding ClearCommand}" IsVisible="{Binding HasCard}"
-                    ToolTip.Tip="Remove the card from this frequency">
+                    ToolTip.Tip="{x:Static loc:Strings.Slots_RemoveTheCardFromThisFrequency}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.delete}" />
-                <TextBlock Text="Clear" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Clear}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -236,7 +237,7 @@
     <!-- ==================== Slot list ==================== -->
     <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,*">
       <StackPanel Grid.Row="0" Spacing="2">
-        <TextBlock Text="Emulation slots" Classes="h1" TextTrimming="CharacterEllipsis" />
+        <TextBlock Text="{x:Static loc:Strings.Slots_EmulationSlots}" Classes="h1" TextTrimming="CharacterEllipsis" />
         <TextBlock Classes="caption" Text="{Binding CountText}" />
       </StackPanel>
 
@@ -245,9 +246,9 @@
         <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
           <PathIcon Data="{StaticResource Icon.slots}" Width="40" Height="40" Opacity="0.4"
                     HorizontalAlignment="Center" />
-          <TextBlock Text="No slots to show" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Text="{x:Static loc:Strings.Slots_NoSlotsToShow}" FontWeight="SemiBold" HorizontalAlignment="Center" />
           <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360" TextWrapping="Wrap"
-                     Text="Connect a Chameleon to see and edit its eight emulation slots." />
+                     Text="{x:Static loc:Strings.Slots_ConnectAChameleonToSeeAnd}" />
         </StackPanel>
       </Border>
 
@@ -291,7 +292,7 @@
           <Panel>
             <ContentControl Content="{Binding Selected}" ContentTemplate="{StaticResource SlotTile}" />
             <Button Classes="icon backonly" Margin="-3,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                    Command="{Binding CloseCommand}" ToolTip.Tip="Back to the list"
+                    Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
@@ -305,7 +306,7 @@
           <PathIcon Data="{StaticResource Icon.slots}" Width="34" Height="34" Opacity="0.4"
                     HorizontalAlignment="Center" />
           <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="280" TextWrapping="Wrap"
-                     Text="Select a slot to make it active and edit it." />
+                     Text="{x:Static loc:Strings.Slots_SelectASlotToMakeIt}" />
         </StackPanel>
       </Border>
 
@@ -319,37 +320,37 @@
 
               <!-- MIFARE Classic emulator settings -->
               <StackPanel Spacing="10" IsVisible="{Binding ShowMfcSettings}">
-                <TextBlock Text="MIFARE CLASSIC EMULATOR" Classes="overline" />
+                <TextBlock Text="{x:Static loc:Strings.Slots_MifareClassicEmulatorHeader}" Classes="overline" />
                 <StackPanel Margin="20,0,0,0" Spacing="10">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                      <TextBlock Text="Gen1A magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <TextBlock Text="{x:Static loc:Strings.Slots_Gen1AMagicMode}" VerticalAlignment="Center" TextWrapping="Wrap" />
                       <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
                                     IsChecked="{Binding Gen1a}" />
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                      <TextBlock Text="Gen2 magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <TextBlock Text="{x:Static loc:Strings.Slots_Gen2MagicMode}" VerticalAlignment="Center" TextWrapping="Wrap" />
                       <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
                                     IsChecked="{Binding Gen2}" />
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                      <TextBlock Text="Use UID/SAK/ATQA from block 0" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <TextBlock Text="{x:Static loc:Strings.Slots_UseUIDSAKATQAFromBlock}" VerticalAlignment="Center" TextWrapping="Wrap" />
                       <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
                                     IsChecked="{Binding BlockAntiColl}" />
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                      <TextBlock Text="Reset on field off" VerticalAlignment="Center" TextWrapping="Wrap" />
+                      <TextBlock Text="{x:Static loc:Strings.Slots_ResetOnFieldOff}" VerticalAlignment="Center" TextWrapping="Wrap" />
                       <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
                                     IsChecked="{Binding FieldOffReset}" />
                     </Grid>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                      <TextBlock Text="Write mode" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Static loc:Strings.Slots_WriteMode}" VerticalAlignment="Center" />
                       <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                                 ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding MfcWriteMode}">
                         <ComboBox.ItemTemplate>
                           <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
                         </ComboBox.ItemTemplate>
                       </ComboBox>
-                      <TextBlock Grid.Row="1" Text="PRNG type" VerticalAlignment="Center" />
+                      <TextBlock Grid.Row="1" Text="{x:Static loc:Strings.Slots_PRNGType}" VerticalAlignment="Center" />
                       <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
                                 ItemsSource="{x:Static vm:SlotEditorViewModel.PrngTypes}" SelectedItem="{Binding Prng}">
                         <ComboBox.ItemTemplate>
@@ -362,20 +363,20 @@
 
               <!-- Ultralight / NTAG emulator settings -->
               <StackPanel Spacing="10" IsVisible="{Binding ShowUlSettings}">
-                <TextBlock Text="ULTRALIGHT / NTAG EMULATOR" Classes="overline" />
+                <TextBlock Text="{x:Static loc:Strings.Slots_UltralightNtagEmulatorHeader}" Classes="overline" />
                 <StackPanel Margin="20,0,0,0" Spacing="10">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <TextBlock Text="UID magic mode" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Static loc:Strings.Slots_UIDMagicMode}" VerticalAlignment="Center" TextWrapping="Wrap" />
                         <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
                                       IsChecked="{Binding UlUidMagic}" />
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <TextBlock Text="Password detection" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Static loc:Strings.Slots_PasswordDetection}" VerticalAlignment="Center" TextWrapping="Wrap" />
                         <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
                                       IsChecked="{Binding UlDetection}" />
                     </Grid>
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                        <TextBlock Text="Write mode" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Static loc:Strings.Slots_WriteMode}" VerticalAlignment="Center" />
                         <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                                   ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding UlWriteMode}">
                             <ComboBox.ItemTemplate>
@@ -396,7 +397,7 @@
               <StackPanel Spacing="12" IsVisible="{Binding SupportsMultiLf}">
               <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                 <Border Classes="chip lf"><TextBlock Text="LF" /></Border>
-                <TextBlock Grid.Column="1" Text="125 kHz" Classes="caption" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.Common_125KHz}" Classes="caption" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="{Binding LfCards.CountLabel}" Classes="caption" VerticalAlignment="Center" />
               </Grid>
               <ListBox Classes="cards" DataContext="{Binding LfCards}" x:DataType="vm:LfSlotListViewModel"
@@ -418,11 +419,11 @@
                         </StackPanel>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                           <Button Classes="icon small" Command="{Binding SaveCommand}" IsVisible="{Binding !HasMatch}"
-                                  b:ListReorder.IsAction="True" ToolTip.Tip="Add this card to Saved cards" AutomationProperties.Name="Save card">
+                                  b:ListReorder.IsAction="True" ToolTip.Tip="{x:Static loc:Strings.Slots_AddThisCardToSavedCards}" AutomationProperties.Name="{x:Static loc:Strings.Slots_SaveCard}">
                             <PathIcon Data="{StaticResource Icon.save}" />
                           </Button>
                           <Button Classes="icon small danger" Command="{Binding RemoveCommand}" b:ListReorder.IsAction="True"
-                                  ToolTip.Tip="Remove card from slot" AutomationProperties.Name="Remove card from slot">
+                                  ToolTip.Tip="{x:Static loc:Strings.Slots_RemoveCardFromSlot}" AutomationProperties.Name="{x:Static loc:Strings.Slots_RemoveCardFromSlot}">
                             <PathIcon Data="{StaticResource Icon.delete}" />
                           </Button>
                         </StackPanel>
@@ -432,8 +433,8 @@
                 </ListBox.ItemTemplate>
               </ListBox>
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                <TextBlock Text="Empty" Classes="caption" IsVisible="{Binding !LfCards.HasCards}" VerticalAlignment="Center" />
-                <TextBlock Text="Drag cards to change the order. Each time the reader's field appears, the device sends the next card in turn."
+                <TextBlock Text="{x:Static loc:Strings.Common_Empty}" Classes="caption" IsVisible="{Binding !LfCards.HasCards}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Slots_DragCardsToChangeTheOrder}"
                            Classes="caption" TextWrapping="Wrap" VerticalAlignment="Center" IsVisible="{Binding LfCards.CanReorder}" />
                 <Button Grid.Column="1" Command="{Binding Lf.PickCommand}" IsEnabled="{Binding LfCards.CanAdd}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
@@ -467,13 +468,13 @@
             <TextBlock Text="{Binding Editor?.SaveError}" />
           </DockPanel>
           <c:ActionBar>
-            <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
-            <Button Content="Discard" Command="{Binding DiscardCommand}" />
+            <TextBlock Text="{x:Static loc:Strings.Common_UnsavedChanges}" VerticalAlignment="Center" FontWeight="SemiBold" />
+            <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardCommand}" />
             <Button Classes="accent" Command="{Binding SaveSlotCommand}"
-                    ToolTip.Tip="Write the slot to the device and save it to flash">
+                    ToolTip.Tip="{x:Static loc:Strings.Slots_WriteTheSlotToTheDevice}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.save}" />
-                <TextBlock Text="Save slot" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Slots_SaveSlot}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </c:ActionBar>
@@ -484,13 +485,13 @@
         <c:ActionBar>
           <TextBlock Text="{Binding LeaveText}" VerticalAlignment="Center"
                      FontWeight="SemiBold" TextWrapping="Wrap" />
-          <Button Content="Cancel" Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
-                  ToolTip.Tip="Keep editing this slot" />
-          <Button Content="Discard" Command="{Binding DiscardAndLeaveCommand}" />
+          <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
+                  ToolTip.Tip="{x:Static loc:Strings.Slots_KeepEditingThisSlot}" />
+          <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardAndLeaveCommand}" />
           <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}" b:DialogKeys.IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="Save" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </c:ActionBar>
@@ -503,12 +504,12 @@
             <TextBlock Text="{Binding PickerTitle}" FontWeight="SemiBold" VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis" />
             <Button Grid.Column="1" Classes="icon small" Command="{Binding ClosePickerCommand}"
-                    b:DialogKeys.IsCancel="True" ToolTip.Tip="Close">
+                    b:DialogKeys.IsCancel="True" ToolTip.Tip="{x:Static loc:Strings.Common_Close}">
               <PathIcon Data="{StaticResource Icon.close}" />
             </Button>
           </Grid>
           <TextBox Grid.Row="1" Text="{Binding PickerFilter}" Name="PickerSearch"
-                   PlaceholderText="Search by name, type or UID">
+                   PlaceholderText="{x:Static loc:Strings.Common_SearchByNameTypeOrUID}">
             <TextBox.InnerLeftContent>
               <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
             </TextBox.InnerLeftContent>

@@ -34,9 +34,9 @@
 
       <!-- Header -->
       <StackPanel Spacing="2">
-        <TextBlock Text="Settings" Classes="h1" />
+        <TextBlock Text="{x:Static loc:Strings.Settings_Settings}" Classes="h1" />
         <TextBlock Classes="caption" TextWrapping="Wrap"
-                   Text="App settings. They apply right away and work without a device; the Chameleon's own settings are on its page." />
+                   Text="{x:Static loc:Strings.Settings_AppSettingsTheyApplyRightAway}" />
       </StackPanel>
 
       <!-- Appearance (app-side, applies immediately) -->
@@ -45,8 +45,8 @@
           <Border Classes="iconwell green">
             <Border Width="16" Height="16" CornerRadius="4" Background="{Binding Accent.Swatch}" />
           </Border>
-          <TextBlock Text="Accent color" FontWeight="SemiBold" />
-          <TextBlock Classes="caption" Text="Buttons, toggles and highlights." />
+          <TextBlock Text="{x:Static loc:Strings.Settings_AccentColor}" FontWeight="SemiBold" />
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_ButtonsTogglesAndHighlights}" />
           <ComboBox Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="svc:AccentOption">
@@ -86,8 +86,8 @@
             <Border Classes="iconwell amber">
               <PathIcon Data="{StaticResource Icon.volume}" />
             </Border>
-            <TextBlock Text="Scan sounds" FontWeight="SemiBold" />
-            <TextBlock Classes="caption" Text="Beep when a scan finishes, buzz when no card is found." />
+            <TextBlock Text="{x:Static loc:Strings.Settings_ScanSounds}" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_BeepWhenAScanFinishesBuzz}" />
             <ToggleSwitch VerticalAlignment="Center" OnContent="" OffContent=""
                           IsChecked="{Binding ScanSound}" />
           </c:SettingRow>
@@ -98,8 +98,8 @@
             <Border Classes="iconwell amber">
               <PathIcon Data="{StaticResource Icon.vibrate}" />
             </Border>
-            <TextBlock Text="Vibration" FontWeight="SemiBold" />
-            <TextBlock Classes="caption" Text="Vibrate when a card scan or dump finishes." />
+            <TextBlock Text="{x:Static loc:Strings.Settings_Vibration}" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_VibrateWhenACardScanOr}" />
             <ToggleSwitch VerticalAlignment="Center" OnContent="" OffContent=""
                           IsChecked="{Binding ScanVibration}" />
           </c:SettingRow>
@@ -112,19 +112,19 @@
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
             <Border Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.save}" /></Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Backup" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" TextWrapping="Wrap" Text="Export or import your saved cards and key dictionaries." />
+              <TextBlock Text="{x:Static loc:Strings.Settings_Backup}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Settings_ExportOrImportYourSavedCards}" />
             </StackPanel>
           </Grid>
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Button Command="{Binding ExportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="Export backup" VerticalAlignment="Center" />
+                <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="{x:Static loc:Strings.Settings_ExportBackup}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
             <Button Command="{Binding ImportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="Import backup" VerticalAlignment="Center" />
+                <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="{x:Static loc:Strings.Settings_ImportBackup}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -138,7 +138,7 @@
             <Border Classes="iconwell green"><PathIcon Data="{StaticResource Icon.info}" /></Border>
             <StackPanel VerticalAlignment="Center">
               <TextBlock Text="ChameLab" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="{Binding AppVersion, StringFormat='Version {0}'}" />
+              <TextBlock Classes="caption" Text="{Binding AppVersion, StringFormat={x:Static loc:Strings.Settings_Version}}" />
             </StackPanel>
           </StackPanel>
           <!-- App update check: the web app is always current, so it has none. -->
@@ -147,18 +147,18 @@
             <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AppUpdate.Message}"
                        IsVisible="{Binding AppUpdate.Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <WrapPanel ItemSpacing="8" LineSpacing="8">
-              <Button Classes="accent" Content="Download" Command="{Binding AppUpdate.OpenDownloadCommand}"
-                      IsVisible="{Binding AppUpdate.IsUpdateAvailable}" ToolTip.Tip="Open the release page" />
+              <Button Classes="accent" Content="{x:Static loc:Strings.Settings_Download}" Command="{Binding AppUpdate.OpenDownloadCommand}"
+                      IsVisible="{Binding AppUpdate.IsUpdateAvailable}" ToolTip.Tip="{x:Static loc:Strings.Settings_OpenTheReleasePage}" />
               <Button Command="{Binding AppUpdate.CheckCommand}"
-                      ToolTip.Tip="Check GitHub for a newer release">
+                      ToolTip.Tip="{x:Static loc:Strings.Common_CheckGitHubForANewerRelease}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.refresh}" /><TextBlock Text="Check for updates" VerticalAlignment="Center" />
+                  <PathIcon Data="{StaticResource Icon.refresh}" /><TextBlock Text="{x:Static loc:Strings.Settings_CheckForUpdates}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </WrapPanel>
           </StackPanel>
           <TextBlock Classes="caption" TextWrapping="Wrap"
-                     Text="Cross-platform client for the Chameleon Ultra, built with Avalonia. Device, firmware and protocol documentation: github.com/RfidResearchGroup/ChameleonUltra" />
+                     Text="{x:Static loc:Strings.Settings_CrossPlatformClientForTheChameleon}" />
           <SelectableTextBlock Classes="caption" TextWrapping="Wrap" FontSize="11" Opacity="0.8"
                                Text="{x:Static vm:SettingsViewModel.TrademarkNotice}" />
         </StackPanel>

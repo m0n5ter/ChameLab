@@ -24,4 +24,1246 @@
     <value>Takes effect after you restart the app.</value>
     <comment>Settings: language row description</comment>
   </data>
+  <data name="Cards_125KHzCardsOnly" xml:space="preserve">
+    <value>125 kHz cards only</value>
+  </data>
+  <data name="Cards_1356MHz" xml:space="preserve">
+    <value>13.56 MHz</value>
+  </data>
+  <data name="Cards_1356MHzCardsOnly" xml:space="preserve">
+    <value>13.56 MHz cards only</value>
+  </data>
+  <data name="Cards_26BitFormat" xml:space="preserve">
+    <value>26-bit format</value>
+  </data>
+  <data name="Cards_AlreadySavedHeader" xml:space="preserve">
+    <value>ALREADY SAVED</value>
+  </data>
+  <data name="Cards_AssignToSlotHeader" xml:space="preserve">
+    <value>ASSIGN TO SLOT</value>
+  </data>
+  <data name="Cards_AccessBits" xml:space="preserve">
+    <value>■ Access bits</value>
+  </data>
+  <data name="Cards_AddACard" xml:space="preserve">
+    <value>Add a card</value>
+  </data>
+  <data name="Cards_AddARecordAtTheEnd" xml:space="preserve">
+    <value>Add a record at the end of the message</value>
+  </data>
+  <data name="Cards_AddRecord" xml:space="preserve">
+    <value>Add record</value>
+  </data>
+  <data name="Cards_AfterThePagesWriteTheSettings" xml:space="preserve">
+    <value>After the pages, write the settings below onto the target card</value>
+  </data>
+  <data name="Cards_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Cards_AndroidApp" xml:space="preserve">
+    <value>Android app</value>
+  </data>
+  <data name="Cards_AssignToSlot" xml:space="preserve">
+    <value>Assign to slot</value>
+  </data>
+  <data name="Cards_BackToCards" xml:space="preserve">
+    <value>Back to Cards</value>
+  </data>
+  <data name="Cards_BinDump" xml:space="preserve">
+    <value>.bin dump</value>
+  </data>
+  <data name="Cards_Block0" xml:space="preserve">
+    <value>■ Block 0</value>
+  </data>
+  <data name="Cards_CardDetailsHeader" xml:space="preserve">
+    <value>CARD DETAILS</value>
+  </data>
+  <data name="Cards_CardColor" xml:space="preserve">
+    <value>Card color</value>
+  </data>
+  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
+    <value>Card file, compatible with the Flutter app</value>
+  </data>
+  <data name="Cards_CardName" xml:space="preserve">
+    <value>Card name</value>
+  </data>
+  <data name="Cards_CardNumber065535" xml:space="preserve">
+    <value>Card number (0–65535)</value>
+  </data>
+  <data name="Cards_CardType" xml:space="preserve">
+    <value>Card type</value>
+  </data>
+  <data name="Cards_CardsOfBothFrequencies" xml:space="preserve">
+    <value>Cards of both frequencies</value>
+  </data>
+  <data name="Cards_ClearSearchAndFilters" xml:space="preserve">
+    <value>Clear search and filters</value>
+  </data>
+  <data name="Cards_ClearTheSelectedSectorAndMark" xml:space="preserve">
+    <value>Clear the selected sector and mark its blocks as unread</value>
+  </data>
+  <data name="Cards_ClickToCopy" xml:space="preserve">
+    <value>Click to copy</value>
+  </data>
+  <data name="Cards_Config" xml:space="preserve">
+    <value>■ Config</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToLoadThis" xml:space="preserve">
+    <value>Connect a Chameleon to load this card into a slot.</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToScanTags" xml:space="preserve">
+    <value>Connect a Chameleon to scan tags.</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToWriteCards" xml:space="preserve">
+    <value>Connect a Chameleon to write cards.</value>
+  </data>
+  <data name="Cards_ContactVCard" xml:space="preserve">
+    <value>Contact (vCard)</value>
+  </data>
+  <data name="Cards_Content" xml:space="preserve">
+    <value>Content</value>
+  </data>
+  <data name="Cards_CreateACardByEnteringIts" xml:space="preserve">
+    <value>Create a card by entering its type and UID / ID</value>
+  </data>
+  <data name="Cards_CurrentCardPassword" xml:space="preserve">
+    <value>Current card password</value>
+  </data>
+  <data name="Cards_CurrentPassword" xml:space="preserve">
+    <value>Current password</value>
+  </data>
+  <data name="Cards_DegreesEastNegativeWest" xml:space="preserve">
+    <value>Degrees east (negative: west)</value>
+  </data>
+  <data name="Cards_DegreesNorthNegativeSouth" xml:space="preserve">
+    <value>Degrees north (negative: south)</value>
+  </data>
+  <data name="Cards_DeleteThisCard" xml:space="preserve">
+    <value>Delete this card</value>
+  </data>
+  <data name="Cards_DeleteThisCardPermanently" xml:space="preserve">
+    <value>Delete this card permanently?</value>
+  </data>
+  <data name="Cards_Detect" xml:space="preserve">
+    <value>Detect</value>
+  </data>
+  <data name="Cards_DumpTheCardFirstToSave" xml:space="preserve">
+    <value>Dump the card first to save its memory too.</value>
+  </data>
+  <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
+    <value>Edits go straight into the memory. Drag a record to move it.</value>
+  </data>
+  <data name="Cards_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Cards_EmailAddress" xml:space="preserve">
+    <value>Email address</value>
+  </data>
+  <data name="Cards_EmailOptional" xml:space="preserve">
+    <value>Email (optional)</value>
+  </data>
+  <data name="Cards_EmlDump" xml:space="preserve">
+    <value>.eml dump</value>
+  </data>
+  <data name="Cards_EmulateThisCardInOneOf" xml:space="preserve">
+    <value>Emulate this card in one of the device's slots</value>
+  </data>
+  <data name="Cards_EnterManually" xml:space="preserve">
+    <value>Enter manually</value>
+  </data>
+  <data name="Cards_EveryPageAsHex" xml:space="preserve">
+    <value>Every page as hex</value>
+  </data>
+  <data name="Cards_FoldersHeader" xml:space="preserve">
+    <value>FOLDERS</value>
+  </data>
+  <data name="Cards_FacilityCode0255" xml:space="preserve">
+    <value>Facility code (0–255)</value>
+  </data>
+  <data name="Cards_HoldATagAgainstTheDevice" xml:space="preserve">
+    <value>Hold a tag against the device and scan it, import a file, or enter the card by hand.</value>
+  </data>
+  <data name="Cards_ImportFile" xml:space="preserve">
+    <value>Import file</value>
+  </data>
+  <data name="Cards_ImportJSONFlipperNfcRfidProxmark3" xml:space="preserve">
+    <value>Import JSON, Flipper .nfc/.rfid, Proxmark3 JSON, MCT, .bin or .eml</value>
+  </data>
+  <data name="Cards_JSONNfcBinEml" xml:space="preserve">
+    <value>JSON, .nfc, .bin, .eml…</value>
+  </data>
+  <data name="Cards_Keep" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="Cards_KeepCurrent" xml:space="preserve">
+    <value>Keep current</value>
+  </data>
+  <data name="Cards_KeepEditingThisCard" xml:space="preserve">
+    <value>Keep editing this card</value>
+  </data>
+  <data name="Cards_KeepTheOldVersionInThe" xml:space="preserve">
+    <value>Keep the old version in the slots</value>
+  </data>
+  <data name="Cards_KeyA" xml:space="preserve">
+    <value>■ Key A</value>
+  </data>
+  <data name="Cards_KeyB" xml:space="preserve">
+    <value>■ Key B</value>
+  </data>
+  <data name="Cards_LFProtocol" xml:space="preserve">
+    <value>LF protocol</value>
+  </data>
+  <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
+    <value>Language code, e.g. en, de, ru</value>
+  </data>
+  <data name="Cards_LatitudeEG488584" xml:space="preserve">
+    <value>Latitude, e.g. 48.8584</value>
+  </data>
+  <data name="Cards_LeaveTheTargetCardsPasswordPACK" xml:space="preserve">
+    <value>Leave the target card's password, PACK, AUTH0, PROT and attempt limit as they are</value>
+  </data>
+  <data name="Cards_LinkURI" xml:space="preserve">
+    <value>Link (URI)</value>
+  </data>
+  <data name="Cards_Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Cards_LockBytes" xml:space="preserve">
+    <value>■ Lock bytes</value>
+  </data>
+  <data name="Cards_LongitudeEG22945" xml:space="preserve">
+    <value>Longitude, e.g. 2.2945</value>
+  </data>
+  <data name="Cards_MagicGenerationHeader" xml:space="preserve">
+    <value>MAGIC GENERATION</value>
+  </data>
+  <data name="Cards_MemoryHeader" xml:space="preserve">
+    <value>MEMORY</value>
+  </data>
+  <data name="Cards_MIMEData" xml:space="preserve">
+    <value>MIME data</value>
+  </data>
+  <data name="Cards_MIMETypeEGTextPlain" xml:space="preserve">
+    <value>MIME type, e.g. text/plain</value>
+  </data>
+  <data name="Cards_MessageOptional" xml:space="preserve">
+    <value>Message (optional)</value>
+  </data>
+  <data name="Cards_MoveThisCardToAFolder" xml:space="preserve">
+    <value>Move this card to a folder</value>
+  </data>
+  <data name="Cards_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Cards_NetworkNameSSID" xml:space="preserve">
+    <value>Network name (SSID)</value>
+  </data>
+  <data name="Cards_NewPassword" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="Cards_NoCardsInThisFolderYet" xml:space="preserve">
+    <value>No cards in this folder yet. Drag cards onto it in the navigation pane, or add one here.</value>
+  </data>
+  <data name="Cards_NoCardsMatchTheSearchAnd" xml:space="preserve">
+    <value>No cards match the search and filters.</value>
+  </data>
+  <data name="Cards_NoCardsYet" xml:space="preserve">
+    <value>No cards yet</value>
+  </data>
+  <data name="Cards_NotNow" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="Cards_OnlyTypesThatKeepThisCards" xml:space="preserve">
+    <value>Only types that keep this card's data valid are offered. To use another type, add a new card.</value>
+  </data>
+  <data name="Cards_OpenTheSavedCard" xml:space="preserve">
+    <value>Open the saved card</value>
+  </data>
+  <data name="Cards_Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="Cards_Optional2" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="Cards_OrderOfTheListInManual" xml:space="preserve">
+    <value>Order of the list. In Manual, drag cards to arrange them.</value>
+  </data>
+  <data name="Cards_OrganizationOptional" xml:space="preserve">
+    <value>Organization (optional)</value>
+  </data>
+  <data name="Cards_PasswordProtectionHeader" xml:space="preserve">
+    <value>PASSWORD PROTECTION</value>
+  </data>
+  <data name="Cards_PWD4BytesForNTAGUltralight" xml:space="preserve">
+    <value>PWD (4 bytes) for NTAG / Ultralight EV1, or the 3DES key (16 bytes) for Ultralight C</value>
+  </data>
+  <data name="Cards_PWD4BytesOfTheTarget" xml:space="preserve">
+    <value>PWD (4 bytes) of the target card, when its pages are write-protected</value>
+  </data>
+  <data name="Cards_PackageNameEGComExample" xml:space="preserve">
+    <value>Package name, e.g. com.example.app</value>
+  </data>
+  <data name="Cards_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Cards_Password4BytesOfAnAlready" xml:space="preserve">
+    <value>Password (4 bytes) of an already-locked T55xx tag. Leave empty for a blank tag; the firmware's default passwords are tried too.</value>
+  </data>
+  <data name="Cards_Password4BytesTheTagIs" xml:space="preserve">
+    <value>Password (4 bytes) the tag is locked with after the write. Empty keeps the current password, or the firmware default (20206666) for a blank tag.</value>
+  </data>
+  <data name="Cards_PasswordOptional" xml:space="preserve">
+    <value>Password (optional)</value>
+  </data>
+  <data name="Cards_PasswordSettings" xml:space="preserve">
+    <value>Password settings</value>
+  </data>
+  <data name="Cards_PayloadHex" xml:space="preserve">
+    <value>Payload (hex)</value>
+  </data>
+  <data name="Cards_PhoneNumber" xml:space="preserve">
+    <value>Phone number</value>
+  </data>
+  <data name="Cards_PhoneNumberEG1555" xml:space="preserve">
+    <value>Phone number, e.g. +1 555 0100</value>
+  </data>
+  <data name="Cards_PhoneOptional" xml:space="preserve">
+    <value>Phone (optional)</value>
+  </data>
+  <data name="Cards_PressToScanACardImport" xml:space="preserve">
+    <value>Press + to scan a card, import a file or enter one by hand. Saved cards can be emulated in any slot or written to a tag.</value>
+  </data>
+  <data name="Cards_ProbeTheCardOnTheReader" xml:space="preserve">
+    <value>Probe the card on the reader and pick its generation</value>
+  </data>
+  <data name="Cards_Proxmark3EmlDumpHexText" xml:space="preserve">
+    <value>Proxmark3 .eml dump (hex text)</value>
+  </data>
+  <data name="Cards_RawMemoryDumpReadableByMost" xml:space="preserve">
+    <value>Raw memory dump, readable by most MIFARE tools</value>
+  </data>
+  <data name="Cards_RawRecord" xml:space="preserve">
+    <value>Raw record</value>
+  </data>
+  <data name="Cards_Reading" xml:space="preserve">
+    <value>Reading</value>
+  </data>
+  <data name="Cards_ReloadSlots" xml:space="preserve">
+    <value>Reload slots</value>
+  </data>
+  <data name="Cards_RemoveTheRecord" xml:space="preserve">
+    <value>Remove the record</value>
+  </data>
+  <data name="Cards_SaveACopyOfThisCard" xml:space="preserve">
+    <value>Save a copy of this card</value>
+  </data>
+  <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
+    <value>Save as JSON (compatible with the Flutter app)</value>
+  </data>
+  <data name="Cards_SaveTheCardToAFile" xml:space="preserve">
+    <value>Save the card to a file</value>
+  </data>
+  <data name="Cards_ScanA125KHzTagOf" xml:space="preserve">
+    <value>Scan a 125 kHz tag of the protocol chosen below</value>
+  </data>
+  <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
+    <value>Scan an ISO14443-A tag; the device switches to reader mode</value>
+  </data>
+  <data name="Cards_ScanHF" xml:space="preserve">
+    <value>Scan HF</value>
+  </data>
+  <data name="Cards_ScanImportOrEnterANew" xml:space="preserve">
+    <value>Scan, import or enter a new card</value>
+  </data>
+  <data name="Cards_ScanLF" xml:space="preserve">
+    <value>Scan LF</value>
+  </data>
+  <data name="Cards_SelectACardToEditEmulate" xml:space="preserve">
+    <value>Select a card to edit, emulate or write it, or press + to add one.</value>
+  </data>
+  <data name="Cards_SubjectOptional" xml:space="preserve">
+    <value>Subject (optional)</value>
+  </data>
+  <data name="Cards_TagType" xml:space="preserve">
+    <value>Tag type</value>
+  </data>
+  <data name="Cards_Text" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Cards_TextMessageSMS" xml:space="preserve">
+    <value>Text message (SMS)</value>
+  </data>
+  <data name="Cards_TheCardReplacesTheSlotsCurrent" xml:space="preserve">
+    <value>The card replaces the slot's current content, the slot becomes active and is saved to flash.</value>
+  </data>
+  <data name="Cards_TheCardsRandomNumberGeneratorMeasured" xml:space="preserve">
+    <value>The card's random number generator, measured by the scan</value>
+  </data>
+  <data name="Cards_TheNDEFRecordsInTheMemory" xml:space="preserve">
+    <value>The NDEF records in the memory</value>
+  </data>
+  <data name="Cards_ThisCardHasNoTagType" xml:space="preserve">
+    <value>This card has no tag type. Choose one below and save before emulating.</value>
+  </data>
+  <data name="Cards_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Cards_TypeAndUIDByHand" xml:space="preserve">
+    <value>Type and UID by hand</value>
+  </data>
+  <data name="Cards_TypeNameFormat" xml:space="preserve">
+    <value>Type name format</value>
+  </data>
+  <data name="Cards_UID" xml:space="preserve">
+    <value>■ UID</value>
+  </data>
+  <data name="Cards_UploadTheSavedCardToThese" xml:space="preserve">
+    <value>Upload the saved card to these slots</value>
+  </data>
+  <data name="Cards_WebsiteOptional" xml:space="preserve">
+    <value>Website (optional)</value>
+  </data>
+  <data name="Cards_WiFiNetwork" xml:space="preserve">
+    <value>Wi-Fi network</value>
+  </data>
+  <data name="Cards_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
+  <data name="Cards_WriteAnother" xml:space="preserve">
+    <value>Write another</value>
+  </data>
+  <data name="Cards_WriteBlock0UID" xml:space="preserve">
+    <value>Write block 0 (UID)</value>
+  </data>
+  <data name="Cards_WriteNew" xml:space="preserve">
+    <value>Write new</value>
+  </data>
+  <data name="Cards_WriteOntoAT55xxTagLF" xml:space="preserve">
+    <value>Write onto a T55xx tag (LF), a magic card (MIFARE Classic) or the user pages of an Ultralight / NTAG card</value>
+  </data>
+  <data name="Cards_WriteTheSameCardToAnother" xml:space="preserve">
+    <value>Write the same card to another tag with the same options</value>
+  </data>
+  <data name="Cards_WriteTheSourceDumpsManufacturerBlock" xml:space="preserve">
+    <value>Write the source dump's manufacturer block and UID. Incorrect block 0 data can permanently brick the target card.</value>
+  </data>
+  <data name="Chameleon_6DigitsBlankKeepsTheCurrent" xml:space="preserve">
+    <value>6 digits. Blank keeps the current PIN.</value>
+  </data>
+  <data name="Chameleon_ActiveSlotHeader" xml:space="preserve">
+    <value>ACTIVE SLOT</value>
+  </data>
+  <data name="Chameleon_ActionOnALongPress" xml:space="preserve">
+    <value>Action on a long press.</value>
+  </data>
+  <data name="Chameleon_ActionOnAShortPress" xml:space="preserve">
+    <value>Action on a short press.</value>
+  </data>
+  <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
+    <value>All slots, nicknames, emulator data and settings will be erased. The device will disconnect afterwards.</value>
+  </data>
+  <data name="Chameleon_BatteryHeader" xml:space="preserve">
+    <value>BATTERY</value>
+  </data>
+  <data name="Chameleon_BleAddressHeader" xml:space="preserve">
+    <value>BLE ADDRESS</value>
+  </data>
+  <data name="Chameleon_BehaviorAndControlsSaveSendsYour" xml:space="preserve">
+    <value>Behavior and controls. Save sends your changes to the device and keeps them after a reboot.</value>
+  </data>
+  <data name="Chameleon_BluetoothPairing" xml:space="preserve">
+    <value>Bluetooth pairing</value>
+  </data>
+  <data name="Chameleon_ButtonA" xml:space="preserve">
+    <value>Button A</value>
+  </data>
+  <data name="Chameleon_ButtonALongPress" xml:space="preserve">
+    <value>Button A (long press)</value>
+  </data>
+  <data name="Chameleon_ButtonB" xml:space="preserve">
+    <value>Button B</value>
+  </data>
+  <data name="Chameleon_ButtonBLongPress" xml:space="preserve">
+    <value>Button B (long press)</value>
+  </data>
+  <data name="Chameleon_ChipIdHeader" xml:space="preserve">
+    <value>CHIP ID</value>
+  </data>
+  <data name="Chameleon_ClearAllBondedBLEDevices" xml:space="preserve">
+    <value>Clear all bonded BLE devices?</value>
+  </data>
+  <data name="Chameleon_ClearBondedDevices" xml:space="preserve">
+    <value>Clear bonded devices</value>
+  </data>
+  <data name="Chameleon_ClearBonds" xml:space="preserve">
+    <value>Clear bonds</value>
+  </data>
+  <data name="Chameleon_ClearBonds2" xml:space="preserve">
+    <value>Clear bonds…</value>
+  </data>
+  <data name="Chameleon_CurrentDeviceSettingsWillBeReplaced" xml:space="preserve">
+    <value>Current device settings will be replaced by the factory defaults.</value>
+  </data>
+  <data name="Chameleon_DeviceSettingsHeader" xml:space="preserve">
+    <value>DEVICE SETTINGS</value>
+  </data>
+  <data name="Chameleon_DeviceStatusFirmwareAndSettings" xml:space="preserve">
+    <value>Device status, firmware and settings.</value>
+  </data>
+  <data name="Chameleon_Emulator" xml:space="preserve">
+    <value>Emulator</value>
+  </data>
+  <data name="Chameleon_EraseEverything" xml:space="preserve">
+    <value>Erase everything</value>
+  </data>
+  <data name="Chameleon_FirmwareHeader" xml:space="preserve">
+    <value>FIRMWARE</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateHeader" xml:space="preserve">
+    <value>FIRMWARE UPDATE</value>
+  </data>
+  <data name="Chameleon_FactoryReset" xml:space="preserve">
+    <value>Factory reset</value>
+  </data>
+  <data name="Chameleon_FactoryReset2" xml:space="preserve">
+    <value>Factory reset…</value>
+  </data>
+  <data name="Chameleon_FactoryResetTheChameleon" xml:space="preserve">
+    <value>Factory reset the Chameleon?</value>
+  </data>
+  <data name="Chameleon_ForgetsEveryPhoneAndTabletPaired" xml:space="preserve">
+    <value>Forgets every phone and tablet paired over Bluetooth LE.</value>
+  </data>
+  <data name="Chameleon_GitVersionHeader" xml:space="preserve">
+    <value>GIT VERSION</value>
+  </data>
+  <data name="Chameleon_HardwareAndFirmwareIdentity" xml:space="preserve">
+    <value>Hardware and firmware identity</value>
+  </data>
+  <data name="Chameleon_HoldTimeForALongPress" xml:space="preserve">
+    <value>Hold time for a long press (ms).</value>
+  </data>
+  <data name="Chameleon_IdleSecondsBeforeSleep560" xml:space="preserve">
+    <value>Idle seconds before sleep (5–60).</value>
+  </data>
+  <data name="Chameleon_InstallADFUPackageUltraDfu" xml:space="preserve">
+    <value>Install a DFU package (ultra-dfu-app.zip / lite-dfu-app.zip)</value>
+  </data>
+  <data name="Chameleon_InstallFromFile" xml:space="preserve">
+    <value>Install from file…</value>
+  </data>
+  <data name="Chameleon_LEDAnimation" xml:space="preserve">
+    <value>LED animation</value>
+  </data>
+  <data name="Chameleon_LightPatternOnWakeUp" xml:space="preserve">
+    <value>Light pattern on wake-up.</value>
+  </data>
+  <data name="Chameleon_LongPressThreshold" xml:space="preserve">
+    <value>Long-press threshold</value>
+  </data>
+  <data name="Chameleon_NextFilledSlot" xml:space="preserve">
+    <value>Next filled slot</value>
+  </data>
+  <data name="Chameleon_NotAvailable" xml:space="preserve">
+    <value>Not available</value>
+  </data>
+  <data name="Chameleon_OperatingModeHeader" xml:space="preserve">
+    <value>OPERATING MODE</value>
+  </data>
+  <data name="Chameleon_PairedPhonesAndTabletsWillHave" xml:space="preserve">
+    <value>Paired phones and tablets will have to pair again, and may need the Chameleon removed from their Bluetooth list first.</value>
+  </data>
+  <data name="Chameleon_PairingPIN" xml:space="preserve">
+    <value>Pairing PIN</value>
+  </data>
+  <data name="Chameleon_PreviousFilledSlot" xml:space="preserve">
+    <value>Previous filled slot</value>
+  </data>
+  <data name="Chameleon_Reader" xml:space="preserve">
+    <value>Reader</value>
+  </data>
+  <data name="Chameleon_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Chameleon_ReleaseNotes" xml:space="preserve">
+    <value>Release notes</value>
+  </data>
+  <data name="Chameleon_ReloadDeviceInformation" xml:space="preserve">
+    <value>Reload device information</value>
+  </data>
+  <data name="Chameleon_RequireAPINToConnectOver" xml:space="preserve">
+    <value>Require a PIN to connect over Bluetooth LE.</value>
+  </data>
+  <data name="Chameleon_Reset" xml:space="preserve">
+    <value>Reset…</value>
+  </data>
+  <data name="Chameleon_ResetAllSettings" xml:space="preserve">
+    <value>Reset all settings?</value>
+  </data>
+  <data name="Chameleon_ResetSettings" xml:space="preserve">
+    <value>Reset settings</value>
+  </data>
+  <data name="Chameleon_ResetToDefaults" xml:space="preserve">
+    <value>Reset to defaults</value>
+  </data>
+  <data name="Chameleon_RestoresFactorySettingsForLEDsSleep" xml:space="preserve">
+    <value>Restores factory settings for LEDs, sleep and buttons.</value>
+  </data>
+  <data name="Chameleon_SendTheseValuesToTheDevice" xml:space="preserve">
+    <value>Send these values to the device and keep them after a reboot</value>
+  </data>
+  <data name="Chameleon_SleepTimeout" xml:space="preserve">
+    <value>Sleep timeout</value>
+  </data>
+  <data name="Chameleon_TheDefaultPINIs123456" xml:space="preserve">
+    <value>The default PIN is 123456.</value>
+  </data>
+  <data name="Chameleon_TheDevicePresentsTheActiveSlot" xml:space="preserve">
+    <value>The device presents the active slot to readers as a card.</value>
+  </data>
+  <data name="Chameleon_TheDeviceScansExternalCardsAnd" xml:space="preserve">
+    <value>The device scans external cards and tags.</value>
+  </data>
+  <data name="Chameleon_ThisModelHasNoBatteryGauge" xml:space="preserve">
+    <value>This model has no battery gauge.</value>
+  </data>
+  <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
+    <value>Wipes ALL data: every slot, nickname, saved emulator content and settings. This cannot be undone.</value>
+  </data>
+  <data name="Common_125KHz" xml:space="preserve">
+    <value>125 kHz</value>
+  </data>
+  <data name="Common_AddCard" xml:space="preserve">
+    <value>Add card</value>
+  </data>
+  <data name="Common_BackToTheList" xml:space="preserve">
+    <value>Back to the list</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Card" xml:space="preserve">
+    <value>Card</value>
+  </data>
+  <data name="Common_CheckGitHubForANewerRelease" xml:space="preserve">
+    <value>Check GitHub for a newer release</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common_DeleteFolder" xml:space="preserve">
+    <value>Delete folder</value>
+  </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Common_Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Common_Empty" xml:space="preserve">
+    <value>Empty</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Common_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
+    <value>Its cards are not deleted: they go back to Cards.</value>
+  </data>
+  <data name="Common_KeyDictionaries" xml:space="preserve">
+    <value>Key dictionaries</value>
+  </data>
+  <data name="Common_Modified" xml:space="preserve">
+    <value>■ Modified</value>
+  </data>
+  <data name="Common_NewFolder" xml:space="preserve">
+    <value>New folder</value>
+  </data>
+  <data name="Common_NoKey" xml:space="preserve">
+    <value>No key</value>
+  </data>
+  <data name="Common_NotTried" xml:space="preserve">
+    <value>Not tried</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Common_Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Common_RenameFolder" xml:space="preserve">
+    <value>Rename folder</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common_SearchByNameTypeOrUID" xml:space="preserve">
+    <value>Search by name, type or UID</value>
+  </data>
+  <data name="Common_UnsavedChanges" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Common_Writing" xml:space="preserve">
+    <value>Writing</value>
+  </data>
+  <data name="Common_Written" xml:space="preserve">
+    <value>Written</value>
+  </data>
+  <data name="Connect_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Connect_ConnectThroughAUSBSerialTCP" xml:space="preserve">
+    <value>Connect through a USB-serial → TCP bridge or a simulator.</value>
+  </data>
+  <data name="Connect_ConnectYourChameleon" xml:space="preserve">
+    <value>Connect your Chameleon</value>
+  </data>
+  <data name="Connect_DetectedDevices" xml:space="preserve">
+    <value>Detected devices</value>
+  </data>
+  <data name="Connect_NetworkBridgeTCP" xml:space="preserve">
+    <value>Network bridge (TCP)</value>
+  </data>
+  <data name="Connect_NoDevicesDetected" xml:space="preserve">
+    <value>No devices detected</value>
+  </data>
+  <data name="Connect_PairOverBluetooth" xml:space="preserve">
+    <value>Pair over Bluetooth</value>
+  </data>
+  <data name="Connect_PickAChameleonInTheBrowsers" xml:space="preserve">
+    <value>Pick a Chameleon in the browser's Bluetooth chooser</value>
+  </data>
+  <data name="Connect_Rescan" xml:space="preserve">
+    <value>Rescan</value>
+  </data>
+  <data name="Connect_ScanAgain" xml:space="preserve">
+    <value>Scan again</value>
+  </data>
+  <data name="Dictionaries_ClearSearch" xml:space="preserve">
+    <value>Clear search</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
+    <value>Delete this dictionary</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionaryPermanently" xml:space="preserve">
+    <value>Delete this dictionary permanently?</value>
+  </data>
+  <data name="Dictionaries_DictionaryColor" xml:space="preserve">
+    <value>Dictionary color</value>
+  </data>
+  <data name="Dictionaries_DictionaryName" xml:space="preserve">
+    <value>Dictionary name</value>
+  </data>
+  <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
+    <value>Edit known keys grouped by card UID</value>
+  </data>
+  <data name="Dictionaries_ForgetCard" xml:space="preserve">
+    <value>Forget card</value>
+  </data>
+  <data name="Dictionaries_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Dictionaries_ImportADicKeysTxtJson" xml:space="preserve">
+    <value>Import a .dic / .keys / .txt / .json dictionary</value>
+  </data>
+  <data name="Dictionaries_KeysHeader" xml:space="preserve">
+    <value>KEYS</value>
+  </data>
+  <data name="Dictionaries_KeepEditingThisDictionary" xml:space="preserve">
+    <value>Keep editing this dictionary</value>
+  </data>
+  <data name="Dictionaries_KnownCardKeys" xml:space="preserve">
+    <value>Known card keys</value>
+  </data>
+  <data name="Dictionaries_NewDictionary" xml:space="preserve">
+    <value>New dictionary</value>
+  </data>
+  <data name="Dictionaries_NoCardsMatchTheSearch" xml:space="preserve">
+    <value>No cards match the search.</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
+    <value>No dictionaries match the search.</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
+    <value>No dictionaries yet</value>
+  </data>
+  <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
+    <value>One key per row. Type hex into the empty row at the end to add a key, or paste a list there. Enter opens a row, Delete removes the selected rows.</value>
+  </data>
+  <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
+    <value>Order of the list. In Manual, drag dictionaries to arrange them.</value>
+  </data>
+  <data name="Dictionaries_PressToStartADictionaryOf" xml:space="preserve">
+    <value>Press + to start a dictionary of MIFARE Classic keys, or import a .dic file. Card dumps try these keys (plus the built-in defaults).</value>
+  </data>
+  <data name="Dictionaries_Repeated" xml:space="preserve">
+    <value>■ Repeated</value>
+  </data>
+  <data name="Dictionaries_SaveACopyOfThisDictionary" xml:space="preserve">
+    <value>Save a copy of this dictionary</value>
+  </data>
+  <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
+    <value>Save as a .dic file (one key per line)</value>
+  </data>
+  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
+    <value>Save dictionary</value>
+  </data>
+  <data name="Dictionaries_SearchByNameOrKey" xml:space="preserve">
+    <value>Search by name or key</value>
+  </data>
+  <data name="Dictionaries_SearchByUIDOrCardName" xml:space="preserve">
+    <value>Search by UID or card name</value>
+  </data>
+  <data name="Dictionaries_SelectADictionaryToSeeAnd" xml:space="preserve">
+    <value>Select a dictionary to see and edit its keys, or press + to start one.</value>
+  </data>
+  <data name="Dictionaries_StartANewDictionary" xml:space="preserve">
+    <value>Start a new dictionary</value>
+  </data>
+  <data name="KeyRecovery_CheckRecoveryMethods" xml:space="preserve">
+    <value>Check recovery methods</value>
+  </data>
+  <data name="KeyRecovery_KeyDictionariesHeader" xml:space="preserve">
+    <value>KEY DICTIONARIES</value>
+  </data>
+  <data name="KeyRecovery_RecoverKeysOnFM11RF08SAndCompatible" xml:space="preserve">
+    <value>Recover keys on FM11RF08S and compatible cards using known backdoor keys</value>
+  </data>
+  <data name="KeyRecovery_Searching" xml:space="preserve">
+    <value>Searching</value>
+  </data>
+  <data name="Main_ConnectedDeviceHeader" xml:space="preserve">
+    <value>CONNECTED DEVICE</value>
+  </data>
+  <data name="Main_ChameLabDownloadUpdate" xml:space="preserve">
+    <value>ChameLab - download update</value>
+  </data>
+  <data name="Main_Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Main_DisconnectFromTheDevice" xml:space="preserve">
+    <value>Disconnect from the device</value>
+  </data>
+  <data name="Main_Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="Main_IfTheDeviceStaysInIts" xml:space="preserve">
+    <value>If the device stays in its bootloader (LEDs 4 and 5 blink), Retry installs the firmware again.</value>
+  </data>
+  <data name="Main_Install" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
+    <value>Its cards stay in Cards</value>
+  </data>
+  <data name="Main_NavigationHeader" xml:space="preserve">
+    <value>NAVIGATION</value>
+  </data>
+  <data name="Main_NoDeviceHeader" xml:space="preserve">
+    <value>NO DEVICE</value>
+  </data>
+  <data name="Main_NoDeviceAttached" xml:space="preserve">
+    <value>No device attached</value>
+  </data>
+  <data name="Main_NoDeviceOpenConnectToAttach" xml:space="preserve">
+    <value>No device. Open Connect to attach one.</value>
+  </data>
+  <data name="Main_Offline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="Main_Online" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="Main_PressBackAgainToExit" xml:space="preserve">
+    <value>Press Back again to exit</value>
+  </data>
+  <data name="Main_Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
+    <value>Toggle light / dark theme</value>
+  </data>
+  <data name="Main_ToggleNavigation" xml:space="preserve">
+    <value>Toggle navigation</value>
+  </data>
+  <data name="Protection_AnswerPACK" xml:space="preserve">
+    <value>Answer (PACK)</value>
+  </data>
+  <data name="Protection_AttemptLimitAUTHLIM" xml:space="preserve">
+    <value>Attempt limit (AUTHLIM)</value>
+  </data>
+  <data name="Protection_FromPageAUTH0" xml:space="preserve">
+    <value>From page (AUTH0)</value>
+  </data>
+  <data name="Protection_PROTWithoutThePasswordTheProtected" xml:space="preserve">
+    <value>PROT: without the password the protected pages can't even be read</value>
+  </data>
+  <data name="Protection_PagesFromTheChosenOneOn" xml:space="preserve">
+    <value>Pages from the chosen one on need the password (AUTH0)</value>
+  </data>
+  <data name="Protection_PasswordPWD" xml:space="preserve">
+    <value>Password (PWD)</value>
+  </data>
+  <data name="Protection_ProtectReading" xml:space="preserve">
+    <value>Protect reading</value>
+  </data>
+  <data name="Protection_ProtectWithAPassword" xml:space="preserve">
+    <value>Protect with a password</value>
+  </data>
+  <data name="Protection_WhatTheCardAnswersToThe" xml:space="preserve">
+    <value>What the card answers to the right password; readers may check it</value>
+  </data>
+  <data name="Protection_WrongPasswordsBeforeTheCardLocks" xml:space="preserve">
+    <value>Wrong passwords before the card locks for good</value>
+  </data>
+  <data name="Settings_AccentColor" xml:space="preserve">
+    <value>Accent color</value>
+  </data>
+  <data name="Settings_AppSettingsTheyApplyRightAway" xml:space="preserve">
+    <value>App settings. They apply right away and work without a device; the Chameleon's own settings are on its page.</value>
+  </data>
+  <data name="Settings_Backup" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="Settings_BeepWhenAScanFinishesBuzz" xml:space="preserve">
+    <value>Beep when a scan finishes, buzz when no card is found.</value>
+  </data>
+  <data name="Settings_ButtonsTogglesAndHighlights" xml:space="preserve">
+    <value>Buttons, toggles and highlights.</value>
+  </data>
+  <data name="Settings_CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Settings_CrossPlatformClientForTheChameleon" xml:space="preserve">
+    <value>Cross-platform client for the Chameleon Ultra, built with Avalonia. Device, firmware and protocol documentation: github.com/RfidResearchGroup/ChameleonUltra</value>
+  </data>
+  <data name="Settings_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Settings_ExportBackup" xml:space="preserve">
+    <value>Export backup</value>
+  </data>
+  <data name="Settings_ExportOrImportYourSavedCards" xml:space="preserve">
+    <value>Export or import your saved cards and key dictionaries.</value>
+  </data>
+  <data name="Settings_ImportBackup" xml:space="preserve">
+    <value>Import backup</value>
+  </data>
+  <data name="Settings_OpenTheReleasePage" xml:space="preserve">
+    <value>Open the release page</value>
+  </data>
+  <data name="Settings_ScanSounds" xml:space="preserve">
+    <value>Scan sounds</value>
+  </data>
+  <data name="Settings_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_VibrateWhenACardScanOr" xml:space="preserve">
+    <value>Vibrate when a card scan or dump finishes.</value>
+  </data>
+  <data name="Settings_Vibration" xml:space="preserve">
+    <value>Vibration</value>
+  </data>
+  <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
+    <value>A color of your choice (needs the ChameLab firmware)</value>
+  </data>
+  <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
+    <value>Add this card to Saved cards</value>
+  </data>
+  <data name="Slots_ChooseSaved" xml:space="preserve">
+    <value>Choose saved</value>
+  </data>
+  <data name="Slots_ConnectAChameleonToSeeAnd" xml:space="preserve">
+    <value>Connect a Chameleon to see and edit its eight emulation slots.</value>
+  </data>
+  <data name="Slots_Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Slots_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
+    <value>Drag cards to change the order. Each time the reader's field appears, the device sends the next card in turn.</value>
+  </data>
+  <data name="Slots_EmulationSlots" xml:space="preserve">
+    <value>Emulation slots</value>
+  </data>
+  <data name="Slots_Gen1AMagicMode" xml:space="preserve">
+    <value>Gen1A magic mode</value>
+  </data>
+  <data name="Slots_Gen2MagicMode" xml:space="preserve">
+    <value>Gen2 magic mode</value>
+  </data>
+  <data name="Slots_KeepEditingThisSlot" xml:space="preserve">
+    <value>Keep editing this slot</value>
+  </data>
+  <data name="Slots_LEDColor" xml:space="preserve">
+    <value>LED color</value>
+  </data>
+  <data name="Slots_MifareClassicEmulatorHeader" xml:space="preserve">
+    <value>MIFARE CLASSIC EMULATOR</value>
+  </data>
+  <data name="Slots_NoSlotsToShow" xml:space="preserve">
+    <value>No slots to show</value>
+  </data>
+  <data name="Slots_OpenThisCardInCards" xml:space="preserve">
+    <value>Open this card in Cards</value>
+  </data>
+  <data name="Slots_PRNGType" xml:space="preserve">
+    <value>PRNG type</value>
+  </data>
+  <data name="Slots_PasswordDetection" xml:space="preserve">
+    <value>Password detection</value>
+  </data>
+  <data name="Slots_PickTheLEDColor" xml:space="preserve">
+    <value>Pick the LED color</value>
+  </data>
+  <data name="Slots_PutOneOfYourSavedCards" xml:space="preserve">
+    <value>Put one of your saved cards into this frequency</value>
+  </data>
+  <data name="Slots_ReadTheCardFromTheSlot" xml:space="preserve">
+    <value>Read the card from the slot and add it to Saved cards</value>
+  </data>
+  <data name="Slots_RemoveCardFromSlot" xml:space="preserve">
+    <value>Remove card from slot</value>
+  </data>
+  <data name="Slots_RemoveTheCardFromThisFrequency" xml:space="preserve">
+    <value>Remove the card from this frequency</value>
+  </data>
+  <data name="Slots_ResetOnFieldOff" xml:space="preserve">
+    <value>Reset on field off</value>
+  </data>
+  <data name="Slots_SaveCard" xml:space="preserve">
+    <value>Save card</value>
+  </data>
+  <data name="Slots_SaveSlot" xml:space="preserve">
+    <value>Save slot</value>
+  </data>
+  <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
+    <value>Select a slot to make it active and edit it.</value>
+  </data>
+  <data name="Slots_TheColorOfTheSavedCard" xml:space="preserve">
+    <value>The color of the saved card (needs the ChameLab firmware)</value>
+  </data>
+  <data name="Slots_TheColorTheSlotLEDShows" xml:space="preserve">
+    <value>The color the slot LED shows</value>
+  </data>
+  <data name="Slots_TheFirmwaresOwnColorGreenFor" xml:space="preserve">
+    <value>The firmware's own color: green for HF, blue for LF, red for a slot with both</value>
+  </data>
+  <data name="Slots_UIDMagicMode" xml:space="preserve">
+    <value>UID magic mode</value>
+  </data>
+  <data name="Slots_UltralightNtagEmulatorHeader" xml:space="preserve">
+    <value>ULTRALIGHT / NTAG EMULATOR</value>
+  </data>
+  <data name="Slots_UseUIDSAKATQAFromBlock" xml:space="preserve">
+    <value>Use UID/SAK/ATQA from block 0</value>
+  </data>
+  <data name="Slots_WriteMode" xml:space="preserve">
+    <value>Write mode</value>
+  </data>
+  <data name="Slots_WriteTheSlotToTheDevice" xml:space="preserve">
+    <value>Write the slot to the device and save it to flash</value>
+  </data>
+  <data name="Tools_125KHzRawSignal" xml:space="preserve">
+    <value>125 kHz · raw signal</value>
+  </data>
+  <data name="Tools_1356MHzISO14443A" xml:space="preserve">
+    <value>13.56 MHz · ISO14443-A</value>
+  </data>
+  <data name="Tools_AGuessFromTheLengthsOf" xml:space="preserve">
+    <value>A guess from the lengths of the high and low runs</value>
+  </data>
+  <data name="Tools_AnswerAReaderAsACard" xml:space="preserve">
+    <value>Answer a reader as a card and record both sides</value>
+  </data>
+  <data name="Tools_BackToTheTools" xml:space="preserve">
+    <value>Back to the tools</value>
+  </data>
+  <data name="Tools_Bits" xml:space="preserve">
+    <value>Bits</value>
+  </data>
+  <data name="Tools_Capture" xml:space="preserve">
+    <value>Capture</value>
+  </data>
+  <data name="Tools_CarrierCyclesPerBit" xml:space="preserve">
+    <value>Carrier cycles per bit</value>
+  </data>
+  <data name="Tools_Clock" xml:space="preserve">
+    <value>Clock</value>
+  </data>
+  <data name="Tools_ComputeTheKeyFromTheseAuthentications" xml:space="preserve">
+    <value>Compute the key from these authentications</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA" xml:space="preserve">
+    <value>Connect a Chameleon to capture. A saved Proxmark3 trace (.trace) can be loaded without one.</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA2" xml:space="preserve">
+    <value>Connect a Chameleon to capture. A saved capture (.bin) can be loaded without one.</value>
+  </data>
+  <data name="Tools_CopyAll" xml:space="preserve">
+    <value>Copy all</value>
+  </data>
+  <data name="Tools_CopyTheSelectedFramesOrAll" xml:space="preserve">
+    <value>Copy the selected frames, or all of them</value>
+  </data>
+  <data name="Tools_Cursor" xml:space="preserve">
+    <value>Cursor</value>
+  </data>
+  <data name="Tools_FieldGap" xml:space="preserve">
+    <value>Field gap</value>
+  </data>
+  <data name="Tools_Frames" xml:space="preserve">
+    <value>Frames</value>
+  </data>
+  <data name="Tools_Gaps" xml:space="preserve">
+    <value>Gaps</value>
+  </data>
+  <data name="Tools_HowLongToListen" xml:space="preserve">
+    <value>How long to listen</value>
+  </data>
+  <data name="Tools_Invert" xml:space="preserve">
+    <value>Invert</value>
+  </data>
+  <data name="Tools_ListenToTheReaderNow" xml:space="preserve">
+    <value>Listen to the reader now</value>
+  </data>
+  <data name="Tools_Load" xml:space="preserve">
+    <value>Load</value>
+  </data>
+  <data name="Tools_LookAtWhatGoesOverThe" xml:space="preserve">
+    <value>Look at what goes over the air between readers and cards.</value>
+  </data>
+  <data name="Tools_MIFAREClassicKeys" xml:space="preserve">
+    <value>MIFARE Classic keys</value>
+  </data>
+  <data name="Tools_ManchesterDecode" xml:space="preserve">
+    <value>Manchester decode</value>
+  </data>
+  <data name="Tools_Mfkey32v2Command" xml:space="preserve">
+    <value>mfkey32v2 command</value>
+  </data>
+  <data name="Tools_Modulation" xml:space="preserve">
+    <value>Modulation</value>
+  </data>
+  <data name="Tools_OneBytePerCarrierCycleSelect" xml:space="preserve">
+    <value>One byte per carrier cycle; select bytes and copy them (Ctrl+C or the context menu).</value>
+  </data>
+  <data name="Tools_OpenAProxmark3TraceTrace" xml:space="preserve">
+    <value>Open a Proxmark3 trace (.trace)</value>
+  </data>
+  <data name="Tools_OpenARawCaptureBinOne" xml:space="preserve">
+    <value>Open a raw capture (.bin): one byte per sample</value>
+  </data>
+  <data name="Tools_Range" xml:space="preserve">
+    <value>Range</value>
+  </data>
+  <data name="Tools_RecordTheLFFieldNow" xml:space="preserve">
+    <value>Record the LF field now</value>
+  </data>
+  <data name="Tools_RecordTheRawSignalAtThe" xml:space="preserve">
+    <value>Record the raw signal at the antenna</value>
+  </data>
+  <data name="Tools_RecoverAll" xml:space="preserve">
+    <value>Recover all</value>
+  </data>
+  <data name="Tools_RecoverKey" xml:space="preserve">
+    <value>Recover key</value>
+  </data>
+  <data name="Tools_Samples" xml:space="preserve">
+    <value>Samples</value>
+  </data>
+  <data name="Tools_SaveEverySampleAsARaw" xml:space="preserve">
+    <value>Save every sample as a raw .bin file</value>
+  </data>
+  <data name="Tools_SaveTheFramesAsAProxmark3" xml:space="preserve">
+    <value>Save the frames as a Proxmark3 trace (.trace)</value>
+  </data>
+  <data name="Tools_Session" xml:space="preserve">
+    <value>Session</value>
+  </data>
+  <data name="Tools_Signal" xml:space="preserve">
+    <value>Signal</value>
+  </data>
+  <data name="Tools_SniffHF" xml:space="preserve">
+    <value>Sniff HF</value>
+  </data>
+  <data name="Tools_SniffLF" xml:space="preserve">
+    <value>Sniff LF</value>
+  </data>
+  <data name="Tools_Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Tools_SwapHighAndLowDecodesThe" xml:space="preserve">
+    <value>Swap high and low: decodes the bits inverted</value>
+  </data>
+  <data name="Tools_TheChameleonAnswersAReaderAs" xml:space="preserve">
+    <value>The Chameleon answers a reader as the card in its active slot and records both sides: the reader's commands and its own answers. Hold it to the reader while it listens.</value>
+  </data>
+  <data name="Tools_TheReadersKeyFromItsAuthentications" xml:space="preserve">
+    <value>The reader's key, from its authentications: mfkey32 needs two tries on the same block, mfkey64 one the card accepted.</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoHFSniffing" xml:space="preserve">
+    <value>This firmware has no HF sniffing. Update the Chameleon's firmware to use it.</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoLFSniffing" xml:space="preserve">
+    <value>This firmware has no LF sniffing. Update the Chameleon's firmware to use it (the Chameleon Lite has no reader).</value>
+  </data>
+  <data name="Tools_Tools" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="Tools_TurnsTheFieldOnAndRecords" xml:space="preserve">
+    <value>Turns the field on and records 32 ms of the antenna signal, one sample per carrier cycle (8 µs). Hold a tag on the antenna while it records.</value>
+  </data>
+  <data name="Tools_ViewInTheCapture" xml:space="preserve">
+    <value>View in the capture</value>
+  </data>
+  <data name="Tools_Waveform" xml:space="preserve">
+    <value>Waveform</value>
+  </data>
+  <data name="Tools_Zoom" xml:space="preserve">
+    <value>Zoom</value>
+  </data>
+  <data name="Common_DeleteFolderPrompt" xml:space="preserve">
+    <value>Delete the folder {0}?</value>
+  </data>
+  <data name="Chameleon_BatteryVolts" xml:space="preserve">
+    <value>{0:F2} V</value>
+  </data>
+  <data name="Chameleon_FirmwareInstalled" xml:space="preserve">
+    <value>Installed: {0}</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateTo" xml:space="preserve">
+    <value>Update to {0}</value>
+  </data>
+  <data name="Settings_Version" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="Tools_Seconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="Tools_ViaMethod" xml:space="preserve">
+    <value>via {0}</value>
+  </data>
+  <data name="Tools_DecodeThreshold" xml:space="preserve">
+    <value>Decode threshold 0x{0:X2}</value>
+  </data>
+  <data name="Tools_GapThreshold" xml:space="preserve">
+    <value>Gap threshold 0x{0:X2}</value>
+  </data>
 </root>

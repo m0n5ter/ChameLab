@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:c="using:ChameLab.Controls"
              x:Class="ChameLab.Controls.ProtectionSettingsPanel"
@@ -7,36 +8,36 @@
   <!-- Password settings of an Ultralight EV1 / NTAG21x card: the card's own, or what the writer puts on a target. -->
   <StackPanel Spacing="10">
     <WrapPanel ItemSpacing="24" LineSpacing="6">
-      <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
-                ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
-      <CheckBox Classes="danger" Content="Protect reading" IsChecked="{Binding ReadProtected}"
+      <CheckBox Content="{x:Static loc:Strings.Protection_ProtectWithAPassword}" IsChecked="{Binding IsProtected}"
+                ToolTip.Tip="{x:Static loc:Strings.Protection_PagesFromTheChosenOneOn}" />
+      <CheckBox Classes="danger" Content="{x:Static loc:Strings.Protection_ProtectReading}" IsChecked="{Binding ReadProtected}"
                 IsEnabled="{Binding IsProtected}"
-                ToolTip.Tip="PROT: without the password the protected pages can't even be read" />
+                ToolTip.Tip="{x:Static loc:Strings.Protection_PROTWithoutThePasswordTheProtected}" />
     </WrapPanel>
     <!-- The settings below only take effect with protection on. -->
     <StackPanel Spacing="10" IsEnabled="{Binding IsProtected}">
       <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
         <StackPanel Spacing="4">
-          <TextBlock Text="Password (PWD)" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Protection_PasswordPWD}" Classes="caption" />
           <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
         </StackPanel>
         <StackPanel Spacing="4">
-          <TextBlock Text="Answer (PACK)" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Protection_AnswerPACK}" Classes="caption" />
           <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
-                    ToolTip.Tip="What the card answers to the right password; readers may check it" />
+                    ToolTip.Tip="{x:Static loc:Strings.Protection_WhatTheCardAnswersToThe}" />
         </StackPanel>
       </c:FlowGrid>
       <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
         <StackPanel Spacing="4">
-          <TextBlock Text="From page (AUTH0)" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Protection_FromPageAUTH0}" Classes="caption" />
           <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
                          FormatString="0" />
         </StackPanel>
         <StackPanel Spacing="4">
-          <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
+          <TextBlock Text="{x:Static loc:Strings.Protection_AttemptLimitAUTHLIM}" Classes="caption" />
           <!-- A limit can lock the card for good, so every limit is shown in red. -->
           <ComboBox ItemsSource="{Binding AuthLimitOptions}" SelectedItem="{Binding SelectedAuthLimit}"
-                    HorizontalAlignment="Stretch" ToolTip.Tip="Wrong passwords before the card locks for good">
+                    HorizontalAlignment="Stretch" ToolTip.Tip="{x:Static loc:Strings.Protection_WrongPasswordsBeforeTheCardLocks}">
             <ComboBox.Styles>
               <Style Selector="ComboBoxItem" x:DataType="vm:AuthLimitOption">
                 <Setter Property="IsEnabled" Value="{Binding !IsSeparator}" />

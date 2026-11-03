@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:b="using:ChameLab.Behaviors"
              xmlns:c="using:ChameLab.Controls"
@@ -81,33 +82,33 @@
     <StackPanel Grid.Row="0" Spacing="10">
       <!-- The list of tools -->
       <StackPanel Spacing="2" IsVisible="{Binding IsHome}">
-        <TextBlock Text="Tools" Classes="h1" />
+        <TextBlock Text="{x:Static loc:Strings.Tools_Tools}" Classes="h1" />
         <TextBlock Classes="caption" TextWrapping="Wrap"
-                   Text="Look at what goes over the air between readers and cards." />
+                   Text="{x:Static loc:Strings.Tools_LookAtWhatGoesOverThe}" />
       </StackPanel>
       <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8" IsVisible="{Binding IsHome}">
         <Button Classes="tile source" Command="{Binding OpenHfCommand}"
-                ToolTip.Tip="Answer a reader as a card and record both sides">
+                ToolTip.Tip="{x:Static loc:Strings.Tools_AnswerAReaderAsACard}">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Border Classes="iconwell blue" VerticalAlignment="Center">
               <PathIcon Data="{StaticResource Icon.sniff}" />
             </Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Sniff HF" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-              <TextBlock Text="13.56 MHz · ISO14443-A" Classes="caption" TextWrapping="NoWrap"
+              <TextBlock Text="{x:Static loc:Strings.Tools_SniffHF}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{x:Static loc:Strings.Tools_1356MHzISO14443A}" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
           </Grid>
         </Button>
         <Button Classes="tile source" Command="{Binding OpenLfCommand}"
-                ToolTip.Tip="Record the raw signal at the antenna">
+                ToolTip.Tip="{x:Static loc:Strings.Tools_RecordTheRawSignalAtThe}">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Border Classes="iconwell amber" VerticalAlignment="Center">
               <PathIcon Data="{StaticResource Icon.sniff}" />
             </Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="Sniff LF" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-              <TextBlock Text="125 kHz · raw signal" Classes="caption" TextWrapping="NoWrap"
+              <TextBlock Text="{x:Static loc:Strings.Tools_SniffLF}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{x:Static loc:Strings.Tools_125KHzRawSignal}" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
           </Grid>
@@ -117,7 +118,7 @@
       <!-- A tool: Back to the list, as in Add card. -->
       <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10" IsVisible="{Binding !IsHome}">
         <Button Classes="icon" Margin="-8,0,0,0" Command="{Binding BackCommand}"
-                ToolTip.Tip="Back to the tools" b:DialogKeys.IsBack="True" VerticalAlignment="Center">
+                ToolTip.Tip="{x:Static loc:Strings.Tools_BackToTheTools}" b:DialogKeys.IsBack="True" VerticalAlignment="Center">
           <PathIcon Data="{StaticResource Icon.back}" />
         </Button>
         <Border Grid.Column="1" Classes="iconwell" Classes.blue="{Binding IsHf}" Classes.amber="{Binding IsLf}"
@@ -131,39 +132,39 @@
       <!-- HF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsHf}">
         <TextBlock Classes="caption" TextWrapping="Wrap"
-                   Text="The Chameleon answers a reader as the card in its active slot and records both sides: the reader's commands and its own answers. Hold it to the reader while it listens." />
+                   Text="{x:Static loc:Strings.Tools_TheChameleonAnswersAReaderAs}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
-                   Text="Connect a Chameleon to capture. A saved Proxmark3 trace (.trace) can be loaded without one." />
+                   Text="{x:Static loc:Strings.Tools_ConnectAChameleonToCaptureA}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding IsHfUnsupported}"
                    Foreground="{DynamicResource BrandAmberBrush}"
-                   Text="This firmware has no HF sniffing. Update the Chameleon's firmware to use it." />
+                   Text="{x:Static loc:Strings.Tools_ThisFirmwareHasNoHFSniffing}" />
         <!-- One line; when it gets tight, Save and Load drop their labels first, then Capture. -->
         <c:ActionRow>
           <ComboBox ItemsSource="{Binding HfDurations}" SelectedItem="{Binding HfSeconds}"
-                    VerticalAlignment="Center" ToolTip.Tip="How long to listen">
+                    VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Tools_HowLongToListen}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="x:Int32">
-                <TextBlock Text="{Binding StringFormat='{}{0} s'}" />
+                <TextBlock Text="{Binding StringFormat={x:Static loc:Strings.Tools_Seconds}}" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
           <Button Classes="accent" Command="{Binding HfCaptureCommand}" IsEnabled="{Binding IsConnected}"
-                  c:ActionRow.Priority="2" ToolTip.Tip="Listen to the reader now">
+                  c:ActionRow.Priority="2" ToolTip.Tip="{x:Static loc:Strings.Tools_ListenToTheReaderNow}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.sniff}" />
               <TextBlock Text="{Binding IsBusy, Converter={x:Static vm:ToolsViewModel.CaptureLabel}}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Command="{Binding HfLoadCommand}" IsEnabled="{Binding CanUseFiles}" c:ActionRow.Priority="1"
-                  ToolTip.Tip="Open a Proxmark3 trace (.trace)">
+                  ToolTip.Tip="{x:Static loc:Strings.Tools_OpenAProxmark3TraceTrace}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="Load" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="{x:Static loc:Strings.Tools_Load}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Command="{Binding HfSaveCommand}" IsEnabled="{Binding CanUseFiles}"
-                  ToolTip.Tip="Save the frames as a Proxmark3 trace (.trace)">
+                  ToolTip.Tip="{x:Static loc:Strings.Tools_SaveTheFramesAsAProxmark3}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="Save" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </c:ActionRow>
@@ -174,29 +175,29 @@
       <!-- LF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsLf}">
         <TextBlock Classes="caption" TextWrapping="Wrap"
-                   Text="Turns the field on and records 32 ms of the antenna signal, one sample per carrier cycle (8 µs). Hold a tag on the antenna while it records." />
+                   Text="{x:Static loc:Strings.Tools_TurnsTheFieldOnAndRecords}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
-                   Text="Connect a Chameleon to capture. A saved capture (.bin) can be loaded without one." />
+                   Text="{x:Static loc:Strings.Tools_ConnectAChameleonToCaptureA2}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding IsUnsupported}"
                    Foreground="{DynamicResource BrandAmberBrush}"
-                   Text="This firmware has no LF sniffing. Update the Chameleon's firmware to use it (the Chameleon Lite has no reader)." />
+                   Text="{x:Static loc:Strings.Tools_ThisFirmwareHasNoLFSniffing}" />
         <c:ActionRow>
           <Button Classes="accent" Command="{Binding CaptureCommand}" IsEnabled="{Binding IsConnected}"
-                  c:ActionRow.Priority="2" ToolTip.Tip="Record the LF field now">
+                  c:ActionRow.Priority="2" ToolTip.Tip="{x:Static loc:Strings.Tools_RecordTheLFFieldNow}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.sniff}" /><TextBlock Text="Capture" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.sniff}" /><TextBlock Text="{x:Static loc:Strings.Tools_Capture}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Command="{Binding LoadCommand}" IsEnabled="{Binding CanUseFiles}" c:ActionRow.Priority="1"
-                  ToolTip.Tip="Open a raw capture (.bin): one byte per sample">
+                  ToolTip.Tip="{x:Static loc:Strings.Tools_OpenARawCaptureBinOne}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="Load" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="{x:Static loc:Strings.Tools_Load}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Command="{Binding SaveCommand}" IsEnabled="{Binding CanUseFiles}"
-                  ToolTip.Tip="Save every sample as a raw .bin file">
+                  ToolTip.Tip="{x:Static loc:Strings.Tools_SaveEverySampleAsARaw}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="Save" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </c:ActionRow>
@@ -213,14 +214,14 @@
         <StackPanel Spacing="12" IsVisible="{Binding IsHf}">
           <Border Classes="card" IsVisible="{Binding HfHasCapture}">
             <StackPanel Spacing="10">
-              <TextBlock Text="Summary" Classes="h2" />
+              <TextBlock Text="{x:Static loc:Strings.Tools_Summary}" Classes="h2" />
               <Grid Classes="facts" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
                     ColumnSpacing="16" RowSpacing="6">
-                <TextBlock Grid.Row="0" Classes="caption" Text="Frames" />
+                <TextBlock Grid.Row="0" Classes="caption" Text="{x:Static loc:Strings.Tools_Frames}" />
                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding HfCountsText}" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="1" Classes="caption" Text="Card" />
+                <TextBlock Grid.Row="1" Classes="caption" Text="{x:Static loc:Strings.Common_Card}" />
                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HfCardText}" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="2" Classes="caption" Text="Session" />
+                <TextBlock Grid.Row="2" Classes="caption" Text="{x:Static loc:Strings.Tools_Session}" />
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding HfSessionText}" TextWrapping="Wrap" />
                 <TextBlock Grid.Row="3" Classes="caption" Text="AIDs" IsVisible="{Binding HfHasAids}" />
                 <SelectableTextBlock Grid.Row="3" Grid.Column="1" Text="{Binding HfAidsText}" TextWrapping="Wrap"
@@ -234,11 +235,11 @@
             <StackPanel Spacing="12">
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <StackPanel Spacing="2">
-                  <TextBlock Text="MIFARE Classic keys" Classes="h2" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_MIFAREClassicKeys}" Classes="h2" />
                   <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="The reader's key, from its authentications: mfkey32 needs two tries on the same block, mfkey64 one the card accepted." />
+                             Text="{x:Static loc:Strings.Tools_TheReadersKeyFromItsAuthentications}" />
                 </StackPanel>
-                <Button Grid.Column="1" VerticalAlignment="Top" Content="Recover all"
+                <Button Grid.Column="1" VerticalAlignment="Top" Content="{x:Static loc:Strings.Tools_RecoverAll}"
                         Command="{Binding HfRecoverAllCommand}" IsVisible="{Binding HfCanRecoverAll}" />
               </Grid>
               <ItemsControl ItemsSource="{Binding HfAuthGroups}">
@@ -260,22 +261,22 @@
                                                VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Classes="caption" VerticalAlignment="Center"
-                                   Text="{Binding Method, StringFormat='via {0}'}" />
+                                   Text="{Binding Method, StringFormat={x:Static loc:Strings.Tools_ViaMethod}}" />
                         <Button Classes="icon" VerticalAlignment="Center" b:CopyToClipboard.Text="{Binding Key}">
                           <PathIcon Data="{StaticResource Icon.copy}" />
                         </Button>
                       </StackPanel>
                       <c:ActionRow IsVisible="{Binding Key, Converter={x:Static StringConverters.IsNullOrEmpty}}">
                         <Button Classes="accent" Command="{Binding RecoverCommand}" IsVisible="{Binding CanRecover}"
-                                c:ActionRow.Priority="1" ToolTip.Tip="Compute the key from these authentications">
+                                c:ActionRow.Priority="1" ToolTip.Tip="{x:Static loc:Strings.Tools_ComputeTheKeyFromTheseAuthentications}">
                           <StackPanel Orientation="Horizontal" Spacing="6">
-                            <PathIcon Data="{StaticResource Icon.key}" /><TextBlock Text="Recover key" VerticalAlignment="Center" />
+                            <PathIcon Data="{StaticResource Icon.key}" /><TextBlock Text="{x:Static loc:Strings.Tools_RecoverKey}" VerticalAlignment="Center" />
                           </StackPanel>
                         </Button>
                         <Button IsVisible="{Binding Mfkey32Command, Converter={x:Static ObjectConverters.IsNotNull}}"
                                 b:CopyToClipboard.Text="{Binding Mfkey32Command}">
                           <StackPanel Orientation="Horizontal" Spacing="6">
-                            <PathIcon Data="{StaticResource Icon.copy}" /><TextBlock Text="mfkey32v2 command" VerticalAlignment="Center" />
+                            <PathIcon Data="{StaticResource Icon.copy}" /><TextBlock Text="{x:Static loc:Strings.Tools_Mfkey32v2Command}" VerticalAlignment="Center" />
                           </StackPanel>
                         </Button>
                       </c:ActionRow>
@@ -293,13 +294,13 @@
             <StackPanel Spacing="10">
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <StackPanel Spacing="2" VerticalAlignment="Center">
-                  <TextBlock Text="Frames" Classes="h2" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_Frames}" Classes="h2" />
                   <TextBlock Classes="caption" Name="FramesHint" TextWrapping="Wrap" />
                 </StackPanel>
                 <Button Grid.Column="1" Name="CopyFramesButton" VerticalAlignment="Center"
-                        ToolTip.Tip="Copy the selected frames, or all of them">
+                        ToolTip.Tip="{x:Static loc:Strings.Tools_CopyTheSelectedFramesOrAll}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{StaticResource Icon.copy}" /><TextBlock Name="CopyFramesLabel" Text="Copy all" VerticalAlignment="Center" />
+                    <PathIcon Data="{StaticResource Icon.copy}" /><TextBlock Name="CopyFramesLabel" Text="{x:Static loc:Strings.Tools_CopyAll}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
               </Grid>
@@ -329,19 +330,19 @@
         <StackPanel Spacing="12" IsVisible="{Binding IsLf}">
           <Border Classes="card" IsVisible="{Binding HasCapture}">
             <StackPanel Spacing="10">
-              <TextBlock Text="Summary" Classes="h2" />
+              <TextBlock Text="{x:Static loc:Strings.Tools_Summary}" Classes="h2" />
               <Grid Classes="facts" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                     ColumnSpacing="16" RowSpacing="6">
-                <TextBlock Grid.Row="0" Classes="caption" Text="Samples" />
+                <TextBlock Grid.Row="0" Classes="caption" Text="{x:Static loc:Strings.Tools_Samples}" />
                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SamplesText}" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="1" Classes="caption" Text="Range" />
+                <TextBlock Grid.Row="1" Classes="caption" Text="{x:Static loc:Strings.Tools_Range}" />
                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding RangeText}" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="2" Classes="caption" Text="Gaps" />
+                <TextBlock Grid.Row="2" Classes="caption" Text="{x:Static loc:Strings.Tools_Gaps}" />
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding GapsText}" TextWrapping="Wrap" />
-                <TextBlock Grid.Row="3" Classes="caption" Text="Modulation" />
+                <TextBlock Grid.Row="3" Classes="caption" Text="{x:Static loc:Strings.Tools_Modulation}" />
                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ModulationText}" TextWrapping="Wrap"
-                           ToolTip.Tip="A guess from the lengths of the high and low runs" />
-                <TextBlock Grid.Row="4" Classes="caption" Text="Clock" />
+                           ToolTip.Tip="{x:Static loc:Strings.Tools_AGuessFromTheLengthsOf}" />
+                <TextBlock Grid.Row="4" Classes="caption" Text="{x:Static loc:Strings.Tools_Clock}" />
                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ClockText}" TextWrapping="Wrap" />
               </Grid>
             </StackPanel>
@@ -350,9 +351,9 @@
           <Border Classes="card" IsVisible="{Binding HasCapture}">
             <StackPanel Spacing="10">
               <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                <TextBlock Text="Waveform" Classes="h2" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Tools_Waveform}" Classes="h2" VerticalAlignment="Center" />
                 <Slider Grid.Column="1" Width="160" Minimum="1" Maximum="{x:Static c:LfWaveform.MaxZoom}"
-                        Value="{Binding Zoom}" VerticalAlignment="Center" ToolTip.Tip="Zoom" />
+                        Value="{Binding Zoom}" VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Tools_Zoom}" />
                 <TextBlock Grid.Column="2" Text="{Binding ZoomText}" MinWidth="36" VerticalAlignment="Center" />
               </Grid>
               <Border CornerRadius="6" ClipToBounds="True"
@@ -366,30 +367,30 @@
               <WrapPanel ItemSpacing="16" LineSpacing="4">
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Border Width="14" Height="8" CornerRadius="2" Background="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
-                  <TextBlock Text="Signal" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_Signal}" />
                 </StackPanel>
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Line StartPoint="0,0" EndPoint="16,0" StrokeThickness="1.5" StrokeDashArray="2,2"
                         Stroke="{actipro:ThemeResource DefaultForegroundBrushTertiary}" VerticalAlignment="Center" />
-                  <TextBlock Text="{Binding Summary?.Threshold, StringFormat='Decode threshold 0x{0:X2}', TargetNullValue=''}" />
+                  <TextBlock Text="{Binding Summary?.Threshold, StringFormat={x:Static loc:Strings.Tools_DecodeThreshold}, TargetNullValue=''}" />
                 </StackPanel>
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Line StartPoint="0,0" EndPoint="16,0" StrokeThickness="1.5" StrokeDashArray="1,2"
                         Stroke="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" VerticalAlignment="Center" />
-                  <TextBlock Text="{Binding Summary?.GapThreshold, StringFormat='Gap threshold 0x{0:X2}', TargetNullValue=''}" />
+                  <TextBlock Text="{Binding Summary?.GapThreshold, StringFormat={x:Static loc:Strings.Tools_GapThreshold}, TargetNullValue=''}" />
                 </StackPanel>
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Border Width="14" Height="10" CornerRadius="2" Background="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" Opacity="0.3" />
-                  <TextBlock Text="Field gap" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_FieldGap}" />
                 </StackPanel>
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Border Width="2" Height="12" Background="{DynamicResource BrandAmberBrush}" />
-                  <TextBlock Text="Cursor" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_Cursor}" />
                 </StackPanel>
                 <StackPanel Classes="legend" Orientation="Horizontal" Spacing="6">
                   <Border Width="14" Height="10" CornerRadius="2" BorderThickness="1.5"
                           BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
-                  <TextBlock Text="View in the capture" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_ViewInTheCapture}" />
                 </StackPanel>
               </WrapPanel>
             </StackPanel>
@@ -399,23 +400,23 @@
             <StackPanel Spacing="8">
               <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Manchester decode" Classes="h2" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_ManchesterDecode}" Classes="h2" />
                   <TextBlock Classes="caption" Text="{Binding DecodeText}" TextWrapping="Wrap" />
                 </StackPanel>
                 <ComboBox Grid.Column="1" ItemsSource="{Binding ClockDivisors}" SelectedItem="{Binding ClockDivisor}"
-                          VerticalAlignment="Center" ToolTip.Tip="Carrier cycles per bit">
+                          VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Tools_CarrierCyclesPerBit}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="x:Int32">
                       <TextBlock Text="{Binding StringFormat='RF/{0}'}" />
                     </DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
-                <CheckBox Grid.Column="2" Content="Invert" IsChecked="{Binding Invert}" VerticalAlignment="Center"
-                          ToolTip.Tip="Swap high and low: decodes the bits inverted" />
+                <CheckBox Grid.Column="2" Content="{x:Static loc:Strings.Tools_Invert}" IsChecked="{Binding Invert}" VerticalAlignment="Center"
+                          ToolTip.Tip="{x:Static loc:Strings.Tools_SwapHighAndLowDecodesThe}" />
               </Grid>
               <Grid Classes="facts" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12"
                     RowSpacing="2" IsVisible="{Binding HasBits}">
-                <TextBlock Grid.Row="0" Classes="caption" Text="Bits" VerticalAlignment="Top" Margin="0,2,0,0" />
+                <TextBlock Grid.Row="0" Classes="caption" Text="{x:Static loc:Strings.Tools_Bits}" VerticalAlignment="Top" Margin="0,2,0,0" />
                 <SelectableTextBlock Grid.Row="0" Grid.Column="1" Classes="mono" FontSize="12" Text="{Binding Bits}"
                                      TextWrapping="Wrap" VerticalAlignment="Center" />
                 <Button Grid.Row="0" Grid.Column="2" Classes="icon" VerticalAlignment="Top"
@@ -436,9 +437,9 @@
           <Border Classes="card" IsVisible="{Binding HasCapture}">
             <StackPanel Spacing="10">
               <StackPanel Spacing="2">
-                <TextBlock Text="Samples" Classes="h2" />
+                <TextBlock Text="{x:Static loc:Strings.Tools_Samples}" Classes="h2" />
                 <TextBlock Classes="caption" TextWrapping="Wrap"
-                           Text="One byte per carrier cycle; select bytes and copy them (Ctrl+C or the context menu)." />
+                           Text="{x:Static loc:Strings.Tools_OneBytePerCarrierCycleSelect}" />
               </StackPanel>
               <ScrollViewer Classes="samples" HorizontalScrollBarVisibility="Disabled">
                 <c:HexEditor Buffer="{Binding SamplesBuffer}" ShowGroupHeaders="False" />

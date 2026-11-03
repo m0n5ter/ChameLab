@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
         xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:conv="using:ChameLab.Converters"
@@ -105,13 +106,13 @@
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" Spacing="2">
             <TextBlock Text="Chameleon" Classes="h1" />
-            <TextBlock Classes="caption" Text="Device status, firmware and settings." />
+            <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_DeviceStatusFirmwareAndSettings}" />
           </StackPanel>
           <Button Grid.Column="1" Command="{Binding RefreshCommand}" VerticalAlignment="Center"
-                  ToolTip.Tip="Reload device information">
+                  ToolTip.Tip="{x:Static loc:Strings.Chameleon_ReloadDeviceInformation}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.refresh}" />
-              <TextBlock Text="Refresh" Classes="wide-only" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_Refresh}" Classes="wide-only" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </Grid>
@@ -136,20 +137,20 @@
                 </Panel>
   
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                  <TextBlock Text="BATTERY" Classes="overline" />
+                  <TextBlock Text="{x:Static loc:Strings.Chameleon_BatteryHeader}" Classes="overline" />
                   <TextBlock Text="{Binding Battery?.Percent, StringFormat='{}{0}%'}"
                              FontSize="34" FontWeight="Bold"
                              IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
                   <TextBlock Classes="caption"
-                             Text="{Binding Battery?.Volts, StringFormat='{}{0:F2} V'}"
+                             Text="{Binding Battery?.Volts, StringFormat={x:Static loc:Strings.Chameleon_BatteryVolts}}"
                              IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNotNull}}" />
                   <TextBlock Classes="caption" FontWeight="SemiBold"
                              Text="{Binding Battery?.ConditionText}"
                              Foreground="{Binding Battery?.Condition, Converter={x:Static conv:BatteryBrushConverter.Instance}}"
                              IsVisible="{Binding Battery?.ConditionText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  <TextBlock Text="Not available" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"
+                  <TextBlock Text="{x:Static loc:Strings.Chameleon_NotAvailable}" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"
                              IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
-                  <TextBlock Text="This model has no battery gauge." Classes="caption"
+                  <TextBlock Text="{x:Static loc:Strings.Chameleon_ThisModelHasNoBatteryGauge}" Classes="caption"
                              IsVisible="{Binding Battery, Converter={x:Static ObjectConverters.IsNull}}" />
                 </StackPanel>
               </Grid>
@@ -157,28 +158,28 @@
   
             <Border Classes="card">
               <StackPanel Spacing="12">
-                <TextBlock Text="OPERATING MODE" Classes="overline" />
+                <TextBlock Text="{x:Static loc:Strings.Chameleon_OperatingModeHeader}" Classes="overline" />
                 <Border Classes="segmented compact" HorizontalAlignment="Left">
                   <UniformGrid Rows="1">
                     <RadioButton Classes="segment" GroupName="DeviceMode"
                                  IsChecked="{Binding ReaderMode, Converter={x:Static conv:InverseBoolConverter.Instance}}">
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <PathIcon Data="{StaticResource Icon.card}" />
-                        <TextBlock Text="Emulator" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Static loc:Strings.Chameleon_Emulator}" FontWeight="SemiBold" VerticalAlignment="Center" />
                       </StackPanel>
                     </RadioButton>
                     <RadioButton Classes="segment" GroupName="DeviceMode" IsChecked="{Binding ReaderMode}">
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <PathIcon Data="{StaticResource Icon.scan}" />
-                        <TextBlock Text="Reader" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Static loc:Strings.Chameleon_Reader}" FontWeight="SemiBold" VerticalAlignment="Center" />
                       </StackPanel>
                     </RadioButton>
                   </UniformGrid>
                 </Border>
                 <TextBlock Classes="caption" IsVisible="{Binding !ReaderMode}"
-                           Text="The device presents the active slot to readers as a card." />
+                           Text="{x:Static loc:Strings.Chameleon_TheDevicePresentsTheActiveSlot}" />
                 <TextBlock Classes="caption" IsVisible="{Binding ReaderMode}"
-                           Text="The device scans external cards and tags." />
+                           Text="{x:Static loc:Strings.Chameleon_TheDeviceScansExternalCardsAnd}" />
               </StackPanel>
             </Border>
           </UniformGrid>
@@ -190,15 +191,15 @@
             <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="14">
               <Border Grid.Column="0" Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.slots}" /></Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="ACTIVE SLOT" Classes="overline" />
+                <TextBlock Text="{x:Static loc:Strings.Chameleon_ActiveSlotHeader}" Classes="overline" />
                 <TextBlock Text="{Binding ActiveHeader}" Classes="caption" />
               </StackPanel>
               <Button Grid.Column="2" Classes="icon" Command="{Binding PrevSlotCommand}" VerticalAlignment="Center"
-                      ToolTip.Tip="Previous filled slot">
+                      ToolTip.Tip="{x:Static loc:Strings.Chameleon_PreviousFilledSlot}">
                 <PathIcon Data="{StaticResource Icon.back}" />
               </Button>
               <Button Grid.Column="3" Classes="icon" Command="{Binding NextSlotCommand}" VerticalAlignment="Center"
-                      ToolTip.Tip="Next filled slot">
+                      ToolTip.Tip="{x:Static loc:Strings.Chameleon_NextFilledSlot}">
                 <PathIcon Data="{StaticResource Icon.back}" RenderTransform="scaleX(-1)" />
               </Button>
             </Grid>
@@ -254,7 +255,7 @@
                            Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
                     </TextBlock>
                   </c:Marquee>
-                  <TextBlock Grid.Column="2" Classes="caption" Text="Empty" VerticalAlignment="Center"
+                  <TextBlock Grid.Column="2" Classes="caption" Text="{x:Static loc:Strings.Common_Empty}" VerticalAlignment="Center"
                              IsVisible="{Binding !HasHf}" />
                 </Grid>
                 <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
@@ -270,7 +271,7 @@
                            Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
                     </TextBlock>
                   </c:Marquee>
-                  <TextBlock Grid.Column="2" Classes="caption" Text="Empty" VerticalAlignment="Center"
+                  <TextBlock Grid.Column="2" Classes="caption" Text="{x:Static loc:Strings.Common_Empty}" VerticalAlignment="Center"
                              IsVisible="{Binding !HasLf}" />
                 </Grid>
               </WrapPanel>
@@ -287,21 +288,21 @@
               </Border>
               <StackPanel VerticalAlignment="Center">
                 <TextBlock Text="{Binding Info?.ModelName, TargetNullValue='Device'}" Classes="h2" />
-                <TextBlock Classes="caption" Text="Hardware and firmware identity" />
+                <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_HardwareAndFirmwareIdentity}" />
               </StackPanel>
             </StackPanel>
 
             <UniformGrid Classes="cols2">
               <Border Classes="inset">
                 <StackPanel Spacing="2">
-                  <TextBlock Text="FIRMWARE" Classes="overline" />
+                  <TextBlock Text="{x:Static loc:Strings.Chameleon_FirmwareHeader}" Classes="overline" />
                   <TextBlock Text="{Binding Info?.FirmwareVersion, TargetNullValue='-'}" Classes="value" />
                 </StackPanel>
               </Border>
               <Border Classes="inset">
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="GIT VERSION" Classes="overline" />
+                    <TextBlock Text="{x:Static loc:Strings.Chameleon_GitVersionHeader}" Classes="overline" />
                     <TextBlock Text="{Binding Info?.GitVersion, TargetNullValue='-'}" Classes="value mono" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
@@ -313,7 +314,7 @@
               <Border Classes="inset">
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="CHIP ID" Classes="overline" />
+                    <TextBlock Text="{x:Static loc:Strings.Chameleon_ChipIdHeader}" Classes="overline" />
                     <TextBlock Text="{Binding Info?.ChipId, TargetNullValue='-'}" Classes="value mono" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
@@ -325,7 +326,7 @@
               <Border Classes="inset">
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="BLE ADDRESS" Classes="overline" />
+                    <TextBlock Text="{x:Static loc:Strings.Chameleon_BleAddressHeader}" Classes="overline" />
                     <TextBlock Text="{Binding Info?.Address, TargetNullValue='-'}" Classes="value mono" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
@@ -346,25 +347,25 @@
                 <PathIcon Data="{StaticResource Icon.upload}" />
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="FIRMWARE UPDATE" Classes="overline" />
-                <TextBlock Text="{Binding Firmware.CurrentVersion, StringFormat='Installed: {0}'}" FontWeight="SemiBold" />
+                <TextBlock Text="{x:Static loc:Strings.Chameleon_FirmwareUpdateHeader}" Classes="overline" />
+                <TextBlock Text="{Binding Firmware.CurrentVersion, StringFormat={x:Static loc:Strings.Chameleon_FirmwareInstalled}}" FontWeight="SemiBold" />
                 <TextBlock Text="{Binding Firmware.CheckMessage}" Classes="caption" TextWrapping="Wrap" />
               </StackPanel>
               <Button Grid.Column="2" Classes="icon" VerticalAlignment="Center"
-                      Command="{Binding Firmware.CheckCommand}" ToolTip.Tip="Check GitHub for a newer release">
+                      Command="{Binding Firmware.CheckCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_CheckGitHubForANewerRelease}">
                 <PathIcon Data="{StaticResource Icon.refresh}" />
               </Button>
             </Grid>
             <WrapPanel ItemSpacing="8" LineSpacing="8">
               <Button Classes="accent" Command="{Binding Firmware.InstallLatestCommand}"
                       IsVisible="{Binding Firmware.CanInstallLatest}">
-                <TextBlock Text="{Binding Firmware.Latest?.Version, StringFormat='Update to {0}'}" />
+                <TextBlock Text="{Binding Firmware.Latest?.Version, StringFormat={x:Static loc:Strings.Chameleon_FirmwareUpdateTo}}" />
               </Button>
-              <Button Content="Release notes" Command="{Binding Firmware.OpenReleaseCommand}"
+              <Button Content="{x:Static loc:Strings.Chameleon_ReleaseNotes}" Command="{Binding Firmware.OpenReleaseCommand}"
                       IsVisible="{Binding Firmware.IsUpdateAvailable}" />
-              <Button Content="Install from file…" Command="{Binding Firmware.InstallFromFileCommand}"
+              <Button Content="{x:Static loc:Strings.Chameleon_InstallFromFile}" Command="{Binding Firmware.InstallFromFileCommand}"
                       IsVisible="{Binding Firmware.CanInstall}"
-                      ToolTip.Tip="Install a DFU package (ultra-dfu-app.zip / lite-dfu-app.zip)" />
+                      ToolTip.Tip="{x:Static loc:Strings.Chameleon_InstallADFUPackageUltraDfu}" />
             </WrapPanel>
           </StackPanel>
         </Border>
@@ -373,17 +374,17 @@
         <Border Classes="card">
           <StackPanel>
             <StackPanel Spacing="2" Margin="0,0,0,14">
-              <TextBlock Text="DEVICE SETTINGS" Classes="overline" />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_DeviceSettingsHeader}" Classes="overline" />
               <TextBlock Classes="caption" TextWrapping="Wrap"
-                         Text="Behavior and controls. Save sends your changes to the device and keeps them after a reboot." />
+                         Text="{x:Static loc:Strings.Chameleon_BehaviorAndControlsSaveSendsYour}" />
             </StackPanel>
             <!-- LED animation -->
             <c:SettingRow Classes="setting">
               <Border Classes="iconwell amber">
                 <PathIcon Data="{StaticResource Icon.led}" />
               </Border>
-              <TextBlock Text="LED animation" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Light pattern on wake-up." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_LEDAnimation}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_LightPatternOnWakeUp}" />
               <ComboBox Classes="control"
                         ItemsSource="{Binding AnimationModes}"
                         SelectedItem="{Binding AnimationMode}">
@@ -402,8 +403,8 @@
               <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.sleep}" />
               </Border>
-              <TextBlock Text="Sleep timeout" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Idle seconds before sleep (5–60)." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_SleepTimeout}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_IdleSecondsBeforeSleep560}" />
               <NumericUpDown Classes="control stepper" Minimum="5" Maximum="60" Increment="1"
                              FormatString="0" Value="{Binding SleepTimeout}" />
             </c:SettingRow>
@@ -416,8 +417,8 @@
                 <TextBlock Text="A" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Button A" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a short press." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_ButtonA}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ActionOnAShortPress}" />
               <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonAShort}">
                 <ComboBox.ItemTemplate>
@@ -434,8 +435,8 @@
                 <TextBlock Text="A" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Button A (long press)" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a long press." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_ButtonALongPress}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ActionOnALongPress}" />
               <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonALong}">
                 <ComboBox.ItemTemplate>
@@ -452,8 +453,8 @@
                 <TextBlock Text="B" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Button B" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a short press." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_ButtonB}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ActionOnAShortPress}" />
               <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBShort}">
                 <ComboBox.ItemTemplate>
@@ -470,8 +471,8 @@
                 <TextBlock Text="B" FontWeight="Bold" FontSize="16"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
-              <TextBlock Text="Button B (long press)" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Action on a long press." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_ButtonBLongPress}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ActionOnALongPress}" />
               <ComboBox Classes="control"
                         ItemsSource="{Binding ButtonFunctions}" SelectedItem="{Binding ButtonBLong}">
                 <ComboBox.ItemTemplate>
@@ -487,8 +488,8 @@
               <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.button}" />
               </Border>
-              <TextBlock Text="Long-press threshold" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Hold time for a long press (ms)." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_LongPressThreshold}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_HoldTimeForALongPress}" />
               <NumericUpDown Classes="control stepper" Minimum="100" Maximum="2000" Increment="50"
                              FormatString="0" Value="{Binding LongPressThreshold}" />
             </c:SettingRow>
@@ -500,8 +501,8 @@
               <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.ble}" />
               </Border>
-              <TextBlock Text="Bluetooth pairing" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="Require a PIN to connect over Bluetooth LE." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_BluetoothPairing}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_RequireAPINToConnectOver}" />
               <ToggleSwitch VerticalAlignment="Center" OnContent="" OffContent=""
                             IsChecked="{Binding BlePairingEnabled}" />
             </c:SettingRow>
@@ -513,10 +514,10 @@
               <Border Classes="iconwell blue">
                 <PathIcon Data="{StaticResource Icon.key}" />
               </Border>
-              <TextBlock Text="Pairing PIN" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" Text="6 digits. Blank keeps the current PIN." />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_PairingPIN}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_6DigitsBlankKeepsTheCurrent}" />
               <TextBox Classes="control mono" MaxLength="6" Text="{Binding BlePin}"
-                       PlaceholderText="••••••" ToolTip.Tip="The default PIN is 123456." />
+                       PlaceholderText="••••••" ToolTip.Tip="{x:Static loc:Strings.Chameleon_TheDefaultPINIs123456}" />
             </c:SettingRow>
           </StackPanel>
         </Border>
@@ -527,20 +528,20 @@
             <!-- Bonded BLE devices -->
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" IsVisible="{Binding SupportsBle}">
               <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="Clear bonded devices" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Forgets every phone and tablet paired over Bluetooth LE." />
+                <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearBondedDevices}" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ForgetsEveryPhoneAndTabletPaired}" />
               </StackPanel>
               <Button Grid.Column="1" x:Name="ClearBondsButton" Classes="danger" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.ble}" />
-                  <TextBlock Text="Clear bonds…" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearBonds2}" VerticalAlignment="Center" />
                 </StackPanel>
                 <Button.Flyout>
                   <Flyout Placement="TopEdgeAlignedRight">
                     <StackPanel Spacing="12" MaxWidth="280">
-                      <TextBlock Text="Clear all bonded BLE devices?" FontWeight="SemiBold" />
-                      <TextBlock Classes="caption" Text="Paired phones and tablets will have to pair again, and may need the Chameleon removed from their Bluetooth list first." />
-                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Clear bonds"
+                      <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearAllBondedBLEDevices}" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_PairedPhonesAndTabletsWillHave}" />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="{x:Static loc:Strings.Chameleon_ClearBonds}"
                               Command="{Binding ClearBondsCommand}" Click="OnCloseFlyout" />
                     </StackPanel>
                   </Flyout>
@@ -552,20 +553,20 @@
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
               <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="Reset to defaults" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="Restores factory settings for LEDs, sleep and buttons." />
+                <TextBlock Text="{x:Static loc:Strings.Chameleon_ResetToDefaults}" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_RestoresFactorySettingsForLEDsSleep}" />
               </StackPanel>
               <Button Grid.Column="1" x:Name="ResetButton" Classes="danger" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.reset}" />
-                  <TextBlock Text="Reset…" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static loc:Strings.Chameleon_Reset}" VerticalAlignment="Center" />
                 </StackPanel>
                 <Button.Flyout>
                   <Flyout Placement="TopEdgeAlignedRight">
                     <StackPanel Spacing="12" MaxWidth="260">
-                      <TextBlock Text="Reset all settings?" FontWeight="SemiBold" />
-                      <TextBlock Classes="caption" Text="Current device settings will be replaced by the factory defaults." />
-                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Reset settings"
+                      <TextBlock Text="{x:Static loc:Strings.Chameleon_ResetAllSettings}" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_CurrentDeviceSettingsWillBeReplaced}" />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="{x:Static loc:Strings.Chameleon_ResetSettings}"
                               Command="{Binding ResetCommand}" Click="OnCloseFlyout" />
                     </StackPanel>
                   </Flyout>
@@ -578,21 +579,21 @@
             <!-- Factory reset (wipe) -->
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
               <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="Factory reset" FontWeight="SemiBold" />
+                <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryReset}" FontWeight="SemiBold" />
                 <TextBlock Classes="caption" TextWrapping="Wrap"
-                           Text="Wipes ALL data: every slot, nickname, saved emulator content and settings. This cannot be undone." />
+                           Text="{x:Static loc:Strings.Chameleon_WipesALLDataEverySlotNickname}" />
               </StackPanel>
               <Button Grid.Column="1" x:Name="WipeButton" Classes="danger" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.delete}" />
-                  <TextBlock Text="Factory reset…" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryReset2}" VerticalAlignment="Center" />
                 </StackPanel>
                 <Button.Flyout>
                   <Flyout Placement="TopEdgeAlignedRight">
                     <StackPanel Spacing="12" MaxWidth="280">
-                      <TextBlock Text="Factory reset the Chameleon?" FontWeight="SemiBold" />
-                      <TextBlock Classes="caption" Text="All slots, nicknames, emulator data and settings will be erased. The device will disconnect afterwards." />
-                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="Erase everything"
+                      <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryResetTheChameleon}" FontWeight="SemiBold" />
+                      <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_AllSlotsNicknamesEmulatorDataAnd}" />
+                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="{x:Static loc:Strings.Chameleon_EraseEverything}"
                               Command="{Binding FactoryResetCommand}" Click="OnCloseFlyout" />
                     </StackPanel>
                   </Flyout>
@@ -613,13 +614,13 @@
           <TextBlock Text="{Binding SaveError}" />
         </DockPanel>
         <c:ActionBar>
-          <TextBlock Text="Unsaved changes" VerticalAlignment="Center" FontWeight="SemiBold" />
-          <Button Content="Discard" Command="{Binding DiscardCommand}" />
+          <TextBlock Text="{x:Static loc:Strings.Common_UnsavedChanges}" VerticalAlignment="Center" FontWeight="SemiBold" />
+          <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardCommand}" />
           <Button Classes="accent" Command="{Binding SaveCommand}"
-                  ToolTip.Tip="Send these values to the device and keep them after a reboot">
+                  ToolTip.Tip="{x:Static loc:Strings.Chameleon_SendTheseValuesToTheDevice}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="Save" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </c:ActionBar>

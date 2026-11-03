@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ChameLab.ViewModels"
@@ -18,7 +19,7 @@
             BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,0,1">
       <c:AppBarGrid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
         <Button Grid.Column="0" Classes="icon" Command="{Binding TogglePaneCommand}"
-                ToolTip.Tip="Toggle navigation" Margin="0,0,6,0">
+                ToolTip.Tip="{x:Static loc:Strings.Main_ToggleNavigation}" Margin="0,0,6,0">
           <PathIcon Data="{StaticResource Icon.menu}" />
         </Button>
 
@@ -32,7 +33,7 @@
                   Focusable="{Binding AppUpdate.IsUpdateAvailable}"
                   ToolTip.Tip="{Binding AppUpdate.Message}"
                   ToolTip.IsEnabled="{Binding AppUpdate.IsUpdateAvailable}"
-                  AutomationProperties.Name="ChameLab - download update">
+                  AutomationProperties.Name="{x:Static loc:Strings.Main_ChameLabDownloadUpdate}">
             <StackPanel Spacing="0">
               <StackPanel Orientation="Horizontal" Spacing="5">
                 <TextBlock Text="ChameLab" FontSize="16" FontWeight="SemiBold"
@@ -61,8 +62,8 @@
             <Ellipse Width="8" Height="8" VerticalAlignment="Center"
                      Fill="{actipro:ThemeResource DefaultForegroundBrushTertiary}" IsVisible="{Binding !IsConnected}" />
             <Panel Classes="header-connection-label">
-              <TextBlock Text="Online" FontSize="12" IsVisible="{Binding IsConnected}" VerticalAlignment="Center" />
-              <TextBlock Text="Offline" FontSize="12" IsVisible="{Binding !IsConnected}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Main_Online}" FontSize="12" IsVisible="{Binding IsConnected}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Main_Offline}" FontSize="12" IsVisible="{Binding !IsConnected}" VerticalAlignment="Center" />
             </Panel>
           </StackPanel>
           <ToolTip.Tip>
@@ -71,13 +72,13 @@
         </Border>
 
         <actipro:ToggleThemeButton Grid.Column="4" Margin="0,0,6,0" VerticalAlignment="Center"
-                                   ToolTip.Tip="Toggle light / dark theme" />
+                                   ToolTip.Tip="{x:Static loc:Strings.Main_ToggleLightDarkTheme}" />
 
         <Button Grid.Column="5" Classes="danger header-disconnect" Command="{Binding DisconnectCommand}"
-                IsVisible="{Binding IsConnected}" ToolTip.Tip="Disconnect from the device">
+                IsVisible="{Binding IsConnected}" ToolTip.Tip="{x:Static loc:Strings.Main_DisconnectFromTheDevice}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.power}" />
-            <TextBlock Text="Disconnect" Classes="header-disconnect-label" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static loc:Strings.Main_Disconnect}" Classes="header-disconnect-label" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
       </c:AppBarGrid>
@@ -96,7 +97,7 @@
           <Border BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,1,0"
                   Width="{Binding #Shell.OpenPaneLength}" HorizontalAlignment="Left">
             <Grid RowDefinitions="Auto,*,Auto">
-              <TextBlock Grid.Row="0" Text="NAVIGATION" Classes="overline" Margin="20,18,0,6" />
+              <TextBlock Grid.Row="0" Text="{x:Static loc:Strings.Main_NavigationHeader}" Classes="overline" Margin="20,18,0,6" />
 
               <!-- The pages, with the card folders (one level) indented under Cards. Cards are dragged
                    onto a folder, or onto Cards to take them out of theirs (see ListReorder). -->
@@ -115,12 +116,12 @@
                                   Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
                         <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" />
                         <Button Grid.Column="3" Classes="icon small" Command="{Binding NewFolderCommand}"
-                                ToolTip.Tip="New folder">
+                                ToolTip.Tip="{x:Static loc:Strings.Common_NewFolder}">
                           <PathIcon Data="{StaticResource Icon.folderAdd}" />
                         </Button>
                         <Button Grid.Column="4" Classes="icon small" Margin="0,0,4,0"
                                 Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).AddCardCommand}"
-                                ToolTip.Tip="Add card">
+                                ToolTip.Tip="{x:Static loc:Strings.Common_AddCard}">
                           <PathIcon Data="{StaticResource Icon.add}" />
                         </Button>
                       </Grid>
@@ -145,9 +146,9 @@
                             ColumnDefinitions="Auto,Auto,*,Auto" MinHeight="32">
                         <Grid.ContextFlyout>
                           <MenuFlyout>
-                            <MenuItem Header="Rename" Command="{Binding RenameCommand}" />
-                            <MenuItem Header="Delete folder" Command="{Binding DeleteCommand}"
-                                      ToolTip.Tip="Its cards stay in Cards" />
+                            <MenuItem Header="{x:Static loc:Strings.Common_Rename}" Command="{Binding RenameCommand}" />
+                            <MenuItem Header="{x:Static loc:Strings.Common_DeleteFolder}" Command="{Binding DeleteCommand}"
+                                      ToolTip.Tip="{x:Static loc:Strings.Main_ItsCardsStayInCards}" />
                           </MenuFlyout>
                         </Grid.ContextFlyout>
                         <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
@@ -167,19 +168,19 @@
                              count: the name keeps its width, so it doesn't rewrap as they come and go. -->
                         <StackPanel Grid.Column="2" Grid.ColumnSpan="2" Classes="folderactions" Orientation="Horizontal"
                                     HorizontalAlignment="Right" Margin="4,0,2,0" IsVisible="{Binding !IsEditing}">
-                          <Button Classes="icon small" Command="{Binding RenameCommand}" ToolTip.Tip="Rename folder">
+                          <Button Classes="icon small" Command="{Binding RenameCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_RenameFolder}">
                             <PathIcon Data="{StaticResource Icon.edit}" />
                           </Button>
-                          <Button Classes="icon small danger" ToolTip.Tip="Delete folder">
+                          <Button Classes="icon small danger" ToolTip.Tip="{x:Static loc:Strings.Common_DeleteFolder}">
                             <PathIcon Data="{StaticResource Icon.delete}" />
                             <Button.Flyout>
                               <Flyout Placement="RightEdgeAlignedTop">
                                 <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
                                   <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
-                                             Text="{Binding Name, StringFormat='Delete the folder {0}?'}" />
+                                             Text="{Binding Name, StringFormat={x:Static loc:Strings.Common_DeleteFolderPrompt}}" />
                                   <TextBlock Classes="caption" TextWrapping="Wrap"
-                                             Text="Its cards are not deleted: they go back to Cards." />
-                                  <Button Classes="danger solid" Content="Delete folder" HorizontalAlignment="Right"
+                                             Text="{x:Static loc:Strings.Common_ItsCardsAreNotDeletedThey}" />
+                                  <Button Classes="danger solid" Content="{x:Static loc:Strings.Common_DeleteFolder}" HorizontalAlignment="Right"
                                           Click="OnFolderDeleteClick" />
                                 </StackPanel>
                               </Flyout>
@@ -199,23 +200,23 @@
               <!-- Single trimmed lines: wrapped text would change the height while the pane animates its width. -->
               <Border Grid.Row="2" Classes="inset" Margin="12,8,12,14">
                 <StackPanel Spacing="2">
-                  <TextBlock Text="CONNECTED DEVICE" Classes="overline" IsVisible="{Binding IsConnected}"
+                  <TextBlock Text="{x:Static loc:Strings.Main_ConnectedDeviceHeader}" Classes="overline" IsVisible="{Binding IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Text="NO DEVICE" Classes="overline" IsVisible="{Binding !IsConnected}"
+                  <TextBlock Text="{x:Static loc:Strings.Main_NoDeviceHeader}" Classes="overline" IsVisible="{Binding !IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                   <TextBlock Text="{Binding DeviceSummary}" FontSize="12" IsVisible="{Binding IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                              ToolTip.Tip="{Binding DeviceSummary}" />
                   <TextBlock FontSize="12" IsVisible="{Binding !IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                             Text="No device attached" ToolTip.Tip="No device. Open Connect to attach one." />
+                             Text="{x:Static loc:Strings.Main_NoDeviceAttached}" ToolTip.Tip="{x:Static loc:Strings.Main_NoDeviceOpenConnectToAttach}" />
                   <!-- A newer release shows as a compact Update link beside the version. -->
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,4,0,0">
                     <TextBlock Grid.Column="0" Classes="caption" VerticalAlignment="Center"
                                Text="{Binding Settings.AppVersion, StringFormat='ChameLab {0}'}"
                                TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                     <Button Grid.Column="1" Classes="accent mini" Padding="8,1" MinHeight="0" FontSize="11"
-                            VerticalAlignment="Center" Content="Update"
+                            VerticalAlignment="Center" Content="{x:Static loc:Strings.Common_Update}"
                             Command="{Binding AppUpdate.OpenDownloadCommand}" IsVisible="{Binding AppUpdate.IsUpdateAvailable}"
                             ToolTip.Tip="{Binding AppUpdate.Message}" />
                   </Grid>
@@ -242,7 +243,7 @@
                       b:CopyToClipboard.Text="{Binding CurrentPage.Error}">
                 <PathIcon Data="{StaticResource Icon.copy}" />
               </Button>
-              <Button Grid.Column="3" Classes="icon small" ToolTip.Tip="Dismiss"
+              <Button Grid.Column="3" Classes="icon small" ToolTip.Tip="{x:Static loc:Strings.Main_Dismiss}"
                       Command="{Binding CurrentPage.DismissErrorCommand}">
                 <PathIcon Data="{StaticResource Icon.close}" />
               </Button>
@@ -316,8 +317,8 @@
               </ScrollViewer>
             </Border>
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-              <Button Content="Cancel" Command="{Binding CloseCommand}" b:DialogKeys.IsCancel="True" />
-              <Button Classes="accent" Content="Install" Command="{Binding ConfirmCommand}" b:DialogKeys.IsDefault="True" />
+              <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CloseCommand}" b:DialogKeys.IsCancel="True" />
+              <Button Classes="accent" Content="{x:Static loc:Strings.Main_Install}" Command="{Binding ConfirmCommand}" b:DialogKeys.IsDefault="True" />
             </StackPanel>
           </StackPanel>
 
@@ -332,7 +333,7 @@
           <!-- Done -->
           <StackPanel Spacing="10" IsVisible="{Binding IsDone}">
             <TextBlock Text="{Binding StepText}" TextWrapping="Wrap" />
-            <Button Classes="accent" Content="Close" HorizontalAlignment="Right" Command="{Binding CloseCommand}"
+            <Button Classes="accent" Content="{x:Static loc:Strings.Common_Close}" HorizontalAlignment="Right" Command="{Binding CloseCommand}"
                     b:DialogKeys.IsDefault="True" b:DialogKeys.IsCancel="True" />
           </StackPanel>
 
@@ -340,10 +341,10 @@
           <StackPanel Spacing="10" IsVisible="{Binding IsFailed}">
             <SelectableTextBlock Text="{Binding Error}" TextWrapping="Wrap" />
             <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding CanRetry}"
-                       Text="If the device stays in its bootloader (LEDs 4 and 5 blink), Retry installs the firmware again." />
+                       Text="{x:Static loc:Strings.Main_IfTheDeviceStaysInIts}" />
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-              <Button Content="Close" Command="{Binding CloseCommand}" b:DialogKeys.IsCancel="True" />
-              <Button Classes="accent" Content="Retry" Command="{Binding RetryCommand}" IsVisible="{Binding CanRetry}"
+              <Button Content="{x:Static loc:Strings.Common_Close}" Command="{Binding CloseCommand}" b:DialogKeys.IsCancel="True" />
+              <Button Classes="accent" Content="{x:Static loc:Strings.Main_Retry}" Command="{Binding RetryCommand}" IsVisible="{Binding CanRetry}"
                       b:DialogKeys.IsDefault="True" />
             </StackPanel>
           </StackPanel>
@@ -358,7 +359,7 @@
             Background="{actipro:ThemeResource Container3BackgroundBrush}"
             BorderBrush="{actipro:ThemeResource Container3BorderBrush}" BorderThickness="1"
             BoxShadow="0 6 18 0 #40000000" IsVisible="{Binding IsExitHintVisible}">
-      <TextBlock Text="Press Back again to exit" FontSize="13" />
+      <TextBlock Text="{x:Static loc:Strings.Main_PressBackAgainToExit}" FontSize="13" />
     </Border>
   </Grid>
 </UserControl>
