@@ -7,6 +7,11 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
+## [v1.2.31][2026-11-03] · firmware v2.3.10-cl
+ - ChameLab: Write another writes the same card onto the next tag right away, with the same options, instead of returning to the idle writer; on a Gen2 card whose previous target used the factory key in every sector, the next target is assumed to use it too, so no key recovery is needed first
+ - ChameLab: the Write and Write another buttons are brand-blue outline buttons, and the writer's Cancel is a danger button while a write runs
+ - ChameLab: NTAG / Ultralight EV1 passwords are remembered per UID in the known card keys (a new `ntagPasswords` section of known-card-keys.json), after a card accepts one on read or write or is given a new one; a read with no password entered presents the remembered one, and a write falls back to it when the card refuses the entered password
+
 ## [v1.2.30][2026-11-03] · firmware v2.3.10-cl
  - ChameLab: smooth touch scrolling of the card editor and its memory on phones: the memory editor no longer redraws every line on each frame while the page scrolls it into or out of view
 
