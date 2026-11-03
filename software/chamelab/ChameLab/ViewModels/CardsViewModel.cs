@@ -2738,6 +2738,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var unit = card.Tag.IsUltralight() ? "page" : "block";
         var version = _writeVersion;
         var resume = _writeSession is not null;
+        if (!resume) _writeTargetHadDefaultKeys = _assumeDefaultWriteKeys || HasOnlyDefaultKeys(WriteRecovery.Target);
         var session = card.Tag.IsMifareClassic()
             ? _writeSession ??= new MifareWriteSession(card.ToMifareDump(), SelectedGeneration, WriteGen2Block0, WriteRecovery.Target)
             : null;
@@ -2763,7 +2764,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (version == _writeVersion) WriteRecovery.ApplyKey(p);
         });
-        var writeKeys = WriteRecovery.BuildKeyDictionary();
+        var writeKeys = _assumeDefaultWriteKeys
+            ? [MifareClassic.DefaultKeys[0], .. WriteRecovery.BuildKeyDictionary()]
+            : WriteRecovery.BuildKeyDictionary();
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             if (version != _writeVersion) return;

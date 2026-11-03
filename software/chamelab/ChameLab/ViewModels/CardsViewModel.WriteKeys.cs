@@ -13,6 +13,10 @@ public sealed partial class CardsViewModel
 {
     private MifareWriteSession? _writeSession;
     private int _writeVersion;
+    // The current write session's target started with the factory key in every sector.
+    private bool _writeTargetHadDefaultKeys;
+    // Write another after a factory-keyed target: the next blank target is assumed to use the factory key too.
+    private bool _assumeDefaultWriteKeys;
 
     public bool IsWriteSuccessful
     {
@@ -30,8 +34,8 @@ public sealed partial class CardsViewModel
     public bool ShowRecoveryTools => CanDump && (ShowDumpActions || IsDumpRunning);
     public bool ShowWriteProgress => false;
     public bool ShowMfkey32 => IsCardOpen || _cardPrng is not null;
-    public bool HasRequiredWriteKeys => !IsGen2Write || WriteRecovery.AllTargetKeysRecovered;
-    public string? WriteKeyHint => IsGen2Write && WriteRecovery is { AllTargetKeysRecovered: false, AllPlannedSectorsWritten: false } && !IsWriting
+    public bool HasRequiredWriteKeys => !IsGen2Write || WriteRecovery.AllTargetKeysRecovered || _assumeDefaultWriteKeys;
+    public string? WriteKeyHint => !HasRequiredWriteKeys && !WriteRecovery.AllPlannedSectorsWritten && !IsWriting
         ? "Recover keys A and B for every sector of the target card. Writing is available when all sectors are green."
         : null;
     public string TryKeysLabel => IsUltralightDump ? "Read" : "Try keys";
@@ -63,14 +67,23 @@ public sealed partial class CardsViewModel
     {
         _writeVersion++;
         _writeSession = null;
+        _assumeDefaultWriteKeys = false;
         IsWriteSuccessful = false;
         this.RaisePropertyChanged(nameof(CanChangeWriteOptions));
+        RaiseWriteKeyAvailability();
     }
 
-    // Starts a fresh write with the same options; a Gen2 target needs its own keys recovered first.
+    private static bool HasOnlyDefaultKeys(MifareDump? target) => target is not null
+        && target.KeyA.Concat(target.KeyB).All(key => key is { } k && k.AsSpan().SequenceEqual(MifareClassic.DefaultKeys[0]));
+
+    // Starts a fresh write with the same options. A Gen2 target needs its own keys recovered first,
+    // unless the previous target used the factory key everywhere: then the next one is assumed to as well.
     private async Task WriteAnotherAsync()
     {
+        var assumeDefault = _writeTargetHadDefaultKeys;
         ResetWriteRecovery();
+        _assumeDefaultWriteKeys = assumeDefault;
+        RaiseWriteKeyAvailability();
         WriteBlockStates = Array.Empty<MifareBlockState>();
         WriteProgressText = null;
         ClearMessages();
