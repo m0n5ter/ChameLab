@@ -119,6 +119,10 @@
   <Style Selector="TextBlock.danger">
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
   </Style>
+  <!-- A risky option: red label, and the danger variant of the theme's check mark. -->
+  <Style Selector="CheckBox.danger">
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
+  </Style>
   <Style Selector="TextBlock.success">
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineSuccess}" />
   </Style>

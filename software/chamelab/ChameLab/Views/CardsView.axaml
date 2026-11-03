@@ -1251,59 +1251,63 @@
                 <Binding ElementName="PasswordCard" Path="IsVisible" />
               </MultiBinding>
             </Panel.IsVisible>
-            <Border x:Name="PasswordCard" Classes="card" IsVisible="{Binding Form?.HasPasswordConfig, TargetNullValue=False}">
+            <!-- Shown once the configuration pages are read: before, there are no settings to show. -->
+            <Border x:Name="PasswordCard" Classes="card" IsVisible="{Binding Form?.HasProtection, TargetNullValue=False}">
               <StackPanel Spacing="10" DataContext="{Binding Form}" x:DataType="vm:CardEditorViewModel">
                 <StackPanel Spacing="2">
                   <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
-                </StackPanel>
-                <StackPanel Spacing="10" IsVisible="{Binding HasProtection}">
-                  <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
-                            ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
-                  <!-- The settings below only take effect with protection on. -->
-                  <StackPanel Spacing="10" IsEnabled="{Binding IsProtected}">
-                    <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
-                      <StackPanel Spacing="4">
-                        <TextBlock Text="Password (PWD)" Classes="caption" />
-                        <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
-                      </StackPanel>
-                      <StackPanel Spacing="4">
-                        <TextBlock Text="Answer (PACK)" Classes="caption" />
-                        <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
-                                  ToolTip.Tip="What the card answers to the right password; readers may check it" />
-                      </StackPanel>
-                    </c:FlowGrid>
-                    <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
-                      <StackPanel Spacing="4">
-                        <TextBlock Text="From page (AUTH0)" Classes="caption" />
-                        <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
-                                       FormatString="0" />
-                      </StackPanel>
-                      <StackPanel Spacing="4">
-                        <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
-                        <ComboBox ItemsSource="{Binding AuthLimitOptions}" SelectedItem="{Binding SelectedAuthLimit}"
-                                  HorizontalAlignment="Stretch" ToolTip.Tip="Wrong passwords before the card locks for good">
-                          <ComboBox.Styles>
-                            <Style Selector="ComboBoxItem" x:DataType="vm:AuthLimitOption">
-                              <Setter Property="IsEnabled" Value="{Binding !IsSeparator}" />
-                            </Style>
-                          </ComboBox.Styles>
-                          <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:AuthLimitOption">
-                              <Panel>
-                                <TextBlock Text="{Binding Label}" IsVisible="{Binding !IsSeparator}" />
-                                <Separator Margin="0" IsVisible="{Binding IsSeparator}" />
-                              </Panel>
-                            </DataTemplate>
-                          </ComboBox.ItemTemplate>
-                        </ComboBox>
-                      </StackPanel>
-                    </c:FlowGrid>
-                    <CheckBox Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}" />
-                    <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AuthLimitText}" />
-                  </StackPanel>
                   <TextBlock Classes="caption" TextWrapping="Wrap"
                              Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
+                </StackPanel>
+                <WrapPanel ItemSpacing="24" LineSpacing="6">
+                  <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
+                            ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
+                  <CheckBox Classes="danger" Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}"
+                            IsEnabled="{Binding IsProtected}"
+                            ToolTip.Tip="Without the password the protected pages can't even be read" />
+                </WrapPanel>
+                <!-- The settings below only take effect with protection on. -->
+                <StackPanel Spacing="10" IsEnabled="{Binding IsProtected}">
+                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Password (PWD)" Classes="caption" />
+                      <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Answer (PACK)" Classes="caption" />
+                      <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
+                                ToolTip.Tip="What the card answers to the right password; readers may check it" />
+                    </StackPanel>
+                  </c:FlowGrid>
+                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="From page (AUTH0)" Classes="caption" />
+                      <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
+                                     FormatString="0" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
+                      <!-- A limit can lock the card for good, so every limit is shown in red. -->
+                      <ComboBox ItemsSource="{Binding AuthLimitOptions}" SelectedItem="{Binding SelectedAuthLimit}"
+                                HorizontalAlignment="Stretch" ToolTip.Tip="Wrong passwords before the card locks for good">
+                        <ComboBox.Styles>
+                          <Style Selector="ComboBoxItem" x:DataType="vm:AuthLimitOption">
+                            <Setter Property="IsEnabled" Value="{Binding !IsSeparator}" />
+                          </Style>
+                        </ComboBox.Styles>
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate x:DataType="vm:AuthLimitOption">
+                            <Panel>
+                              <TextBlock Text="{Binding Label}" Classes.danger="{Binding IsLimited}"
+                                         IsVisible="{Binding !IsSeparator}" />
+                              <Separator Margin="0" IsVisible="{Binding IsSeparator}" />
+                            </Panel>
+                          </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </StackPanel>
+                  </c:FlowGrid>
                 </StackPanel>
               </StackPanel>
             </Border>

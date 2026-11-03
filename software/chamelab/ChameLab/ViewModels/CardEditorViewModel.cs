@@ -709,11 +709,6 @@ public sealed class CardEditorViewModel : ViewModelBase
         }
     }
 
-    /// <summary>What an AUTHLIM value means on this type.</summary>
-    public string AuthLimitText => Protection?.AuthLimit is { } limit and > 0
-        ? $"{UltralightProtection.Attempts(_tag, limit)} wrong attempts, then the card is locked for good"
-        : "No limit";
-
     /// <summary>PWD as hex; only a complete 4-byte value goes into the memory.</summary>
     public string Password
     {
@@ -761,7 +756,6 @@ public sealed class CardEditorViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(ReadProtected));
         this.RaisePropertyChanged(nameof(AuthLimitOptions));
         this.RaisePropertyChanged(nameof(SelectedAuthLimit));
-        this.RaisePropertyChanged(nameof(AuthLimitText));
         this.RaisePropertyChanged(nameof(Password));
         this.RaisePropertyChanged(nameof(Pack));
     }
@@ -889,4 +883,7 @@ public sealed class CardEditorViewModel : ViewModelBase
 public sealed record AuthLimitOption(int? Value, string Label)
 {
     public bool IsSeparator => Value is null;
+
+    /// <summary>A real limit: running out of attempts locks the card for good.</summary>
+    public bool IsLimited => Value > 0;
 }
