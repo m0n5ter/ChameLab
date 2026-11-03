@@ -1128,7 +1128,7 @@
                            Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                            IsVisible="{Binding Form?.MemoryWarning, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
                 <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpHint}"
-                           IsVisible="{Binding NeedsDump}" />
+                           IsVisible="{Binding ShowDumpHint}" />
               </StackPanel>
               <StackPanel Spacing="8">
                 <!-- Actions and progress share a fixed-height slot to keep the sector grid still. -->
@@ -1142,13 +1142,15 @@
                   </c:KeyRecoveryPanel.ToolbarContent>
                 </c:KeyRecoveryPanel>
 
-                <StackPanel Spacing="4" IsVisible="{Binding ShowDumpPassword}">
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpPasswordError}"
-                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
-                             IsVisible="{Binding DumpPasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="The password is sent only if the card's settings need it, and only once. Wrong attempts count towards the card's limit (AUTHLIM) and can lock it for good." />
-                </StackPanel>
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpPasswordError}"
+                           Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}">
+                  <TextBlock.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="ShowDumpPassword" />
+                      <Binding Path="DumpPasswordError" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                    </MultiBinding>
+                  </TextBlock.IsVisible>
+                </TextBlock>
 
                 <!-- Ultralight / NTAG: one cell per page, drawn as one control spanning the full width. -->
                 <StackPanel Spacing="6" b:BringIntoViewOnShow.IsEnabled="True"

@@ -1214,7 +1214,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     public string DumpHint => _isUltralightDump
-        ? "Keep the card on the reader and read every page, the signature and the counters. Protected pages need the card's password."
+        ? "Keep the card on the reader. The password is sent once, only if the card needs it; wrong ones count towards its lock limit (AUTHLIM)."
         : "Keep the card on the reader and read every block with the selected key dictionaries.";
 
     /// <summary>
@@ -1264,6 +1264,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>The Ultralight password goes with the Read button: gone once every page is read.</summary>
     public bool ShowDumpPassword => IsUltralightDump && ShowDumpActions;
 
+    /// <summary>The hint over the dump button: until the first dump, or for Ultralight while Read is offered.</summary>
+    public bool ShowDumpHint => IsUltralightDump ? ShowDumpPassword : NeedsDump;
+
     /// <summary>Blocks are missing, or a read trailer lacks key A or key B (held as zeros).</summary>
     private bool NeedsRecovery => !IsDumpComplete || HasMissingKeys;
 
@@ -1278,6 +1281,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(ShowDumpActions));
         this.RaisePropertyChanged(nameof(ShowDumpNotice));
         this.RaisePropertyChanged(nameof(ShowDumpPassword));
+        this.RaisePropertyChanged(nameof(ShowDumpHint));
         this.RaisePropertyChanged(nameof(DumpNotice));
     }
 
@@ -1287,6 +1291,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void RaiseSaveLabel()
     {
         this.RaisePropertyChanged(nameof(NeedsDump));
+        this.RaisePropertyChanged(nameof(ShowDumpHint));
         this.RaisePropertyChanged(nameof(AddSaveLabel));
     }
 
