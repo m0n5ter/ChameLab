@@ -16,6 +16,8 @@ public sealed record UltralightProtection(byte Auth0, bool ReadProtected, int Au
 
     public const byte AccessProt = 0x80;
     public const byte AccessCfgLock = 0x40;
+    /// <summary>NTAG213/215/216: READ_CNT of the NFC counter needs the password.</summary>
+    public const byte AccessNfcCounterPwd = 0x08;
     public const byte AccessAuthLimit = 0x07;
 
     /// <summary>Some page needs the password: AUTH0 lies within the card's memory.</summary>

@@ -1697,6 +1697,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             bool? keyAccepted = key is null ? null : false;
             byte[]? pwd = null, pack = null;
             var readDone = false;
+            var keyNotNeeded = false;
 
             if (key is { Length: 16 } && type == TagSpecificType.Mf0Icu2)
             {
@@ -1724,9 +1725,19 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             }
             else if (key is { Length: 4 } && version.Length == 8)
             {
-                // PWD_AUTH answers the 2-byte PACK; it is presented again after every reselect.
-                var r = await UltralightCommandAsync(PwdAuth(key), ct);
-                if (r.Length == 2) { keyAccepted = true; pwd = key; pack = r; }
+                // A wrong PWD_AUTH counts towards AUTHLIM even on an open card, so the password
+                // is presented only when the card's configuration asks for it.
+                if (await UltralightNeedsPasswordAsync(type, ct))
+                {
+                    // PWD_AUTH answers the 2-byte PACK; it is presented again after every reselect.
+                    var r = await UltralightCommandAsync(PwdAuth(key), ct);
+                    if (r.Length == 2) { keyAccepted = true; pwd = key; pack = r; }
+                }
+                else
+                {
+                    keyAccepted = null;
+                    keyNotNeeded = true;
+                }
             }
 
             int? lockedFrom = null;
@@ -1806,12 +1817,29 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 }
             }
 
-            return new UltralightDumpResult(card, read, total, lockedFrom, keyAccepted, pack);
+            return new UltralightDumpResult(card, read, total, lockedFrom, keyAccepted, pack, keyNotNeeded);
         }
         finally
         {
             await FieldOffAsync(CancellationToken.None);
         }
+    }
+
+    /// <summary>
+    /// Whether reading an Ultralight EV1 / NTAG21x card needs its password: its configuration
+    /// pages are refused, PROT keeps the pages from AUTH0 on from being read, or the NTAG's NFC
+    /// counter is password-protected. True for a model without known configuration pages.
+    /// </summary>
+    private async Task<bool> UltralightNeedsPasswordAsync(TagSpecificType? type, CancellationToken ct)
+    {
+        var cfg0 = type?.UltralightCfg0Page() ?? -1;
+        if (cfg0 <= 0) return true;
+        var cfg = await UltralightReadAsync(cfg0, false, null, ct);
+        if (cfg is null) return true;
+        var access = cfg[4];
+        return (cfg[3] < type!.Value.UltralightPages() && (access & UltralightProtection.AccessProt) != 0)
+            || (type is TagSpecificType.Ntag213 or TagSpecificType.Ntag215 or TagSpecificType.Ntag216
+                && (access & UltralightProtection.AccessNfcCounterPwd) != 0);
     }
 
     /// <summary>

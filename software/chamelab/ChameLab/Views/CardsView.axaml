@@ -1196,7 +1196,7 @@
                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                              IsVisible="{Binding DumpPasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
                   <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="The password is tried once. Wrong attempts count towards the card's limit (AUTHLIM) and can lock it for good." />
+                             Text="The password is sent only if the card's settings need it, and only once. Wrong attempts count towards the card's limit (AUTHLIM) and can lock it for good." />
                 </StackPanel>
 
                 <!-- Ultralight / NTAG: one cell per page, drawn as one control spanning the full width. -->

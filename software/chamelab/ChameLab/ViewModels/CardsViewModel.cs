@@ -1857,6 +1857,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             rows.Add(new(r.Card.Tag == TagSpecificType.Mf0Icu2 ? "3DES key" : "Password", accepted
                 ? r.Pack is { } pack ? $"accepted · PACK {Hex.Spaced(pack)}" : "accepted"
                 : "not accepted; protected pages were left unread"));
+        else if (r.KeyNotNeeded)
+            rows.Add(new("Password", "not sent; the card doesn't need it"));
         if (r.LockedFrom is { } locked)
             rows.Add(new("Protected", locked == r.PageCount - 1 ? $"page {locked}" : $"pages {locked}–{r.PageCount - 1}"));
         if (extra.UltralightSignature.Length > 0) rows.Add(new("Signature", Hex.Compact(extra.UltralightSignature)));

@@ -146,7 +146,10 @@ public sealed record LfScanResult(TagSpecificType Type, byte[] Id)
 /// An Ultralight / NTAG card read from the reader. Unread pages are empty in
 /// <see cref="CardSave.Data"/>; from <see cref="LockedFrom"/> on the card refused to answer
 /// (password-protected, or the Ultralight C key pages). <see cref="KeyAccepted"/> is null when
-/// no key was given; <see cref="Pack"/> is what the card answered to an accepted PWD.
+/// no key was given or, with <see cref="KeyNotNeeded"/>, when the card's configuration showed
+/// that nothing needs the password, so it was not presented; <see cref="Pack"/> is what the
+/// card answered to an accepted PWD.
 /// </summary>
 public sealed record UltralightDumpResult(
-    CardSave Card, int PagesRead, int PageCount, int? LockedFrom, bool? KeyAccepted, byte[]? Pack);
+    CardSave Card, int PagesRead, int PageCount, int? LockedFrom, bool? KeyAccepted, byte[]? Pack,
+    bool KeyNotNeeded = false);
