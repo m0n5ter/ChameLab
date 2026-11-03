@@ -960,7 +960,11 @@
             <StackPanel Spacing="12">
               <StackPanel Spacing="2">
                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                  <TextBlock Text="MEMORY" Classes="overline" VerticalAlignment="Center" />
+                  <!-- What of the memory is known, on the heading's line: "Not read", "45/45 pages"… -->
+                  <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="MEMORY" Classes="overline" VerticalAlignment="Center" />
+                    <TextBlock Classes="caption" Text="{Binding Form?.DataSummary}" VerticalAlignment="Center" />
+                  </StackPanel>
                   <!-- Ultralight / NTAG: the memory as hex, or as the NDEF records it holds. -->
                   <Border Grid.Column="2" Classes="segmented compact" IsVisible="{Binding CanShowNdef}">
                     <StackPanel Orientation="Horizontal">
@@ -986,7 +990,6 @@
                     <Run Text="{Binding Prng}" FontWeight="SemiBold" />
                   </TextBlock>
                 </Grid>
-                <TextBlock Classes="caption" Text="{Binding Form?.DataSummary}" />
                 <TextBlock Classes="caption" Text="{Binding Form?.MemoryWarning}" TextWrapping="Wrap"
                            Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                            IsVisible="{Binding Form?.MemoryWarning, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
@@ -1102,140 +1105,138 @@
 
                 <!-- Ultralight / NTAG: the NDEF records, edited in place; valid edits go straight into the memory. -->
                 <Panel IsVisible="{Binding ShowNdefView}">
-                <StackPanel Spacing="10" DataContext="{Binding Form?.Ndef}" x:DataType="vm:NdefEditorViewModel">
-                  <TextBlock Classes="caption" Text="{Binding Summary}"
-                             IsVisible="{Binding Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" Text="{Binding Error}"
+                <Border Classes="inset" Padding="8">
+                <StackPanel Spacing="8" DataContext="{Binding Form?.Ndef}" x:DataType="vm:NdefEditorViewModel">
+                  <!-- Records and the bytes they take; more than the card holds shows in red. -->
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="4,0">
+                    <TextBlock Classes="caption" Text="{Binding Summary}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Classes="caption" Text="{Binding Usage}" VerticalAlignment="Center"
+                               Classes.overcapacity="{Binding IsOverCapacity}" />
+                  </Grid>
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Error}" Margin="4,0"
+                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                              IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-                  <!-- Dragged into place by the grip; everything else in a tile is ordinary input. -->
+                  <!-- Dragged into place by the kind's icon; everything else in a tile is ordinary input. -->
                   <ListBox x:Name="NdefList" Classes="ndef" ItemsSource="{Binding Records}" b:ListReorder.RequiresHandle="True"
                            IsVisible="{Binding HasRecords}"
                            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="vm:NdefRecordEditorViewModel">
                         <Border Classes="ndefrecord">
-                          <StackPanel Spacing="10">
-                            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="10">
-                              <Border Classes="grip" b:ListReorder.IsHandle="True" ToolTip.Tip="Drag to move the record">
-                                <PathIcon Data="{StaticResource Icon.grip}" />
-                              </Border>
-                              <Border Grid.Column="1" Classes="iconwell small blue">
-                                <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
-                              </Border>
-                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
-                                         TextTrimming="CharacterEllipsis" />
-                              <Button Grid.Column="3" Classes="icon small danger" b:ListReorder.IsAction="True"
-                                      ToolTip.Tip="Remove the record" AutomationProperties.Name="Remove the record"
-                                      Command="{Binding $parent[ListBox].((vm:NdefEditorViewModel)DataContext).RemoveCommand}"
-                                      CommandParameter="{Binding}">
-                                <PathIcon Data="{StaticResource Icon.delete}" />
-                              </Button>
-                            </Grid>
-
-                            <TextBox Text="{Binding Uri}" IsVisible="{Binding IsLink}"
-                                     PlaceholderText="https://example.com, tel:+1555…, mailto:…" />
-
-                            <Grid ColumnDefinitions="*,80" ColumnSpacing="8" IsVisible="{Binding IsText}">
-                              <TextBox Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="Text" />
-                              <TextBox Grid.Column="1" Text="{Binding Language}" PlaceholderText="en" VerticalAlignment="Top"
-                                       ToolTip.Tip="Language code, e.g. en, de, ru" />
-                            </Grid>
-
-                            <StackPanel Spacing="8" IsVisible="{Binding IsWifi}">
-                              <TextBox Text="{Binding Ssid}" PlaceholderText="Network name (SSID)" />
-                              <ComboBox ItemsSource="{Binding WifiAuths}" SelectedItem="{Binding WifiAuth}" HorizontalAlignment="Stretch">
-                                <ComboBox.ItemTemplate>
-                                  <DataTemplate>
-                                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
-                                  </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                              </ComboBox>
-                              <TextBox Text="{Binding WifiKey}" PlaceholderText="Password" IsVisible="{Binding HasWifiKey}" />
-                            </StackPanel>
-
-                            <TextBox Text="{Binding Package}" IsVisible="{Binding IsAndroidApp}"
-                                     PlaceholderText="Package name, e.g. com.example.app" />
-
-                            <StackPanel Spacing="8" IsVisible="{Binding IsMime}">
-                              <TextBox Text="{Binding MimeType}" PlaceholderText="MIME type, e.g. text/plain" />
-                              <TextBox Text="{Binding MimeContent}" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="Content" />
-                            </StackPanel>
-
-                            <StackPanel Spacing="8" IsVisible="{Binding IsRaw}">
-                              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                <ComboBox ItemsSource="{Binding Tnfs}" SelectedItem="{Binding RawTnf}" HorizontalAlignment="Stretch"
-                                          ToolTip.Tip="Type name format">
-                                  <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                      <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
-                                    </DataTemplate>
-                                  </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <TextBox Grid.Column="1" Text="{Binding RawType}" PlaceholderText="Type" />
+                          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <Border Classes="iconwell small blue handle" VerticalAlignment="Top"
+                                    b:ListReorder.IsHandle="True" ToolTip.Tip="Drag to move the record">
+                              <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="6">
+                              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" MinHeight="32">
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" />
+                                <Button Grid.Column="1" Classes="icon small danger" b:ListReorder.IsAction="True"
+                                        VerticalAlignment="Center"
+                                        ToolTip.Tip="Remove the record" AutomationProperties.Name="Remove the record"
+                                        Command="{Binding $parent[ListBox].((vm:NdefEditorViewModel)DataContext).RemoveCommand}"
+                                        CommandParameter="{Binding}">
+                                  <PathIcon Data="{StaticResource Icon.delete}" />
+                                </Button>
                               </Grid>
-                              <c:HexBox Text="{Binding RawPayload}" PlaceholderText="Payload (hex)" TextWrapping="Wrap" />
-                            </StackPanel>
 
-                            <TextBlock Classes="caption" TextWrapping="Wrap" Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" Text="{Binding Error}"
-                                       IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                          </StackPanel>
+                              <TextBox Text="{Binding Uri}" IsVisible="{Binding IsLink}"
+                                       PlaceholderText="https://example.com, tel:+1555…, mailto:…" />
+
+                              <Grid ColumnDefinitions="*,64" ColumnSpacing="6" IsVisible="{Binding IsText}">
+                                <TextBox Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="Text" />
+                                <TextBox Grid.Column="1" Text="{Binding Language}" PlaceholderText="en" VerticalAlignment="Top"
+                                         ToolTip.Tip="Language code, e.g. en, de, ru" />
+                              </Grid>
+
+                              <StackPanel Spacing="6" IsVisible="{Binding IsWifi}">
+                                <TextBox Text="{Binding Ssid}" PlaceholderText="Network name (SSID)" />
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                  <ComboBox ItemsSource="{Binding WifiAuths}" SelectedItem="{Binding WifiAuth}" MinWidth="150">
+                                    <ComboBox.ItemTemplate>
+                                      <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                                      </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                  </ComboBox>
+                                  <TextBox Grid.Column="1" Text="{Binding WifiKey}" PlaceholderText="Password" IsVisible="{Binding HasWifiKey}" />
+                                </Grid>
+                              </StackPanel>
+
+                              <TextBox Text="{Binding Package}" IsVisible="{Binding IsAndroidApp}"
+                                       PlaceholderText="Package name, e.g. com.example.app" />
+
+                              <StackPanel Spacing="6" IsVisible="{Binding IsMime}">
+                                <TextBox Text="{Binding MimeType}" PlaceholderText="MIME type, e.g. text/plain" />
+                                <TextBox Text="{Binding MimeContent}" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="Content" />
+                              </StackPanel>
+
+                              <StackPanel Spacing="6" IsVisible="{Binding IsRaw}">
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                                  <ComboBox ItemsSource="{Binding Tnfs}" SelectedItem="{Binding RawTnf}" HorizontalAlignment="Stretch"
+                                            ToolTip.Tip="Type name format">
+                                    <ComboBox.ItemTemplate>
+                                      <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                                      </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                  </ComboBox>
+                                  <TextBox Grid.Column="1" Text="{Binding RawType}" PlaceholderText="Type" />
+                                </Grid>
+                                <c:HexBox Text="{Binding RawPayload}" PlaceholderText="Payload (hex)" TextWrapping="Wrap" />
+                              </StackPanel>
+
+                              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Error}"
+                                         Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                                         IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            </StackPanel>
+                          </Grid>
                         </Border>
                       </DataTemplate>
                     </ListBox.ItemTemplate>
                   </ListBox>
 
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" Text="{Binding EditError}"
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding EditError}" Margin="4,0"
+                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                              IsVisible="{Binding EditError, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-                  <!-- One button per kind of record, added at the end of the message. -->
-                  <c:FlowGrid MinItemWidth="110" ColumnSpacing="8" RowSpacing="8" IsVisible="{Binding CanEdit}">
-                    <Button Classes="ndefadd" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Link}"
-                            ToolTip.Tip="Add a link (URI) record">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding CanEdit}">
+                    <DropDownButton ToolTip.Tip="Add a record at the end of the message">
                       <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.ndefLink}" />
-                        <TextBlock Text="Link" VerticalAlignment="Center" />
+                        <PathIcon Data="{StaticResource Icon.add}" />
+                        <TextBlock Text="Add record" VerticalAlignment="Center" />
                       </StackPanel>
-                    </Button>
-                    <Button Classes="ndefadd" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Text}"
-                            ToolTip.Tip="Add a text record">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.ndefText}" />
-                        <TextBlock Text="Text" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </Button>
-                    <Button Classes="ndefadd" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Wifi}"
-                            ToolTip.Tip="Add a Wi-Fi network record">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.ndefWifi}" />
-                        <TextBlock Text="Wi-Fi" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </Button>
-                    <Button Classes="ndefadd" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.AndroidApp}"
-                            ToolTip.Tip="Add an Android app record (opens or installs the app)">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.ndefAndroidApp}" />
-                        <TextBlock Text="App" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </Button>
-                    <Button Classes="ndefadd" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Mime}"
-                            ToolTip.Tip="Add a MIME data record">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.ndefMime}" />
-                        <TextBlock Text="MIME" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </Button>
-                    <Button Classes="ndefadd" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Raw}"
-                            ToolTip.Tip="Add a raw record (any type name format, hex payload)">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.ndefRaw}" />
-                        <TextBlock Text="Raw" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </Button>
-                  </c:FlowGrid>
-                  <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding CanEdit}"
-                             Text="Edits go straight into the memory. Drag a record by its grip to move it." />
+                      <DropDownButton.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                          <MenuItem Header="Link (URI)" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Link}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefLink}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="Text" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Text}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefText}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="Wi-Fi network" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Wifi}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefWifi}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="Android app" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.AndroidApp}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefAndroidApp}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="MIME data" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Mime}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefMime}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <Separator />
+                          <MenuItem Header="Raw record" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Raw}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefRaw}" /></MenuItem.Icon>
+                          </MenuItem>
+                        </MenuFlyout>
+                      </DropDownButton.Flyout>
+                    </DropDownButton>
+                    <TextBlock Grid.Column="1" Classes="caption" TextWrapping="Wrap" VerticalAlignment="Center"
+                               Text="Edits go straight into the memory. Drag a record by its icon to move it." />
+                  </Grid>
                 </StackPanel>
+                </Border>
                 </Panel>
               </StackPanel>
             </StackPanel>

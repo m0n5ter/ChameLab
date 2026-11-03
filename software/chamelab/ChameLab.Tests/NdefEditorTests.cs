@@ -79,6 +79,25 @@ public class NdefEditorTests
     }
 
     [Fact]
+    public void BytesAreCountedAndTooManyStayOutOfTheMemory()
+    {
+        var (pages, editor, writes) = Ntag213();
+        editor.AddCommand.Execute(NdefRecordKind.Text);
+        editor.Records[0].Text = "hi";
+        // TLV header (2) + record (3 header + "T" + status + "en" + "hi" = 9) + terminator (1).
+        Assert.Equal("12 of 144 bytes · 132 left", editor.Usage);
+        Assert.False(editor.IsOverCapacity);
+        var written = writes();
+
+        editor.Records[0].Text = new string('x', 200);
+        Assert.True(editor.IsOverCapacity);
+        Assert.EndsWith("over", editor.Usage);
+        Assert.Equal(written, writes());
+        Assert.True(Ndef.TryText(Assert.Single(Message(pages)), out var text, out _));
+        Assert.Equal("hi", text);
+    }
+
+    [Fact]
     public void AChangeMadeElsewhereReloadsTheList()
     {
         var (_, editor, _) = Ntag213();

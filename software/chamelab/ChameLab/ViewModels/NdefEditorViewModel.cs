@@ -92,12 +92,26 @@ public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
-    /// <summary>How many records the message has and how much of the card it takes.</summary>
+    /// <summary>How many records there are, or why there is no message yet.</summary>
     public string Summary
     {
         get;
         private set => this.RaiseAndSetIfChanged(ref field, value);
     } = string.Empty;
+
+    /// <summary>Bytes the records take on the card and what is left, e.g. "58 of 137 bytes · 79 left".</summary>
+    public string Usage
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = string.Empty;
+
+    /// <summary>The records take more bytes than the card holds, so they can't go into the memory.</summary>
+    public bool IsOverCapacity
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
 
     /// <summary>Why the message on the card can't be read (not formatted, malformed); null when fine.</summary>
     public string? Error
@@ -128,24 +142,46 @@ public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
             Records.Clear();
             CanEdit = tag.IsUltralight() && pages.Count > 0;
             Summary = CanEdit ? "Memory not read yet: read the card, or add records to start a new message." : string.Empty;
+            Usage = string.Empty;
+            IsOverCapacity = false;
             Error = EditError = null;
             return;
         }
         var area = Type2Ndef.Read(pages, tag);
         CanEdit = true;
         Error = area.Error;
-        Summary = area.Records switch
-        {
-            null => string.Empty,
-            { Count: 0 } => $"No records · {area.Capacity} bytes free",
-            var r => $"{r.Count} record{(r.Count == 1 ? "" : "s")} · "
-                     + $"{Type2Ndef.UsedBytes(area.PrefixLength, area.MessageLength)} of {area.Capacity} bytes",
-        };
         if (_writing) return;
         Records.Clear();
         foreach (var r in area.Records ?? [])
             Records.Add(NdefRecordEditorViewModel.From(r, RecordsEdited));
         EditError = null;
+        Count(area.Records is null ? null : area.MessageLength);
+    }
+
+    /// <summary>Updates the record count and the bytes taken for a message of <paramref name="messageLength"/> bytes (null: none to count).</summary>
+    private void Count(int? messageLength)
+    {
+        Summary = Records.Count switch
+        {
+            0 => "No records",
+            1 => "1 record",
+            var n => $"{n} records",
+        };
+        var (pages, tag) = _memory();
+        var area = Type2Ndef.Read(pages, tag);
+        var prefix = area.IsFormatted ? area.PrefixLength : 0;
+        var capacity = area.IsFormatted ? area.Capacity : Type2Ndef.DefaultCapacity(tag);
+        if (messageLength is not { } length)
+        {
+            Usage = string.Empty;
+            IsOverCapacity = false;
+            return;
+        }
+        var used = Type2Ndef.UsedBytes(prefix, length);
+        IsOverCapacity = used > capacity;
+        Usage = IsOverCapacity
+            ? $"{used} of {capacity} bytes · {used - capacity} over"
+            : $"{used} of {capacity} bytes · {capacity - used} left";
     }
 
     /// <summary>
@@ -155,20 +191,38 @@ public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
     private void RecordsEdited()
     {
         var (pages, tag) = _memory();
+        // The bytes are counted over the records that build; a record's own mistake is shown on it.
+        var built = new List<NdefRecord>();
+        var valid = true;
+        foreach (var record in Records)
+        {
+            try { built.Add(record.Build()); }
+            catch (FormatException) { valid = false; }
+        }
+        byte[] message;
+        try { message = Ndef.Encode(built); }
+        catch (OverflowException)
+        {
+            EditError = "A record's type or ID is too long.";
+            return;
+        }
+        Count(message.Length);
+        if (!valid || IsOverCapacity)
+        {
+            EditError = null;
+            return;
+        }
         try
         {
-            var message = Ndef.Encode(Records.Select(r => r.Build()).ToList());
             var (area, cc) = Type2Ndef.Build(pages, tag, message);
             EditError = null;
             _writing = true;
             try { _write(area, cc); }
             finally { _writing = false; }
         }
-        catch (Exception ex) when (ex is FormatException or OverflowException)
+        catch (FormatException ex)
         {
-            // A record's own mistake is shown on that record.
-            EditError = Records.Any(r => r.Error is not null) ? null
-                : ex is OverflowException ? "A record's type or ID is too long." : ex.Message;
+            EditError = ex.Message;
         }
     }
 
