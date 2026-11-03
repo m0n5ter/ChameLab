@@ -39,11 +39,11 @@ public sealed record UltralightProtection(byte Auth0, bool ReadProtected, int Au
     public byte Access(byte current) =>
         (byte)((current & ~(AccessProt | AccessAuthLimit)) | (ReadProtected ? AccessProt : 0) | (AuthLimit & AccessAuthLimit));
 
-    /// <summary>One line on what the settings do, e.g. "Pages 4 on need the password to be written and read".</summary>
+    /// <summary>One short line on what the settings do, e.g. "Pages 4+ need the password to read and write".</summary>
     public string Summary(TagSpecificType tag) =>
         !IsEnabled(tag) ? "No page is protected."
-        : $"Pages {Auth0} on need the password to be {(ReadProtected ? "written and read" : "written")}"
-          + (AuthLimit == 0 ? "." : $"; {Attempts(tag, AuthLimit)} wrong attempts lock the card for good.");
+        : $"Pages {Auth0}+ need the password to {(ReadProtected ? "read and write" : "write")}"
+          + (AuthLimit == 0 ? "." : $"; {Attempts(tag, AuthLimit)} wrong tries lock the card.");
 
     /// <summary>Wrong passwords an AUTHLIM allows: the value itself on Ultralight EV1, 2^AUTHLIM on NTAG21x.</summary>
     public static int Attempts(TagSpecificType tag, int authLimit) =>

@@ -1256,16 +1256,13 @@
               <StackPanel Spacing="10" DataContext="{Binding Form}" x:DataType="vm:CardEditorViewModel">
                 <StackPanel Spacing="2">
                   <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
                 </StackPanel>
                 <WrapPanel ItemSpacing="24" LineSpacing="6">
                   <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
                             ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
-                  <CheckBox Classes="danger" Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}"
+                  <CheckBox Classes="danger" Content="Protect reading" IsChecked="{Binding ReadProtected}"
                             IsEnabled="{Binding IsProtected}"
-                            ToolTip.Tip="Without the password the protected pages can't even be read" />
+                            ToolTip.Tip="PROT: without the password the protected pages can't even be read" />
                 </WrapPanel>
                 <!-- The settings below only take effect with protection on. -->
                 <StackPanel Spacing="10" IsEnabled="{Binding IsProtected}">
@@ -1308,6 +1305,11 @@
                       </ComboBox>
                     </StackPanel>
                   </c:FlowGrid>
+                </StackPanel>
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="Slots emulate these settings; to put them on a card, tick “Write password settings” when writing." />
                 </StackPanel>
               </StackPanel>
             </Border>
