@@ -1225,7 +1225,7 @@
                              IsVisible="{Binding EditError, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding CanEdit}">
-                    <DropDownButton Classes="theme-soft success" ToolTip.Tip="Add a record at the end of the message">
+                    <DropDownButton Classes="theme-soft accent" ToolTip.Tip="Add a record at the end of the message">
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <PathIcon Data="{StaticResource Icon.add}" />
                         <TextBlock Text="Add record" VerticalAlignment="Center" />
