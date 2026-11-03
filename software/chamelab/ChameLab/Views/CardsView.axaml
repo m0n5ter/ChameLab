@@ -1143,7 +1143,24 @@
                               </Grid>
 
                               <TextBox Text="{Binding Uri}" IsVisible="{Binding IsLink}"
-                                       PlaceholderText="https://example.com, tel:+1555…, mailto:…" />
+                                       PlaceholderText="https://example.com" />
+
+                              <TextBox Text="{Binding Phone}" IsVisible="{Binding HasNumber}" PlaceholderText="Phone number, e.g. +1 555 0100" />
+
+                              <StackPanel Spacing="6" IsVisible="{Binding IsEmail}">
+                                <TextBox Text="{Binding Email}" PlaceholderText="Email address" />
+                                <TextBox Text="{Binding Subject}" PlaceholderText="Subject (optional)" />
+                              </StackPanel>
+
+                              <TextBox Text="{Binding Message}" IsVisible="{Binding HasMessage}" AcceptsReturn="True" TextWrapping="Wrap"
+                                       PlaceholderText="Message (optional)" />
+
+                              <Grid ColumnDefinitions="*,*" ColumnSpacing="6" IsVisible="{Binding IsGeo}">
+                                <TextBox Text="{Binding Latitude}" PlaceholderText="Latitude, e.g. 48.8584"
+                                         ToolTip.Tip="Degrees north (negative: south)" />
+                                <TextBox Grid.Column="1" Text="{Binding Longitude}" PlaceholderText="Longitude, e.g. 2.2945"
+                                         ToolTip.Tip="Degrees east (negative: west)" />
+                              </Grid>
 
                               <Grid ColumnDefinitions="*,64" ColumnSpacing="6" IsVisible="{Binding IsText}">
                                 <TextBox Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" PlaceholderText="Text" />
@@ -1213,6 +1230,19 @@
                           <MenuItem Header="Link (URI)" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Link}">
                             <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefLink}" /></MenuItem.Icon>
                           </MenuItem>
+                          <MenuItem Header="Phone number" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Phone}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefPhone}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="Email" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Email}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefEmail}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="Text message (SMS)" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Sms}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefSms}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="Location" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Geo}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefGeo}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <Separator />
                           <MenuItem Header="Text" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Text}">
                             <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefText}" /></MenuItem.Icon>
                           </MenuItem>

@@ -98,6 +98,32 @@ public class NdefEditorTests
     }
 
     [Fact]
+    public void PhoneEmailSmsAndPlacesComeBackAsTheirOwnKinds()
+    {
+        var (_, editor, _) = Ntag213();
+        editor.AddCommand.Execute(NdefRecordKind.Phone);
+        editor.Records[0].Phone = "+1 555 0100";
+        editor.AddCommand.Execute(NdefRecordKind.Email);
+        editor.Records[1].Email = "me@example.com";
+        editor.Records[1].Subject = "Hello";
+        editor.AddCommand.Execute(NdefRecordKind.Sms);
+        editor.Records[2].Phone = "+15550100";
+        editor.Records[2].Message = "Hi";
+        editor.AddCommand.Execute(NdefRecordKind.Geo);
+        editor.Records[3].Latitude = "48.8584";
+        editor.Records[3].Longitude = "2.2945";
+        Assert.All(editor.Records, r => Assert.Null(r.Error));
+
+        editor.Refresh();
+        Assert.Equal([NdefRecordKind.Phone, NdefRecordKind.Email, NdefRecordKind.Sms, NdefRecordKind.Geo],
+            editor.Records.Select(r => r.Kind));
+        Assert.Equal("+15550100", editor.Records[0].Phone);
+        Assert.Equal("Hello", editor.Records[1].Subject);
+        Assert.Equal("Hi", editor.Records[2].Message);
+        Assert.Equal("2.2945", editor.Records[3].Longitude);
+    }
+
+    [Fact]
     public void AChangeMadeElsewhereReloadsTheList()
     {
         var (_, editor, _) = Ntag213();

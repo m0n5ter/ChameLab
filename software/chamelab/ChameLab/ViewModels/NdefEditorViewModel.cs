@@ -15,6 +15,10 @@ namespace ChameLab.ViewModels;
 public enum NdefRecordKind
 {
     Link,
+    Phone,
+    Email,
+    Sms,
+    Geo,
     Text,
     Wifi,
     AndroidApp,
@@ -27,6 +31,10 @@ public static class NdefRecordKindExtensions
     public static string Label(this NdefRecordKind k) => k switch
     {
         NdefRecordKind.Link => "Link (URI)",
+        NdefRecordKind.Phone => "Phone number",
+        NdefRecordKind.Email => "Email",
+        NdefRecordKind.Sms => "Text message (SMS)",
+        NdefRecordKind.Geo => "Location",
         NdefRecordKind.Text => "Text",
         NdefRecordKind.Wifi => "Wi-Fi network",
         NdefRecordKind.AndroidApp => "Android app",
@@ -243,6 +251,12 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     private bool _modified = original is null;
     private readonly NdefRecordKind _kind = kind;
     private string _uri = "https://";
+    private string _phone = string.Empty;
+    private string _email = string.Empty;
+    private string _subject = string.Empty;
+    private string _message = string.Empty;
+    private string _latitude = string.Empty;
+    private string _longitude = string.Empty;
     private string _text = string.Empty;
     private string _language = "en";
     private string _ssid = string.Empty;
@@ -262,7 +276,16 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         var isText = Ndef.TryText(r, out var text, out var lang);
         var isWifi = Ndef.TryWifi(r, out var wifi);
         var isApp = Ndef.TryAndroidApp(r, out var package);
-        var kind = isUri ? NdefRecordKind.Link
+        // Links phones act on (call, email, SMS, map) get fields of their own.
+        var isPhone = NdefUris.TryPhone(uri, out var phone);
+        var isEmail = NdefUris.TryEmail(uri, out var email);
+        var isSms = NdefUris.TrySms(uri, out var sms);
+        var isGeo = NdefUris.TryGeo(uri, out var geo);
+        var kind = isPhone ? NdefRecordKind.Phone
+            : isEmail ? NdefRecordKind.Email
+            : isSms ? NdefRecordKind.Sms
+            : isGeo ? NdefRecordKind.Geo
+            : isUri ? NdefRecordKind.Link
             : isText ? NdefRecordKind.Text
             : isWifi ? NdefRecordKind.Wifi
             : isApp ? NdefRecordKind.AndroidApp
@@ -271,6 +294,12 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         return new NdefRecordEditorViewModel(kind, changed, r)
         {
             _uri = uri,
+            _phone = isPhone ? phone : isSms ? sms.Number : string.Empty,
+            _email = email.Address,
+            _subject = email.Subject,
+            _message = isSms ? sms.Body : email.Body,
+            _latitude = isGeo ? Coordinate(geo.Latitude) : string.Empty,
+            _longitude = isGeo ? Coordinate(geo.Longitude) : string.Empty,
             _text = text,
             _language = lang.Length > 0 ? lang : "en",
             _ssid = wifi.Ssid,
@@ -301,6 +330,16 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     public string IconKey => "ndef" + _kind;
 
     public bool IsLink => _kind == NdefRecordKind.Link;
+    public bool IsPhone => _kind == NdefRecordKind.Phone;
+    public bool IsEmail => _kind == NdefRecordKind.Email;
+    public bool IsSms => _kind == NdefRecordKind.Sms;
+    public bool IsGeo => _kind == NdefRecordKind.Geo;
+
+    /// <summary>The number of a phone or SMS record.</summary>
+    public bool HasNumber => _kind is NdefRecordKind.Phone or NdefRecordKind.Sms;
+
+    /// <summary>The message of an email or SMS record.</summary>
+    public bool HasMessage => _kind is NdefRecordKind.Email or NdefRecordKind.Sms;
     public bool IsText => _kind == NdefRecordKind.Text;
     public bool IsWifi => _kind == NdefRecordKind.Wifi;
     public bool IsAndroidApp => _kind == NdefRecordKind.AndroidApp;
@@ -308,6 +347,12 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     public bool IsRaw => _kind == NdefRecordKind.Raw;
 
     public string Uri { get => _uri; set { this.RaiseAndSetIfChanged(ref _uri, value); Edited(); } }
+    public string Phone { get => _phone; set { this.RaiseAndSetIfChanged(ref _phone, value); Edited(); } }
+    public string Email { get => _email; set { this.RaiseAndSetIfChanged(ref _email, value); Edited(); } }
+    public string Subject { get => _subject; set { this.RaiseAndSetIfChanged(ref _subject, value); Edited(); } }
+    public string Message { get => _message; set { this.RaiseAndSetIfChanged(ref _message, value); Edited(); } }
+    public string Latitude { get => _latitude; set { this.RaiseAndSetIfChanged(ref _latitude, value); Edited(); } }
+    public string Longitude { get => _longitude; set { this.RaiseAndSetIfChanged(ref _longitude, value); Edited(); } }
     public string Text { get => _text; set { this.RaiseAndSetIfChanged(ref _text, value); Edited(); } }
     public string Language { get => _language; set { this.RaiseAndSetIfChanged(ref _language, value); Edited(); } }
     public string Ssid { get => _ssid; set { this.RaiseAndSetIfChanged(ref _ssid, value); Edited(); } }
@@ -364,6 +409,18 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         }
     }
 
+    /// <summary>The phone number typed: digits, with an optional leading + and spacing for reading.</summary>
+    private string Number()
+    {
+        var number = _phone.Trim();
+        if (number.Length == 0 || !number.Any(char.IsAsciiDigit)
+            || number.Any(c => !char.IsAsciiDigit(c) && c is not ('+' or ' ' or '-' or '(' or ')' or '.' or '*' or '#')))
+            throw new FormatException("Enter a phone number, e.g. +1 555 0100.");
+        return number;
+    }
+
+    private static string Coordinate(double degrees) => degrees.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     private NdefRecord Create()
     {
         switch (_kind)
@@ -372,6 +429,19 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
                 if (string.IsNullOrWhiteSpace(_uri) || _uri.Trim() is "https://" or "http://")
                     throw new FormatException("Enter a link.");
                 return Ndef.Uri(_uri.Trim());
+            case NdefRecordKind.Phone:
+                return Ndef.Uri(NdefUris.Phone(Number()));
+            case NdefRecordKind.Email:
+                if (!_email.Contains('@') || _email.Trim().Contains(' ')) throw new FormatException("Enter an email address.");
+                return Ndef.Uri(NdefUris.Email(new NdefEmail(_email.Trim(), _subject, _message)));
+            case NdefRecordKind.Sms:
+                return Ndef.Uri(NdefUris.Sms(new NdefSms(Number(), _message)));
+            case NdefRecordKind.Geo:
+                if (!NdefUris.TryCoordinate(_latitude, 90, out var lat))
+                    throw new FormatException("Enter the latitude in degrees, -90 to 90, e.g. 48.8584.");
+                if (!NdefUris.TryCoordinate(_longitude, 180, out var lon))
+                    throw new FormatException("Enter the longitude in degrees, -180 to 180, e.g. 2.2945.");
+                return Ndef.Uri(NdefUris.Geo(new NdefGeo(lat, lon)));
             case NdefRecordKind.Text:
                 return Ndef.Text(_text, _language);
             case NdefRecordKind.Wifi:
