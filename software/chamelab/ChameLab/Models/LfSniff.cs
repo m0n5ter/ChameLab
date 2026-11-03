@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -25,12 +26,12 @@ public static class LfModulationExtensions
 {
     public static string Label(this LfModulation m) => m switch
     {
-        LfModulation.None => "None (flat carrier)",
-        LfModulation.FewTransitions => "Too few transitions",
+        LfModulation.None => Strings.Lf_ModNone,
+        LfModulation.FewTransitions => Strings.Lf_ModFewTransitions,
         LfModulation.Manchester => "Manchester / Biphase",
         LfModulation.AskNrz => "ASK / NRZ",
         LfModulation.Fsk => "FSK / PSK",
-        _ => "Unknown",
+        _ => Strings.Common_Unknown,
     };
 }
 

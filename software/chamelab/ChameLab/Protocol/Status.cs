@@ -1,3 +1,4 @@
+using ChameLab.Localization;
 namespace ChameLab.Protocol;
 
 /// <summary>Device response status codes (mirrors <c>chameleon_enum.Status</c>).</summary>
@@ -31,26 +32,26 @@ public static class StatusExtensions
     /// <summary>Human-readable description, matching the Python client wording.</summary>
     public static string Describe(this Status status) => status switch
     {
-        Status.HfTagOk => "HF tag operation succeeded",
-        Status.HfTagNo => "HF tag not found or lost",
-        Status.HfErrStat => "HF tag status error",
-        Status.HfErrCrc => "HF tag data CRC error",
-        Status.HfCollision => "HF tag collision",
-        Status.HfErrBcc => "HF tag UID BCC error",
-        Status.MfErrAuth => "HF tag auth failed",
-        Status.HfErrParity => "HF tag data parity error",
-        Status.HfErrAts => "HF tag was supposed to send ATS but didn't",
-        Status.LfTagOk => "LF tag operation succeeded",
-        Status.LfTagNoFound => "LF tag not found",
-        Status.ParErr => "API request failed: parameter error",
-        Status.DeviceModeError => "API request failed: device mode error",
-        Status.InvalidCmd => "API request failed: command invalid",
-        Status.Success => "Device operation succeeded",
-        Status.NotImplemented => "API not implemented",
-        Status.FlashWriteFail => "Flash write failed",
-        Status.FlashReadFail => "Flash read failed",
-        Status.InvalidSlotType => "Invalid card type in slot",
-        _ => $"Unknown status 0x{(ushort)status:X2}",
+        Status.HfTagOk => Strings.Status_HfOk,
+        Status.HfTagNo => Strings.Status_HfNo,
+        Status.HfErrStat => Strings.Status_HfErrStat,
+        Status.HfErrCrc => Strings.Status_HfErrCrc,
+        Status.HfCollision => Strings.Status_HfCollision,
+        Status.HfErrBcc => Strings.Status_HfErrBcc,
+        Status.MfErrAuth => Strings.Status_MfErrAuth,
+        Status.HfErrParity => Strings.Status_HfErrParity,
+        Status.HfErrAts => Strings.Status_HfErrAts,
+        Status.LfTagOk => Strings.Status_LfOk,
+        Status.LfTagNoFound => Strings.Status_LfNotFound,
+        Status.ParErr => Strings.Status_ParErr,
+        Status.DeviceModeError => Strings.Status_ModeErr,
+        Status.InvalidCmd => Strings.Status_InvalidCmd,
+        Status.Success => Strings.Status_Success,
+        Status.NotImplemented => Strings.Status_NotImplemented,
+        Status.FlashWriteFail => Strings.Status_FlashWrite,
+        Status.FlashReadFail => Strings.Status_FlashRead,
+        Status.InvalidSlotType => Strings.Status_InvalidSlotType,
+        _ => string.Format(Strings.Status_Unknown, (ushort)status),
     };
 
     public static bool IsOk(this Status status) =>

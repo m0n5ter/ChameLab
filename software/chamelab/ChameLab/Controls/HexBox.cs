@@ -11,6 +11,7 @@ using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using ChameLab.Localization;
 
 namespace ChameLab.Controls;
 
@@ -247,8 +248,8 @@ public class HexBox : TextBox
 
         _counter.Text = digits == 0
             ? (_lengths.Length > 0 ? string.Join("/", _lengths) + " B" : string.Empty)
-            : odd ? "½ byte" : $"{digits / 2} B";
+            : odd ? Strings.Hex_HalfByte : $"{digits / 2} B";
         _counter.IsVisible = _counter.Text.Length > 0;
-        ToolTip.SetTip(_counter, _lengths.Length > 0 ? $"Expected {string.Join(", ", _lengths)} bytes" : null);
+        ToolTip.SetTip(_counter, _lengths.Length > 0 ? string.Format(Strings.Hex_ExpectedBytes, string.Join(", ", _lengths)) : null);
     }
 }

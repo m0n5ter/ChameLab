@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -41,16 +42,16 @@ public sealed class MifareWriteSession
                 !((Source.GetBlock(b) is null && source.GetBlock(b) is null)
                     || Source.GetBlock(b) is { } expected && source.GetBlock(b) is { } actual
                     && expected.AsSpan().SequenceEqual(actual))))
-            throw new InvalidOperationException("The write plan changed. Start a new write session.");
+            throw new InvalidOperationException(Strings.Write_PlanChanged);
     }
 
     internal void ValidateTarget(byte[] uid, byte[] atqa, byte sak)
     {
         if (TargetKeys is { } target && !target.Uid.AsSpan().SequenceEqual(uid))
-            throw new InvalidOperationException("The target UID changed. Place the same card on the reader to continue writing.");
+            throw new InvalidOperationException(Strings.Write_TargetUidChanged);
         TargetKeys ??= new MifareDump(MifareClassic.FromSak(sak), (byte[])uid.Clone(), atqa, sak);
         if (TargetKeys.BlockCount < Source.BlockCount)
-            throw new InvalidOperationException("The target card is smaller than the source dump.");
+            throw new InvalidOperationException(Strings.Write_TargetSmaller);
     }
 
     internal void StoreKeys(int sector, byte[]? keyA, byte[]? keyB)

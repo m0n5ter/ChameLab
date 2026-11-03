@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -93,7 +94,7 @@ public sealed class CardSave
     public static CardSave FromJson(JsonNode node)
     {
         if (node is not JsonObject o)
-            throw new FormatException("A card must be a JSON object.");
+            throw new FormatException(Strings.Import_CardNotObject);
 
         var card = new CardSave
         {
@@ -126,7 +127,7 @@ public sealed class CardSave
     }
 
     public static CardSave FromJson(string json) =>
-        FromJson(JsonNode.Parse(json) ?? throw new FormatException("Empty JSON document."));
+        FromJson(JsonNode.Parse(json) ?? throw new FormatException(Strings.Import_EmptyJson));
 
     private static JsonArray ToArray(byte[] bytes) =>
         new(bytes.Select(b => (JsonNode)(int)b).ToArray());
@@ -185,7 +186,7 @@ public static class Hex
     {
         var clean = new string(text.Where(c => !char.IsWhiteSpace(c) && c != ':' && c != '-').ToArray());
         if (clean.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) clean = clean[2..];
-        if (clean.Length % 2 != 0) throw new FormatException("Hex value must have an even number of digits.");
+        if (clean.Length % 2 != 0) throw new FormatException(Strings.Import_HexOdd);
         return Convert.FromHexString(clean);
     }
 

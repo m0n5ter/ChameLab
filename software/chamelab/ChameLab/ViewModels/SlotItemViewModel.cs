@@ -4,6 +4,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -30,7 +31,7 @@ public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null
     }
 
     public int Index => _info.Index;
-    public string Header => $"Slot {_info.Index}";
+    public string Header => string.Format(Strings.Slots_SlotN, _info.Index);
 
     public SlotInfo Info => _info;
     public string HfNick => _info.HfNick;
@@ -74,7 +75,7 @@ public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null
     public string LfTypeLabel => HasLf ? _info.LfType.DisplayName() : "-";
 
     public string Summary => IsEmpty
-        ? "Empty slot"
+        ? Strings.Slots_EmptySlot
         : string.Join("  •  ",
             new[] { HasHf ? $"HF: {HfLabel}" : null, HasLf ? $"LF: {LfLabel}" : null }
             .Where(x => x is not null)!);

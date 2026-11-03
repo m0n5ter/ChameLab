@@ -1266,4 +1266,2101 @@
   <data name="Tools_GapThreshold" xml:space="preserve">
     <value>Gap threshold 0x{0:X2}</value>
   </data>
+  <data name="Cards_3DesKey" xml:space="preserve">
+    <value>3DES key</value>
+  </data>
+  <data name="Cards_AccessBits2" xml:space="preserve">
+    <value>Access bits</value>
+  </data>
+  <data name="Cards_AccessBitsInvalid" xml:space="preserve">
+    <value> (INVALID)</value>
+  </data>
+  <data name="Cards_AccessBitsValid" xml:space="preserve">
+    <value> (valid)</value>
+  </data>
+  <data name="Cards_AllTypes" xml:space="preserve">
+    <value>All types</value>
+  </data>
+  <data name="Cards_AssumingGen2" xml:space="preserve">
+    <value>No Gen1a or Gen3 magic card detected; assuming Gen2 / CUID.</value>
+  </data>
+  <data name="Cards_AtqaLength" xml:space="preserve">
+    <value>ATQA must be 2 bytes long.</value>
+  </data>
+  <data name="Cards_Auth0FirstProtected" xml:space="preserve">
+    <value>AUTH0 (first protected page)</value>
+  </data>
+  <data name="Cards_Auth1" xml:space="preserve">
+    <value>AUTH1 (0 = write protect only)</value>
+  </data>
+  <data name="Cards_BlocksRange" xml:space="preserve">
+    <value>blocks {0}–{1}</value>
+  </data>
+  <data name="Cards_CannotWriteType" xml:space="preserve">
+    <value>This card type cannot be written yet</value>
+  </data>
+  <data name="Cards_CapabilityContainer" xml:space="preserve">
+    <value>Capability container</value>
+  </data>
+  <data name="Cards_CapturedAuths" xml:space="preserve">
+    <value>Captured {0} authentications</value>
+  </data>
+  <data name="Cards_CardId" xml:space="preserve">
+    <value>Card ID</value>
+  </data>
+  <data name="Cards_Cfg0Auth0" xml:space="preserve">
+    <value>CFG0 · AUTH0 (first protected page)</value>
+  </data>
+  <data name="Cards_CheckingKey" xml:space="preserve">
+    <value>checking key {0}/{1}</value>
+  </data>
+  <data name="Cards_CloseMfkey32Result" xml:space="preserve">
+    <value>Close the mfkey32 result</value>
+  </data>
+  <data name="Cards_CloseWriter" xml:space="preserve">
+    <value>Close the writer</value>
+  </data>
+  <data name="Cards_ConfigPagesNotRead" xml:space="preserve">
+    <value>The configuration pages were not read. Dump the card with its password to see them.</value>
+  </data>
+  <data name="Cards_CouldNotSaveKnownKeys" xml:space="preserve">
+    <value>Could not save known card keys: {0}</value>
+  </data>
+  <data name="Cards_CouldNotSavePassword" xml:space="preserve">
+    <value>Could not save the card's password: {0}</value>
+  </data>
+  <data name="Cards_Counter" xml:space="preserve">
+    <value>Counter</value>
+  </data>
+  <data name="Cards_Counter16" xml:space="preserve">
+    <value>16-bit counter</value>
+  </data>
+  <data name="Cards_Counters" xml:space="preserve">
+    <value>Counters</value>
+  </data>
+  <data name="Cards_DataRows" xml:space="preserve">
+    <value>{0} data rows</value>
+  </data>
+  <data name="Cards_DeletedFolder" xml:space="preserve">
+    <value>Deleted the folder {0}.</value>
+  </data>
+  <data name="Cards_DetectedGen1a" xml:space="preserve">
+    <value>Detected a Gen1a (UID) magic card.</value>
+  </data>
+  <data name="Cards_DetectedGen3" xml:space="preserve">
+    <value>Detected a Gen3 (APDU) magic card.</value>
+  </data>
+  <data name="Cards_DumpAlreadySaved" xml:space="preserve">
+    <value>A saved card has the same memory as this dump. Open it, or keep going to save the dump again.</value>
+  </data>
+  <data name="Cards_DumpCanceled" xml:space="preserve">
+    <value>Dump canceled.</value>
+  </data>
+  <data name="Cards_DumpClassicHint" xml:space="preserve">
+    <value>Keep the card on the reader and read every block with the selected key dictionaries.</value>
+  </data>
+  <data name="Cards_DumpNotice" xml:space="preserve">
+    <value>Connect a device to read memory and recover keys.</value>
+  </data>
+  <data name="Cards_DumpStoppedKept" xml:space="preserve">
+    <value>Dump stopped. Kept {0}/{1} sectors from {2}.</value>
+  </data>
+  <data name="Cards_DumpUlHint" xml:space="preserve">
+    <value>Keep the card on the reader. The password is sent once, only if the card needs it; wrong ones count towards its lock limit (AUTHLIM).</value>
+  </data>
+  <data name="Cards_DynamicLockBytes" xml:space="preserve">
+    <value>Dynamic lock bytes</value>
+  </data>
+  <data name="Cards_Em410xRead" xml:space="preserve">
+    <value>EM410x tag read.</value>
+  </data>
+  <data name="Cards_EnterIdentityFirst" xml:space="preserve">
+    <value>Enter a valid card identity first.</value>
+  </data>
+  <data name="Cards_ExportBinTitle" xml:space="preserve">
+    <value>Export dump as .bin</value>
+  </data>
+  <data name="Cards_ExportCardTitle" xml:space="preserve">
+    <value>Export card</value>
+  </data>
+  <data name="Cards_ExportEmlTitle" xml:space="preserve">
+    <value>Export dump as .eml</value>
+  </data>
+  <data name="Cards_FailedCount" xml:space="preserve">
+    <value> · {0} failed</value>
+  </data>
+  <data name="Cards_FileHasNoCards" xml:space="preserve">
+    <value>{0} contains no cards.</value>
+  </data>
+  <data name="Cards_Folder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="Cards_FolderExists" xml:space="preserve">
+    <value>There is already a folder named “{0}”.</value>
+  </data>
+  <data name="Cards_FoundAfterChecks" xml:space="preserve">
+    <value>found after {0} key checks</value>
+  </data>
+  <data name="Cards_IdLength" xml:space="preserve">
+    <value>{0} ID must be {1} bytes long.</value>
+  </data>
+  <data name="Cards_IdentityOnly" xml:space="preserve">
+    <value>Identity only</value>
+  </data>
+  <data name="Cards_ImportCardTitle" xml:space="preserve">
+    <value>Import card</value>
+  </data>
+  <data name="Cards_Internal" xml:space="preserve">
+    <value>Internal</value>
+  </data>
+  <data name="Cards_InvalidAccessBits" xml:space="preserve">
+    <value>Invalid access bits in sector {0}: writing this to a card would lock the sector.</value>
+  </data>
+  <data name="Cards_KeyAOfSectors" xml:space="preserve">
+    <value>key A of sector {0}|key A of sectors {0}</value>
+  </data>
+  <data name="Cards_KeyBOfSectors" xml:space="preserve">
+    <value>key B of sector {0}|key B of sectors {0}</value>
+  </data>
+  <data name="Cards_Legend3DesKey" xml:space="preserve">
+    <value>■ 3DES key</value>
+  </data>
+  <data name="Cards_LfTagRead" xml:space="preserve">
+    <value>{0} tag read.</value>
+  </data>
+  <data name="Cards_LoadedInSlot" xml:space="preserve">
+    <value>“{0}” is loaded in slot {1}. Update the device?</value>
+  </data>
+  <data name="Cards_LoadedInSlots" xml:space="preserve">
+    <value>“{0}” is loaded in slots {1}. Update the device?</value>
+  </data>
+  <data name="Cards_ManualEntry" xml:space="preserve">
+    <value>Manual entry</value>
+  </data>
+  <data name="Cards_ManufacturerData" xml:space="preserve">
+    <value>Manufacturer data</value>
+  </data>
+  <data name="Cards_Mfkey32LoadIntoSlot" xml:space="preserve">
+    <value>Load this card into a slot before starting mfkey32.</value>
+  </data>
+  <data name="Cards_Mfkey32NeedsClassic" xml:space="preserve">
+    <value>mfkey32 requires a MIFARE Classic card.</value>
+  </data>
+  <data name="Cards_Mfkey32Tip" xml:space="preserve">
+    <value>Recover card keys from a reader using mfkey32</value>
+  </data>
+  <data name="Cards_Model" xml:space="preserve">
+    <value>Model</value>
+  </data>
+  <data name="Cards_MovedOutOfFolder" xml:space="preserve">
+    <value>Moved “{0}” out of its folder.</value>
+  </data>
+  <data name="Cards_MovedToFolder" xml:space="preserve">
+    <value>Moved “{0}” to {1}.</value>
+  </data>
+  <data name="Cards_MustBeHex" xml:space="preserve">
+    <value>{0} must be valid hex.</value>
+  </data>
+  <data name="Cards_NewCard" xml:space="preserve">
+    <value>New card</value>
+  </data>
+  <data name="Cards_NewFolderN" xml:space="preserve">
+    <value>New folder {0}</value>
+  </data>
+  <data name="Cards_NoCardOnReader" xml:space="preserve">
+    <value>No card found on the reader.</value>
+  </data>
+  <data name="Cards_NoFolder" xml:space="preserve">
+    <value>No folder</value>
+  </data>
+  <data name="Cards_NoHfTag" xml:space="preserve">
+    <value>No HF (13.56 MHz) tag detected.</value>
+  </data>
+  <data name="Cards_NoKeysSelected" xml:space="preserve">
+    <value>No keys selected</value>
+  </data>
+  <data name="Cards_NotFound" xml:space="preserve">
+    <value>not found</value>
+  </data>
+  <data name="Cards_NotFoundChecked" xml:space="preserve">
+    <value>not found · {0}/{1} keys checked</value>
+  </data>
+  <data name="Cards_NotRead" xml:space="preserve">
+    <value>Not read</value>
+  </data>
+  <data name="Cards_NotWritten" xml:space="preserve">
+    <value>Not written</value>
+  </data>
+  <data name="Cards_NowEmulated" xml:space="preserve">
+    <value>“{0}” is now emulated in slot {1}.</value>
+  </data>
+  <data name="Cards_PackReadsBack" xml:space="preserve">
+    <value>PACK (reads back as 00)</value>
+  </data>
+  <data name="Cards_PageN" xml:space="preserve">
+    <value>page {0}</value>
+  </data>
+  <data name="Cards_PageProgress" xml:space="preserve">
+    <value>Page {0}/{1}</value>
+  </data>
+  <data name="Cards_PagesOf" xml:space="preserve">
+    <value>{0}/{1} pages</value>
+  </data>
+  <data name="Cards_PagesRange" xml:space="preserve">
+    <value>pages {0}–{1}</value>
+  </data>
+  <data name="Cards_PagesRead" xml:space="preserve">
+    <value>Pages read</value>
+  </data>
+  <data name="Cards_PartlyWritten" xml:space="preserve">
+    <value>Partly written</value>
+  </data>
+  <data name="Cards_PasswordNotSent" xml:space="preserve">
+    <value>not sent; the card doesn't need it</value>
+  </data>
+  <data name="Cards_PasswordRejected" xml:space="preserve">
+    <value>not accepted; protected pages were left unread</value>
+  </data>
+  <data name="Cards_PlaceSelectedCard" xml:space="preserve">
+    <value>Place the selected card on the reader before continuing.</value>
+  </data>
+  <data name="Cards_PreparingEmulation" xml:space="preserve">
+    <value>Preparing emulation…</value>
+  </data>
+  <data name="Cards_PreparingSector" xml:space="preserve">
+    <value>Preparing sector…</value>
+  </data>
+  <data name="Cards_Protected" xml:space="preserve">
+    <value>Protected</value>
+  </data>
+  <data name="Cards_ProtectionNote" xml:space="preserve">
+    <value>Slots emulate these settings; to put them on a card, tick “Protect with a password” when writing.</value>
+  </data>
+  <data name="Cards_PwdReadsBack" xml:space="preserve">
+    <value>PWD (reads back as 00)</value>
+  </data>
+  <data name="Cards_ReadEveryPage" xml:space="preserve">
+    <value>Read every page, the signature and the counters</value>
+  </data>
+  <data name="Cards_ReadMissingBlocks" xml:space="preserve">
+    <value>Read missing blocks with the selected keys</value>
+  </data>
+  <data name="Cards_ReadPagesFrom" xml:space="preserve">
+    <value>Read {0}/{1} pages from {2}.</value>
+  </data>
+  <data name="Cards_ReadSectorsFrom" xml:space="preserve">
+    <value>Read {0}/{1} sectors from {2}.</value>
+  </data>
+  <data name="Cards_ReadSectorsProgress" xml:space="preserve">
+    <value>Read {0}/{1} sectors.</value>
+  </data>
+  <data name="Cards_ReadingCard" xml:space="preserve">
+    <value>Reading card…</value>
+  </data>
+  <data name="Cards_RecoverAllKeysHint" xml:space="preserve">
+    <value>Recover keys A and B for every sector of the target card. Writing is available when all sectors are green.</value>
+  </data>
+  <data name="Cards_RecoverGen2KeysFirst" xml:space="preserve">
+    <value>Recover both keys for every sector of the target Gen2 card before writing.</value>
+  </data>
+  <data name="Cards_RecoverySectorHint" xml:space="preserve">
+    <value>Select a sector to edit its blocks; hover for keys</value>
+  </data>
+  <data name="Cards_RememberedAccepted" xml:space="preserve">
+    <value>remembered {0} accepted</value>
+  </data>
+  <data name="Cards_RememberedRejected" xml:space="preserve">
+    <value>the remembered password was not accepted; protected pages were left unread</value>
+  </data>
+  <data name="Cards_SakLength" xml:space="preserve">
+    <value>SAK must be 1 byte long.</value>
+  </data>
+  <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>Save the new card before leaving?</value>
+  </data>
+  <data name="Cards_SaveUidOnly" xml:space="preserve">
+    <value>Save UID only</value>
+  </data>
+  <data name="Cards_Searching" xml:space="preserve">
+    <value>searching…</value>
+  </data>
+  <data name="Cards_SearchingProgress" xml:space="preserve">
+    <value>searching {0}</value>
+  </data>
+  <data name="Cards_SectorBlock" xml:space="preserve">
+    <value>Sector {0} · block {1}</value>
+  </data>
+  <data name="Cards_SectorBlockKey" xml:space="preserve">
+    <value>Sector {0} · block {1} · key {2}</value>
+  </data>
+  <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
+    <value>Sector {0} · block {1} · key {2} · {3}</value>
+  </data>
+  <data name="Cards_SectorTrailer" xml:space="preserve">
+    <value>{0} trailer · {1}</value>
+  </data>
+  <data name="Cards_SectorWriteState" xml:space="preserve">
+    <value>{0} · {1}/{2} blocks written</value>
+  </data>
+  <data name="Cards_SectorsDontFit" xml:space="preserve">
+    <value>Sectors {0}–{1} don't fit a {2} and will be dropped when the card is saved.</value>
+  </data>
+  <data name="Cards_SectorsOf" xml:space="preserve">
+    <value>{0}/{1} sectors</value>
+  </data>
+  <data name="Cards_SectorsRead" xml:space="preserve">
+    <value>Sectors read</value>
+  </data>
+  <data name="Cards_Signature" xml:space="preserve">
+    <value>Signature</value>
+  </data>
+  <data name="Cards_SortTypeDown" xml:space="preserve">
+    <value>Type ↓</value>
+  </data>
+  <data name="Cards_SortTypeUp" xml:space="preserve">
+    <value>Type ↑</value>
+  </data>
+  <data name="Cards_SourceTag" xml:space="preserve">
+    <value>{0} tag</value>
+  </data>
+  <data name="Cards_SourceTypeUid" xml:space="preserve">
+    <value>{0}, UID {1}</value>
+  </data>
+  <data name="Cards_StaticLockBytes" xml:space="preserve">
+    <value>Static lock bytes</value>
+  </data>
+  <data name="Cards_StopKeepMemory" xml:space="preserve">
+    <value>Stop and keep the memory read so far (Esc)</value>
+  </data>
+  <data name="Cards_StopWriteTip" xml:space="preserve">
+    <value>Stop the write; blocks already written stay on the card</value>
+  </data>
+  <data name="Cards_Stopped" xml:space="preserve">
+    <value>Stopped</value>
+  </data>
+  <data name="Cards_StoppedAtPage" xml:space="preserve">
+    <value>the card stopped answering at page {0}</value>
+  </data>
+  <data name="Cards_TagAlreadySaved" xml:space="preserve">
+    <value>This tag is already in your library. Open the saved card, or keep going to save it again.</value>
+  </data>
+  <data name="Cards_Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Cards_UidLength" xml:space="preserve">
+    <value>UID must be 4, 7 or 10 bytes long.</value>
+  </data>
+  <data name="Cards_UlPasswordLength" xml:space="preserve">
+    <value>4 bytes for NTAG / Ultralight EV1, 16 bytes for Ultralight C.</value>
+  </data>
+  <data name="Cards_UlcKeyNotReadable" xml:space="preserve">
+    <value>3DES key (not readable)</value>
+  </data>
+  <data name="Cards_UnknownHeldAs00" xml:space="preserve">
+    <value> (unknown, held as 00)</value>
+  </data>
+  <data name="Cards_UnknownKeys" xml:space="preserve">
+    <value>Unknown {0}: held as 00, so writing this dump to a card sets that key to 000000000000.</value>
+  </data>
+  <data name="Cards_UnsupportedFile" xml:space="preserve">
+    <value>{0}: unsupported or damaged file ({1}).</value>
+  </data>
+  <data name="Cards_UpdatedSlot" xml:space="preserve">
+    <value>Updated slot {0} with “{1}”.</value>
+  </data>
+  <data name="Cards_UpdatedSlots" xml:space="preserve">
+    <value>Updated slots {0} with “{1}”.</value>
+  </data>
+  <data name="Cards_UpdatingSlot" xml:space="preserve">
+    <value>Updating slot {0}: {1}/{2}…</value>
+  </data>
+  <data name="Cards_UserByte" xml:space="preserve">
+    <value>User byte</value>
+  </data>
+  <data name="Cards_WarnAccessBits" xml:space="preserve">
+    <value>WARNING: Incorrect sector access bits can permanently brick the card. Double-check the dump and the target card before writing.</value>
+  </data>
+  <data name="Cards_WarnBlock0" xml:space="preserve">
+    <value>WARNING: Incorrect block 0 data or sector access bits can permanently brick the card. Double-check the dump and the target card before writing.</value>
+  </data>
+  <data name="Cards_WriteError" xml:space="preserve">
+    <value>Write error</value>
+  </data>
+  <data name="Cards_WriteHintGen1a" xml:space="preserve">
+    <value>Place a Gen1a (UID) magic card on the reader. Every block, block 0 included, is written raw with no keys.</value>
+  </data>
+  <data name="Cards_WriteHintGen2" xml:space="preserve">
+    <value>Place a Gen2 / CUID magic card on the reader. Every block, block 0 included, is written using the source dump's keys or the selected dictionaries.</value>
+  </data>
+  <data name="Cards_WriteHintGen2KeepUid" xml:space="preserve">
+    <value>Place a Gen2 / CUID magic card on the reader. Block 0 is skipped, so the card keeps its UID. Other blocks are written using the source dump's keys or the selected dictionaries.</value>
+  </data>
+  <data name="Cards_WriteHintGen3" xml:space="preserve">
+    <value>Place a Gen3 (APDU) magic card on the reader. Data blocks are written using the source dump's keys or the selected dictionaries; block 0 is set with the Gen3 backdoor command.</value>
+  </data>
+  <data name="Cards_WriteHintT55xx" xml:space="preserve">
+    <value>Place a blank T55xx tag on the reader. Writing the wrong data can brick a tag, so double-check the card.</value>
+  </data>
+  <data name="Cards_WriteHintUl" xml:space="preserve">
+    <value>Place an Ultralight / NTAG card of the same size or larger on the reader. The user pages are written; the UID, lock bytes and capability container are left as they are, so the card keeps its own UID. The password settings are written only when ticked below.</value>
+  </data>
+  <data name="Cards_WriteStoppedBlocks" xml:space="preserve">
+    <value>Write stopped. The blocks already written stay on the card.</value>
+  </data>
+  <data name="Cards_WriteStoppedPages" xml:space="preserve">
+    <value>Write stopped. The pages already written stay on the card.</value>
+  </data>
+  <data name="Cards_WriteStoppedResume" xml:space="preserve">
+    <value>Write stopped. Press Write to continue on the same card; its UID will be checked first.</value>
+  </data>
+  <data name="Cards_WriteToMagic" xml:space="preserve">
+    <value>Write to a magic card</value>
+  </data>
+  <data name="Cards_WriteToT55xx" xml:space="preserve">
+    <value>Write to T55xx tag</value>
+  </data>
+  <data name="Cards_WriteToUl" xml:space="preserve">
+    <value>Write pages to an Ultralight / NTAG card</value>
+  </data>
+  <data name="Cards_WroteCard" xml:space="preserve">
+    <value>Wrote “{0}” to the card.</value>
+  </data>
+  <data name="Cards_WroteT55xx" xml:space="preserve">
+    <value>Wrote “{0}” to the T55xx tag.</value>
+  </data>
+  <data name="Chameleon_BondsCleared" xml:space="preserve">
+    <value>Bonded BLE devices cleared.</value>
+  </data>
+  <data name="Chameleon_FactoryResetDone" xml:space="preserve">
+    <value>Factory reset done. The device has been disconnected.</value>
+  </data>
+  <data name="Chameleon_PinLength" xml:space="preserve">
+    <value>The BLE PIN must be exactly 6 digits.</value>
+  </data>
+  <data name="Chameleon_SettingsReset" xml:space="preserve">
+    <value>Settings reset to defaults.</value>
+  </data>
+  <data name="Chameleon_SlotActive" xml:space="preserve">
+    <value>Slot {0} is now active.</value>
+  </data>
+  <data name="Chameleon_SwitchedMode" xml:space="preserve">
+    <value>Switched to {0} mode.</value>
+  </data>
+  <data name="Common_And" xml:space="preserve">
+    <value> and </value>
+  </data>
+  <data name="Common_Block" xml:space="preserve">
+    <value>Block</value>
+  </data>
+  <data name="Common_BuiltInKeys" xml:space="preserve">
+    <value>Built-in keys</value>
+  </data>
+  <data name="Common_CheckingDictKeys" xml:space="preserve">
+    <value>Checking dictionary keys…</value>
+  </data>
+  <data name="Common_CheckingRecoveryMethods" xml:space="preserve">
+    <value>Checking recovery methods…</value>
+  </data>
+  <data name="Common_CheckingTargetUid" xml:space="preserve">
+    <value>Checking target UID…</value>
+  </data>
+  <data name="Common_ConnectFirst" xml:space="preserve">
+    <value>Connect a Chameleon first.</value>
+  </data>
+  <data name="Common_CopySuffix" xml:space="preserve">
+    <value> (copy)</value>
+  </data>
+  <data name="Common_CouldNotSave" xml:space="preserve">
+    <value>Could not save: {0}</value>
+  </data>
+  <data name="Common_DictKeyFound" xml:space="preserve">
+    <value>Dictionary key found.</value>
+  </data>
+  <data name="Common_DictKeyNotFound" xml:space="preserve">
+    <value>Dictionary key not found.</value>
+  </data>
+  <data name="Common_Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Common_EnterName" xml:space="preserve">
+    <value>Please enter a name.</value>
+  </data>
+  <data name="Common_ImportedFrom" xml:space="preserve">
+    <value>Imported from {0}</value>
+  </data>
+  <data name="Common_KeyA" xml:space="preserve">
+    <value>Key A</value>
+  </data>
+  <data name="Common_KeyB" xml:space="preserve">
+    <value>Key B</value>
+  </data>
+  <data name="Common_KeysTriedOf" xml:space="preserve">
+    <value>{0} of {1} keys tried</value>
+  </data>
+  <data name="Common_NoName" xml:space="preserve">
+    <value>No name</value>
+  </data>
+  <data name="Common_NotHex" xml:space="preserve">
+    <value>Not a hex value.</value>
+  </data>
+  <data name="Common_Page" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="Common_Password4Bytes" xml:space="preserve">
+    <value>The password is 4 bytes.</value>
+  </data>
+  <data name="Common_Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="Common_SaveChangesTo" xml:space="preserve">
+    <value>Save changes to “{0}”?</value>
+  </data>
+  <data name="Common_SavedFile" xml:space="preserve">
+    <value>Saved {0}.</value>
+  </data>
+  <data name="Common_SectorN" xml:space="preserve">
+    <value>Sector {0}</value>
+  </data>
+  <data name="Common_SortManual" xml:space="preserve">
+    <value>Manual</value>
+  </data>
+  <data name="Common_SortNameAz" xml:space="preserve">
+    <value>Name A–Z</value>
+  </data>
+  <data name="Common_SortNameZa" xml:space="preserve">
+    <value>Name Z–A</value>
+  </data>
+  <data name="Common_Starting" xml:space="preserve">
+    <value>Starting…</value>
+  </data>
+  <data name="Common_StartingRecovery" xml:space="preserve">
+    <value>Starting recovery…</value>
+  </data>
+  <data name="Common_Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Common_Stopping" xml:space="preserve">
+    <value>Stopping…</value>
+  </data>
+  <data name="Common_TryKeys" xml:space="preserve">
+    <value>Try keys</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Common_Untitled" xml:space="preserve">
+    <value>Untitled</value>
+  </data>
+  <data name="Common_UploadingProgress" xml:space="preserve">
+    <value>Uploading {0}/{1}…</value>
+  </data>
+  <data name="Common_WaitForOperation" xml:space="preserve">
+    <value>Wait for the current operation to finish.</value>
+  </data>
+  <data name="Connect_HeroBle" xml:space="preserve">
+    <value>Turn Bluetooth on and press a button on the Chameleon to wake it up. It will show up here on its own.</value>
+  </data>
+  <data name="Connect_HeroUsb" xml:space="preserve">
+    <value>Plug the Chameleon in. It will show up here on its own.</value>
+  </data>
+  <data name="Connect_HeroUsbBle" xml:space="preserve">
+    <value>Plug the Chameleon in, or press a button on it to wake it up for Bluetooth. It will show up here on its own.</value>
+  </data>
+  <data name="Connect_IntroBle" xml:space="preserve">
+    <value>Press a button on the device to wake it up, then pick it below.</value>
+  </data>
+  <data name="Connect_IntroUsb" xml:space="preserve">
+    <value>Plug the device in over USB, then pick it below.</value>
+  </data>
+  <data name="Connect_IntroUsbBle" xml:space="preserve">
+    <value>Plug the device in over USB, or press a button on it to wake it up for Bluetooth, then pick it below.</value>
+  </data>
+  <data name="Connect_NearbyAuto" xml:space="preserve">
+    <value>Nearby devices appear here automatically while they're awake.</value>
+  </data>
+  <data name="Connect_NoneFound" xml:space="preserve">
+    <value>No Chameleon found. Plug it in, or use a network bridge.</value>
+  </data>
+  <data name="Connect_PluggedAuto" xml:space="preserve">
+    <value>Plugged-in devices appear here automatically.</value>
+  </data>
+  <data name="Connect_SelectFirst" xml:space="preserve">
+    <value>Select a device first.</value>
+  </data>
+  <data name="Connect_SelectedPressConnect" xml:space="preserve">
+    <value>Selected {0}. Press Connect.</value>
+  </data>
+  <data name="Connect_WebIntro" xml:space="preserve">
+    <value>Plug the Chameleon in, then press Rescan and allow this page to use it (Chrome or Edge).</value>
+  </data>
+  <data name="Connect_WebIntroBle" xml:space="preserve">
+    <value>Plug the Chameleon in and press Rescan, or wake it up and press Pair over Bluetooth, then allow this page to use it (Chrome or Edge).</value>
+  </data>
+  <data name="Connect_WebPickOnce" xml:space="preserve">
+    <value>Press Rescan to pick your Chameleon once; after that it appears here automatically.</value>
+  </data>
+  <data name="Connect_WebPickOnceBle" xml:space="preserve">
+    <value>Pick your Chameleon once with Rescan (USB) or Pair over Bluetooth; after that it appears here automatically.</value>
+  </data>
+  <data name="Dictionaries_ExportTitle" xml:space="preserve">
+    <value>Export dictionary (.dic)</value>
+  </data>
+  <data name="Dictionaries_ImportTitle" xml:space="preserve">
+    <value>Import dictionary</value>
+  </data>
+  <data name="Dictionaries_KeyEmpty" xml:space="preserve">
+    <value>Key {0} · empty, dropped on save</value>
+  </data>
+  <data name="Dictionaries_KeyN" xml:space="preserve">
+    <value>Key {0}</value>
+  </data>
+  <data name="Dictionaries_KeyRepeats" xml:space="preserve">
+    <value>Key {0} · repeats key {1}, dropped on save</value>
+  </data>
+  <data name="Dictionaries_KnownKeysCount" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
+    <value>Keys found while reading cards or running recovery will appear here, grouped by UID.</value>
+  </data>
+  <data name="Dictionaries_NewKeyRow" xml:space="preserve">
+    <value>New key: type or paste to add</value>
+  </data>
+  <data name="Dictionaries_NoValidKeys" xml:space="preserve">
+    <value>{0} has no valid keys.</value>
+  </data>
+  <data name="Dictionaries_Repeated2" xml:space="preserve">
+    <value>{0} repeated</value>
+  </data>
+  <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
+    <value>Save changes to known card keys?</value>
+  </data>
+  <data name="Dictionaries_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>Save the new dictionary before leaving?</value>
+  </data>
+  <data name="Dictionaries_SortFewestKeys" xml:space="preserve">
+    <value>Fewest keys</value>
+  </data>
+  <data name="Dictionaries_SortMostKeys" xml:space="preserve">
+    <value>Most keys</value>
+  </data>
+  <data name="Firmware_Available" xml:space="preserve">
+    <value>{0} is available</value>
+  </data>
+  <data name="Firmware_AvailableConnect" xml:space="preserve">
+    <value>{0} is available. Connect over USB or Bluetooth to install it</value>
+  </data>
+  <data name="Firmware_CantInstallFile" xml:space="preserve">
+    <value>Can't install this file</value>
+  </data>
+  <data name="Firmware_DontUnplug" xml:space="preserve">
+    <value>Don't unplug the device.</value>
+  </data>
+  <data name="Firmware_Downloading" xml:space="preserve">
+    <value>Downloading…</value>
+  </data>
+  <data name="Firmware_Failed" xml:space="preserve">
+    <value>Firmware update failed</value>
+  </data>
+  <data name="Firmware_Flashing" xml:space="preserve">
+    <value>Installing… {0:P0}</value>
+  </data>
+  <data name="Firmware_HowBle" xml:space="preserve">
+    <value>The device restarts into its bootloader, gets the new firmware over Bluetooth and reconnects. Slots and settings are kept. Keep it close to the phone and this app open until it is done.</value>
+  </data>
+  <data name="Firmware_HowUsb" xml:space="preserve">
+    <value>The device restarts into its bootloader, gets the new firmware over USB and reconnects. Slots and settings are kept. Keep it plugged in until it is done.</value>
+  </data>
+  <data name="Firmware_InstallFromPrompt" xml:space="preserve">
+    <value>Install firmware from {0}?</value>
+  </data>
+  <data name="Firmware_InstallPrompt" xml:space="preserve">
+    <value>Install firmware {0}?</value>
+  </data>
+  <data name="Firmware_Installing" xml:space="preserve">
+    <value>Installing {0}</value>
+  </data>
+  <data name="Firmware_KeepClose" xml:space="preserve">
+    <value>Keep the device close and this app open.</value>
+  </data>
+  <data name="Firmware_NoPackage" xml:space="preserve">
+    <value>{0} is available, but has no package for this model</value>
+  </data>
+  <data name="Firmware_NowRuns" xml:space="preserve">
+    <value>{0} now runs {1}. Slots and settings were kept.</value>
+  </data>
+  <data name="Firmware_PackageTitle" xml:space="preserve">
+    <value>Firmware DFU package</value>
+  </data>
+  <data name="Firmware_Restarted" xml:space="preserve">
+    <value>The device restarted with the new firmware.</value>
+  </data>
+  <data name="Firmware_Restarting" xml:space="preserve">
+    <value>Restarting the device into its bootloader…</value>
+  </data>
+  <data name="Firmware_TheFirmware" xml:space="preserve">
+    <value>the firmware</value>
+  </data>
+  <data name="Firmware_UpToDate" xml:space="preserve">
+    <value>Up to date (latest {0})</value>
+  </data>
+  <data name="Firmware_Updated" xml:space="preserve">
+    <value>Firmware updated</value>
+  </data>
+  <data name="Firmware_WaitingBootloader" xml:space="preserve">
+    <value>Waiting for the bootloader…</value>
+  </data>
+  <data name="Firmware_WaitingRestart" xml:space="preserve">
+    <value>Waiting for the device to restart…</value>
+  </data>
+  <data name="Main_Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Main_DeviceSummary" xml:space="preserve">
+    <value>{0} · fw {1}</value>
+  </data>
+  <data name="Main_NotConnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="Nav_Cards" xml:space="preserve">
+    <value>Cards</value>
+  </data>
+  <data name="Nav_Chameleon" xml:space="preserve">
+    <value>Chameleon</value>
+  </data>
+  <data name="Nav_Dictionaries" xml:space="preserve">
+    <value>Dictionaries</value>
+  </data>
+  <data name="Nav_Slots" xml:space="preserve">
+    <value>Slots</value>
+  </data>
+  <data name="Ndef_BytesLeft" xml:space="preserve">
+    <value>{0} of {1} bytes · {2} left</value>
+  </data>
+  <data name="Ndef_BytesOver" xml:space="preserve">
+    <value>{0} of {1} bytes · {2} over</value>
+  </data>
+  <data name="Ndef_EmptyRecord" xml:space="preserve">
+    <value>An empty record has no type and no payload.</value>
+  </data>
+  <data name="Ndef_EnterContactName" xml:space="preserve">
+    <value>Enter the contact's name.</value>
+  </data>
+  <data name="Ndef_EnterEmail" xml:space="preserve">
+    <value>Enter an email address.</value>
+  </data>
+  <data name="Ndef_EnterEmailOrEmpty" xml:space="preserve">
+    <value>Enter an email address, or leave it empty.</value>
+  </data>
+  <data name="Ndef_EnterLatitude" xml:space="preserve">
+    <value>Enter the latitude in degrees, -90 to 90, e.g. 48.8584.</value>
+  </data>
+  <data name="Ndef_EnterLink" xml:space="preserve">
+    <value>Enter a link.</value>
+  </data>
+  <data name="Ndef_EnterLongitude" xml:space="preserve">
+    <value>Enter the longitude in degrees, -180 to 180, e.g. 2.2945.</value>
+  </data>
+  <data name="Ndef_EnterMime" xml:space="preserve">
+    <value>Enter a MIME type, e.g. text/plain.</value>
+  </data>
+  <data name="Ndef_EnterPackage" xml:space="preserve">
+    <value>Enter the app's package name, e.g. com.example.app.</value>
+  </data>
+  <data name="Ndef_EnterPhone" xml:space="preserve">
+    <value>Enter a phone number, e.g. +1 555 0100.</value>
+  </data>
+  <data name="Ndef_EnterSsid" xml:space="preserve">
+    <value>Enter the network name (SSID).</value>
+  </data>
+  <data name="Ndef_EnterType" xml:space="preserve">
+    <value>Enter the record type.</value>
+  </data>
+  <data name="Ndef_NotReadYet" xml:space="preserve">
+    <value>Memory not read yet: read the card, or add records to start a new message.</value>
+  </data>
+  <data name="Ndef_PayloadHex" xml:space="preserve">
+    <value>The payload must be hex.</value>
+  </data>
+  <data name="Ndef_SsidTooLong" xml:space="preserve">
+    <value>The network name is at most 32 bytes.</value>
+  </data>
+  <data name="Ndef_TnfAbsoluteUri" xml:space="preserve">
+    <value>Absolute URI</value>
+  </data>
+  <data name="Ndef_TnfExternal" xml:space="preserve">
+    <value>External type</value>
+  </data>
+  <data name="Ndef_TnfMedia" xml:space="preserve">
+    <value>MIME media type</value>
+  </data>
+  <data name="Ndef_TnfWellKnown" xml:space="preserve">
+    <value>Well-known (NFC RTD)</value>
+  </data>
+  <data name="Ndef_TypeTooLong" xml:space="preserve">
+    <value>A record's type or ID is too long.</value>
+  </data>
+  <data name="Ndef_WpaLength" xml:space="preserve">
+    <value>A WPA password is 8 to 63 characters.</value>
+  </data>
+  <data name="Plural_Bits" xml:space="preserve">
+    <value>{0} bit|{0} bits</value>
+  </data>
+  <data name="Plural_Breaks" xml:space="preserve">
+    <value>{0} break|{0} breaks</value>
+  </data>
+  <data name="Plural_BytesHex" xml:space="preserve">
+    <value>{0} byte (hex)|{0} bytes (hex)</value>
+  </data>
+  <data name="Plural_Cards" xml:space="preserve">
+    <value>{0} card|{0} cards</value>
+  </data>
+  <data name="Plural_DeletedFolderCards" xml:space="preserve">
+    <value>Deleted the folder {1}; its card is still in Cards.|Deleted the folder {1}; its {0} cards are still in Cards.</value>
+  </data>
+  <data name="Plural_Dictionaries" xml:space="preserve">
+    <value>{0} dictionary|{0} dictionaries</value>
+  </data>
+  <data name="Plural_EmptyRows" xml:space="preserve">
+    <value>{0} empty|{0} empty</value>
+  </data>
+  <data name="Plural_FoundDevices" xml:space="preserve">
+    <value>Found {0} device.|Found {0} devices.</value>
+  </data>
+  <data name="Plural_FoundHfTags" xml:space="preserve">
+    <value>Found {0} HF tag.|Found {0} HF tags.</value>
+  </data>
+  <data name="Plural_ImportedCards" xml:space="preserve">
+    <value>Imported {0} card.|Imported {0} cards.</value>
+  </data>
+  <data name="Plural_Keys" xml:space="preserve">
+    <value>{0} key|{0} keys</value>
+  </data>
+  <data name="Plural_KnownKeys" xml:space="preserve">
+    <value>{0} known key|{0} known keys</value>
+  </data>
+  <data name="Plural_NtagPasswords" xml:space="preserve">
+    <value> · {0} NTAG password| · {0} NTAG passwords</value>
+  </data>
+  <data name="Plural_Records" xml:space="preserve">
+    <value>{0} record|{0} records</value>
+  </data>
+  <data name="Plural_SlotsInUse" xml:space="preserve">
+    <value>{0} slot in use|{0} slots in use</value>
+  </data>
+  <data name="Plural_UidsKeys" xml:space="preserve">
+    <value>{0} UID|{0} UIDs</value>
+  </data>
+  <data name="Plural_UniqueKeys" xml:space="preserve">
+    <value>{0} unique key|{0} unique keys</value>
+  </data>
+  <data name="Plural_WriteFailedBlocks" xml:space="preserve">
+    <value>Wrote “{1}”, but {0} block failed: {2}.|Wrote “{1}”, but {0} blocks failed: {2}.</value>
+  </data>
+  <data name="Plural_WriteFailedPages" xml:space="preserve">
+    <value>Wrote “{1}”, but {0} page failed: {2}.|Wrote “{1}”, but {0} pages failed: {2}.</value>
+  </data>
+  <data name="Protection_KeepPassword" xml:space="preserve">
+    <value>Written after the pages. Keep the password ({0}): without it the protected pages can't be changed.</value>
+  </data>
+  <data name="Protection_NoLimit" xml:space="preserve">
+    <value>No limit</value>
+  </data>
+  <data name="Protection_Off" xml:space="preserve">
+    <value>Written after the pages: protection is switched off, the password set to {0}.</value>
+  </data>
+  <data name="Recovery_BlocksWritten" xml:space="preserve">
+    <value>{0}/{1} blocks written</value>
+  </data>
+  <data name="Recovery_HoverKeys" xml:space="preserve">
+    <value>Target card keys · hover a sector for key details</value>
+  </data>
+  <data name="Recovery_HoverWritten" xml:space="preserve">
+    <value>Hover a sector for written block counts and errors</value>
+  </data>
+  <data name="Recovery_LoadTargetIntoSlot" xml:space="preserve">
+    <value>Load the target card into a slot before starting mfkey32.</value>
+  </data>
+  <data name="Recovery_Mfkey32Tip" xml:space="preserve">
+    <value>Recover the target card's keys from a reader using mfkey32</value>
+  </data>
+  <data name="Recovery_PlaceExactlyOne" xml:space="preserve">
+    <value>Place exactly one target card on the reader.</value>
+  </data>
+  <data name="Recovery_PlaceTarget" xml:space="preserve">
+    <value>Place the target card on the reader, then try keys or check recovery methods.</value>
+  </data>
+  <data name="Recovery_PreparingWrite" xml:space="preserve">
+    <value>Preparing write…</value>
+  </data>
+  <data name="Recovery_ScanTargetFirst" xml:space="preserve">
+    <value>Scan the target card before starting mfkey32.</value>
+  </data>
+  <data name="Recovery_SectorKeyDetail" xml:space="preserve">
+    <value>Sector {0} · key {1} · {2}</value>
+  </data>
+  <data name="Recovery_SectorKeyProgress" xml:space="preserve">
+    <value>Sector {0} · key {1} · {2}/{3}</value>
+  </data>
+  <data name="Recovery_StopRecoveryTip" xml:space="preserve">
+    <value>Stop recovery and keep the keys already found</value>
+  </data>
+  <data name="Recovery_StopWritingTip" xml:space="preserve">
+    <value>Stop writing; blocks already written stay on the card</value>
+  </data>
+  <data name="Recovery_TargetChanged" xml:space="preserve">
+    <value>The target card changed. Close and reopen the writer before continuing.</value>
+  </data>
+  <data name="Recovery_TargetMustBeClassic" xml:space="preserve">
+    <value>The target must be a MIFARE Classic card.</value>
+  </data>
+  <data name="Recovery_TargetUid" xml:space="preserve">
+    <value>Target UID: {0}</value>
+  </data>
+  <data name="Recovery_TryKeysTip" xml:space="preserve">
+    <value>Find the target card's keys using the selected dictionaries and source keys</value>
+  </data>
+  <data name="Recovery_UniqueKeysWithSource" xml:space="preserve">
+    <value>{0} unique keys (source keys are also tried)</value>
+  </data>
+  <data name="Recovery_WritingCard" xml:space="preserve">
+    <value>Writing card…</value>
+  </data>
+  <data name="Settings_BackupSaved" xml:space="preserve">
+    <value>Backup saved: {0}.</value>
+  </data>
+  <data name="Settings_ImportedBackup" xml:space="preserve">
+    <value>Imported {0} and {1}.</value>
+  </data>
+  <data name="Slots_AddSaved" xml:space="preserve">
+    <value>Add saved</value>
+  </data>
+  <data name="Slots_AddSavedLf" xml:space="preserve">
+    <value>Add a saved LF card</value>
+  </data>
+  <data name="Slots_ChooseSavedSide" xml:space="preserve">
+    <value>Choose a saved {0} card</value>
+  </data>
+  <data name="Slots_EmptySlot" xml:space="preserve">
+    <value>Empty slot</value>
+  </data>
+  <data name="Slots_NoDevice" xml:space="preserve">
+    <value>No device connected</value>
+  </data>
+  <data name="Slots_NoSavedSide" xml:space="preserve">
+    <value>No {0} cards saved yet.</value>
+  </data>
+  <data name="Slots_NotInSaved" xml:space="preserve">
+    <value>{0} · not in Saved cards</value>
+  </data>
+  <data name="Slots_NotInSavedId" xml:space="preserve">
+    <value>{0} · {1} {2} · not in Saved cards</value>
+  </data>
+  <data name="Slots_Reading" xml:space="preserve">
+    <value>Reading the slots…</value>
+  </data>
+  <data name="Slots_ReadingSlot" xml:space="preserve">
+    <value>Reading slot {0}</value>
+  </data>
+  <data name="Slots_ReadingSlotEllipsis" xml:space="preserve">
+    <value>Reading slot {0}…</value>
+  </data>
+  <data name="Slots_SaveChangesTo" xml:space="preserve">
+    <value>Save changes to slot {0}?</value>
+  </data>
+  <data name="Slots_SavedToCards" xml:space="preserve">
+    <value>Saved “{0}” to Saved cards.</value>
+  </data>
+  <data name="Slots_SlotN" xml:space="preserve">
+    <value>Slot {0}</value>
+  </data>
+  <data name="Slots_SlotSaved" xml:space="preserve">
+    <value>Slot saved.</value>
+  </data>
+  <data name="Slots_SwapFailed" xml:space="preserve">
+    <value>Could not write slot {0} ({1}). Slot {2} was restored; check slot {3}.</value>
+  </data>
+  <data name="Slots_Swapped" xml:space="preserve">
+    <value>Swapped slots {0} and {1}.</value>
+  </data>
+  <data name="Slots_UsedActive" xml:space="preserve">
+    <value>{0} · slot {1} active</value>
+  </data>
+  <data name="Slots_WritingSlot" xml:space="preserve">
+    <value>Writing slot {0}</value>
+  </data>
+  <data name="Slots_WritingSlotEllipsis" xml:space="preserve">
+    <value>Writing slot {0}…</value>
+  </data>
+  <data name="Tools_ArqcRequested" xml:space="preserve">
+    <value>EMV ARQC requested</value>
+  </data>
+  <data name="Tools_AuthGroupHeader" xml:space="preserve">
+    <value>Block {0} (sector {1}) · key {2} · UID {3:X8}</value>
+  </data>
+  <data name="Tools_BitsBreaks" xml:space="preserve">
+    <value>{0} · {1} in the code</value>
+  </data>
+  <data name="Tools_BlockKey" xml:space="preserve">
+    <value>block {0} key {1}</value>
+  </data>
+  <data name="Tools_CaptureSaved" xml:space="preserve">
+    <value>Capture saved: {0}.</value>
+  </data>
+  <data name="Tools_CapturedAt" xml:space="preserve">
+    <value>Captured at {0:HH:mm:ss}</value>
+  </data>
+  <data name="Tools_ClassicAuthOn" xml:space="preserve">
+    <value>MIFARE Classic auth on </value>
+  </data>
+  <data name="Tools_ClockRun" xml:space="preserve">
+    <value>RF/{0} · shortest run {1} samples ({2} µs)</value>
+  </data>
+  <data name="Tools_ConnectToCapture" xml:space="preserve">
+    <value>Connect a Chameleon to capture.</value>
+  </data>
+  <data name="Tools_CursorSample" xml:space="preserve">
+    <value>Sample {0} · {1:0.000} ms · 0x{2:X2} </value>
+  </data>
+  <data name="Tools_EndedHalt" xml:space="preserve">
+    <value>ended with HALT</value>
+  </data>
+  <data name="Tools_FileEmpty" xml:space="preserve">
+    <value>{0} is empty.</value>
+  </data>
+  <data name="Tools_FramesSummary" xml:space="preserve">
+    <value>{0} frames: {1} from the reader, {2} from the card</value>
+  </data>
+  <data name="Tools_Gap" xml:space="preserve">
+    <value>(gap)</value>
+  </data>
+  <data name="Tools_GapSamples" xml:space="preserve">
+    <value>{0} samples below 0x{1:X2}</value>
+  </data>
+  <data name="Tools_High" xml:space="preserve">
+    <value>(high)</value>
+  </data>
+  <data name="Tools_Listening" xml:space="preserve">
+    <value>Listening…</value>
+  </data>
+  <data name="Tools_LoadHfTitle" xml:space="preserve">
+    <value>Load HF trace</value>
+  </data>
+  <data name="Tools_LoadLfTitle" xml:space="preserve">
+    <value>Load LF capture</value>
+  </data>
+  <data name="Tools_Low" xml:space="preserve">
+    <value>(low)</value>
+  </data>
+  <data name="Tools_NoBits" xml:space="preserve">
+    <value>No bits decoded. Try another clock or Invert.</value>
+  </data>
+  <data name="Tools_NoGaps" xml:space="preserve">
+    <value>None below 0x{0:X2}: a steady field</value>
+  </data>
+  <data name="Tools_NoIsoFrames" xml:space="preserve">
+    <value>{0} holds no ISO14443-A frames.</value>
+  </data>
+  <data name="Tools_NoLfSamples" xml:space="preserve">
+    <value>No LF samples were captured.</value>
+  </data>
+  <data name="Tools_NoReaderSpoke" xml:space="preserve">
+    <value>No reader spoke. Hold the Chameleon to the reader while it listens, with an HF card in its active slot.</value>
+  </data>
+  <data name="Tools_NoSelect" xml:space="preserve">
+    <value>No completed SELECT</value>
+  </data>
+  <data name="Tools_NoUniqueKey" xml:space="preserve">
+    <value>No unique key: capture more authentications.</value>
+  </data>
+  <data name="Tools_NothingMore" xml:space="preserve">
+    <value>Nothing more recognized</value>
+  </data>
+  <data name="Tools_OneAuthOnly" xml:space="preserve">
+    <value>One authentication only: capture again so the reader tries a second time.</value>
+  </data>
+  <data name="Tools_RangeMean" xml:space="preserve">
+    <value>0x{0:X2}–0x{1:X2} · mean 0x{2:X2}</value>
+  </data>
+  <data name="Tools_Recovering" xml:space="preserve">
+    <value>Recovering…</value>
+  </data>
+  <data name="Tools_SamplesDuration" xml:space="preserve">
+    <value>{0} samples · {1:0.0} ms</value>
+  </data>
+  <data name="Tools_SaveHfTitle" xml:space="preserve">
+    <value>Save HF trace</value>
+  </data>
+  <data name="Tools_SaveLfTitle" xml:space="preserve">
+    <value>Save LF capture</value>
+  </data>
+  <data name="Tools_TcRequested" xml:space="preserve">
+    <value>EMV TC requested</value>
+  </data>
+  <data name="Tools_TraceSaved" xml:space="preserve">
+    <value>Trace saved: {0}.</value>
+  </data>
+  <data name="Tools_WaveHintMouse" xml:space="preserve">
+    <value>Point to read a sample. The wheel, a pinch or the slider zooms, dragging pans; the strip below moves the view.</value>
+  </data>
+  <data name="Tools_WaveHintTouch" xml:space="preserve">
+    <value>Tap to read a sample. Pinch or the slider zooms, dragging pans; the strip below moves the view.</value>
+  </data>
+  <data name="Update_AppAvailable" xml:space="preserve">
+    <value>ChameLab {0} is available.</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>Couldn't check for updates: {0}</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Checking for updates…</value>
+  </data>
+  <data name="Update_UpToDate" xml:space="preserve">
+    <value>You have the latest version.</value>
+  </data>
+  <data name="Ndef_NoRecords" xml:space="preserve">
+    <value>No records</value>
+  </data>
+  <data name="Settings_TrademarkNotice" xml:space="preserve">
+    <value>MIFARE®, MIFARE® Classic and MIFARE® Ultralight are registered trademarks of NXP B.V. HID™ and HID ProxCard™ are trademarks of HID Global. EM4100 and related product names are trademarks of EM Microelectronic-Marin SA. This app is not affiliated with any of them.</value>
+  </data>
+  <data name="Backup_Invalid" xml:space="preserve">
+    <value>Not a valid backup file.</value>
+  </data>
+  <data name="Backup_NotChameLab" xml:space="preserve">
+    <value>This is not a ChameLab backup.</value>
+  </data>
+  <data name="Common_Copied" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="Firmware_DidNotReturn" xml:space="preserve">
+    <value>The firmware was installed, but the device did not come back. Reconnect it from the Connect page.</value>
+  </data>
+  <data name="Firmware_NoBootloader" xml:space="preserve">
+    <value>The device did not show up in its bootloader. Unplug it, hold B while plugging it back in, and retry.</value>
+  </data>
+  <data name="Firmware_NoPackageForDevice" xml:space="preserve">
+    <value>Release {0} has no firmware package for this device.</value>
+  </data>
+  <data name="Firmware_NoRelease" xml:space="preserve">
+    <value>No firmware has been released yet.</value>
+  </data>
+  <data name="Firmware_NotSupportedHere" xml:space="preserve">
+    <value>Firmware can be installed over USB from the desktop app, or over Bluetooth from the phone app.</value>
+  </data>
+  <data name="Firmware_ReleaseNoVersion" xml:space="preserve">
+    <value>Release {0} names no firmware version.</value>
+  </data>
+  <data name="Firmware_TimeoutLastError" xml:space="preserve">
+    <value>{0} (Last error: {1})</value>
+  </data>
+  <data name="Grid_Blocks" xml:space="preserve">
+    <value>Blocks</value>
+  </data>
+  <data name="Grid_NoBlocksSelected" xml:space="preserve">
+    <value>No blocks selected</value>
+  </data>
+  <data name="Grid_Read" xml:space="preserve">
+    <value> (read)</value>
+  </data>
+  <data name="Grid_Sector" xml:space="preserve">
+    <value>Sector</value>
+  </data>
+  <data name="Hex_AddRowBelow" xml:space="preserve">
+    <value>Add row below</value>
+  </data>
+  <data name="Hex_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Hex_DeleteRows" xml:space="preserve">
+    <value>Delete rows</value>
+  </data>
+  <data name="Hex_ExpectedBytes" xml:space="preserve">
+    <value>Expected {0} bytes</value>
+  </data>
+  <data name="Hex_HalfByte" xml:space="preserve">
+    <value>½ byte</value>
+  </data>
+  <data name="Hex_Memory" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="Hex_NotRead" xml:space="preserve">
+    <value>not read</value>
+  </data>
+  <data name="Hex_Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Hex_Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="Hex_SelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="Hex_Selected" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="Hex_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Keys_ExpectedGrouped" xml:space="preserve">
+    <value>Expected keys grouped by UID.</value>
+  </data>
+  <data name="Keys_InvalidKey" xml:space="preserve">
+    <value>Invalid card key.</value>
+  </data>
+  <data name="Keys_InvalidPassword" xml:space="preserve">
+    <value>Invalid NTAG password.</value>
+  </data>
+  <data name="Keys_InvalidPasswordSection" xml:space="preserve">
+    <value>Invalid NTAG password section.</value>
+  </data>
+  <data name="Keys_InvalidUid" xml:space="preserve">
+    <value>Invalid UID.</value>
+  </data>
+  <data name="Keys_InvalidUidGroup" xml:space="preserve">
+    <value>Invalid UID group.</value>
+  </data>
+  <data name="Keys_KeyLength" xml:space="preserve">
+    <value>Each key must contain 6 bytes.</value>
+  </data>
+  <data name="Library_CardsLoadError" xml:space="preserve">
+    <value>Saved cards could not be read: {0}</value>
+  </data>
+  <data name="Library_DictionariesLoadError" xml:space="preserve">
+    <value>Saved dictionaries could not be read: {0}</value>
+  </data>
+  <data name="Library_KnownKeysLoadError" xml:space="preserve">
+    <value>Known card keys could not be read: {0}</value>
+  </data>
+  <data name="Mfkey32_HoldToReader" xml:space="preserve">
+    <value>Hold Chameleon to the reader.</value>
+  </data>
+  <data name="Mfkey32_KeyFound" xml:space="preserve">
+    <value>Key found: {0}</value>
+  </data>
+  <data name="Mfkey32_PlaceOriginal" xml:space="preserve">
+    <value>Place original card on Chameleon.</value>
+  </data>
+  <data name="Mfkey32_Recovering" xml:space="preserve">
+    <value>Recovering keys…</value>
+  </data>
+  <data name="Mfkey32_RestoreFailed" xml:space="preserve">
+    <value>Could not restore the device state after mfkey32.</value>
+  </data>
+  <data name="Mfkey32_SlotUidDiffers" xml:space="preserve">
+    <value>The slot UID differs from this card. Load the card into the slot again.</value>
+  </data>
+  <data name="Recovery_Attempt" xml:space="preserve">
+    <value>Attempt {0}/{1}</value>
+  </data>
+  <data name="Recovery_AttemptOf5" xml:space="preserve">
+    <value>Attempt {0}/5</value>
+  </data>
+  <data name="Recovery_AuthFailed" xml:space="preserve">
+    <value>Could not authenticate a key.</value>
+  </data>
+  <data name="Recovery_BackdoorKey" xml:space="preserve">
+    <value>Backdoor key {0}</value>
+  </data>
+  <data name="Recovery_CalcDarkside" xml:space="preserve">
+    <value>Calculating darkside candidates…</value>
+  </data>
+  <data name="Recovery_CalcHardnested" xml:space="preserve">
+    <value>Calculating hardnested key candidates…</value>
+  </data>
+  <data name="Recovery_CalcNested" xml:space="preserve">
+    <value>Calculating nested candidates…</value>
+  </data>
+  <data name="Recovery_CalcStaticEnc" xml:space="preserve">
+    <value>Calculating static encrypted candidates…</value>
+  </data>
+  <data name="Recovery_CalcStaticNested" xml:space="preserve">
+    <value>Calculating static nested candidates…</value>
+  </data>
+  <data name="Recovery_CandidateN" xml:space="preserve">
+    <value>Candidate {0}/{1}</value>
+  </data>
+  <data name="Recovery_CandidatesRange" xml:space="preserve">
+    <value>Candidates {0}–{1}/{2}</value>
+  </data>
+  <data name="Recovery_CardChanged" xml:space="preserve">
+    <value>The card changed. Scan it again before continuing.</value>
+  </data>
+  <data name="Recovery_CardRemoved" xml:space="preserve">
+    <value>The card was removed or changed. Scan it again before continuing.</value>
+  </data>
+  <data name="Recovery_CheckStaticEnc" xml:space="preserve">
+    <value>Checking static encrypted candidates…</value>
+  </data>
+  <data name="Recovery_CheckingCandidates" xml:space="preserve">
+    <value>Checking recovered key candidates…</value>
+  </data>
+  <data name="Recovery_CheckingCandidatesN" xml:space="preserve">
+    <value>Checking {0} recovered key candidates…</value>
+  </data>
+  <data name="Recovery_CheckingDarkside" xml:space="preserve">
+    <value>Checking darkside vulnerability…</value>
+  </data>
+  <data name="Recovery_CheckingPrevious" xml:space="preserve">
+    <value>Checking previously found keys…</value>
+  </data>
+  <data name="Recovery_CollectingAgain" xml:space="preserve">
+    <value>No consistent candidates; collecting again…</value>
+  </data>
+  <data name="Recovery_CollectingDarkside" xml:space="preserve">
+    <value>Collecting darkside nonces…</value>
+  </data>
+  <data name="Recovery_CollectingHardnested" xml:space="preserve">
+    <value>Collecting nonces (hardnested)…</value>
+  </data>
+  <data name="Recovery_CollectingNested" xml:space="preserve">
+    <value>Collecting nonces (nested)…</value>
+  </data>
+  <data name="Recovery_CollectingNestedNonces" xml:space="preserve">
+    <value>Collecting nested nonces…</value>
+  </data>
+  <data name="Recovery_CollectingStaticEnc" xml:space="preserve">
+    <value>Collecting static encrypted nonces…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNested" xml:space="preserve">
+    <value>Collecting nonces (static nested)…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNestedNonces" xml:space="preserve">
+    <value>Collecting static nested nonces…</value>
+  </data>
+  <data name="Recovery_Finished" xml:space="preserve">
+    <value>Recovery finished.</value>
+  </data>
+  <data name="Recovery_FoundKey" xml:space="preserve">
+    <value>Found a key.</value>
+  </data>
+  <data name="Recovery_HardnestedInconsistent" xml:space="preserve">
+    <value>Could not collect consistent hardnested nonces. Keep the same card on the reader and try again.</value>
+  </data>
+  <data name="Recovery_HardnestedUnavailable" xml:space="preserve">
+    <value>The hardnested engine is not available in this build of ChameLab.</value>
+  </data>
+  <data name="Recovery_InvalidNonceParity" xml:space="preserve">
+    <value>Invalid encrypted nonce parity.</value>
+  </data>
+  <data name="Recovery_KeyNotRecovered" xml:space="preserve">
+    <value>Key not recovered for this sector.</value>
+  </data>
+  <data name="Recovery_KnownKeyProgress" xml:space="preserve">
+    <value>Known key {0}/{1}</value>
+  </data>
+  <data name="Recovery_LoadingTables" xml:space="preserve">
+    <value>Loading managed hardnested tables…</value>
+  </data>
+  <data name="Recovery_MatchingConstraints" xml:space="preserve">
+    <value>Matching hardnested state constraints…</value>
+  </data>
+  <data name="Recovery_MeasuringDistance" xml:space="preserve">
+    <value>Measuring nested nonce distance…</value>
+  </data>
+  <data name="Recovery_NeedOneKey" xml:space="preserve">
+    <value>Recover at least one key before starting nested recovery.</value>
+  </data>
+  <data name="Recovery_NoBackdoorAccepted" xml:space="preserve">
+    <value>The card did not accept any known backdoor key.</value>
+  </data>
+  <data name="Recovery_NoHardnestedFirmware" xml:space="preserve">
+    <value>This device firmware does not support hardnested nonce collection.</value>
+  </data>
+  <data name="Recovery_NoHfTag" xml:space="preserve">
+    <value>No HF tag detected on the reader.</value>
+  </data>
+  <data name="Recovery_NoKnownConfirmed" xml:space="preserve">
+    <value>No known key was confirmed for this sector.</value>
+  </data>
+  <data name="Recovery_NoStaticEncFirmware" xml:space="preserve">
+    <value>This device firmware does not support static encrypted nested recovery.</value>
+  </data>
+  <data name="Recovery_NonceFailed" xml:space="preserve">
+    <value>Nonce collection failed for this sector.</value>
+  </data>
+  <data name="Recovery_NotDarksideVulnerable" xml:space="preserve">
+    <value>Key is not vulnerable to darkside.</value>
+  </data>
+  <data name="Recovery_PrngUnsupported" xml:space="preserve">
+    <value>This recovery method is not supported by the card's PRNG.</value>
+  </data>
+  <data name="Recovery_RunningDarkside" xml:space="preserve">
+    <value>Running darkside…</value>
+  </data>
+  <data name="Recovery_UsingNested" xml:space="preserve">
+    <value>Using nested instead of checking known keys…</value>
+  </data>
+  <data name="Storage_NoWindow" xml:space="preserve">
+    <value>No window is available for file access.</value>
+  </data>
+  <data name="Strip_NotReadYet" xml:space="preserve">
+    <value>not read yet</value>
+  </data>
+  <data name="Strip_NotWritten" xml:space="preserve">
+    <value>not written</value>
+  </data>
+  <data name="Strip_ReadFailed" xml:space="preserve">
+    <value>read failed</value>
+  </data>
+  <data name="Strip_Reading" xml:space="preserve">
+    <value>reading…</value>
+  </data>
+  <data name="Strip_WriteFailed" xml:space="preserve">
+    <value>write failed</value>
+  </data>
+  <data name="Strip_Writing" xml:space="preserve">
+    <value>writing…</value>
+  </data>
+  <data name="Tcp_ExpectedHostPort" xml:space="preserve">
+    <value>Expected host:port, got '{0}'.</value>
+  </data>
+  <data name="Tcp_ManualEndpoint" xml:space="preserve">
+    <value>Manual network endpoint</value>
+  </data>
+  <data name="Tcp_Network" xml:space="preserve">
+    <value>Network (TCP)</value>
+  </data>
+  <data name="Tcp_NotConnected" xml:space="preserve">
+    <value>Not connected.</value>
+  </data>
+  <data name="Tools_CopyN" xml:space="preserve">
+    <value>Copy {0}</value>
+  </data>
+  <data name="Tools_FramesHintMouse" xml:space="preserve">
+    <value>Shift+click selects a range, Ctrl+click adds a frame.</value>
+  </data>
+  <data name="Tools_FramesHintTouch" xml:space="preserve">
+    <value>Tap a frame, then another to select the range between.</value>
+  </data>
+  <data name="Update_NoRelease" xml:space="preserve">
+    <value>No version has been released yet.</value>
+  </data>
+  <data name="Update_ReleaseNoVersion" xml:space="preserve">
+    <value>Release {0} is not tagged with a version.</value>
+  </data>
+  <data name="Recovery_HardnestedCollecting" xml:space="preserve">
+    <value>Collecting hardnested nonces: {0} samples, {1}/256 first bytes…</value>
+  </data>
+  <data name="Recovery_HardnestedCollectingSlow" xml:space="preserve">
+    <value>Collecting hardnested nonces (slow mode): {0} samples, {1}/256 first bytes…</value>
+  </data>
+  <data name="Hex_FromIdentity" xml:space="preserve">
+    <value>from the card's identity, block not read</value>
+  </data>
+  <data name="Anim_Full" xml:space="preserve">
+    <value>Full animation</value>
+  </data>
+  <data name="Anim_Minimal" xml:space="preserve">
+    <value>Minimal animation</value>
+  </data>
+  <data name="Anim_None" xml:space="preserve">
+    <value>No animation</value>
+  </data>
+  <data name="Anim_Symmetric" xml:space="preserve">
+    <value>Symmetric animation</value>
+  </data>
+  <data name="Battery_Critical" xml:space="preserve">
+    <value>Critical condition</value>
+  </data>
+  <data name="Battery_Excellent" xml:space="preserve">
+    <value>Excellent condition</value>
+  </data>
+  <data name="Battery_Fair" xml:space="preserve">
+    <value>Fair condition</value>
+  </data>
+  <data name="Battery_Good" xml:space="preserve">
+    <value>Good condition</value>
+  </data>
+  <data name="Battery_Low" xml:space="preserve">
+    <value>Low condition</value>
+  </data>
+  <data name="Button_Battery" xml:space="preserve">
+    <value>Show battery level</value>
+  </data>
+  <data name="Button_Clone" xml:space="preserve">
+    <value>Read then emulate UID</value>
+  </data>
+  <data name="Button_FieldGen" xml:space="preserve">
+    <value>Toggle NFC field detector</value>
+  </data>
+  <data name="Button_NextSlot" xml:space="preserve">
+    <value>Select next slot</value>
+  </data>
+  <data name="Button_None" xml:space="preserve">
+    <value>No function</value>
+  </data>
+  <data name="Button_PrevSlot" xml:space="preserve">
+    <value>Select previous slot</value>
+  </data>
+  <data name="Device_AtqaLength" xml:space="preserve">
+    <value>ATQA must be 2 bytes.</value>
+  </data>
+  <data name="Device_BlockLength" xml:space="preserve">
+    <value>Block data must be 16 bytes.</value>
+  </data>
+  <data name="Device_CannotEmulate" xml:space="preserve">
+    <value>{0} cannot be emulated.</value>
+  </data>
+  <data name="Device_CannotReadFromSlot" xml:space="preserve">
+    <value>{0} cannot be read from a slot.</value>
+  </data>
+  <data name="Device_CannotWriteT55xx" xml:space="preserve">
+    <value>{0} cannot be written to a T55xx tag.</value>
+  </data>
+  <data name="Device_CommandFailed" xml:space="preserve">
+    <value>{0} failed: {1}</value>
+  </data>
+  <data name="Device_CommandTimeout" xml:space="preserve">
+    <value>Command {0} timed out after {1} ms.</value>
+  </data>
+  <data name="Device_ConfigLocked" xml:space="preserve">
+    <value>The card's configuration is locked (CFGLCK), so its password can't be changed.</value>
+  </data>
+  <data name="Device_ConfigUnreadable" xml:space="preserve">
+    <value>Could not read the card's configuration pages. If they are read-protected, enter the card's current password.</value>
+  </data>
+  <data name="Device_CouldNotCheckCandidates" xml:space="preserve">
+    <value>Could not check key candidates.</value>
+  </data>
+  <data name="Device_CouldNotCollectNested" xml:space="preserve">
+    <value>Could not collect nested nonces.</value>
+  </data>
+  <data name="Device_Disconnected" xml:space="preserve">
+    <value>The Chameleon was disconnected.</value>
+  </data>
+  <data name="Device_EmulatorBlocks" xml:space="preserve">
+    <value>Emulator data must be a whole number of 16-byte blocks.</value>
+  </data>
+  <data name="Device_HfSniffFailed" xml:space="preserve">
+    <value>HF sniff failed: {0}</value>
+  </data>
+  <data name="Device_IdLengthGot" xml:space="preserve">
+    <value>{0} ID must be {1} bytes (got {2}).</value>
+  </data>
+  <data name="Device_IncompleteNested" xml:space="preserve">
+    <value>Incomplete nested nonce response.</value>
+  </data>
+  <data name="Device_IncompleteStaticEnc" xml:space="preserve">
+    <value>Incomplete static encrypted nested nonce response.</value>
+  </data>
+  <data name="Device_IncompleteStaticNested" xml:space="preserve">
+    <value>Incomplete static nested nonce response.</value>
+  </data>
+  <data name="Device_InvalidHardnested" xml:space="preserve">
+    <value>Invalid hardnested nonce response.</value>
+  </data>
+  <data name="Device_LfScanUnsupported" xml:space="preserve">
+    <value>LF scan for {0} is not supported.</value>
+  </data>
+  <data name="Device_LfSniffFailed" xml:space="preserve">
+    <value>LF sniff failed: {0}</value>
+  </data>
+  <data name="Device_NewPasswordLength" xml:space="preserve">
+    <value>The new password must be 4 bytes and the PACK 2 bytes.</value>
+  </data>
+  <data name="Device_NickTooLong" xml:space="preserve">
+    <value>Nick name too long (max 32 bytes).</value>
+  </data>
+  <data name="Device_NoDistance" xml:space="preserve">
+    <value>Could not measure the nonce distance.</value>
+  </data>
+  <data name="Device_NoEm410x" xml:space="preserve">
+    <value>No EM410x tag: {0}</value>
+  </data>
+  <data name="Device_NoHfTag" xml:space="preserve">
+    <value>No HF tag: {0}</value>
+  </data>
+  <data name="Device_NoPrng" xml:space="preserve">
+    <value>Could not detect the card PRNG.</value>
+  </data>
+  <data name="Device_NoTagOfType" xml:space="preserve">
+    <value>No {0} tag: {1}</value>
+  </data>
+  <data name="Device_NotDarkside" xml:space="preserve">
+    <value>Card is not vulnerable to the darkside attack.</value>
+  </data>
+  <data name="Device_NotUltralight" xml:space="preserve">
+    <value>Not an Ultralight / NTAG card (SAK {0:X2}).</value>
+  </data>
+  <data name="Device_PageData" xml:space="preserve">
+    <value>Page data must be a whole number of 4-byte pages.</value>
+  </data>
+  <data name="Device_PasswordLength" xml:space="preserve">
+    <value>The password must be 4 bytes.</value>
+  </data>
+  <data name="Device_PasswordRejected" xml:space="preserve">
+    <value>The card did not accept the password.</value>
+  </data>
+  <data name="Device_PasswordsRejected" xml:space="preserve">
+    <value>The card accepted neither the password nor the one remembered for it.</value>
+  </data>
+  <data name="Device_PickTagType" xml:space="preserve">
+    <value>Pick a tag type for this card before emulating it.</value>
+  </data>
+  <data name="Device_SlotHasNoCard" xml:space="preserve">
+    <value>Slot {0} has no {1} card.</value>
+  </data>
+  <data name="Device_T55xxKeyLength" xml:space="preserve">
+    <value>A T55xx key must be 4 bytes.</value>
+  </data>
+  <data name="Device_T55xxWriteFailed" xml:space="preserve">
+    <value>T55xx write failed: {0}</value>
+  </data>
+  <data name="Device_TargetChanged" xml:space="preserve">
+    <value>The target card changed. Scan it again before continuing.</value>
+  </data>
+  <data name="Device_UidLength" xml:space="preserve">
+    <value>UID must be 4, 7 or 10 bytes.</value>
+  </data>
+  <data name="Device_UlKeyLength" xml:space="preserve">
+    <value>The key must be 4 bytes (NTAG / Ultralight EV1 password) or 16 bytes (Ultralight C).</value>
+  </data>
+  <data name="Device_UnexpectedCandidate" xml:space="preserve">
+    <value>Device returned an unexpected key candidate.</value>
+  </data>
+  <data name="Dfu_AppOnly" xml:space="preserve">
+    <value>Only application updates are supported, this package has no application.</value>
+  </data>
+  <data name="Dfu_Corrupted" xml:space="preserve">
+    <value>Firmware transfer corrupted (device at {0} with CRC {1:X8}, expected {2} / {3:X8}).</value>
+  </data>
+  <data name="Dfu_Empty" xml:space="preserve">
+    <value>The package is empty.</value>
+  </data>
+  <data name="Dfu_LinkLost" xml:space="preserve">
+    <value>The connection to the bootloader was lost.</value>
+  </data>
+  <data name="Dfu_Missing" xml:space="preserve">
+    <value>{0} is missing.</value>
+  </data>
+  <data name="Dfu_NotPackage" xml:space="preserve">
+    <value>Not a firmware DFU package: {0}</value>
+  </data>
+  <data name="Dfu_Rejected" xml:space="preserve">
+    <value>The bootloader rejected step 0x{0:X2} (error 0x{1:X2}{2}).</value>
+  </data>
+  <data name="Dfu_Stopped" xml:space="preserve">
+    <value>The bootloader stopped answering.</value>
+  </data>
+  <data name="Dfu_Unexpected" xml:space="preserve">
+    <value>Unexpected bootloader response {0}.</value>
+  </data>
+  <data name="Import_BadKeyLine" xml:space="preserve">
+    <value>Line {0}: “{1}” is not a 12-digit hex key.</value>
+  </data>
+  <data name="Import_BadSectorHeader" xml:space="preserve">
+    <value>Bad sector header “{0}”.</value>
+  </data>
+  <data name="Import_BlockNot16" xml:space="preserve">
+    <value>Block {0} is not 16 bytes.</value>
+  </data>
+  <data name="Import_CardNotObject" xml:space="preserve">
+    <value>A card must be a JSON object.</value>
+  </data>
+  <data name="Import_DataBeforeSector" xml:space="preserve">
+    <value>Block data before the first +Sector header.</value>
+  </data>
+  <data name="Import_DictNotObject" xml:space="preserve">
+    <value>A dictionary must be a JSON object.</value>
+  </data>
+  <data name="Import_EmptyFile" xml:space="preserve">
+    <value>Empty file.</value>
+  </data>
+  <data name="Import_EmptyJson" xml:space="preserve">
+    <value>Empty JSON document.</value>
+  </data>
+  <data name="Import_FlipperNoData" xml:space="preserve">
+    <value>Flipper file has no Data.</value>
+  </data>
+  <data name="Import_FlipperNoUid" xml:space="preserve">
+    <value>Flipper file has no UID.</value>
+  </data>
+  <data name="Import_FlipperRfidUnsupported" xml:space="preserve">
+    <value>Flipper RFID key type '{0}' is not supported yet.</value>
+  </data>
+  <data name="Import_H10301Length" xml:space="preserve">
+    <value>H10301 data must be 3 bytes.</value>
+  </data>
+  <data name="Import_HexOdd" xml:space="preserve">
+    <value>Hex value must have an even number of digits.</value>
+  </data>
+  <data name="Import_MctNoBlock0" xml:space="preserve">
+    <value>MIFARE Classic Tool dump has no block 0.</value>
+  </data>
+  <data name="Import_SectorTooManyBlocks" xml:space="preserve">
+    <value>Sector {0} has more than {1} blocks.</value>
+  </data>
+  <data name="Lf_Bits" xml:space="preserve">
+    <value>{0}-bit</value>
+  </data>
+  <data name="Lf_CardIdText" xml:space="preserve">
+    <value>Card ID (text)</value>
+  </data>
+  <data name="Lf_CardNumber" xml:space="preserve">
+    <value>Card number</value>
+  </data>
+  <data name="Lf_FacilityCode" xml:space="preserve">
+    <value>Facility code</value>
+  </data>
+  <data name="Lf_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Lf_IssueLevel" xml:space="preserve">
+    <value>Issue level</value>
+  </data>
+  <data name="Lf_ModFewTransitions" xml:space="preserve">
+    <value>Too few transitions</value>
+  </data>
+  <data name="Lf_ModNone" xml:space="preserve">
+    <value>None (flat carrier)</value>
+  </data>
+  <data name="Ndef_AreaMalformed" xml:space="preserve">
+    <value>The NDEF data area is malformed.</value>
+  </data>
+  <data name="Ndef_ChunkCut" xml:space="preserve">
+    <value>A chunked record is cut short.</value>
+  </data>
+  <data name="Ndef_EmptyRecord2" xml:space="preserve">
+    <value>Empty record</value>
+  </data>
+  <data name="Ndef_External" xml:space="preserve">
+    <value>External: {0}</value>
+  </data>
+  <data name="Ndef_LangTooLong" xml:space="preserve">
+    <value>The language code is too long.</value>
+  </data>
+  <data name="Ndef_Malformed" xml:space="preserve">
+    <value>The NDEF message is malformed: {0}{1}</value>
+  </data>
+  <data name="Ndef_NotFormatted" xml:space="preserve">
+    <value>The card is not formatted for NDEF (no capability container on page 3).</value>
+  </data>
+  <data name="Ndef_Page3NotRead" xml:space="preserve">
+    <value>Page 3 (capability container) was not read.</value>
+  </data>
+  <data name="Ndef_Page3Otp" xml:space="preserve">
+    <value>Page 3 holds data other than a capability container; it is one-time programmable, so the card can't take NDEF.</value>
+  </data>
+  <data name="Ndef_PagesNotRead" xml:space="preserve">
+    <value> Pages from {0} were not read.</value>
+  </data>
+  <data name="Ndef_PartUnread" xml:space="preserve">
+    <value>Part of the message is on pages that were not read.</value>
+  </data>
+  <data name="Ndef_PastArea" xml:space="preserve">
+    <value>The NDEF message runs past the end of the data area.</value>
+  </data>
+  <data name="Ndef_RecordPastEnd" xml:space="preserve">
+    <value>A record runs past the end of the message.</value>
+  </data>
+  <data name="Ndef_SmartPoster" xml:space="preserve">
+    <value>Smart poster</value>
+  </data>
+  <data name="Ndef_TextLang" xml:space="preserve">
+    <value>Text ({0})</value>
+  </data>
+  <data name="Ndef_TooBig" xml:space="preserve">
+    <value>The message needs {0} bytes, but the card holds {1}.</value>
+  </data>
+  <data name="Ndef_UnchangedOutside" xml:space="preserve">
+    <value>An unchanged record outside a chunk.</value>
+  </data>
+  <data name="Ndef_UnknownTlv" xml:space="preserve">
+    <value>Unknown TLV {0:X2} in the NDEF data area.</value>
+  </data>
+  <data name="Ndef_UnknownType" xml:space="preserve">
+    <value>Unknown type</value>
+  </data>
+  <data name="Ndef_WellKnown" xml:space="preserve">
+    <value>Well-known: {0}</value>
+  </data>
+  <data name="Ndef_WifiOpen" xml:space="preserve">
+    <value>Open (no password)</value>
+  </data>
+  <data name="Prng_Hard" xml:space="preserve">
+    <value>Hard (unpredictable)</value>
+  </data>
+  <data name="Prng_Static" xml:space="preserve">
+    <value>Static (fixed nonce)</value>
+  </data>
+  <data name="Prng_Weak" xml:space="preserve">
+    <value>Weak (predictable)</value>
+  </data>
+  <data name="Protection_NoPage" xml:space="preserve">
+    <value>No page is protected.</value>
+  </data>
+  <data name="Sniff_BccOk" xml:space="preserve">
+    <value>BCC ok</value>
+  </data>
+  <data name="Sniff_BccWrong" xml:space="preserve">
+    <value>BCC wrong</value>
+  </data>
+  <data name="Sniff_CardAnswer" xml:space="preserve">
+    <value>Card answer</value>
+  </data>
+  <data name="Sniff_CardAnswerEnc" xml:space="preserve">
+    <value>Card answer, encrypted: at = {0} (the reader's key was accepted)</value>
+  </data>
+  <data name="Sniff_CardNonce" xml:space="preserve">
+    <value>Card nonce nt = {0}</value>
+  </data>
+  <data name="Sniff_Command" xml:space="preserve">
+    <value>Command</value>
+  </data>
+  <data name="Sniff_Data16" xml:space="preserve">
+    <value>Data (16 bytes)</value>
+  </data>
+  <data name="Sniff_Encrypted" xml:space="preserve">
+    <value>Encrypted</value>
+  </data>
+  <data name="Sniff_EncryptedCommand" xml:space="preserve">
+    <value>Encrypted command (or nested AUTH)</value>
+  </data>
+  <data name="Sniff_ReaderAnswerEnc" xml:space="preserve">
+    <value>Reader answer, encrypted: nr = {0}, ar = {1}</value>
+  </data>
+  <data name="Sniff_Response" xml:space="preserve">
+    <value>Response {0:X2}{1:X2}</value>
+  </data>
+  <data name="Sniff_SelectCascade" xml:space="preserve">
+    <value>SELECT CL{0}: UID part {1} (cascade tag)</value>
+  </data>
+  <data name="Sniff_ShortFrame" xml:space="preserve">
+    <value>Short frame {0:X2} ({1} bits)</value>
+  </data>
+  <data name="Sniff_SmartMx1K" xml:space="preserve">
+    <value>SmartMX with MIFARE Classic 1K</value>
+  </data>
+  <data name="Sniff_SmartMx4K" xml:space="preserve">
+    <value>SmartMX with MIFARE Classic 4K</value>
+  </data>
+  <data name="Sniff_SwBadP1P2" xml:space="preserve">
+    <value>incorrect P1-P2</value>
+  </data>
+  <data name="Sniff_SwBytesAvailable" xml:space="preserve">
+    <value>{0} bytes available</value>
+  </data>
+  <data name="Sniff_SwClaUnsupported" xml:space="preserve">
+    <value>class not supported</value>
+  </data>
+  <data name="Sniff_SwConditions" xml:space="preserve">
+    <value>conditions of use not satisfied</value>
+  </data>
+  <data name="Sniff_SwDesfire" xml:space="preserve">
+    <value>DESFire status</value>
+  </data>
+  <data name="Sniff_SwFileNotFound" xml:space="preserve">
+    <value>file not found</value>
+  </data>
+  <data name="Sniff_SwInsUnsupported" xml:space="preserve">
+    <value>instruction not supported</value>
+  </data>
+  <data name="Sniff_SwRecordNotFound" xml:space="preserve">
+    <value>record not found</value>
+  </data>
+  <data name="Sniff_SwSecurity" xml:space="preserve">
+    <value>security status not satisfied</value>
+  </data>
+  <data name="Sniff_SwWrongLe" xml:space="preserve">
+    <value>wrong Le, use {0}</value>
+  </data>
+  <data name="Sniff_SwWrongLength" xml:space="preserve">
+    <value>wrong length</value>
+  </data>
+  <data name="Sniff_UidNotComplete" xml:space="preserve">
+    <value>UID not complete</value>
+  </data>
+  <data name="Sniff_UidPartCascade" xml:space="preserve">
+    <value>UID part {0} (cascade tag), {1}</value>
+  </data>
+  <data name="Sniff_UnknownCommand" xml:space="preserve">
+    <value>Unknown command (no valid CRC)</value>
+  </data>
+  <data name="Sniff_Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Status_FlashRead" xml:space="preserve">
+    <value>Flash read failed</value>
+  </data>
+  <data name="Status_FlashWrite" xml:space="preserve">
+    <value>Flash write failed</value>
+  </data>
+  <data name="Status_HfCollision" xml:space="preserve">
+    <value>HF tag collision</value>
+  </data>
+  <data name="Status_HfErrAts" xml:space="preserve">
+    <value>HF tag was supposed to send ATS but didn't</value>
+  </data>
+  <data name="Status_HfErrBcc" xml:space="preserve">
+    <value>HF tag UID BCC error</value>
+  </data>
+  <data name="Status_HfErrCrc" xml:space="preserve">
+    <value>HF tag data CRC error</value>
+  </data>
+  <data name="Status_HfErrParity" xml:space="preserve">
+    <value>HF tag data parity error</value>
+  </data>
+  <data name="Status_HfErrStat" xml:space="preserve">
+    <value>HF tag status error</value>
+  </data>
+  <data name="Status_HfNo" xml:space="preserve">
+    <value>HF tag not found or lost</value>
+  </data>
+  <data name="Status_HfOk" xml:space="preserve">
+    <value>HF tag operation succeeded</value>
+  </data>
+  <data name="Status_InvalidCmd" xml:space="preserve">
+    <value>API request failed: command invalid</value>
+  </data>
+  <data name="Status_InvalidSlotType" xml:space="preserve">
+    <value>Invalid card type in slot</value>
+  </data>
+  <data name="Status_LfNotFound" xml:space="preserve">
+    <value>LF tag not found</value>
+  </data>
+  <data name="Status_LfOk" xml:space="preserve">
+    <value>LF tag operation succeeded</value>
+  </data>
+  <data name="Status_MfErrAuth" xml:space="preserve">
+    <value>HF tag auth failed</value>
+  </data>
+  <data name="Status_ModeErr" xml:space="preserve">
+    <value>API request failed: device mode error</value>
+  </data>
+  <data name="Status_NotImplemented" xml:space="preserve">
+    <value>API not implemented</value>
+  </data>
+  <data name="Status_ParErr" xml:space="preserve">
+    <value>API request failed: parameter error</value>
+  </data>
+  <data name="Status_Success" xml:space="preserve">
+    <value>Device operation succeeded</value>
+  </data>
+  <data name="Status_Unknown" xml:space="preserve">
+    <value>Unknown status 0x{0:X2}</value>
+  </data>
+  <data name="WriteMode_Deceive" xml:space="preserve">
+    <value>Deceive (ACK, discard)</value>
+  </data>
+  <data name="WriteMode_Denied" xml:space="preserve">
+    <value>Decline (NACK writes)</value>
+  </data>
+  <data name="WriteMode_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="WriteMode_Shadow" xml:space="preserve">
+    <value>Shadow (RAM only)</value>
+  </data>
+  <data name="WriteMode_ShadowRequested" xml:space="preserve">
+    <value>Shadow (requested)</value>
+  </data>
+  <data name="Write_PlanChanged" xml:space="preserve">
+    <value>The write plan changed. Start a new write session.</value>
+  </data>
+  <data name="Write_TargetSmaller" xml:space="preserve">
+    <value>The target card is smaller than the source dump.</value>
+  </data>
+  <data name="Write_TargetUidChanged" xml:space="preserve">
+    <value>The target UID changed. Place the same card on the reader to continue writing.</value>
+  </data>
+  <data name="Protection_SummaryReadWrite" xml:space="preserve">
+    <value>Pages {0}+ need the password to read and write</value>
+  </data>
+  <data name="Protection_SummaryWrite" xml:space="preserve">
+    <value>Pages {0}+ need the password to write</value>
+  </data>
+  <data name="Plural_WrongTriesLock" xml:space="preserve">
+    <value>; {0} wrong try locks the card.|; {0} wrong tries lock the card.</value>
+  </data>
+  <data name="Device_T55xxNoReadBack" xml:space="preserve">
+    <value>Wrote the tag but could not read it back to confirm. It may be locked with a different password, or it is not a writable T55xx. Enter the tag's current password and try again.</value>
+  </data>
+  <data name="Device_T55xxDifferentId" xml:space="preserve">
+    <value>The tag read back a different ID, so the write did not take. It is most likely locked with a different password. Enter the tag's current password and try again.</value>
+  </data>
+  <data name="Device_NoPasswordToSet" xml:space="preserve">
+    <value>The card on the reader ({0}) has no password to set.</value>
+  </data>
+  <data name="Device_UnknownModel" xml:space="preserve">
+    <value>unknown model</value>
+  </data>
+  <data name="Ble_LinkClosed" xml:space="preserve">
+    <value>BLE link closed.</value>
+  </data>
+  <data name="Ble_NoPermission" xml:space="preserve">
+    <value>Bluetooth permission has not been granted.</value>
+  </data>
+  <data name="Ble_NoRx" xml:space="preserve">
+    <value>NUS RX characteristic not found.</value>
+  </data>
+  <data name="Ble_NoTx" xml:space="preserve">
+    <value>NUS TX characteristic not found.</value>
+  </data>
+  <data name="Ble_NoUart" xml:space="preserve">
+    <value>Nordic UART service not found on device.</value>
+  </data>
+  <data name="Ble_Off" xml:space="preserve">
+    <value>Bluetooth is off.</value>
+  </data>
+  <data name="Dfu_NoControlPoint" xml:space="preserve">
+    <value>The DFU control point is missing.</value>
+  </data>
+  <data name="Dfu_NoPacketChar" xml:space="preserve">
+    <value>The DFU packet characteristic is missing.</value>
+  </data>
+  <data name="Dfu_NoService" xml:space="preserve">
+    <value>The bootloader has no Secure DFU service.</value>
+  </data>
+  <data name="Serial_Disconnected" xml:space="preserve">
+    <value>{0} was disconnected.</value>
+  </data>
+  <data name="Serial_Name" xml:space="preserve">
+    <value>Serial (USB)</value>
+  </data>
+  <data name="Usb_AlreadyConnected" xml:space="preserve">
+    <value>Already connected.</value>
+  </data>
+  <data name="Usb_ClaimControl" xml:space="preserve">
+    <value>Could not claim the USB CDC control interface.</value>
+  </data>
+  <data name="Usb_ClaimData" xml:space="preserve">
+    <value>Could not claim the USB CDC data interface.</value>
+  </data>
+  <data name="Usb_Closed" xml:space="preserve">
+    <value>The USB connection was closed.</value>
+  </data>
+  <data name="Usb_Configure" xml:space="preserve">
+    <value>Could not configure the USB serial port.</value>
+  </data>
+  <data name="Usb_CouldNotOpen" xml:space="preserve">
+    <value>Could not open the USB device. Reconnect it and allow USB access.</value>
+  </data>
+  <data name="Usb_Denied" xml:space="preserve">
+    <value>USB access was denied. Select the device again and allow USB access.</value>
+  </data>
+  <data name="Usb_Disconnected" xml:space="preserve">
+    <value>The USB device was disconnected.</value>
+  </data>
+  <data name="Usb_Enable" xml:space="preserve">
+    <value>Could not enable the USB serial port.</value>
+  </data>
+  <data name="Usb_NoCdc" xml:space="preserve">
+    <value>The USB device has no CDC ACM serial interface.</value>
+  </data>
+  <data name="Usb_NoHostMode" xml:space="preserve">
+    <value>This phone does not support USB Host mode.</value>
+  </data>
+  <data name="Usb_NoLongerAttached" xml:space="preserve">
+    <value>The Chameleon USB device is no longer attached.</value>
+  </data>
+  <data name="Usb_NotConnected" xml:space="preserve">
+    <value>The USB device is not connected.</value>
+  </data>
+  <data name="Usb_UnpluggedWaiting" xml:space="preserve">
+    <value>The USB device was unplugged while waiting for permission.</value>
+  </data>
+  <data name="Usb_WriteFailed" xml:space="preserve">
+    <value>USB write failed. Check the cable and reconnect the device.</value>
+  </data>
 </root>

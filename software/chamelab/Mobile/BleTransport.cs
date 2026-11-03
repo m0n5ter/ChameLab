@@ -11,6 +11,7 @@ using Plugin.BLE;
 using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
+using ChameLab.Localization;
 
 namespace ChameLab.Mobile;
 
@@ -71,11 +72,11 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
         catch { /* not supported on this platform */ }
 
         var service = await _device.GetServiceAsync(NordicUart.Service, ct)
-            ?? throw new InvalidOperationException("Nordic UART service not found on device.");
+            ?? throw new InvalidOperationException(Strings.Ble_NoUart);
         _rx = await service.GetCharacteristicAsync(NordicUart.Rx, ct)
-            ?? throw new InvalidOperationException("NUS RX characteristic not found.");
+            ?? throw new InvalidOperationException(Strings.Ble_NoRx);
         _tx = await service.GetCharacteristicAsync(NordicUart.Tx, ct)
-            ?? throw new InvalidOperationException("NUS TX characteristic not found.");
+            ?? throw new InvalidOperationException(Strings.Ble_NoTx);
 
         // Acknowledged writes: a write command the device rejects (e.g. BLE pairing is enabled and
         // the link is not encrypted yet) is dropped silently, and the reply then never comes. A
@@ -107,7 +108,7 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
 
     public async Task WriteAsync(ReadOnlyMemory<byte> data, CancellationToken ct = default)
     {
-        if (_rx is null) throw new InvalidOperationException("Not connected.");
+        if (_rx is null) throw new InvalidOperationException(Strings.Tcp_NotConnected);
         var offset = 0;
         while (offset < data.Length)
         {
@@ -131,7 +132,7 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
         }
         catch (ChannelClosedException)
         {
-            throw new InvalidOperationException("BLE link closed.");
+            throw new InvalidOperationException(Strings.Ble_LinkClosed);
         }
 
         _pending = chunk;
@@ -328,7 +329,7 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
         if (global::Android.App.Application.Context.CheckSelfPermission(permission) != global::Android.Content.PM.Permission.Granted ||
             OperatingSystem.IsAndroidVersionAtLeast(31) &&
             global::Android.App.Application.Context.CheckSelfPermission(global::Android.Manifest.Permission.BluetoothConnect) != global::Android.Content.PM.Permission.Granted)
-            throw new InvalidOperationException("Bluetooth permission has not been granted.");
+            throw new InvalidOperationException(Strings.Ble_NoPermission);
 #endif
         if (!_ble.IsAvailable || !_ble.IsOn)
             return Array.Empty<TransportCandidate>();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -77,7 +78,7 @@ public static class Ndef
                 : (Next(message, ref pos) << 24) | (Next(message, ref pos) << 16) | (Next(message, ref pos) << 8) | Next(message, ref pos);
             var idLength = il ? Next(message, ref pos) : 0;
             if (payloadLength < 0 || pos + typeLength + idLength + (long)payloadLength > message.Length)
-                throw new FormatException("A record runs past the end of the message.");
+                throw new FormatException(Strings.Ndef_RecordPastEnd);
             var type = message.Slice(pos, typeLength).ToArray();
             pos += typeLength;
             var id = message.Slice(pos, idLength).ToArray();
@@ -87,7 +88,7 @@ public static class Ndef
 
             if (chunked is not null)
             {
-                if (tnf != NdefTnf.Unchanged) throw new FormatException("A chunked record is cut short.");
+                if (tnf != NdefTnf.Unchanged) throw new FormatException(Strings.Ndef_ChunkCut);
                 chunks.AddRange(payload.ToArray());
                 if (cf) continue;
                 records.Add(chunked with { Payload = chunks.ToArray() });
@@ -102,17 +103,17 @@ public static class Ndef
             }
             else
             {
-                if (tnf == NdefTnf.Unchanged) throw new FormatException("An unchanged record outside a chunk.");
+                if (tnf == NdefTnf.Unchanged) throw new FormatException(Strings.Ndef_UnchangedOutside);
                 records.Add(new NdefRecord(tnf, type, id, payload.ToArray()));
             }
             if ((header & 0x40) != 0) break; // ME
         }
-        if (chunked is not null) throw new FormatException("A chunked record is cut short.");
+        if (chunked is not null) throw new FormatException(Strings.Ndef_ChunkCut);
         return records;
     }
 
     private static byte Next(ReadOnlySpan<byte> data, ref int pos) =>
-        pos < data.Length ? data[pos++] : throw new FormatException("A record runs past the end of the message.");
+        pos < data.Length ? data[pos++] : throw new FormatException(Strings.Ndef_RecordPastEnd);
 
     /// <summary>Builds an NDEF message; short records wherever the payload fits in 255 bytes.</summary>
     public static byte[] Encode(IReadOnlyList<NdefRecord> records)
@@ -156,7 +157,7 @@ public static class Ndef
     public static NdefRecord Text(string text, string language)
     {
         var lang = Encoding.ASCII.GetBytes(string.IsNullOrWhiteSpace(language) ? "en" : language.Trim());
-        if (lang.Length > 63) throw new FormatException("The language code is too long.");
+        if (lang.Length > 63) throw new FormatException(Strings.Ndef_LangTooLong);
         byte[] payload = [(byte)lang.Length, .. lang, .. Encoding.UTF8.GetBytes(text)];
         return new NdefRecord(NdefTnf.WellKnown, "T"u8.ToArray(), [], payload);
     }
@@ -288,7 +289,7 @@ public static class Ndef
 
     public static string WifiAuthLabel(this NdefWifiAuth auth) => auth switch
     {
-        NdefWifiAuth.Open => "Open (no password)",
+        NdefWifiAuth.Open => Strings.Ndef_WifiOpen,
         NdefWifiAuth.WpaPersonal => "WPA-Personal",
         NdefWifiAuth.Wpa2Personal => "WPA2-Personal",
         _ => "WPA/WPA2-Personal",
@@ -299,29 +300,29 @@ public static class Ndef
     {
         if (TryUri(r, out var uri))
             return (uri.StartsWith("tel:") ? "Phone" : uri.StartsWith("mailto:") ? "Email" : "Link", uri);
-        if (TryText(r, out var text, out var lang)) return ($"Text ({lang})", text);
+        if (TryText(r, out var text, out var lang)) return (string.Format(Strings.Ndef_TextLang, lang), text);
         if (TryWifi(r, out var wifi))
             return ("Wi-Fi", wifi.Auth == NdefWifiAuth.Open ? wifi.Ssid : $"{wifi.Ssid} · {wifi.Auth.WifiAuthLabel()} · {wifi.Key}");
-        if (TryAndroidApp(r, out var package)) return ("Android app", package);
+        if (TryAndroidApp(r, out var package)) return (Strings.Cards_AndroidApp, package);
         if (IsWellKnown(r, "Sp"))
         {
             try
             {
                 var parts = Parse(r.Payload).Select(Describe).Select(d => d.Value).Where(v => v.Length > 0);
-                return ("Smart poster", string.Join(" · ", parts));
+                return (Strings.Ndef_SmartPoster, string.Join(" · ", parts));
             }
-            catch (FormatException) { return ("Smart poster", Hex.Spaced(r.Payload)); }
+            catch (FormatException) { return (Strings.Ndef_SmartPoster, Hex.Spaced(r.Payload)); }
         }
         var value = PayloadText(r.Payload) ?? Hex.Spaced(r.Payload);
         return r.Tnf switch
         {
-            NdefTnf.Empty => ("Empty record", string.Empty),
-            NdefTnf.Media when IsMime(r, "text/vcard") || IsMime(r, "text/x-vcard") => ("Contact (vCard)", value),
+            NdefTnf.Empty => (Strings.Ndef_EmptyRecord2, string.Empty),
+            NdefTnf.Media when IsMime(r, "text/vcard") || IsMime(r, "text/x-vcard") => (Strings.Cards_ContactVCard, value),
             NdefTnf.Media => (r.TypeText, value),
-            NdefTnf.AbsoluteUri => ("Absolute URI", r.TypeText),
-            NdefTnf.External => ($"External: {r.TypeText}", value),
-            NdefTnf.WellKnown => ($"Well-known: {r.TypeText}", value),
-            _ => ("Unknown type", value),
+            NdefTnf.AbsoluteUri => (Strings.Ndef_TnfAbsoluteUri, r.TypeText),
+            NdefTnf.External => (string.Format(Strings.Ndef_External, r.TypeText), value),
+            NdefTnf.WellKnown => (string.Format(Strings.Ndef_WellKnown, r.TypeText), value),
+            _ => (Strings.Ndef_UnknownType, value),
         };
     }
 }
@@ -362,10 +363,10 @@ public static class Type2Ndef
         var capacity = Capacity(pages, tag);
         var (area, firstUnread) = Area(pages, capacity);
         if (cc is null)
-            return new(false, capacity, 0, null, 0, "Page 3 (capability container) was not read.", firstUnread);
+            return new(false, capacity, 0, null, 0, Strings.Ndef_Page3NotRead, firstUnread);
         if (!formatted)
-            return new(false, capacity, 0, null, 0, "The card is not formatted for NDEF (no capability container on page 3).", firstUnread);
-        var unread = firstUnread >= 0 ? $" Pages from {firstUnread} were not read." : string.Empty;
+            return new(false, capacity, 0, null, 0, Strings.Ndef_NotFormatted, firstUnread);
+        var unread = firstUnread >= 0 ? string.Format(Strings.Ndef_PagesNotRead, firstUnread) : string.Empty;
 
         var pos = 0;
         var controlEnd = 0; // end of the last control TLV, which a new message goes after
@@ -376,25 +377,25 @@ public static class Type2Ndef
             if (t == 0xFE) break;
             var start = pos++;
             if (!TryLength(area, ref pos, out var length))
-                return new(true, capacity, start, null, 0, "The NDEF data area is malformed." + unread, firstUnread);
+                return new(true, capacity, start, null, 0, Strings.Ndef_AreaMalformed + unread, firstUnread);
             if (t == 0x03)
             {
                 if (pos + length > area.Length)
-                    return new(true, capacity, start, null, 0, "The NDEF message runs past the end of the data area." + unread, firstUnread);
+                    return new(true, capacity, start, null, 0, Strings.Ndef_PastArea + unread, firstUnread);
                 try
                 {
                     var records = Ndef.Parse(area.AsSpan(pos, length));
                     var cut = firstUnread >= 0 && firstUnread <= FirstPage + (pos + length - 1) / 4;
                     return new(true, capacity, start, records, length,
-                        cut ? "Part of the message is on pages that were not read." : null, firstUnread);
+                        cut ? Strings.Ndef_PartUnread : null, firstUnread);
                 }
                 catch (FormatException ex)
                 {
-                    return new(true, capacity, start, null, length, $"The NDEF message is malformed: {ex.Message}{unread}", firstUnread);
+                    return new(true, capacity, start, null, length, string.Format(Strings.Ndef_Malformed, ex.Message, unread), firstUnread);
                 }
             }
             if (t is not (0x01 or 0x02 or 0xFD))
-                return new(true, capacity, start, null, 0, $"Unknown TLV {t:X2} in the NDEF data area." + unread, firstUnread);
+                return new(true, capacity, start, null, 0, string.Format(Strings.Ndef_UnknownTlv, t) + unread, firstUnread);
             pos += length;
             controlEnd = Math.Min(pos, area.Length);
         }
@@ -416,14 +417,14 @@ public static class Type2Ndef
         if (!current.IsFormatted)
         {
             if (cc is not null && cc.Any(b => b != 0))
-                throw new FormatException("Page 3 holds data other than a capability container; it is one-time programmable, so the card can't take NDEF.");
+                throw new FormatException(Strings.Ndef_Page3Otp);
             newCc = [CcMagic, 0x10, (byte)(DefaultCapacity(tag) / 8), 0x00];
             prefix = 0;
         }
         var capacity = current.IsFormatted ? current.Capacity : DefaultCapacity(tag);
         var used = UsedBytes(prefix, message.Length);
         if (used > capacity)
-            throw new FormatException($"The message needs {used} bytes, but the card holds {capacity}.");
+            throw new FormatException(string.Format(Strings.Ndef_TooBig, used, capacity));
 
         var (old, _) = Area(pages, capacity);
         var area = new byte[capacity];

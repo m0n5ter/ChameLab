@@ -9,6 +9,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -20,7 +21,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
     private bool _suppressModeWrite;
     private Values _saved;
 
-    public ChameleonViewModel(DeviceService device, CardLibrary cards, FirmwareUpdateViewModel firmware) : base("Chameleon", "dashboard")
+    public ChameleonViewModel(DeviceService device, CardLibrary cards, FirmwareUpdateViewModel firmware) : base(Strings.Nav_Chameleon, "dashboard")
     {
         _device = device;
         _cards = cards;
@@ -111,7 +112,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         if (client is null || target == ActiveSlot) return;
         await client.SetActiveSlotAsync(target);
         Avalonia.Threading.Dispatcher.UIThread.Post(() => ActiveSlot = target);
-        Notify($"Slot {target} is now active.");
+        Notify(string.Format(Strings.Chameleon_SlotActive, target));
     });
 
     public DeviceInfo? Info
@@ -279,7 +280,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         if (client is null) return;
         var target = ReaderMode ? DeviceMode.Reader : DeviceMode.Tag;
         await client.SetDeviceModeAsync(target);
-        Notify($"Switched to {target} mode.");
+        Notify(string.Format(Strings.Chameleon_SwitchedMode, target));
     });
 
     private async Task LoadSettingsAsync(ChameleonClient client)
@@ -327,7 +328,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         var values = Current;
         var pin = BlePin ?? string.Empty;
         if (pin.Length > 0 && (pin.Length != 6 || !pin.All(char.IsDigit)))
-            throw new FormatException("The BLE PIN must be exactly 6 digits.");
+            throw new FormatException(Strings.Chameleon_PinLength);
 
         await client.SetAnimationModeAsync(values.AnimationMode);
         await client.SetSleepTimeoutAsync(values.SleepTimeout);
@@ -373,14 +374,14 @@ public sealed class ChameleonViewModel : PageViewModelBase
         if (client is null) return;
         await client.ResetSettingsAsync();
         await LoadSettingsAsync(client);
-    }, "Settings reset to defaults.");
+    }, Strings.Chameleon_SettingsReset);
 
     private Task ClearBondsAsync() => RunAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
         await client.DeleteAllBleBondsAsync();
-    }, "Bonded BLE devices cleared.");
+    }, Strings.Chameleon_BondsCleared);
 
     private Task FactoryResetAsync() => RunAsync(async () =>
     {
@@ -389,5 +390,5 @@ public sealed class ChameleonViewModel : PageViewModelBase
         await client.WipeFdsAsync();
         // The device drops the link after a factory reset.
         await _device.DisconnectAsync();
-    }, "Factory reset done. The device has been disconnected.");
+    }, Strings.Chameleon_FactoryResetDone);
 }

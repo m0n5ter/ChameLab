@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -64,7 +65,7 @@ public sealed class AppUpdateViewModel : ViewModelBase
     {
         if (IsChecking || !IsSupported) return;
         State = AppUpdateState.Checking;
-        Message = "Checking for updates…";
+        Message = Strings.Update_Checking;
         try
         {
             var latest = await AppUpdateService.GetLatestAsync();
@@ -72,18 +73,18 @@ public sealed class AppUpdateViewModel : ViewModelBase
             if (AppUpdateService.IsNewer(latest))
             {
                 State = AppUpdateState.Available;
-                Message = $"ChameLab {latest.Tag} is available.";
+                Message = string.Format(Strings.Update_AppAvailable, latest.Tag);
             }
             else
             {
                 State = AppUpdateState.UpToDate;
-                Message = "You have the latest version.";
+                Message = Strings.Update_UpToDate;
             }
         }
         catch (Exception ex)
         {
             State = AppUpdateState.Failed;
-            Message = $"Couldn't check for updates: {ex.Message}";
+            Message = string.Format(Strings.Update_CheckFailed, ex.Message);
         }
     }
 

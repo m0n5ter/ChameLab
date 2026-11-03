@@ -6,6 +6,7 @@ using ChameLab.Protocol;
 using ChameLab.Services;
 using ChameLab.Transport;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -130,12 +131,12 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     } = string.Empty;
 
     public string InstallHint => _overBle
-        ? "The device restarts into its bootloader, gets the new firmware over Bluetooth and reconnects. Slots and settings are kept. Keep it close to the phone and this app open until it is done."
-        : "The device restarts into its bootloader, gets the new firmware over USB and reconnects. Slots and settings are kept. Keep it plugged in until it is done.";
+        ? Strings.Firmware_HowBle
+        : Strings.Firmware_HowUsb;
 
     public string KeepConnectedHint => _overBle
-        ? "Keep the device close and this app open."
-        : "Don't unplug the device.";
+        ? Strings.Firmware_KeepClose
+        : Strings.Firmware_DontUnplug;
 
     /// <summary>Release notes of the version about to be installed, as Markdown (empty for a file).</summary>
     public string InstallNotes => _pendingRelease?.Notes.Trim() ?? string.Empty;
@@ -180,7 +181,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     {
         if (_device.DeviceInfo is not { } info || IsChecking) return;
         CheckState = FirmwareCheckState.Checking;
-        CheckMessage = "Checking for updates…";
+        CheckMessage = Strings.Update_Checking;
         try
         {
             // GitHub allows 60 anonymous API calls an hour; reconnects reuse a recent answer.
@@ -195,22 +196,22 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
             if (current is { } c && !(_latest!.Version > c))
             {
                 CheckState = FirmwareCheckState.UpToDate;
-                CheckMessage = $"Up to date (latest {_latest.Version})";
+                CheckMessage = string.Format(Strings.Firmware_UpToDate, _latest.Version);
             }
             else
             {
                 CheckState = FirmwareCheckState.Available;
                 CheckMessage = _latest!.PackageUrl is null
-                    ? $"{_latest.Version} is available, but has no package for this model"
+                    ? string.Format(Strings.Firmware_NoPackage, _latest.Version)
                     : CanInstall
-                        ? $"{_latest.Version} is available"
-                        : $"{_latest.Version} is available. Connect over USB or Bluetooth to install it";
+                        ? string.Format(Strings.Firmware_Available, _latest.Version)
+                        : string.Format(Strings.Firmware_AvailableConnect, _latest.Version);
             }
         }
         catch (Exception ex)
         {
             CheckState = FirmwareCheckState.Failed;
-            CheckMessage = $"Couldn't check for updates: {ex.Message}";
+            CheckMessage = string.Format(Strings.Update_CheckFailed, ex.Message);
         }
     }
 
@@ -221,7 +222,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
         _pendingFile = null;
         _package = null;
         _target = null;
-        InstallTitle = $"Install firmware {_latest.Version}?";
+        InstallTitle = string.Format(Strings.Firmware_InstallPrompt, _latest.Version);
         SetTransport();
         Error = null;
         Dialog = FirmwareDialog.Confirm;
@@ -231,7 +232,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     {
         if (!CanInstall) return;
         PickedFile? picked;
-        try { picked = await StorageService.OpenAsync("Firmware DFU package", "zip"); }
+        try { picked = await StorageService.OpenAsync(Strings.Firmware_PackageTitle, "zip"); }
         catch (Exception ex) { Error = ex.Message; Dialog = FirmwareDialog.Failed; return; }
         if (picked is not { } file) return;
 
@@ -242,14 +243,14 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
             _pendingRelease = null;
             _pendingFile = null;
             Error = $"{file.Name}: {ex.Message}";
-            InstallTitle = "Can't install this file";
+            InstallTitle = Strings.Firmware_CantInstallFile;
             Dialog = FirmwareDialog.Failed;
             return;
         }
         _pendingRelease = null;
         _pendingFile = file.Data;
         _target = null;
-        InstallTitle = $"Install firmware from {file.Name}?";
+        InstallTitle = string.Format(Strings.Firmware_InstallFromPrompt, file.Name);
         SetTransport();
         Error = null;
         Dialog = FirmwareDialog.Confirm;
@@ -259,15 +260,15 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     {
         Dialog = FirmwareDialog.Installing;
         Error = null;
-        var name = _pendingRelease?.Version.ToString() ?? "the firmware";
-        InstallTitle = $"Installing {name}";
+        var name = _pendingRelease?.Version.ToString() ?? Strings.Firmware_TheFirmware;
+        InstallTitle = string.Format(Strings.Firmware_Installing, name);
         try
         {
             if (_package is null)
             {
-                SetStep("Downloading…", 0);
+                SetStep(Strings.Firmware_Downloading, 0);
                 var zip = _pendingFile ?? await _service.DownloadAsync(_pendingRelease!,
-                    new Progress<double>(f => SetStep("Downloading…", f)));
+                    new Progress<double>(f => SetStep(Strings.Firmware_Downloading, f)));
                 _package = DfuPackage.Parse(zip);
             }
             // Prepared before the restart, so a retry still knows which bootloader is this device's.
@@ -277,24 +278,24 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
             {
                 switch (p.Step)
                 {
-                    case FirmwareUpdateStep.Restarting: SetStep("Restarting the device into its bootloader…"); break;
-                    case FirmwareUpdateStep.WaitingForBootloader: SetStep("Waiting for the bootloader…"); break;
-                    case FirmwareUpdateStep.Flashing: SetStep($"Installing… {p.Fraction:P0}", p.Fraction); break;
-                    case FirmwareUpdateStep.Reconnecting: SetStep("Waiting for the device to restart…"); break;
+                    case FirmwareUpdateStep.Restarting: SetStep(Strings.Firmware_Restarting); break;
+                    case FirmwareUpdateStep.WaitingForBootloader: SetStep(Strings.Firmware_WaitingBootloader); break;
+                    case FirmwareUpdateStep.Flashing: SetStep(string.Format(Strings.Firmware_Flashing, p.Fraction), p.Fraction); break;
+                    case FirmwareUpdateStep.Reconnecting: SetStep(Strings.Firmware_WaitingRestart); break;
                 }
             }));
 
             _package = null;
             _target = null;
-            InstallTitle = "Firmware updated";
+            InstallTitle = Strings.Firmware_Updated;
             StepText = _device.DeviceInfo is { } info
-                ? $"{info.ModelName} now runs {FirmwareVersion.OfDevice(info.GitVersion, info.FirmwareVersion)?.ToString() ?? info.FirmwareVersion}. Slots and settings were kept."
-                : "The device restarted with the new firmware.";
+                ? string.Format(Strings.Firmware_NowRuns, info.ModelName, FirmwareVersion.OfDevice(info.GitVersion, info.FirmwareVersion)?.ToString() ?? info.FirmwareVersion)
+                : Strings.Firmware_Restarted;
             Dialog = FirmwareDialog.Done;
         }
         catch (Exception ex)
         {
-            InstallTitle = "Firmware update failed";
+            InstallTitle = Strings.Firmware_Failed;
             Error = ex.Message;
             Dialog = FirmwareDialog.Failed;
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -43,12 +44,12 @@ public sealed class DumpSectorRow : ReactiveObject, ISectorKeys, ISectorWritePro
             var failed = _writeBlocks.Values.Count(s => s is MifareBlockState.ReadError or MifareBlockState.NoKey);
             var state = WriteState switch
             {
-                SectorWriteState.Pending => "Not written",
-                SectorWriteState.Partial => "Partly written",
-                SectorWriteState.Error => "Write error",
+                SectorWriteState.Pending => Strings.Cards_NotWritten,
+                SectorWriteState.Partial => Strings.Cards_PartlyWritten,
+                SectorWriteState.Error => Strings.Cards_WriteError,
                 _ => WriteState.ToString(),
             };
-            return $"{state} · {written}/{_writeBlocks.Count} blocks written" + (failed > 0 ? $" · {failed} failed" : string.Empty);
+            return string.Format(Strings.Cards_SectorWriteState, state, written, _writeBlocks.Count) + (failed > 0 ? string.Format(Strings.Cards_FailedCount, failed) : string.Empty);
         }
     }
 
@@ -131,8 +132,8 @@ public sealed class DumpSectorRow : ReactiveObject, ISectorKeys, ISectorWritePro
     private static string CellText(KeyCellState state, string? key, string? progress) => state switch
     {
         KeyCellState.Found => key ?? string.Empty,
-        KeyCellState.Searching => progress is null ? "searching…" : $"searching {progress}",
-        KeyCellState.NotFound => "not found",
+        KeyCellState.Searching => progress is null ? Strings.Cards_Searching : string.Format(Strings.Cards_SearchingProgress, progress),
+        KeyCellState.NotFound => Strings.Cards_NotFound,
         _ => key ?? "-",
     };
 

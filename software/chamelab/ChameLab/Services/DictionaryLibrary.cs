@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ChameLab.Models;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -43,7 +44,7 @@ public sealed class DictionaryLibrary
         }
         catch (Exception ex)
         {
-            LoadError = $"Saved dictionaries could not be read: {ex.Message}";
+            LoadError = string.Format(Strings.Library_DictionariesLoadError, ex.Message);
             _dicts.Clear();
         }
     }

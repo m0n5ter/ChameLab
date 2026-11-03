@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -259,7 +260,7 @@ public static class CardFormats
         if (text.Contains("+Sector:"))
             return new[] { Named(FromMct(text), baseName) };
 
-        var node = JsonNode.Parse(text) ?? throw new FormatException("Empty file.");
+        var node = JsonNode.Parse(text) ?? throw new FormatException(Strings.Import_EmptyFile);
         if (node is JsonArray list)
             return list.Where(n => n is not null).Select(n => CardSave.FromJson(n!)).ToList();
         if (node["Created"]?.ToString() == "proxmark3" || node["Card"] is not null && node["blocks"] is not null)
@@ -306,7 +307,7 @@ public static class CardFormats
     {
         var card = new CardSave
         {
-            Uid = Hex.Parse(Match(text, @"UID:\s*([0-9A-Fa-f ]+)") ?? throw new FormatException("Flipper file has no UID.")),
+            Uid = Hex.Parse(Match(text, @"UID:\s*([0-9A-Fa-f ]+)") ?? throw new FormatException(Strings.Import_FlipperNoUid)),
             Sak = FirstByte(Match(text, @"SAK:\s*([0-9A-Fa-f ]+)")),
             Atqa = Hex.Parse(Match(text, @"ATQA:\s*([0-9A-Fa-f ]+)") ?? string.Empty),
         };
@@ -357,7 +358,7 @@ public static class CardFormats
     public static CardSave FromFlipperRfid(string text)
     {
         var type = Match(text, @"Key type:\s*(.+)")?.Trim() ?? string.Empty;
-        var data = Hex.Parse(Match(text, @"Data:\s*([0-9A-Fa-f ]+)") ?? throw new FormatException("Flipper file has no Data."));
+        var data = Hex.Parse(Match(text, @"Data:\s*([0-9A-Fa-f ]+)") ?? throw new FormatException(Strings.Import_FlipperNoData));
 
         var card = new CardSave();
         switch (type)
@@ -367,12 +368,12 @@ public static class CardFormats
             case "EM4100/16": card.Tag = TagSpecificType.Em410x16; card.Uid = data; break;
             case "H10301":
                 // [hidType=1][FC u32][card number 5 bytes][issue level][OEM u16]
-                if (data.Length < 3) throw new FormatException("H10301 data must be 3 bytes.");
+                if (data.Length < 3) throw new FormatException(Strings.Import_H10301Length);
                 card.Tag = TagSpecificType.HidProx;
                 card.Uid = new byte[] { 1, 0, 0, 0, data[0], 0, 0, 0, data[1], data[2], 0, 0, 0 };
                 break;
             default:
-                throw new FormatException($"Flipper RFID key type '{type}' is not supported yet.");
+                throw new FormatException(string.Format(Strings.Import_FlipperRfidUnsupported, type));
         }
         card.Name = card.UidHex;
         return card;
@@ -398,18 +399,18 @@ public static class CardFormats
             if (line.StartsWith("+Sector", StringComparison.Ordinal))
             {
                 if (!int.TryParse(line[(line.IndexOf(':') + 1)..].Trim(), out sector) || sector is < 0 or >= 40)
-                    throw new FormatException($"Bad sector header “{line}”.");
+                    throw new FormatException(string.Format(Strings.Import_BadSectorHeader, line));
                 index = 0;
                 continue;
             }
-            if (sector < 0) throw new FormatException("Block data before the first +Sector header.");
+            if (sector < 0) throw new FormatException(Strings.Import_DataBeforeSector);
             if (index >= MifareClassic.BlocksInSector(sector))
-                throw new FormatException($"Sector {sector} has more than {MifareClassic.BlocksInSector(sector)} blocks.");
+                throw new FormatException(string.Format(Strings.Import_SectorTooManyBlocks, sector, MifareClassic.BlocksInSector(sector)));
             var block = MifareClassic.SectorFirstBlock(sector) + index++;
             // A key MCT did not find is dashes (zeros here, flagged unknown); a block of only dashes was not read.
             if (line.Trim('-').Length == 0) continue;
             var data = Hex.Parse(line.Replace('-', '0'));
-            if (data.Length != 16) throw new FormatException($"Block {block} is not 16 bytes.");
+            if (data.Length != 16) throw new FormatException(string.Format(Strings.Import_BlockNot16, block));
             blocks[block] = data;
             if (MifareClassic.IsTrailer(block))
             {
@@ -418,7 +419,7 @@ public static class CardFormats
             }
         }
         if (!blocks.TryGetValue(0, out var b0))
-            throw new FormatException("MIFARE Classic Tool dump has no block 0.");
+            throw new FormatException(Strings.Import_MctNoBlock0);
 
         var count = blocks.Keys.Max() + 1;
         var tag = CardTags.MifareClassicForBlocks(count);

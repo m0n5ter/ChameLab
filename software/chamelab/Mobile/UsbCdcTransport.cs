@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Transport;
+using ChameLab.Localization;
 
 namespace ChameLab.Mobile;
 
@@ -66,7 +67,7 @@ internal sealed class UsbCdcTransport(IUsbCdcHost host, string id, string name) 
         lock (_gate)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            if (_connection is not null || _connecting) throw new InvalidOperationException("Already connected.");
+            if (_connection is not null || _connecting) throw new InvalidOperationException(Strings.Usb_AlreadyConnected);
             linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _lifetime.Token);
             _connecting = true;
         }
@@ -100,7 +101,7 @@ internal sealed class UsbCdcTransport(IUsbCdcHost host, string id, string name) 
         {
             var count = connection.Read(_readBuffer, 100);
             ct.ThrowIfCancellationRequested();
-            if (!connection.IsAttached) throw new IOException("The USB device was disconnected.");
+            if (!connection.IsAttached) throw new IOException(Strings.Usb_Disconnected);
             // Android's bulk API uses a negative result for a read timeout too.
             if (count <= 0) return 0;
             _readOffset = 0;
@@ -125,13 +126,13 @@ internal sealed class UsbCdcTransport(IUsbCdcHost host, string id, string name) 
             var count = Math.Min(16384, bytes.Length - offset);
             var written = connection.Write(bytes, offset, count, 1000);
             ct.ThrowIfCancellationRequested();
-            if (written <= 0) throw new IOException("USB write failed. Check the cable and reconnect the device.");
+            if (written <= 0) throw new IOException(Strings.Usb_WriteFailed);
             offset += written;
         }
     }, ct);
 
     private IUsbCdcConnection Connected() => Volatile.Read(ref _connection) is { IsAttached: true } connection
-        ? connection : throw new IOException("The USB device is not connected.");
+        ? connection : throw new IOException(Strings.Usb_NotConnected);
 
     public ValueTask DisposeAsync()
     {

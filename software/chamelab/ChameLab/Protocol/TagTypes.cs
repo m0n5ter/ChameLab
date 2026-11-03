@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ChameLab.Localization;
 
 namespace ChameLab.Protocol;
 
@@ -61,7 +62,7 @@ public static class TagTypeExtensions
 
     public static string DisplayName(this TagSpecificType t) => t switch
     {
-        TagSpecificType.Undefined => "Empty",
+        TagSpecificType.Undefined => Strings.Common_Empty,
         TagSpecificType.Em410x => "EM410X",
         TagSpecificType.Em410x16 => "EM410X / 16",
         TagSpecificType.Em410x32 => "EM410X / 32",
@@ -184,39 +185,39 @@ public static class EnumLabels
 {
     public static string Label(this ButtonPressFunction f) => f switch
     {
-        ButtonPressFunction.None => "No function",
-        ButtonPressFunction.NextSlot => "Select next slot",
-        ButtonPressFunction.PrevSlot => "Select previous slot",
-        ButtonPressFunction.Clone => "Read then emulate UID",
-        ButtonPressFunction.Battery => "Show battery level",
-        ButtonPressFunction.FieldGen => "Toggle NFC field detector",
+        ButtonPressFunction.None => Strings.Button_None,
+        ButtonPressFunction.NextSlot => Strings.Button_NextSlot,
+        ButtonPressFunction.PrevSlot => Strings.Button_PrevSlot,
+        ButtonPressFunction.Clone => Strings.Button_Clone,
+        ButtonPressFunction.Battery => Strings.Button_Battery,
+        ButtonPressFunction.FieldGen => Strings.Button_FieldGen,
         _ => f.ToString(),
     };
 
     public static string Label(this AnimationMode m) => m switch
     {
-        AnimationMode.Full => "Full animation",
-        AnimationMode.Minimal => "Minimal animation",
-        AnimationMode.None => "No animation",
-        AnimationMode.Symmetric => "Symmetric animation",
+        AnimationMode.Full => Strings.Anim_Full,
+        AnimationMode.Minimal => Strings.Anim_Minimal,
+        AnimationMode.None => Strings.Anim_None,
+        AnimationMode.Symmetric => Strings.Anim_Symmetric,
         _ => m.ToString(),
     };
 
     public static string Label(this MifareClassicPrngType p) => p switch
     {
-        MifareClassicPrngType.Static => "Static (fixed nonce)",
-        MifareClassicPrngType.Weak => "Weak (predictable)",
-        MifareClassicPrngType.Hard => "Hard (unpredictable)",
+        MifareClassicPrngType.Static => Strings.Prng_Static,
+        MifareClassicPrngType.Weak => Strings.Prng_Weak,
+        MifareClassicPrngType.Hard => Strings.Prng_Hard,
         _ => p.ToString(),
     };
 
     public static string Label(this EmulatorWriteMode m) => m switch
     {
-        EmulatorWriteMode.Normal => "Normal",
-        EmulatorWriteMode.Denied => "Decline (NACK writes)",
-        EmulatorWriteMode.Deceive => "Deceive (ACK, discard)",
-        EmulatorWriteMode.Shadow => "Shadow (RAM only)",
-        EmulatorWriteMode.ShadowRequested => "Shadow (requested)",
+        EmulatorWriteMode.Normal => Strings.WriteMode_Normal,
+        EmulatorWriteMode.Denied => Strings.WriteMode_Denied,
+        EmulatorWriteMode.Deceive => Strings.WriteMode_Deceive,
+        EmulatorWriteMode.Shadow => Strings.WriteMode_Shadow,
+        EmulatorWriteMode.ShadowRequested => Strings.WriteMode_ShadowRequested,
         _ => m.ToString(),
     };
 

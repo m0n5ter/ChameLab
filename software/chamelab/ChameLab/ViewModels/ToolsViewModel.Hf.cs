@@ -8,6 +8,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -94,7 +95,7 @@ public sealed partial class ToolsViewModel
 
     private Task HfCaptureAsync() => RunAsync(async () =>
     {
-        var client = _device.Client ?? throw new InvalidOperationException("Connect a Chameleon to capture.");
+        var client = _device.Client ?? throw new InvalidOperationException(Strings.Tools_ConnectToCapture);
         var mode = await client.GetDeviceModeAsync();
         byte[] buffer;
         try
@@ -113,21 +114,21 @@ public sealed partial class ToolsViewModel
         {
             ScanFeedback.Missed();
             throw new InvalidOperationException(
-                "No reader spoke. Hold the Chameleon to the reader while it listens, with an HF card in its active slot.");
+                Strings.Tools_NoReaderSpoke);
         }
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             HfFrames = frames;
-            HfSource = $"Captured at {DateTime.Now:HH:mm:ss}";
+            HfSource = string.Format(Strings.Tools_CapturedAt, DateTime.Now);
         });
         ScanFeedback.Found();
     });
 
     private Task HfLoadAsync() => RunAsync(async () =>
     {
-        if (await StorageService.OpenAsync("Load HF trace", "trace") is not { } file) return;
+        if (await StorageService.OpenAsync(Strings.Tools_LoadHfTitle, "trace") is not { } file) return;
         var frames = HfSniff.ParseTrace(file.Data);
-        if (frames.Count == 0) throw new InvalidOperationException($"{file.Name} holds no ISO14443-A frames.");
+        if (frames.Count == 0) throw new InvalidOperationException(string.Format(Strings.Tools_NoIsoFrames, file.Name));
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             HfFrames = frames;
@@ -138,20 +139,20 @@ public sealed partial class ToolsViewModel
     private Task HfSaveAsync() => RunAsync(async () =>
     {
         if (_hfFrames.Count == 0) return;
-        var name = await StorageService.SaveAsync("Save HF trace",
+        var name = await StorageService.SaveAsync(Strings.Tools_SaveHfTitle,
             $"hf-sniff-{DateTime.Now:yyyyMMdd-HHmmss}.trace", HfSniff.BuildTrace(_hfFrames), "trace");
-        if (name is not null) Notify($"Trace saved: {name}.");
+        if (name is not null) Notify(string.Format(Strings.Tools_TraceSaved, name));
     });
 
     // ---- Summary -------------------------------------------------------
 
     public string HfCountsText => _hfSummary is { } s
-        ? $"{s.ReaderFrames + s.CardFrames} frames: {s.ReaderFrames} from the reader, {s.CardFrames} from the card"
+        ? string.Format(Strings.Tools_FramesSummary, s.ReaderFrames + s.CardFrames, s.ReaderFrames, s.CardFrames)
         : "";
 
     public string HfCardText => _hfSummary is not { } s ? "" : string.Join(" · ", new[]
     {
-        s.Uid is { } uid ? $"UID {Convert.ToHexString(uid)}" : "No completed SELECT",
+        s.Uid is { } uid ? $"UID {Convert.ToHexString(uid)}" : Strings.Tools_NoSelect,
         s.Atqa is { } atqa ? $"ATQA {Convert.ToHexString(atqa)}" : null,
         s.Sak is { } sak ? $"SAK {sak:X2}" : null,
         s.Rats ? "ISO14443-4" : null,
@@ -164,12 +165,12 @@ public sealed partial class ToolsViewModel
             if (_hfSummary is not { } s) return "";
             var parts = new List<string>();
             if (s.Auths.Count > 0)
-                parts.Add("MIFARE Classic auth on " + string.Join(", ",
-                    s.Auths.Select(a => $"block {a.Block} key {(a.KeyType == MfKeyType.A ? 'A' : 'B')}")));
-            if (s.Arqc) parts.Add("EMV ARQC requested");
-            if (s.Tc) parts.Add("EMV TC requested");
-            if (s.Halted) parts.Add("ended with HALT");
-            return parts.Count == 0 ? "Nothing more recognized" : string.Join(" · ", parts);
+                parts.Add(Strings.Tools_ClassicAuthOn + string.Join(", ",
+                    s.Auths.Select(a => string.Format(Strings.Tools_BlockKey, a.Block, (a.KeyType == MfKeyType.A ? 'A' : 'B')))));
+            if (s.Arqc) parts.Add(Strings.Tools_ArqcRequested);
+            if (s.Tc) parts.Add(Strings.Tools_TcRequested);
+            if (s.Halted) parts.Add(Strings.Tools_EndedHalt);
+            return parts.Count == 0 ? Strings.Tools_NothingMore : string.Join(" · ", parts);
         }
     }
 
@@ -201,13 +202,13 @@ public sealed partial class ToolsViewModel
     // ---- View helpers --------------------------------------------------
 
     public static readonly Avalonia.Data.Converters.IValueConverter ToolTitle =
-        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(hf => hf ? "Sniff HF" : "Sniff LF");
+        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(hf => hf ? Strings.Tools_SniffHF : Strings.Tools_SniffLF);
 
     public static readonly Avalonia.Data.Converters.IValueConverter DirectionLabel =
-        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(reader => reader ? "Reader" : "Card");
+        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(reader => reader ? Strings.Chameleon_Reader : Strings.Common_Card);
 
     public static readonly Avalonia.Data.Converters.IValueConverter CaptureLabel =
-        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(busy => busy ? "Listening…" : "Capture");
+        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(busy => busy ? Strings.Tools_Listening : Strings.Tools_Capture);
 }
 
 /// <summary>One sniffed authentication group (card, block, key type) and the key recovered from it.</summary>
@@ -223,7 +224,7 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
     }
 
     public string Title =>
-        $"Block {_group.Block} (sector {_group.Sector}) · key {_group.KeyChar} · UID {_group.Uid:X8}";
+        string.Format(Strings.Tools_AuthGroupHeader, _group.Block, _group.Sector, _group.KeyChar, _group.Uid);
 
     public string Exchanges => string.Join('\n', _group.Exchanges.Select((e, i) =>
         $"{i + 1}. nt {e.Nt:X8}  nr {e.NrEnc:X8}  ar {e.ArEnc:X8}" + (e.AtEnc is { } at ? $"  at {at:X8}" : "")));
@@ -233,7 +234,7 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
 
     public string Hint => CanRecover
         ? ""
-        : "One authentication only: capture again so the reader tries a second time.";
+        : Strings.Tools_OneAuthOnly;
 
     /// <summary>The <c>mfkey32v2</c> command for the first two exchanges, to run elsewhere.</summary>
     public string? Mfkey32Command => _group.Exchanges.Count >= 2
@@ -273,14 +274,14 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
     {
         if (IsRecovering || !CanRecover) return;
         IsRecovering = true;
-        Result = "Recovering…";
+        Result = Strings.Tools_Recovering;
         Key = null;
         try
         {
             var found = await Task.Run(() => Mfkey32Recovery.Recover(_group));
             Key = found is { } f ? string.Join(' ', f.Key.ToString("X12").Chunk(2).Select(c => new string(c))) : null;
             Method = found?.Method;
-            Result = found is null ? "No unique key: capture more authentications." : null;
+            Result = found is null ? Strings.Tools_NoUniqueKey : null;
         }
         catch (Exception ex)
         {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ChameLab.Models;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -54,7 +55,7 @@ public sealed class CardLibrary
         }
         catch (Exception ex)
         {
-            LoadError = $"Saved cards could not be read: {ex.Message}";
+            LoadError = string.Format(Strings.Library_CardsLoadError, ex.Message);
             _cards.Clear();
         }
         LoadFolders();

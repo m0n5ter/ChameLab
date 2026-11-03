@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using ChameLab.Localization;
 
 namespace ChameLab.Behaviors;
 
@@ -22,7 +23,7 @@ public static class CopyToClipboard
         {
             button.Click -= OnClick;
             button.Click += OnClick;
-            if (ToolTip.GetTip(button) is null) ToolTip.SetTip(button, "Copy");
+            if (ToolTip.GetTip(button) is null) ToolTip.SetTip(button, Strings.Hex_Copy);
         });
     }
 
@@ -44,12 +45,12 @@ public static class CopyToClipboard
             return; // clipboard can be unavailable (e.g. browser without permission)
         }
 
-        ToolTip.SetTip(button, "Copied");
+        ToolTip.SetTip(button, Strings.Common_Copied);
         ToolTip.SetIsOpen(button, true);
         DispatcherTimer.RunOnce(() =>
         {
             ToolTip.SetIsOpen(button, false);
-            ToolTip.SetTip(button, "Copy");
+            ToolTip.SetTip(button, Strings.Hex_Copy);
         }, TimeSpan.FromSeconds(1.2));
     }
 }

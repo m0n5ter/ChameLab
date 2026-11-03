@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Protocol;
 using ChameLab.Transport;
+using ChameLab.Localization;
 
 namespace ChameLab.Desktop;
 
@@ -35,13 +36,13 @@ public sealed class SerialTransport(string portName) : ITransport
 
     public async Task WriteAsync(ReadOnlyMemory<byte> data, CancellationToken ct = default)
     {
-        if (_port is null) throw new InvalidOperationException("Not connected.");
+        if (_port is null) throw new InvalidOperationException(Strings.Tcp_NotConnected);
         await _port.BaseStream.WriteAsync(data, ct);
     }
 
     public async Task<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
     {
-        if (_port is null) throw new InvalidOperationException("Not connected.");
+        if (_port is null) throw new InvalidOperationException(Strings.Tcp_NotConnected);
         try
         {
             return await _port.BaseStream.ReadAsync(buffer, ct);
@@ -54,7 +55,7 @@ public sealed class SerialTransport(string portName) : ITransport
         {
             // Windows aborts the pending read (ERROR_OPERATION_ABORTED) when the USB device is
             // unplugged, which surfaces as a cancellation nobody asked for.
-            throw new IOException($"{portName} was disconnected.");
+            throw new IOException(string.Format(Strings.Serial_Disconnected, portName));
         }
     }
 
@@ -80,7 +81,7 @@ public sealed class SerialScanner : ITransportScanner
     private const string ChameleonVidHex = "6868";
 
     public TransportKind Kind => TransportKind.Serial;
-    public string DisplayName => "Serial (USB)";
+    public string DisplayName => Strings.Serial_Name;
     public AutoScan AutoScan => AutoScan.Poll;
 
     public Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default)

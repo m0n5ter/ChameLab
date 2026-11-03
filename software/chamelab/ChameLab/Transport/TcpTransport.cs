@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using ChameLab.Localization;
 
 namespace ChameLab.Transport;
 
@@ -29,13 +30,13 @@ public sealed class TcpTransport(string host, int port) : ITransport
 
     public Task WriteAsync(ReadOnlyMemory<byte> data, CancellationToken ct = default)
     {
-        if (_stream is null) throw new InvalidOperationException("Not connected.");
+        if (_stream is null) throw new InvalidOperationException(Strings.Tcp_NotConnected);
         return _stream.WriteAsync(data, ct).AsTask();
     }
 
     public async Task<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
     {
-        if (_stream is null) throw new InvalidOperationException("Not connected.");
+        if (_stream is null) throw new InvalidOperationException(Strings.Tcp_NotConnected);
         return await _stream.ReadAsync(buffer, ct);
     }
 
@@ -51,7 +52,7 @@ public sealed class TcpTransport(string host, int port) : ITransport
 public sealed class TcpScanner : ITransportScanner
 {
     public TransportKind Kind => TransportKind.Tcp;
-    public string DisplayName => "Network (TCP)";
+    public string DisplayName => Strings.Tcp_Network;
     public AutoScan AutoScan => AutoScan.Never;
 
     public Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default) =>
@@ -66,14 +67,14 @@ public sealed class TcpScanner : ITransportScanner
     public static TransportCandidate Candidate(string hostPort)
     {
         var (host, port) = Parse(hostPort);
-        return new TransportCandidate(TransportKind.Tcp, $"{host}:{port}", $"tcp:{host}:{port}", "Manual network endpoint");
+        return new TransportCandidate(TransportKind.Tcp, $"{host}:{port}", $"tcp:{host}:{port}", Strings.Tcp_ManualEndpoint);
     }
 
     private static (string host, int port) Parse(string id)
     {
         var idx = id.LastIndexOf(':');
         if (idx <= 0 || !int.TryParse(id[(idx + 1)..], out var port))
-            throw new FormatException($"Expected host:port, got '{id}'.");
+            throw new FormatException(string.Format(Strings.Tcp_ExpectedHostPort, id));
         return (id[..idx], port);
     }
 }

@@ -8,6 +8,7 @@ using ChameLab.Behaviors;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -31,27 +32,27 @@ public static class NdefRecordKindExtensions
 {
     public static string Label(this NdefRecordKind k) => k switch
     {
-        NdefRecordKind.Link => "Link (URI)",
-        NdefRecordKind.Phone => "Phone number",
-        NdefRecordKind.Email => "Email",
-        NdefRecordKind.Sms => "Text message (SMS)",
-        NdefRecordKind.Geo => "Location",
-        NdefRecordKind.Contact => "Contact (vCard)",
-        NdefRecordKind.Text => "Text",
-        NdefRecordKind.Wifi => "Wi-Fi network",
-        NdefRecordKind.AndroidApp => "Android app",
-        NdefRecordKind.Mime => "MIME data",
-        _ => "Raw record",
+        NdefRecordKind.Link => Strings.Cards_LinkURI,
+        NdefRecordKind.Phone => Strings.Cards_PhoneNumber,
+        NdefRecordKind.Email => Strings.Cards_Email,
+        NdefRecordKind.Sms => Strings.Cards_TextMessageSMS,
+        NdefRecordKind.Geo => Strings.Cards_Location,
+        NdefRecordKind.Contact => Strings.Cards_ContactVCard,
+        NdefRecordKind.Text => Strings.Cards_Text,
+        NdefRecordKind.Wifi => Strings.Cards_WiFiNetwork,
+        NdefRecordKind.AndroidApp => Strings.Cards_AndroidApp,
+        NdefRecordKind.Mime => Strings.Cards_MIMEData,
+        _ => Strings.Cards_RawRecord,
     };
 
     public static string Label(this NdefTnf t) => t switch
     {
-        NdefTnf.Empty => "Empty",
-        NdefTnf.WellKnown => "Well-known (NFC RTD)",
-        NdefTnf.Media => "MIME media type",
-        NdefTnf.AbsoluteUri => "Absolute URI",
-        NdefTnf.External => "External type",
-        _ => "Unknown",
+        NdefTnf.Empty => Strings.Common_Empty,
+        NdefTnf.WellKnown => Strings.Ndef_TnfWellKnown,
+        NdefTnf.Media => Strings.Ndef_TnfMedia,
+        NdefTnf.AbsoluteUri => Strings.Ndef_TnfAbsoluteUri,
+        NdefTnf.External => Strings.Ndef_TnfExternal,
+        _ => Strings.Common_Unknown,
     };
 }
 
@@ -151,7 +152,7 @@ public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
             if (_writing) return;
             Records.Clear();
             CanEdit = tag.IsUltralight() && pages.Count > 0;
-            Summary = CanEdit ? "Memory not read yet: read the card, or add records to start a new message." : string.Empty;
+            Summary = CanEdit ? Strings.Ndef_NotReadYet : string.Empty;
             Usage = string.Empty;
             IsOverCapacity = false;
             Error = EditError = null;
@@ -173,9 +174,8 @@ public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
     {
         Summary = Records.Count switch
         {
-            0 => "No records",
-            1 => "1 record",
-            var n => $"{n} records",
+            0 => Strings.Ndef_NoRecords,
+            var n => Loc.Plural(Strings.Plural_Records, n),
         };
         var (pages, tag) = _memory();
         var area = Type2Ndef.Read(pages, tag);
@@ -190,8 +190,8 @@ public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
         var used = Type2Ndef.UsedBytes(prefix, length);
         IsOverCapacity = used > capacity;
         Usage = IsOverCapacity
-            ? $"{used} of {capacity} bytes · {used - capacity} over"
-            : $"{used} of {capacity} bytes · {capacity - used} left";
+            ? string.Format(Strings.Ndef_BytesOver, used, capacity, used - capacity)
+            : string.Format(Strings.Ndef_BytesLeft, used, capacity, capacity - used);
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
         try { message = Ndef.Encode(built); }
         catch (OverflowException)
         {
-            EditError = "A record's type or ID is too long.";
+            EditError = Strings.Ndef_TypeTooLong;
             return;
         }
         Count(message.Length);
@@ -429,7 +429,7 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         var number = _phone.Trim();
         if (number.Length == 0 || !number.Any(char.IsAsciiDigit)
             || number.Any(c => !char.IsAsciiDigit(c) && c is not ('+' or ' ' or '-' or '(' or ')' or '.' or '*' or '#')))
-            throw new FormatException("Enter a phone number, e.g. +1 555 0100.");
+            throw new FormatException(Strings.Ndef_EnterPhone);
         return number;
     }
 
@@ -441,49 +441,49 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         {
             case NdefRecordKind.Link:
                 if (string.IsNullOrWhiteSpace(_uri) || _uri.Trim() is "https://" or "http://")
-                    throw new FormatException("Enter a link.");
+                    throw new FormatException(Strings.Ndef_EnterLink);
                 return Ndef.Uri(_uri.Trim());
             case NdefRecordKind.Phone:
                 return Ndef.Uri(NdefUris.Phone(Number()));
             case NdefRecordKind.Email:
-                if (!_email.Contains('@') || _email.Trim().Contains(' ')) throw new FormatException("Enter an email address.");
+                if (!_email.Contains('@') || _email.Trim().Contains(' ')) throw new FormatException(Strings.Ndef_EnterEmail);
                 return Ndef.Uri(NdefUris.Email(new NdefEmail(_email.Trim(), _subject, _message)));
             case NdefRecordKind.Sms:
                 return Ndef.Uri(NdefUris.Sms(new NdefSms(Number(), _message)));
             case NdefRecordKind.Geo:
                 if (!NdefUris.TryCoordinate(_latitude, 90, out var lat))
-                    throw new FormatException("Enter the latitude in degrees, -90 to 90, e.g. 48.8584.");
+                    throw new FormatException(Strings.Ndef_EnterLatitude);
                 if (!NdefUris.TryCoordinate(_longitude, 180, out var lon))
-                    throw new FormatException("Enter the longitude in degrees, -180 to 180, e.g. 2.2945.");
+                    throw new FormatException(Strings.Ndef_EnterLongitude);
                 return Ndef.Uri(NdefUris.Geo(new NdefGeo(lat, lon)));
             case NdefRecordKind.Contact:
-                if (string.IsNullOrWhiteSpace(_name)) throw new FormatException("Enter the contact's name.");
+                if (string.IsNullOrWhiteSpace(_name)) throw new FormatException(Strings.Ndef_EnterContactName);
                 if (_email.Trim() is { Length: > 0 } address && !address.Contains('@'))
-                    throw new FormatException("Enter an email address, or leave it empty.");
+                    throw new FormatException(Strings.Ndef_EnterEmailOrEmpty);
                 return Ndef.Mime(NdefVCard.MimeType, new NdefVCard(
                     _name.Trim(), _phone.Trim(), _email.Trim(), _organization.Trim(), _website.Trim()).ToBytes());
             case NdefRecordKind.Text:
                 return Ndef.Text(_text, _language);
             case NdefRecordKind.Wifi:
-                if (_ssid.Length == 0) throw new FormatException("Enter the network name (SSID).");
-                if (Encoding.UTF8.GetByteCount(_ssid) > 32) throw new FormatException("The network name is at most 32 bytes.");
+                if (_ssid.Length == 0) throw new FormatException(Strings.Ndef_EnterSsid);
+                if (Encoding.UTF8.GetByteCount(_ssid) > 32) throw new FormatException(Strings.Ndef_SsidTooLong);
                 if (HasWifiKey && _wifiKey.Length is < 8 or > 63)
-                    throw new FormatException("A WPA password is 8 to 63 characters.");
+                    throw new FormatException(Strings.Ndef_WpaLength);
                 return Ndef.Wifi(new NdefWifi(_ssid, _wifiAuth, HasWifiKey ? _wifiKey : string.Empty));
             case NdefRecordKind.AndroidApp:
                 if (string.IsNullOrWhiteSpace(_package) || !_package.Contains('.'))
-                    throw new FormatException("Enter the app's package name, e.g. com.example.app.");
+                    throw new FormatException(Strings.Ndef_EnterPackage);
                 return Ndef.AndroidApp(_package);
             case NdefRecordKind.Mime:
                 if (!_mimeType.Contains('/') || _mimeType.Any(c => c > 0x7E || char.IsWhiteSpace(c)))
-                    throw new FormatException("Enter a MIME type, e.g. text/plain.");
+                    throw new FormatException(Strings.Ndef_EnterMime);
                 return Ndef.Mime(_mimeType, Encoding.UTF8.GetBytes(_mimeContent));
             default:
-                if (!Hex.TryParse(_rawPayload, out var payload)) throw new FormatException("The payload must be hex.");
+                if (!Hex.TryParse(_rawPayload, out var payload)) throw new FormatException(Strings.Ndef_PayloadHex);
                 if (_rawTnf == NdefTnf.Empty && (_rawType.Length > 0 || payload.Length > 0))
-                    throw new FormatException("An empty record has no type and no payload.");
+                    throw new FormatException(Strings.Ndef_EmptyRecord);
                 if (_rawTnf is not (NdefTnf.Empty or NdefTnf.Unknown) && _rawType.Length == 0)
-                    throw new FormatException("Enter the record type.");
+                    throw new FormatException(Strings.Ndef_EnterType);
                 return new NdefRecord(_rawTnf, Encoding.UTF8.GetBytes(_rawType), [], payload);
         }
     }

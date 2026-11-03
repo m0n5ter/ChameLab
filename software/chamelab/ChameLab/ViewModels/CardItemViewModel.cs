@@ -4,6 +4,7 @@ using Avalonia.Media;
 using ChameLab.Converters;
 using ChameLab.Models;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -12,7 +13,7 @@ public sealed class CardItemViewModel(CardSave card) : ViewModelBase
 {
     public CardSave Card { get; } = card;
 
-    public string Name => string.IsNullOrWhiteSpace(Card.Name) ? "No name" : Card.Name;
+    public string Name => string.IsNullOrWhiteSpace(Card.Name) ? Strings.Common_NoName : Card.Name;
     public string TypeLabel => Card.Tag.DisplayName();
     public bool IsHf => Card.Sense == TagSenseType.Hf;
     public bool IsLf => Card.Sense == TagSenseType.Lf;
@@ -51,7 +52,7 @@ public sealed class SlotTargetViewModel : ViewModelBase
             ? (info.LfType, info.LfEnabled, info.LfNick)
             : (info.HfType, info.HfEnabled, info.HfNick);
         IsEmpty = type == TagSpecificType.Undefined || !enabled;
-        Label = IsEmpty ? "Empty" : (string.IsNullOrEmpty(nick) ? type.DisplayName() : nick);
+        Label = IsEmpty ? Strings.Common_Empty : (string.IsNullOrEmpty(nick) ? type.DisplayName() : nick);
     }
 
     public int Index { get; }

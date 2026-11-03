@@ -6,6 +6,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -36,13 +37,13 @@ public sealed partial class CardsViewModel
     public bool ShowMfkey32 => IsCardOpen || _cardPrng is not null;
     public bool HasRequiredWriteKeys => !IsGen2Write || WriteRecovery.AllTargetKeysRecovered || _assumeDefaultWriteKeys;
     public string? WriteKeyHint => !HasRequiredWriteKeys && !WriteRecovery.AllPlannedSectorsWritten && !IsWriting
-        ? "Recover keys A and B for every sector of the target card. Writing is available when all sectors are green."
+        ? Strings.Cards_RecoverAllKeysHint
         : null;
-    public string TryKeysLabel => IsUltralightDump ? "Read" : "Try keys";
+    public string TryKeysLabel => IsUltralightDump ? Strings.Common_Read : Strings.Common_TryKeys;
     public string TryKeysTip => IsUltralightDump
-        ? "Read every page, the signature and the counters"
-        : "Read missing blocks with the selected keys";
-    public string RecoverySectorHint => "Select a sector to edit its blocks; hover for keys";
+        ? Strings.Cards_ReadEveryPage
+        : Strings.Cards_ReadMissingBlocks;
+    public string RecoverySectorHint => Strings.Cards_RecoverySectorHint;
     public string? RecoveryIdentity => null;
     public int RecoverySelectedSector
     {

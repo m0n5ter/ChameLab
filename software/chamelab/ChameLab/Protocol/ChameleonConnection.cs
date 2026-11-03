@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Transport;
+using ChameLab.Localization;
 
 namespace ChameLab.Protocol;
 
@@ -14,7 +15,7 @@ public sealed class ChameleonException(string message, Status status) : Exceptio
 }
 
 /// <summary>The link to the device is gone (unplugged, out of range or closed); no command can succeed.</summary>
-public sealed class ChameleonDisconnectedException(Exception? inner = null) : IOException("The Chameleon was disconnected.", inner);
+public sealed class ChameleonDisconnectedException(Exception? inner = null) : IOException(Strings.Device_Disconnected, inner);
 
 /// <summary>
 /// Owns a transport, runs a background read loop, and exposes an async
@@ -105,7 +106,7 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
                 // Only this request's entry: a later one for the same command must not be failed.
                 _pending.TryRemove(new KeyValuePair<Command, TaskCompletionSource<ChameleonFrame>>(cmd, tcs));
                 if (ct.IsCancellationRequested) tcs.TrySetCanceled(ct);
-                else tcs.TrySetException(new TimeoutException($"Command {cmd} timed out after {timeoutMs} ms."));
+                else tcs.TrySetException(new TimeoutException(string.Format(Strings.Device_CommandTimeout, cmd, timeoutMs)));
             });
 
             var frame = FrameCodec.Encode(cmd, data ?? Array.Empty<byte>(), status);
@@ -120,7 +121,7 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
                 // A write timing out (or failing) on its own: report it like a reply that never came.
                 if (_closed || ex is IOException or InvalidOperationException or ObjectDisposedException)
                     throw new ChameleonDisconnectedException(ex);
-                throw new TimeoutException($"Command {cmd} timed out after {timeoutMs} ms.", ex);
+                throw new TimeoutException(string.Format(Strings.Device_CommandTimeout, cmd, timeoutMs), ex);
             }
             finally
             {
@@ -143,7 +144,7 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
         var frame = await SendAsync(cmd, data, status, timeoutMs, ct);
         if (frame.Status != expected)
             throw new ChameleonException(
-                $"{cmd} failed: {frame.Status.Describe()}", frame.Status);
+                string.Format(Strings.Device_CommandFailed, cmd, frame.Status.Describe()), frame.Status);
         return frame;
     }
 

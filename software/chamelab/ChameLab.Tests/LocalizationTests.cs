@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -37,6 +38,36 @@ public sealed partial class LocalizationTests
             .Order()
             .ToArray();
         Assert.Empty(mismatched);
+    }
+
+    [Theory]
+    [InlineData("", 2)]
+    [InlineData("ru", 3)]
+    public void PluralStrings_HaveEveryForm(string language, int forms)
+    {
+        var strings = Read(language.Length == 0 ? CultureInfo.InvariantCulture : CultureInfo.GetCultureInfo(language));
+
+        var wrong = strings.Where(e => e.Key.StartsWith("Plural_", StringComparison.Ordinal) && e.Value.Split('|').Length != forms)
+            .Select(e => e.Key).Order().ToArray();
+        Assert.Empty(wrong);
+    }
+
+    [Theory]
+    [InlineData(1, "{0} карта")]
+    [InlineData(3, "{0} карты")]
+    [InlineData(5, "{0} карт")]
+    [InlineData(11, "{0} карт")]
+    [InlineData(21, "{0} карта")]
+    [InlineData(112, "{0} карт")]
+    public void Plural_PicksRussianForm(int count, string expected)
+    {
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("ru");
+        try
+        {
+            Assert.Equal(string.Format(expected, count), Loc.Plural("{0} карта|{0} карты|{0} карт", count));
+        }
+        finally { CultureInfo.CurrentUICulture = previous; }
     }
 
     /// <summary>The strings stored for exactly this culture, without falling back to English.</summary>

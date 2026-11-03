@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ChameLab.Services;
 using ChameLab.Transport;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -16,7 +17,7 @@ public sealed class ConnectViewModel : PageViewModelBase
 {
     private readonly DeviceService _device;
 
-    public ConnectViewModel(DeviceService device) : base("Connect", "link")
+    public ConnectViewModel(DeviceService device) : base(Strings.Connect_Connect, "link")
     {
         _device = device;
 
@@ -56,9 +57,9 @@ public sealed class ConnectViewModel : PageViewModelBase
     // The device wakes by itself when plugged in over USB; over BLE it only advertises while awake.
     public string IntroHint => (HasUsb, HasBle) switch
     {
-        (true, true) => "Plug the device in over USB, or press a button on it to wake it up for Bluetooth, then pick it below.",
-        (false, true) => "Press a button on the device to wake it up, then pick it below.",
-        _ => "Plug the device in over USB, then pick it below.",
+        (true, true) => Strings.Connect_IntroUsbBle,
+        (false, true) => Strings.Connect_IntroBle,
+        _ => Strings.Connect_IntroUsb,
     };
 
     // A web page may only open a serial port or a Bluetooth device the user picked in the
@@ -66,21 +67,21 @@ public sealed class ConnectViewModel : PageViewModelBase
     // up on its own like on desktop.
     public string ScanHint => OperatingSystem.IsBrowser()
         ? CanPick
-            ? "Pick your Chameleon once with Rescan (USB) or Pair over Bluetooth; after that it appears here automatically."
-            : "Press Rescan to pick your Chameleon once; after that it appears here automatically."
+            ? Strings.Connect_WebPickOnceBle
+            : Strings.Connect_WebPickOnce
         : HasBle && !HasUsb
-            ? "Nearby devices appear here automatically while they're awake."
-            : "Plugged-in devices appear here automatically.";
+            ? Strings.Connect_NearbyAuto
+            : Strings.Connect_PluggedAuto;
 
     public string EmptyHint => OperatingSystem.IsBrowser()
         ? CanPick
-            ? "Plug the Chameleon in and press Rescan, or wake it up and press Pair over Bluetooth, then allow this page to use it (Chrome or Edge)."
-            : "Plug the Chameleon in, then press Rescan and allow this page to use it (Chrome or Edge)."
+            ? Strings.Connect_WebIntroBle
+            : Strings.Connect_WebIntro
         : (HasUsb, HasBle) switch
         {
-            (true, true) => "Plug the Chameleon in, or press a button on it to wake it up for Bluetooth. It will show up here on its own.",
-            (false, true) => "Turn Bluetooth on and press a button on the Chameleon to wake it up. It will show up here on its own.",
-            _ => "Plug the Chameleon in. It will show up here on its own.",
+            (true, true) => Strings.Connect_HeroUsbBle,
+            (false, true) => Strings.Connect_HeroBle,
+            _ => Strings.Connect_HeroUsb,
         };
 
     public string ManualEndpoint
@@ -159,8 +160,8 @@ public sealed class ConnectViewModel : PageViewModelBase
         var found = await _device.ScanAsync();
         Dispatcher.UIThread.Post(() => Apply(found, ScannedKinds(AutoScan.Never)));
         Notify(found.Count == 0
-            ? "No Chameleon found. Plug it in, or use a network bridge."
-            : $"Found {found.Count} device(s).");
+            ? Strings.Connect_NoneFound
+            : Loc.Plural(Strings.Plural_FoundDevices, found.Count));
     });
 
     /// <summary>Opens the browser's Bluetooth chooser and selects the picked device, ready to connect.</summary>
@@ -176,7 +177,7 @@ public sealed class ConnectViewModel : PageViewModelBase
             Apply(known, new HashSet<TransportKind> { scanner.Kind });
             Selected = Candidates.FirstOrDefault(c => c.Kind == picked.Kind && c.Id == picked.Id) ?? Selected;
         });
-        Notify($"Selected {picked.DisplayName}. Press Connect.");
+        Notify(string.Format(Strings.Connect_SelectedPressConnect, picked.DisplayName));
     });
 
     private HashSet<TransportKind> ScannedKinds(AutoScan trigger) =>
@@ -202,7 +203,7 @@ public sealed class ConnectViewModel : PageViewModelBase
 
     private Task ConnectAsync() => RunAsync(async () =>
     {
-        if (Selected is null) { ReportError("Select a device first."); return; }
+        if (Selected is null) { ReportError(Strings.Connect_SelectFirst); return; }
         // A BLE connection attempt made while the adapter is scanning may stall or fail.
         StopWatchers();
         try { await _device.ConnectAsync(Selected); }

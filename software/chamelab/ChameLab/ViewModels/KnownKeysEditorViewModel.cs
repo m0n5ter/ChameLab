@@ -8,6 +8,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -40,7 +41,7 @@ public sealed class KnownUidViewModel : ViewModelBase
         get
         {
             var count = Form.Build().Count;
-            return count == 1 ? "1 known key" : $"{count} known keys";
+            return Loc.Plural(Strings.Plural_KnownKeys, count);
         }
     }
     public DictionaryEditorViewModel Form { get; }

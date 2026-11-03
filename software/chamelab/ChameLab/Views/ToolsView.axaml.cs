@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ChameLab.Models;
 using ChameLab.ViewModels;
+using ChameLab.Localization;
 
 namespace ChameLab.Views;
 
@@ -19,15 +20,15 @@ public partial class ToolsView : UserControl
         CopyFramesButton.Click += OnCopyFrames;
         FramesList.AddHandler(TappedEvent, OnFrameTapped, RoutingStrategies.Bubble, handledEventsToo: true);
         FramesHint.Text = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()
-            ? "Tap a frame, then another to select the range between."
-            : "Shift+click selects a range, Ctrl+click adds a frame.";
+            ? Strings.Tools_FramesHintTouch
+            : Strings.Tools_FramesHintMouse;
         UpdateCopyLabel();
     }
 
     private void UpdateCopyLabel()
     {
         var count = FramesList.SelectedItems?.Count ?? 0;
-        CopyFramesLabel.Text = count == 0 ? "Copy all" : $"Copy {count}";
+        CopyFramesLabel.Text = count == 0 ? Strings.Tools_CopyAll : string.Format(Strings.Tools_CopyN, count);
     }
 
     /// <summary>First frame of a range picked by touch; null when none is.</summary>
@@ -68,12 +69,12 @@ public partial class ToolsView : UserControl
         var text = ToolsViewModel.FramesText(picked is { Count: > 0 } ? picked : vm.HfAnnotated);
         try { await clipboard.SetTextAsync(text); }
         catch { return; /* clipboard unavailable (browser without permission) */ }
-        ToolTip.SetTip(CopyFramesButton, "Copied");
+        ToolTip.SetTip(CopyFramesButton, Strings.Common_Copied);
         ToolTip.SetIsOpen(CopyFramesButton, true);
         Avalonia.Threading.DispatcherTimer.RunOnce(() =>
         {
             ToolTip.SetIsOpen(CopyFramesButton, false);
-            ToolTip.SetTip(CopyFramesButton, "Copy the selected frames, or all of them");
+            ToolTip.SetTip(CopyFramesButton, Strings.Tools_CopyTheSelectedFramesOrAll);
         }, TimeSpan.FromSeconds(1.2));
     }
 }

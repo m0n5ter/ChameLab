@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -211,7 +212,7 @@ public sealed class MainViewModel : ViewModelBase
     {
         get;
         private set => this.RaiseAndSetIfChanged(ref field, value);
-    } = "Not connected";
+    } = Strings.Main_NotConnected;
 
     /// <summary>"Press Back again to exit", shown after a Back press on the start page.</summary>
     public bool IsExitHintVisible
@@ -323,15 +324,15 @@ public sealed class MainViewModel : ViewModelBase
                 SetNavPages(_connectedPages);
                 var info = _device.DeviceInfo;
                 DeviceSummary = info is null
-                    ? "Connected"
-                    : $"{info.ModelName} · fw {info.FirmwareVersion}";
+                    ? Strings.Main_Connected
+                    : string.Format(Strings.Main_DeviceSummary, info.ModelName, info.FirmwareVersion);
                 _ = Firmware.OnConnectedAsync();
                 // Connecting from the Connect page goes on to the device; any other page stays.
                 if (ReferenceEquals(CurrentPage, _connect)) await NavigateAsync(Chameleon);
             }
             else
             {
-                DeviceSummary = "Not connected";
+                DeviceSummary = Strings.Main_NotConnected;
                 SetNavPages(_disconnectedPages);
                 if (state == ConnectionState.Disconnected && !Firmware.IsInstalling) _connect.StartWatching();
                 // A device page has nothing left to show: back to Connect. App-side pages stay.

@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Transport;
+using ChameLab.Localization;
 
 namespace ChameLab.Protocol;
 
@@ -19,7 +20,7 @@ public sealed record DfuPackage(byte[] InitPacket, byte[] Firmware)
             using var archive = new ZipArchive(new MemoryStream(zip), ZipArchiveMode.Read);
             byte[] Read(string name)
             {
-                var entry = archive.GetEntry(name) ?? throw new InvalidDataException($"{name} is missing.");
+                var entry = archive.GetEntry(name) ?? throw new InvalidDataException(string.Format(Strings.Dfu_Missing, name));
                 using var s = entry.Open();
                 using var ms = new MemoryStream();
                 s.CopyTo(ms);
@@ -28,21 +29,21 @@ public sealed record DfuPackage(byte[] InitPacket, byte[] Firmware)
 
             using var manifest = JsonDocument.Parse(Read("manifest.json"));
             if (!manifest.RootElement.GetProperty("manifest").TryGetProperty("application", out var app))
-                throw new InvalidDataException("Only application updates are supported, this package has no application.");
+                throw new InvalidDataException(Strings.Dfu_AppOnly);
             var init = Read(app.GetProperty("dat_file").GetString()!);
             var fw = Read(app.GetProperty("bin_file").GetString()!);
-            if (init.Length == 0 || fw.Length == 0) throw new InvalidDataException("The package is empty.");
+            if (init.Length == 0 || fw.Length == 0) throw new InvalidDataException(Strings.Dfu_Empty);
             return new DfuPackage(init, fw);
         }
         catch (Exception ex) when (ex is InvalidDataException or JsonException or KeyNotFoundException)
         {
-            throw new InvalidDataException($"Not a firmware DFU package: {ex.Message}", ex);
+            throw new InvalidDataException(string.Format(Strings.Dfu_NotPackage, ex.Message), ex);
         }
     }
 }
 
 /// <summary>Raised when the bootloader drops the link; expected right after the last object is executed.</summary>
-public sealed class DfuLinkClosedException() : IOException("The connection to the bootloader was lost.");
+public sealed class DfuLinkClosedException() : IOException(Strings.Dfu_LinkLost);
 
 /// <summary>
 /// How Secure DFU requests and image data reach the bootloader: SLIP frames over
@@ -127,7 +128,7 @@ public sealed class SecureDfu(IDfuChannel channel)
         uint deviceOffset = BitConverter.ToUInt32(crc, 0), deviceCrc = BitConverter.ToUInt32(crc, 4);
         var expected = Crc32(data, offset + length);
         if (deviceOffset != offset + length || deviceCrc != expected)
-            throw new IOException($"Firmware transfer corrupted (device at {deviceOffset} with CRC {deviceCrc:X8}, expected {offset + length} / {expected:X8}).");
+            throw new IOException(string.Format(Strings.Dfu_Corrupted, deviceOffset, deviceCrc, offset + length, expected));
     }
 
     private async Task<byte[]> RequestAsync(CancellationToken ct, params byte[] request) =>
@@ -137,9 +138,9 @@ public sealed class SecureDfu(IDfuChannel channel)
     public static byte[] Check(byte[] r, byte op)
     {
         if (r.Length < 3 || r[0] != OpResponse || r[1] != op)
-            throw new IOException($"Unexpected bootloader response {Convert.ToHexString(r)}.");
+            throw new IOException(string.Format(Strings.Dfu_Unexpected, Convert.ToHexString(r)));
         if (r[2] != 0x01)
-            throw new IOException($"The bootloader rejected step 0x{op:X2} (error 0x{r[2]:X2}{(r.Length > 3 ? $"/0x{r[3]:X2}" : "")}).");
+            throw new IOException(string.Format(Strings.Dfu_Rejected, op, r[2], (r.Length > 3 ? $"/0x{r[3]:X2}" : "")));
         return r[3..];
     }
 
@@ -223,7 +224,7 @@ public sealed class SerialDfuChannel : IDfuChannel
         {
             if (_readPos == _readLen)
             {
-                if (DateTime.UtcNow > deadline) throw new TimeoutException("The bootloader stopped answering.");
+                if (DateTime.UtcNow > deadline) throw new TimeoutException(Strings.Dfu_Stopped);
                 try
                 {
                     _readLen = await _transport.ReadAsync(_readBuffer, ct);

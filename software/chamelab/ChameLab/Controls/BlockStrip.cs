@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using ChameLab.Models;
+using ChameLab.Localization;
 
 namespace ChameLab.Controls;
 
@@ -149,18 +150,18 @@ public class BlockStrip : Control
     private string Describe(MifareBlockState s) => IsWrite
         ? s switch
         {
-            MifareBlockState.Reading => "writing…",
+            MifareBlockState.Reading => Strings.Strip_Writing,
             MifareBlockState.Read => "written",
-            MifareBlockState.ReadError => "write failed",
+            MifareBlockState.ReadError => Strings.Strip_WriteFailed,
             MifareBlockState.NoKey => LockedText.ToLowerInvariant(),
-            _ => "not written",
+            _ => Strings.Strip_NotWritten,
         }
         : s switch
         {
-            MifareBlockState.Reading => "reading…",
+            MifareBlockState.Reading => Strings.Strip_Reading,
             MifareBlockState.Read => "read",
-            MifareBlockState.ReadError => "read failed",
+            MifareBlockState.ReadError => Strings.Strip_ReadFailed,
             MifareBlockState.NoKey => LockedText.ToLowerInvariant(),
-            _ => "not read yet",
+            _ => Strings.Strip_NotReadYet,
         };
 }

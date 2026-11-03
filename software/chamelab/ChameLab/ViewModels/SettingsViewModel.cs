@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -13,7 +14,7 @@ public sealed class SettingsViewModel : PageViewModelBase
     private readonly DictionaryLibrary _dictionaries;
 
     public SettingsViewModel(CardLibrary cards, DictionaryLibrary dictionaries, AppUpdateViewModel appUpdate)
-        : base("Settings", "settings")
+        : base(Strings.Settings_Settings, "settings")
     {
         AppUpdate = appUpdate;
         _cards = cards;
@@ -85,16 +86,16 @@ public sealed class SettingsViewModel : PageViewModelBase
     private System.Threading.Tasks.Task ExportBackupAsync() => RunAsync(async () =>
     {
         var data = BackupService.Export(_cards, _dictionaries);
-        var name = await StorageService.SaveAsync("Export backup", "chamelab-backup.json", data, "json");
-        if (name is not null) Notify($"Backup saved: {name}.");
+        var name = await StorageService.SaveAsync(Strings.Settings_ExportBackup, "chamelab-backup.json", data, "json");
+        if (name is not null) Notify(string.Format(Strings.Settings_BackupSaved, name));
     });
 
     private System.Threading.Tasks.Task ImportBackupAsync() => RunAsync(async () =>
     {
-        var picked = await StorageService.OpenAsync("Import backup", "json");
+        var picked = await StorageService.OpenAsync(Strings.Settings_ImportBackup, "json");
         if (picked is not { } file) return;
         var (c, d) = BackupService.Import(file.Data, _cards, _dictionaries);
-        Notify($"Imported {c} card(s) and {d} dictionary(ies).");
+        Notify(string.Format(Strings.Settings_ImportedBackup, Loc.Plural(Strings.Plural_Cards, c), Loc.Plural(Strings.Plural_Dictionaries, d)));
     });
 
     /// <summary>Application version, from the assembly's informational version.</summary>
@@ -103,8 +104,5 @@ public sealed class SettingsViewModel : PageViewModelBase
     /// <summary>The app's own update check, shown in the About card.</summary>
     public AppUpdateViewModel AppUpdate { get; }
 
-    public const string TrademarkNotice =
-        "MIFARE®, MIFARE® Classic and MIFARE® Ultralight are registered trademarks of NXP B.V. " +
-        "HID™ and HID ProxCard™ are trademarks of HID Global. EM4100 and related product names are " +
-        "trademarks of EM Microelectronic-Marin SA. This app is not affiliated with any of them.";
+    public static string TrademarkNotice => Strings.Settings_TrademarkNotice;
 }

@@ -14,6 +14,7 @@ using ChameLab.Converters;
 using ChameLab.Models;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -21,8 +22,8 @@ namespace ChameLab.ViewModels;
 public sealed class DictionaryItemViewModel(KeyDictionary dict) : ViewModelBase
 {
     public KeyDictionary Dictionary { get; } = dict;
-    public string Name => string.IsNullOrWhiteSpace(Dictionary.Name) ? "No name" : Dictionary.Name;
-    public string CountLabel => Dictionary.Count == 1 ? "1 key" : $"{Dictionary.Count} keys";
+    public string Name => string.IsNullOrWhiteSpace(Dictionary.Name) ? Strings.Common_NoName : Dictionary.Name;
+    public string CountLabel => Loc.Plural(Strings.Plural_Keys, Dictionary.Count);
     public IBrush ColorBrush => HexBrushConverter.Brush(Dictionary.Color) ?? Brushes.OrangeRed;
 
     /// <summary>The name contains the search, or (two hex digits or more) one of the keys does.</summary>
@@ -98,9 +99,9 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
         get
         {
             var unique = _rows.Count - _repeats.Count - _emptyRows;
-            var parts = new List<string> { unique == 1 ? "1 key" : $"{unique} keys" };
-            if (_repeats.Count > 0) parts.Add($"{_repeats.Count} repeated");
-            if (_emptyRows > 0) parts.Add(_emptyRows == 1 ? "1 empty" : $"{_emptyRows} empty");
+            var parts = new List<string> { Loc.Plural(Strings.Plural_Keys, unique) };
+            if (_repeats.Count > 0) parts.Add(string.Format(Strings.Dictionaries_Repeated2, _repeats.Count));
+            if (_emptyRows > 0) parts.Add(Loc.Plural(Strings.Plural_EmptyRows, _emptyRows));
             return string.Join(" · ", parts);
         }
     }
@@ -113,11 +114,11 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
 
     private string? Describe(int row)
     {
-        if (row >= _rows.Count) return "New key: type or paste to add";
-        if (_rows[row].Length == 0) return $"Key {row + 1} · empty, dropped on save";
+        if (row >= _rows.Count) return Strings.Dictionaries_NewKeyRow;
+        if (_rows[row].Length == 0) return string.Format(Strings.Dictionaries_KeyEmpty, row + 1);
         return _repeats.TryGetValue(row, out var first)
-            ? $"Key {row + 1} · repeats key {first + 1}, dropped on save"
-            : $"Key {row + 1}";
+            ? string.Format(Strings.Dictionaries_KeyRepeats, row + 1, first + 1)
+            : string.Format(Strings.Dictionaries_KeyN, row + 1);
     }
 
     private void Analyze()
@@ -152,7 +153,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     /// </summary>
     public KeyDictionary Build()
     {
-        if (string.IsNullOrWhiteSpace(_name)) throw new FormatException("Please enter a name.");
+        if (string.IsNullOrWhiteSpace(_name)) throw new FormatException(Strings.Common_EnterName);
         return new KeyDictionary
         {
             Id = _id,
@@ -174,11 +175,11 @@ public static class DictionarySortExtensions
 {
     public static string Label(this DictionarySort s) => s switch
     {
-        DictionarySort.Name => "Name A–Z",
-        DictionarySort.NameDesc => "Name Z–A",
-        DictionarySort.Size => "Most keys",
-        DictionarySort.SizeAsc => "Fewest keys",
-        _ => "Manual",
+        DictionarySort.Name => Strings.Common_SortNameAz,
+        DictionarySort.NameDesc => Strings.Common_SortNameZa,
+        DictionarySort.Size => Strings.Dictionaries_SortMostKeys,
+        DictionarySort.SizeAsc => Strings.Dictionaries_SortFewestKeys,
+        _ => Strings.Common_SortManual,
     };
 }
 
@@ -201,7 +202,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     // Page margins 56 + list 280 + gap 18 + details 420 (see DictionariesView).
     public override double MinContentWidth => 774;
 
-    public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base("Dictionaries", "key")
+    public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base(Strings.Nav_Dictionaries, "key")
     {
         _library = library;
         KnownEditor = new KnownKeysEditorViewModel(library.KnownKeys, cards ?? AppServices.Cards);
@@ -256,17 +257,18 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public ObservableCollection<DictionaryItemViewModel> Dictionaries { get; } = new();
     public ICommand OpenKnownKeysCommand { get; }
     public KnownKeysEditorViewModel KnownEditor { get; }
-    public string KnownKeysCountText => $"{_library.KnownKeys.CardCount} UIDs · {_library.KnownKeys.KeyCount} keys"
-        + (_library.KnownKeys.PasswordCount > 0 ? $" · {_library.KnownKeys.PasswordCount} NTAG passwords" : "");
+    public string KnownKeysCountText => string.Format(Strings.Dictionaries_KnownKeysCount, Loc.Plural(Strings.Plural_UidsKeys, _library.KnownKeys.CardCount),
+            Loc.Plural(Strings.Plural_Keys, _library.KnownKeys.KeyCount))
+        + (_library.KnownKeys.PasswordCount > 0 ? Loc.Plural(Strings.Plural_NtagPasswords, _library.KnownKeys.PasswordCount) : "");
     public string KnownKeysText => _library.KnownKeys.KeyCount == 0
-        ? "Keys found while reading cards or running recovery will appear here, grouped by UID."
+        ? Strings.Dictionaries_KnownKeysEmpty
         : _library.KnownKeys.DisplayText;
     public bool IsKnownKeys => _pane == DictionariesPane.KnownKeys;
     public bool IsEditorPane => HasPane && !IsKnownKeys;
 
     public bool IsEmpty => _library.Dictionaries.Count == 0;
     public bool NoMatches => !IsEmpty && Dictionaries.Count == 0;
-    public string CountText => _library.Dictionaries.Count == 1 ? "1 dictionary" : $"{_library.Dictionaries.Count} dictionaries";
+    public string CountText => Loc.Plural(Strings.Plural_Dictionaries, _library.Dictionaries.Count);
     public bool CanUseFiles => StorageService.IsAvailable;
 
     public string? Filter
@@ -490,7 +492,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public ICommand CancelDeleteCommand { get; }
     public ICommand ConfirmDeleteCommand { get; }
 
-    private void BeginNew() => OpenNew(new KeyDictionary { Name = "New dictionary" }, "New dictionary");
+    private void BeginNew() => OpenNew(new KeyDictionary { Name = Strings.Dictionaries_NewDictionary }, Strings.Dictionaries_NewDictionary);
 
     private void OpenNew(KeyDictionary dict, string source)
     {
@@ -536,9 +538,9 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public bool IsConfirmingLeave => _pendingLeave is not null;
 
     public string LeaveText => _pane == DictionariesPane.New
-        ? "Save the new dictionary before leaving?"
-        : _pane == DictionariesPane.KnownKeys ? "Save changes to known card keys?"
-        : $"Save changes to “{_selected?.Name}”?";
+        ? Strings.Dictionaries_SaveNewBeforeLeaving
+        : _pane == DictionariesPane.KnownKeys ? Strings.Dictionaries_SaveKnownKeys
+        : string.Format(Strings.Common_SaveChangesTo, _selected?.Name);
 
     public ICommand SaveAndLeaveCommand { get; }
     public ICommand DiscardAndLeaveCommand { get; }
@@ -566,7 +568,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         {
             ClearSaveError();
             try { KnownEditor.Save(); return true; }
-            catch (Exception ex) { ReportSaveError($"Could not save: {ex.Message}"); return false; }
+            catch (Exception ex) { ReportSaveError(string.Format(Strings.Common_CouldNotSave, ex.Message)); return false; }
         }
         if (_form is not { } form) return false;
         ClearSaveError();
@@ -579,7 +581,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         {
             if (isNew) _library.Add(dict); else _library.Update(dict);
         }
-        catch (Exception ex) { ReportSaveError($"Could not save: {ex.Message}"); return false; }
+        catch (Exception ex) { ReportSaveError(string.Format(Strings.Common_CouldNotSave, ex.Message)); return false; }
 
         if (isNew)
         {
@@ -612,7 +614,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         if (dict is null) return;
         // The copy takes the unsaved edits; the original stays as last saved.
         var copy = dict.Clone();
-        copy.Name = dict.Name + " (copy)";
+        copy.Name = dict.Name + Strings.Common_CopySuffix;
         _library.Add(copy);
         SelectById(copy.Id);
     }
@@ -626,7 +628,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
     private Task ImportAsync() => RunAsync(async () =>
     {
-        var picked = await StorageService.OpenAsync("Import dictionary", "json", "dic", "keys", "txt");
+        var picked = await StorageService.OpenAsync(Strings.Dictionaries_ImportTitle, "json", "dic", "keys", "txt");
         if (picked is not { } file) return;
 
         KeyDictionary dict;
@@ -640,13 +642,13 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         }
         catch (Exception ex) { throw new FormatException($"{file.Name}: {ex.Message}"); }
 
-        if (dict.Count == 0) throw new FormatException($"{file.Name} has no valid keys.");
+        if (dict.Count == 0) throw new FormatException(string.Format(Strings.Dictionaries_NoValidKeys, file.Name));
         if (string.IsNullOrWhiteSpace(dict.Name)) dict.Name = name;
         // A fresh id, so a re-import never stands in for the saved original.
         dict.Id = Guid.NewGuid().ToString();
 
         // Reviewed (name, color, keys) before it is saved, like a new one.
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenNew(dict, $"Imported from {file.Name}"));
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenNew(dict, string.Format(Strings.Common_ImportedFrom, file.Name)));
     });
 
     private Task ExportAsync() => RunAsync(async () =>
@@ -654,7 +656,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         if (ActionDictionary() is not { } dict) return;
         var safe = string.Concat(dict.Name.Select(c => System.IO.Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
         var data = Encoding.UTF8.GetBytes(dict.ToText());
-        var name = await StorageService.SaveAsync("Export dictionary (.dic)", $"{safe}.dic", data, "dic");
-        if (name is not null) Notify($"Saved {name}.");
+        var name = await StorageService.SaveAsync(Strings.Dictionaries_ExportTitle, $"{safe}.dic", data, "dic");
+        if (name is not null) Notify(string.Format(Strings.Common_SavedFile, name));
     });
 }

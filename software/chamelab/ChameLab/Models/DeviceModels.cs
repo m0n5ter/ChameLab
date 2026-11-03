@@ -5,6 +5,7 @@ using System.Linq;
 namespace ChameLab.Models;
 
 using Protocol;
+using ChameLab.Localization;
 
 public enum DeviceModel { Ultra = 0, Lite = 1 }
 
@@ -30,11 +31,11 @@ public sealed record BatteryInfo(int Millivolts, int Percent, BatteryCondition? 
     /// <summary>“Good condition”…; null when the firmware does not report it (before v2.3.0).</summary>
     public string? ConditionText => Condition switch
     {
-        BatteryCondition.Critical => "Critical condition",
-        BatteryCondition.Low => "Low condition",
-        BatteryCondition.Fair => "Fair condition",
-        BatteryCondition.Good => "Good condition",
-        BatteryCondition.Excellent => "Excellent condition",
+        BatteryCondition.Critical => Strings.Battery_Critical,
+        BatteryCondition.Low => Strings.Battery_Low,
+        BatteryCondition.Fair => Strings.Battery_Fair,
+        BatteryCondition.Good => Strings.Battery_Good,
+        BatteryCondition.Excellent => Strings.Battery_Excellent,
         _ => null,
     };
 }

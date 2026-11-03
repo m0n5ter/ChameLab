@@ -11,6 +11,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -114,10 +115,10 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public bool ShowStaticEncryptedNested => Target is not null && HasUnknownKeys;
     public bool ShowHardnested => _prng == MifareClassicPrngType.Hard && HasKnownKeys && HasUnknownKeys;
     public string? HardnestedWarning => _hardnested.UnavailableReason;
-    public string TryKeysLabel => "Try keys";
-    public string TryKeysTip => "Find the target card's keys using the selected dictionaries and source keys";
+    public string TryKeysLabel => Strings.Common_TryKeys;
+    public string TryKeysTip => Strings.Recovery_TryKeysTip;
     public string RecoverySectorHint => ShowWriteProgress
-        ? "Hover a sector for written block counts and errors" : "Target card keys · hover a sector for key details";
+        ? Strings.Recovery_HoverWritten : Strings.Recovery_HoverKeys;
 
     public int RecoverySelectedSector
     {
@@ -130,28 +131,28 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public int DumpKeyTried => _tried;
     public int DumpKeyTotal => _total;
     public bool HasDumpKeyProgress => _total > 0;
-    public string DumpKeyProgressTip => _writing ? $"{_tried}/{_total} blocks written" : $"{_tried} of {_total} keys tried";
-    public string DumpKeyCountText => $"{BuildKeyDictionary().Count} unique keys (source keys are also tried)";
-    public string DumpStopLabel => "Stop";
-    public string DumpStopTip => _writing ? "Stop writing; blocks already written stay on the card"
-        : "Stop recovery and keep the keys already found";
+    public string DumpKeyProgressTip => _writing ? string.Format(Strings.Recovery_BlocksWritten, _tried, _total) : string.Format(Strings.Common_KeysTriedOf, _tried, _total);
+    public string DumpKeyCountText => string.Format(Strings.Recovery_UniqueKeysWithSource, BuildKeyDictionary().Count);
+    public string DumpStopLabel => Strings.Common_Stop;
+    public string DumpStopTip => _writing ? Strings.Recovery_StopWritingTip
+        : Strings.Recovery_StopRecoveryTip;
     public bool IsMfkey32Done => false;
     public bool IsMfkey32Progress => _mfkey32;
     public string? Mfkey32FoundKey => _foundKey;
     public bool ShowMfkey32FoundKey => _foundKey is not null && _detail is null;
-    public string Mfkey32CaptureText => $"Captured {_captured} authentications";
+    public string Mfkey32CaptureText => string.Format(Strings.Cards_CapturedAuths, _captured);
     public bool ShowMfkey32CaptureCount => _captured is not null && _foundKey is null && _detail is null;
-    public string? DumpNotice => Target is null ? "Place the target card on the reader, then try keys or check recovery methods."
-        : $"Target UID: {Target.UidHex}";
+    public string? DumpNotice => Target is null ? Strings.Recovery_PlaceTarget
+        : string.Format(Strings.Recovery_TargetUid, Target.UidHex);
     public bool ShowDumpNotice => false;
     public string? RecoveryIdentity => _usesKeys ? DumpNotice : null;
     public bool ShowMfkey32 => false;
     public bool CanRunMfkey32 => ShowMfkey32 && CanOperate && Target is not null && Mfkey32Slot is not null;
     private SlotInfo? Mfkey32Slot => Target is { } target
         ? Mfkey32Wizard.FindSlot(_slots(), _targetCard(target)) : null;
-    public string Mfkey32Tip => Target is null ? "Scan the target card before starting mfkey32."
-        : Mfkey32Slot is null ? "Load the target card into a slot before starting mfkey32."
-        : "Recover the target card's keys from a reader using mfkey32";
+    public string Mfkey32Tip => Target is null ? Strings.Recovery_ScanTargetFirst
+        : Mfkey32Slot is null ? Strings.Recovery_LoadTargetIntoSlot
+        : Strings.Recovery_Mfkey32Tip;
 
     public void SetAvailability(bool online, bool busy)
     {
@@ -196,7 +197,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         if (_cts is { } cts) cts.Cancel();
         else if (_writing) _cancelWrite?.Invoke();
         else return;
-        _progress = "Stopping…";
+        _progress = Strings.Common_Stopping;
         Refresh();
     }
 
@@ -229,7 +230,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         _showWriteProgress = true;
         _hasWriteSession = true;
         _writeSector = -1;
-        _progress = resume ? "Checking target UID…" : "Preparing write…";
+        _progress = resume ? Strings.Common_CheckingTargetUid : Strings.Recovery_PreparingWrite;
         _detail = null;
         if (!resume) InitializeWriteSectors(tag, source, writeBlock0);
         Refresh();
@@ -284,8 +285,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         var sector = MifareClassic.SectorOfBlock(block);
         if (_writeSector == sector) return;
         _writeSector = sector;
-        _progress = "Writing card…";
-        _detail = $"Sector {sector}";
+        _progress = Strings.Recovery_WritingCard;
+        _detail = string.Format(Strings.Common_SectorN, sector);
         Refresh();
     }
 
@@ -317,7 +318,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
             if (_client() is not { } client) return;
             using var cts = new CancellationTokenSource();
             _cts = cts;
-            _progress = "Starting recovery…";
+            _progress = Strings.Common_StartingRecovery;
             Refresh();
             try { await operation(client, cts.Token); }
             catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
@@ -350,13 +351,13 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     {
         await client.SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await client.Hf14aScanAsync(ct);
-        if (tags.Count != 1) throw new InvalidOperationException("Place exactly one target card on the reader.");
+        if (tags.Count != 1) throw new InvalidOperationException(Strings.Recovery_PlaceExactlyOne);
         var tag = tags[0];
         if (!await client.Mf1IsSupportedAsync(ct))
-            throw new InvalidOperationException("The target must be a MIFARE Classic card.");
+            throw new InvalidOperationException(Strings.Recovery_TargetMustBeClassic);
         ct.ThrowIfCancellationRequested();
         if (Target is { } current && !current.Uid.AsSpan().SequenceEqual(tag.Uid) && !allowChange)
-            throw new InvalidOperationException("The target card changed. Close and reopen the writer before continuing.");
+            throw new InvalidOperationException(Strings.Recovery_TargetChanged);
         if (Target is null || !Target.Uid.AsSpan().SequenceEqual(tag.Uid))
         {
             _showWriteProgress = false;
@@ -377,7 +378,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     {
         var version = _version;
         await EnsureTargetAsync(client, ct, allowChange);
-        _progress = "Checking recovery methods…";
+        _progress = Strings.Common_CheckingRecoveryMethods;
         Refresh();
         var prng = await client.DetectNtLevelAsync(ct);
         var darkside = false;
@@ -411,7 +412,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
             if (version != _version) return;
             _progress = p.Status;
             _detail = p.Sector < 0 ? p.Detail
-                : $"Sector {p.Sector} · key {(p.KeyType == MfKeyType.A ? "A" : "B")} · {p.Detail}";
+                : string.Format(Strings.Recovery_SectorKeyDetail, p.Sector, (p.KeyType == MfKeyType.A ? "A" : "B"), p.Detail);
             _tried = _total = 0;
             if (p.Sector >= 0 && p.Sector < DumpSectors.Count)
                 DumpSectors[p.Sector].ApplyKey(new MifareKeyProgress(p.Sector, p.KeyType, p.Mark switch
@@ -459,9 +460,9 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
         DumpSectors[p.Sector].ApplyKey(p);
         if (_cts?.IsCancellationRequested == true) return;
-        _progress = p.Phase == MifareKeyPhase.Searching ? "Checking dictionary keys…"
-            : p.Phase == MifareKeyPhase.Found ? "Dictionary key found." : "Dictionary key not found.";
-        _detail = $"Sector {p.Sector} · key {(p.KeyType == MfKeyType.A ? "A" : "B")} · {p.Tried}/{p.Total}";
+        _progress = p.Phase == MifareKeyPhase.Searching ? Strings.Common_CheckingDictKeys
+            : p.Phase == MifareKeyPhase.Found ? Strings.Common_DictKeyFound : Strings.Common_DictKeyNotFound;
+        _detail = string.Format(Strings.Recovery_SectorKeyProgress, p.Sector, (p.KeyType == MfKeyType.A ? "A" : "B"), p.Tried, p.Total);
         _tried = p.Tried;
         _total = p.Total;
         Refresh();

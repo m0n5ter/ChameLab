@@ -6,6 +6,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -77,7 +78,7 @@ public sealed class SlotSideViewModel : ViewModelBase
     public bool IsHf => Sense == TagSenseType.Hf;
     public bool IsLf => Sense == TagSenseType.Lf;
     public string Label => IsHf ? "HF" : "LF";
-    public string Band => IsHf ? "13.56 MHz" : "125 kHz";
+    public string Band => IsHf ? Strings.Cards_1356MHz : Strings.Common_125KHz;
 
     /// <summary>The firmware takes per-card LED colors (ChameLab firmware).</summary>
     public bool SupportsColors { get; }
@@ -109,8 +110,8 @@ public sealed class SlotSideViewModel : ViewModelBase
 
     /// <summary>The type and the UID / ID the slot emulates (once read), for a card not in Saved cards.</summary>
     public string UnmatchedSummary => _savedUid is { } uid
-        ? $"{TypeLabel} · {(IsLf ? "ID" : "UID")} {Hex.Spaced(uid)} · not in Saved cards"
-        : $"{TypeLabel} · not in Saved cards";
+        ? string.Format(Strings.Slots_NotInSavedId, TypeLabel, (IsLf ? "ID" : "UID"), Hex.Spaced(uid))
+        : string.Format(Strings.Slots_NotInSaved, TypeLabel);
 
     /// <summary>What the slot holds on the device, for reading the card back.</summary>
     public TagSpecificType SavedType => _savedType;

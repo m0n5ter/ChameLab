@@ -7,6 +7,7 @@ using Android.App;
 using Android.Content;
 using Android.Hardware.Usb;
 using ChameLab.Mobile;
+using ChameLab.Localization;
 
 namespace ChameLab.Android;
 
@@ -32,16 +33,16 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
 
     public async Task<IUsbCdcConnection> OpenAsync(string id, CancellationToken ct)
     {
-        var manager = Manager ?? throw new NotSupportedException("This phone does not support USB Host mode.");
+        var manager = Manager ?? throw new NotSupportedException(Strings.Usb_NoHostMode);
         if (manager.DeviceList is not { } devices || !devices.TryGetValue(id, out var device) || device.VendorId != 0x6868)
-            throw new IOException("The Chameleon USB device is no longer attached.");
-        var port = FindPort(device) ?? throw new IOException("The USB device has no CDC ACM serial interface.");
+            throw new IOException(Strings.Usb_NoLongerAttached);
+        var port = FindPort(device) ?? throw new IOException(Strings.Usb_NoCdc);
         await RequestPermissionAsync(manager, device, ct);
         // Claiming and control transfers must not block the UI thread.
         return await Task.Run<IUsbCdcConnection>(() =>
         {
             ct.ThrowIfCancellationRequested();
-            var native = manager.OpenDevice(device) ?? throw new IOException("Could not open the USB device. Reconnect it and allow USB access.");
+            var native = manager.OpenDevice(device) ?? throw new IOException(Strings.Usb_CouldNotOpen);
             var connection = new Connection(manager, device, native, port);
             try
             {
@@ -68,7 +69,7 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
             if (intent?.Action == action) completion.TrySetResult(manager.HasPermission(device));
             else if (intent?.Action == UsbManager.ActionUsbDeviceDetached
                      && (manager.DeviceList is not { } devices || !devices.ContainsKey(device.DeviceName)))
-                completion.TrySetException(new IOException("The USB device was unplugged while waiting for permission."));
+                completion.TrySetException(new IOException(Strings.Usb_UnpluggedWaiting));
         });
         using var filter = new IntentFilter(action);
         filter.AddAction(UsbManager.ActionUsbDeviceDetached);
@@ -86,7 +87,7 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
             {
                 manager.RequestPermission(device, pending);
                 if (!await completion.Task.WaitAsync(TimeSpan.FromMinutes(2), ct))
-                    throw new UnauthorizedAccessException("USB access was denied. Select the device again and allow USB access.");
+                    throw new UnauthorizedAccessException(Strings.Usb_Denied);
             }
             finally { pending.Cancel(); }
         }
@@ -149,16 +150,16 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
         public void Configure()
         {
             _controlClaimed = native.ClaimInterface(port.Control, true);
-            if (!_controlClaimed) throw new IOException("Could not claim the USB CDC control interface.");
+            if (!_controlClaimed) throw new IOException(Strings.Usb_ClaimControl);
             _dataClaimed = native.ClaimInterface(port.Data, true);
-            if (!_dataClaimed) throw new IOException("Could not claim the USB CDC data interface.");
+            if (!_dataClaimed) throw new IOException(Strings.Usb_ClaimData);
             // CDC SET_LINE_CODING: 115200 baud (little-endian), one stop bit, no parity, 8 bits.
             byte[] coding = [0x00, 0xc2, 0x01, 0x00, 0x00, 0x00, 0x08];
             if (native.ControlTransfer((UsbAddressing)0x21, 0x20, 0, port.Control.Id, coding, coding.Length, 1000) != coding.Length)
-                throw new IOException("Could not configure the USB serial port.");
+                throw new IOException(Strings.Usb_Configure);
             // DTR wakes the firmware's CDC endpoint; RTS is asserted as on a normal serial port.
             if (native.ControlTransfer((UsbAddressing)0x21, 0x22, 3, port.Control.Id, null, 0, 1000) < 0)
-                throw new IOException("Could not enable the USB serial port.");
+                throw new IOException(Strings.Usb_Enable);
             _portEnabled = true;
         }
 
@@ -170,7 +171,7 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
             _lifetime.EnterReadLock();
             try
             {
-                if (_closed) throw new IOException("The USB connection was closed.");
+                if (_closed) throw new IOException(Strings.Usb_Closed);
                 return native.BulkTransfer(endpoint, buffer, offset, count, timeoutMs);
             }
             finally { _lifetime.ExitReadLock(); }

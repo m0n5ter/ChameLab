@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Models;
 using ChameLab.Services;
+using ChameLab.Localization;
 
 namespace ChameLab.Protocol;
 
@@ -277,7 +278,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public Task SetSlotNickAsync(int slot1Based, TagSenseType sense, string name, CancellationToken ct = default)
     {
         var enc = Encoding.UTF8.GetBytes(name);
-        if (enc.Length > 32) throw new ArgumentException("Nick name too long (max 32 bytes).");
+        if (enc.Length > 32) throw new ArgumentException(Strings.Device_NickTooLong);
         var data = new byte[2 + enc.Length];
         data[0] = (byte)(slot1Based - 1);
         data[1] = (byte)sense;
@@ -425,7 +426,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         var f = await conn.SendAsync(Command.Mf1DetectPrng, ct: ct);
         if (f.Status != Status.HfTagOk || f.Data.Length == 0)
-            throw new ChameleonException("Could not detect the card PRNG.", f.Status);
+            throw new ChameleonException(Strings.Device_NoPrng, f.Status);
         return (MifareClassicPrngType)f.Data[0]; // 0 static, 1 weak, 2 hard
     }
 
@@ -442,7 +443,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         key.CopyTo(data, 2);
         var f = await conn.SendAsync(Command.Mf1DetectNtDist, data, timeoutMs: 10000, ct: ct);
         if (f.Status != Status.HfTagOk || f.Data.Length < 8)
-            throw new ChameleonException("Could not measure the nonce distance.", f.Status);
+            throw new ChameleonException(Strings.Device_NoDistance, f.Status);
         return new NtDistance(
             BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(0, 4)),
             BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(4, 4)));
@@ -461,7 +462,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             return (await GetStaticNestedNoncesAsync(block, keyType, key, targetBlock, targetKeyType, ct)).Nonces;
         var f = await AcquireNestedAsync(block, keyType, key, targetBlock, targetKeyType, false, ct);
         if (f.Data.Length < 18 || f.Data.Length % 9 != 0)
-            throw new ChameleonException("Incomplete nested nonce response.", f.Status);
+            throw new ChameleonException(Strings.Device_IncompleteNested, f.Status);
         var nonces = new List<NestedNonce>();
         for (var i = 0; i < f.Data.Length; i += 9)
             nonces.Add(new NestedNonce(
@@ -476,7 +477,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         var f = await AcquireNestedAsync(block, keyType, key, targetBlock, targetKeyType, true, ct);
         if (f.Data.Length < 20 || (f.Data.Length - 4) % 8 != 0)
-            throw new ChameleonException("Incomplete static nested nonce response.", f.Status);
+            throw new ChameleonException(Strings.Device_IncompleteStaticNested, f.Status);
         var uid = BinaryPrimitives.ReadUInt32BigEndian(f.Data.AsSpan(0, 4));
         var nonces = new List<NestedNonce>();
         for (var i = 4; i < f.Data.Length; i += 8)
@@ -500,7 +501,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var frame = await conn.SendExpectAsync(Command.Mf1EncNestedAcquire, Status.HfTagOk, data, timeoutMs: 30000);
         ct.ThrowIfCancellationRequested();
         if (frame.Data.Length != 4 + 14 * sectorCount)
-            throw new ChameleonException("Incomplete static encrypted nested nonce response.", frame.Status);
+            throw new ChameleonException(Strings.Device_IncompleteStaticEnc, frame.Status);
         NestedNonce Read(int offset)
         {
             var half = BinaryPrimitives.ReadUInt16BigEndian(frame.Data.AsSpan(offset, 2));
@@ -531,11 +532,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         ct.ThrowIfCancellationRequested();
         if (frame.Status == Status.MfErrAuth) return null;
         if (frame.Status != Status.HfTagOk || frame.Data.Length != 7 || frame.Data[0] > 1)
-            throw new ChameleonException("Could not check key candidates.", frame.Status);
+            throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
         if (frame.Data[0] == 0) return null;
         var found = frame.Data[1..7];
         if (!keys.Any(key => key.AsSpan().SequenceEqual(found)))
-            throw new ChameleonException("Device returned an unexpected key candidate.", frame.Status);
+            throw new ChameleonException(Strings.Device_UnexpectedCandidate, frame.Status);
         return found;
     }
 
@@ -553,7 +554,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var cmd = isStatic ? Command.Mf1StaticNestedAcquire : Command.Mf1NestedAcquire;
         var f = await conn.SendAsync(cmd, data, timeoutMs: 30000, ct: ct);
         if (f.Status != Status.HfTagOk)
-            throw new ChameleonException("Could not collect nested nonces.", f.Status);
+            throw new ChameleonException(Strings.Device_CouldNotCollectNested, f.Status);
         return f;
     }
 
@@ -577,7 +578,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             data, timeoutMs: 30000);
         ct.ThrowIfCancellationRequested();
         if (frame.Data.Length == 0 || frame.Data.Length % 9 != 0)
-            throw new ChameleonException("Invalid hardnested nonce response.", frame.Status);
+            throw new ChameleonException(Strings.Device_InvalidHardnested, frame.Status);
         var samples = new List<HardnestedSample>(frame.Data.Length / 9 * 2);
         for (var offset = 0; offset < frame.Data.Length; offset += 9)
         {
@@ -609,7 +610,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var data = new byte[] { targetKeyType.ToWire(), (byte)targetBlock, (byte)(firstRecover ? 1 : 0), (byte)syncMax };
         var f = await conn.SendAsync(Command.Mf1DarksideAcquire, data, timeoutMs: 60000, ct: ct);
         if (f.Status != Status.HfTagOk || f.Data.Length != 33 || f.Data[0] != 0)
-            throw new ChameleonException("Card is not vulnerable to the darkside attack.", f.Status);
+            throw new ChameleonException(Strings.Device_NotDarkside, f.Status);
 
         var d = f.Data.AsSpan(1);
         var uid = BinaryPrimitives.ReadUInt32BigEndian(d[..4]);
@@ -656,7 +657,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         var f = await conn.SendAsync(Command.Hf14aScan, timeoutMs: 4000, ct: ct);
         if (f.Status != Status.HfTagOk)
-            throw new ChameleonException($"No HF tag: {f.Status.Describe()}", f.Status);
+            throw new ChameleonException(string.Format(Strings.Device_NoHfTag, f.Status.Describe()), f.Status);
         var tags = new List<Hf14aTag>();
         var o = 0;
         var d = f.Data;
@@ -689,7 +690,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             Status.Success or Status.HfTagOk => f.Data,
             Status.HfTagNo => [],
-            _ => throw new ChameleonException($"HF sniff failed: {f.Status.Describe()}", f.Status),
+            _ => throw new ChameleonException(string.Format(Strings.Device_HfSniffFailed, f.Status.Describe()), f.Status),
         };
     }
 
@@ -697,7 +698,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         var f = await conn.SendAsync(Command.Em410xScan, timeoutMs: 4000, ct: ct);
         if (f.Status != Status.LfTagOk)
-            throw new ChameleonException($"No EM410x tag: {f.Status.Describe()}", f.Status);
+            throw new ChameleonException(string.Format(Strings.Device_NoEm410x, f.Status.Describe()), f.Status);
         var type = (TagSpecificType)BinaryPrimitives.ReadUInt16BigEndian(f.Data);
         var idLen = type == TagSpecificType.Em410xElectra ? 13 : 5;
         var id = f.Data.Length >= 2 + idLen ? f.Data[2..(2 + idLen)] : f.Data[2..];
@@ -718,7 +719,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             Status.LfTagOk => f.Data,
             Status.LfTagNoFound => [],
-            _ => throw new ChameleonException($"LF sniff failed: {f.Status.Describe()}", f.Status),
+            _ => throw new ChameleonException(string.Format(Strings.Device_LfSniffFailed, f.Status.Describe()), f.Status),
         };
     }
 
@@ -737,12 +738,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Pac => (Command.PacScan, Array.Empty<byte>()),
             TagSpecificType.Jablotron => (Command.JablotronScan, Array.Empty<byte>()),
             TagSpecificType.FarpointePyramid => (Command.PyramidScan, Array.Empty<byte>()),
-            _ => throw new NotSupportedException($"LF scan for {type.DisplayName()} is not supported."),
+            _ => throw new NotSupportedException(string.Format(Strings.Device_LfScanUnsupported, type.DisplayName())),
         };
 
         var f = await conn.SendAsync(cmd, data, timeoutMs: 4000, ct: ct);
         if (f.Status != Status.LfTagOk)
-            throw new ChameleonException($"No {type.DisplayName()} tag: {f.Status.Describe()}", f.Status);
+            throw new ChameleonException(string.Format(Strings.Device_NoTagOfType, type.DisplayName(), f.Status.Describe()), f.Status);
 
         var len = type.LfIdLength();
         return new LfScanResult(type, f.Data[..Math.Min(len, f.Data.Length)]);
@@ -775,7 +776,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         newKey ??= DefaultT55xxKey;
         oldKeys ??= DefaultT55xxOldKeys;
-        if (newKey.Length != 4) throw new ArgumentException("A T55xx key must be 4 bytes.");
+        if (newKey.Length != 4) throw new ArgumentException(Strings.Device_T55xxKeyLength);
 
         var cmd = type switch
         {
@@ -787,19 +788,19 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Pac => Command.PacWriteToT55xx,
             TagSpecificType.Jablotron => Command.JablotronWriteToT55xx,
             TagSpecificType.Idteck => Command.IdteckWriteToT55xx,
-            _ => throw new NotSupportedException($"{type.DisplayName()} cannot be written to a T55xx tag."),
+            _ => throw new NotSupportedException(string.Format(Strings.Device_CannotWriteT55xx, type.DisplayName())),
         };
 
         var expected = type.LfIdLength();
         if (expected > 0 && id.Length != expected)
-            throw new ArgumentException($"{type.DisplayName()} ID must be {expected} bytes (got {id.Length}).");
+            throw new ArgumentException(string.Format(Strings.Device_IdLengthGot, type.DisplayName(), expected, id.Length));
 
         var buf = new List<byte>(id);
         buf.AddRange(newKey);
         foreach (var k in oldKeys) buf.AddRange(k);
         var f = await conn.SendAsync(cmd, [.. buf], timeoutMs: 5000, ct: ct);
         if (f.Status != Status.LfTagOk)
-            throw new ChameleonException($"T55xx write failed: {f.Status.Describe()}", f.Status);
+            throw new ChameleonException(string.Format(Strings.Device_T55xxWriteFailed, f.Status.Describe()), f.Status);
 
         // A T55xx tag never ACKs a write, so the firmware reports success blindly: a tag
         // locked with a password we don't have silently rejects every block. Read the ID
@@ -812,14 +813,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         catch (ChameleonException e)
         {
             throw new ChameleonException(
-                "Wrote the tag but could not read it back to confirm. It may be locked with a different " +
-                "password, or it is not a writable T55xx. Enter the tag's current password and try again.",
+                Strings.Device_T55xxNoReadBack,
                 e.Status);
         }
         if (!readBack.AsSpan().SequenceEqual(id))
             throw new ChameleonException(
-                "The tag read back a different ID, so the write did not take. It is most likely locked with a " +
-                "different password. Enter the tag's current password and try again.",
+                Strings.Device_T55xxDifferentId,
                 Status.LfTagOk);
     }
 
@@ -857,7 +856,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public async Task<bool> Mf1WriteBlockAsync(int block, MfKeyType keyType, byte[] key, byte[] blockData, CancellationToken ct = default)
     {
         if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
-        if (blockData.Length != 16) throw new ArgumentException("Block data must be 16 bytes.");
+        if (blockData.Length != 16) throw new ArgumentException(Strings.Device_BlockLength);
         var data = new byte[24];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
@@ -877,7 +876,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public Task Mf1WriteEmuBlockDataAsync(int startBlock, byte[] blockData, CancellationToken ct = default)
     {
         if (blockData.Length == 0 || blockData.Length % 16 != 0)
-            throw new ArgumentException("Emulator data must be a whole number of 16-byte blocks.");
+            throw new ArgumentException(Strings.Device_EmulatorBlocks);
         var data = new byte[1 + blockData.Length];
         data[0] = (byte)startBlock;
         blockData.CopyTo(data, 1);
@@ -915,12 +914,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
         if (tags.Count == 0)
-            throw new ChameleonException("No HF tag detected on the reader.", Status.HfTagNo);
+            throw new ChameleonException(Strings.Recovery_NoHfTag, Status.HfTagNo);
 
         var tag = tags[0];
         if (existing is not null && (!existing.Uid.AsSpan().SequenceEqual(tag.Uid)
             || existing.Type != (type ?? MifareClassic.FromSak(tag.Sak))))
-            throw new InvalidOperationException("The card changed. Scan it again before continuing.");
+            throw new InvalidOperationException(Strings.Recovery_CardChanged);
         var dump = existing ?? new MifareDump(type ?? MifareClassic.FromSak(tag.Sak), tag.Uid, tag.Atqa, tag.Sak);
         var sectors = dump.SectorCount;
         var recovered = dump.RecoveredBlocks;
@@ -995,7 +994,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
         if (tags.Count != 1 || !target.Uid.AsSpan().SequenceEqual(tags[0].Uid))
-            throw new InvalidOperationException("The target card changed. Scan it again before continuing.");
+            throw new InvalidOperationException(Strings.Device_TargetChanged);
         var knownA = target.KeyA.OfType<byte[]>().ToList();
         var knownB = target.KeyB.OfType<byte[]>().ToList();
         for (var s = 0; s < target.SectorCount; s++)
@@ -1162,8 +1161,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// <summary>Sets UID / ATQA / SAK / ATS answered by the active HF slot.</summary>
     public Task Hf14aSetAntiCollDataAsync(byte[] uid, byte[] atqa, byte sak, byte[] ats, CancellationToken ct = default)
     {
-        if (uid.Length is not (4 or 7 or 10)) throw new ArgumentException("UID must be 4, 7 or 10 bytes.");
-        if (atqa.Length != 2) throw new ArgumentException("ATQA must be 2 bytes.");
+        if (uid.Length is not (4 or 7 or 10)) throw new ArgumentException(Strings.Device_UidLength);
+        if (atqa.Length != 2) throw new ArgumentException(Strings.Device_AtqaLength);
         var data = new byte[1 + uid.Length + 2 + 1 + 1 + ats.Length];
         var o = 0;
         data[o++] = (byte)uid.Length;
@@ -1188,11 +1187,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Jablotron => Command.JablotronSetEmuId,
             TagSpecificType.Idteck => Command.IdteckSetEmuId,
             TagSpecificType.FarpointePyramid => Command.PyramidSetEmuId,
-            _ => throw new NotSupportedException($"{type.DisplayName()} cannot be emulated."),
+            _ => throw new NotSupportedException(string.Format(Strings.Device_CannotEmulate, type.DisplayName())),
         };
         var len = type.LfIdLength();
         if (len > 0 && id.Length != len)
-            throw new ArgumentException($"{type.DisplayName()} ID must be {len} bytes (got {id.Length}).");
+            throw new ArgumentException(string.Format(Strings.Device_IdLengthGot, type.DisplayName(), len, id.Length));
         return conn.SendExpectAsync(cmd, Status.Success, id, ct: ct);
     }
 
@@ -1200,7 +1199,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public Task Mf0WriteEmuPagesAsync(int startPage, byte[] pages, CancellationToken ct = default)
     {
         if (pages.Length == 0 || pages.Length % 4 != 0)
-            throw new ArgumentException("Page data must be a whole number of 4-byte pages.");
+            throw new ArgumentException(Strings.Device_PageData);
         var data = new byte[2 + pages.Length];
         data[0] = (byte)startPage;
         data[1] = (byte)(pages.Length / 4);
@@ -1240,7 +1239,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         var sense = card.Tag.SenseType();
         if (sense == TagSenseType.Undefined)
-            throw new NotSupportedException("Pick a tag type for this card before emulating it.");
+            throw new NotSupportedException(Strings.Device_PickTagType);
         var tag = SlotTypeFor(card.Tag);
 
         await SetDeviceModeAsync(DeviceMode.Tag, ct);
@@ -1360,7 +1359,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         var tag = sense == TagSenseType.Hf ? slot.HfType : slot.LfType;
         if (tag == TagSpecificType.Undefined)
-            throw new InvalidOperationException($"Slot {slot.Index} has no {sense} card.");
+            throw new InvalidOperationException(string.Format(Strings.Device_SlotHasNoCard, slot.Index, sense));
         var nick = sense == TagSenseType.Hf ? slot.HfNick : slot.LfNick;
 
         var previous = await GetActiveSlotAsync(ct);
@@ -1561,7 +1560,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Jablotron => Command.JablotronGetEmuId,
             TagSpecificType.Idteck => Command.IdteckGetEmuId,
             TagSpecificType.FarpointePyramid => Command.PyramidGetEmuId,
-            _ => throw new NotSupportedException($"{type.DisplayName()} cannot be read from a slot."),
+            _ => throw new NotSupportedException(string.Format(Strings.Device_CannotReadFromSlot, type.DisplayName())),
         };
         var f = await conn.SendExpectAsync(cmd, Status.Success, ct: ct);
         // EM410x answers type[2] | id, the other LF types the bare id.
@@ -1676,15 +1675,15 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         if (key is { Length: 0 }) key = null;
         if (key is { Length: not (4 or 16) })
-            throw new ArgumentException("The key must be 4 bytes (NTAG / Ultralight EV1 password) or 16 bytes (Ultralight C).");
+            throw new ArgumentException(Strings.Device_UlKeyLength);
 
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
         if (tags.Count == 0)
-            throw new ChameleonException("No HF tag detected on the reader.", Status.HfTagNo);
+            throw new ChameleonException(Strings.Recovery_NoHfTag, Status.HfTagNo);
         var tag = tags[0];
         if (tag.Sak != 0x00)
-            throw new ChameleonException($"Not an Ultralight / NTAG card (SAK {tag.Sak:X2}).", Status.HfTagNo);
+            throw new ChameleonException(string.Format(Strings.Device_NotUltralight, tag.Sak), Status.HfTagNo);
         var knownKeyUsed = false;
         if (key is null && knownPassword?.Invoke(tag.Uid) is { Length: 4 } known)
         {
@@ -1927,16 +1926,16 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         if (pwd is { Length: 0 }) pwd = null;
         if (pwd is { Length: not 4 })
-            throw new ArgumentException("The password must be 4 bytes.");
+            throw new ArgumentException(Strings.Device_PasswordLength);
         if (protection is not null && (protection.Pwd.Length != 4 || protection.Pack.Length != 2))
-            throw new ArgumentException("The new password must be 4 bytes and the PACK 2 bytes.");
+            throw new ArgumentException(Strings.Device_NewPasswordLength);
 
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
         if (tags.Count == 0)
-            throw new ChameleonException("No HF tag detected on the reader.", Status.HfTagNo);
+            throw new ChameleonException(Strings.Recovery_NoHfTag, Status.HfTagNo);
         if (tags[0].Sak != 0x00)
-            throw new ChameleonException($"Not an Ultralight / NTAG card (SAK {tags[0].Sak:X2}).", Status.HfTagNo);
+            throw new ChameleonException(string.Format(Strings.Device_NotUltralight, tags[0].Sak), Status.HfTagNo);
 
         var (first, end) = (4, card.Tag.UltralightUserEnd());
         var targets = Enumerable.Range(first, Math.Max(0, Math.Min(end, card.Data.Count) - first))
@@ -1956,7 +1955,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 cfg0 = type?.UltralightCfg0Page() ?? -1;
                 if (cfg0 <= 0)
                     throw new ChameleonException(
-                        $"The card on the reader ({type?.DisplayName() ?? "unknown model"}) has no password to set.", Status.HfTagNo);
+                        string.Format(Strings.Device_NoPasswordToSet, type?.DisplayName() ?? Strings.Device_UnknownModel), Status.HfTagNo);
                 size = Math.Max(size, type!.Value.UltralightPages());
             }
             pages?.Report(new MifareBlockProgress(0, size, MifareBlockState.Pending));
@@ -1969,8 +1968,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             {
                 if (remembered is null || remembered.AsSpan().SequenceEqual(pwd) || !await UltralightPwdAuthAsync(remembered, ct))
                     throw new ChameleonException(remembered is null
-                        ? "The card did not accept the password."
-                        : "The card accepted neither the password nor the one remembered for it.", Status.HfTagNo);
+                        ? Strings.Device_PasswordRejected
+                        : Strings.Device_PasswordsRejected, Status.HfTagNo);
                 pwd = remembered;
             }
             else if (pwd is null && remembered is not null && await UltralightPwdAuthAsync(remembered, ct))
@@ -1999,11 +1998,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 // CFG0, CFG1 and (as zeros) PWD / PACK, to keep the bits not being set.
                 var cfg = await UltralightReadAsync(cfg0, live, pwd, ct)
                     ?? throw new ChameleonException(
-                        "Could not read the card's configuration pages. If they are read-protected, enter the card's current password.",
+                        Strings.Device_ConfigUnreadable,
                         Status.HfTagNo);
                 live = true;
                 if ((cfg[4] & UltralightProtection.AccessCfgLock) != 0)
-                    throw new ChameleonException("The card's configuration is locked (CFGLCK), so its password can't be changed.", Status.HfTagNo);
+                    throw new ChameleonException(Strings.Device_ConfigLocked, Status.HfTagNo);
 
                 var steps = new (int Page, byte[] Data)[]
                 {
@@ -2235,7 +2234,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
-        if (tags.Count != 1) throw new InvalidOperationException("Place exactly one target card on the reader.");
+        if (tags.Count != 1) throw new InvalidOperationException(Strings.Recovery_PlaceExactlyOne);
         session.ValidateTarget(tags[0].Uid, tags[0].Atqa, tags[0].Sak);
         if (!session.Started) blocks?.Report(new MifareBlockProgress(0, session.Source.BlockCount, MifareBlockState.Pending));
         session.Started = true;
@@ -2495,7 +2494,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     public Task SetBlePairingKeyAsync(string pin, CancellationToken ct = default)
     {
         var bytes = Encoding.ASCII.GetBytes(pin);
-        if (bytes.Length != 6) throw new ArgumentException("The BLE PIN must be exactly 6 digits.");
+        if (bytes.Length != 6) throw new ArgumentException(Strings.Chameleon_PinLength);
         return conn.SendExpectAsync(Command.SetBlePairingKey, Status.Success, bytes, ct: ct);
     }
 

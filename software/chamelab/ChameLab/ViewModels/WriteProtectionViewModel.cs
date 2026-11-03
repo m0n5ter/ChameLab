@@ -4,6 +4,7 @@ using System.Linq;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -83,8 +84,8 @@ public sealed class WriteProtectionViewModel(UltralightProtection source, TagSpe
     public string ProtectionSummary => _settings.Summary(tag);
 
     public string? ProtectionNote => IsProtected
-        ? $"Written after the pages. Keep the password ({Password}): without it the protected pages can't be changed."
-        : $"Written after the pages: protection is switched off, the password set to {Password}.";
+        ? string.Format(Strings.Protection_KeepPassword, Password)
+        : string.Format(Strings.Protection_Off, Password);
 
     private void Set(UltralightProtection next)
     {

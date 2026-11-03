@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -19,7 +20,7 @@ public interface IHardnestedEngine
 public sealed class UnavailableHardnestedEngine : IHardnestedEngine
 {
     public string UnavailableReason =>
-        "The hardnested engine is not available in this build of ChameLab.";
+        Strings.Recovery_HardnestedUnavailable;
 
     public Task<ulong?> RecoverAsync(HardnestedCapture capture, IProgress<string>? progress, CancellationToken ct) =>
         throw new NotSupportedException(UnavailableReason);
@@ -53,7 +54,7 @@ public static class HardnestedCollector
                 foreach (var sample in received)
                 {
                     if (sample.EncryptedParity > 15)
-                        throw new InvalidOperationException("Invalid encrypted nonce parity.");
+                        throw new InvalidOperationException(Strings.Recovery_InvalidNonceParity);
                     var firstByte = (int)(sample.EncryptedNonce >> 24);
                     var parity = BitOperations.PopCount((uint)firstByte ^ (uint)((sample.EncryptedParity >> 3) & 1)) & 1;
                     if (parityByFirstByte[firstByte] is { } previous)
@@ -68,8 +69,8 @@ public static class HardnestedCollector
                     }
                     samples.Add(sample);
                 }
-                progress?.Report($"Collecting hardnested nonces{(attempt == 0 ? "" : " (slow mode)")}: " +
-                    $"{samples.Count} samples, {distinct}/256 first bytes…");
+                progress?.Report(string.Format(attempt == 0 ? Strings.Recovery_HardnestedCollecting : Strings.Recovery_HardnestedCollectingSlow,
+                    samples.Count, distinct));
                 if (inconsistent) break;
                 if (distinct != 256 || samples.Count < minimumSamples) continue;
                 if (!ValidSum(paritySum)) break;
@@ -77,7 +78,7 @@ public static class HardnestedCollector
             }
         }
         throw new InvalidOperationException(
-            "Could not collect consistent hardnested nonces. Keep the same card on the reader and try again.");
+            Strings.Recovery_HardnestedInconsistent);
     }
 
     private static bool ValidSum(int sum) => sum is

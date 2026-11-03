@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Crypto.Hardnested;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -25,11 +26,11 @@ public sealed class ManagedHardnestedEngine : IHardnestedEngine
     {
         ct.ThrowIfCancellationRequested();
         var reduction = new HardnestedReduction(capture);
-        progress?.Report("Loading managed hardnested tables…");
+        progress?.Report(Strings.Recovery_LoadingTables);
         var tables = HardnestedTables.Shared.Value;
         ct.ThrowIfCancellationRequested();
         reduction.Reduce(tables, progress, ct);
-        progress?.Report("Matching hardnested state constraints…");
+        progress?.Report(Strings.Recovery_MatchingConstraints);
         var candidates = reduction.Candidates(tables, out int first, ct);
         progress?.Report($"Hardnested candidates: {System.Linq.Enumerable.Sum(candidates[1], c => c.Length):N0} odd, " +
             $"{System.Linq.Enumerable.Sum(candidates[0], c => c.Length):N0} even states…");

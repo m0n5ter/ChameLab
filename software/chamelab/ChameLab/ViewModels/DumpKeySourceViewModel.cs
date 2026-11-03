@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -13,7 +14,7 @@ public sealed class DumpKeySourceViewModel(string id, string name, IReadOnlyList
     public string Name { get; } = name;
     public bool IsKnownCardKeys => Id == Services.KnownCardKeys.Id;
     public IReadOnlyList<byte[]> Keys { get; } = keys;
-    public string CountText => Keys.Count == 1 ? "1 key" : $"{Keys.Count} keys";
+    public string CountText => Loc.Plural(Strings.Plural_Keys, Keys.Count);
 
     public bool IsSelected
     {

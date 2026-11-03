@@ -1263,4 +1263,2101 @@
   <data name="Tools_GapThreshold" xml:space="preserve">
     <value>Порог паузы 0x{0:X2}</value>
   </data>
+  <data name="Cards_3DesKey" xml:space="preserve">
+    <value>Ключ 3DES</value>
+  </data>
+  <data name="Cards_AccessBits2" xml:space="preserve">
+    <value>Биты доступа</value>
+  </data>
+  <data name="Cards_AccessBitsInvalid" xml:space="preserve">
+    <value> (НЕКОРРЕКТНЫ)</value>
+  </data>
+  <data name="Cards_AccessBitsValid" xml:space="preserve">
+    <value> (корректны)</value>
+  </data>
+  <data name="Cards_AllTypes" xml:space="preserve">
+    <value>Все типы</value>
+  </data>
+  <data name="Cards_AssumingGen2" xml:space="preserve">
+    <value>Magic-карта Gen1a или Gen3 не обнаружена; считаем, что это Gen2 / CUID.</value>
+  </data>
+  <data name="Cards_AtqaLength" xml:space="preserve">
+    <value>ATQA должен быть длиной 2 байта.</value>
+  </data>
+  <data name="Cards_Auth0FirstProtected" xml:space="preserve">
+    <value>AUTH0 (первая защищённая страница)</value>
+  </data>
+  <data name="Cards_Auth1" xml:space="preserve">
+    <value>AUTH1 (0 = только защита от записи)</value>
+  </data>
+  <data name="Cards_BlocksRange" xml:space="preserve">
+    <value>блоки {0}–{1}</value>
+  </data>
+  <data name="Cards_CannotWriteType" xml:space="preserve">
+    <value>Этот тип карты пока нельзя записать</value>
+  </data>
+  <data name="Cards_CapabilityContainer" xml:space="preserve">
+    <value>Capability container</value>
+  </data>
+  <data name="Cards_CapturedAuths" xml:space="preserve">
+    <value>Перехвачено аутентификаций: {0}</value>
+  </data>
+  <data name="Cards_CardId" xml:space="preserve">
+    <value>ID карты</value>
+  </data>
+  <data name="Cards_Cfg0Auth0" xml:space="preserve">
+    <value>CFG0 · AUTH0 (первая защищённая страница)</value>
+  </data>
+  <data name="Cards_CheckingKey" xml:space="preserve">
+    <value>проверка ключа {0}/{1}</value>
+  </data>
+  <data name="Cards_CloseMfkey32Result" xml:space="preserve">
+    <value>Закрыть результат mfkey32</value>
+  </data>
+  <data name="Cards_CloseWriter" xml:space="preserve">
+    <value>Закрыть окно записи</value>
+  </data>
+  <data name="Cards_ConfigPagesNotRead" xml:space="preserve">
+    <value>Страницы конфигурации не прочитаны. Снимите дамп карты с её паролем, чтобы их увидеть.</value>
+  </data>
+  <data name="Cards_CouldNotSaveKnownKeys" xml:space="preserve">
+    <value>Не удалось сохранить известные ключи карт: {0}</value>
+  </data>
+  <data name="Cards_CouldNotSavePassword" xml:space="preserve">
+    <value>Не удалось сохранить пароль карты: {0}</value>
+  </data>
+  <data name="Cards_Counter" xml:space="preserve">
+    <value>Счётчик</value>
+  </data>
+  <data name="Cards_Counter16" xml:space="preserve">
+    <value>16-битный счётчик</value>
+  </data>
+  <data name="Cards_Counters" xml:space="preserve">
+    <value>Счётчики</value>
+  </data>
+  <data name="Cards_DataRows" xml:space="preserve">
+    <value>Строк данных: {0}</value>
+  </data>
+  <data name="Cards_DeletedFolder" xml:space="preserve">
+    <value>Папка {0} удалена.</value>
+  </data>
+  <data name="Cards_DetectedGen1a" xml:space="preserve">
+    <value>Обнаружена magic-карта Gen1a (UID).</value>
+  </data>
+  <data name="Cards_DetectedGen3" xml:space="preserve">
+    <value>Обнаружена magic-карта Gen3 (APDU).</value>
+  </data>
+  <data name="Cards_DumpAlreadySaved" xml:space="preserve">
+    <value>Сохранённая карта уже содержит такую же память. Откройте её или продолжите, чтобы сохранить дамп ещё раз.</value>
+  </data>
+  <data name="Cards_DumpCanceled" xml:space="preserve">
+    <value>Чтение дампа отменено.</value>
+  </data>
+  <data name="Cards_DumpClassicHint" xml:space="preserve">
+    <value>Держите карту на считывателе: все блоки будут прочитаны с ключами из выбранных словарей.</value>
+  </data>
+  <data name="Cards_DumpNotice" xml:space="preserve">
+    <value>Подключите устройство, чтобы читать память и восстанавливать ключи.</value>
+  </data>
+  <data name="Cards_DumpStoppedKept" xml:space="preserve">
+    <value>Дамп остановлен. Сохранено секторов: {0}/{1} с карты {2}.</value>
+  </data>
+  <data name="Cards_DumpUlHint" xml:space="preserve">
+    <value>Держите карту на считывателе. Пароль отправляется один раз и только если он нужен карте; неверные пароли засчитываются в её лимит блокировки (AUTHLIM).</value>
+  </data>
+  <data name="Cards_DynamicLockBytes" xml:space="preserve">
+    <value>Динамические байты блокировки</value>
+  </data>
+  <data name="Cards_Em410xRead" xml:space="preserve">
+    <value>Метка EM410x прочитана.</value>
+  </data>
+  <data name="Cards_EnterIdentityFirst" xml:space="preserve">
+    <value>Сначала введите корректные данные карты.</value>
+  </data>
+  <data name="Cards_ExportBinTitle" xml:space="preserve">
+    <value>Экспорт дампа в .bin</value>
+  </data>
+  <data name="Cards_ExportCardTitle" xml:space="preserve">
+    <value>Экспорт карты</value>
+  </data>
+  <data name="Cards_ExportEmlTitle" xml:space="preserve">
+    <value>Экспорт дампа в .eml</value>
+  </data>
+  <data name="Cards_FailedCount" xml:space="preserve">
+    <value> · ошибок: {0}</value>
+  </data>
+  <data name="Cards_FileHasNoCards" xml:space="preserve">
+    <value>В {0} нет карт.</value>
+  </data>
+  <data name="Cards_Folder" xml:space="preserve">
+    <value>Папка</value>
+  </data>
+  <data name="Cards_FolderExists" xml:space="preserve">
+    <value>Папка «{0}» уже есть.</value>
+  </data>
+  <data name="Cards_FoundAfterChecks" xml:space="preserve">
+    <value>найден · проверок: {0}</value>
+  </data>
+  <data name="Cards_IdLength" xml:space="preserve">
+    <value>ID {0} должен быть длиной {1} байт.</value>
+  </data>
+  <data name="Cards_IdentityOnly" xml:space="preserve">
+    <value>Только идентификатор</value>
+  </data>
+  <data name="Cards_ImportCardTitle" xml:space="preserve">
+    <value>Импорт карты</value>
+  </data>
+  <data name="Cards_Internal" xml:space="preserve">
+    <value>Служебный</value>
+  </data>
+  <data name="Cards_InvalidAccessBits" xml:space="preserve">
+    <value>Неверные биты доступа в секторе {0}: запись на карту заблокирует сектор.</value>
+  </data>
+  <data name="Cards_KeyAOfSectors" xml:space="preserve">
+    <value>ключ A сектора {0}|ключ A секторов {0}</value>
+  </data>
+  <data name="Cards_KeyBOfSectors" xml:space="preserve">
+    <value>ключ B сектора {0}|ключ B секторов {0}</value>
+  </data>
+  <data name="Cards_Legend3DesKey" xml:space="preserve">
+    <value>■ Ключ 3DES</value>
+  </data>
+  <data name="Cards_LfTagRead" xml:space="preserve">
+    <value>Метка {0} прочитана.</value>
+  </data>
+  <data name="Cards_LoadedInSlot" xml:space="preserve">
+    <value>«{0}» загружена в слот {1}. Обновить устройство?</value>
+  </data>
+  <data name="Cards_LoadedInSlots" xml:space="preserve">
+    <value>«{0}» загружена в слоты {1}. Обновить устройство?</value>
+  </data>
+  <data name="Cards_ManualEntry" xml:space="preserve">
+    <value>Ручной ввод</value>
+  </data>
+  <data name="Cards_ManufacturerData" xml:space="preserve">
+    <value>Данные производителя</value>
+  </data>
+  <data name="Cards_Mfkey32LoadIntoSlot" xml:space="preserve">
+    <value>Перед запуском mfkey32 загрузите эту карту в слот.</value>
+  </data>
+  <data name="Cards_Mfkey32NeedsClassic" xml:space="preserve">
+    <value>Для mfkey32 нужна карта MIFARE Classic.</value>
+  </data>
+  <data name="Cards_Mfkey32Tip" xml:space="preserve">
+    <value>Восстановить ключи карты по считывателю с помощью mfkey32</value>
+  </data>
+  <data name="Cards_Model" xml:space="preserve">
+    <value>Модель</value>
+  </data>
+  <data name="Cards_MovedOutOfFolder" xml:space="preserve">
+    <value>«{0}» перемещена из папки.</value>
+  </data>
+  <data name="Cards_MovedToFolder" xml:space="preserve">
+    <value>«{0}» перемещена в папку {1}.</value>
+  </data>
+  <data name="Cards_MustBeHex" xml:space="preserve">
+    <value>{0}: нужно значение в hex.</value>
+  </data>
+  <data name="Cards_NewCard" xml:space="preserve">
+    <value>Новая карта</value>
+  </data>
+  <data name="Cards_NewFolderN" xml:space="preserve">
+    <value>Новая папка {0}</value>
+  </data>
+  <data name="Cards_NoCardOnReader" xml:space="preserve">
+    <value>Карта на считывателе не найдена.</value>
+  </data>
+  <data name="Cards_NoFolder" xml:space="preserve">
+    <value>Без папки</value>
+  </data>
+  <data name="Cards_NoHfTag" xml:space="preserve">
+    <value>Метка HF (13,56 МГц) не обнаружена.</value>
+  </data>
+  <data name="Cards_NoKeysSelected" xml:space="preserve">
+    <value>Ключи не выбраны</value>
+  </data>
+  <data name="Cards_NotFound" xml:space="preserve">
+    <value>не найден</value>
+  </data>
+  <data name="Cards_NotFoundChecked" xml:space="preserve">
+    <value>не найден · проверено ключей: {0}/{1}</value>
+  </data>
+  <data name="Cards_NotRead" xml:space="preserve">
+    <value>Не прочитана</value>
+  </data>
+  <data name="Cards_NotWritten" xml:space="preserve">
+    <value>Не записан</value>
+  </data>
+  <data name="Cards_NowEmulated" xml:space="preserve">
+    <value>«{0}» теперь эмулируется в слоте {1}.</value>
+  </data>
+  <data name="Cards_PackReadsBack" xml:space="preserve">
+    <value>PACK (читается как 00)</value>
+  </data>
+  <data name="Cards_PageN" xml:space="preserve">
+    <value>страница {0}</value>
+  </data>
+  <data name="Cards_PageProgress" xml:space="preserve">
+    <value>Страница {0}/{1}</value>
+  </data>
+  <data name="Cards_PagesOf" xml:space="preserve">
+    <value>Страниц: {0}/{1}</value>
+  </data>
+  <data name="Cards_PagesRange" xml:space="preserve">
+    <value>страницы {0}–{1}</value>
+  </data>
+  <data name="Cards_PagesRead" xml:space="preserve">
+    <value>Прочитано страниц</value>
+  </data>
+  <data name="Cards_PartlyWritten" xml:space="preserve">
+    <value>Записан частично</value>
+  </data>
+  <data name="Cards_PasswordNotSent" xml:space="preserve">
+    <value>не отправлялся: карте он не нужен</value>
+  </data>
+  <data name="Cards_PasswordRejected" xml:space="preserve">
+    <value>не принят; защищённые страницы не прочитаны</value>
+  </data>
+  <data name="Cards_PlaceSelectedCard" xml:space="preserve">
+    <value>Положите выбранную карту на считыватель и продолжите.</value>
+  </data>
+  <data name="Cards_PreparingEmulation" xml:space="preserve">
+    <value>Подготовка эмуляции…</value>
+  </data>
+  <data name="Cards_PreparingSector" xml:space="preserve">
+    <value>Подготовка сектора…</value>
+  </data>
+  <data name="Cards_Protected" xml:space="preserve">
+    <value>Защищено</value>
+  </data>
+  <data name="Cards_ProtectionNote" xml:space="preserve">
+    <value>Слоты эмулируют эти настройки; чтобы записать их на карту, при записи отметьте «Защитить паролем».</value>
+  </data>
+  <data name="Cards_PwdReadsBack" xml:space="preserve">
+    <value>PWD (читается как 00)</value>
+  </data>
+  <data name="Cards_ReadEveryPage" xml:space="preserve">
+    <value>Прочитать все страницы, подпись и счётчики</value>
+  </data>
+  <data name="Cards_ReadMissingBlocks" xml:space="preserve">
+    <value>Прочитать недостающие блоки выбранными ключами</value>
+  </data>
+  <data name="Cards_ReadPagesFrom" xml:space="preserve">
+    <value>Прочитано страниц: {0}/{1} с карты {2}.</value>
+  </data>
+  <data name="Cards_ReadSectorsFrom" xml:space="preserve">
+    <value>Прочитано секторов: {0}/{1} с карты {2}.</value>
+  </data>
+  <data name="Cards_ReadSectorsProgress" xml:space="preserve">
+    <value>Прочитано секторов: {0}/{1}.</value>
+  </data>
+  <data name="Cards_ReadingCard" xml:space="preserve">
+    <value>Чтение карты…</value>
+  </data>
+  <data name="Cards_RecoverAllKeysHint" xml:space="preserve">
+    <value>Восстановите ключи A и B для каждого сектора целевой карты. Запись станет доступна, когда все сектора будут зелёными.</value>
+  </data>
+  <data name="Cards_RecoverGen2KeysFirst" xml:space="preserve">
+    <value>Перед записью восстановите оба ключа для каждого сектора целевой карты Gen2.</value>
+  </data>
+  <data name="Cards_RecoverySectorHint" xml:space="preserve">
+    <value>Выберите сектор, чтобы изменить его блоки; наведите курсор, чтобы увидеть ключи</value>
+  </data>
+  <data name="Cards_RememberedAccepted" xml:space="preserve">
+    <value>принят сохранённый {0}</value>
+  </data>
+  <data name="Cards_RememberedRejected" xml:space="preserve">
+    <value>сохранённый пароль не принят; защищённые страницы не прочитаны</value>
+  </data>
+  <data name="Cards_SakLength" xml:space="preserve">
+    <value>SAK должен быть длиной 1 байт.</value>
+  </data>
+  <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>Сохранить новую карту перед уходом?</value>
+  </data>
+  <data name="Cards_SaveUidOnly" xml:space="preserve">
+    <value>Сохранить только UID</value>
+  </data>
+  <data name="Cards_Searching" xml:space="preserve">
+    <value>поиск…</value>
+  </data>
+  <data name="Cards_SearchingProgress" xml:space="preserve">
+    <value>поиск {0}</value>
+  </data>
+  <data name="Cards_SectorBlock" xml:space="preserve">
+    <value>Сектор {0} · блок {1}</value>
+  </data>
+  <data name="Cards_SectorBlockKey" xml:space="preserve">
+    <value>Сектор {0} · блок {1} · ключ {2}</value>
+  </data>
+  <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
+    <value>Сектор {0} · блок {1} · ключ {2} · {3}</value>
+  </data>
+  <data name="Cards_SectorTrailer" xml:space="preserve">
+    <value>{0} · трейлер · {1}</value>
+  </data>
+  <data name="Cards_SectorWriteState" xml:space="preserve">
+    <value>{0} · записано блоков: {1}/{2}</value>
+  </data>
+  <data name="Cards_SectorsDontFit" xml:space="preserve">
+    <value>Секторы {0}–{1} не помещаются в {2} и будут отброшены при сохранении карты.</value>
+  </data>
+  <data name="Cards_SectorsOf" xml:space="preserve">
+    <value>Секторов: {0}/{1}</value>
+  </data>
+  <data name="Cards_SectorsRead" xml:space="preserve">
+    <value>Прочитано секторов</value>
+  </data>
+  <data name="Cards_Signature" xml:space="preserve">
+    <value>Подпись</value>
+  </data>
+  <data name="Cards_SortTypeDown" xml:space="preserve">
+    <value>Тип ↓</value>
+  </data>
+  <data name="Cards_SortTypeUp" xml:space="preserve">
+    <value>Тип ↑</value>
+  </data>
+  <data name="Cards_SourceTag" xml:space="preserve">
+    <value>Метка {0}</value>
+  </data>
+  <data name="Cards_SourceTypeUid" xml:space="preserve">
+    <value>{0}, UID {1}</value>
+  </data>
+  <data name="Cards_StaticLockBytes" xml:space="preserve">
+    <value>Статические байты блокировки</value>
+  </data>
+  <data name="Cards_StopKeepMemory" xml:space="preserve">
+    <value>Остановить и сохранить уже прочитанную память (Esc)</value>
+  </data>
+  <data name="Cards_StopWriteTip" xml:space="preserve">
+    <value>Остановить запись; уже записанные блоки останутся на карте</value>
+  </data>
+  <data name="Cards_Stopped" xml:space="preserve">
+    <value>Остановлено</value>
+  </data>
+  <data name="Cards_StoppedAtPage" xml:space="preserve">
+    <value>карта перестала отвечать на странице {0}</value>
+  </data>
+  <data name="Cards_TagAlreadySaved" xml:space="preserve">
+    <value>Эта метка уже есть в вашей библиотеке. Откройте сохранённую карту или продолжите, чтобы сохранить её ещё раз.</value>
+  </data>
+  <data name="Cards_Time" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="Cards_UidLength" xml:space="preserve">
+    <value>UID должен быть длиной 4, 7 или 10 байт.</value>
+  </data>
+  <data name="Cards_UlPasswordLength" xml:space="preserve">
+    <value>4 байта для NTAG / Ultralight EV1, 16 байт для Ultralight C.</value>
+  </data>
+  <data name="Cards_UlcKeyNotReadable" xml:space="preserve">
+    <value>Ключ 3DES (не читается)</value>
+  </data>
+  <data name="Cards_UnknownHeldAs00" xml:space="preserve">
+    <value> (неизвестен, хранится как 00)</value>
+  </data>
+  <data name="Cards_UnknownKeys" xml:space="preserve">
+    <value>Неизвестен {0}: хранится как 00, поэтому при записи этого дампа на карту ключ станет 000000000000.</value>
+  </data>
+  <data name="Cards_UnsupportedFile" xml:space="preserve">
+    <value>{0}: формат не поддерживается или файл повреждён ({1}).</value>
+  </data>
+  <data name="Cards_UpdatedSlot" xml:space="preserve">
+    <value>Слот {0} обновлён картой «{1}».</value>
+  </data>
+  <data name="Cards_UpdatedSlots" xml:space="preserve">
+    <value>Слоты {0} обновлены картой «{1}».</value>
+  </data>
+  <data name="Cards_UpdatingSlot" xml:space="preserve">
+    <value>Обновление слота {0}: {1}/{2}…</value>
+  </data>
+  <data name="Cards_UserByte" xml:space="preserve">
+    <value>Пользовательский байт</value>
+  </data>
+  <data name="Cards_WarnAccessBits" xml:space="preserve">
+    <value>ВНИМАНИЕ: неверные биты доступа секторов могут навсегда вывести карту из строя. Перед записью проверьте дамп и целевую карту.</value>
+  </data>
+  <data name="Cards_WarnBlock0" xml:space="preserve">
+    <value>ВНИМАНИЕ: неверные данные блока 0 или биты доступа секторов могут навсегда вывести карту из строя. Перед записью проверьте дамп и целевую карту.</value>
+  </data>
+  <data name="Cards_WriteError" xml:space="preserve">
+    <value>Ошибка записи</value>
+  </data>
+  <data name="Cards_WriteHintGen1a" xml:space="preserve">
+    <value>Положите magic-карту Gen1a (UID) на считыватель. Все блоки, включая блок 0, записываются напрямую, без ключей.</value>
+  </data>
+  <data name="Cards_WriteHintGen2" xml:space="preserve">
+    <value>Положите magic-карту Gen2 / CUID на считыватель. Все блоки, включая блок 0, записываются с ключами из исходного дампа или выбранных словарей.</value>
+  </data>
+  <data name="Cards_WriteHintGen2KeepUid" xml:space="preserve">
+    <value>Положите magic-карту Gen2 / CUID на считыватель. Блок 0 пропускается, поэтому UID карты не меняется. Остальные блоки записываются с ключами из исходного дампа или выбранных словарей.</value>
+  </data>
+  <data name="Cards_WriteHintGen3" xml:space="preserve">
+    <value>Положите magic-карту Gen3 (APDU) на считыватель. Блоки данных записываются с ключами из исходного дампа или выбранных словарей; блок 0 задаётся backdoor-командой Gen3.</value>
+  </data>
+  <data name="Cards_WriteHintT55xx" xml:space="preserve">
+    <value>Положите чистую метку T55xx на считыватель. Запись неверных данных может вывести метку из строя, поэтому проверьте карту ещё раз.</value>
+  </data>
+  <data name="Cards_WriteHintUl" xml:space="preserve">
+    <value>Положите на считыватель карту Ultralight / NTAG того же размера или больше. Записываются пользовательские страницы; UID, байты блокировки и capability container не меняются, так что карта сохраняет свой UID. Настройки пароля записываются, только если они отмечены ниже.</value>
+  </data>
+  <data name="Cards_WriteStoppedBlocks" xml:space="preserve">
+    <value>Запись остановлена. Уже записанные блоки останутся на карте.</value>
+  </data>
+  <data name="Cards_WriteStoppedPages" xml:space="preserve">
+    <value>Запись остановлена. Уже записанные страницы останутся на карте.</value>
+  </data>
+  <data name="Cards_WriteStoppedResume" xml:space="preserve">
+    <value>Запись остановлена. Нажмите «Записать», чтобы продолжить на той же карте; сначала будет проверен её UID.</value>
+  </data>
+  <data name="Cards_WriteToMagic" xml:space="preserve">
+    <value>Запись на magic-карту</value>
+  </data>
+  <data name="Cards_WriteToT55xx" xml:space="preserve">
+    <value>Запись на метку T55xx</value>
+  </data>
+  <data name="Cards_WriteToUl" xml:space="preserve">
+    <value>Запись страниц на карту Ultralight / NTAG</value>
+  </data>
+  <data name="Cards_WroteCard" xml:space="preserve">
+    <value>«{0}» записана на карту.</value>
+  </data>
+  <data name="Cards_WroteT55xx" xml:space="preserve">
+    <value>«{0}» записана на метку T55xx.</value>
+  </data>
+  <data name="Chameleon_BondsCleared" xml:space="preserve">
+    <value>Сопряжённые BLE-устройства удалены.</value>
+  </data>
+  <data name="Chameleon_FactoryResetDone" xml:space="preserve">
+    <value>Сброс к заводским выполнен. Устройство отключено.</value>
+  </data>
+  <data name="Chameleon_PinLength" xml:space="preserve">
+    <value>BLE PIN должен состоять ровно из 6 цифр.</value>
+  </data>
+  <data name="Chameleon_SettingsReset" xml:space="preserve">
+    <value>Настройки сброшены по умолчанию.</value>
+  </data>
+  <data name="Chameleon_SlotActive" xml:space="preserve">
+    <value>Слот {0} теперь активен.</value>
+  </data>
+  <data name="Chameleon_SwitchedMode" xml:space="preserve">
+    <value>Режим переключён: {0}.</value>
+  </data>
+  <data name="Common_And" xml:space="preserve">
+    <value> и </value>
+  </data>
+  <data name="Common_Block" xml:space="preserve">
+    <value>Блок</value>
+  </data>
+  <data name="Common_BuiltInKeys" xml:space="preserve">
+    <value>Встроенные ключи</value>
+  </data>
+  <data name="Common_CheckingDictKeys" xml:space="preserve">
+    <value>Проверка ключей из словарей…</value>
+  </data>
+  <data name="Common_CheckingRecoveryMethods" xml:space="preserve">
+    <value>Проверка методов восстановления…</value>
+  </data>
+  <data name="Common_CheckingTargetUid" xml:space="preserve">
+    <value>Проверка UID целевой карты…</value>
+  </data>
+  <data name="Common_ConnectFirst" xml:space="preserve">
+    <value>Сначала подключите Chameleon.</value>
+  </data>
+  <data name="Common_CopySuffix" xml:space="preserve">
+    <value> (копия)</value>
+  </data>
+  <data name="Common_CouldNotSave" xml:space="preserve">
+    <value>Не удалось сохранить: {0}</value>
+  </data>
+  <data name="Common_DictKeyFound" xml:space="preserve">
+    <value>Ключ из словаря найден.</value>
+  </data>
+  <data name="Common_DictKeyNotFound" xml:space="preserve">
+    <value>Ключ из словаря не найден.</value>
+  </data>
+  <data name="Common_Done" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="Common_EnterName" xml:space="preserve">
+    <value>Введите имя.</value>
+  </data>
+  <data name="Common_ImportedFrom" xml:space="preserve">
+    <value>Импортировано из {0}</value>
+  </data>
+  <data name="Common_KeyA" xml:space="preserve">
+    <value>Ключ A</value>
+  </data>
+  <data name="Common_KeyB" xml:space="preserve">
+    <value>Ключ B</value>
+  </data>
+  <data name="Common_KeysTriedOf" xml:space="preserve">
+    <value>Проверено ключей: {0} из {1}</value>
+  </data>
+  <data name="Common_NoName" xml:space="preserve">
+    <value>Без имени</value>
+  </data>
+  <data name="Common_NotHex" xml:space="preserve">
+    <value>Это не hex-значение.</value>
+  </data>
+  <data name="Common_Page" xml:space="preserve">
+    <value>Страница</value>
+  </data>
+  <data name="Common_Password4Bytes" xml:space="preserve">
+    <value>Пароль — 4 байта.</value>
+  </data>
+  <data name="Common_Read" xml:space="preserve">
+    <value>Прочитать</value>
+  </data>
+  <data name="Common_SaveChangesTo" xml:space="preserve">
+    <value>Сохранить изменения в «{0}»?</value>
+  </data>
+  <data name="Common_SavedFile" xml:space="preserve">
+    <value>Сохранено: {0}.</value>
+  </data>
+  <data name="Common_SectorN" xml:space="preserve">
+    <value>Сектор {0}</value>
+  </data>
+  <data name="Common_SortManual" xml:space="preserve">
+    <value>Вручную</value>
+  </data>
+  <data name="Common_SortNameAz" xml:space="preserve">
+    <value>Имя А–Я</value>
+  </data>
+  <data name="Common_SortNameZa" xml:space="preserve">
+    <value>Имя Я–А</value>
+  </data>
+  <data name="Common_Starting" xml:space="preserve">
+    <value>Запуск…</value>
+  </data>
+  <data name="Common_StartingRecovery" xml:space="preserve">
+    <value>Запуск восстановления…</value>
+  </data>
+  <data name="Common_Stop" xml:space="preserve">
+    <value>Остановить</value>
+  </data>
+  <data name="Common_Stopping" xml:space="preserve">
+    <value>Остановка…</value>
+  </data>
+  <data name="Common_TryKeys" xml:space="preserve">
+    <value>Подобрать ключи</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="Common_Untitled" xml:space="preserve">
+    <value>Без названия</value>
+  </data>
+  <data name="Common_UploadingProgress" xml:space="preserve">
+    <value>Загрузка {0}/{1}…</value>
+  </data>
+  <data name="Common_WaitForOperation" xml:space="preserve">
+    <value>Дождитесь окончания текущей операции.</value>
+  </data>
+  <data name="Connect_HeroBle" xml:space="preserve">
+    <value>Включите Bluetooth и нажмите кнопку на Chameleon, чтобы разбудить его. Он сам появится здесь.</value>
+  </data>
+  <data name="Connect_HeroUsb" xml:space="preserve">
+    <value>Подключите Chameleon. Он сам появится здесь.</value>
+  </data>
+  <data name="Connect_HeroUsbBle" xml:space="preserve">
+    <value>Подключите Chameleon или нажмите на нём кнопку, чтобы разбудить его для Bluetooth. Он сам появится здесь.</value>
+  </data>
+  <data name="Connect_IntroBle" xml:space="preserve">
+    <value>Нажмите кнопку на устройстве, чтобы разбудить его, затем выберите его ниже.</value>
+  </data>
+  <data name="Connect_IntroUsb" xml:space="preserve">
+    <value>Подключите устройство по USB, затем выберите его ниже.</value>
+  </data>
+  <data name="Connect_IntroUsbBle" xml:space="preserve">
+    <value>Подключите устройство по USB или нажмите на нём кнопку, чтобы разбудить его для Bluetooth, затем выберите его ниже.</value>
+  </data>
+  <data name="Connect_NearbyAuto" xml:space="preserve">
+    <value>Устройства поблизости появляются здесь автоматически, пока они не спят.</value>
+  </data>
+  <data name="Connect_NoneFound" xml:space="preserve">
+    <value>Chameleon не найден. Подключите его или используйте сетевой мост.</value>
+  </data>
+  <data name="Connect_PluggedAuto" xml:space="preserve">
+    <value>Подключённые устройства появляются здесь автоматически.</value>
+  </data>
+  <data name="Connect_SelectFirst" xml:space="preserve">
+    <value>Сначала выберите устройство.</value>
+  </data>
+  <data name="Connect_SelectedPressConnect" xml:space="preserve">
+    <value>Выбрано: {0}. Нажмите «Подключить».</value>
+  </data>
+  <data name="Connect_WebIntro" xml:space="preserve">
+    <value>Подключите Chameleon, затем нажмите «Искать снова» и разрешите этой странице доступ к нему (Chrome или Edge).</value>
+  </data>
+  <data name="Connect_WebIntroBle" xml:space="preserve">
+    <value>Подключите Chameleon и нажмите «Искать снова» или разбудите его и нажмите «Сопряжение по Bluetooth», затем разрешите этой странице доступ к нему (Chrome или Edge).</value>
+  </data>
+  <data name="Connect_WebPickOnce" xml:space="preserve">
+    <value>Один раз выберите Chameleon через «Искать снова»; после этого он будет появляться здесь автоматически.</value>
+  </data>
+  <data name="Connect_WebPickOnceBle" xml:space="preserve">
+    <value>Один раз выберите Chameleon через «Искать снова» (USB) или «Сопряжение по Bluetooth»; после этого он будет появляться здесь автоматически.</value>
+  </data>
+  <data name="Dictionaries_ExportTitle" xml:space="preserve">
+    <value>Экспорт словаря (.dic)</value>
+  </data>
+  <data name="Dictionaries_ImportTitle" xml:space="preserve">
+    <value>Импорт словаря</value>
+  </data>
+  <data name="Dictionaries_KeyEmpty" xml:space="preserve">
+    <value>Ключ {0} · пустой, будет удалён при сохранении</value>
+  </data>
+  <data name="Dictionaries_KeyN" xml:space="preserve">
+    <value>Ключ {0}</value>
+  </data>
+  <data name="Dictionaries_KeyRepeats" xml:space="preserve">
+    <value>Ключ {0} · повторяет ключ {1}, будет удалён при сохранении</value>
+  </data>
+  <data name="Dictionaries_KnownKeysCount" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
+    <value>Здесь появятся ключи, найденные при чтении карт или восстановлении, сгруппированные по UID.</value>
+  </data>
+  <data name="Dictionaries_NewKeyRow" xml:space="preserve">
+    <value>Новый ключ: введите или вставьте</value>
+  </data>
+  <data name="Dictionaries_NoValidKeys" xml:space="preserve">
+    <value>В {0} нет корректных ключей.</value>
+  </data>
+  <data name="Dictionaries_Repeated2" xml:space="preserve">
+    <value>повторов: {0}</value>
+  </data>
+  <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
+    <value>Сохранить изменения известных ключей карт?</value>
+  </data>
+  <data name="Dictionaries_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>Сохранить новый словарь перед уходом?</value>
+  </data>
+  <data name="Dictionaries_SortFewestKeys" xml:space="preserve">
+    <value>Меньше ключей</value>
+  </data>
+  <data name="Dictionaries_SortMostKeys" xml:space="preserve">
+    <value>Больше ключей</value>
+  </data>
+  <data name="Firmware_Available" xml:space="preserve">
+    <value>Доступна версия {0}</value>
+  </data>
+  <data name="Firmware_AvailableConnect" xml:space="preserve">
+    <value>Доступна версия {0}. Подключитесь по USB или Bluetooth, чтобы установить её</value>
+  </data>
+  <data name="Firmware_CantInstallFile" xml:space="preserve">
+    <value>Этот файл нельзя установить</value>
+  </data>
+  <data name="Firmware_DontUnplug" xml:space="preserve">
+    <value>Не отключайте устройство.</value>
+  </data>
+  <data name="Firmware_Downloading" xml:space="preserve">
+    <value>Загрузка…</value>
+  </data>
+  <data name="Firmware_Failed" xml:space="preserve">
+    <value>Не удалось обновить прошивку</value>
+  </data>
+  <data name="Firmware_Flashing" xml:space="preserve">
+    <value>Установка… {0:P0}</value>
+  </data>
+  <data name="Firmware_HowBle" xml:space="preserve">
+    <value>Устройство перезагрузится в загрузчик, получит новую прошивку по Bluetooth и переподключится. Слоты и настройки сохранятся. Держите его рядом с телефоном и не закрывайте приложение до окончания.</value>
+  </data>
+  <data name="Firmware_HowUsb" xml:space="preserve">
+    <value>Устройство перезагрузится в загрузчик, получит новую прошивку по USB и переподключится. Слоты и настройки сохранятся. Не отключайте его до окончания.</value>
+  </data>
+  <data name="Firmware_InstallFromPrompt" xml:space="preserve">
+    <value>Установить прошивку из {0}?</value>
+  </data>
+  <data name="Firmware_InstallPrompt" xml:space="preserve">
+    <value>Установить прошивку {0}?</value>
+  </data>
+  <data name="Firmware_Installing" xml:space="preserve">
+    <value>Установка {0}</value>
+  </data>
+  <data name="Firmware_KeepClose" xml:space="preserve">
+    <value>Держите устройство рядом и не закрывайте приложение.</value>
+  </data>
+  <data name="Firmware_NoPackage" xml:space="preserve">
+    <value>Доступна версия {0}, но для этой модели нет пакета</value>
+  </data>
+  <data name="Firmware_NowRuns" xml:space="preserve">
+    <value>На {0} теперь работает {1}. Слоты и настройки сохранены.</value>
+  </data>
+  <data name="Firmware_PackageTitle" xml:space="preserve">
+    <value>Пакет прошивки DFU</value>
+  </data>
+  <data name="Firmware_Restarted" xml:space="preserve">
+    <value>Устройство перезапустилось с новой прошивкой.</value>
+  </data>
+  <data name="Firmware_Restarting" xml:space="preserve">
+    <value>Перезагрузка устройства в загрузчик…</value>
+  </data>
+  <data name="Firmware_TheFirmware" xml:space="preserve">
+    <value>прошивки</value>
+  </data>
+  <data name="Firmware_UpToDate" xml:space="preserve">
+    <value>Актуальная версия (последняя — {0})</value>
+  </data>
+  <data name="Firmware_Updated" xml:space="preserve">
+    <value>Прошивка обновлена</value>
+  </data>
+  <data name="Firmware_WaitingBootloader" xml:space="preserve">
+    <value>Ожидание загрузчика…</value>
+  </data>
+  <data name="Firmware_WaitingRestart" xml:space="preserve">
+    <value>Ожидание перезапуска устройства…</value>
+  </data>
+  <data name="Main_Connected" xml:space="preserve">
+    <value>Подключено</value>
+  </data>
+  <data name="Main_DeviceSummary" xml:space="preserve">
+    <value>{0} · прошивка {1}</value>
+  </data>
+  <data name="Main_NotConnected" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="Nav_Cards" xml:space="preserve">
+    <value>Карты</value>
+  </data>
+  <data name="Nav_Chameleon" xml:space="preserve">
+    <value>Chameleon</value>
+  </data>
+  <data name="Nav_Dictionaries" xml:space="preserve">
+    <value>Словари</value>
+  </data>
+  <data name="Nav_Slots" xml:space="preserve">
+    <value>Слоты</value>
+  </data>
+  <data name="Ndef_BytesLeft" xml:space="preserve">
+    <value>{0} из {1} байт · осталось {2}</value>
+  </data>
+  <data name="Ndef_BytesOver" xml:space="preserve">
+    <value>{0} из {1} байт · превышение на {2}</value>
+  </data>
+  <data name="Ndef_EmptyRecord" xml:space="preserve">
+    <value>У пустой записи нет ни типа, ни данных.</value>
+  </data>
+  <data name="Ndef_EnterContactName" xml:space="preserve">
+    <value>Введите имя контакта.</value>
+  </data>
+  <data name="Ndef_EnterEmail" xml:space="preserve">
+    <value>Введите адрес эл. почты.</value>
+  </data>
+  <data name="Ndef_EnterEmailOrEmpty" xml:space="preserve">
+    <value>Введите адрес эл. почты или оставьте поле пустым.</value>
+  </data>
+  <data name="Ndef_EnterLatitude" xml:space="preserve">
+    <value>Введите широту в градусах, от -90 до 90, например 48.8584.</value>
+  </data>
+  <data name="Ndef_EnterLink" xml:space="preserve">
+    <value>Введите ссылку.</value>
+  </data>
+  <data name="Ndef_EnterLongitude" xml:space="preserve">
+    <value>Введите долготу в градусах, от -180 до 180, например 2.2945.</value>
+  </data>
+  <data name="Ndef_EnterMime" xml:space="preserve">
+    <value>Введите тип MIME, например text/plain.</value>
+  </data>
+  <data name="Ndef_EnterPackage" xml:space="preserve">
+    <value>Введите имя пакета приложения, например com.example.app.</value>
+  </data>
+  <data name="Ndef_EnterPhone" xml:space="preserve">
+    <value>Введите номер телефона, например +7 900 000-00-00.</value>
+  </data>
+  <data name="Ndef_EnterSsid" xml:space="preserve">
+    <value>Введите имя сети (SSID).</value>
+  </data>
+  <data name="Ndef_EnterType" xml:space="preserve">
+    <value>Введите тип записи.</value>
+  </data>
+  <data name="Ndef_NotReadYet" xml:space="preserve">
+    <value>Память ещё не прочитана: прочитайте карту или добавьте записи, чтобы создать новое сообщение.</value>
+  </data>
+  <data name="Ndef_PayloadHex" xml:space="preserve">
+    <value>Данные должны быть в hex.</value>
+  </data>
+  <data name="Ndef_SsidTooLong" xml:space="preserve">
+    <value>Имя сети — не больше 32 байт.</value>
+  </data>
+  <data name="Ndef_TnfAbsoluteUri" xml:space="preserve">
+    <value>Абсолютный URI</value>
+  </data>
+  <data name="Ndef_TnfExternal" xml:space="preserve">
+    <value>Внешний тип</value>
+  </data>
+  <data name="Ndef_TnfMedia" xml:space="preserve">
+    <value>Тип MIME</value>
+  </data>
+  <data name="Ndef_TnfWellKnown" xml:space="preserve">
+    <value>Стандартный (NFC RTD)</value>
+  </data>
+  <data name="Ndef_TypeTooLong" xml:space="preserve">
+    <value>Тип или ID записи слишком длинные.</value>
+  </data>
+  <data name="Ndef_WpaLength" xml:space="preserve">
+    <value>Пароль WPA — от 8 до 63 символов.</value>
+  </data>
+  <data name="Plural_Bits" xml:space="preserve">
+    <value>{0} бит|{0} бита|{0} бит</value>
+  </data>
+  <data name="Plural_Breaks" xml:space="preserve">
+    <value>{0} сбой|{0} сбоя|{0} сбоев</value>
+  </data>
+  <data name="Plural_BytesHex" xml:space="preserve">
+    <value>{0} байт (hex)|{0} байта (hex)|{0} байт (hex)</value>
+  </data>
+  <data name="Plural_Cards" xml:space="preserve">
+    <value>{0} карта|{0} карты|{0} карт</value>
+  </data>
+  <data name="Plural_DeletedFolderCards" xml:space="preserve">
+    <value>Папка {1} удалена; её {0} карта осталась в «Картах».|Папка {1} удалена; её {0} карты остались в «Картах».|Папка {1} удалена; её {0} карт остались в «Картах».</value>
+  </data>
+  <data name="Plural_Dictionaries" xml:space="preserve">
+    <value>{0} словарь|{0} словаря|{0} словарей</value>
+  </data>
+  <data name="Plural_EmptyRows" xml:space="preserve">
+    <value>{0} пустая|{0} пустые|{0} пустых</value>
+  </data>
+  <data name="Plural_FoundDevices" xml:space="preserve">
+    <value>Найдено {0} устройство.|Найдено {0} устройства.|Найдено {0} устройств.</value>
+  </data>
+  <data name="Plural_FoundHfTags" xml:space="preserve">
+    <value>Найдена {0} метка HF.|Найдено {0} метки HF.|Найдено {0} меток HF.</value>
+  </data>
+  <data name="Plural_ImportedCards" xml:space="preserve">
+    <value>Импортирована {0} карта.|Импортировано {0} карты.|Импортировано {0} карт.</value>
+  </data>
+  <data name="Plural_Keys" xml:space="preserve">
+    <value>{0} ключ|{0} ключа|{0} ключей</value>
+  </data>
+  <data name="Plural_KnownKeys" xml:space="preserve">
+    <value>{0} известный ключ|{0} известных ключа|{0} известных ключей</value>
+  </data>
+  <data name="Plural_NtagPasswords" xml:space="preserve">
+    <value> · {0} пароль NTAG| · {0} пароля NTAG| · {0} паролей NTAG</value>
+  </data>
+  <data name="Plural_Records" xml:space="preserve">
+    <value>{0} запись|{0} записи|{0} записей</value>
+  </data>
+  <data name="Plural_SlotsInUse" xml:space="preserve">
+    <value>Занят {0} слот|Занято {0} слота|Занято {0} слотов</value>
+  </data>
+  <data name="Plural_UidsKeys" xml:space="preserve">
+    <value>{0} UID|{0} UID|{0} UID</value>
+  </data>
+  <data name="Plural_UniqueKeys" xml:space="preserve">
+    <value>{0} уникальный ключ|{0} уникальных ключа|{0} уникальных ключей</value>
+  </data>
+  <data name="Plural_WriteFailedBlocks" xml:space="preserve">
+    <value>«{1}» записана, но не удалось записать {0} блок: {2}.|«{1}» записана, но не удалось записать {0} блока: {2}.|«{1}» записана, но не удалось записать {0} блоков: {2}.</value>
+  </data>
+  <data name="Plural_WriteFailedPages" xml:space="preserve">
+    <value>«{1}» записана, но не удалось записать {0} страницу: {2}.|«{1}» записана, но не удалось записать {0} страницы: {2}.|«{1}» записана, но не удалось записать {0} страниц: {2}.</value>
+  </data>
+  <data name="Protection_KeepPassword" xml:space="preserve">
+    <value>Записывается после страниц. Сохраните пароль ({0}): без него защищённые страницы нельзя изменить.</value>
+  </data>
+  <data name="Protection_NoLimit" xml:space="preserve">
+    <value>Без ограничений</value>
+  </data>
+  <data name="Protection_Off" xml:space="preserve">
+    <value>Записывается после страниц: защита отключается, пароль устанавливается в {0}.</value>
+  </data>
+  <data name="Recovery_BlocksWritten" xml:space="preserve">
+    <value>Записано блоков: {0}/{1}</value>
+  </data>
+  <data name="Recovery_HoverKeys" xml:space="preserve">
+    <value>Ключи целевой карты · наведите на сектор, чтобы увидеть подробности</value>
+  </data>
+  <data name="Recovery_HoverWritten" xml:space="preserve">
+    <value>Наведите на сектор, чтобы увидеть число записанных блоков и ошибки</value>
+  </data>
+  <data name="Recovery_LoadTargetIntoSlot" xml:space="preserve">
+    <value>Перед запуском mfkey32 загрузите целевую карту в слот.</value>
+  </data>
+  <data name="Recovery_Mfkey32Tip" xml:space="preserve">
+    <value>Восстановить ключи целевой карты по считывателю с помощью mfkey32</value>
+  </data>
+  <data name="Recovery_PlaceExactlyOne" xml:space="preserve">
+    <value>Положите на считыватель ровно одну целевую карту.</value>
+  </data>
+  <data name="Recovery_PlaceTarget" xml:space="preserve">
+    <value>Положите целевую карту на считыватель, затем подберите ключи или проверьте методы восстановления.</value>
+  </data>
+  <data name="Recovery_PreparingWrite" xml:space="preserve">
+    <value>Подготовка записи…</value>
+  </data>
+  <data name="Recovery_ScanTargetFirst" xml:space="preserve">
+    <value>Перед запуском mfkey32 отсканируйте целевую карту.</value>
+  </data>
+  <data name="Recovery_SectorKeyDetail" xml:space="preserve">
+    <value>Сектор {0} · ключ {1} · {2}</value>
+  </data>
+  <data name="Recovery_SectorKeyProgress" xml:space="preserve">
+    <value>Сектор {0} · ключ {1} · {2}/{3}</value>
+  </data>
+  <data name="Recovery_StopRecoveryTip" xml:space="preserve">
+    <value>Остановить восстановление и сохранить найденные ключи</value>
+  </data>
+  <data name="Recovery_StopWritingTip" xml:space="preserve">
+    <value>Остановить запись; уже записанные блоки останутся на карте</value>
+  </data>
+  <data name="Recovery_TargetChanged" xml:space="preserve">
+    <value>Целевая карта сменилась. Закройте и снова откройте окно записи.</value>
+  </data>
+  <data name="Recovery_TargetMustBeClassic" xml:space="preserve">
+    <value>Целевая карта должна быть MIFARE Classic.</value>
+  </data>
+  <data name="Recovery_TargetUid" xml:space="preserve">
+    <value>UID целевой карты: {0}</value>
+  </data>
+  <data name="Recovery_TryKeysTip" xml:space="preserve">
+    <value>Найти ключи целевой карты с помощью выбранных словарей и исходных ключей</value>
+  </data>
+  <data name="Recovery_UniqueKeysWithSource" xml:space="preserve">
+    <value>Уникальных ключей: {0} (исходные ключи тоже проверяются)</value>
+  </data>
+  <data name="Recovery_WritingCard" xml:space="preserve">
+    <value>Запись карты…</value>
+  </data>
+  <data name="Settings_BackupSaved" xml:space="preserve">
+    <value>Резервная копия сохранена: {0}.</value>
+  </data>
+  <data name="Settings_ImportedBackup" xml:space="preserve">
+    <value>Импортировано: {0} и {1}.</value>
+  </data>
+  <data name="Slots_AddSaved" xml:space="preserve">
+    <value>Добавить сохранённую</value>
+  </data>
+  <data name="Slots_AddSavedLf" xml:space="preserve">
+    <value>Добавить сохранённую карту LF</value>
+  </data>
+  <data name="Slots_ChooseSavedSide" xml:space="preserve">
+    <value>Выберите сохранённую карту {0}</value>
+  </data>
+  <data name="Slots_EmptySlot" xml:space="preserve">
+    <value>Пустой слот</value>
+  </data>
+  <data name="Slots_NoDevice" xml:space="preserve">
+    <value>Устройство не подключено</value>
+  </data>
+  <data name="Slots_NoSavedSide" xml:space="preserve">
+    <value>Сохранённых карт {0} пока нет.</value>
+  </data>
+  <data name="Slots_NotInSaved" xml:space="preserve">
+    <value>{0} · нет в «Сохранённых картах»</value>
+  </data>
+  <data name="Slots_NotInSavedId" xml:space="preserve">
+    <value>{0} · {1} {2} · нет в «Сохранённых картах»</value>
+  </data>
+  <data name="Slots_Reading" xml:space="preserve">
+    <value>Чтение слотов…</value>
+  </data>
+  <data name="Slots_ReadingSlot" xml:space="preserve">
+    <value>Чтение слота {0}</value>
+  </data>
+  <data name="Slots_ReadingSlotEllipsis" xml:space="preserve">
+    <value>Чтение слота {0}…</value>
+  </data>
+  <data name="Slots_SaveChangesTo" xml:space="preserve">
+    <value>Сохранить изменения в слоте {0}?</value>
+  </data>
+  <data name="Slots_SavedToCards" xml:space="preserve">
+    <value>«{0}» сохранена в «Сохранённые карты».</value>
+  </data>
+  <data name="Slots_SlotN" xml:space="preserve">
+    <value>Слот {0}</value>
+  </data>
+  <data name="Slots_SlotSaved" xml:space="preserve">
+    <value>Слот сохранён.</value>
+  </data>
+  <data name="Slots_SwapFailed" xml:space="preserve">
+    <value>Не удалось записать слот {0} ({1}). Слот {2} восстановлен; проверьте слот {3}.</value>
+  </data>
+  <data name="Slots_Swapped" xml:space="preserve">
+    <value>Слоты {0} и {1} поменялись местами.</value>
+  </data>
+  <data name="Slots_UsedActive" xml:space="preserve">
+    <value>{0} · активен слот {1}</value>
+  </data>
+  <data name="Slots_WritingSlot" xml:space="preserve">
+    <value>Запись слота {0}</value>
+  </data>
+  <data name="Slots_WritingSlotEllipsis" xml:space="preserve">
+    <value>Запись слота {0}…</value>
+  </data>
+  <data name="Tools_ArqcRequested" xml:space="preserve">
+    <value>Запрошен EMV ARQC</value>
+  </data>
+  <data name="Tools_AuthGroupHeader" xml:space="preserve">
+    <value>Блок {0} (сектор {1}) · ключ {2} · UID {3:X8}</value>
+  </data>
+  <data name="Tools_BitsBreaks" xml:space="preserve">
+    <value>{0} · {1} в коде</value>
+  </data>
+  <data name="Tools_BlockKey" xml:space="preserve">
+    <value>блок {0} ключ {1}</value>
+  </data>
+  <data name="Tools_CaptureSaved" xml:space="preserve">
+    <value>Захват сохранён: {0}.</value>
+  </data>
+  <data name="Tools_CapturedAt" xml:space="preserve">
+    <value>Захвачено в {0:HH:mm:ss}</value>
+  </data>
+  <data name="Tools_ClassicAuthOn" xml:space="preserve">
+    <value>Аутентификация MIFARE Classic: </value>
+  </data>
+  <data name="Tools_ClockRun" xml:space="preserve">
+    <value>RF/{0} · кратчайший участок {1} отсч. ({2} мкс)</value>
+  </data>
+  <data name="Tools_ConnectToCapture" xml:space="preserve">
+    <value>Подключите Chameleon для захвата.</value>
+  </data>
+  <data name="Tools_CursorSample" xml:space="preserve">
+    <value>Отсчёт {0} · {1:0.000} мс · 0x{2:X2} </value>
+  </data>
+  <data name="Tools_EndedHalt" xml:space="preserve">
+    <value>завершено HALT</value>
+  </data>
+  <data name="Tools_FileEmpty" xml:space="preserve">
+    <value>Файл {0} пуст.</value>
+  </data>
+  <data name="Tools_FramesSummary" xml:space="preserve">
+    <value>Кадров: {0} — от считывателя {1}, от карты {2}</value>
+  </data>
+  <data name="Tools_Gap" xml:space="preserve">
+    <value>(пауза)</value>
+  </data>
+  <data name="Tools_GapSamples" xml:space="preserve">
+    <value>Отсчётов ниже 0x{1:X2}: {0}</value>
+  </data>
+  <data name="Tools_High" xml:space="preserve">
+    <value>(высокий)</value>
+  </data>
+  <data name="Tools_Listening" xml:space="preserve">
+    <value>Прослушивание…</value>
+  </data>
+  <data name="Tools_LoadHfTitle" xml:space="preserve">
+    <value>Загрузить трассу HF</value>
+  </data>
+  <data name="Tools_LoadLfTitle" xml:space="preserve">
+    <value>Загрузить захват LF</value>
+  </data>
+  <data name="Tools_Low" xml:space="preserve">
+    <value>(низкий)</value>
+  </data>
+  <data name="Tools_NoBits" xml:space="preserve">
+    <value>Биты не декодированы. Попробуйте другую тактовую частоту или «Инвертировать».</value>
+  </data>
+  <data name="Tools_NoGaps" xml:space="preserve">
+    <value>Ниже 0x{0:X2} нет: поле стабильное</value>
+  </data>
+  <data name="Tools_NoIsoFrames" xml:space="preserve">
+    <value>В {0} нет кадров ISO14443-A.</value>
+  </data>
+  <data name="Tools_NoLfSamples" xml:space="preserve">
+    <value>Отсчёты LF не получены.</value>
+  </data>
+  <data name="Tools_NoReaderSpoke" xml:space="preserve">
+    <value>Считыватель не отвечал. Держите Chameleon у считывателя, пока идёт прослушивание, с картой HF в активном слоте.</value>
+  </data>
+  <data name="Tools_NoSelect" xml:space="preserve">
+    <value>Нет завершённого SELECT</value>
+  </data>
+  <data name="Tools_NoUniqueKey" xml:space="preserve">
+    <value>Однозначный ключ не найден: захватите больше аутентификаций.</value>
+  </data>
+  <data name="Tools_NothingMore" xml:space="preserve">
+    <value>Больше ничего не распознано</value>
+  </data>
+  <data name="Tools_OneAuthOnly" xml:space="preserve">
+    <value>Только одна аутентификация: захватите ещё раз, чтобы считыватель сделал вторую попытку.</value>
+  </data>
+  <data name="Tools_RangeMean" xml:space="preserve">
+    <value>0x{0:X2}–0x{1:X2} · среднее 0x{2:X2}</value>
+  </data>
+  <data name="Tools_Recovering" xml:space="preserve">
+    <value>Восстановление…</value>
+  </data>
+  <data name="Tools_SamplesDuration" xml:space="preserve">
+    <value>Отсчётов: {0} · {1:0.0} мс</value>
+  </data>
+  <data name="Tools_SaveHfTitle" xml:space="preserve">
+    <value>Сохранить трассу HF</value>
+  </data>
+  <data name="Tools_SaveLfTitle" xml:space="preserve">
+    <value>Сохранить захват LF</value>
+  </data>
+  <data name="Tools_TcRequested" xml:space="preserve">
+    <value>Запрошен EMV TC</value>
+  </data>
+  <data name="Tools_TraceSaved" xml:space="preserve">
+    <value>Трасса сохранена: {0}.</value>
+  </data>
+  <data name="Tools_WaveHintMouse" xml:space="preserve">
+    <value>Наведите, чтобы прочитать отсчёт. Масштаб — колесом, щипком или ползунком, перетаскивание сдвигает; полоса ниже перемещает вид.</value>
+  </data>
+  <data name="Tools_WaveHintTouch" xml:space="preserve">
+    <value>Коснитесь, чтобы прочитать отсчёт. Масштаб — щипком или ползунком, перетаскивание сдвигает; полоса ниже перемещает вид.</value>
+  </data>
+  <data name="Update_AppAvailable" xml:space="preserve">
+    <value>Доступна версия ChameLab {0}.</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>Не удалось проверить обновления: {0}</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Проверка обновлений…</value>
+  </data>
+  <data name="Update_UpToDate" xml:space="preserve">
+    <value>У вас последняя версия.</value>
+  </data>
+  <data name="Ndef_NoRecords" xml:space="preserve">
+    <value>Нет записей</value>
+  </data>
+  <data name="Settings_TrademarkNotice" xml:space="preserve">
+    <value>MIFARE®, MIFARE® Classic и MIFARE® Ultralight — зарегистрированные товарные знаки NXP B.V. HID™ и HID ProxCard™ — товарные знаки HID Global. EM4100 и связанные названия продуктов — товарные знаки EM Microelectronic-Marin SA. Приложение не связано ни с одной из этих компаний.</value>
+  </data>
+  <data name="Backup_Invalid" xml:space="preserve">
+    <value>Это не файл резервной копии.</value>
+  </data>
+  <data name="Backup_NotChameLab" xml:space="preserve">
+    <value>Это не резервная копия ChameLab.</value>
+  </data>
+  <data name="Common_Copied" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
+  <data name="Firmware_DidNotReturn" xml:space="preserve">
+    <value>Прошивка установлена, но устройство не вернулось. Подключите его заново на странице «Подключение».</value>
+  </data>
+  <data name="Firmware_NoBootloader" xml:space="preserve">
+    <value>Устройство не появилось в загрузчике. Отключите его, зажмите B, подключите снова и повторите.</value>
+  </data>
+  <data name="Firmware_NoPackageForDevice" xml:space="preserve">
+    <value>В релизе {0} нет пакета прошивки для этого устройства.</value>
+  </data>
+  <data name="Firmware_NoRelease" xml:space="preserve">
+    <value>Ни одной прошивки ещё не выпущено.</value>
+  </data>
+  <data name="Firmware_NotSupportedHere" xml:space="preserve">
+    <value>Прошивку можно установить по USB из настольного приложения или по Bluetooth из мобильного.</value>
+  </data>
+  <data name="Firmware_ReleaseNoVersion" xml:space="preserve">
+    <value>В релизе {0} не указана версия прошивки.</value>
+  </data>
+  <data name="Firmware_TimeoutLastError" xml:space="preserve">
+    <value>{0} (последняя ошибка: {1})</value>
+  </data>
+  <data name="Grid_Blocks" xml:space="preserve">
+    <value>Блоки</value>
+  </data>
+  <data name="Grid_NoBlocksSelected" xml:space="preserve">
+    <value>Блоки не выбраны</value>
+  </data>
+  <data name="Grid_Read" xml:space="preserve">
+    <value> (прочитан)</value>
+  </data>
+  <data name="Grid_Sector" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="Hex_AddRowBelow" xml:space="preserve">
+    <value>Добавить строку ниже</value>
+  </data>
+  <data name="Hex_Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="Hex_DeleteRows" xml:space="preserve">
+    <value>Удалить строки</value>
+  </data>
+  <data name="Hex_ExpectedBytes" xml:space="preserve">
+    <value>Ожидается байт: {0}</value>
+  </data>
+  <data name="Hex_HalfByte" xml:space="preserve">
+    <value>½ байта</value>
+  </data>
+  <data name="Hex_Memory" xml:space="preserve">
+    <value>Память</value>
+  </data>
+  <data name="Hex_NotRead" xml:space="preserve">
+    <value>не прочитано</value>
+  </data>
+  <data name="Hex_Paste" xml:space="preserve">
+    <value>Вставить</value>
+  </data>
+  <data name="Hex_Redo" xml:space="preserve">
+    <value>Повторить</value>
+  </data>
+  <data name="Hex_SelectAll" xml:space="preserve">
+    <value>Выделить всё</value>
+  </data>
+  <data name="Hex_Selected" xml:space="preserve">
+    <value>выделено: {0}</value>
+  </data>
+  <data name="Hex_Undo" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Keys_ExpectedGrouped" xml:space="preserve">
+    <value>Ожидаются ключи, сгруппированные по UID.</value>
+  </data>
+  <data name="Keys_InvalidKey" xml:space="preserve">
+    <value>Неверный ключ карты.</value>
+  </data>
+  <data name="Keys_InvalidPassword" xml:space="preserve">
+    <value>Неверный пароль NTAG.</value>
+  </data>
+  <data name="Keys_InvalidPasswordSection" xml:space="preserve">
+    <value>Неверный раздел паролей NTAG.</value>
+  </data>
+  <data name="Keys_InvalidUid" xml:space="preserve">
+    <value>Неверный UID.</value>
+  </data>
+  <data name="Keys_InvalidUidGroup" xml:space="preserve">
+    <value>Неверная группа UID.</value>
+  </data>
+  <data name="Keys_KeyLength" xml:space="preserve">
+    <value>Каждый ключ должен быть длиной 6 байт.</value>
+  </data>
+  <data name="Library_CardsLoadError" xml:space="preserve">
+    <value>Не удалось прочитать сохранённые карты: {0}</value>
+  </data>
+  <data name="Library_DictionariesLoadError" xml:space="preserve">
+    <value>Не удалось прочитать сохранённые словари: {0}</value>
+  </data>
+  <data name="Library_KnownKeysLoadError" xml:space="preserve">
+    <value>Не удалось прочитать известные ключи карт: {0}</value>
+  </data>
+  <data name="Mfkey32_HoldToReader" xml:space="preserve">
+    <value>Поднесите Chameleon к считывателю.</value>
+  </data>
+  <data name="Mfkey32_KeyFound" xml:space="preserve">
+    <value>Найден ключ: {0}</value>
+  </data>
+  <data name="Mfkey32_PlaceOriginal" xml:space="preserve">
+    <value>Положите оригинальную карту на Chameleon.</value>
+  </data>
+  <data name="Mfkey32_Recovering" xml:space="preserve">
+    <value>Восстановление ключей…</value>
+  </data>
+  <data name="Mfkey32_RestoreFailed" xml:space="preserve">
+    <value>Не удалось восстановить состояние устройства после mfkey32.</value>
+  </data>
+  <data name="Mfkey32_SlotUidDiffers" xml:space="preserve">
+    <value>UID слота не совпадает с этой картой. Загрузите карту в слот ещё раз.</value>
+  </data>
+  <data name="Recovery_Attempt" xml:space="preserve">
+    <value>Попытка {0}/{1}</value>
+  </data>
+  <data name="Recovery_AttemptOf5" xml:space="preserve">
+    <value>Попытка {0}/5</value>
+  </data>
+  <data name="Recovery_AuthFailed" xml:space="preserve">
+    <value>Не удалось пройти аутентификацию ни с одним ключом.</value>
+  </data>
+  <data name="Recovery_BackdoorKey" xml:space="preserve">
+    <value>Backdoor-ключ {0}</value>
+  </data>
+  <data name="Recovery_CalcDarkside" xml:space="preserve">
+    <value>Вычисление кандидатов darkside…</value>
+  </data>
+  <data name="Recovery_CalcHardnested" xml:space="preserve">
+    <value>Вычисление кандидатов ключа hardnested…</value>
+  </data>
+  <data name="Recovery_CalcNested" xml:space="preserve">
+    <value>Вычисление кандидатов nested…</value>
+  </data>
+  <data name="Recovery_CalcStaticEnc" xml:space="preserve">
+    <value>Вычисление кандидатов static encrypted…</value>
+  </data>
+  <data name="Recovery_CalcStaticNested" xml:space="preserve">
+    <value>Вычисление кандидатов static nested…</value>
+  </data>
+  <data name="Recovery_CandidateN" xml:space="preserve">
+    <value>Кандидат {0}/{1}</value>
+  </data>
+  <data name="Recovery_CandidatesRange" xml:space="preserve">
+    <value>Кандидаты {0}–{1}/{2}</value>
+  </data>
+  <data name="Recovery_CardChanged" xml:space="preserve">
+    <value>Карта сменилась. Отсканируйте её снова и продолжите.</value>
+  </data>
+  <data name="Recovery_CardRemoved" xml:space="preserve">
+    <value>Карту убрали или сменили. Отсканируйте её снова и продолжите.</value>
+  </data>
+  <data name="Recovery_CheckStaticEnc" xml:space="preserve">
+    <value>Проверка кандидатов static encrypted…</value>
+  </data>
+  <data name="Recovery_CheckingCandidates" xml:space="preserve">
+    <value>Проверка найденных кандидатов ключа…</value>
+  </data>
+  <data name="Recovery_CheckingCandidatesN" xml:space="preserve">
+    <value>Проверка найденных кандидатов ключа: {0}…</value>
+  </data>
+  <data name="Recovery_CheckingDarkside" xml:space="preserve">
+    <value>Проверка уязвимости к darkside…</value>
+  </data>
+  <data name="Recovery_CheckingPrevious" xml:space="preserve">
+    <value>Проверка ранее найденных ключей…</value>
+  </data>
+  <data name="Recovery_CollectingAgain" xml:space="preserve">
+    <value>Нет согласованных кандидатов; повторный сбор…</value>
+  </data>
+  <data name="Recovery_CollectingDarkside" xml:space="preserve">
+    <value>Сбор nonce для darkside…</value>
+  </data>
+  <data name="Recovery_CollectingHardnested" xml:space="preserve">
+    <value>Сбор nonce (hardnested)…</value>
+  </data>
+  <data name="Recovery_CollectingNested" xml:space="preserve">
+    <value>Сбор nonce (nested)…</value>
+  </data>
+  <data name="Recovery_CollectingNestedNonces" xml:space="preserve">
+    <value>Сбор nonce для nested…</value>
+  </data>
+  <data name="Recovery_CollectingStaticEnc" xml:space="preserve">
+    <value>Сбор статических зашифрованных nonce…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNested" xml:space="preserve">
+    <value>Сбор nonce (static nested)…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNestedNonces" xml:space="preserve">
+    <value>Сбор nonce для static nested…</value>
+  </data>
+  <data name="Recovery_Finished" xml:space="preserve">
+    <value>Восстановление завершено.</value>
+  </data>
+  <data name="Recovery_FoundKey" xml:space="preserve">
+    <value>Ключ найден.</value>
+  </data>
+  <data name="Recovery_HardnestedInconsistent" xml:space="preserve">
+    <value>Не удалось собрать согласованные nonce для hardnested. Держите ту же карту на считывателе и повторите.</value>
+  </data>
+  <data name="Recovery_HardnestedUnavailable" xml:space="preserve">
+    <value>В этой сборке ChameLab нет движка hardnested.</value>
+  </data>
+  <data name="Recovery_InvalidNonceParity" xml:space="preserve">
+    <value>Неверная чётность зашифрованного nonce.</value>
+  </data>
+  <data name="Recovery_KeyNotRecovered" xml:space="preserve">
+    <value>Ключ для этого сектора не восстановлен.</value>
+  </data>
+  <data name="Recovery_KnownKeyProgress" xml:space="preserve">
+    <value>Известный ключ {0}/{1}</value>
+  </data>
+  <data name="Recovery_LoadingTables" xml:space="preserve">
+    <value>Загрузка таблиц hardnested…</value>
+  </data>
+  <data name="Recovery_MatchingConstraints" xml:space="preserve">
+    <value>Сопоставление ограничений состояний hardnested…</value>
+  </data>
+  <data name="Recovery_MeasuringDistance" xml:space="preserve">
+    <value>Измерение дистанции nonce для nested…</value>
+  </data>
+  <data name="Recovery_NeedOneKey" xml:space="preserve">
+    <value>Перед запуском nested восстановите хотя бы один ключ.</value>
+  </data>
+  <data name="Recovery_NoBackdoorAccepted" xml:space="preserve">
+    <value>Карта не приняла ни один известный backdoor-ключ.</value>
+  </data>
+  <data name="Recovery_NoHardnestedFirmware" xml:space="preserve">
+    <value>Прошивка устройства не поддерживает сбор nonce для hardnested.</value>
+  </data>
+  <data name="Recovery_NoHfTag" xml:space="preserve">
+    <value>На считывателе не обнаружена метка HF.</value>
+  </data>
+  <data name="Recovery_NoKnownConfirmed" xml:space="preserve">
+    <value>Ни один известный ключ для этого сектора не подтвердился.</value>
+  </data>
+  <data name="Recovery_NoStaticEncFirmware" xml:space="preserve">
+    <value>Прошивка устройства не поддерживает восстановление static encrypted nested.</value>
+  </data>
+  <data name="Recovery_NonceFailed" xml:space="preserve">
+    <value>Не удалось собрать nonce для этого сектора.</value>
+  </data>
+  <data name="Recovery_NotDarksideVulnerable" xml:space="preserve">
+    <value>Ключ не уязвим к darkside.</value>
+  </data>
+  <data name="Recovery_PrngUnsupported" xml:space="preserve">
+    <value>Этот метод восстановления не поддерживается PRNG карты.</value>
+  </data>
+  <data name="Recovery_RunningDarkside" xml:space="preserve">
+    <value>Выполняется darkside…</value>
+  </data>
+  <data name="Recovery_UsingNested" xml:space="preserve">
+    <value>Используется nested вместо проверки известных ключей…</value>
+  </data>
+  <data name="Storage_NoWindow" xml:space="preserve">
+    <value>Нет окна для доступа к файлам.</value>
+  </data>
+  <data name="Strip_NotReadYet" xml:space="preserve">
+    <value>ещё не прочитан</value>
+  </data>
+  <data name="Strip_NotWritten" xml:space="preserve">
+    <value>не записан</value>
+  </data>
+  <data name="Strip_ReadFailed" xml:space="preserve">
+    <value>ошибка чтения</value>
+  </data>
+  <data name="Strip_Reading" xml:space="preserve">
+    <value>чтение…</value>
+  </data>
+  <data name="Strip_WriteFailed" xml:space="preserve">
+    <value>ошибка записи</value>
+  </data>
+  <data name="Strip_Writing" xml:space="preserve">
+    <value>запись…</value>
+  </data>
+  <data name="Tcp_ExpectedHostPort" xml:space="preserve">
+    <value>Ожидается host:port, получено «{0}».</value>
+  </data>
+  <data name="Tcp_ManualEndpoint" xml:space="preserve">
+    <value>Сетевой адрес, указанный вручную</value>
+  </data>
+  <data name="Tcp_Network" xml:space="preserve">
+    <value>Сеть (TCP)</value>
+  </data>
+  <data name="Tcp_NotConnected" xml:space="preserve">
+    <value>Нет подключения.</value>
+  </data>
+  <data name="Tools_CopyN" xml:space="preserve">
+    <value>Копировать {0}</value>
+  </data>
+  <data name="Tools_FramesHintMouse" xml:space="preserve">
+    <value>Shift+клик выделяет диапазон, Ctrl+клик добавляет кадр.</value>
+  </data>
+  <data name="Tools_FramesHintTouch" xml:space="preserve">
+    <value>Коснитесь кадра, затем другого, чтобы выделить диапазон между ними.</value>
+  </data>
+  <data name="Update_NoRelease" xml:space="preserve">
+    <value>Ни одной версии ещё не выпущено.</value>
+  </data>
+  <data name="Update_ReleaseNoVersion" xml:space="preserve">
+    <value>У релиза {0} нет метки версии.</value>
+  </data>
+  <data name="Recovery_HardnestedCollecting" xml:space="preserve">
+    <value>Сбор nonce для hardnested: отсчётов {0}, первых байтов {1}/256…</value>
+  </data>
+  <data name="Recovery_HardnestedCollectingSlow" xml:space="preserve">
+    <value>Сбор nonce для hardnested (медленный режим): отсчётов {0}, первых байтов {1}/256…</value>
+  </data>
+  <data name="Hex_FromIdentity" xml:space="preserve">
+    <value>из идентификатора карты, блок не прочитан</value>
+  </data>
+  <data name="Anim_Full" xml:space="preserve">
+    <value>Полная анимация</value>
+  </data>
+  <data name="Anim_Minimal" xml:space="preserve">
+    <value>Минимальная анимация</value>
+  </data>
+  <data name="Anim_None" xml:space="preserve">
+    <value>Без анимации</value>
+  </data>
+  <data name="Anim_Symmetric" xml:space="preserve">
+    <value>Симметричная анимация</value>
+  </data>
+  <data name="Battery_Critical" xml:space="preserve">
+    <value>Критический уровень</value>
+  </data>
+  <data name="Battery_Excellent" xml:space="preserve">
+    <value>Отличный уровень</value>
+  </data>
+  <data name="Battery_Fair" xml:space="preserve">
+    <value>Средний уровень</value>
+  </data>
+  <data name="Battery_Good" xml:space="preserve">
+    <value>Хороший уровень</value>
+  </data>
+  <data name="Battery_Low" xml:space="preserve">
+    <value>Низкий уровень</value>
+  </data>
+  <data name="Button_Battery" xml:space="preserve">
+    <value>Показать заряд батареи</value>
+  </data>
+  <data name="Button_Clone" xml:space="preserve">
+    <value>Прочитать и эмулировать UID</value>
+  </data>
+  <data name="Button_FieldGen" xml:space="preserve">
+    <value>Вкл./выкл. детектор поля NFC</value>
+  </data>
+  <data name="Button_NextSlot" xml:space="preserve">
+    <value>Следующий слот</value>
+  </data>
+  <data name="Button_None" xml:space="preserve">
+    <value>Нет действия</value>
+  </data>
+  <data name="Button_PrevSlot" xml:space="preserve">
+    <value>Предыдущий слот</value>
+  </data>
+  <data name="Device_AtqaLength" xml:space="preserve">
+    <value>ATQA должен быть длиной 2 байта.</value>
+  </data>
+  <data name="Device_BlockLength" xml:space="preserve">
+    <value>Данные блока должны быть длиной 16 байт.</value>
+  </data>
+  <data name="Device_CannotEmulate" xml:space="preserve">
+    <value>{0} нельзя эмулировать.</value>
+  </data>
+  <data name="Device_CannotReadFromSlot" xml:space="preserve">
+    <value>{0} нельзя прочитать из слота.</value>
+  </data>
+  <data name="Device_CannotWriteT55xx" xml:space="preserve">
+    <value>{0} нельзя записать на метку T55xx.</value>
+  </data>
+  <data name="Device_CommandFailed" xml:space="preserve">
+    <value>{0}: ошибка — {1}</value>
+  </data>
+  <data name="Device_CommandTimeout" xml:space="preserve">
+    <value>Команда {0} не ответила за {1} мс.</value>
+  </data>
+  <data name="Device_ConfigLocked" xml:space="preserve">
+    <value>Конфигурация карты заблокирована (CFGLCK), поэтому её пароль нельзя изменить.</value>
+  </data>
+  <data name="Device_ConfigUnreadable" xml:space="preserve">
+    <value>Не удалось прочитать страницы конфигурации карты. Если они защищены от чтения, введите текущий пароль карты.</value>
+  </data>
+  <data name="Device_CouldNotCheckCandidates" xml:space="preserve">
+    <value>Не удалось проверить кандидатов ключа.</value>
+  </data>
+  <data name="Device_CouldNotCollectNested" xml:space="preserve">
+    <value>Не удалось собрать nonce для nested.</value>
+  </data>
+  <data name="Device_Disconnected" xml:space="preserve">
+    <value>Chameleon отключён.</value>
+  </data>
+  <data name="Device_EmulatorBlocks" xml:space="preserve">
+    <value>Данные эмулятора должны состоять из целого числа 16-байтных блоков.</value>
+  </data>
+  <data name="Device_HfSniffFailed" xml:space="preserve">
+    <value>Сниффинг HF не удался: {0}</value>
+  </data>
+  <data name="Device_IdLengthGot" xml:space="preserve">
+    <value>ID {0} должен быть длиной {1} байт (получено {2}).</value>
+  </data>
+  <data name="Device_IncompleteNested" xml:space="preserve">
+    <value>Неполный ответ с nonce для nested.</value>
+  </data>
+  <data name="Device_IncompleteStaticEnc" xml:space="preserve">
+    <value>Неполный ответ с nonce для static encrypted nested.</value>
+  </data>
+  <data name="Device_IncompleteStaticNested" xml:space="preserve">
+    <value>Неполный ответ с nonce для static nested.</value>
+  </data>
+  <data name="Device_InvalidHardnested" xml:space="preserve">
+    <value>Неверный ответ с nonce для hardnested.</value>
+  </data>
+  <data name="Device_LfScanUnsupported" xml:space="preserve">
+    <value>Сканирование LF для {0} не поддерживается.</value>
+  </data>
+  <data name="Device_LfSniffFailed" xml:space="preserve">
+    <value>Сниффинг LF не удался: {0}</value>
+  </data>
+  <data name="Device_NewPasswordLength" xml:space="preserve">
+    <value>Новый пароль должен быть длиной 4 байта, а PACK — 2 байта.</value>
+  </data>
+  <data name="Device_NickTooLong" xml:space="preserve">
+    <value>Имя слишком длинное (максимум 32 байта).</value>
+  </data>
+  <data name="Device_NoDistance" xml:space="preserve">
+    <value>Не удалось измерить дистанцию nonce.</value>
+  </data>
+  <data name="Device_NoEm410x" xml:space="preserve">
+    <value>Нет метки EM410x: {0}</value>
+  </data>
+  <data name="Device_NoHfTag" xml:space="preserve">
+    <value>Нет метки HF: {0}</value>
+  </data>
+  <data name="Device_NoPrng" xml:space="preserve">
+    <value>Не удалось определить PRNG карты.</value>
+  </data>
+  <data name="Device_NoTagOfType" xml:space="preserve">
+    <value>Нет метки {0}: {1}</value>
+  </data>
+  <data name="Device_NotDarkside" xml:space="preserve">
+    <value>Карта не уязвима к атаке darkside.</value>
+  </data>
+  <data name="Device_NotUltralight" xml:space="preserve">
+    <value>Это не карта Ultralight / NTAG (SAK {0:X2}).</value>
+  </data>
+  <data name="Device_PageData" xml:space="preserve">
+    <value>Данные страниц должны состоять из целого числа 4-байтных страниц.</value>
+  </data>
+  <data name="Device_PasswordLength" xml:space="preserve">
+    <value>Пароль должен быть длиной 4 байта.</value>
+  </data>
+  <data name="Device_PasswordRejected" xml:space="preserve">
+    <value>Карта не приняла пароль.</value>
+  </data>
+  <data name="Device_PasswordsRejected" xml:space="preserve">
+    <value>Карта не приняла ни пароль, ни сохранённый для неё.</value>
+  </data>
+  <data name="Device_PickTagType" xml:space="preserve">
+    <value>Перед эмуляцией выберите для этой карты тип метки.</value>
+  </data>
+  <data name="Device_SlotHasNoCard" xml:space="preserve">
+    <value>В слоте {0} нет карты {1}.</value>
+  </data>
+  <data name="Device_T55xxKeyLength" xml:space="preserve">
+    <value>Ключ T55xx должен быть длиной 4 байта.</value>
+  </data>
+  <data name="Device_T55xxWriteFailed" xml:space="preserve">
+    <value>Запись T55xx не удалась: {0}</value>
+  </data>
+  <data name="Device_TargetChanged" xml:space="preserve">
+    <value>Целевая карта сменилась. Отсканируйте её снова и продолжите.</value>
+  </data>
+  <data name="Device_UidLength" xml:space="preserve">
+    <value>UID должен быть длиной 4, 7 или 10 байт.</value>
+  </data>
+  <data name="Device_UlKeyLength" xml:space="preserve">
+    <value>Ключ должен быть длиной 4 байта (пароль NTAG / Ultralight EV1) или 16 байт (Ultralight C).</value>
+  </data>
+  <data name="Device_UnexpectedCandidate" xml:space="preserve">
+    <value>Устройство вернуло неожиданный кандидат ключа.</value>
+  </data>
+  <data name="Dfu_AppOnly" xml:space="preserve">
+    <value>Поддерживаются только обновления приложения, а в этом пакете приложения нет.</value>
+  </data>
+  <data name="Dfu_Corrupted" xml:space="preserve">
+    <value>Прошивка передана с ошибкой (на устройстве {0} с CRC {1:X8}, ожидалось {2} / {3:X8}).</value>
+  </data>
+  <data name="Dfu_Empty" xml:space="preserve">
+    <value>Пакет пуст.</value>
+  </data>
+  <data name="Dfu_LinkLost" xml:space="preserve">
+    <value>Связь с загрузчиком потеряна.</value>
+  </data>
+  <data name="Dfu_Missing" xml:space="preserve">
+    <value>Не найден {0}.</value>
+  </data>
+  <data name="Dfu_NotPackage" xml:space="preserve">
+    <value>Это не пакет прошивки DFU: {0}</value>
+  </data>
+  <data name="Dfu_Rejected" xml:space="preserve">
+    <value>Загрузчик отклонил шаг 0x{0:X2} (ошибка 0x{1:X2}{2}).</value>
+  </data>
+  <data name="Dfu_Stopped" xml:space="preserve">
+    <value>Загрузчик перестал отвечать.</value>
+  </data>
+  <data name="Dfu_Unexpected" xml:space="preserve">
+    <value>Неожиданный ответ загрузчика {0}.</value>
+  </data>
+  <data name="Import_BadKeyLine" xml:space="preserve">
+    <value>Строка {0}: «{1}» — не 12-значный hex-ключ.</value>
+  </data>
+  <data name="Import_BadSectorHeader" xml:space="preserve">
+    <value>Неверный заголовок сектора «{0}».</value>
+  </data>
+  <data name="Import_BlockNot16" xml:space="preserve">
+    <value>Блок {0} не длиной 16 байт.</value>
+  </data>
+  <data name="Import_CardNotObject" xml:space="preserve">
+    <value>Карта должна быть объектом JSON.</value>
+  </data>
+  <data name="Import_DataBeforeSector" xml:space="preserve">
+    <value>Данные блока до первого заголовка +Sector.</value>
+  </data>
+  <data name="Import_DictNotObject" xml:space="preserve">
+    <value>Словарь должен быть объектом JSON.</value>
+  </data>
+  <data name="Import_EmptyFile" xml:space="preserve">
+    <value>Пустой файл.</value>
+  </data>
+  <data name="Import_EmptyJson" xml:space="preserve">
+    <value>Пустой документ JSON.</value>
+  </data>
+  <data name="Import_FlipperNoData" xml:space="preserve">
+    <value>В файле Flipper нет Data.</value>
+  </data>
+  <data name="Import_FlipperNoUid" xml:space="preserve">
+    <value>В файле Flipper нет UID.</value>
+  </data>
+  <data name="Import_FlipperRfidUnsupported" xml:space="preserve">
+    <value>Тип ключа Flipper RFID «{0}» пока не поддерживается.</value>
+  </data>
+  <data name="Import_H10301Length" xml:space="preserve">
+    <value>Данные H10301 должны быть длиной 3 байта.</value>
+  </data>
+  <data name="Import_HexOdd" xml:space="preserve">
+    <value>В hex-значении должно быть чётное число цифр.</value>
+  </data>
+  <data name="Import_MctNoBlock0" xml:space="preserve">
+    <value>В дампе MIFARE Classic Tool нет блока 0.</value>
+  </data>
+  <data name="Import_SectorTooManyBlocks" xml:space="preserve">
+    <value>В секторе {0} больше {1} блоков.</value>
+  </data>
+  <data name="Lf_Bits" xml:space="preserve">
+    <value>{0} бит</value>
+  </data>
+  <data name="Lf_CardIdText" xml:space="preserve">
+    <value>ID карты (текст)</value>
+  </data>
+  <data name="Lf_CardNumber" xml:space="preserve">
+    <value>Номер карты</value>
+  </data>
+  <data name="Lf_FacilityCode" xml:space="preserve">
+    <value>Код объекта</value>
+  </data>
+  <data name="Lf_Format" xml:space="preserve">
+    <value>Формат</value>
+  </data>
+  <data name="Lf_IssueLevel" xml:space="preserve">
+    <value>Уровень выпуска</value>
+  </data>
+  <data name="Lf_ModFewTransitions" xml:space="preserve">
+    <value>Слишком мало переходов</value>
+  </data>
+  <data name="Lf_ModNone" xml:space="preserve">
+    <value>Нет (ровная несущая)</value>
+  </data>
+  <data name="Ndef_AreaMalformed" xml:space="preserve">
+    <value>Область данных NDEF повреждена.</value>
+  </data>
+  <data name="Ndef_ChunkCut" xml:space="preserve">
+    <value>Фрагментированная запись обрывается.</value>
+  </data>
+  <data name="Ndef_EmptyRecord2" xml:space="preserve">
+    <value>Пустая запись</value>
+  </data>
+  <data name="Ndef_External" xml:space="preserve">
+    <value>Внешний: {0}</value>
+  </data>
+  <data name="Ndef_LangTooLong" xml:space="preserve">
+    <value>Слишком длинный код языка.</value>
+  </data>
+  <data name="Ndef_Malformed" xml:space="preserve">
+    <value>Сообщение NDEF повреждено: {0}{1}</value>
+  </data>
+  <data name="Ndef_NotFormatted" xml:space="preserve">
+    <value>Карта не отформатирована под NDEF (нет capability container на странице 3).</value>
+  </data>
+  <data name="Ndef_Page3NotRead" xml:space="preserve">
+    <value>Страница 3 (capability container) не прочитана.</value>
+  </data>
+  <data name="Ndef_Page3Otp" xml:space="preserve">
+    <value>На странице 3 не capability container, а другие данные; она однократно программируемая, поэтому карта не может хранить NDEF.</value>
+  </data>
+  <data name="Ndef_PagesNotRead" xml:space="preserve">
+    <value> Страницы начиная с {0} не прочитаны.</value>
+  </data>
+  <data name="Ndef_PartUnread" xml:space="preserve">
+    <value>Часть сообщения находится на непрочитанных страницах.</value>
+  </data>
+  <data name="Ndef_PastArea" xml:space="preserve">
+    <value>Сообщение NDEF выходит за конец области данных.</value>
+  </data>
+  <data name="Ndef_RecordPastEnd" xml:space="preserve">
+    <value>Запись выходит за конец сообщения.</value>
+  </data>
+  <data name="Ndef_SmartPoster" xml:space="preserve">
+    <value>Smart poster</value>
+  </data>
+  <data name="Ndef_TextLang" xml:space="preserve">
+    <value>Текст ({0})</value>
+  </data>
+  <data name="Ndef_TooBig" xml:space="preserve">
+    <value>Сообщению нужно {0} байт, а карта вмещает {1}.</value>
+  </data>
+  <data name="Ndef_UnchangedOutside" xml:space="preserve">
+    <value>Запись типа Unchanged вне фрагмента.</value>
+  </data>
+  <data name="Ndef_UnknownTlv" xml:space="preserve">
+    <value>Неизвестный TLV {0:X2} в области данных NDEF.</value>
+  </data>
+  <data name="Ndef_UnknownType" xml:space="preserve">
+    <value>Неизвестный тип</value>
+  </data>
+  <data name="Ndef_WellKnown" xml:space="preserve">
+    <value>Стандартный: {0}</value>
+  </data>
+  <data name="Ndef_WifiOpen" xml:space="preserve">
+    <value>Открытая (без пароля)</value>
+  </data>
+  <data name="Prng_Hard" xml:space="preserve">
+    <value>Сильный (непредсказуемый)</value>
+  </data>
+  <data name="Prng_Static" xml:space="preserve">
+    <value>Статический (фиксированный nonce)</value>
+  </data>
+  <data name="Prng_Weak" xml:space="preserve">
+    <value>Слабый (предсказуемый)</value>
+  </data>
+  <data name="Protection_NoPage" xml:space="preserve">
+    <value>Ни одна страница не защищена.</value>
+  </data>
+  <data name="Sniff_BccOk" xml:space="preserve">
+    <value>BCC верен</value>
+  </data>
+  <data name="Sniff_BccWrong" xml:space="preserve">
+    <value>BCC неверен</value>
+  </data>
+  <data name="Sniff_CardAnswer" xml:space="preserve">
+    <value>Ответ карты</value>
+  </data>
+  <data name="Sniff_CardAnswerEnc" xml:space="preserve">
+    <value>Ответ карты, зашифрован: at = {0} (ключ считывателя принят)</value>
+  </data>
+  <data name="Sniff_CardNonce" xml:space="preserve">
+    <value>Nonce карты nt = {0}</value>
+  </data>
+  <data name="Sniff_Command" xml:space="preserve">
+    <value>Команда</value>
+  </data>
+  <data name="Sniff_Data16" xml:space="preserve">
+    <value>Данные (16 байт)</value>
+  </data>
+  <data name="Sniff_Encrypted" xml:space="preserve">
+    <value>Зашифровано</value>
+  </data>
+  <data name="Sniff_EncryptedCommand" xml:space="preserve">
+    <value>Зашифрованная команда (или вложенный AUTH)</value>
+  </data>
+  <data name="Sniff_ReaderAnswerEnc" xml:space="preserve">
+    <value>Ответ считывателя, зашифрован: nr = {0}, ar = {1}</value>
+  </data>
+  <data name="Sniff_Response" xml:space="preserve">
+    <value>Ответ {0:X2}{1:X2}</value>
+  </data>
+  <data name="Sniff_SelectCascade" xml:space="preserve">
+    <value>SELECT CL{0}: часть UID {1} (каскадный тег)</value>
+  </data>
+  <data name="Sniff_ShortFrame" xml:space="preserve">
+    <value>Короткий кадр {0:X2} ({1} бит)</value>
+  </data>
+  <data name="Sniff_SmartMx1K" xml:space="preserve">
+    <value>SmartMX с MIFARE Classic 1K</value>
+  </data>
+  <data name="Sniff_SmartMx4K" xml:space="preserve">
+    <value>SmartMX с MIFARE Classic 4K</value>
+  </data>
+  <data name="Sniff_SwBadP1P2" xml:space="preserve">
+    <value>неверные P1-P2</value>
+  </data>
+  <data name="Sniff_SwBytesAvailable" xml:space="preserve">
+    <value>доступно байт: {0}</value>
+  </data>
+  <data name="Sniff_SwClaUnsupported" xml:space="preserve">
+    <value>класс не поддерживается</value>
+  </data>
+  <data name="Sniff_SwConditions" xml:space="preserve">
+    <value>условия использования не выполнены</value>
+  </data>
+  <data name="Sniff_SwDesfire" xml:space="preserve">
+    <value>статус DESFire</value>
+  </data>
+  <data name="Sniff_SwFileNotFound" xml:space="preserve">
+    <value>файл не найден</value>
+  </data>
+  <data name="Sniff_SwInsUnsupported" xml:space="preserve">
+    <value>инструкция не поддерживается</value>
+  </data>
+  <data name="Sniff_SwRecordNotFound" xml:space="preserve">
+    <value>запись не найдена</value>
+  </data>
+  <data name="Sniff_SwSecurity" xml:space="preserve">
+    <value>условия безопасности не выполнены</value>
+  </data>
+  <data name="Sniff_SwWrongLe" xml:space="preserve">
+    <value>неверный Le, используйте {0}</value>
+  </data>
+  <data name="Sniff_SwWrongLength" xml:space="preserve">
+    <value>неверная длина</value>
+  </data>
+  <data name="Sniff_UidNotComplete" xml:space="preserve">
+    <value>UID не полный</value>
+  </data>
+  <data name="Sniff_UidPartCascade" xml:space="preserve">
+    <value>Часть UID {0} (каскадный тег), {1}</value>
+  </data>
+  <data name="Sniff_UnknownCommand" xml:space="preserve">
+    <value>Неизвестная команда (нет верного CRC)</value>
+  </data>
+  <data name="Sniff_Version" xml:space="preserve">
+    <value>Версия</value>
+  </data>
+  <data name="Status_FlashRead" xml:space="preserve">
+    <value>Ошибка чтения флеш-памяти</value>
+  </data>
+  <data name="Status_FlashWrite" xml:space="preserve">
+    <value>Ошибка записи во флеш-память</value>
+  </data>
+  <data name="Status_HfCollision" xml:space="preserve">
+    <value>Коллизия меток HF</value>
+  </data>
+  <data name="Status_HfErrAts" xml:space="preserve">
+    <value>Метка HF должна была отправить ATS, но не отправила</value>
+  </data>
+  <data name="Status_HfErrBcc" xml:space="preserve">
+    <value>Ошибка BCC в UID метки HF</value>
+  </data>
+  <data name="Status_HfErrCrc" xml:space="preserve">
+    <value>Ошибка CRC данных метки HF</value>
+  </data>
+  <data name="Status_HfErrParity" xml:space="preserve">
+    <value>Ошибка чётности данных метки HF</value>
+  </data>
+  <data name="Status_HfErrStat" xml:space="preserve">
+    <value>Ошибка статуса метки HF</value>
+  </data>
+  <data name="Status_HfNo" xml:space="preserve">
+    <value>Метка HF не найдена или потеряна</value>
+  </data>
+  <data name="Status_HfOk" xml:space="preserve">
+    <value>Операция с меткой HF выполнена</value>
+  </data>
+  <data name="Status_InvalidCmd" xml:space="preserve">
+    <value>Ошибка запроса API: неверная команда</value>
+  </data>
+  <data name="Status_InvalidSlotType" xml:space="preserve">
+    <value>Неверный тип карты в слоте</value>
+  </data>
+  <data name="Status_LfNotFound" xml:space="preserve">
+    <value>Метка LF не найдена</value>
+  </data>
+  <data name="Status_LfOk" xml:space="preserve">
+    <value>Операция с меткой LF выполнена</value>
+  </data>
+  <data name="Status_MfErrAuth" xml:space="preserve">
+    <value>Аутентификация на метке HF не удалась</value>
+  </data>
+  <data name="Status_ModeErr" xml:space="preserve">
+    <value>Ошибка запроса API: неверный режим устройства</value>
+  </data>
+  <data name="Status_NotImplemented" xml:space="preserve">
+    <value>API не реализован</value>
+  </data>
+  <data name="Status_ParErr" xml:space="preserve">
+    <value>Ошибка запроса API: неверный параметр</value>
+  </data>
+  <data name="Status_Success" xml:space="preserve">
+    <value>Операция на устройстве выполнена</value>
+  </data>
+  <data name="Status_Unknown" xml:space="preserve">
+    <value>Неизвестный статус 0x{0:X2}</value>
+  </data>
+  <data name="WriteMode_Deceive" xml:space="preserve">
+    <value>Обманывать (ACK, но не сохранять)</value>
+  </data>
+  <data name="WriteMode_Denied" xml:space="preserve">
+    <value>Отклонять (NACK на запись)</value>
+  </data>
+  <data name="WriteMode_Normal" xml:space="preserve">
+    <value>Обычный</value>
+  </data>
+  <data name="WriteMode_Shadow" xml:space="preserve">
+    <value>Теневой (только в RAM)</value>
+  </data>
+  <data name="WriteMode_ShadowRequested" xml:space="preserve">
+    <value>Теневой (запрошен)</value>
+  </data>
+  <data name="Write_PlanChanged" xml:space="preserve">
+    <value>План записи изменился. Начните новую запись.</value>
+  </data>
+  <data name="Write_TargetSmaller" xml:space="preserve">
+    <value>Целевая карта меньше исходного дампа.</value>
+  </data>
+  <data name="Write_TargetUidChanged" xml:space="preserve">
+    <value>UID целевой карты изменился. Положите ту же карту на считыватель, чтобы продолжить запись.</value>
+  </data>
+  <data name="Protection_SummaryReadWrite" xml:space="preserve">
+    <value>Страницам с {0} нужен пароль для чтения и записи</value>
+  </data>
+  <data name="Protection_SummaryWrite" xml:space="preserve">
+    <value>Страницам с {0} нужен пароль для записи</value>
+  </data>
+  <data name="Plural_WrongTriesLock" xml:space="preserve">
+    <value>; {0} неверная попытка блокирует карту.|; {0} неверные попытки блокируют карту.|; {0} неверных попыток блокируют карту.</value>
+  </data>
+  <data name="Device_T55xxNoReadBack" xml:space="preserve">
+    <value>Метка записана, но прочитать её для проверки не удалось. Возможно, она заблокирована другим паролем или это не перезаписываемая T55xx. Введите текущий пароль метки и повторите.</value>
+  </data>
+  <data name="Device_T55xxDifferentId" xml:space="preserve">
+    <value>Метка вернула другой ID, значит запись не прошла. Скорее всего, она заблокирована другим паролем. Введите текущий пароль метки и повторите.</value>
+  </data>
+  <data name="Device_NoPasswordToSet" xml:space="preserve">
+    <value>У карты на считывателе ({0}) нет пароля, который можно задать.</value>
+  </data>
+  <data name="Device_UnknownModel" xml:space="preserve">
+    <value>неизвестная модель</value>
+  </data>
+  <data name="Ble_LinkClosed" xml:space="preserve">
+    <value>Соединение BLE закрыто.</value>
+  </data>
+  <data name="Ble_NoPermission" xml:space="preserve">
+    <value>Нет разрешения на Bluetooth.</value>
+  </data>
+  <data name="Ble_NoRx" xml:space="preserve">
+    <value>Характеристика NUS RX не найдена.</value>
+  </data>
+  <data name="Ble_NoTx" xml:space="preserve">
+    <value>Характеристика NUS TX не найдена.</value>
+  </data>
+  <data name="Ble_NoUart" xml:space="preserve">
+    <value>На устройстве не найдена служба Nordic UART.</value>
+  </data>
+  <data name="Ble_Off" xml:space="preserve">
+    <value>Bluetooth выключен.</value>
+  </data>
+  <data name="Dfu_NoControlPoint" xml:space="preserve">
+    <value>Нет управляющей точки DFU.</value>
+  </data>
+  <data name="Dfu_NoPacketChar" xml:space="preserve">
+    <value>Нет характеристики пакетов DFU.</value>
+  </data>
+  <data name="Dfu_NoService" xml:space="preserve">
+    <value>В загрузчике нет службы Secure DFU.</value>
+  </data>
+  <data name="Serial_Disconnected" xml:space="preserve">
+    <value>{0} отключён.</value>
+  </data>
+  <data name="Serial_Name" xml:space="preserve">
+    <value>Последовательный порт (USB)</value>
+  </data>
+  <data name="Usb_AlreadyConnected" xml:space="preserve">
+    <value>Уже подключено.</value>
+  </data>
+  <data name="Usb_ClaimControl" xml:space="preserve">
+    <value>Не удалось занять управляющий интерфейс USB CDC.</value>
+  </data>
+  <data name="Usb_ClaimData" xml:space="preserve">
+    <value>Не удалось занять интерфейс данных USB CDC.</value>
+  </data>
+  <data name="Usb_Closed" xml:space="preserve">
+    <value>USB-соединение закрыто.</value>
+  </data>
+  <data name="Usb_Configure" xml:space="preserve">
+    <value>Не удалось настроить последовательный порт USB.</value>
+  </data>
+  <data name="Usb_CouldNotOpen" xml:space="preserve">
+    <value>Не удалось открыть USB-устройство. Переподключите его и разрешите доступ к USB.</value>
+  </data>
+  <data name="Usb_Denied" xml:space="preserve">
+    <value>Доступ к USB запрещён. Выберите устройство снова и разрешите доступ к USB.</value>
+  </data>
+  <data name="Usb_Disconnected" xml:space="preserve">
+    <value>USB-устройство отключено.</value>
+  </data>
+  <data name="Usb_Enable" xml:space="preserve">
+    <value>Не удалось включить последовательный порт USB.</value>
+  </data>
+  <data name="Usb_NoCdc" xml:space="preserve">
+    <value>У USB-устройства нет последовательного интерфейса CDC ACM.</value>
+  </data>
+  <data name="Usb_NoHostMode" xml:space="preserve">
+    <value>Этот телефон не поддерживает режим USB Host.</value>
+  </data>
+  <data name="Usb_NoLongerAttached" xml:space="preserve">
+    <value>USB-устройство Chameleon больше не подключено.</value>
+  </data>
+  <data name="Usb_NotConnected" xml:space="preserve">
+    <value>USB-устройство не подключено.</value>
+  </data>
+  <data name="Usb_UnpluggedWaiting" xml:space="preserve">
+    <value>USB-устройство отключили во время ожидания разрешения.</value>
+  </data>
+  <data name="Usb_WriteFailed" xml:space="preserve">
+    <value>Ошибка записи по USB. Проверьте кабель и переподключите устройство.</value>
+  </data>
 </root>

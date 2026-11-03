@@ -8,6 +8,7 @@ using ChameLab.Behaviors;
 using ChameLab.Models;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -33,7 +34,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     // Page margins 56 + list 280 + gap 18 + details 420 (see SlotsView).
     public override double MinContentWidth => 774;
 
-    public SlotsViewModel(DeviceService device, CardLibrary cards) : base("Slots", "slots")
+    public SlotsViewModel(DeviceService device, CardLibrary cards) : base(Strings.Nav_Slots, "slots")
     {
         _device = device;
         _cards = cards;
@@ -88,11 +89,11 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         get
         {
             if (_progressText is not null) return _progressText;
-            if (Slots.Count == 0) return IsConnected ? "Reading the slots…" : "No device connected";
+            if (Slots.Count == 0) return IsConnected ? Strings.Slots_Reading : Strings.Slots_NoDevice;
             var used = Slots.Count(s => !s.IsEmpty);
             var active = Slots.FirstOrDefault(s => s.IsActive);
-            var usedText = used == 1 ? "1 slot in use" : $"{used} slots in use";
-            return active is null ? usedText : $"{usedText} · slot {active.Index} active";
+            var usedText = Loc.Plural(Strings.Plural_SlotsInUse, used);
+            return active is null ? usedText : string.Format(Strings.Slots_UsedActive, usedText, active.Index);
         }
     }
 
@@ -317,7 +318,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>Asking whether to save before switching slot, closing or swapping.</summary>
     public bool IsConfirmingLeave => _pendingLeave is not null;
 
-    public string LeaveText => $"Save changes to slot {_selected?.Index}?";
+    public string LeaveText => string.Format(Strings.Slots_SaveChangesTo, _selected?.Index);
 
     /// <summary>A question or the card picker waits for an answer; the editor is dimmed until then.</summary>
     public bool IsAsking => IsConfirmingLeave || _editor?.IsPicking == true;
@@ -352,17 +353,17 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             await client.WithSlotLockAsync(async () =>
             {
                 var active = await client.GetActiveSlotAsync();
-                SetProgress($"Reading slot {ia}…");
-                var first = await client.ReadSlotContentAsync(a.Info, Progress($"Reading slot {ia}"));
-                SetProgress($"Reading slot {ib}…");
-                var second = await client.ReadSlotContentAsync(b.Info, Progress($"Reading slot {ib}"));
+                SetProgress(string.Format(Strings.Slots_ReadingSlotEllipsis, ia));
+                var first = await client.ReadSlotContentAsync(a.Info, Progress(string.Format(Strings.Slots_ReadingSlot, ia)));
+                SetProgress(string.Format(Strings.Slots_ReadingSlotEllipsis, ib));
+                var second = await client.ReadSlotContentAsync(b.Info, Progress(string.Format(Strings.Slots_ReadingSlot, ib)));
 
-                SetProgress($"Writing slot {ib}…");
-                await client.WriteSlotContentAsync(ib, first, Progress($"Writing slot {ib}"));
+                SetProgress(string.Format(Strings.Slots_WritingSlotEllipsis, ib));
+                await client.WriteSlotContentAsync(ib, first, Progress(string.Format(Strings.Slots_WritingSlot, ib)));
                 try
                 {
-                    SetProgress($"Writing slot {ia}…");
-                    await client.WriteSlotContentAsync(ia, second, Progress($"Writing slot {ia}"));
+                    SetProgress(string.Format(Strings.Slots_WritingSlotEllipsis, ia));
+                    await client.WriteSlotContentAsync(ia, second, Progress(string.Format(Strings.Slots_WritingSlot, ia)));
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -370,7 +371,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
                     try { await client.WriteSlotContentAsync(ib, second); }
                     catch { /* the error below still tells what happened */ }
                     throw new InvalidOperationException(
-                        $"Could not write slot {ia} ({ex.Message}). Slot {ib} was restored; check slot {ia}.");
+                        string.Format(Strings.Slots_SwapFailed, ia, ex.Message, ib, ia));
                 }
 
                 if (active is >= 1 and <= 8)
@@ -379,7 +380,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
                     await client.SaveSlotConfigAsync();
                 }
             });
-            Notify($"Swapped slots {ia} and {ib}.");
+            Notify(string.Format(Strings.Slots_Swapped, ia, ib));
         }
         finally { SetProgress(null); }
     });

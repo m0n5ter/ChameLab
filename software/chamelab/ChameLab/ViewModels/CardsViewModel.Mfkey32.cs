@@ -5,6 +5,7 @@ using System.Windows.Input;
 using ChameLab.Models;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -25,7 +26,7 @@ public sealed partial class CardsViewModel
     }
 
     public bool ShowMfkey32CaptureCount => DumpProgressDetail is null && Mfkey32FoundKey is null && Mfkey32CapturedCount is not null;
-    public string Mfkey32CaptureText => $"Captured {Mfkey32CapturedCount} authentications";
+    public string Mfkey32CaptureText => string.Format(Strings.Cards_CapturedAuths, Mfkey32CapturedCount);
 
     public string? Mfkey32FoundKey
     {
@@ -44,20 +45,20 @@ public sealed partial class CardsViewModel
     public ICommand Mfkey32Command { get; }
 
     public bool CanRunMfkey32 => Mfkey32UnavailableReason is null;
-    public string Mfkey32Tip => Mfkey32UnavailableReason ?? "Recover card keys from a reader using mfkey32";
+    public string Mfkey32Tip => Mfkey32UnavailableReason ?? Strings.Cards_Mfkey32Tip;
     private string? Mfkey32UnavailableReason
     {
         get
         {
-            if (!IsConnected) return "Connect a Chameleon first.";
-            if (IsBusy) return "Wait for the current operation to finish.";
-            if (Form is not { IsMifareClassic: true } form) return "mfkey32 requires a MIFARE Classic card.";
+            if (!IsConnected) return Strings.Common_ConnectFirst;
+            if (IsBusy) return Strings.Common_WaitForOperation;
+            if (Form is not { IsMifareClassic: true } form) return Strings.Cards_Mfkey32NeedsClassic;
             try
             {
                 return Mfkey32Wizard.FindSlot(_slotInfos, form.Build()) is null
-                    ? "Load this card into a slot before starting mfkey32." : null;
+                    ? Strings.Cards_Mfkey32LoadIntoSlot : null;
             }
-            catch (FormatException) { return "Enter a valid card identity first."; }
+            catch (FormatException) { return Strings.Cards_EnterIdentityFirst; }
         }
     }
 
@@ -80,8 +81,8 @@ public sealed partial class CardsViewModel
         }
     }
 
-    public string DumpStopLabel => IsMfkey32Done ? "Done" : "Stop";
-    public string DumpStopTip => IsMfkey32Done ? "Close the mfkey32 result" : "Stop and keep the memory read so far (Esc)";
+    public string DumpStopLabel => IsMfkey32Done ? Strings.Common_Done : Strings.Common_Stop;
+    public string DumpStopTip => IsMfkey32Done ? Strings.Cards_CloseMfkey32Result : Strings.Cards_StopKeepMemory;
 
     private Task RunMfkey32Async() => RunAsync(async () =>
     {
@@ -93,7 +94,7 @@ public sealed partial class CardsViewModel
         _mfkey32Running = true;
         IsMfkey32Done = false;
         Mfkey32FoundKey = null;
-        DumpProgressText = "Preparing emulation…";
+        DumpProgressText = Strings.Cards_PreparingEmulation;
         try
         {
             var progress = new PostedProgress<Mfkey32Progress>(IfKept<Mfkey32Progress>(cts, p =>
@@ -117,7 +118,7 @@ public sealed partial class CardsViewModel
             {
                 if (cts.IsCancellationRequested) return;
                 IsMfkey32Done = true;
-                DumpProgressText = $"Read {ReadSectorCount(_classicDump!)}/{_classicDump!.SectorCount} sectors.";
+                DumpProgressText = string.Format(Strings.Cards_ReadSectorsProgress, ReadSectorCount(_classicDump!), _classicDump!.SectorCount);
             }));
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested) { }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -12,7 +13,7 @@ namespace ChameLab.Services;
 public sealed class KnownCardKeys
 {
     public const string Id = "known-card-keys";
-    public const string Name = "Known card keys";
+    public static string Name => Strings.Dictionaries_KnownCardKeys;
     /// <summary>Root entry holding the NTAG / Ultralight EV1 passwords; never a hex UID, so it can't clash with one.</summary>
     public const string PasswordsSection = "ntagPasswords";
     private readonly IKeyValueStore _store;
@@ -26,7 +27,7 @@ public sealed class KnownCardKeys
         {
             if (store.Read(Id) is { } json) (_cards, _passwords) = Parse(JsonNode.Parse(json));
         }
-        catch (Exception ex) { LoadError = $"Known card keys could not be read: {ex.Message}"; }
+        catch (Exception ex) { LoadError = string.Format(Strings.Library_KnownKeysLoadError, ex.Message); }
     }
 
     public string? LoadError { get; }
@@ -44,9 +45,9 @@ public sealed class KnownCardKeys
         foreach (var (uid, keys) in edits)
         {
             var normalized = Convert.ToHexString(Convert.FromHexString(uid));
-            if (normalized.Length == 0) throw new FormatException("Invalid UID.");
+            if (normalized.Length == 0) throw new FormatException(Strings.Keys_InvalidUid);
             if (keys is null) { next.Remove(normalized); continue; }
-            if (keys.Any(k => k.Length != 6)) throw new FormatException("Each key must contain 6 bytes.");
+            if (keys.Any(k => k.Length != 6)) throw new FormatException(Strings.Keys_KeyLength);
             next[normalized] = keys.Select(k => Convert.ToHexString(k)).Distinct().ToList();
         }
         Save(next, _passwords);
@@ -122,30 +123,30 @@ public sealed class KnownCardKeys
 
     private static (Dictionary<string, List<string>>, Dictionary<string, string>) Parse(JsonNode? node)
     {
-        if (node is not JsonObject cards) throw new FormatException("Expected keys grouped by UID.");
+        if (node is not JsonObject cards) throw new FormatException(Strings.Keys_ExpectedGrouped);
         var result = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var passwords = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (uid, value) in cards)
         {
             if (uid == PasswordsSection)
             {
-                if (value is not JsonObject section) throw new FormatException("Invalid NTAG password section.");
+                if (value is not JsonObject section) throw new FormatException(Strings.Keys_InvalidPasswordSection);
                 foreach (var (cardUid, pwd) in section)
                 {
                     var normalized = Convert.ToHexString(Convert.FromHexString(cardUid));
                     var bytes = Convert.FromHexString(pwd?.GetValue<string>() ?? "");
-                    if (normalized.Length == 0 || bytes.Length != 4) throw new FormatException("Invalid NTAG password.");
+                    if (normalized.Length == 0 || bytes.Length != 4) throw new FormatException(Strings.Keys_InvalidPassword);
                     passwords[normalized] = Convert.ToHexString(bytes);
                 }
                 continue;
             }
             var normalizedUid = Convert.ToHexString(Convert.FromHexString(uid));
-            if (normalizedUid.Length == 0 || value is not JsonArray keys) throw new FormatException("Invalid UID group.");
+            if (normalizedUid.Length == 0 || value is not JsonArray keys) throw new FormatException(Strings.Keys_InvalidUidGroup);
             var values = new List<string>();
             foreach (var key in keys)
             {
                 var bytes = Convert.FromHexString(key?.GetValue<string>() ?? "");
-                if (bytes.Length != 6) throw new FormatException("Invalid card key.");
+                if (bytes.Length != 6) throw new FormatException(Strings.Keys_InvalidKey);
                 values.Add(Convert.ToHexString(bytes));
             }
             if (!result.TryGetValue(normalizedUid, out var existing)) result[normalizedUid] = existing = new();

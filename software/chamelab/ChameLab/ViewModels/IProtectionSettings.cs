@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ChameLab.Models;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -51,7 +52,7 @@ public sealed record AuthLimitOption(int? Value, string Label)
     /// </summary>
     public static IReadOnlyList<AuthLimitOption> For(TagSpecificType tag) =>
     [
-        new(0, "No limit"),
+        new(0, Strings.Protection_NoLimit),
         new(null, ""),
         .. Enumerable.Range(1, 7).Select(n => new AuthLimitOption(n, UltralightProtection.Attempts(tag, n).ToString())),
     ];

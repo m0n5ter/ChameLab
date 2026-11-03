@@ -13,6 +13,7 @@ using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Threading;
 using ChameLab.Models;
+using ChameLab.Localization;
 
 namespace ChameLab.Controls;
 
@@ -647,7 +648,7 @@ public sealed class HexEditor : Control
         if (HasSelection)
         {
             var (from, to) = Selection();
-            value = $"{to - from + 1} selected";
+            value = string.Format(Strings.Hex_Selected, to - from + 1);
         }
         else if (buf.IsRead(row))
         {
@@ -656,12 +657,12 @@ public sealed class HexEditor : Control
         }
         else if (buf.IsTemplateKnown(_caret) && buf.TemplateAt(_caret) is { } k)
             value = $"{k:X2} {k,4} {Convert.ToString(k, 2).PadLeft(8, '0')}";
-        else value = "not read";
+        else value = Strings.Hex_NotRead;
 
         StatusText = $"{buf.RowLabel(row).PadLeft(labelWidth)}:{col.ToString().PadLeft(colWidth, '0')}  " +
                      $"0x{(buf.ByteOffset + _caret).ToString("X" + offsetWidth)}  {value.PadRight(valueWidth, ' ')}";
         StatusDetail = buf.Describe(row, col) is { Length: > 0 } what ? what : null;
-        var title = "Memory";
+        var title = Strings.Hex_Memory;
         for (var r = row; r >= 0; r--)
             if (buf.GroupHeader(r) is { } group) { title = group.Title; break; }
         var detail = StatusDetail;
@@ -674,7 +675,7 @@ public sealed class HexEditor : Control
         // Known without the block being read (the UID from the scan): the value, and where it comes from.
         if (!HasSelection && buf.IsTemplateKnown(_caret) && buf.TemplateAt(_caret) is { } known)
         {
-            const string note = "from the card's identity, block not read";
+            var note = Strings.Hex_FromIdentity;
             SelectionStatus = new(title, detail is null ? note : $"{detail} · {note}", position, known.ToString("X2"),
                 known.ToString(CultureInfo.InvariantCulture), Convert.ToString(known, 2).PadLeft(8, '0'), null);
             return;
@@ -683,7 +684,7 @@ public sealed class HexEditor : Control
             ? new(title, detail, position, buf[_caret].ToString("X2"), buf[_caret].ToString(CultureInfo.InvariantCulture),
                 Convert.ToString(buf[_caret], 2).PadLeft(8, '0'), null)
             : new(title, detail, position, null, null, null,
-                HasSelection ? $"{Selection().to - Selection().from + 1} selected" : "not read");
+                HasSelection ? string.Format(Strings.Hex_Selected, Selection().to - Selection().from + 1) : Strings.Hex_NotRead);
     }
 
     // ================================================================ Input
@@ -988,18 +989,18 @@ public sealed class HexEditor : Control
             return item;
         }
 
-        var undo = Item("Undo", "Ctrl+Z", Undo);
-        var redo = Item("Redo", "Ctrl+Y", Redo);
-        var insert = Item("Add row below", "Enter", InsertRowBelow);
-        var remove = Item("Delete rows", "Delete", RemoveRows);
+        var undo = Item(Strings.Hex_Undo, "Ctrl+Z", Undo);
+        var redo = Item(Strings.Hex_Redo, "Ctrl+Y", Redo);
+        var insert = Item(Strings.Hex_AddRowBelow, "Enter", InsertRowBelow);
+        var remove = Item(Strings.Hex_DeleteRows, "Delete", RemoveRows);
         var rowsSeparator = new Separator();
-        var paste = Item("Paste", "Ctrl+V", Paste);
+        var paste = Item(Strings.Hex_Paste, "Ctrl+V", Paste);
         var historySeparator = new Separator();
         var menu = new ContextMenu
         {
             Items =
             {
-                Item("Copy", "Ctrl+C", Copy),
+                Item(Strings.Hex_Copy, "Ctrl+C", Copy),
                 paste,
                 rowsSeparator,
                 insert,
@@ -1008,7 +1009,7 @@ public sealed class HexEditor : Control
                 undo,
                 redo,
                 new Separator(),
-                Item("Select all", "Ctrl+A", SelectAll),
+                Item(Strings.Hex_SelectAll, "Ctrl+A", SelectAll),
             },
         };
         menu.Opening += (_, _) =>

@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Input;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -42,7 +43,7 @@ public sealed class CardFolderViewModel : ViewModelBase
         }
     }
 
-    public string CountText => _count == 1 ? "1 card" : $"{_count} cards";
+    public string CountText => Loc.Plural(Strings.Plural_Cards, _count);
 
     /// <summary>No cards in the folder; its row is shown dimmed.</summary>
     public bool IsEmpty => _count == 0;
@@ -67,7 +68,7 @@ public sealed class CardFolderViewModel : ViewModelBase
 /// </summary>
 public sealed record CardFolderOption(string Name, int Count = 0)
 {
-    public string Label => Name.Length == 0 ? "No folder" : Name;
+    public string Label => Name.Length == 0 ? Strings.Cards_NoFolder : Name;
 
     public bool Equals(CardFolderOption? other) => other is not null && other.Name == Name;
     public override int GetHashCode() => Name.GetHashCode();

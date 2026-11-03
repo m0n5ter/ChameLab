@@ -7,6 +7,7 @@ using ChameLab.Controls;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -250,7 +251,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
 
     public bool IsHf => _tag.SenseType() == TagSenseType.Hf;
     public bool IsMifareClassic => _tag.IsMifareClassic();
-    public string UidLabel => IsHf ? "UID" : "Card ID";
+    public string UidLabel => IsHf ? "UID" : Strings.Cards_CardId;
 
     public string UidHint
     {
@@ -259,7 +260,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
             // The allowed lengths are shown by the field's byte counter.
             if (IsHf) return "e.g. 04 A1 B2 C3";
             var len = _tag.LfIdLength();
-            return len > 0 ? $"{len} bytes (hex)" : "hex";
+            return len > 0 ? Loc.Plural(Strings.Plural_BytesHex, len) : "hex";
         }
     }
 
@@ -412,7 +413,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
         get
         {
             var known = _data.Count(d => d.Length > 0);
-            if (known == 0 && _data.Count > 0) return "Not read";
+            if (known == 0 && _data.Count > 0) return Strings.Cards_NotRead;
             if (_tag.IsMifareClassic())
             {
                 // A sector counts once every one of its blocks was read (or entered).
@@ -421,10 +422,10 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
                 var full = Enumerable.Range(0, sectors).Count(s =>
                     Enumerable.Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s))
                         .All(b => b < _data.Count && _data[b].Length > 0));
-                return $"{full}/{sectors} sectors";
+                return string.Format(Strings.Cards_SectorsOf, full, sectors);
             }
-            if (_tag.IsUltralight()) return $"{known}/{_tag.UltralightPages()} pages";
-            return known > 0 ? $"{known} data rows" : "Identity only";
+            if (_tag.IsUltralight()) return string.Format(Strings.Cards_PagesOf, known, _tag.UltralightPages());
+            return known > 0 ? string.Format(Strings.Cards_DataRows, known) : Strings.Cards_IdentityOnly;
         }
     }
 
@@ -471,7 +472,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
             {
                 if (!mfc || MifareClassic.SectorFirstBlock(MifareClassic.SectorOfBlock(row)) != row) return null;
                 var sector = MifareClassic.SectorOfBlock(row);
-                return ($"Sector {sector}", $"blocks {row}–{row + MifareClassic.BlocksInSector(sector) - 1}");
+                return (string.Format(Strings.Common_SectorN, sector), string.Format(Strings.Cards_BlocksRange, row, row + MifareClassic.BlocksInSector(sector) - 1));
             },
             Classify = (row, col) => mfc ? MifareCellKind(row, col) : ul ? UltralightCellKind(tag, row, col) : HexCellKind.Data,
             Describe = (row, col) => mfc ? DescribeMifare(row, col) : ul ? DescribeUltralight(tag, row, col) : null,
@@ -504,11 +505,11 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
                 .Where(b => MifareClassic.IsTrailer(b) && _data[b].Length == 16 && !MifareClassic.AccessBitsValid(_data[b]))
                 .Select(MifareClassic.SectorOfBlock).ToArray();
             if (bad.Length > 0)
-                warnings.Add($"Invalid access bits in sector {string.Join(", ", bad)}: writing this to a card would lock the sector.");
+                warnings.Add(string.Format(Strings.Cards_InvalidAccessBits, string.Join(", ", bad)));
             if (UnknownKeyWarning is { } unknown) warnings.Add(unknown);
             if (OverflowBlocks > 0)
-                warnings.Add($"Sectors {MifareClassic.SectorOfBlock(blocks)}–{MifareClassic.SectorOfBlock(_data.Count - 1)} "
-                    + $"don't fit a {_tag.DisplayName()} and will be dropped when the card is saved.");
+                warnings.Add(string.Format(Strings.Cards_SectorsDontFit, MifareClassic.SectorOfBlock(blocks),
+                    MifareClassic.SectorOfBlock(_data.Count - 1), _tag.DisplayName()));
         }
         MemoryWarning = warnings.Count == 0 ? null : string.Join(" ", warnings);
     }
@@ -522,22 +523,22 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
 
     private string DescribeMifare(int block, int col)
     {
-        var sector = $"Sector {MifareClassic.SectorOfBlock(block)}";
+        var sector = string.Format(Strings.Common_SectorN, MifareClassic.SectorOfBlock(block));
         if (block == 0)
         {
             var uid4 = _uid.Count(Uri.IsHexDigit) <= 8;
             var what = uid4
-                ? col switch { < 4 => "UID", 4 => "BCC", 5 => "SAK", 6 or 7 => "ATQA", _ => "Manufacturer data" }
-                : col < 7 ? "UID" : "Manufacturer data";
+                ? col switch { < 4 => "UID", 4 => "BCC", 5 => "SAK", 6 or 7 => "ATQA", _ => Strings.Cards_ManufacturerData }
+                : col < 7 ? "UID" : Strings.Cards_ManufacturerData;
             return $"{sector} · {what}";
         }
         if (!MifareClassic.IsTrailer(block)) return sector;
-        var part = col switch { < 6 => "Key A", < 9 => "Access bits", 9 => "User byte", _ => "Key B" };
+        var part = col switch { < 6 => Strings.Common_KeyA, < 9 => Strings.Cards_AccessBits2, 9 => Strings.Cards_UserByte, _ => Strings.Common_KeyB };
         if (col is < 6 or >= 10 && IsKeyUnknown(MifareClassic.SectorOfBlock(block), col < 6))
-            part += " (unknown, held as 00)";
+            part += Strings.Cards_UnknownHeldAs00;
         if (col is >= 6 and < 9 && _data[block].Length == 16)
-            part += MifareClassic.AccessBitsValid(_data[block]) ? " (valid)" : " (INVALID)";
-        return $"{sector} trailer · {part}";
+            part += MifareClassic.AccessBitsValid(_data[block]) ? Strings.Cards_AccessBitsValid : Strings.Cards_AccessBitsInvalid;
+        return string.Format(Strings.Cards_SectorTrailer, sector, part);
     }
 
     // ---- Unknown MIFARE Classic keys -------------------------------------
@@ -572,9 +573,9 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
             var b = StillUnknown(_source.Extra.UnknownKeyB, 10, data);
             if (a.Count == 0 && b.Count == 0) return null;
             var parts = new List<string>();
-            if (a.Count > 0) parts.Add($"key A of sector{(a.Count > 1 ? "s" : "")} {string.Join(", ", a)}");
-            if (b.Count > 0) parts.Add($"key B of sector{(b.Count > 1 ? "s" : "")} {string.Join(", ", b)}");
-            return $"Unknown {string.Join(" and ", parts)}: held as 00, so writing this dump to a card sets that key to 000000000000.";
+            if (a.Count > 0) parts.Add(Loc.Plural(Strings.Cards_KeyAOfSectors, a.Count, string.Join(", ", a)));
+            if (b.Count > 0) parts.Add(Loc.Plural(Strings.Cards_KeyBOfSectors, b.Count, string.Join(", ", b)));
+            return string.Format(Strings.Cards_UnknownKeys, string.Join(Strings.Common_And, parts));
         }
     }
 
@@ -599,13 +600,13 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
         {
             case 0: return col < 3 ? "UID" : "BCC0";
             case 1: return "UID";
-            case 2: return col switch { 0 => "BCC1", 1 => "Internal", _ => "Static lock bytes" };
+            case 2: return col switch { 0 => "BCC1", 1 => Strings.Cards_Internal, _ => Strings.Cards_StaticLockBytes };
             case 3: return tag.UltralightCfg0Page() > 0 && tag != TagSpecificType.Mf0Ul11 && tag != TagSpecificType.Mf0Ul21
-                ? "Capability container" : "OTP";
+                ? Strings.Cards_CapabilityContainer : "OTP";
         }
         if (page == tag.UltralightDynamicLockPage())
-            return tag == TagSpecificType.Mf0Icu2 ? (col < 2 ? "Dynamic lock bytes" : "RFU")
-                : col < 3 ? "Dynamic lock bytes" : "RFUI";
+            return tag == TagSpecificType.Mf0Icu2 ? (col < 2 ? Strings.Cards_DynamicLockBytes : "RFU")
+                : col < 3 ? Strings.Cards_DynamicLockBytes : "RFUI";
         var cfg0 = tag.UltralightCfg0Page();
         if (cfg0 > 0 && page >= cfg0)
         {
@@ -615,23 +616,23 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
                 (0, 0) => ntag ? "CFG0 · MIRROR" : "CFG0 · MOD",
                 (0, 1) => "CFG0 · RFUI",
                 (0, 2) => ntag ? "CFG0 · MIRROR_PAGE" : "CFG0 · RFUI",
-                (0, 3) => "CFG0 · AUTH0 (first protected page)",
+                (0, 3) => Strings.Cards_Cfg0Auth0,
                 (1, 0) => "CFG1 · ACCESS (PROT, CFGLCK, AUTHLIM…)",
                 (1, 1) => "CFG1 · RFUI",
                 (1, 2) => "CFG1 · RFUI",
                 (1, 3) => "CFG1 · RFUI",
-                (2, _) => "PWD (reads back as 00)",
-                (3, < 2) => "PACK (reads back as 00)",
+                (2, _) => Strings.Cards_PwdReadsBack,
+                (3, < 2) => Strings.Cards_PackReadsBack,
                 _ => "RFUI",
             };
         }
         if (tag == TagSpecificType.Mf0Icu2)
             return page switch
             {
-                0x29 => "16-bit counter",
-                0x2A => "AUTH0 (first protected page)",
-                0x2B => "AUTH1 (0 = write protect only)",
-                >= CardTags.UlcFirstKeyPage and < CardTags.UlcFirstKeyPage + 4 => "3DES key (not readable)",
+                0x29 => Strings.Cards_Counter16,
+                0x2A => Strings.Cards_Auth0FirstProtected,
+                0x2B => Strings.Cards_Auth1,
+                >= CardTags.UlcFirstKeyPage and < CardTags.UlcFirstKeyPage + 4 => Strings.Cards_UlcKeyNotReadable,
                 _ => null,
             };
         return null;
@@ -644,7 +645,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     public bool HasUltralightConfig => _tag.UltralightCfg0Page() > 0 || _tag == TagSpecificType.Mf0Icu2;
 
     /// <summary>Legend of the key-colored pages: the password or, on Ultralight C, the 3DES key.</summary>
-    public string UltralightKeyLegend => _tag == TagSpecificType.Mf0Icu2 ? "■ 3DES key" : "■ PWD/PACK";
+    public string UltralightKeyLegend => _tag == TagSpecificType.Mf0Icu2 ? Strings.Cards_Legend3DesKey : "■ PWD/PACK";
 
     // ---- NDEF ----------------------------------------------------------
 
@@ -673,9 +674,9 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     public bool HasProtection => Protection is not null;
 
     public string ProtectionSummary => Protection?.Summary(_tag)
-        ?? "The configuration pages were not read. Dump the card with its password to see them.";
+        ?? Strings.Cards_ConfigPagesNotRead;
 
-    public string? ProtectionNote => "Slots emulate these settings; to put them on a card, tick “Protect with a password” when writing.";
+    public string? ProtectionNote => Strings.Cards_ProtectionNote;
 
     /// <summary>AUTH0 lies within the memory: pages from it on need the password.</summary>
     public bool IsProtected
@@ -859,19 +860,19 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     /// <summary>Validates the form and returns the updated card; throws with a user-facing message.</summary>
     public CardSave Build()
     {
-        if (string.IsNullOrWhiteSpace(Name)) throw new FormatException("Please enter a name.");
+        if (string.IsNullOrWhiteSpace(Name)) throw new FormatException(Strings.Common_EnterName);
 
         var uid = ParseHex(Uid, UidLabel);
         byte sak = 0;
         byte[] atqa = Array.Empty<byte>(), ats = Array.Empty<byte>();
         if (IsHf)
         {
-            if (uid.Length is not (4 or 7 or 10)) throw new FormatException("UID must be 4, 7 or 10 bytes long.");
+            if (uid.Length is not (4 or 7 or 10)) throw new FormatException(Strings.Cards_UidLength);
             var sakBytes = ParseHex(Sak, "SAK");
-            if (sakBytes.Length != 1) throw new FormatException("SAK must be 1 byte long.");
+            if (sakBytes.Length != 1) throw new FormatException(Strings.Cards_SakLength);
             sak = sakBytes[0];
             atqa = ParseHex(Atqa, "ATQA");
-            if (atqa.Length != 2) throw new FormatException("ATQA must be 2 bytes long.");
+            if (atqa.Length != 2) throw new FormatException(Strings.Cards_AtqaLength);
             atqa = SwapAtqa(atqa); // field is big-endian (00 04); store device order (04 00)
             ats = ParseHex(Ats, "ATS");
         }
@@ -879,7 +880,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
         {
             var len = _tag.LfIdLength();
             if (len > 0 && uid.Length != len)
-                throw new FormatException($"{_tag.DisplayName()} ID must be {len} bytes long.");
+                throw new FormatException(string.Format(Strings.Cards_IdLength, _tag.DisplayName(), len));
         }
 
         var card = _source.Clone();
@@ -914,7 +915,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     }
 
     private static byte[] ParseHex(string text, string field) =>
-        Hex.TryParse(text, out var b) ? b : throw new FormatException($"{field} must be valid hex.");
+        Hex.TryParse(text, out var b) ? b : throw new FormatException(string.Format(Strings.Cards_MustBeHex, field));
 
     /// <summary>
     /// Converts ATQA between the high-byte-first form shown and typed in this editor (00 04,

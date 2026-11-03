@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -170,18 +171,18 @@ public static class HfSniff
             var isEncrypted = false;
             if (auth == 1 && !f.IsReader && d.Length == 4)
             {
-                label = $"Card nonce nt = {f.Hex}";
+                label = string.Format(Strings.Sniff_CardNonce, f.Hex);
                 auth = 2;
             }
             else if (auth == 2 && f.IsReader && d.Length == 8)
             {
-                label = $"Reader answer, encrypted: nr = {Convert.ToHexString(d, 0, 4)}, ar = {Convert.ToHexString(d, 4, 4)}";
+                label = string.Format(Strings.Sniff_ReaderAnswerEnc, Convert.ToHexString(d, 0, 4), Convert.ToHexString(d, 4, 4));
                 auth = 3;
                 encrypted = true;
             }
             else if (auth == 3 && !f.IsReader && d.Length == 4)
             {
-                label = $"Card answer, encrypted: at = {f.Hex} (the reader's key was accepted)";
+                label = string.Format(Strings.Sniff_CardAnswerEnc, f.Hex);
                 auth = 0;
             }
             else
@@ -191,7 +192,7 @@ public static class HfSniff
                 if (encrypted)
                 {
                     isEncrypted = true;
-                    label = f.IsReader && d.Length == 4 ? "Encrypted command (or nested AUTH)" : "Encrypted";
+                    label = f.IsReader && d.Length == 4 ? Strings.Sniff_EncryptedCommand : Strings.Sniff_Encrypted;
                 }
                 else
                 {
@@ -214,7 +215,7 @@ public static class HfSniff
     private static string ReaderLabel(HfFrame f)
     {
         var d = f.Data;
-        if (d.Length == 0) return "Empty";
+        if (d.Length == 0) return Strings.Common_Empty;
         var b0 = d[0];
         if (f.IsShort)
             return b0 switch
@@ -222,7 +223,7 @@ public static class HfSniff
                 0x26 => "REQA",
                 0x52 => "WUPA",
                 0x40 => "Magic WUPC1 (Gen1a)",
-                _ => $"Short frame {b0:X2} ({f.Bits} bits)",
+                _ => string.Format(Strings.Sniff_ShortFrame, b0, f.Bits),
             };
 
         switch (b0)
@@ -230,7 +231,7 @@ public static class HfSniff
             case 0x93 or 0x95 or 0x97:
                 var level = b0 == 0x93 ? 1 : b0 == 0x95 ? 2 : 3;
                 if (d is [_, 0x70, _, _, _, _, _, ..])
-                    return d[2] == 0x88 ? $"SELECT CL{level}: UID part {Convert.ToHexString(d, 3, 3)} (cascade tag)"
+                    return d[2] == 0x88 ? string.Format(Strings.Sniff_SelectCascade, level, Convert.ToHexString(d, 3, 3))
                         : $"SELECT CL{level}: UID {Convert.ToHexString(d, 2, 4)}";
                 return $"ANTICOLLISION CL{level}";
             case 0x50 when d is [_, 0x00, _, _]: return "HALT";
@@ -257,7 +258,7 @@ public static class HfSniff
             return end > at ? Apdu(d.AsSpan(at, end - at)) : "I-block";
         }
         if ((b0 & 0xE6) == 0xA2) return (b0 & 0x10) != 0 ? "R(NAK)" : "R(ACK)";
-        return f.CrcOk == true ? "Command" : "Unknown command (no valid CRC)";
+        return f.CrcOk == true ? Strings.Sniff_Command : Strings.Sniff_UnknownCommand;
     }
 
     /// <summary>
@@ -267,28 +268,28 @@ public static class HfSniff
     private static string CardLabel(HfFrame f, HfFrame? command)
     {
         var d = f.Data;
-        if (d.Length == 0) return "Empty";
+        if (d.Length == 0) return Strings.Common_Empty;
         var body = f.CrcOk == true ? d.AsSpan(0, d.Length - 2) : d;
         if (f.Bits == 4) return d[0] == 0x0A ? "ACK" : $"NAK {d[0]:X1}";
         if (command is { IsShort: true } && d.Length == 2) return $"ATQA {d[1]:X2}{d[0]:X2}";
         if (command is { Data: [0x93 or 0x95 or 0x97, ..] } && !IsSelect(command) && d.Length == 5)
         {
-            var bcc = (d[0] ^ d[1] ^ d[2] ^ d[3]) == d[4] ? "BCC ok" : "BCC wrong";
-            return d[0] == 0x88 ? $"UID part {Convert.ToHexString(d, 1, 3)} (cascade tag), {bcc}"
+            var bcc = (d[0] ^ d[1] ^ d[2] ^ d[3]) == d[4] ? Strings.Sniff_BccOk : Strings.Sniff_BccWrong;
+            return d[0] == 0x88 ? string.Format(Strings.Sniff_UidPartCascade, Convert.ToHexString(d, 1, 3), bcc)
                 : $"UID {Convert.ToHexString(d, 0, 4)}, {bcc}";
         }
         if (IsSelect(command) && body.Length == 1)
             return SakType(body[0]) is { } type ? $"SAK {body[0]:X2}: {type}" : $"SAK {body[0]:X2}";
         if (command is { Data: [0xE0, ..] }) return "ATS";
-        if (command is { Data: [0x30, _, _, _] } && body.Length == 16) return "Data (16 bytes)";
-        if (command is { Data: [0x60, _, _] } && body.Length == 8) return "Version";
-        if (command is { Data: [0x3C, ..] } && body.Length == 32) return "Signature";
+        if (command is { Data: [0x30, _, _, _] } && body.Length == 16) return Strings.Sniff_Data16;
+        if (command is { Data: [0x60, _, _] } && body.Length == 8) return Strings.Sniff_Version;
+        if (command is { Data: [0x3C, ..] } && body.Length == 32) return Strings.Cards_Signature;
         if (command is { Data: [var pcb, ..] } && (pcb & 0xE2) == 0x02 && body.Length >= 3)
         {
             var sw = Sw(body[^2], body[^1]);
-            return $"Response {body[^2]:X2}{body[^1]:X2}" + (sw is null ? "" : $": {sw}");
+            return string.Format(Strings.Sniff_Response, body[^2], body[^1]) + (sw is null ? "" : $": {sw}");
         }
-        return "Card answer";
+        return Strings.Sniff_CardAnswer;
     }
 
     private static string Apdu(ReadOnlySpan<byte> a)
@@ -354,7 +355,7 @@ public static class HfSniff
     private static string? SakType(byte sak) => sak switch
     {
         0x00 => "Ultralight / NTAG",
-        0x04 => "UID not complete",
+        0x04 => Strings.Sniff_UidNotComplete,
         0x08 => "MIFARE Classic 1K",
         0x09 => "MIFARE Mini",
         0x10 => "MIFARE Plus 2K",
@@ -362,25 +363,25 @@ public static class HfSniff
         0x18 => "MIFARE Classic 4K",
         0x19 => "MIFARE Classic 2K",
         0x20 => "ISO14443-4 (DESFire, Plus SL3, EMV…)",
-        0x28 => "SmartMX with MIFARE Classic 1K",
-        0x38 => "SmartMX with MIFARE Classic 4K",
+        0x28 => Strings.Sniff_SmartMx1K,
+        0x38 => Strings.Sniff_SmartMx4K,
         _ => null,
     };
 
     private static string? Sw(byte sw1, byte sw2) => ((sw1 << 8) | sw2) switch
     {
         0x9000 => "OK",
-        0x6700 => "wrong length",
-        0x6982 => "security status not satisfied",
-        0x6985 => "conditions of use not satisfied",
-        0x6A82 => "file not found",
-        0x6A83 => "record not found",
-        0x6A86 => "incorrect P1-P2",
-        0x6D00 => "instruction not supported",
-        0x6E00 => "class not supported",
-        _ when sw1 == 0x61 => $"{sw2} bytes available",
-        _ when sw1 == 0x6C => $"wrong Le, use {sw2}",
-        _ when sw1 == 0x91 => "DESFire status",
+        0x6700 => Strings.Sniff_SwWrongLength,
+        0x6982 => Strings.Sniff_SwSecurity,
+        0x6985 => Strings.Sniff_SwConditions,
+        0x6A82 => Strings.Sniff_SwFileNotFound,
+        0x6A83 => Strings.Sniff_SwRecordNotFound,
+        0x6A86 => Strings.Sniff_SwBadP1P2,
+        0x6D00 => Strings.Sniff_SwInsUnsupported,
+        0x6E00 => Strings.Sniff_SwClaUnsupported,
+        _ when sw1 == 0x61 => string.Format(Strings.Sniff_SwBytesAvailable, sw2),
+        _ when sw1 == 0x6C => string.Format(Strings.Sniff_SwWrongLe, sw2),
+        _ when sw1 == 0x91 => Strings.Sniff_SwDesfire,
         _ => null,
     };
 

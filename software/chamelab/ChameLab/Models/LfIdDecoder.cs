@@ -2,6 +2,7 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -22,7 +23,7 @@ public static class LfIdDecoder
         {
             TagSpecificType.HidProx => DecodeHidProx(id),
             TagSpecificType.IoProx => DecodeIoProx(id),
-            TagSpecificType.Pac => new[] { ("Card ID (text)", System.Text.Encoding.ASCII.GetString(id)) },
+            TagSpecificType.Pac => new[] { (Strings.Lf_CardIdText, System.Text.Encoding.ASCII.GetString(id)) },
             TagSpecificType.FarpointePyramid => DecodePyramid(id),
             _ => Array.Empty<(string, string)>(),
         };
@@ -36,10 +37,10 @@ public static class LfIdDecoder
         var cn = ((ulong)id[5] << 32) | BinaryPrimitives.ReadUInt32BigEndian(id[6..]);
         var il = id[10];
         var oem = BinaryPrimitives.ReadUInt16BigEndian(id[11..]);
-        var fields = new List<(string, string)> { ("Card number", cn.ToString()), ("Facility code", fc.ToString()) };
-        if (il != 0) fields.Add(("Issue level", il.ToString()));
+        var fields = new List<(string, string)> { (Strings.Lf_CardNumber, cn.ToString()), (Strings.Lf_FacilityCode, fc.ToString()) };
+        if (il != 0) fields.Add((Strings.Lf_IssueLevel, il.ToString()));
         if (oem != 0) fields.Add(("OEM", oem.ToString()));
-        fields.Add(("Format", format.ToString()));
+        fields.Add((Strings.Lf_Format, format.ToString()));
         return fields;
     }
 
@@ -48,18 +49,18 @@ public static class LfIdDecoder
         // >B B H 8s B B B B : version, facility, card number, raw8, padding (16 bytes).
         return new[]
         {
-            ("Card number", BinaryPrimitives.ReadUInt16BigEndian(id[2..]).ToString()),
-            ("Facility code", id[1].ToString()),
-            ("Version", id[0].ToString()),
+            (Strings.Lf_CardNumber, BinaryPrimitives.ReadUInt16BigEndian(id[2..]).ToString()),
+            (Strings.Lf_FacilityCode, id[1].ToString()),
+            (Strings.Sniff_Version, id[0].ToString()),
         };
     }
 
     private static List<(string, string)> DecodePyramid(ReadOnlySpan<byte> id)
     {
         var (format, fc, cn) = PyramidFrame.Decode(id);
-        var fields = new List<(string, string)> { ("Card number", cn.ToString()) };
-        if (fc is { } facility) fields.Add(("Facility code", facility.ToString()));
-        fields.Add(("Format", $"{format}-bit"));
+        var fields = new List<(string, string)> { (Strings.Lf_CardNumber, cn.ToString()) };
+        if (fc is { } facility) fields.Add((Strings.Lf_FacilityCode, facility.ToString()));
+        fields.Add((Strings.Lf_Format, string.Format(Strings.Lf_Bits, format)));
         return fields;
     }
 }

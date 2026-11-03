@@ -10,6 +10,7 @@ using Plugin.BLE;
 using Plugin.BLE.Abstractions;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
+using ChameLab.Localization;
 
 namespace ChameLab.Mobile;
 
@@ -54,7 +55,7 @@ public sealed class BleDfuLocator : IDfuLocator
         public async Task<IDfuChannel?> TryOpenAsync(CancellationToken ct)
         {
             var ble = CrossBluetoothLE.Current;
-            if (!ble.IsAvailable || !ble.IsOn) throw new InvalidOperationException("Bluetooth is off.");
+            if (!ble.IsAvailable || !ble.IsOn) throw new InvalidOperationException(Strings.Ble_Off);
             var adapter = ble.Adapter;
 
             // The adapter runs one scan at a time (a Rescan on the Connect page, say).
@@ -161,11 +162,11 @@ public sealed class BleDfuChannel : IDfuChannel
             catch { /* stay at the default 23-byte MTU */ }
 
             var service = await device.GetServiceAsync(SecureDfuService.Service, ct)
-                ?? throw new InvalidOperationException("The bootloader has no Secure DFU service.");
+                ?? throw new InvalidOperationException(Strings.Dfu_NoService);
             channel._control = await service.GetCharacteristicAsync(SecureDfuService.ControlPoint, ct)
-                ?? throw new InvalidOperationException("The DFU control point is missing.");
+                ?? throw new InvalidOperationException(Strings.Dfu_NoControlPoint);
             channel._packet = await service.GetCharacteristicAsync(SecureDfuService.Packet, ct)
-                ?? throw new InvalidOperationException("The DFU packet characteristic is missing.");
+                ?? throw new InvalidOperationException(Strings.Dfu_NoPacketChar);
             channel._control.WriteType = CharacteristicWriteType.WithResponse;
             channel._packet.WriteType = CharacteristicWriteType.WithoutResponse;
 
@@ -221,7 +222,7 @@ public sealed class BleDfuChannel : IDfuChannel
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            throw new TimeoutException("The bootloader stopped answering.");
+            throw new TimeoutException(Strings.Dfu_Stopped);
         }
     }
 

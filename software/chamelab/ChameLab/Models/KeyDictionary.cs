@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -44,7 +45,7 @@ public sealed class KeyDictionary
 
     public static KeyDictionary FromJson(JsonNode node)
     {
-        if (node is not JsonObject o) throw new FormatException("A dictionary must be a JSON object.");
+        if (node is not JsonObject o) throw new FormatException(Strings.Import_DictNotObject);
         var dict = new KeyDictionary
         {
             Id = (string?)o["id"] ?? Guid.NewGuid().ToString(),
@@ -62,7 +63,7 @@ public sealed class KeyDictionary
     }
 
     public static KeyDictionary FromJson(string json) =>
-        FromJson(JsonNode.Parse(json) ?? throw new FormatException("Empty JSON document."));
+        FromJson(JsonNode.Parse(json) ?? throw new FormatException(Strings.Import_EmptyJson));
 
     // ---- Plain text (.dic) --------------------------------------------
 
@@ -107,7 +108,7 @@ public sealed class KeyDictionary
             var line = raw.Trim();
             if (line.Length == 0 || line.StartsWith('#')) continue;
             if (!Hex.TryParse(line, out var key) || key.Length != 6)
-                throw new FormatException($"Line {lineNo}: “{line}” is not a 12-digit hex key.");
+                throw new FormatException(string.Format(Strings.Import_BadKeyLine, lineNo, line));
             if (seen.Add(Convert.ToHexString(key))) keys.Add(key);
             else duplicates++;
         }

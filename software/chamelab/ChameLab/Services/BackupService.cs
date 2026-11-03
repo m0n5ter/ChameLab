@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ChameLab.Models;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -34,9 +35,9 @@ public static class BackupService
     {
         var text = Encoding.UTF8.GetString(data).TrimStart('﻿');
         if (JsonNode.Parse(text) is not JsonObject o)
-            throw new FormatException("Not a valid backup file.");
+            throw new FormatException(Strings.Backup_Invalid);
         if ((string?)o["format"] != FormatTag)
-            throw new FormatException("This is not a ChameLab backup.");
+            throw new FormatException(Strings.Backup_NotChameLab);
 
         var importedCards = o["cards"] is JsonArray ca
             ? ca.Where(n => n is not null).Select(n => CardSave.FromJson(n!)).ToList()

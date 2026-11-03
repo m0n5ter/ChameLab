@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -24,7 +25,7 @@ public static class StorageService
 
     private static IStorageProvider Provider =>
         TopLevelAccessor?.Invoke()?.StorageProvider
-        ?? throw new InvalidOperationException("No window is available for file access.");
+        ?? throw new InvalidOperationException(Strings.Storage_NoWindow);
 
     /// <summary>Shows an open dialog and returns the chosen file's bytes, or null if canceled.</summary>
     public static async Task<PickedFile?> OpenAsync(string title, params string[] extensions)

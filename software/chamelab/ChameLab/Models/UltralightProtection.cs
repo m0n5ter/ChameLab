@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ChameLab.Protocol;
+using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
@@ -41,9 +42,9 @@ public sealed record UltralightProtection(byte Auth0, bool ReadProtected, int Au
 
     /// <summary>One short line on what the settings do, e.g. "Pages 4+ need the password to read and write".</summary>
     public string Summary(TagSpecificType tag) =>
-        !IsEnabled(tag) ? "No page is protected."
-        : $"Pages {Auth0}+ need the password to {(ReadProtected ? "read and write" : "write")}"
-          + (AuthLimit == 0 ? "." : $"; {Attempts(tag, AuthLimit)} wrong tries lock the card.");
+        !IsEnabled(tag) ? Strings.Protection_NoPage
+        : string.Format(ReadProtected ? Strings.Protection_SummaryReadWrite : Strings.Protection_SummaryWrite, Auth0)
+          + (AuthLimit == 0 ? "." : Loc.Plural(Strings.Plural_WrongTriesLock, Attempts(tag, AuthLimit)));
 
     /// <summary>Wrong passwords an AUTHLIM allows: the value itself on Ultralight EV1, 2^AUTHLIM on NTAG21x.</summary>
     public static int Attempts(TagSpecificType tag, int authLimit) =>

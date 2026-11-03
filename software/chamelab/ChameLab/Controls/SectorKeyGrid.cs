@@ -14,6 +14,7 @@ using Avalonia.Media.Immutable;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Threading;
 using ChameLab.Models;
+using ChameLab.Localization;
 
 namespace ChameLab.Controls;
 
@@ -576,22 +577,22 @@ public class SectorKeyGrid : Control
 
         public SectorTip()
         {
-            Add(0, "Sector", _sector);
-            Add(1, "Blocks", _blocks);
-            Add(2, "Key A", _keyA);
-            Add(3, "Key B", _keyB);
-            _writeLabel = Add(4, "Write", _write);
+            Add(0, Strings.Grid_Sector, _sector);
+            Add(1, Strings.Grid_Blocks, _blocks);
+            Add(2, Strings.Common_KeyA, _keyA);
+            Add(3, Strings.Common_KeyB, _keyB);
+            _writeLabel = Add(4, Strings.Cards_Write, _write);
         }
 
         public void Show(ISectorKeys s, bool isWrite)
         {
             _sector.Text = s.Sector.ToString(CultureInfo.InvariantCulture);
-            _blocks.Text = $"{s.FirstBlock}–{s.LastBlock}" + (s.IsRead ? " (read)" : string.Empty);
+            _blocks.Text = $"{s.FirstBlock}–{s.LastBlock}" + (s.IsRead ? Strings.Grid_Read : string.Empty);
             Key(_keyA, s.KeyAState, s.KeyAText);
             Key(_keyB, s.KeyBState, s.KeyBText);
             var write = s as ISectorWriteProgress;
             _write.IsVisible = _writeLabel.IsVisible = isWrite && write is not null;
-            _write.Text = write?.WriteState == SectorWriteState.None ? "No blocks selected" : write?.WriteText;
+            _write.Text = write?.WriteState == SectorWriteState.None ? Strings.Grid_NoBlocksSelected : write?.WriteText;
         }
 
         private static void Key(TextBlock t, KeyCellState state, string text)

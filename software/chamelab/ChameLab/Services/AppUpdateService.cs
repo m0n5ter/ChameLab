@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -44,14 +45,14 @@ public static partial class AppUpdateService
         request.Headers.Accept.ParseAdd("application/vnd.github+json");
         using var response = await Http.SendAsync(request, ct);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            throw new InvalidOperationException("No version has been released yet.");
+            throw new InvalidOperationException(Strings.Update_NoRelease);
         response.EnsureSuccessStatusCode();
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
         var root = doc.RootElement;
 
         var tag = root.GetProperty("tag_name").GetString() ?? "";
         if (!TryParse(tag, out var version))
-            throw new InvalidOperationException($"Release {tag} is not tagged with a version.");
+            throw new InvalidOperationException(string.Format(Strings.Update_ReleaseNoVersion, tag));
 
         return new AppRelease(
             version, tag,

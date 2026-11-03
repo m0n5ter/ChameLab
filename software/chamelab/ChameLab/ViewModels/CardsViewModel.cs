@@ -13,6 +13,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -28,11 +29,11 @@ public static class CardSortExtensions
 {
     public static string Label(this CardSort s) => s switch
     {
-        CardSort.Name => "Name A–Z",
-        CardSort.NameDesc => "Name Z–A",
-        CardSort.Type => "Type ↑",
-        CardSort.TypeDesc => "Type ↓",
-        _ => "Manual",
+        CardSort.Name => Strings.Common_SortNameAz,
+        CardSort.NameDesc => Strings.Common_SortNameZa,
+        CardSort.Type => Strings.Cards_SortTypeUp,
+        CardSort.TypeDesc => Strings.Cards_SortTypeDown,
+        _ => Strings.Common_SortManual,
     };
 }
 
@@ -43,7 +44,7 @@ public enum CardBand { All, Hf, Lf }
 public sealed record CardTypeOption(TagSpecificType? Tag)
 {
     public static readonly CardTypeOption Any = new((TagSpecificType?)null);
-    public string Label => Tag?.DisplayName() ?? "All types";
+    public string Label => Tag?.DisplayName() ?? Strings.Cards_AllTypes;
 }
 
 /// <summary>Which action panel is open under a saved card.</summary>
@@ -124,7 +125,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public override double MinContentWidth => 954;
 
     public CardsViewModel(DeviceService device, CardLibrary library, DictionaryLibrary dictionaries)
-        : base("Cards", "cards")
+        : base(Strings.Nav_Cards, "cards")
     {
         _device = device;
         _library = library;
@@ -273,7 +274,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         get
         {
             var count = _library.Cards.Count(InView);
-            return count == 1 ? "1 card" : $"{count} cards";
+            return Loc.Plural(Strings.Plural_Cards, count);
         }
     }
 
@@ -281,7 +282,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private bool InView(CardSave card) => card.Folder == (_folder ?? string.Empty);
 
     /// <summary>The page title: the open folder, or Cards for the cards in no folder.</summary>
-    public string ListTitle => _folder ?? "Cards";
+    public string ListTitle => _folder ?? Strings.Nav_Cards;
     public bool CanUseFiles => StorageService.IsAvailable;
 
     public string? Filter
@@ -505,8 +506,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool IsAsking => IsConfirmingLeave || IsConfirmingDelete || IsAskingSlotUpdate;
 
     public string LeaveText => _pane == CardsPane.Add
-        ? "Save the new card before leaving?"
-        : $"Save changes to “{_selected?.Name}”?";
+        ? Strings.Cards_SaveNewBeforeLeaving
+        : string.Format(Strings.Common_SaveChangesTo, _selected?.Name);
 
     public ICommand SaveAndLeaveCommand { get; }
     public ICommand DiscardAndLeaveCommand { get; }
@@ -689,7 +690,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public bool HasDumpKeyProgress => _dumpKeyTotal > 0;
 
-    public string DumpKeyProgressTip => $"{_dumpKeyTried} of {_dumpKeyTotal} keys tried";
+    public string DumpKeyProgressTip => string.Format(Strings.Common_KeysTriedOf, _dumpKeyTried, _dumpKeyTotal);
 
     private void SetDumpKeyProgress(int tried, int total)
     {
@@ -724,8 +725,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             SetDumpKeyProgress(0, 0);
             var sector = MifareClassic.SectorOfBlock(p.First);
-            DumpProgressText = p.Count == 1 ? "Reading card…" : "Preparing sector…";
-            DumpProgressDetail = $"Sector {sector} · block {p.First}";
+            DumpProgressText = p.Count == 1 ? Strings.Cards_ReadingCard : Strings.Cards_PreparingSector;
+            DumpProgressDetail = string.Format(Strings.Cards_SectorBlock, sector, p.First);
         }
         RefreshDumpReadState();
     }
@@ -744,17 +745,17 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var key = p.KeyType == MfKeyType.A ? "A" : "B";
         var detail = p.Phase switch
         {
-            MifareKeyPhase.Found => $"found after {p.Tried} key checks",
-            MifareKeyPhase.NotFound => $"not found · {p.Tried}/{p.Total} keys checked",
-            _ => $"checking key {Math.Min(p.Tried + 1, p.Total)}/{p.Total}",
+            MifareKeyPhase.Found => string.Format(Strings.Cards_FoundAfterChecks, p.Tried),
+            MifareKeyPhase.NotFound => string.Format(Strings.Cards_NotFoundChecked, p.Tried, p.Total),
+            _ => string.Format(Strings.Cards_CheckingKey, Math.Min(p.Tried + 1, p.Total), p.Total),
         };
         DumpProgressText = p.Phase switch
         {
-            MifareKeyPhase.Found => "Dictionary key found.",
-            MifareKeyPhase.NotFound => "Dictionary key not found.",
-            _ => "Checking dictionary keys…",
+            MifareKeyPhase.Found => Strings.Common_DictKeyFound,
+            MifareKeyPhase.NotFound => Strings.Common_DictKeyNotFound,
+            _ => Strings.Common_CheckingDictKeys,
         };
-        DumpProgressDetail = $"Sector {p.Sector} · block {MifareClassic.SectorTrailerBlock(p.Sector)} · key {key} · {detail}";
+        DumpProgressDetail = string.Format(Strings.Cards_SectorBlockKeyDetail, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector), key, detail);
         IsDumpProgressSuccess = p.Phase == MifareKeyPhase.Found;
         IsDumpProgressError = p.Phase == MifareKeyPhase.NotFound;
         SetDumpKeyProgress(p.Tried, p.Total);
@@ -899,12 +900,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (_rebuilding || value is null || _selected is not { } s || s.Card.Folder == value.Name) return;
             SetFolder(value.Name.Length == 0 ? null : value.Name);
             _library.MoveToFolder(s.Card, value.Name);
-            Notify(value.Name.Length == 0 ? $"Moved “{s.Name}” out of its folder." : $"Moved “{s.Name}” to {value.Name}.");
+            Notify(value.Name.Length == 0 ? string.Format(Strings.Cards_MovedOutOfFolder, s.Name) : string.Format(Strings.Cards_MovedToFolder, s.Name, value.Name));
         }
     }
 
     /// <summary>Label of the open card's folder button.</summary>
-    public string CardFolderLabel => _selected is { Card.Folder: { Length: > 0 } folder } ? folder : "Folder";
+    public string CardFolderLabel => _selected is { Card.Folder: { Length: > 0 } folder } ? folder : Strings.Cards_Folder;
 
     /// <summary>Shows the cards of a folder, or all of them for null.</summary>
     public void ShowFolder(CardFolderViewModel? folder)
@@ -978,8 +979,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private CardFolderViewModel? AddFolder()
     {
-        var name = "New folder";
-        for (var n = 2; _library.FindFolder(name) is not null; n++) name = $"New folder {n}";
+        var name = Strings.Common_NewFolder;
+        for (var n = 2; _library.FindFolder(name) is not null; n++) name = string.Format(Strings.Cards_NewFolderN, n);
         return _library.AddFolder(name) ? Folders.FirstOrDefault(f => f.Name == name) : null;
     }
 
@@ -1006,7 +1007,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (name.Length == 0 || name == old) return;
         if (_library.FindFolder(name) is { } taken && taken != old)
         {
-            ReportError($"There is already a folder named “{taken}”.");
+            ReportError(string.Format(Strings.Cards_FolderExists, taken));
             return;
         }
         // Renamed in place first, so the row (and the selection on it) is kept.
@@ -1066,9 +1067,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _library.RemoveFolder(folder.Name);
         Notify(count switch
         {
-            0 => $"Deleted the folder {folder.Name}.",
-            1 => $"Deleted the folder {folder.Name}; its card is still in Cards.",
-            _ => $"Deleted the folder {folder.Name}; its {count} cards are still in Cards.",
+            0 => string.Format(Strings.Cards_DeletedFolder, folder.Name),
+            _ => Loc.Plural(Strings.Plural_DeletedFolderCards, count, folder.Name),
         });
     }
 
@@ -1078,11 +1078,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// </summary>
     private void MoveCard(CardSave card, string folder)
     {
-        var name = card.Name.Length == 0 ? "No name" : card.Name;
+        var name = card.Name.Length == 0 ? Strings.Common_NoName : card.Name;
         void Move()
         {
             _library.MoveToFolder(card, folder);
-            Notify(folder.Length == 0 ? $"Moved “{name}” out of its folder." : $"Moved “{name}” to {folder}.");
+            Notify(folder.Length == 0 ? string.Format(Strings.Cards_MovedOutOfFolder, name) : string.Format(Strings.Cards_MovedToFolder, name, folder));
         }
         if (folder != (_folder ?? string.Empty) && _selected?.Card.Id == card.Id) LeaveThen(Move);
         else Move();
@@ -1221,8 +1221,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     public string DumpHint => _isUltralightDump
-        ? "Keep the card on the reader. The password is sent once, only if the card needs it; wrong ones count towards its lock limit (AUTHLIM)."
-        : "Keep the card on the reader and read every block with the selected key dictionaries.";
+        ? Strings.Cards_DumpUlHint
+        : Strings.Cards_DumpClassicHint;
 
     /// <summary>
     /// Optional key for the protected pages of an Ultralight / NTAG dump: the 4-byte PWD
@@ -1242,12 +1242,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Why <see cref="DumpPassword"/> can't be used; null when it is empty or valid.</summary>
     public string? DumpPasswordError =>
         string.IsNullOrWhiteSpace(_dumpPassword) ? null
-        : !Hex.TryParse(_dumpPassword, out var key) ? "Not a hex value."
+        : !Hex.TryParse(_dumpPassword, out var key) ? Strings.Common_NotHex
         : key.Length is 4 or 16 ? null
-        : "4 bytes for NTAG / Ultralight EV1, 16 bytes for Ultralight C.";
+        : Strings.Cards_UlPasswordLength;
 
     /// <summary>What one cell of the block strip is: a MIFARE Classic block or an Ultralight page.</summary>
-    public string DumpUnit => _isUltralightDump ? "Page" : "Block";
+    public string DumpUnit => _isUltralightDump ? Strings.Common_Page : Strings.Common_Block;
 
     /// <summary>A MIFARE Classic or Ultralight card was scanned but its memory has not been dumped yet.</summary>
     public bool NeedsDump => _canDump && !_hasDump;
@@ -1279,7 +1279,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private bool HasMissingKeys => _classicDump is { } d && Enumerable.Range(0, d.SectorCount)
         .Any(s => (d.KeyAUnknown[s] && d.KeyA[s] is null) || (d.KeyBUnknown[s] && d.KeyB[s] is null));
-    public string DumpNotice => "Connect a device to read memory and recover keys.";
+    public string DumpNotice => Strings.Cards_DumpNotice;
 
     private void RaiseDumpToolbar()
     {
@@ -1293,7 +1293,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     /// <summary>Makes it explicit that saving before a dump keeps only the card's identity.</summary>
-    public string AddSaveLabel => NeedsDump ? "Save UID only" : "Save card";
+    public string AddSaveLabel => NeedsDump ? Strings.Cards_SaveUidOnly : Strings.Slots_SaveCard;
 
     private void RaiseSaveLabel()
     {
@@ -1433,7 +1433,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (_device.Client is not { } client) return;
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
-        DumpProgressText = "Checking recovery methods…";
+        DumpProgressText = Strings.Common_CheckingRecoveryMethods;
         try { await ProbeRecoveryAsync(client, cts.Token); }
         catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
         finally
@@ -1449,7 +1449,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         await client.SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count == 0 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
-            throw new InvalidOperationException("Place the selected card on the reader before continuing.");
+            throw new InvalidOperationException(Strings.Cards_PlaceSelectedCard);
         var prng = await client.DetectNtLevelAsync(ct);
         var darkside = false;
         if (prng != MifareClassicPrngType.Static)
@@ -1497,8 +1497,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private bool _scanMatchesByDump;
 
     public string ScanMatchText => _scanMatchesByDump
-        ? "A saved card has the same memory as this dump. Open it, or keep going to save the dump again."
-        : "This tag is already in your library. Open the saved card, or keep going to save it again.";
+        ? Strings.Cards_DumpAlreadySaved
+        : Strings.Cards_TagAlreadySaved;
 
     private void SetScanMatches(CardSave? scanned)
     {
@@ -1559,10 +1559,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _isManual = true;
         // Starts as a MIFARE Classic 1K with its usual SAK / ATQA; changing the type adapts them.
         // Its memory is that of a factory-blank card of the type, all of it known.
-        var card = new CardSave { Name = "New card", Tag = TagSpecificType.Mifare1024 };
+        var card = new CardSave { Name = Strings.Cards_NewCard, Tag = TagSpecificType.Mifare1024 };
         if (card.Tag.DefaultSakAtqa(sevenByteUid: false) is { } id) { card.Sak = id.Sak; card.Atqa = id.Atqa; }
         Form = new CardEditorViewModel(card, blankMemory: true);
-        FormSource = "Manual entry";
+        FormSource = Strings.Cards_ManualEntry;
     }
 
     private Task ScanHfAsync() => RunAsync(async () =>
@@ -1587,7 +1587,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             ResetAddState();
             if (tags.Count == 0)
             {
-                ScanMissText = "No HF (13.56 MHz) tag detected.";
+                ScanMissText = Strings.Cards_NoHfTag;
                 Form = null;
                 return;
             }
@@ -1597,10 +1597,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             _scannedAts = card.Ats;
             Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
-            FormSource = $"{card.Tag.DisplayName()}, UID {t.UidHex}";
+            FormSource = string.Format(Strings.Cards_SourceTypeUid, card.Tag.DisplayName(), t.UidHex);
         });
 
-        Notify($"Found {tags.Count} HF tag(s).");
+        Notify(Loc.Plural(Strings.Plural_FoundHfTags, tags.Count));
     });
 
     private Task ScanLfAsync() => RunAsync(async () =>
@@ -1616,12 +1616,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 ResetAddState();
-                FormSource = $"{tag.Type.DisplayName()} tag";
+                FormSource = string.Format(Strings.Cards_SourceTag, tag.Type.DisplayName());
                 var card = CardFormats.FromEm410x(tag);
                 Form = new CardEditorViewModel(card, sameFrequency: true);
                 SetScanMatches(card);
             });
-            Notify("EM410x tag read.");
+            Notify(Strings.Cards_Em410xRead);
             return;
         }
 
@@ -1630,7 +1630,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             ResetAddState();
-            FormSource = $"{result.Type.DisplayName()} tag";
+            FormSource = string.Format(Strings.Cards_SourceTag, result.Type.DisplayName());
             var card = new CardSave
             {
                 Name = $"{result.Type.DisplayName()} {result.IdHex}",
@@ -1640,7 +1640,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
         });
-        Notify($"{LfProtocol.DisplayName()} tag read.");
+        Notify(string.Format(Strings.Cards_LfTagRead, LfProtocol.DisplayName()));
     });
 
     // Buzzes when a scan or dump fails outright (no tag, card lost); a cancel stays quiet.
@@ -1666,7 +1666,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             // The normal continuation reader deliberately skips blocks already present.
             if ((IsDumpComplete || HasMissingKeys) && _classicDump is { } complete && HasUnknownKeys)
             {
-                DumpProgressText = "Checking dictionary keys…";
+                DumpProgressText = Strings.Common_CheckingDictKeys;
                 var progress = new PostedProgress<MifareKeyProgress>(IfKept<MifareKeyProgress>(cts, OnDumpKey));
                 await client.FindMifareKeysAsync(complete, keys, progress, cts.Token);
             }
@@ -1687,7 +1687,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (client is null || _classicDump is not { } dump) return;
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
-        DumpProgressText = "Starting recovery…";
+        DumpProgressText = Strings.Common_StartingRecovery;
         try
         {
             var recovery = new MifareKeyRecovery(client, AppServices.Hardnested, _dictionaries.KnownKeys);
@@ -1725,7 +1725,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         DumpProgressText = p.Status;
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
-        DumpProgressDetail = $"Sector {p.Sector} · block {MifareClassic.SectorTrailerBlock(p.Sector)} · key {(p.KeyType == MfKeyType.A ? "A" : "B")}";
+        DumpProgressDetail = string.Format(Strings.Cards_SectorBlockKey, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector), (p.KeyType == MfKeyType.A ? "A" : "B"));
         if (p.Detail is { } detail) DumpProgressDetail += $" · {detail}";
         IsDumpProgressSuccess = p.Mark == KeyMark.Found;
         IsDumpProgressError = p.Mark == KeyMark.None;
@@ -1759,7 +1759,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             DumpStats.Clear();
             HasDumpStats = false;
-            DumpProgressText = _mfkey32Running ? "Reading card…" : "Starting…";
+            DumpProgressText = _mfkey32Running ? Strings.Cards_ReadingCard : Strings.Common_Starting;
         });
 
         var clock = System.Diagnostics.Stopwatch.StartNew();
@@ -1798,8 +1798,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 RaiseSaveLabel();
             });
             Notify(stopped
-                ? $"Dump stopped. Kept {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}."
-                : $"Read {ReadSectorCount(dump)}/{dump.SectorCount} sectors from {dump.UidHex}.");
+                ? string.Format(Strings.Cards_DumpStoppedKept, ReadSectorCount(dump), dump.SectorCount, dump.UidHex)
+                : string.Format(Strings.Cards_ReadSectorsFrom, ReadSectorCount(dump), dump.SectorCount, dump.UidHex));
         }
         finally
         {
@@ -1820,13 +1820,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
         var progress = new Progress<MifareProgress>(IfKept<MifareProgress>(cts, p =>
-            DumpProgressText = $"Page {p.Done}/{p.Total}"));
+            DumpProgressText = string.Format(Strings.Cards_PageProgress, p.Done, p.Total)));
         var pageProgress = new Progress<MifareBlockProgress>(IfKept<MifareBlockProgress>(cts, OnDumpBlocks));
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             DumpStats.Clear();
             HasDumpStats = false;
-            DumpProgressText = "Starting…";
+            DumpProgressText = Strings.Common_Starting;
         });
         var clock = System.Diagnostics.Stopwatch.StartNew();
         try
@@ -1838,7 +1838,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 await client.SetDeviceModeAsync(DeviceMode.Reader, cts.Token);
                 var tags = await client.Hf14aScanAsync(cts.Token);
                 if (tags.Count == 0 || !previous.Uid.AsSpan().SequenceEqual(tags[0].Uid))
-                    throw new InvalidOperationException("Place the selected card on the reader before continuing.");
+                    throw new InvalidOperationException(Strings.Cards_PlaceSelectedCard);
             }
             var result = await WithMissFeedback(client.DumpUltralightAsync(key, progress, cts.Token, pageProgress,
                 _dictionaries.KnownKeys.PasswordForUid));
@@ -1869,17 +1869,17 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 if (Form is { } form) form.ReplaceContent(result.Card);
                 else Form = new CardEditorViewModel(result.Card, sameFrequency: true);
                 _applyingDump = false;
-                FormSource = $"{result.Card.Tag.DisplayName()}, UID {Hex.Compact(result.Card.Uid)}";
+                FormSource = string.Format(Strings.Cards_SourceTypeUid, result.Card.Tag.DisplayName(), Hex.Compact(result.Card.Uid));
                 IsDumpComplete = result.PagesRead == result.PageCount;
                 SetScanMatches(result.Card);
                 _hasDump = true;
                 RaiseSaveLabel();
             });
-            Notify($"Read {result.PagesRead}/{result.PageCount} pages from {Hex.Compact(result.Card.Uid)}.");
+            Notify(string.Format(Strings.Cards_ReadPagesFrom, result.PagesRead, result.PageCount, Hex.Compact(result.Card.Uid)));
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            Notify("Dump canceled.");
+            Notify(Strings.Cards_DumpCanceled);
             Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () =>
                 SetDumpBlocks(0, _dumpBlockStates.Count, MifareBlockState.Pending, onlyFrom: MifareBlockState.Reading)));
         }
@@ -1896,25 +1896,25 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var pct = r.PageCount == 0 ? 0 : 100.0 * r.PagesRead / r.PageCount;
         var rows = new List<ScanResultRow>
         {
-            new("Model", r.Card.Tag.DisplayName()),
-            new("Pages read", $"{r.PagesRead} / {r.PageCount} ({pct:0}%)"),
+            new(Strings.Cards_Model, r.Card.Tag.DisplayName()),
+            new(Strings.Cards_PagesRead, $"{r.PagesRead} / {r.PageCount} ({pct:0}%)"),
         };
         if (r.KeyAccepted is { } accepted)
-            rows.Add(new(r.Card.Tag == TagSpecificType.Mf0Icu2 ? "3DES key" : "Password", accepted
-                ? (r.KnownKeyUsed ? $"remembered {Hex.Spaced(r.Pwd ?? [])} accepted" : "accepted")
+            rows.Add(new(r.Card.Tag == TagSpecificType.Mf0Icu2 ? Strings.Cards_3DesKey : Strings.Cards_Password, accepted
+                ? (r.KnownKeyUsed ? string.Format(Strings.Cards_RememberedAccepted, Hex.Spaced(r.Pwd ?? [])) : "accepted")
                     + (r.Pack is { } pack ? $" · PACK {Hex.Spaced(pack)}" : "")
-                : r.KnownKeyUsed ? "the remembered password was not accepted; protected pages were left unread"
-                : "not accepted; protected pages were left unread"));
+                : r.KnownKeyUsed ? Strings.Cards_RememberedRejected
+                : Strings.Cards_PasswordRejected));
         else if (r.KeyNotNeeded)
-            rows.Add(new("Password", "not sent; the card doesn't need it"));
+            rows.Add(new(Strings.Cards_Password, Strings.Cards_PasswordNotSent));
         if (r.LockedFrom is { } locked)
             rows.Add(r.CardLost
-                ? new("Stopped", $"the card stopped answering at page {locked}")
-                : new("Protected", locked == r.PageCount - 1 ? $"page {locked}" : $"pages {locked}–{r.PageCount - 1}"));
-        if (extra.UltralightSignature.Length > 0) rows.Add(new("Signature", Hex.Compact(extra.UltralightSignature)));
+                ? new(Strings.Cards_Stopped, string.Format(Strings.Cards_StoppedAtPage, locked))
+                : new(Strings.Cards_Protected, locked == r.PageCount - 1 ? string.Format(Strings.Cards_PageN, locked) : string.Format(Strings.Cards_PagesRange, locked, r.PageCount - 1)));
+        if (extra.UltralightSignature.Length > 0) rows.Add(new(Strings.Cards_Signature, Hex.Compact(extra.UltralightSignature)));
         if (extra.UltralightCounters.Count > 0)
-            rows.Add(new(extra.UltralightCounters.Count == 1 ? "Counter" : "Counters", string.Join(", ", extra.UltralightCounters)));
-        rows.Add(new("Time", $"{elapsed.TotalSeconds:0.0} s"));
+            rows.Add(new(extra.UltralightCounters.Count == 1 ? Strings.Cards_Counter : Strings.Cards_Counters, string.Join(", ", extra.UltralightCounters)));
+        rows.Add(new(Strings.Cards_Time, $"{elapsed.TotalSeconds:0.0} s"));
         return rows;
     }
 
@@ -1930,7 +1930,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
         if (_dumpCts is not { } cts) return;
         try { cts.Cancel(); } catch (ObjectDisposedException) { /* already finished */ }
-        DumpProgressText = "Stopping…";
+        DumpProgressText = Strings.Common_Stopping;
     }
 
     // ---- Dump statistics -------------------------------------------------
@@ -1955,8 +1955,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var read = ReadSectorCount(dump);
         return new List<ScanResultRow>
         {
-            new("Sectors read", $"{read} / {dump.SectorCount}"),
-            new("Time", $"{elapsed.TotalSeconds:0.0} s"),
+            new(Strings.Cards_SectorsRead, $"{read} / {dump.SectorCount}"),
+            new(Strings.Cards_Time, $"{elapsed.TotalSeconds:0.0} s"),
         };
     }
 
@@ -1968,13 +1968,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void RememberCardKeys(MifareDump dump)
     {
         try { _dictionaries.KnownKeys.Remember(dump.Uid, dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()); }
-        catch (Exception ex) { ReportError($"Could not save known card keys: {ex.Message}"); }
+        catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSaveKnownKeys, ex.Message)); }
     }
 
     private void RememberCardPassword(byte[] uid, byte[] pwd)
     {
         try { _dictionaries.KnownKeys.RememberPassword(uid, pwd); }
-        catch (Exception ex) { ReportError($"Could not save the card's password: {ex.Message}"); }
+        catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSavePassword, ex.Message)); }
     }
 
     /// <summary>Unique keys across the checked sources: what a dump will try per sector and key type.</summary>
@@ -1990,9 +1990,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public string DumpKeyCountText => DumpKeyCount switch
     {
-        0 => "No keys selected",
-        1 => "1 unique key",
-        var n => $"{n} unique keys",
+        0 => Strings.Cards_NoKeysSelected,
+        var n => Loc.Plural(Strings.Plural_UniqueKeys, n),
     };
 
     /// <summary>Rebuilds the source list from the dictionary library, keeping earlier unchecks.</summary>
@@ -2001,9 +2000,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Clear();
         DumpKeySources.Add(NewKeySource(KnownCardKeys.Id, KnownCardKeys.Name,
             _classicDump is { } dump ? _dictionaries.KnownKeys.ForUid(dump.Uid) : Array.Empty<byte[]>()));
-        DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, "Built-in keys", MifareClassic.DefaultKeys));
+        DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, Strings.Common_BuiltInKeys, MifareClassic.DefaultKeys));
         foreach (var d in _dictionaries.Dictionaries)
-            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? "Untitled" : d.Name, d.Keys));
+            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.Keys));
         WriteRecovery.SetKeySources(DumpKeySources);
         UpdateDumpKeyCount();
     }
@@ -2048,13 +2047,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private Task ImportAsync() => RunAsync(async () =>
     {
-        var picked = await StorageService.OpenAsync("Import card", CardFormats.ImportExtensions);
+        var picked = await StorageService.OpenAsync(Strings.Cards_ImportCardTitle, CardFormats.ImportExtensions);
         if (picked is not { } file) return;
 
         IReadOnlyList<CardSave> cards;
         try { cards = CardFormats.Import(file.Name, file.Data); }
-        catch (Exception ex) { throw new FormatException($"{file.Name}: unsupported or damaged file ({ex.Message})."); }
-        if (cards.Count == 0) throw new FormatException($"{file.Name} contains no cards.");
+        catch (Exception ex) { throw new FormatException(string.Format(Strings.Cards_UnsupportedFile, file.Name, ex.Message)); }
+        if (cards.Count == 0) throw new FormatException(string.Format(Strings.Cards_FileHasNoCards, file.Name));
 
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
@@ -2063,7 +2062,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 // A single card is reviewed (name, color, identity) before it is saved.
                 ResetAddState();
                 Form = new CardEditorViewModel(cards[0]);
-                FormSource = $"Imported from {file.Name}";
+                FormSource = string.Format(Strings.Common_ImportedFrom, file.Name);
                 return;
             }
             // A whole library export goes straight in (the open folder takes cards that have none).
@@ -2071,7 +2070,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 foreach (var card in cards.Where(c => c.Folder.Length == 0)) card.Folder = _folder;
             _library.AddRange(cards);
             SelectById(cards[^1].Id);
-            Notify($"Imported {cards.Count} cards.");
+            Notify(Loc.Plural(Strings.Plural_ImportedCards, cards.Count));
         });
     });
 
@@ -2093,7 +2092,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (isNew) _library.Add(card); else _library.Update(card);
         }
-        catch (Exception ex) { ReportSaveError($"Could not save: {ex.Message}"); return false; }
+        catch (Exception ex) { ReportSaveError(string.Format(Strings.Common_CouldNotSave, ex.Message)); return false; }
 
         if (isNew)
         {
@@ -2176,8 +2175,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public string SlotUpdateText => _slotUpdate is not { } u
         ? string.Empty
         : u.Slots.Count == 1
-            ? $"“{u.Card.Name}” is loaded in slot {u.Slots[0]}. Update the device?"
-            : $"“{u.Card.Name}” is loaded in slots {string.Join(", ", u.Slots)}. Update the device?";
+            ? string.Format(Strings.Cards_LoadedInSlot, u.Card.Name, u.Slots[0])
+            : string.Format(Strings.Cards_LoadedInSlots, u.Card.Name, string.Join(", ", u.Slots));
 
     public ICommand UpdateSlotsCommand { get; }
     public ICommand SkipSlotUpdateCommand { get; }
@@ -2204,7 +2203,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             foreach (var slot in update.Slots)
             {
                 var progress = new Progress<MifareProgress>(p =>
-                    ProgressText = $"Updating slot {slot}: {p.Done}/{p.Total}…");
+                    ProgressText = string.Format(Strings.Cards_UpdatingSlot, slot, p.Done, p.Total));
                 await client.LoadCardToSlotAsync(update.Card, slot, progress);
             }
             if (active is { } a && a != update.Slots[^1])
@@ -2221,8 +2220,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var slots = await client.GetAllSlotsAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => { _slotInfos = slots; RebuildTargets(); });
         Notify(update.Slots.Count == 1
-            ? $"Updated slot {update.Slots[0]} with “{update.Card.Name}”."
-            : $"Updated slots {string.Join(", ", update.Slots)} with “{update.Card.Name}”.");
+            ? string.Format(Strings.Cards_UpdatedSlot, update.Slots[0], update.Card.Name)
+            : string.Format(Strings.Cards_UpdatedSlots, string.Join(", ", update.Slots), update.Card.Name));
     });
 
     private void Discard()
@@ -2347,11 +2346,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public bool IsWriting => _writeProgressText is not null;
 
-    public string CancelWriteLabel => IsWriting ? "Cancel" : "Close";
+    public string CancelWriteLabel => IsWriting ? Strings.Common_Cancel : Strings.Common_Close;
 
     public string CancelWriteTip => IsWriting
-        ? "Stop the write; blocks already written stay on the card"
-        : "Close the writer";
+        ? Strings.Cards_StopWriteTip
+        : Strings.Cards_CloseWriter;
 
     /// <summary>
     /// Write state of every card block (or Ultralight page), drawn by the writer's block strip;
@@ -2370,7 +2369,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool HasWriteBlocks => IsUltralightWrite && _writeBlockStates.Count > 0;
 
     /// <summary>What one cell of the writer's strip is.</summary>
-    public string WriteUnit => IsUltralightWrite ? "Page" : "Block";
+    public string WriteUnit => IsUltralightWrite ? Strings.Common_Page : Strings.Common_Block;
 
     private void OnWriteBlocks(MifareBlockProgress p)
     {
@@ -2397,7 +2396,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         if (_writeCts is not { } cts) return;
         try { cts.Cancel(); } catch (ObjectDisposedException) { /* already finished */ }
-        WriteProgressText = "Stopping…";
+        WriteProgressText = Strings.Common_Stopping;
     }
 
     /// <summary>Tag type the card actions work on: the open card's, as edited.</summary>
@@ -2462,9 +2461,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Why <see cref="WritePassword"/> can't be used; null when it is empty or valid.</summary>
     public string? WritePasswordError =>
         !IsUltralightWrite || string.IsNullOrWhiteSpace(_writePassword) ? null
-        : !Hex.TryParse(_writePassword, out var key) ? "Not a hex value."
+        : !Hex.TryParse(_writePassword, out var key) ? Strings.Common_NotHex
         : key.Length == 4 ? null
-        : "The password is 4 bytes.";
+        : Strings.Common_Password4Bytes;
 
     /// <summary>Password settings (Ultralight EV1 / NTAG21x) can be put on the target card.</summary>
     public bool CanWriteProtection => IsUltralightWrite && _writeProtection is not null;
@@ -2522,9 +2521,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Why <see cref="WriteLfPassword"/> can't be used; null when it is empty or valid.</summary>
     public string? WriteLfPasswordError =>
         !IsLfWrite || string.IsNullOrWhiteSpace(_writeLfPassword) ? null
-        : !Hex.TryParse(_writeLfPassword, out var key) ? "Not a hex value."
+        : !Hex.TryParse(_writeLfPassword, out var key) ? Strings.Common_NotHex
         : key.Length == 4 ? null
-        : "The password is 4 bytes.";
+        : Strings.Common_Password4Bytes;
 
     /// <summary>
     /// Optional 4-byte password the T55xx tag is locked with after the write (the firmware always
@@ -2543,9 +2542,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Why <see cref="WriteLfNewKey"/> can't be used; null when it is empty or valid.</summary>
     public string? WriteLfNewKeyError =>
         !IsLfWrite || string.IsNullOrWhiteSpace(_writeLfNewKey) ? null
-        : !Hex.TryParse(_writeLfNewKey, out var key) ? "Not a hex value."
+        : !Hex.TryParse(_writeLfNewKey, out var key) ? Strings.Common_NotHex
         : key.Length == 4 ? null
-        : "The password is 4 bytes.";
+        : Strings.Common_Password4Bytes;
 
     /// <summary>Which magic generation the MIFARE write targets.</summary>
     public MagicGeneration SelectedGeneration
@@ -2568,10 +2567,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public string WriteKind => ActionTag switch
     {
         null => string.Empty,
-        { } t when t.IsMifareClassic() => "Write to a magic card",
-        { } t when t.IsUltralight() => "Write pages to an Ultralight / NTAG card",
-        { } t when t.SenseType() == TagSenseType.Lf && t.CanWriteToTag() => "Write to T55xx tag",
-        _ => "This card type cannot be written yet",
+        { } t when t.IsMifareClassic() => Strings.Cards_WriteToMagic,
+        { } t when t.IsUltralight() => Strings.Cards_WriteToUl,
+        { } t when t.SenseType() == TagSenseType.Lf && t.CanWriteToTag() => Strings.Cards_WriteToT55xx,
+        _ => Strings.Cards_CannotWriteType,
     };
 
     public string WriteInstructions => ActionTag switch
@@ -2579,18 +2578,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         { } t when t.IsMifareClassic() => SelectedGeneration switch
         {
             MagicGeneration.Gen1a =>
-                "Place a Gen1a (UID) magic card on the reader. Every block, block 0 included, is written raw with no keys.",
+                Strings.Cards_WriteHintGen1a,
             MagicGeneration.Gen3 =>
-                "Place a Gen3 (APDU) magic card on the reader. Data blocks are written using the source dump's keys or the selected dictionaries; block 0 is set with the Gen3 backdoor command.",
+                Strings.Cards_WriteHintGen3,
             _ =>
                 WriteGen2Block0
-                    ? "Place a Gen2 / CUID magic card on the reader. Every block, block 0 included, is written using the source dump's keys or the selected dictionaries."
-                    : "Place a Gen2 / CUID magic card on the reader. Block 0 is skipped, so the card keeps its UID. Other blocks are written using the source dump's keys or the selected dictionaries.",
+                    ? Strings.Cards_WriteHintGen2
+                    : Strings.Cards_WriteHintGen2KeepUid,
         },
         { } t when t.IsUltralight() =>
-            "Place an Ultralight / NTAG card of the same size or larger on the reader. The user pages are written; the UID, lock bytes and capability container are left as they are, so the card keeps its own UID. The password settings are written only when ticked below.",
+            Strings.Cards_WriteHintUl,
         { } t when t.SenseType() == TagSenseType.Lf =>
-            "Place a blank T55xx tag on the reader. Writing the wrong data can brick a tag, so double-check the card.",
+            Strings.Cards_WriteHintT55xx,
         _ => string.Empty,
     };
 
@@ -2600,8 +2599,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             var gen2 = !IsGen2Write ? null
                 : WriteGen2Block0
-                    ? "WARNING: Incorrect block 0 data or sector access bits can permanently brick the card. Double-check the dump and the target card before writing."
-                    : "WARNING: Incorrect sector access bits can permanently brick the card. Double-check the dump and the target card before writing.";
+                    ? Strings.Cards_WarnBlock0
+                    : Strings.Cards_WarnAccessBits;
             var keys = IsMifareWrite ? _form?.UnknownKeyWarning : null;
             return gen2 is null ? keys : keys is null ? gen2 : $"{gen2}\n{keys}";
         }
@@ -2639,15 +2638,15 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (gen is null)
             {
-                ReportError("No card found on the reader.");
+                ReportError(Strings.Cards_NoCardOnReader);
                 return;
             }
             SelectedGeneration = gen.Value;
             Notify(gen.Value switch
             {
-                MagicGeneration.Gen1a => "Detected a Gen1a (UID) magic card.",
-                MagicGeneration.Gen3 => "Detected a Gen3 (APDU) magic card.",
-                _ => "No Gen1a or Gen3 magic card detected; assuming Gen2 / CUID.",
+                MagicGeneration.Gen1a => Strings.Cards_DetectedGen1a,
+                MagicGeneration.Gen3 => Strings.Cards_DetectedGen3,
+                _ => Strings.Cards_AssumingGen2,
             });
         });
     });
@@ -2660,7 +2659,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (card is null) return;
         // The copy takes the unsaved edits; the original stays as last saved.
         var copy = card.Clone();
-        copy.Name = card.Name + " (copy)";
+        copy.Name = card.Name + Strings.Common_CopySuffix;
         _library.Add(copy);
         SelectById(copy.Id);
     }
@@ -2675,8 +2674,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private Task ExportAsync() => RunAsync(async () =>
     {
         if (ActionCard() is not { } card) return;
-        var name = await StorageService.SaveAsync("Export card", $"{SafeFileName(card.Name)}.json", CardFormats.ExportJson(card), "json");
-        if (name is not null) Notify($"Saved {name}.");
+        var name = await StorageService.SaveAsync(Strings.Cards_ExportCardTitle, $"{SafeFileName(card.Name)}.json", CardFormats.ExportJson(card), "json");
+        if (name is not null) Notify(string.Format(Strings.Common_SavedFile, name));
     });
 
     /// <summary>Exports a MIFARE Classic card's memory as a raw .bin or Proxmark .eml dump.</summary>
@@ -2686,10 +2685,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var dump = card.ToMifareDump();
         var safe = SafeFileName(card.Name);
         var name = bin
-            ? await StorageService.SaveAsync("Export dump as .bin", $"{safe}.bin", dump.ToBin(), "bin")
-            : await StorageService.SaveAsync("Export dump as .eml", $"{safe}.eml",
+            ? await StorageService.SaveAsync(Strings.Cards_ExportBinTitle, $"{safe}.bin", dump.ToBin(), "bin")
+            : await StorageService.SaveAsync(Strings.Cards_ExportEmlTitle, $"{safe}.eml",
                 System.Text.Encoding.UTF8.GetBytes(dump.ToEml()), "eml");
-        if (name is not null) Notify($"Saved {name}.");
+        if (name is not null) Notify(string.Format(Strings.Common_SavedFile, name));
     });
 
     private static string SafeFileName(string name) =>
@@ -2720,7 +2719,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Action = CardAction.None;
 
         var progress = new Progress<MifareProgress>(p =>
-            ProgressText = $"Uploading {p.Done}/{p.Total}…");
+            ProgressText = string.Format(Strings.Common_UploadingProgress, p.Done, p.Total));
         try
         {
             await client.LoadCardToSlotAsync(card, target.Index, progress);
@@ -2732,7 +2731,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         var slots = await client.GetAllSlotsAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => { _slotInfos = slots; RebuildTargets(); });
-        Notify($"“{card.Name}” is now emulated in slot {target.Index}.");
+        Notify(string.Format(Strings.Cards_NowEmulated, card.Name, target.Index));
     });
 
     private Task WriteAsync() => RunAsync(async () =>
@@ -2741,7 +2740,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (client is null || ActionCard() is not { } card) return;
         if (!HasRequiredWriteKeys)
         {
-            ReportError("Recover both keys for every sector of the target Gen2 card before writing.");
+            ReportError(Strings.Cards_RecoverGen2KeysFirst);
             return;
         }
 
@@ -2783,7 +2782,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (!resume) WriteBlockStates = Array.Empty<MifareBlockState>();
             if (session is not null)
                 WriteRecovery.PrepareWrite(card.Tag, session.Source, IncludeWriteBlock0, resume);
-            WriteProgressText = resume ? "Checking target UID…" : "Starting…";
+            WriteProgressText = resume ? Strings.Common_CheckingTargetUid : Strings.Common_Starting;
             this.RaisePropertyChanged(nameof(CanChangeWriteOptions));
         });
         try
@@ -2796,7 +2795,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     : hasCurrent ? lfKey : null;
                 await client.WriteLfToT55xxAsync(card.Tag, card.Uid, newKey: newKey, oldKeys: oldKeys, ct: cts.Token);
                 succeeded = true;
-                Notify($"Wrote “{card.Name}” to the T55xx tag.");
+                Notify(string.Format(Strings.Cards_WroteT55xx, card.Name));
                 return;
             }
 
@@ -2817,14 +2816,15 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             else return;
 
             succeeded = failed.Count == 0;
-            if (succeeded) Notify($"Wrote “{card.Name}” to the card.");
-            else ReportError($"Wrote “{card.Name}”, but {failed.Count} {unit}(s) failed: {string.Join(", ", failed)}.");
+            if (succeeded) Notify(string.Format(Strings.Cards_WroteCard, card.Name));
+            else ReportError(Loc.Plural(card.Tag.IsUltralight() ? Strings.Plural_WriteFailedPages : Strings.Plural_WriteFailedBlocks,
+                failed.Count, card.Name, string.Join(", ", failed)));
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
             Notify(session is not null
-                ? "Write stopped. Press Write to continue on the same card; its UID will be checked first."
-                : $"Write stopped. The {unit}s already written stay on the card.");
+                ? Strings.Cards_WriteStoppedResume
+                : card.Tag.IsUltralight() ? Strings.Cards_WriteStoppedPages : Strings.Cards_WriteStoppedBlocks);
         }
         finally
         {

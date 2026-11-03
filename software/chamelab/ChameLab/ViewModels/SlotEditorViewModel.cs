@@ -8,6 +8,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -71,7 +72,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
         Action onChanged, Action<CardSave> openCard)
-        : base($"Slot {info.Index}", "slots")
+        : base(string.Format(Strings.Slots_SlotN, info.Index), "slots")
     {
         _device = device;
         _library = library;
@@ -305,7 +306,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             // Validate before writing either frequency, so invalid input leaves the device untouched.
             var cycle = _supportsLfCycle && LfCycleCard.CanCycle(Lf.Type)
                 ? LfCards.Cycle() : null;
-            var progress = new Progress<MifareProgress>(p => Notify($"Uploading {p.Done}/{p.Total}…"));
+            var progress = new Progress<MifareProgress>(p => Notify(string.Format(Strings.Common_UploadingProgress, p.Done, p.Total)));
 
             await client.WithSlotLockAsync(async () =>
             {
@@ -343,7 +344,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             });
             _onChanged();
             saved = true;
-        }, "Slot saved.");
+        }, Strings.Slots_SlotSaved);
         return saved;
     }
 
@@ -370,7 +371,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             side.Renamed(nick, card.Uid);
             _library.Add(card);
         });
-        Notify($"Saved “{card.Name}” to Saved cards.");
+        Notify(string.Format(Strings.Slots_SavedToCards, card.Name));
     });
 
     // ---- Choosing a saved card -----------------------------------------
@@ -379,7 +380,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     public bool IsPicking => _pickerSide is not null;
 
     public string PickerTitle => SupportsMultiLf && _pickerSide == Lf && LfCards.HasCards
-        ? "Add a saved LF card" : $"Choose a saved {_pickerSide?.Label} card";
+        ? Strings.Slots_AddSavedLf : string.Format(Strings.Slots_ChooseSavedSide, _pickerSide?.Label);
 
     public string? PickerFilter
     {
@@ -396,8 +397,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     public bool PickerHasNoCards => IsPicking && PickerCards.Count == 0;
 
     public string PickerEmptyText => _library.Cards.Any(c => c.Sense == _pickerSide?.Sense)
-        ? "No cards match the search."
-        : $"No {_pickerSide?.Label} cards saved yet.";
+        ? Strings.Dictionaries_NoCardsMatchTheSearch
+        : string.Format(Strings.Slots_NoSavedSide, _pickerSide?.Label);
 
     /// <summary>Picking a card in the dialog puts it into the frequency.</summary>
     public CardItemViewModel? PickerSelected

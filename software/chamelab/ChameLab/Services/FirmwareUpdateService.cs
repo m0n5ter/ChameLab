@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Transport;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
@@ -58,7 +59,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
         request.Headers.Accept.ParseAdd("application/vnd.github+json");
         using var response = await Http.SendAsync(request, ct);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            throw new InvalidOperationException("No firmware has been released yet.");
+            throw new InvalidOperationException(Strings.Firmware_NoRelease);
         response.EnsureSuccessStatusCode();
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
         var root = doc.RootElement;
@@ -67,7 +68,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
         var notes = root.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "";
         var line = FirmwareLine().Match(notes);
         if (!line.Success || !FirmwareVersion.TryParse(line.Groups[1].Value, out var version))
-            throw new InvalidOperationException($"Release {tag} names no firmware version.");
+            throw new InvalidOperationException(string.Format(Strings.Firmware_ReleaseNoVersion, tag));
 
         string? url = null;
         long size = 0;
@@ -89,7 +90,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
     public async Task<byte[]> DownloadAsync(FirmwareRelease release, IProgress<double>? progress, CancellationToken ct = default)
     {
         if (release.PackageUrl is null)
-            throw new InvalidOperationException($"Release {release.Tag} has no firmware package for this device.");
+            throw new InvalidOperationException(string.Format(Strings.Firmware_NoPackageForDevice, release.Tag));
         using var response = await Http.GetAsync(release.PackageUrl, HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
         var total = response.Content.Headers.ContentLength ?? release.PackageSize;
@@ -113,7 +114,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
     {
         var device1 = device.Candidate;
         var locator = locators.FirstOrDefault(l => l.Kind == device1?.Kind)
-            ?? throw new NotSupportedException("Firmware can be installed over USB from the desktop app, or over Bluetooth from the phone app.");
+            ?? throw new NotSupportedException(Strings.Firmware_NotSupportedHere);
         return locator.Prepare(device1);
     }
 
@@ -137,7 +138,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
 
         progress.Report(new(FirmwareUpdateStep.WaitingForBootloader));
         var channel = await PollAsync(() => target.TryOpenAsync(ct), BootloaderTimeout, ct,
-            "The device did not show up in its bootloader. Unplug it, hold B while plugging it back in, and retry.");
+            Strings.Firmware_NoBootloader);
 
         progress.Report(new(FirmwareUpdateStep.Flashing));
         await using (channel)
@@ -155,7 +156,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
             if ((found.FirstOrDefault(c => c.Id == previous?.Id) ?? found.FirstOrDefault()) is not { } candidate) return null;
             await device.ConnectAsync(candidate, ct);
             return candidate;
-        }, ReconnectTimeout, ct, "The firmware was installed, but the device did not come back. Reconnect it from the Connect page.");
+        }, ReconnectTimeout, ct, Strings.Firmware_DidNotReturn);
     }
 
     /// <summary>
@@ -176,7 +177,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
             catch (Exception ex) { last = ex; /* the port list is in flux while USB re-enumerates */ }
             await Task.Delay(300, ct);
         }
-        throw new TimeoutException(last is null ? timeoutMessage : $"{timeoutMessage} (Last error: {last.Message})", last);
+        throw new TimeoutException(last is null ? timeoutMessage : string.Format(Strings.Firmware_TimeoutLastError, timeoutMessage, last.Message), last);
     }
 
     private static HttpClient CreateHttp()

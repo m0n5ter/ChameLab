@@ -7,6 +7,7 @@ using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
+using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -33,7 +34,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     private int _cursorIndex = -1;
     private SniffTool _tool;
 
-    public ToolsViewModel(DeviceService device) : base("Tools", "tools")
+    public ToolsViewModel(DeviceService device) : base(Strings.Tools_Tools, "tools")
     {
         _device = device;
         var idle = this.WhenAnyValue(x => x.IsBusy, busy => !busy);
@@ -150,7 +151,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
 
     private Task CaptureAsync() => RunAsync(async () =>
     {
-        var client = _device.Client ?? throw new InvalidOperationException("Connect a Chameleon to capture.");
+        var client = _device.Client ?? throw new InvalidOperationException(Strings.Tools_ConnectToCapture);
         var mode = await client.GetDeviceModeAsync();
         byte[] samples;
         try
@@ -163,19 +164,19 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             if (mode != DeviceMode.Reader)
                 try { await client.SetDeviceModeAsync(mode); } catch { /* the capture's outcome matters more */ }
         }
-        if (samples.Length == 0) throw new InvalidOperationException("No LF samples were captured.");
+        if (samples.Length == 0) throw new InvalidOperationException(Strings.Tools_NoLfSamples);
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             Samples = samples;
-            Source = $"Captured at {DateTime.Now:HH:mm:ss}";
+            Source = string.Format(Strings.Tools_CapturedAt, DateTime.Now);
         });
         ScanFeedback.Found();
     });
 
     private Task LoadAsync() => RunAsync(async () =>
     {
-        if (await StorageService.OpenAsync("Load LF capture", "bin") is not { } file) return;
-        if (file.Data.Length == 0) throw new InvalidOperationException($"{file.Name} is empty.");
+        if (await StorageService.OpenAsync(Strings.Tools_LoadLfTitle, "bin") is not { } file) return;
+        if (file.Data.Length == 0) throw new InvalidOperationException(string.Format(Strings.Tools_FileEmpty, file.Name));
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             Samples = file.Data;
@@ -186,9 +187,9 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     private Task SaveAsync() => RunAsync(async () =>
     {
         if (_samples is not { } samples) return;
-        var name = await StorageService.SaveAsync("Save LF capture",
+        var name = await StorageService.SaveAsync(Strings.Tools_SaveLfTitle,
             $"lf-sniff-{DateTime.Now:yyyyMMdd-HHmmss}.bin", samples, "bin");
-        if (name is not null) Notify($"Capture saved: {name}.");
+        if (name is not null) Notify(string.Format(Strings.Tools_CaptureSaved, name));
     });
 
     // ---- Summary -------------------------------------------------------
@@ -196,23 +197,23 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     public LfSniffSummary? Summary => _summary;
 
     public string SamplesText => _summary is { } s
-        ? $"{s.SampleCount} samples · {s.DurationUs / 1000.0:0.0} ms"
+        ? string.Format(Strings.Tools_SamplesDuration, s.SampleCount, s.DurationUs / 1000.0)
         : "";
 
     public string RangeText => _summary is { } s
-        ? $"0x{s.Min:X2}–0x{s.Max:X2} · mean 0x{s.Mean:X2}"
+        ? string.Format(Strings.Tools_RangeMean, s.Min, s.Max, s.Mean)
         : "";
 
     public string GapsText => _summary is { } s
         ? s.GapCount == 0
-            ? $"None below 0x{s.GapThreshold:X2}: a steady field"
-            : $"{s.GapCount} samples below 0x{s.GapThreshold:X2}"
+            ? string.Format(Strings.Tools_NoGaps, s.GapThreshold)
+            : string.Format(Strings.Tools_GapSamples, s.GapCount, s.GapThreshold)
         : "";
 
     public string ModulationText => _modulation is { } m ? m.Kind.Label() : "";
 
     public string ClockText => _modulation is { ClockDivisor: { } clock, RunSamples: { } run }
-        ? $"RF/{clock} · shortest run {run} samples ({run * LfSniff.SampleUs} µs)"
+        ? string.Format(Strings.Tools_ClockRun, clock, run, run * LfSniff.SampleUs)
         : "-";
 
     // ---- Waveform ------------------------------------------------------
@@ -242,14 +243,14 @@ public sealed partial class ToolsViewModel : PageViewModelBase
 
     /// <summary>Where the cursor is and what the signal reads there.</summary>
     public string CursorText => _samples is { } s && _cursorIndex >= 0 && _cursorIndex < s.Length && _summary is { } sum
-        ? $"Sample {_cursorIndex} · {_cursorIndex * LfSniff.SampleUs / 1000.0:0.000} ms · 0x{s[_cursorIndex]:X2} " +
-          (s[_cursorIndex] < sum.GapThreshold ? "(gap)" : s[_cursorIndex] > sum.Threshold ? "(high)" : "(low)")
+        ? string.Format(Strings.Tools_CursorSample, _cursorIndex, _cursorIndex * LfSniff.SampleUs / 1000.0, s[_cursorIndex]) +
+          (s[_cursorIndex] < sum.GapThreshold ? Strings.Tools_Gap : s[_cursorIndex] > sum.Threshold ? Strings.Tools_High : Strings.Tools_Low)
         : WaveformHint;
 
     /// <summary>How to zoom and pan, for the input the device has.</summary>
     public static string WaveformHint { get; } = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()
-        ? "Tap to read a sample. Pinch or the slider zooms, dragging pans; the strip below moves the view."
-        : "Point to read a sample. The wheel, a pinch or the slider zooms, dragging pans; the strip below moves the view.";
+        ? Strings.Tools_WaveHintTouch
+        : Strings.Tools_WaveHintMouse;
 
     // ---- Decode --------------------------------------------------------
 
@@ -292,9 +293,9 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     public string DecodeText => _decode switch
     {
         null => "",
-        { Bits.Count: 0 } => "No bits decoded. Try another clock or Invert.",
-        { Errors: 0 } d => $"{d.Bits.Count} bits",
-        var d => $"{d.Bits.Count} bits · {d.Errors} {(d.Errors == 1 ? "break" : "breaks")} in the code",
+        { Bits.Count: 0 } => Strings.Tools_NoBits,
+        { Errors: 0 } d => Loc.Plural(Strings.Plural_Bits, d.Bits.Count),
+        var d => string.Format(Strings.Tools_BitsBreaks, Loc.Plural(Strings.Plural_Bits, d.Bits.Count), Loc.Plural(Strings.Plural_Breaks, d.Errors)),
     };
 
     /// <summary>The decoded bits in groups of eight, wrapping with the width.</summary>
