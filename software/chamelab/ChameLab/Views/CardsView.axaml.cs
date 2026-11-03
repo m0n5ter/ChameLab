@@ -18,6 +18,8 @@ public partial class CardsView : UserControl
         MemoryScroll.AddHandler(RequestBringIntoViewEvent, OnMemoryBringIntoView, handledEventsToo: true);
         // Opening cards, and dragging them into place in manual order.
         _ = new ListReorder(CardList, ListScroll);
+        // NDEF records are dragged into place by their grip, within the editor pane.
+        _ = new ListReorder(NdefList, PaneScroll);
     }
 
     // ---- Memory editor ---------------------------------------------------------

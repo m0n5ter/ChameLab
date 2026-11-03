@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
+using ChameLab.Behaviors;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ReactiveUI;
@@ -44,23 +45,17 @@ public static class NdefRecordKindExtensions
     };
 }
 
-/// <summary>One line of the record list: what the record is and what it holds.</summary>
-public sealed record NdefRecordRow(string Kind, string Value, string Detail)
-{
-    public bool HasValue => Value.Length > 0;
-}
-
 /// <summary>
-/// NDEF view and editor of an Ultralight / NTAG card's memory: lists the records of the message
-/// on the card, and edits a working copy that <see cref="ApplyCommand"/> writes back into the
-/// pages (as an ordinary, undoable memory edit).
+/// NDEF editor of an Ultralight / NTAG card's memory: the records of the message on the card,
+/// edited in place. Every valid change goes straight into the pages (as an ordinary, undoable
+/// memory edit); a change to the memory made elsewhere (hex editor, dump) reloads the list.
 /// </summary>
-public sealed class NdefEditorViewModel : ViewModelBase
+public sealed class NdefEditorViewModel : ViewModelBase, IReorderableList
 {
     private readonly Func<(IReadOnlyList<byte[]> Pages, TagSpecificType Tag)> _memory;
     private readonly Action<byte[], byte[]?> _write;
-    private IReadOnlyList<NdefRecordRow> _records = Array.Empty<NdefRecordRow>();
-    private bool _isEditing;
+    // Set while this editor writes the memory, so the change it causes doesn't reload the list.
+    private bool _writing;
 
     /// <param name="memory">The card's pages and type as they are now.</param>
     /// <param name="write">Writes a new data area (from page 4) and, when not null, the capability container (page 3).</param>
@@ -69,28 +64,33 @@ public sealed class NdefEditorViewModel : ViewModelBase
     {
         _memory = memory;
         _write = write;
-        EditCommand = ReactiveCommand.Create(BeginEdit);
-        CancelCommand = ReactiveCommand.Create(() => { IsEditing = false; Refresh(); });
-        ApplyCommand = ReactiveCommand.Create(Apply, this.WhenAnyValue(x => x.CanApply));
-        AddCommand = ReactiveCommand.Create<NdefRecordKind>(kind => Add(new NdefRecordEditorViewModel(kind, Validate)));
-        RemoveCommand = ReactiveCommand.Create<NdefRecordEditorViewModel>(r => { EditRecords.Remove(r); Validate(); });
-        MoveUpCommand = ReactiveCommand.Create<NdefRecordEditorViewModel>(r => Move(r, -1));
-        MoveDownCommand = ReactiveCommand.Create<NdefRecordEditorViewModel>(r => Move(r, +1));
-    }
-
-    public IReadOnlyList<NdefRecordKind> Kinds { get; } = Enum.GetValues<NdefRecordKind>();
-
-    public IReadOnlyList<NdefRecordRow> Records
-    {
-        get => _records;
-        private set
+        AddCommand = ReactiveCommand.Create<NdefRecordKind>(kind =>
         {
-            this.RaiseAndSetIfChanged(ref _records, value);
+            Records.Add(new NdefRecordEditorViewModel(kind, RecordsEdited));
+            RecordsEdited();
+        });
+        RemoveCommand = ReactiveCommand.Create<NdefRecordEditorViewModel>(r =>
+        {
+            Records.Remove(r);
+            RecordsEdited();
+        });
+        Records.CollectionChanged += (_, _) =>
+        {
             this.RaisePropertyChanged(nameof(HasRecords));
-        }
+            this.RaisePropertyChanged(nameof(CanReorder));
+        };
     }
 
-    public bool HasRecords => _records.Count > 0;
+    public ObservableCollection<NdefRecordEditorViewModel> Records { get; } = new();
+
+    public bool HasRecords => Records.Count > 0;
+
+    /// <summary>The memory holds a message area to edit: read, of an Ultralight / NTAG card.</summary>
+    public bool CanEdit
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
 
     /// <summary>How many records the message has and how much of the card it takes.</summary>
     public string Summary
@@ -99,152 +99,87 @@ public sealed class NdefEditorViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref field, value);
     } = string.Empty;
 
-    /// <summary>Why the message can't be shown (not formatted, malformed, pages not read); null when fine.</summary>
+    /// <summary>Why the message on the card can't be read (not formatted, malformed); null when fine.</summary>
     public string? Error
     {
         get;
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
-    public bool IsEditing
-    {
-        get => _isEditing;
-        private set => this.RaiseAndSetIfChanged(ref _isEditing, value);
-    }
-
-    public ObservableCollection<NdefRecordEditorViewModel> EditRecords { get; } = new();
-
-    /// <summary>Space the edited message takes, e.g. "58 of 137 bytes".</summary>
-    public string Usage
-    {
-        get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
-    } = string.Empty;
-
-    /// <summary>Why the edited message can't be applied; null when it can.</summary>
+    /// <summary>Why the edited records can't go into the memory (too long for the card); null when they can.</summary>
     public string? EditError
     {
         get;
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
-    public bool CanApply
-    {
-        get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
-    }
-
-    public ICommand EditCommand { get; }
-    public ICommand CancelCommand { get; }
-    public ICommand ApplyCommand { get; }
     public ICommand AddCommand { get; }
     public ICommand RemoveCommand { get; }
-    public ICommand MoveUpCommand { get; }
-    public ICommand MoveDownCommand { get; }
 
-    /// <summary>Reads the message again from the memory; an edit in progress is left alone.</summary>
+    /// <summary>Reads the message again from the memory, unless this editor just wrote it.</summary>
     public void Refresh()
     {
-        if (_isEditing) return;
         var (pages, tag) = _memory();
-        if (!tag.IsUltralight() || pages.Count == 0)
+        if (!tag.IsUltralight() || pages.Count == 0 || pages.All(p => p.Length == 0))
         {
-            Records = Array.Empty<NdefRecordRow>();
-            Summary = string.Empty;
-            Error = null;
-            return;
-        }
-        if (pages.All(p => p.Length == 0))
-        {
-            // Nothing read yet (a scan without a dump): there is no message to show, empty or not.
-            Records = Array.Empty<NdefRecordRow>();
-            Summary = "Memory not read yet: dump the card to see its records.";
-            Error = null;
+            // Nothing read yet (a scan without a dump, a card typed in): no message to show, but
+            // records added here start a new one.
+            if (_writing) return;
+            Records.Clear();
+            CanEdit = tag.IsUltralight() && pages.Count > 0;
+            Summary = CanEdit ? "Memory not read yet: read the card, or add records to start a new message." : string.Empty;
+            Error = EditError = null;
             return;
         }
         var area = Type2Ndef.Read(pages, tag);
-        Records = area.Records?.Select(r =>
-        {
-            var (kind, value) = Ndef.Describe(r);
-            return new NdefRecordRow(kind, value, $"{r.Tnf.Label()} · {r.TypeText} · {r.Payload.Length} bytes");
-        }).ToList() ?? (IReadOnlyList<NdefRecordRow>)Array.Empty<NdefRecordRow>();
+        CanEdit = true;
         Error = area.Error;
         Summary = area.Records switch
         {
             null => string.Empty,
-            { Count: 0 } => $"No NDEF message · {area.Capacity} bytes free",
+            { Count: 0 } => $"No records · {area.Capacity} bytes free",
             var r => $"{r.Count} record{(r.Count == 1 ? "" : "s")} · "
                      + $"{Type2Ndef.UsedBytes(area.PrefixLength, area.MessageLength)} of {area.Capacity} bytes",
         };
+        if (_writing) return;
+        Records.Clear();
+        foreach (var r in area.Records ?? [])
+            Records.Add(NdefRecordEditorViewModel.From(r, RecordsEdited));
+        EditError = null;
     }
 
-    private void BeginEdit()
-    {
-        var (pages, tag) = _memory();
-        EditRecords.Clear();
-        foreach (var r in Type2Ndef.Read(pages, tag).Records ?? [])
-            EditRecords.Add(NdefRecordEditorViewModel.From(r, Validate));
-        IsEditing = true;
-        Validate();
-    }
-
-    private void Add(NdefRecordEditorViewModel record)
-    {
-        EditRecords.Add(record);
-        Validate();
-    }
-
-    private void Move(NdefRecordEditorViewModel record, int by)
-    {
-        var at = EditRecords.IndexOf(record);
-        var to = at + by;
-        if (at < 0 || to < 0 || to >= EditRecords.Count) return;
-        EditRecords.Move(at, to);
-        Validate();
-    }
-
-    /// <summary>Checks the edited message after every change: every record valid, and the whole fits the card.</summary>
-    private void Validate()
+    /// <summary>
+    /// After every edit: puts the records into the memory once all are valid and fit the card;
+    /// otherwise the memory keeps the last valid message and the mistake is shown.
+    /// </summary>
+    private void RecordsEdited()
     {
         var (pages, tag) = _memory();
         try
         {
-            var message = Ndef.Encode(EditRecords.Select(r => r.Build()).ToList());
-            var area = Type2Ndef.Read(pages, tag);
-            var prefix = area.IsFormatted ? area.PrefixLength : 0;
-            var capacity = area.IsFormatted ? area.Capacity : Type2Ndef.DefaultCapacity(tag);
-            var used = Type2Ndef.UsedBytes(prefix, message.Length);
-            Usage = $"{used} of {capacity} bytes";
-            Type2Ndef.Build(pages, tag, message);
+            var message = Ndef.Encode(Records.Select(r => r.Build()).ToList());
+            var (area, cc) = Type2Ndef.Build(pages, tag, message);
             EditError = null;
-            CanApply = true;
+            _writing = true;
+            try { _write(area, cc); }
+            finally { _writing = false; }
         }
         catch (Exception ex) when (ex is FormatException or OverflowException)
         {
             // A record's own mistake is shown on that record.
-            EditError = EditRecords.Any(r => r.Error is not null) ? null
+            EditError = Records.Any(r => r.Error is not null) ? null
                 : ex is OverflowException ? "A record's type or ID is too long." : ex.Message;
-            CanApply = false;
         }
     }
 
-    private void Apply()
-    {
-        var (pages, tag) = _memory();
-        try
-        {
-            var message = Ndef.Encode(EditRecords.Select(r => r.Build()).ToList());
-            var (area, cc) = Type2Ndef.Build(pages, tag, message);
-            _write(area, cc);
-            IsEditing = false;
-            EditRecords.Clear();
-            Refresh();
-        }
-        catch (FormatException ex)
-        {
-            EditError = ex.Message;
-        }
-    }
+    // ---- Dragging records into place (ListReorder) ----
+
+    public bool CanReorder => Records.Count > 1;
+    public System.Collections.IList ReorderItems => Records;
+    public string ReorderKey(object item) => ((NdefRecordEditorViewModel)item).Key;
+    public void OpenItem(object item) { /* A record is edited in place. */ }
+    public void MoveItem(int from, int to) => Records.Move(from, to);
+    public void CommitOrder() => RecordsEdited();
 }
 
 /// <summary>One record being edited: the fields of its kind, turned into an <see cref="NdefRecord"/> by <see cref="Build"/>.</summary>
@@ -252,7 +187,7 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
 {
     private readonly byte[] _id = original?.Id ?? [];
     private bool _modified = original is null;
-    private NdefRecordKind _kind = kind;
+    private readonly NdefRecordKind _kind = kind;
     private string _uri = "https://";
     private string _text = string.Empty;
     private string _language = "en";
@@ -296,27 +231,20 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         };
     }
 
-    public IReadOnlyList<NdefRecordKind> Kinds { get; } = Enum.GetValues<NdefRecordKind>();
     public IReadOnlyList<NdefWifiAuth> WifiAuths { get; } = Enum.GetValues<NdefWifiAuth>();
     public IReadOnlyList<NdefTnf> Tnfs { get; } =
         [NdefTnf.WellKnown, NdefTnf.Media, NdefTnf.AbsoluteUri, NdefTnf.External, NdefTnf.Unknown, NdefTnf.Empty];
 
-    public NdefRecordKind Kind
-    {
-        get => _kind;
-        set
-        {
-            if (value == _kind) return;
-            this.RaiseAndSetIfChanged(ref _kind, value);
-            this.RaisePropertyChanged(nameof(IsLink));
-            this.RaisePropertyChanged(nameof(IsText));
-            this.RaisePropertyChanged(nameof(IsWifi));
-            this.RaisePropertyChanged(nameof(IsAndroidApp));
-            this.RaisePropertyChanged(nameof(IsMime));
-            this.RaisePropertyChanged(nameof(IsRaw));
-            Edited();
-        }
-    }
+    /// <summary>Identity for dragging; a record keeps it for as long as it is in the list.</summary>
+    public string Key { get; } = Guid.NewGuid().ToString("N");
+
+    /// <summary>What the record is edited as; fixed once added.</summary>
+    public NdefRecordKind Kind => _kind;
+
+    public string Title => _kind.Label();
+
+    /// <summary>The <c>Icon.*</c> key of the kind's icon.</summary>
+    public string IconKey => "ndef" + _kind;
 
     public bool IsLink => _kind == NdefRecordKind.Link;
     public bool IsText => _kind == NdefRecordKind.Text;

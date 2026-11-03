@@ -522,6 +522,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaisePropertyChanged(nameof(IsCardDirty));
             this.RaisePropertyChanged(nameof(ShowEditor));
             this.RaisePropertyChanged(nameof(ShowMemoryEditor));
+            RaiseMemoryView();
             RaiseAddStage();
             RaiseCardInfo();
             RebuildTargets();
@@ -546,6 +547,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             {
                 RebuildTargets();
                 InitializeDumpFromForm();
+                RaiseMemoryView();
             }
         }
         // HasData is raised on every memory edit. MIFARE Classic picks up typed trailer keys from it;
@@ -2250,6 +2252,38 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     /// <summary>The memory panel is shown only for an open card with readable or editable memory.</summary>
     public bool ShowMemoryEditor => ShowEditor && (CanDump || _form?.Memory is not null);
+
+    private bool _isNdefView;
+
+    /// <summary>The memory of an Ultralight / NTAG card is shown as NDEF records rather than hex; kept between cards.</summary>
+    public bool IsNdefView
+    {
+        get => _isNdefView;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isNdefView, value);
+            RaiseMemoryView();
+        }
+    }
+
+    /// <summary>The other segment of the view switch.</summary>
+    public bool IsHexView
+    {
+        get => !_isNdefView;
+        set => IsNdefView = !value;
+    }
+
+    public bool CanShowNdef => _form?.IsUltralight == true;
+    public bool ShowNdefView => _isNdefView && CanShowNdef;
+    public bool ShowHexView => !ShowNdefView;
+
+    private void RaiseMemoryView()
+    {
+        this.RaisePropertyChanged(nameof(IsHexView));
+        this.RaisePropertyChanged(nameof(CanShowNdef));
+        this.RaisePropertyChanged(nameof(ShowNdefView));
+        this.RaisePropertyChanged(nameof(ShowHexView));
+    }
 
     private void Toggle(CardAction action)
     {

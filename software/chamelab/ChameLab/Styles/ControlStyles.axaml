@@ -806,6 +806,79 @@
     <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
   </Style>
 
+  <!-- ==================== NDEF records (memory card, NDEF view) ==================== -->
+
+  <!-- One tile per record, stacked; the gap is each item's own transparent padding. -->
+  <Style Selector="ListBox.ndef">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel />
+      </ItemsPanelTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ListBox.ndef ListBoxItem">
+    <Setter Property="Padding" Value="0,0,0,8" />
+    <Setter Property="Cursor" Value="Arrow" />
+  </Style>
+  <!-- The tile draws itself; the item behind it stays clear. -->
+  <Style Selector="ListBox.ndef ListBoxItem /template/ ContentPresenter, ListBox.ndef ListBoxItem:pointerover /template/ ContentPresenter, ListBox.ndef ListBoxItem:selected /template/ ContentPresenter, ListBox.ndef ListBoxItem:pressed /template/ ContentPresenter, ListBox.ndef ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.ndef ListBoxItem:selected:focus /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Border.ndefrecord">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="12,10,12,12" />
+  </Style>
+  <!-- The tile under the pointer, or holding the focus, shows its edge in the accent color. -->
+  <Style Selector="ListBox.ndef ListBoxItem:pointerover Border.ndefrecord, ListBox.ndef ListBoxItem:focus-within Border.ndefrecord">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+  </Style>
+  <Style Selector="ListBox.ndef ListBoxItem.dragging">
+    <Setter Property="ZIndex" Value="1" />
+    <Setter Property="ClipToBounds" Value="False" />
+  </Style>
+  <Style Selector="ListBox.ndef ListBoxItem.dragging Border.ndefrecord">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="BoxShadow" Value="0 4 14 -2 #80000000" />
+  </Style>
+  <!-- The grip a record is dragged by. -->
+  <Style Selector="Border.grip">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Cursor" Value="SizeAll" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+  </Style>
+  <Style Selector="Border.grip:pointerover">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
+  <Style Selector="Border.grip > PathIcon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+  </Style>
+  <Style Selector="Border.iconwell.small">
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="Border.iconwell.small > PathIcon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+  </Style>
+  <!-- Add-record buttons: the whole cell of the grid. -->
+  <Style Selector="Button.ndefadd">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+
   <!-- ==================== Library pages (list + details: cards, slots, dictionaries) ==================== -->
 
   <!-- Wide: list on the left, details on the right (SplitLayout sizes the column).

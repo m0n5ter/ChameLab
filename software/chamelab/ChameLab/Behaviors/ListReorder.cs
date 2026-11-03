@@ -98,6 +98,18 @@ public sealed class ListReorder
     public static bool GetIsAction(Control element) => element.GetValue(IsActionProperty);
     public static void SetIsAction(Control element, bool value) => element.SetValue(IsActionProperty, value);
 
+    // A list whose items hold their own inputs (text boxes) is dragged only by a handle in each item:
+    // a press elsewhere goes to the item's controls untouched.
+    public static readonly AttachedProperty<bool> RequiresHandleProperty =
+        AvaloniaProperty.RegisterAttached<ListBox, bool>("RequiresHandle", typeof(ListReorder));
+    public static bool GetRequiresHandle(ListBox list) => list.GetValue(RequiresHandleProperty);
+    public static void SetRequiresHandle(ListBox list, bool value) => list.SetValue(RequiresHandleProperty, value);
+
+    public static readonly AttachedProperty<bool> IsHandleProperty =
+        AvaloniaProperty.RegisterAttached<Control, bool>("IsHandle", typeof(ListReorder));
+    public static bool GetIsHandle(Control element) => element.GetValue(IsHandleProperty);
+    public static void SetIsHandle(Control element, bool value) => element.SetValue(IsHandleProperty, value);
+
     private readonly ListBox _list;
     private readonly ScrollViewer _scroll;
 
@@ -158,6 +170,7 @@ public sealed class ListReorder
     {
         if ((e.Source as Visual)?.FindAncestorOfType<Button>(includeSelf: true) is { } button && GetIsAction(button))
             return;
+        if (GetRequiresHandle(_list) && !OnHandle(e.Source as Visual)) return;
         EndDrag();
         _pressedItem = null;
         _pressPointer = null;
@@ -176,6 +189,13 @@ public sealed class ListReorder
         _dragPointer = e.Pointer;
         _dragStart = _dragLast = e.GetPosition(_list);
         if (e.Pointer.Type == PointerType.Touch) _holdTimer.Start();
+    }
+
+    private bool OnHandle(Visual? source)
+    {
+        for (var v = source; v is not null && v != _list; v = v.GetVisualParent())
+            if (v is Control c && GetIsHandle(c)) return true;
+        return false;
     }
 
     private void OnMoved(object? sender, PointerEventArgs e)
