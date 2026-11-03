@@ -459,6 +459,13 @@
     <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Padding" Value="4" />
   </Style>
+  <!-- Compact switch beside a label on one line (a slot's LED color, the writer's password settings). -->
+  <Style Selector="Border.segmented.compact">
+    <Setter Property="Padding" Value="2" />
+  </Style>
+  <Style Selector="Border.segmented.compact RadioButton.segment /template/ Border#PART_Bg">
+    <Setter Property="Padding" Value="10,5" />
+  </Style>
   <Style Selector="RadioButton.segment">
     <Setter Property="Template">
       <ControlTemplate>

@@ -724,20 +724,25 @@
 
                 <!-- Ultralight EV1 / NTAG21x: password settings for the target, starting from this card's -->
                 <StackPanel Spacing="10" IsVisible="{Binding CanWriteProtection}" IsEnabled="{Binding !IsBusy}">
-                  <StackPanel Spacing="6">
-                    <TextBlock Text="Password settings" Classes="caption" />
-                    <WrapPanel ItemSpacing="24" LineSpacing="6">
-                      <RadioButton GroupName="WriteProtection" Content="Keep the target's"
-                                   IsChecked="{Binding !RewriteProtection}"
-                                   ToolTip.Tip="Leave the target card's password, PACK, AUTH0, PROT and attempt limit as they are" />
-                      <RadioButton GroupName="WriteProtection" Content="Write new"
-                                   IsChecked="{Binding RewriteProtection}"
-                                   ToolTip.Tip="After the pages, write the settings below onto the target card" />
-                    </WrapPanel>
-                  </StackPanel>
-                  <Panel IsVisible="{Binding RewriteProtection}">
+                  <!-- Laid out like a slot's LED color choice: label, then a compact segmented switch. -->
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <TextBlock Text="Password settings" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <Border Grid.Column="1" Classes="segmented compact">
+                      <StackPanel Orientation="Horizontal">
+                        <RadioButton Classes="segment" IsChecked="{Binding KeepProtection}"
+                                     ToolTip.Tip="Leave the target card's password, PACK, AUTH0, PROT and attempt limit as they are">
+                          <TextBlock Text="Keep" FontWeight="SemiBold" />
+                        </RadioButton>
+                        <RadioButton Classes="segment" IsChecked="{Binding RewriteProtection}"
+                                     ToolTip.Tip="After the pages, write the settings below onto the target card">
+                          <TextBlock Text="Write new" FontWeight="SemiBold" />
+                        </RadioButton>
+                      </StackPanel>
+                    </Border>
+                  </Grid>
+                  <Border Classes="inset" IsVisible="{Binding RewriteProtection}">
                     <c:ProtectionSettingsPanel DataContext="{Binding WriteProtection}" />
-                  </Panel>
+                  </Border>
                 </StackPanel>
 
                 <!-- T55xx: current password (to unlock a locked tag) and the new password it's locked with -->

@@ -2424,7 +2424,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool RewriteProtection
     {
         get => _rewriteProtection;
-        set => this.RaiseAndSetIfChanged(ref _rewriteProtection, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rewriteProtection, value);
+            this.RaisePropertyChanged(nameof(KeepProtection));
+        }
+    }
+
+    /// <summary>The other segment of the choice: the target keeps its password settings.</summary>
+    public bool KeepProtection
+    {
+        get => !_rewriteProtection;
+        set => RewriteProtection = !value;
     }
 
     /// <summary>

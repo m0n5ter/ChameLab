@@ -58,13 +58,6 @@
         <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
       </Setter>
     </Style>
-    <!-- LED color choice: three segments beside the swatch that shows (and, for Custom, picks) it. -->
-    <Style Selector="Border.segmented.ledmode">
-      <Setter Property="Padding" Value="2" />
-    </Style>
-    <Style Selector="Border.segmented.ledmode RadioButton.segment /template/ Border#PART_Bg">
-      <Setter Property="Padding" Value="10,5" />
-    </Style>
   </UserControl.Styles>
 
   <UserControl.Resources>
@@ -125,7 +118,7 @@
         <!-- LED color -->
         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
           <TextBlock Grid.Column="0" Text="LED color" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-          <Border Grid.Column="1" Classes="segmented ledmode">
+          <Border Grid.Column="1" Classes="segmented compact">
             <StackPanel Orientation="Horizontal">
               <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
                            ToolTip.Tip="The firmware's own color: green for HF, blue for LF, red for a slot with both">
