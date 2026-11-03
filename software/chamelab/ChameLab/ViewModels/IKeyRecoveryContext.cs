@@ -55,5 +55,6 @@ public interface IKeyRecoveryContext
     bool ShowNested { get; }
     bool ShowStaticNested { get; }
     ICommand StaticNestedCommand { get; }
+    string TryKeysLabel { get; }
     string? TryKeysTip { get; }
 }

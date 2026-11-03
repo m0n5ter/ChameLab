@@ -1204,6 +1204,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaisePropertyChanged(nameof(DumpHint));
             this.RaisePropertyChanged(nameof(DumpUnit));
             this.RaisePropertyChanged(nameof(DumpLockedText));
+            this.RaisePropertyChanged(nameof(TryKeysLabel));
+            this.RaisePropertyChanged(nameof(TryKeysTip));
             RaiseDumpToolbar();
         }
     }

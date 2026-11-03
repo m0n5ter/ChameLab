@@ -55,7 +55,7 @@
                       ToolTip.Tip="{Binding TryKeysTip}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.dump}" />
-                  <TextBlock Classes="action-label" Text="Try keys" VerticalAlignment="Center" />
+                  <TextBlock Classes="action-label" Text="{Binding TryKeysLabel}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
               <Button IsVisible="{Binding !IsUltralightDump}" ToolTip.Tip="{Binding DumpKeyCountText}"

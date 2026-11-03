@@ -33,7 +33,10 @@ public sealed partial class CardsViewModel
     public string? WriteKeyHint => IsGen2Write && WriteRecovery is { AllTargetKeysRecovered: false, AllPlannedSectorsWritten: false } && !IsWriting
         ? "Recover keys A and B for every sector of the target card. Writing is available when all sectors are green."
         : null;
-    public string TryKeysTip => "Read missing blocks with the selected keys";
+    public string TryKeysLabel => IsUltralightDump ? "Read" : "Try keys";
+    public string TryKeysTip => IsUltralightDump
+        ? "Read every page, the signature and the counters"
+        : "Read missing blocks with the selected keys";
     public string RecoverySectorHint => "Select a sector to edit its blocks; hover for keys";
     public string? RecoveryIdentity => null;
     public int RecoverySelectedSector

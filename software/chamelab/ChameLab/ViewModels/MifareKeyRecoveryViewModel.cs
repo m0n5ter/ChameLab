@@ -114,6 +114,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public bool ShowStaticEncryptedNested => Target is not null && HasUnknownKeys;
     public bool ShowHardnested => _prng == MifareClassicPrngType.Hard && HasKnownKeys && HasUnknownKeys;
     public string? HardnestedWarning => _hardnested.UnavailableReason;
+    public string TryKeysLabel => "Try keys";
     public string TryKeysTip => "Find the target card's keys using the selected dictionaries and source keys";
     public string RecoverySectorHint => ShowWriteProgress
         ? "Hover a sector for written block counts and errors" : "Target card keys · hover a sector for key details";
