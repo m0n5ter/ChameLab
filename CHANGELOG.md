@@ -6,6 +6,8 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.2.29][2026-11-03] · firmware v2.3.10-cl
  - ChameLab: the dump button of an Ultralight / NTAG card reads "Read" instead of "Try keys", since these cards are read without key dictionaries
  - ChameLab: an Ultralight EV1 / NTAG dump sends the entered password only when the card's configuration needs it (read-protected pages, protected configuration or a protected NFC counter), so an open card doesn't spend its AUTHLIM attempts on a wrong password
  - ChameLab: the memory editor shows Ultralight / NTAG memory four pages (16 bytes) to a line when there is room, then two or one, so dumps are shorter and NDEF text reads as a whole in the ASCII column
@@ -14,6 +16,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - ChameLab: the NDEF editor moved into the memory section, which switches between Hex and NDEF for Ultralight / NTAG cards. Records are edited in place and every valid change goes straight into the memory (no Edit / Apply); records are added from the Add record menu, show the kind's icon, keep their kind and are dragged into place by any spot that isn't an input; the bytes they take and what is left on the card are counted, too many in red
  - ChameLab: NDEF records for a phone number, an email, a text message (SMS), a location and a contact (vCard), each with its own fields; links of these kinds read from a card open as them
  - ChameLab: a MIFARE Classic or Ultralight / NTAG card entered manually starts with the memory of a factory-blank card of its type (all blocks and keys known, block 0 / the UID pages following the identity as it is typed), and its memory section has no Read, Try keys or key recovery controls, as there is no card to read
+ - ChameLab: Tab moves through every NDEF record's fields in turn instead of skipping the whole list to Add record; the memory heading and its page count share a baseline, with less space above the page strip
 
 ## [v1.1.28][2026-11-02] · firmware v2.3.10-cl
  - ChameLab: faster Static encrypted nested recovery: candidate calculation is about 1.4× faster and RF08S A/B seed filtering is 7–7.5× faster in local Windows Release benchmarks. Candidate sets remain identical to the original solver; reproducible benchmarks and regression checks are included

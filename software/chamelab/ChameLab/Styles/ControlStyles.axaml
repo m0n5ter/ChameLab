@@ -819,7 +819,12 @@
       </ItemsPanelTemplate>
     </Setter>
   </Style>
+  <!-- Tab walks every record's fields in turn, not past the whole list in one step. -->
+  <Style Selector="ListBox.ndef">
+    <Setter Property="KeyboardNavigation.TabNavigation" Value="Continue" />
+  </Style>
   <Style Selector="ListBox.ndef ListBoxItem">
+    <Setter Property="Focusable" Value="False" />
     <Setter Property="Padding" Value="0,0,0,6" />
     <Setter Property="Cursor" Value="Arrow" />
   </Style>
