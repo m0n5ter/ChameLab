@@ -124,6 +124,23 @@ public class NdefEditorTests
     }
 
     [Fact]
+    public void AContactComesBackAsAContact()
+    {
+        var (_, editor, _) = Ntag213();
+        editor.AddCommand.Execute(NdefRecordKind.Contact);
+        Assert.NotNull(editor.Records[0].Error); // a contact needs a name
+        editor.Records[0].Name = "Ann Lee";
+        editor.Records[0].Phone = "+15550100";
+        Assert.Null(editor.Records[0].Error);
+
+        editor.Refresh();
+        var contact = Assert.Single(editor.Records);
+        Assert.Equal(NdefRecordKind.Contact, contact.Kind);
+        Assert.Equal("Ann Lee", contact.Name);
+        Assert.Equal("+15550100", contact.Phone);
+    }
+
+    [Fact]
     public void AChangeMadeElsewhereReloadsTheList()
     {
         var (_, editor, _) = Ntag213();

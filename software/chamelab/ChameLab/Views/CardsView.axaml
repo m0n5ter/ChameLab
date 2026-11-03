@@ -1117,30 +1117,25 @@
                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                              IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-                  <!-- Dragged into place by the kind's icon; everything else in a tile is ordinary input. -->
-                  <ListBox x:Name="NdefList" Classes="ndef" ItemsSource="{Binding Records}" b:ListReorder.RequiresHandle="True"
+                  <!-- Dragged into place by any spot of a tile that isn't an input. -->
+                  <ListBox x:Name="NdefList" Classes="ndef" ItemsSource="{Binding Records}" b:ListReorder.HasInputs="True"
                            IsVisible="{Binding HasRecords}"
                            ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="vm:NdefRecordEditorViewModel">
                         <Border Classes="ndefrecord">
-                          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                            <Border Classes="iconwell small blue handle" VerticalAlignment="Top"
-                                    b:ListReorder.IsHandle="True" ToolTip.Tip="Drag to move the record">
+                          <!-- The kind's icon, the fields, and Remove; the kind's name shows on the icon's tooltip. -->
+                          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                            <Border Classes="iconwell small blue" VerticalAlignment="Top" ToolTip.Tip="{Binding Title}">
                               <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
                             </Border>
+                            <Button Grid.Column="2" Classes="icon small danger" VerticalAlignment="Top"
+                                    ToolTip.Tip="Remove the record" AutomationProperties.Name="Remove the record"
+                                    Command="{Binding $parent[ListBox].((vm:NdefEditorViewModel)DataContext).RemoveCommand}"
+                                    CommandParameter="{Binding}">
+                              <PathIcon Data="{StaticResource Icon.delete}" />
+                            </Button>
                             <StackPanel Grid.Column="1" Spacing="6">
-                              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" MinHeight="32">
-                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis" />
-                                <Button Grid.Column="1" Classes="icon small danger" b:ListReorder.IsAction="True"
-                                        VerticalAlignment="Center"
-                                        ToolTip.Tip="Remove the record" AutomationProperties.Name="Remove the record"
-                                        Command="{Binding $parent[ListBox].((vm:NdefEditorViewModel)DataContext).RemoveCommand}"
-                                        CommandParameter="{Binding}">
-                                  <PathIcon Data="{StaticResource Icon.delete}" />
-                                </Button>
-                              </Grid>
 
                               <TextBox Text="{Binding Uri}" IsVisible="{Binding IsLink}"
                                        PlaceholderText="https://example.com" />
@@ -1154,6 +1149,16 @@
 
                               <TextBox Text="{Binding Message}" IsVisible="{Binding HasMessage}" AcceptsReturn="True" TextWrapping="Wrap"
                                        PlaceholderText="Message (optional)" />
+
+                              <StackPanel Spacing="6" IsVisible="{Binding IsContact}">
+                                <TextBox Text="{Binding Name}" PlaceholderText="Name" />
+                                <TextBox Text="{Binding Organization}" PlaceholderText="Organization (optional)" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                                  <TextBox Text="{Binding Phone}" PlaceholderText="Phone (optional)" />
+                                  <TextBox Grid.Column="1" Text="{Binding Email}" PlaceholderText="Email (optional)" />
+                                </Grid>
+                                <TextBox Text="{Binding Website}" PlaceholderText="Website (optional)" />
+                              </StackPanel>
 
                               <Grid ColumnDefinitions="*,*" ColumnSpacing="6" IsVisible="{Binding IsGeo}">
                                 <TextBox Text="{Binding Latitude}" PlaceholderText="Latitude, e.g. 48.8584"
@@ -1220,7 +1225,7 @@
                              IsVisible="{Binding EditError, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding CanEdit}">
-                    <DropDownButton ToolTip.Tip="Add a record at the end of the message">
+                    <DropDownButton Classes="theme-soft success" ToolTip.Tip="Add a record at the end of the message">
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <PathIcon Data="{StaticResource Icon.add}" />
                         <TextBlock Text="Add record" VerticalAlignment="Center" />
@@ -1241,6 +1246,9 @@
                           </MenuItem>
                           <MenuItem Header="Location" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Geo}">
                             <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefGeo}" /></MenuItem.Icon>
+                          </MenuItem>
+                          <MenuItem Header="Contact (vCard)" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Contact}">
+                            <MenuItem.Icon><PathIcon Data="{StaticResource Icon.ndefContact}" /></MenuItem.Icon>
                           </MenuItem>
                           <Separator />
                           <MenuItem Header="Text" Command="{Binding AddCommand}" CommandParameter="{x:Static vm:NdefRecordKind.Text}">
@@ -1263,7 +1271,7 @@
                       </DropDownButton.Flyout>
                     </DropDownButton>
                     <TextBlock Grid.Column="1" Classes="caption" TextWrapping="Wrap" VerticalAlignment="Center"
-                               Text="Edits go straight into the memory. Drag a record by its icon to move it." />
+                               Text="Edits go straight into the memory. Drag a record to move it." />
                   </Grid>
                 </StackPanel>
                 </Border>

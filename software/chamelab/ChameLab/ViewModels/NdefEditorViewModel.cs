@@ -19,6 +19,7 @@ public enum NdefRecordKind
     Email,
     Sms,
     Geo,
+    Contact,
     Text,
     Wifi,
     AndroidApp,
@@ -35,6 +36,7 @@ public static class NdefRecordKindExtensions
         NdefRecordKind.Email => "Email",
         NdefRecordKind.Sms => "Text message (SMS)",
         NdefRecordKind.Geo => "Location",
+        NdefRecordKind.Contact => "Contact (vCard)",
         NdefRecordKind.Text => "Text",
         NdefRecordKind.Wifi => "Wi-Fi network",
         NdefRecordKind.AndroidApp => "Android app",
@@ -257,6 +259,9 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     private string _message = string.Empty;
     private string _latitude = string.Empty;
     private string _longitude = string.Empty;
+    private string _name = string.Empty;
+    private string _organization = string.Empty;
+    private string _website = string.Empty;
     private string _text = string.Empty;
     private string _language = "en";
     private string _ssid = string.Empty;
@@ -281,10 +286,12 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         var isEmail = NdefUris.TryEmail(uri, out var email);
         var isSms = NdefUris.TrySms(uri, out var sms);
         var isGeo = NdefUris.TryGeo(uri, out var geo);
+        var isContact = NdefVCard.TryParse(r.Tnf == NdefTnf.Media ? r.TypeText : "", r.Payload, out var contact);
         var kind = isPhone ? NdefRecordKind.Phone
             : isEmail ? NdefRecordKind.Email
             : isSms ? NdefRecordKind.Sms
             : isGeo ? NdefRecordKind.Geo
+            : isContact ? NdefRecordKind.Contact
             : isUri ? NdefRecordKind.Link
             : isText ? NdefRecordKind.Text
             : isWifi ? NdefRecordKind.Wifi
@@ -294,8 +301,11 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
         return new NdefRecordEditorViewModel(kind, changed, r)
         {
             _uri = uri,
-            _phone = isPhone ? phone : isSms ? sms.Number : string.Empty,
-            _email = email.Address,
+            _phone = isPhone ? phone : isSms ? sms.Number : isContact ? contact.Phone : string.Empty,
+            _email = isContact ? contact.Email : email.Address,
+            _name = isContact ? contact.Name : string.Empty,
+            _organization = isContact ? contact.Organization : string.Empty,
+            _website = isContact ? contact.Website : string.Empty,
             _subject = email.Subject,
             _message = isSms ? sms.Body : email.Body,
             _latitude = isGeo ? Coordinate(geo.Latitude) : string.Empty,
@@ -334,6 +344,7 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     public bool IsEmail => _kind == NdefRecordKind.Email;
     public bool IsSms => _kind == NdefRecordKind.Sms;
     public bool IsGeo => _kind == NdefRecordKind.Geo;
+    public bool IsContact => _kind == NdefRecordKind.Contact;
 
     /// <summary>The number of a phone or SMS record.</summary>
     public bool HasNumber => _kind is NdefRecordKind.Phone or NdefRecordKind.Sms;
@@ -353,6 +364,9 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
     public string Message { get => _message; set { this.RaiseAndSetIfChanged(ref _message, value); Edited(); } }
     public string Latitude { get => _latitude; set { this.RaiseAndSetIfChanged(ref _latitude, value); Edited(); } }
     public string Longitude { get => _longitude; set { this.RaiseAndSetIfChanged(ref _longitude, value); Edited(); } }
+    public string Name { get => _name; set { this.RaiseAndSetIfChanged(ref _name, value); Edited(); } }
+    public string Organization { get => _organization; set { this.RaiseAndSetIfChanged(ref _organization, value); Edited(); } }
+    public string Website { get => _website; set { this.RaiseAndSetIfChanged(ref _website, value); Edited(); } }
     public string Text { get => _text; set { this.RaiseAndSetIfChanged(ref _text, value); Edited(); } }
     public string Language { get => _language; set { this.RaiseAndSetIfChanged(ref _language, value); Edited(); } }
     public string Ssid { get => _ssid; set { this.RaiseAndSetIfChanged(ref _ssid, value); Edited(); } }
@@ -442,6 +456,12 @@ public sealed class NdefRecordEditorViewModel(NdefRecordKind kind, Action change
                 if (!NdefUris.TryCoordinate(_longitude, 180, out var lon))
                     throw new FormatException("Enter the longitude in degrees, -180 to 180, e.g. 2.2945.");
                 return Ndef.Uri(NdefUris.Geo(new NdefGeo(lat, lon)));
+            case NdefRecordKind.Contact:
+                if (string.IsNullOrWhiteSpace(_name)) throw new FormatException("Enter the contact's name.");
+                if (_email.Trim() is { Length: > 0 } address && !address.Contains('@'))
+                    throw new FormatException("Enter an email address, or leave it empty.");
+                return Ndef.Mime(NdefVCard.MimeType, new NdefVCard(
+                    _name.Trim(), _phone.Trim(), _email.Trim(), _organization.Trim(), _website.Trim()).ToBytes());
             case NdefRecordKind.Text:
                 return Ndef.Text(_text, _language);
             case NdefRecordKind.Wifi:

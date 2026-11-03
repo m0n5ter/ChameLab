@@ -195,7 +195,7 @@
 
   <!-- ==================== Buttons ==================== -->
 
-  <Style Selector="Button">
+  <Style Selector="Button, DropDownButton">
     <Setter Property="CornerRadius" Value="8" />
   </Style>
   <!-- The theme fills disabled buttons with its disabled brush, near black in the dark theme and
@@ -848,9 +848,12 @@
     <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="BoxShadow" Value="0 4 14 -2 #80000000" />
   </Style>
-  <!-- The kind's icon is what a record is dragged by. -->
-  <Style Selector="Border.iconwell.handle">
+  <!-- A record is dragged by any spot that isn't an input; the inputs keep their own cursor. -->
+  <Style Selector="Border.ndefrecord">
     <Setter Property="Cursor" Value="SizeAll" />
+  </Style>
+  <Style Selector="Border.ndefrecord ComboBox, Border.ndefrecord Button">
+    <Setter Property="Cursor" Value="Arrow" />
   </Style>
   <Style Selector="Border.iconwell.small">
     <Setter Property="Width" Value="32" />
