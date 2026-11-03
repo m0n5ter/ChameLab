@@ -39,6 +39,20 @@ public sealed class SettingsViewModel : PageViewModelBase
         }
     } = AppearanceService.Accents.First(a => a.Name == AppearanceService.LoadAccent());
 
+    public IReadOnlyList<LanguageOption> Languages => LocalizationService.Languages;
+
+    /// <summary>UI language; remembered as soon as it changes, applied from the next start.</summary>
+    public LanguageOption Language
+    {
+        get;
+        set
+        {
+            if (value is null || value == field) return;
+            this.RaiseAndSetIfChanged(ref field, value);
+            LocalizationService.SaveLanguage(value.Code);
+        }
+    } = LocalizationService.Languages.First(l => l.Code == LocalizationService.LoadLanguage());
+
     /// <summary>Beep when a card scan or dump finishes; remembered as soon as it changes.</summary>
     public bool ScanSound
     {

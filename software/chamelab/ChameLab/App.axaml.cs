@@ -11,6 +11,8 @@ public partial class App : Application
 {
     public override void Initialize()
     {
+        // Before any XAML loads, so every view reads its strings in the chosen language.
+        LocalizationService.ApplySaved();
         AvaloniaXamlLoader.Load(this);
     }
 

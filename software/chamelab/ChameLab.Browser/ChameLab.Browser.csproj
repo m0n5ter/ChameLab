@@ -10,6 +10,9 @@
     <!-- Recovery loops need compiled Wasm, rather than the IL interpreter.
          AOT runs on publish; retain fast local Debug builds. -->
     <RunAOTCompilation Condition="'$(Configuration)' == 'Release' and '$(RunAOTCompilation)' == ''">true</RunAOTCompilation>
+    <!-- By default the runtime loads only the ICU shard for the browser's own locale, so a UI
+         language picked in Settings (e.g. Russian in an English browser) could be missing. -->
+    <WasmIncludeFullIcuData>true</WasmIncludeFullIcuData>
   </PropertyGroup>
 
   <ItemGroup>

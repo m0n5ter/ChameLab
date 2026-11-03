@@ -6,7 +6,21 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- CI passes the release version; a local build is marked so it doesn't look out of date -->
     <Version Condition="'$(Version)' == ''">0.0.0-local</Version>
+    <!-- UI strings are written in English; other languages come from satellite assemblies. -->
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- UI strings: Strings.resx is English, Strings.<lang>.resx are translations.
+         The build generates the typed ChameLab.Localization.Strings class. -->
+    <EmbeddedResource Update="Localization\Strings.resx">
+      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>ChameLab.Localization</StronglyTypedNamespace>
+      <StronglyTypedClassName>Strings</StronglyTypedClassName>
+      <PublicClass>true</PublicClass>
+    </EmbeddedResource>
+  </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />

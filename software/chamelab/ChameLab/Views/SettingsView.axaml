@@ -3,6 +3,7 @@
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:svc="using:ChameLab.Services"
              xmlns:c="using:ChameLab.Controls"
+             xmlns:loc="using:ChameLab.Localization"
              x:Class="ChameLab.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -54,6 +55,24 @@
                           VerticalAlignment="Center" />
                   <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
                 </StackPanel>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+        </c:SettingRow>
+      </Border>
+
+      <!-- Language (app-side, applies after a restart) -->
+      <Border Classes="card">
+        <c:SettingRow Classes="setting">
+          <Border Classes="iconwell blue">
+            <PathIcon Data="{StaticResource Icon.language}" />
+          </Border>
+          <TextBlock Text="{x:Static loc:Strings.Settings_Language}" FontWeight="SemiBold" />
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_LanguageCaption}" />
+          <ComboBox Classes="control" ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="svc:LanguageOption">
+                <TextBlock Text="{Binding Name}" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
