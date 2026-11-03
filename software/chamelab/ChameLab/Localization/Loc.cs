@@ -32,6 +32,9 @@ public static class Loc
                 if (n % 10 == 1 && n % 100 != 11) return 0;
                 if (n % 10 is >= 2 and <= 4 && n % 100 is not (>= 12 and <= 14)) return 1;
                 return 2;
+            case "fr":
+                // French treats 0 and 1 as singular.
+                return n <= 1 ? 0 : 1;
             default:
                 return n == 1 ? 0 : 1;
         }

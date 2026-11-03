@@ -21,6 +21,9 @@ public static class LocalizationService
     private static readonly (string Code, string Name)[] Translations =
     [
         ("en", "English"),
+        ("de", "Deutsch"),
+        ("es", "Español"),
+        ("fr", "Français"),
         ("ru", "Русский"),
     ];
 
