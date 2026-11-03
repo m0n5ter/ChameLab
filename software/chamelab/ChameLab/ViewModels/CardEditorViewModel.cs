@@ -15,7 +15,7 @@ namespace ChameLab.ViewModels;
 /// both for a card being added and for a saved card; <see cref="IsDirty"/>
 /// tells whether anything differs from what the editor was opened with.
 /// </summary>
-public sealed class CardEditorViewModel : ViewModelBase
+public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
 {
     private CardSave _source;
     private string _baseline = string.Empty;
@@ -640,6 +640,8 @@ public sealed class CardEditorViewModel : ViewModelBase
     public string ProtectionSummary => Protection?.Summary(_tag)
         ?? "The configuration pages were not read. Dump the card with its password to see them.";
 
+    public string? ProtectionNote => "Slots emulate these settings; to put them on a card, tick “Protect with a password” when writing.";
+
     /// <summary>AUTH0 lies within the memory: pages from it on need the password.</summary>
     public bool IsProtected
     {
@@ -678,10 +680,7 @@ public sealed class CardEditorViewModel : ViewModelBase
     private IReadOnlyList<AuthLimitOption>? _authLimitOptions;
     private TagSpecificType _authLimitTag;
 
-    /// <summary>
-    /// AUTHLIM choices as wrong attempts allowed: "No limit", a separator, then 1–7 on
-    /// Ultralight EV1 or 2–128 on NTAG21x. Kept while the type stays, so the list isn't reset.
-    /// </summary>
+    /// <summary>The AUTHLIM choices, kept while the type stays so the list isn't reset.</summary>
     public IReadOnlyList<AuthLimitOption> AuthLimitOptions
     {
         get
@@ -689,12 +688,7 @@ public sealed class CardEditorViewModel : ViewModelBase
             if (_authLimitOptions is null || _authLimitTag != _tag)
             {
                 _authLimitTag = _tag;
-                _authLimitOptions =
-                [
-                    new(0, "No limit"),
-                    new(null, ""),
-                    .. Enumerable.Range(1, 7).Select(n => new AuthLimitOption(n, UltralightProtection.Attempts(_tag, n).ToString())),
-                ];
+                _authLimitOptions = AuthLimitOption.For(_tag);
             }
             return _authLimitOptions;
         }
@@ -877,13 +871,4 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// like ChameleonUltraGUI) and the low-byte-first order the card is stored and sent in (04 00).
     /// </summary>
     private static byte[] SwapAtqa(byte[] atqa) => CardTags.SwapAtqa(atqa);
-}
-
-/// <summary>An attempt limit choice: the AUTHLIM value and what it allows; a null value is the list's separator.</summary>
-public sealed record AuthLimitOption(int? Value, string Label)
-{
-    public bool IsSeparator => Value is null;
-
-    /// <summary>A real limit: running out of attempts locks the card for good.</summary>
-    public bool IsLimited => Value > 0;
 }

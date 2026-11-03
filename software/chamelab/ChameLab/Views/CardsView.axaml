@@ -504,7 +504,7 @@
                 <TextBlock Text="Assign to slot" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding WriteCommand}" Classes.accent="{Binding IsWriteOpen}" c:ActionRow.Priority="2"
+            <Button Classes="brandblue" Command="{Binding WriteCommand}" Classes.accent="{Binding IsWriteOpen}" c:ActionRow.Priority="2"
                     ToolTip.Tip="Write onto a T55xx tag (LF), a magic card (MIFARE Classic) or the user pages of an Ultralight / NTAG card">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.upload}" />
@@ -712,7 +712,7 @@
                 <!-- Ultralight / NTAG: optional password of the target card -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsUltralightWrite}">
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                    <TextBlock Text="Card password" Classes="caption" VerticalAlignment="Center" />
+                    <TextBlock Text="Current card password" Classes="caption" VerticalAlignment="Center" />
                     <c:HexBox Grid.Column="1" Text="{Binding WritePassword}" ByteLengths="4"
                               IsEnabled="{Binding !IsBusy}" PlaceholderText="Optional"
                               ToolTip.Tip="PWD (4 bytes) of the target card, when its pages are write-protected" />
@@ -722,13 +722,10 @@
                              IsVisible="{Binding WritePasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </StackPanel>
 
-                <!-- Ultralight EV1 / NTAG21x: put the card's password settings on the target too -->
-                <StackPanel Spacing="4" IsVisible="{Binding CanWriteProtection}">
-                  <CheckBox Content="Write password settings" IsChecked="{Binding WriteProtection}"
-                            IsEnabled="{Binding !IsBusy}"
-                            ToolTip.Tip="After the pages: PWD, PACK, read protection, attempt limit and AUTH0 from this card" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteProtectionText}" />
-                </StackPanel>
+                <!-- Ultralight EV1 / NTAG21x: password settings for the target, starting from this card's -->
+                <Panel IsVisible="{Binding CanWriteProtection}" IsEnabled="{Binding !IsBusy}">
+                  <c:ProtectionSettingsPanel DataContext="{Binding WriteProtection}" />
+                </Panel>
 
                 <!-- T55xx: current password (to unlock a locked tag) and the new password it's locked with -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsLfWrite}">
@@ -1257,60 +1254,7 @@
                 <StackPanel Spacing="2">
                   <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
                 </StackPanel>
-                <WrapPanel ItemSpacing="24" LineSpacing="6">
-                  <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
-                            ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
-                  <CheckBox Classes="danger" Content="Protect reading" IsChecked="{Binding ReadProtected}"
-                            IsEnabled="{Binding IsProtected}"
-                            ToolTip.Tip="PROT: without the password the protected pages can't even be read" />
-                </WrapPanel>
-                <!-- The settings below only take effect with protection on. -->
-                <StackPanel Spacing="10" IsEnabled="{Binding IsProtected}">
-                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Password (PWD)" Classes="caption" />
-                      <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Answer (PACK)" Classes="caption" />
-                      <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
-                                ToolTip.Tip="What the card answers to the right password; readers may check it" />
-                    </StackPanel>
-                  </c:FlowGrid>
-                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="From page (AUTH0)" Classes="caption" />
-                      <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
-                                     FormatString="0" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
-                      <!-- A limit can lock the card for good, so every limit is shown in red. -->
-                      <ComboBox ItemsSource="{Binding AuthLimitOptions}" SelectedItem="{Binding SelectedAuthLimit}"
-                                HorizontalAlignment="Stretch" ToolTip.Tip="Wrong passwords before the card locks for good">
-                        <ComboBox.Styles>
-                          <Style Selector="ComboBoxItem" x:DataType="vm:AuthLimitOption">
-                            <Setter Property="IsEnabled" Value="{Binding !IsSeparator}" />
-                          </Style>
-                        </ComboBox.Styles>
-                        <ComboBox.ItemTemplate>
-                          <DataTemplate x:DataType="vm:AuthLimitOption">
-                            <Panel>
-                              <TextBlock Text="{Binding Label}" Classes.danger="{Binding IsLimited}"
-                                         IsVisible="{Binding !IsSeparator}" />
-                              <Separator Margin="0" IsVisible="{Binding IsSeparator}" />
-                            </Panel>
-                          </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                      </ComboBox>
-                    </StackPanel>
-                  </c:FlowGrid>
-                </StackPanel>
-                <StackPanel Spacing="2">
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="Slots emulate these settings; to put them on a card, tick “Write password settings” when writing." />
-                </StackPanel>
+                <c:ProtectionSettingsPanel />
               </StackPanel>
             </Border>
           </Panel>

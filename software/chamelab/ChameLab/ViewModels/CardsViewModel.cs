@@ -2258,10 +2258,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             WriteBlockStates = Array.Empty<MifareBlockState>();
             ResetWriteRecovery();
-            // A clone of a protected card is protected alike unless unticked.
-            WriteProtection = _form?.IsProtected == true;
-            this.RaisePropertyChanged(nameof(CanWriteProtection));
-            this.RaisePropertyChanged(nameof(WriteProtectionText));
+            // A clone of a protected card is protected alike unless switched off.
+            WriteProtection = _form is { Protection: { } p } form ? new WriteProtectionViewModel(p, form.Tag) : null;
         }
     }
 
@@ -2400,27 +2398,24 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         : key.Length == 4 ? null
         : "The password is 4 bytes.";
 
-    /// <summary>The card's password settings (Ultralight EV1 / NTAG21x) can be put on the target card.</summary>
-    public bool CanWriteProtection => IsUltralightWrite && _form?.HasProtection == true;
+    /// <summary>Password settings (Ultralight EV1 / NTAG21x) can be put on the target card.</summary>
+    public bool CanWriteProtection => IsUltralightWrite && _writeProtection is not null;
 
-    private bool _writeProtection;
+    private WriteProtectionViewModel? _writeProtection;
 
-    /// <summary>Also write PWD, PACK, PROT / AUTHLIM and AUTH0 from the card onto the target.</summary>
-    public bool WriteProtection
+    /// <summary>
+    /// Password settings for the target, set up from the card's own each time the writer opens;
+    /// null when the card's configuration pages were not read.
+    /// </summary>
+    public WriteProtectionViewModel? WriteProtection
     {
         get => _writeProtection;
-        set
+        private set
         {
             this.RaiseAndSetIfChanged(ref _writeProtection, value);
-            this.RaisePropertyChanged(nameof(WriteProtectionText));
+            this.RaisePropertyChanged(nameof(CanWriteProtection));
         }
     }
-
-    public string? WriteProtectionText => _form is not { HasProtection: true } form ? null
-        : !_writeProtection ? "The target card keeps its own password settings."
-        : form.IsProtected
-            ? $"{form.ProtectionSummary} New password {form.Password}, PACK {form.Pack}. Keep the password: without it the protected pages can't be changed."
-            : "Protection is switched off on the target card (AUTH0 = FF); its password is set to " + form.Password + ".";
 
     /// <summary>
     /// Optional 4-byte password of an already-locked T55xx tag, tried before the firmware's
@@ -2540,7 +2535,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(WriteUnit));
         this.RaisePropertyChanged(nameof(WritePasswordError));
         this.RaisePropertyChanged(nameof(CanWriteProtection));
-        this.RaisePropertyChanged(nameof(WriteProtectionText));
         this.RaisePropertyChanged(nameof(WriteLfPasswordError));
         this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
         this.RaisePropertyChanged(nameof(WriteKind));
@@ -2719,9 +2713,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (card.Tag.IsUltralight())
             {
                 var pwd = Hex.TryParse(WritePassword, out var k) && k.Length > 0 ? k : null;
-                var protection = WriteProtection ? UltralightProtection.FromPages(card.Data, card.Tag) : null;
-                if (protection is not null && !protection.IsEnabled(card.Tag))
-                    protection = protection with { Auth0 = UltralightProtection.Off };
+                var protection = WriteProtection?.Settings;
                 failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress, protection);
             }
             else if (session is not null)
