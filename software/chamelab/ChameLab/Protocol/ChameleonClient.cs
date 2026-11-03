@@ -1741,6 +1741,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             }
 
             int? lockedFrom = null;
+            var cardLost = false;
             var live = false; // the card answered the last READ, so it is still selected (and authenticated)
             for (var page = 0; page < total && !readDone;)
             {
@@ -1752,7 +1753,14 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 // the first password-protected page on, and Ultralight C never shows its key pages.
                 var r = await UltralightReadAsync(page, live, pwd, ct);
                 live = r is not null;
-                if (r is null) { lockedFrom = page; break; }
+                if (r is null)
+                {
+                    lockedFrom = page;
+                    // A card still answering page 0 refused this one (the password, or the end of an
+                    // unknown model's memory); one that doesn't has left the field.
+                    cardLost = await UltralightReadAsync(0, false, pwd, ct) is null;
+                    break;
+                }
                 for (var i = 0; i < n; i++) data[page + i] = r[(i * 4)..((i + 1) * 4)];
                 pages?.Report(new MifareBlockProgress(page, n, MifareBlockState.Read));
                 page += n;
@@ -1781,7 +1789,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             lockedFrom = firstMissing >= 0 ? firstMissing : null;
             pages?.Report(new MifareBlockProgress(0, total, MifareBlockState.Pending));
             if (read > 0) pages?.Report(new MifareBlockProgress(0, firstMissing >= 0 ? firstMissing : total, MifareBlockState.Read));
-            if (firstMissing >= 0) pages?.Report(new MifareBlockProgress(firstMissing, total - firstMissing, MifareBlockState.NoKey));
+            if (firstMissing >= 0)
+                pages?.Report(new MifareBlockProgress(firstMissing, total - firstMissing,
+                    cardLost ? MifareBlockState.ReadError : MifareBlockState.NoKey));
             progress?.Report(new MifareProgress(total, total, read));
 
             var card = new CardSave
@@ -1817,7 +1827,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 }
             }
 
-            return new UltralightDumpResult(card, read, total, lockedFrom, keyAccepted, pack, keyNotNeeded);
+            return new UltralightDumpResult(card, read, total, lockedFrom, keyAccepted, pack, keyNotNeeded, cardLost);
         }
         finally
         {

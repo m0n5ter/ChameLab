@@ -1203,7 +1203,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaiseAndSetIfChanged(ref _isUltralightDump, value);
             this.RaisePropertyChanged(nameof(DumpHint));
             this.RaisePropertyChanged(nameof(DumpUnit));
-            this.RaisePropertyChanged(nameof(DumpLockedText));
             this.RaisePropertyChanged(nameof(TryKeysLabel));
             this.RaisePropertyChanged(nameof(TryKeysTip));
             RaiseDumpToolbar();
@@ -1239,9 +1238,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>What one cell of the block strip is: a MIFARE Classic block or an Ultralight page.</summary>
     public string DumpUnit => _isUltralightDump ? "Page" : "Block";
 
-    /// <summary>Legend of the strip's red cells.</summary>
-    public string DumpLockedText => _isUltralightDump ? "Protected" : "No key";
-
     /// <summary>A MIFARE Classic or Ultralight card was scanned but its memory has not been dumped yet.</summary>
     public bool NeedsDump => _canDump && !_hasDump;
 
@@ -1261,6 +1257,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool ShowDumpActions => CanDump && !IsDumpRunning && NeedsRecovery;
     public bool ShowDumpNotice => CanDump && !IsDumpRunning && NeedsRecovery && !IsConnected;
 
+    /// <summary>The Ultralight password goes with the Read button: gone once every page is read.</summary>
+    public bool ShowDumpPassword => IsUltralightDump && ShowDumpActions;
+
     /// <summary>Blocks are missing, or a read trailer lacks key A or key B (held as zeros).</summary>
     private bool NeedsRecovery => !IsDumpComplete || HasMissingKeys;
 
@@ -1274,6 +1273,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(IsDumpRunning));
         this.RaisePropertyChanged(nameof(ShowDumpActions));
         this.RaisePropertyChanged(nameof(ShowDumpNotice));
+        this.RaisePropertyChanged(nameof(ShowDumpPassword));
         this.RaisePropertyChanged(nameof(DumpNotice));
     }
 
@@ -1381,6 +1381,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     var count = tag.UltralightPages();
                     IsDumpComplete = count > 0 && card.Data.Count >= count
                         && card.Data.Take(count).All(b => b.Length == 4);
+                    // Every page shows from the scan on: those in the editor as read, the rest not tried.
+                    DumpBlockStates = Enumerable.Range(0, count)
+                        .Select(p => p < card.Data.Count && card.Data[p].Length == 4 ? MifareBlockState.Read : MifareBlockState.Pending)
+                        .ToArray();
                 }
             }
         }
@@ -1803,11 +1807,16 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     throw new InvalidOperationException("Place the selected card on the reader before continuing.");
             }
             var result = await WithMissFeedback(client.DumpUltralightAsync(key, progress, cts.Token, pageProgress));
+            // Pages an earlier read got stay read.
+            var kept = new List<int>();
             if (previous is not null && previous.Tag == result.Card.Tag)
             {
                 for (var page = 0; page < Math.Min(previous.Data.Count, result.Card.Data.Count); page++)
                     if (result.Card.Data[page].Length != 4 && previous.Data[page].Length == 4)
+                    {
                         result.Card.Data[page] = previous.Data[page];
+                        kept.Add(page);
+                    }
                 result = result with { PagesRead = result.Card.Data.Count(p => p.Length == 4) };
             }
             clock.Stop();
@@ -1819,6 +1828,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 DumpStats.Clear();
                 foreach (var row in stats) DumpStats.Add(row);
                 HasDumpStats = true;
+                foreach (var page in kept) SetDumpBlocks(page, 1, MifareBlockState.Read);
                 _applyingDump = true;
                 if (Form is { } form) form.ReplaceContent(result.Card);
                 else Form = new CardEditorViewModel(result.Card, sameFrequency: true);
@@ -1860,7 +1870,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         else if (r.KeyNotNeeded)
             rows.Add(new("Password", "not sent; the card doesn't need it"));
         if (r.LockedFrom is { } locked)
-            rows.Add(new("Protected", locked == r.PageCount - 1 ? $"page {locked}" : $"pages {locked}–{r.PageCount - 1}"));
+            rows.Add(r.CardLost
+                ? new("Stopped", $"the card stopped answering at page {locked}")
+                : new("Protected", locked == r.PageCount - 1 ? $"page {locked}" : $"pages {locked}–{r.PageCount - 1}"));
         if (extra.UltralightSignature.Length > 0) rows.Add(new("Signature", Hex.Compact(extra.UltralightSignature)));
         if (extra.UltralightCounters.Count > 0)
             rows.Add(new(extra.UltralightCounters.Count == 1 ? "Counter" : "Counters", string.Join(", ", extra.UltralightCounters)));

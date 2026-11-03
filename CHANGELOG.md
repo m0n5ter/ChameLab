@@ -9,6 +9,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - ChameLab: the dump button of an Ultralight / NTAG card reads "Read" instead of "Try keys", since these cards are read without key dictionaries
  - ChameLab: an Ultralight EV1 / NTAG dump sends the entered password only when the card's configuration needs it (read-protected pages, protected configuration or a protected NFC counter), so an open card doesn't spend its AUTHLIM attempts on a wrong password
  - ChameLab: the memory editor shows Ultralight / NTAG memory four pages (16 bytes) to a line when there is room, then two or one, so dumps are shorter and NDEF text reads as a whole in the ASCII column
+ - ChameLab: the Ultralight / NTAG memory section shows the page strip from the scan on, with the password beside Read and both gone once every page is read; pages the card refuses show as No key, pages lost when the card leaves the field as Error. Password protection moved below the memory
 
 ## [v1.1.28][2026-11-02] · firmware v2.3.10-cl
  - ChameLab: faster Static encrypted nested recovery: candidate calculation is about 1.4× faster and RF08S A/B seed filtering is 7–7.5× faster in local Windows Release benchmarks. Candidate sets remain identical to the original solver; reproducible benchmarks and regression checks are included

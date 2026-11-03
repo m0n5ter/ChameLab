@@ -148,8 +148,9 @@ public sealed record LfScanResult(TagSpecificType Type, byte[] Id)
 /// (password-protected, or the Ultralight C key pages). <see cref="KeyAccepted"/> is null when
 /// no key was given or, with <see cref="KeyNotNeeded"/>, when the card's configuration showed
 /// that nothing needs the password, so it was not presented; <see cref="Pack"/> is what the
-/// card answered to an accepted PWD.
+/// card answered to an accepted PWD. With <see cref="CardLost"/> the card stopped answering at
+/// <see cref="LockedFrom"/> rather than refusing the page.
 /// </summary>
 public sealed record UltralightDumpResult(
     CardSave Card, int PagesRead, int PageCount, int? LockedFrom, bool? KeyAccepted, byte[]? Pack,
-    bool KeyNotNeeded = false);
+    bool KeyNotNeeded = false, bool CardLost = false);

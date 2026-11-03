@@ -1109,55 +1109,6 @@
             </Border>
           </Panel>
 
-          <!-- ===================== Password protection (Ultralight EV1 / NTAG21x) ===================== -->
-          <!-- Hidden as a whole, so the list's spacing doesn't leave a gap for the hidden card. -->
-          <Panel>
-            <Panel.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding Path="ShowMemoryEditor" />
-                <Binding ElementName="PasswordCard" Path="IsVisible" />
-              </MultiBinding>
-            </Panel.IsVisible>
-            <Border x:Name="PasswordCard" Classes="card" IsVisible="{Binding Form?.HasPasswordConfig, TargetNullValue=False}">
-              <StackPanel Spacing="10" DataContext="{Binding Form}" x:DataType="vm:CardEditorViewModel">
-                <StackPanel Spacing="2">
-                  <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
-                </StackPanel>
-                <StackPanel Spacing="10" IsVisible="{Binding HasProtection}">
-                  <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
-                            ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
-                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Password (PWD)" Classes="caption" />
-                      <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Answer (PACK)" Classes="caption" />
-                      <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
-                                ToolTip.Tip="What the card answers to the right password; readers may check it" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="From page (AUTH0)" Classes="caption" />
-                      <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
-                                     FormatString="0" IsEnabled="{Binding IsProtected}" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
-                      <ComboBox ItemsSource="{Binding AuthLimits}" SelectedItem="{Binding AuthLimit}"
-                                HorizontalAlignment="Stretch" ToolTip.Tip="{Binding AuthLimitText}" />
-                    </StackPanel>
-                  </c:FlowGrid>
-                  <CheckBox Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}"
-                            IsEnabled="{Binding IsProtected}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AuthLimitText}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
-                </StackPanel>
-              </StackPanel>
-            </Border>
-          </Panel>
-
           <!-- Memory dump / continuation for scanned, saved, imported and manual cards. -->
           <Border x:Name="MemoryCard" Classes="card" IsVisible="{Binding ShowMemoryEditor}">
             <StackPanel Spacing="12">
@@ -1181,17 +1132,17 @@
               </StackPanel>
               <StackPanel Spacing="8">
                 <!-- Actions and progress share a fixed-height slot to keep the sector grid still. -->
-                <c:KeyRecoveryPanel />
-
-                <!-- Ultralight / NTAG: optional password for the protected pages. -->
-                <StackPanel Spacing="4" IsVisible="{Binding IsUltralightDump}">
-                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                    <TextBlock Text="Password" Classes="caption" VerticalAlignment="Center" />
-                    <c:HexBox Grid.Column="1" Text="{Binding DumpPassword}" ByteLengths="4,16"
-                              IsEnabled="{Binding DumpProgressText, Converter={x:Static ObjectConverters.IsNull}}"
-                              PlaceholderText="Optional"
+                <c:KeyRecoveryPanel>
+                  <!-- Ultralight / NTAG: optional password for the protected pages, beside Read. -->
+                  <c:KeyRecoveryPanel.ToolbarContent>
+                    <c:HexBox Text="{Binding DumpPassword}" ByteLengths="4,16"
+                              IsVisible="{Binding IsUltralightDump}"
+                              PlaceholderText="Password (optional)"
                               ToolTip.Tip="PWD (4 bytes) for NTAG / Ultralight EV1, or the 3DES key (16 bytes) for Ultralight C" />
-                  </Grid>
+                  </c:KeyRecoveryPanel.ToolbarContent>
+                </c:KeyRecoveryPanel>
+
+                <StackPanel Spacing="4" IsVisible="{Binding ShowDumpPassword}">
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DumpPasswordError}"
                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                              IsVisible="{Binding DumpPasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -1200,26 +1151,30 @@
                 </StackPanel>
 
                 <!-- Ultralight / NTAG: one cell per page, drawn as one control spanning the full width. -->
-                <StackPanel Spacing="4" b:BringIntoViewOnShow.IsEnabled="True"
+                <StackPanel Spacing="6" b:BringIntoViewOnShow.IsEnabled="True"
                             IsVisible="{Binding HasDumpBlocks}">
                   <c:BlockStrip States="{Binding DumpBlockStates}" Unit="{Binding DumpUnit}"
-                                LockedText="{Binding DumpLockedText}" HorizontalAlignment="Stretch" />
-                  <WrapPanel ItemSpacing="14" LineSpacing="4">
+                                LockedText="No key" HorizontalAlignment="Stretch" Margin="0,4,0,0" />
+                  <WrapPanel ItemSpacing="14" LineSpacing="4" Margin="16,0,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend read" Margin="0" />
+                      <TextBlock Text="OK" Classes="caption" />
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend reading" Margin="0" />
                       <TextBlock Text="Reading" Classes="caption" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="5">
-                      <Border Classes="blockcell blocklegend read" Margin="0" />
-                      <TextBlock Text="Read" Classes="caption" />
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend readerror" Margin="0" />
-                      <TextBlock Text="Read error" Classes="caption" />
+                      <TextBlock Text="Error" Classes="caption" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="5">
                       <Border Classes="blockcell blocklegend nokey" Margin="0" />
-                      <TextBlock Text="{Binding DumpLockedText}" Classes="caption" />
+                      <TextBlock Text="No key" Classes="caption" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                      <Border Classes="blockcell blocklegend" Margin="0" />
+                      <TextBlock Text="Not tried" Classes="caption" />
                     </StackPanel>
                   </WrapPanel>
                 </StackPanel>
@@ -1284,6 +1239,55 @@
               </StackPanel>
             </StackPanel>
           </Border>
+
+          <!-- ===================== Password protection (Ultralight EV1 / NTAG21x) ===================== -->
+          <!-- Hidden as a whole, so the list's spacing doesn't leave a gap for the hidden card. -->
+          <Panel>
+            <Panel.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="ShowMemoryEditor" />
+                <Binding ElementName="PasswordCard" Path="IsVisible" />
+              </MultiBinding>
+            </Panel.IsVisible>
+            <Border x:Name="PasswordCard" Classes="card" IsVisible="{Binding Form?.HasPasswordConfig, TargetNullValue=False}">
+              <StackPanel Spacing="10" DataContext="{Binding Form}" x:DataType="vm:CardEditorViewModel">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
+                </StackPanel>
+                <StackPanel Spacing="10" IsVisible="{Binding HasProtection}">
+                  <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
+                            ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
+                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Password (PWD)" Classes="caption" />
+                      <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Answer (PACK)" Classes="caption" />
+                      <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
+                                ToolTip.Tip="What the card answers to the right password; readers may check it" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="From page (AUTH0)" Classes="caption" />
+                      <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
+                                     FormatString="0" IsEnabled="{Binding IsProtected}" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
+                      <ComboBox ItemsSource="{Binding AuthLimits}" SelectedItem="{Binding AuthLimit}"
+                                HorizontalAlignment="Stretch" ToolTip.Tip="{Binding AuthLimitText}" />
+                    </StackPanel>
+                  </c:FlowGrid>
+                  <CheckBox Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}"
+                            IsEnabled="{Binding IsProtected}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AuthLimitText}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </Panel>
         </StackPanel>
       </ScrollViewer>
 

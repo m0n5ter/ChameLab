@@ -37,8 +37,10 @@
                IsVisible="{Binding RecoveryIdentity, Converter={x:Static ObjectConverters.IsNotNull}}" />
     <Grid Classes="memorytoolbar" Height="48" IsVisible="{Binding ShowRecoveryTools}"
           SizeChanged="OnMemoryToolbarSizeChanged">
-        <c:ActionRow Classes="attackactions" Spacing="6"
-                    IsVisible="{Binding ShowDumpActions}" VerticalAlignment="Center" IsEnabled="{Binding !IsBusy}">
+      <!-- The host's extra controls (the Ultralight password) take the room right of the buttons. -->
+      <DockPanel IsVisible="{Binding ShowDumpActions}" VerticalAlignment="Center">
+        <c:ActionRow DockPanel.Dock="Left" Classes="attackactions" Spacing="6"
+                    VerticalAlignment="Center" IsEnabled="{Binding !IsBusy}">
           <Grid Height="40" c:ActionRow.Priority="3">
             <Grid.Styles>
               <Style Selector="Button.dump-main">
@@ -147,6 +149,10 @@
             </Button>
           </Border>
         </c:ActionRow>
+        <ContentPresenter Content="{Binding #RecoveryPanel.ToolbarContent}" Margin="12,0,0,0"
+                          VerticalAlignment="Center"
+                          IsVisible="{Binding #RecoveryPanel.ToolbarContent, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      </DockPanel>
       <Grid Height="48" RowDefinitions="40,4" RowSpacing="4"
             ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center"
             IsVisible="{Binding IsDumpRunning}">
