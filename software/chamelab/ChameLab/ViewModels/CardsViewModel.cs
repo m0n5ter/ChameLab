@@ -2258,8 +2258,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             WriteBlockStates = Array.Empty<MifareBlockState>();
             ResetWriteRecovery();
-            // A clone of a protected card is protected alike unless switched off.
+            // A clone of a protected card gets its settings rewritten; otherwise the target keeps its own.
             WriteProtection = _form is { Protection: { } p } form ? new WriteProtectionViewModel(p, form.Tag) : null;
+            RewriteProtection = _form?.IsProtected == true;
         }
     }
 
@@ -2415,6 +2416,15 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaiseAndSetIfChanged(ref _writeProtection, value);
             this.RaisePropertyChanged(nameof(CanWriteProtection));
         }
+    }
+
+    private bool _rewriteProtection;
+
+    /// <summary>Write <see cref="WriteProtection"/> onto the target; otherwise it keeps its password settings as they are.</summary>
+    public bool RewriteProtection
+    {
+        get => _rewriteProtection;
+        set => this.RaiseAndSetIfChanged(ref _rewriteProtection, value);
     }
 
     /// <summary>
@@ -2713,7 +2723,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (card.Tag.IsUltralight())
             {
                 var pwd = Hex.TryParse(WritePassword, out var k) && k.Length > 0 ? k : null;
-                var protection = WriteProtection?.Settings;
+                var protection = RewriteProtection ? WriteProtection?.Settings : null;
                 failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress, protection);
             }
             else if (session is not null)

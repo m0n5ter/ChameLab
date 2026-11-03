@@ -9,7 +9,8 @@ namespace ChameLab.ViewModels;
 
 /// <summary>
 /// Password settings the writer puts on the target Ultralight EV1 / NTAG21x card, starting from
-/// the source card's and edited without changing it. With protection off the target keeps its own.
+/// the source card's and edited without changing it. With protection off the target is left
+/// unprotected (AUTH0 = FF), its password still set.
 /// </summary>
 public sealed class WriteProtectionViewModel(UltralightProtection source, TagSpecificType tag) : ViewModelBase, IProtectionSettings
 {
@@ -18,8 +19,8 @@ public sealed class WriteProtectionViewModel(UltralightProtection source, TagSpe
     // AUTH0 to come back to when protection is switched on again.
     private byte _lastAuth0 = source.IsEnabled(tag) ? source.Auth0 : (byte)Type2Ndef.FirstPage;
 
-    /// <summary>What goes onto the target card; null leaves its password settings alone.</summary>
-    public UltralightProtection? Settings => IsProtected ? _settings : null;
+    /// <summary>What goes onto the target card.</summary>
+    public UltralightProtection Settings => _settings;
 
     public bool IsProtected
     {
@@ -79,13 +80,11 @@ public sealed class WriteProtectionViewModel(UltralightProtection source, TagSpe
         }
     }
 
-    public string ProtectionSummary => IsProtected
-        ? _settings.Summary(tag)
-        : "The target card keeps its own password settings.";
+    public string ProtectionSummary => _settings.Summary(tag);
 
     public string? ProtectionNote => IsProtected
         ? $"Written after the pages. Keep the password ({Password}): without it the protected pages can't be changed."
-        : null;
+        : $"Written after the pages: protection is switched off, the password set to {Password}.";
 
     private void Set(UltralightProtection next)
     {
