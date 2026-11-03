@@ -47,7 +47,42 @@ public class ActionRow : Panel
     /// <summary>The row's width with every label hidden, as of the last measure.</summary>
     public double IconicWidth { get; private set; }
 
+    private readonly List<Visual> _ancestors = new();
+
     private List<Control> Visible() => Children.Where(c => c.IsVisible).ToList();
+
+    /// <remarks>
+    /// Avalonia skips measuring controls under a hidden ancestor, and when that ancestor shows
+    /// again this row and its buttons keep the sizes cached before: a button that changed while
+    /// hidden (its label, a part shown) is laid out at its old width. So the row's subtree is
+    /// remeasured whenever an ancestor becomes visible.
+    /// </remarks>
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _ancestors.AddRange(this.GetVisualAncestors());
+        foreach (var ancestor in _ancestors) ancestor.PropertyChanged += OnAncestorPropertyChanged;
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        foreach (var ancestor in _ancestors) ancestor.PropertyChanged -= OnAncestorPropertyChanged;
+        _ancestors.Clear();
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        OnAncestorPropertyChanged(this, change);
+    }
+
+    private void OnAncestorPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != IsVisibleProperty || e.NewValue is not true) return;
+        foreach (var layoutable in this.GetSelfAndVisualDescendants().OfType<Layoutable>())
+            layoutable.InvalidateMeasure();
+    }
 
     /// <summary>Visible buttons in the order they lose their label.</summary>
     private static List<Control> CollapseOrder(List<Control> visible) => visible
