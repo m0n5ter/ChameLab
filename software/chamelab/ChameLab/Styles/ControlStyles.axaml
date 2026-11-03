@@ -282,7 +282,7 @@
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
     <Setter Property="Foreground" Value="White" />
   </Style>
-  <!-- Brand-blue action (Write): blue text and outline, blue fill on hover; the accent look wins while its panel is open. -->
+  <!-- Brand-blue action (Write, Write another): blue text and outline, blue fill on hover. -->
   <Style Selector="Button.brandblue:not(.accent)">
     <Setter Property="Foreground" Value="{DynamicResource BrandBlueBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource BrandBlueBrush}" />

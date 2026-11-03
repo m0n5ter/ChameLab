@@ -504,7 +504,7 @@
                 <TextBlock Text="Assign to slot" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
-            <Button Classes="brandblue" Command="{Binding WriteCommand}" Classes.accent="{Binding IsWriteOpen}" c:ActionRow.Priority="2"
+            <Button Classes="brandblue" Command="{Binding WriteCommand}" c:ActionRow.Priority="2"
                     ToolTip.Tip="Write onto a T55xx tag (LF), a magic card (MIFARE Classic) or the user pages of an Ultralight / NTAG card">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.upload}" />
@@ -815,7 +815,7 @@
                        otherwise the button is Close. -->
                   <Button Grid.Column="1" Content="{Binding CancelWriteLabel}" Command="{Binding CancelWriteCommand}"
                           ToolTip.Tip="{Binding CancelWriteTip}" />
-                  <Button Grid.Column="2" Classes="accent" Command="{Binding WriteNowCommand}"
+                  <Button Grid.Column="2" Classes="brandblue" Command="{Binding WriteNowCommand}"
                           IsVisible="{Binding !IsWriteSuccessful}"
                           IsEnabled="{Binding IsConnected}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
@@ -823,7 +823,7 @@
                       <TextBlock Text="Write" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>
-                  <Button Grid.Column="2" Classes="accent" Command="{Binding WriteAnotherCommand}"
+                  <Button Grid.Column="2" Classes="brandblue" Command="{Binding WriteAnotherCommand}"
                           IsVisible="{Binding IsWriteSuccessful}"
                           ToolTip.Tip="Write the same card to another tag with the same options">
                     <StackPanel Orientation="Horizontal" Spacing="6">
