@@ -814,6 +814,7 @@
                   <!-- While a write runs, Cancel stops it and the writer stays open to show the result;
                        otherwise the button is Close. -->
                   <Button Grid.Column="1" Content="{Binding CancelWriteLabel}" Command="{Binding CancelWriteCommand}"
+                          Classes.danger="{Binding IsWriting}"
                           ToolTip.Tip="{Binding CancelWriteTip}" />
                   <Button Grid.Column="2" Classes="brandblue" Command="{Binding WriteNowCommand}"
                           IsVisible="{Binding !IsWriteSuccessful}"
