@@ -1840,7 +1840,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 if (tags.Count == 0 || !previous.Uid.AsSpan().SequenceEqual(tags[0].Uid))
                     throw new InvalidOperationException("Place the selected card on the reader before continuing.");
             }
-            var result = await WithMissFeedback(client.DumpUltralightAsync(key, progress, cts.Token, pageProgress));
+            var result = await WithMissFeedback(client.DumpUltralightAsync(key, progress, cts.Token, pageProgress,
+                _dictionaries.KnownKeys.PasswordForUid));
+            if (result.Pwd is { } accepted) RememberCardPassword(result.Card.Uid, accepted);
             // Pages an earlier read got stay read.
             var kept = new List<int>();
             if (previous is not null && previous.Tag == result.Card.Tag)
@@ -1899,7 +1901,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         };
         if (r.KeyAccepted is { } accepted)
             rows.Add(new(r.Card.Tag == TagSpecificType.Mf0Icu2 ? "3DES key" : "Password", accepted
-                ? r.Pack is { } pack ? $"accepted · PACK {Hex.Spaced(pack)}" : "accepted"
+                ? (r.KnownKeyUsed ? $"remembered {Hex.Spaced(r.Pwd ?? [])} accepted" : "accepted")
+                    + (r.Pack is { } pack ? $" · PACK {Hex.Spaced(pack)}" : "")
+                : r.KnownKeyUsed ? "the remembered password was not accepted; protected pages were left unread"
                 : "not accepted; protected pages were left unread"));
         else if (r.KeyNotNeeded)
             rows.Add(new("Password", "not sent; the card doesn't need it"));
@@ -1965,6 +1969,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         try { _dictionaries.KnownKeys.Remember(dump.Uid, dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()); }
         catch (Exception ex) { ReportError($"Could not save known card keys: {ex.Message}"); }
+    }
+
+    private void RememberCardPassword(byte[] uid, byte[] pwd)
+    {
+        try { _dictionaries.KnownKeys.RememberPassword(uid, pwd); }
+        catch (Exception ex) { ReportError($"Could not save the card's password: {ex.Message}"); }
     }
 
     /// <summary>Unique keys across the checked sources: what a dump will try per sector and key type.</summary>
@@ -2795,7 +2805,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             {
                 var pwd = Hex.TryParse(WritePassword, out var k) && k.Length > 0 ? k : null;
                 var protection = RewriteProtection ? WriteProtection?.Settings : null;
-                failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress, protection);
+                failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress, protection,
+                    _dictionaries.KnownKeys.PasswordForUid, RememberCardPassword);
             }
             else if (session is not null)
             {

@@ -256,7 +256,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public ObservableCollection<DictionaryItemViewModel> Dictionaries { get; } = new();
     public ICommand OpenKnownKeysCommand { get; }
     public KnownKeysEditorViewModel KnownEditor { get; }
-    public string KnownKeysCountText => $"{_library.KnownKeys.CardCount} UIDs · {_library.KnownKeys.KeyCount} keys";
+    public string KnownKeysCountText => $"{_library.KnownKeys.CardCount} UIDs · {_library.KnownKeys.KeyCount} keys"
+        + (_library.KnownKeys.PasswordCount > 0 ? $" · {_library.KnownKeys.PasswordCount} NTAG passwords" : "");
     public string KnownKeysText => _library.KnownKeys.KeyCount == 0
         ? "Keys found while reading cards or running recovery will appear here, grouped by UID."
         : _library.KnownKeys.DisplayText;

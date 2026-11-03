@@ -35,6 +35,45 @@ public class KnownCardKeysTests
     }
 
     [Fact]
+    public void NtagPasswordsPersistInTheirOwnSectionAndAreReplaced()
+    {
+        var store = new MemoryKeyValueStore();
+        var known = new KnownCardKeys(store);
+        var ntag = Convert.FromHexString("04112233445566");
+        known.Remember(Uid, [Key]);
+        known.RememberPassword(ntag, [1, 2, 3, 4]);
+        known.RememberPassword(ntag, [5, 6, 7, 8]);
+        known.RememberPassword(Uid, new byte[6]);
+        known.ApplyEdits(new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IReadOnlyList<byte[]>?>
+            { ["01020304"] = [new byte[6]] });
+        known.Remember([9, 9, 9, 9], [Key]);
+
+        var reloaded = new KnownCardKeys(store);
+        Assert.Null(reloaded.LoadError);
+        Assert.Equal(new byte[] { 5, 6, 7, 8 }, reloaded.PasswordForUid(ntag));
+        Assert.Null(reloaded.PasswordForUid(Uid));
+        Assert.Equal(1, reloaded.PasswordCount);
+        Assert.Equal(2, reloaded.CardCount);
+        Assert.DoesNotContain(KnownCardKeys.PasswordsSection, reloaded.Uids);
+        Assert.Contains("\"ntagPasswords\":{\"04112233445566\":\"05060708\"}", store.Read(KnownCardKeys.Id));
+    }
+
+    [Fact]
+    public void BackupAddsNtagPasswordsWithoutOverwritingNewerOnes()
+    {
+        var ntag = Convert.FromHexString("04112233445566");
+        var other = Convert.FromHexString("04AABBCCDDEEFF");
+        var source = new KnownCardKeys(new MemoryKeyValueStore());
+        source.RememberPassword(ntag, [1, 2, 3, 4]);
+        source.RememberPassword(other, [9, 9, 9, 9]);
+        var target = new KnownCardKeys(new MemoryKeyValueStore());
+        target.RememberPassword(ntag, [5, 6, 7, 8]);
+        target.Merge(source.ToJson());
+        Assert.Equal(new byte[] { 5, 6, 7, 8 }, target.PasswordForUid(ntag));
+        Assert.Equal(new byte[] { 9, 9, 9, 9 }, target.PasswordForUid(other));
+    }
+
+    [Fact]
     public void ReturnedKeysCannotModifyStoredKeys()
     {
         var known = new KnownCardKeys(new MemoryKeyValueStore());

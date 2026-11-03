@@ -1666,11 +1666,13 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// failed attempts count towards the card's AUTHLIM. An accepted PWD and its PACK (or the
     /// Ultralight C key) are put into the dump, where the card itself only shows zeros.
     /// </param>
+    /// <param name="knownPassword">The remembered PWD for a UID, presented when no <paramref name="key"/> is given.</param>
     public async Task<UltralightDumpResult> DumpUltralightAsync(
         byte[]? key = null,
         IProgress<MifareProgress>? progress = null,
         CancellationToken ct = default,
-        IProgress<MifareBlockProgress>? pages = null)
+        IProgress<MifareBlockProgress>? pages = null,
+        Func<byte[], byte[]?>? knownPassword = null)
     {
         if (key is { Length: 0 }) key = null;
         if (key is { Length: not (4 or 16) })
@@ -1683,6 +1685,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var tag = tags[0];
         if (tag.Sak != 0x00)
             throw new ChameleonException($"Not an Ultralight / NTAG card (SAK {tag.Sak:X2}).", Status.HfTagNo);
+        var knownKeyUsed = false;
+        if (key is null && knownPassword?.Invoke(tag.Uid) is { Length: 4 } known)
+        {
+            key = known;
+            knownKeyUsed = true;
+        }
 
         try
         {
@@ -1827,7 +1835,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 }
             }
 
-            return new UltralightDumpResult(card, read, total, lockedFrom, keyAccepted, pack, keyNotNeeded, cardLost);
+            return new UltralightDumpResult(card, read, total, lockedFrom, keyAccepted, pack, keyNotNeeded, cardLost,
+                pwd, knownKeyUsed);
         }
         finally
         {
@@ -1904,10 +1913,17 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// The other configuration bits of the target stay as they are; a card whose configuration
     /// is locked (CFGLCK) is refused.
     /// </param>
+    /// <param name="knownPassword">
+    /// The remembered PWD for the target's UID: tried when the card refuses <paramref name="pwd"/>, or when none is given.
+    /// </param>
+    /// <param name="passwordConfirmed">
+    /// Called with the target's UID and its password once the card accepts one, and again once a new one is set.
+    /// </param>
     public async Task<IReadOnlyList<int>> WriteUltralightUserPagesAsync(
         CardSave card, byte[]? pwd = null,
         IProgress<MifareProgress>? progress = null, CancellationToken ct = default,
-        IProgress<MifareBlockProgress>? pages = null, UltralightProtection? protection = null)
+        IProgress<MifareBlockProgress>? pages = null, UltralightProtection? protection = null,
+        Func<byte[], byte[]?>? knownPassword = null, Action<byte[], byte[]>? passwordConfirmed = null)
     {
         if (pwd is { Length: 0 }) pwd = null;
         if (pwd is { Length: not 4 })
@@ -1946,8 +1962,20 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             pages?.Report(new MifareBlockProgress(0, size, MifareBlockState.Pending));
             var total = targets.Count + (protection is null ? 0 : 4);
 
-            if (pwd is not null && (await UltralightCommandAsync(PwdAuth(pwd), ct)).Length != 2)
-                throw new ChameleonException("The card did not accept the password.", Status.HfTagNo);
+            // The card's remembered password stands in for a refused one, or for none given.
+            var uid = tags[0].Uid;
+            var remembered = knownPassword?.Invoke(uid) is { Length: 4 } known ? known : null;
+            if (pwd is not null && !await UltralightPwdAuthAsync(pwd, ct))
+            {
+                if (remembered is null || remembered.AsSpan().SequenceEqual(pwd) || !await UltralightPwdAuthAsync(remembered, ct))
+                    throw new ChameleonException(remembered is null
+                        ? "The card did not accept the password."
+                        : "The card accepted neither the password nor the one remembered for it.", Status.HfTagNo);
+                pwd = remembered;
+            }
+            else if (pwd is null && remembered is not null && await UltralightPwdAuthAsync(remembered, ct))
+                pwd = remembered;
+            if (pwd is not null) passwordConfirmed?.Invoke(uid, pwd);
 
             var live = pwd is not null; // still selected (and authenticated) after PWD_AUTH
             for (var i = 0; i < targets.Count; i++)
@@ -1992,7 +2020,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                     var ok = await UltralightWritePageAsync(page, data, live, pwd, ct);
                     live = ok;
                     // From the new PWD on, a reselect authenticates with it.
-                    if (ok && i == 0 && pwd is not null) pwd = protection.Pwd;
+                    if (ok && i == 0)
+                    {
+                        if (pwd is not null) pwd = protection.Pwd;
+                        passwordConfirmed?.Invoke(uid, protection.Pwd);
+                    }
                     if (ok) written++; else failed.Add(page);
                     pages?.Report(new MifareBlockProgress(page, 1, ok ? MifareBlockState.Read : MifareBlockState.ReadError));
                     progress?.Report(new MifareProgress(targets.Count + i + 1, total, written));
@@ -2036,6 +2068,10 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     }
 
     private static byte[] PwdAuth(byte[] pwd) => [0x1B, pwd[0], pwd[1], pwd[2], pwd[3]];
+
+    /// <summary>PWD_AUTH after a reselect; true when the card answers a PACK and stays selected, authenticated.</summary>
+    private async Task<bool> UltralightPwdAuthAsync(byte[] pwd, CancellationToken ct) =>
+        (await UltralightCommandAsync(PwdAuth(pwd), ct)).Length == 2;
 
     /// <summary>
     /// Sends one Ultralight command and returns the reply without CRC; empty on NAK, CRC error

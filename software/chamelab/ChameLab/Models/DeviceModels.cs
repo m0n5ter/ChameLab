@@ -149,8 +149,9 @@ public sealed record LfScanResult(TagSpecificType Type, byte[] Id)
 /// no key was given or, with <see cref="KeyNotNeeded"/>, when the card's configuration showed
 /// that nothing needs the password, so it was not presented; <see cref="Pack"/> is what the
 /// card answered to an accepted PWD. With <see cref="CardLost"/> the card stopped answering at
-/// <see cref="LockedFrom"/> rather than refusing the page.
+/// <see cref="LockedFrom"/> rather than refusing the page. <see cref="Pwd"/> is the PWD the card
+/// accepted; with <see cref="KnownKeyUsed"/> it was the card's remembered password, as none was given.
 /// </summary>
 public sealed record UltralightDumpResult(
     CardSave Card, int PagesRead, int PageCount, int? LockedFrom, bool? KeyAccepted, byte[]? Pack,
-    bool KeyNotNeeded = false, bool CardLost = false);
+    bool KeyNotNeeded = false, bool CardLost = false, byte[]? Pwd = null, bool KnownKeyUsed = false);
