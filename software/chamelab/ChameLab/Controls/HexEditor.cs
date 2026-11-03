@@ -115,6 +115,8 @@ public sealed class HexEditor : Control
     private bool _caretOn = true;
     // The part of the control on screen (empty until known): only lines around it are drawn.
     private Rect _viewport;
+    // How far the view can move before the lines drawn around it run out (redraw past these).
+    private double _drawnTop, _drawnBottom;
 
     static HexEditor()
     {
@@ -151,15 +153,16 @@ public sealed class HexEditor : Control
             if (_pointerFocus && !_movingCaret) { e.Handled = true; return; }
             e.TargetRect = CaretViewRect();
         });
-        // Scrolling moves the drawn lines without redrawing them; draw again once
-        // the view leaves the screenful drawn around it.
+        // Scrolling moves the drawn lines without redrawing them; draw again only once
+        // the visible part nears the edge of what was drawn. A partly visible editor
+        // (the page scrolling it in) gets a new viewport height every frame, and
+        // redrawing on each made touch scrolling stutter on phones.
         EffectiveViewportChanged += (_, e) =>
         {
-            var was = _viewport;
             _viewport = e.EffectiveViewport;
-            if (was.Height <= 0 || Math.Abs(_viewport.Top - was.Top) > was.Height / 2 || Math.Abs(_viewport.Height - was.Height) > 1e-7)
-                InvalidateVisual();
-            else _viewport = was;
+            var top = Math.Max(0, _viewport.Top);
+            var bottom = Math.Min(_contentHeight, _viewport.Bottom);
+            if (bottom > top && (top < _drawnTop || bottom > _drawnBottom)) InvalidateVisual();
         };
         TextInputOptions.SetShowSuggestions(this, false);
         TextInputOptions.SetAutoCapitalization(this, false);
@@ -479,11 +482,17 @@ public sealed class HexEditor : Control
         var (selFrom, selTo) = Selection();
 
         // Only the lines in view (plus a screenful around them) are drawn: a key list can be thousands long.
+        // The screenful is the window's height, not the view's, which is short while partly scrolled in.
         var (drawFrom, drawTo) = (0, _lineY.Length - 1);
+        (_drawnTop, _drawnBottom) = (double.NegativeInfinity, double.PositiveInfinity);
         if (_viewport is { Height: > 0 } view)
         {
-            drawFrom = Math.Max(0, LineAt(view.Top - view.Height));
-            drawTo = Math.Min(_lineY.Length - 1, LineAt(view.Bottom + view.Height));
+            var margin = Math.Max(view.Height, TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 0);
+            drawFrom = Math.Max(0, LineAt(view.Top - margin));
+            drawTo = Math.Min(_lineY.Length - 1, LineAt(view.Bottom + margin));
+            // Redraw half a screenful before the view reaches the edge, so no blank lines show.
+            if (drawFrom > 0) _drawnTop = _lineY[drawFrom] + margin / 2;
+            if (drawTo < _lineY.Length - 1) _drawnBottom = _lineY[drawTo] + _lineH - margin / 2;
         }
 
         foreach (var line in _lineText.Keys.Where(line => line < drawFrom || line > drawTo).ToArray())
