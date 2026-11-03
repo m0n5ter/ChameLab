@@ -548,9 +548,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 InitializeDumpFromForm();
             }
         }
-        if (!_applyingDump && e.PropertyName is nameof(CardEditorViewModel.HasData)
-            or nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.Sak)
-            or nameof(CardEditorViewModel.Atqa) or nameof(CardEditorViewModel.Ats))
+        // HasData is raised on every memory edit. MIFARE Classic picks up typed trailer keys from it;
+        // for Ultralight only a change of it restarts the dump section, which would otherwise
+        // rebuild (and scroll to) the page strip on each edit, e.g. of the password settings.
+        if (!_applyingDump && ((e.PropertyName == nameof(CardEditorViewModel.HasData)
+                && (!IsUltralightDump || _form?.HasData != _hasDump))
+            || e.PropertyName is nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.Sak)
+                or nameof(CardEditorViewModel.Atqa) or nameof(CardEditorViewModel.Ats)))
             InitializeDumpFromForm();
         if (e.PropertyName != nameof(CardEditorViewModel.IsDirty)) return;
         this.RaisePropertyChanged(nameof(IsCardDirty));

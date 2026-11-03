@@ -675,18 +675,20 @@ public sealed class CardEditorViewModel : ViewModelBase
         set => SetProtection(p => p with { ReadProtected = value });
     }
 
-    /// <summary>AUTHLIM choices: 0 (no limit) to 7.</summary>
-    public IReadOnlyList<int> AuthLimits { get; } = Enumerable.Range(0, 8).ToArray();
-
-    public int AuthLimit
+    /// <summary>AUTHLIM, 0 (no limit) to 7, as the attempt limit box edits it.</summary>
+    public decimal? AuthLimit
     {
         get => Protection?.AuthLimit ?? 0;
-        set => SetProtection(p => p with { AuthLimit = Math.Clamp(value, 0, 7) });
+        set
+        {
+            if (value is { } limit) SetProtection(p => p with { AuthLimit = Math.Clamp((int)limit, 0, 7) });
+        }
     }
 
     /// <summary>What an AUTHLIM value means on this type.</summary>
-    public string AuthLimitText => AuthLimit == 0 ? "No limit"
-        : $"{UltralightProtection.Attempts(_tag, AuthLimit)} wrong attempts, then the card is locked for good";
+    public string AuthLimitText => Protection?.AuthLimit is { } limit and > 0
+        ? $"{UltralightProtection.Attempts(_tag, limit)} wrong attempts, then the card is locked for good"
+        : "No limit";
 
     /// <summary>PWD as hex; only a complete 4-byte value goes into the memory.</summary>
     public string Password

@@ -1254,36 +1254,40 @@
                 <StackPanel Spacing="2">
                   <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding HasProtection}"
+                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
                 </StackPanel>
                 <StackPanel Spacing="10" IsVisible="{Binding HasProtection}">
                   <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
                             ToolTip.Tip="Pages from the chosen one on need the password (AUTH0)" />
-                  <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Password (PWD)" Classes="caption" />
-                      <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Answer (PACK)" Classes="caption" />
-                      <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
-                                ToolTip.Tip="What the card answers to the right password; readers may check it" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="From page (AUTH0)" Classes="caption" />
-                      <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
-                                     FormatString="0" IsEnabled="{Binding IsProtected}" />
-                    </StackPanel>
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
-                      <ComboBox ItemsSource="{Binding AuthLimits}" SelectedItem="{Binding AuthLimit}"
-                                HorizontalAlignment="Stretch" ToolTip.Tip="{Binding AuthLimitText}" />
-                    </StackPanel>
-                  </c:FlowGrid>
-                  <CheckBox Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}"
-                            IsEnabled="{Binding IsProtected}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AuthLimitText}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
+                  <!-- The settings below only take effect with protection on. -->
+                  <StackPanel Spacing="10" IsEnabled="{Binding IsProtected}">
+                    <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
+                      <StackPanel Spacing="4">
+                        <TextBlock Text="Password (PWD)" Classes="caption" />
+                        <c:HexBox Text="{Binding Password}" ByteLengths="4" PlaceholderText="FF FF FF FF" />
+                      </StackPanel>
+                      <StackPanel Spacing="4">
+                        <TextBlock Text="Answer (PACK)" Classes="caption" />
+                        <c:HexBox Text="{Binding Pack}" ByteLengths="2" PlaceholderText="00 00"
+                                  ToolTip.Tip="What the card answers to the right password; readers may check it" />
+                      </StackPanel>
+                    </c:FlowGrid>
+                    <c:FlowGrid MinItemWidth="150" ColumnSpacing="10" RowSpacing="10">
+                      <StackPanel Spacing="4">
+                        <TextBlock Text="From page (AUTH0)" Classes="caption" />
+                        <NumericUpDown Value="{Binding ProtectFrom}" Minimum="0" Maximum="{Binding LastPage}" Increment="1"
+                                       FormatString="0" />
+                      </StackPanel>
+                      <StackPanel Spacing="4">
+                        <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
+                        <NumericUpDown Value="{Binding AuthLimit}" Minimum="0" Maximum="7" Increment="1"
+                                       FormatString="0" ToolTip.Tip="0 = no limit" />
+                      </StackPanel>
+                    </c:FlowGrid>
+                    <CheckBox Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}" />
+                    <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AuthLimitText}" />
+                  </StackPanel>
                 </StackPanel>
               </StackPanel>
             </Border>
