@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ChameLab.Services;
 
-/// <summary>The upstream solver's nonce file format, shared by every platform.</summary>
+/// <summary>ChameLab's text nonce format, also used to send captures to the browser worker.</summary>
 public static class HardnestedCaptureCodec
 {
     public static string Encode(HardnestedCapture capture)

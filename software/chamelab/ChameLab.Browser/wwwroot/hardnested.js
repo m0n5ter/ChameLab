@@ -16,14 +16,16 @@ export function recover(id, uid, capture) {
         // A missing worker script or failed module import must not leave the UI waiting forever.
         job.timer = setTimeout(() => finish("Could not load the hardnested WebAssembly worker."), 60000);
         worker.onmessage = ({ data }) => {
-            if (data.type === "ready") clearTimeout(job.timer);
+            if (data.type === "ready") {
+                clearTimeout(job.timer);
+                worker.postMessage({ uid, capture });
+            }
             else if (data.type === "progress") job.progress = data.message;
             else if (data.type === "result") finish(null, data.key);
             else if (data.type === "error") finish(data.message);
         };
         worker.onerror = event => { event.preventDefault(); finish(event.message || "Hardnested worker failed."); };
         worker.onmessageerror = () => finish("Invalid response from the hardnested worker.");
-        worker.postMessage({ uid, capture });
     });
 }
 

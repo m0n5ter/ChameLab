@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
@@ -59,5 +60,35 @@ public sealed class WebHardnestedEngine : IHardnestedEngine
             try { WebHardnestedInterop.Cancel(id); }
             finally { RunLock.Release(); }
         }
+    }
+}
+
+/// <summary>The worker loads the app assemblies without starting the UI.</summary>
+[SupportedOSPlatform("browser")]
+public static partial class HardnestedWorkerExports
+{
+    [JSImport("reportProgress", "hardnested-worker")]
+    internal static partial void ReportProgress(string message);
+
+    [JSExport]
+    public static string Execute(double uid, string text)
+    {
+        if (uid < 0 || uid > uint.MaxValue || uid != Math.Truncate(uid)) throw new ArgumentException("Invalid UID.");
+        var samples = new List<HardnestedSample>();
+        foreach (var line in text.AsSpan().EnumerateLines())
+        {
+            if (line.IsEmpty) continue;
+            int split = line.IndexOf('|');
+            if (split <= 0) throw new ArgumentException("Invalid nonce capture.");
+            samples.Add(new(uint.Parse(line[..split], CultureInfo.InvariantCulture),
+                byte.Parse(line[(split + 1)..], CultureInfo.InvariantCulture)));
+        }
+        var key = ManagedHardnestedEngine.Recover(new((uint)uid, samples), new WorkerProgress());
+        return key?.ToString("X12", CultureInfo.InvariantCulture) ?? "";
+    }
+
+    private sealed class WorkerProgress : IProgress<string>
+    {
+        public void Report(string value) => ReportProgress(value);
     }
 }

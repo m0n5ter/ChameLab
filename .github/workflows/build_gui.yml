@@ -51,62 +51,29 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "code=$code" >> "$GITHUB_OUTPUT"
 
-  build_hardnested:
-    name: Build hardnested (${{ matrix.rid }})
+  test_managed_hardnested:
+    name: Managed hardnested (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     strategy:
       matrix:
-        include:
-          - rid: win-x64
-            os: windows-latest
-            args: -A x64
-          - rid: linux-x64
-            os: ubuntu-latest
-            args: ''
-          - rid: osx-arm64
-            os: macos-latest
-            args: -DCMAKE_OSX_ARCHITECTURES=arm64
-          - rid: osx-x64
-            os: macos-latest
-            args: -DCMAKE_OSX_ARCHITECTURES=x86_64
-    defaults:
-      run:
-        shell: bash
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           persist-credentials: false
-      # Built only when its sources change: the result is cached under a hash of them (the same files
-      # ChameLab.Desktop builds it from) and the build arguments. Bump v1 to force a rebuild.
-      - name: Restore the native components built from these sources
-        id: cache
-        uses: actions/cache@v6
+      - uses: actions/setup-dotnet@v5
         with:
-          path: native-hardnested
-          key: hardnested-v1-${{ matrix.rid }}-${{ hashFiles('software/src/HardnestedRecovery/**', 'software/src/crypto1.c', 'software/src/crapto1.c', 'software/src/bucketsort.c', 'software/src/parity.c', 'software/src/*.h') }}-${{ matrix.args }}
-      - name: Build the original hardnested library and worker
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          cmake -S software/src/HardnestedRecovery/native -B native-build -DCMAKE_BUILD_TYPE=Release ${{ matrix.args }}
-          cmake --build native-build --config Release --target chamelab-hardnested-worker chamelab-hardnested-fixture --parallel
-          cmake --install native-build --config Release --prefix "$PWD/native-hardnested" --component Hardnested
-      - name: Verify recovery against a synthetic capture
-        if: steps.cache.outputs.cache-hit != 'true' && matrix.rid != 'osx-x64'
-        run: ctest --test-dir native-build -C Release --output-on-failure -R '^(missing_input|generate_capture|recover_capture)$'
-      - name: Upload native components
-        uses: actions/upload-artifact@v7
-        with:
-          name: hardnested-${{ matrix.rid }}
-          path: native-hardnested/*
+          dotnet-version: '10.0.x'
+      - name: Verify recovery and scalar/SIMD equivalence
+        run: dotnet test software/chamelab/ChameLab.Tests -c Release --filter FullyQualifiedName~Hardnested
 
   build_desktop:
     name: Build GUI (${{ matrix.rid }})
     runs-on: ubuntu-latest
-    needs: [version, build_hardnested]
+    needs: [version, test_managed_hardnested]
     permissions:
       contents: read
     strategy:
@@ -122,21 +89,12 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
-      - name: Download the matching hardnested component
-        uses: actions/download-artifact@v8
-        with:
-          name: hardnested-${{ matrix.rid }}
-          path: native-hardnested
-      - name: Restore worker executable permissions
-        if: matrix.rid != 'win-x64'
-        run: chmod +x native-hardnested/chamelab-hardnested-worker
       - name: Publish
         run: >
           dotnet publish software/chamelab/ChameLab.Desktop/ChameLab.Desktop.csproj
           -c Release -r ${{ matrix.rid }} --self-contained
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
           -p:Version=${{ needs.version.outputs.version }}
-          -p:BuildHardnested=false -p:HardnestedNativeDirectory="$PWD/native-hardnested"
           -o publish
       - name: Zip up GUI for release
         # The assembly can't be called ChameLab (that's the shared library), so only the
@@ -155,7 +113,7 @@ jobs:
   build_browser:
     name: Build GUI (browser)
     runs-on: ubuntu-latest
-    needs: version
+    needs: [version, test_managed_hardnested]
     permissions:
       contents: read
     steps:
@@ -171,26 +129,17 @@ jobs:
       - name: Install the WebAssembly workload
         # Links SkiaSharp's native assets into the WASM output
         run: dotnet workload install wasm-tools
-      - name: Set up standalone Emscripten for hardnested
-        run: |
-          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
-          "$RUNNER_TEMP/emsdk/emsdk" install 3.1.74
-          "$RUNNER_TEMP/emsdk/emsdk" activate 3.1.74
-          echo "$RUNNER_TEMP/emsdk/upstream/emscripten" >> "$GITHUB_PATH"
-      - name: Build and verify the hardnested WebAssembly module
-        run: |
-          cmake -S software/src/HardnestedRecovery/native -B native-fixture-build -DCMAKE_BUILD_TYPE=Release
-          cmake --build native-fixture-build --target chamelab-hardnested-fixture --parallel
-          native-fixture-build/chamelab-hardnested-fixture synthetic-nonces.txt
-          python3 software/src/HardnestedRecovery/native/build-embedded.py web --build-dir native-web-build --output native-hardnested-web --test-capture synthetic-nonces.txt
-          node software/src/HardnestedRecovery/native/tests/browser-worker.mjs native-hardnested-web/hardnested.js synthetic-nonces.txt
       - name: Publish
         run: >
           dotnet publish software/chamelab/ChameLab.Browser/ChameLab.Browser.csproj
           -c Release
           -p:Version=${{ needs.version.outputs.version }}
-          -p:BuildHardnested=false -p:HardnestedNativeDirectory="$PWD/native-hardnested-web"
           -o publish
+      - name: Verify managed hardnested in a browser worker
+        run: |
+          npm install --prefix "$RUNNER_TEMP/hardnested-browser-tests" playwright
+          "$RUNNER_TEMP/hardnested-browser-tests/node_modules/.bin/playwright" install --with-deps chromium
+          NODE_PATH="$RUNNER_TEMP/hardnested-browser-tests/node_modules" node software/benchmarks/hardnested/browser-worker.cjs publish/wwwroot software/chamelab/ChameLab.Tests/Reference/hardnested_capture.txt
       - name: Upload the web app
         uses: actions/upload-artifact@v7
         with:
@@ -220,10 +169,6 @@ jobs:
           java-version: '17'
       - name: Install the Android workload
         run: dotnet workload install android
-      - name: Build the hardnested Android libraries
-        run: |
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
-          ANDROID_NDK_HOME="$ANDROID_HOME/ndk/28.2.13676358" python3 software/src/HardnestedRecovery/native/build-embedded.py android --build-dir native-android-build --output native-hardnested-android
       - name: Prepare the signing key
         id: signing
         env:
@@ -250,7 +195,6 @@ jobs:
           -p:Version=${{ needs.version.outputs.version }}
           -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }}
           -p:ApplicationVersion=${{ needs.version.outputs.code }}
-          -p:BuildHardnested=false -p:HardnestedNativeDirectory="$PWD/native-hardnested-android"
           ${{ steps.signing.outputs.args }}
           -o publish
       - name: Name the APK for release
@@ -294,7 +238,7 @@ jobs:
           xcodebuild -version
       - name: Install the iOS workload
         run: dotnet workload install ios --version "$IOS_WORKLOAD_VERSION"
-      - name: Build the app with the native hardnested engine
+      - name: Build the app with the managed hardnested engine
         run: >
           dotnet build software/chamelab/ChameLab.iOS/ChameLab.iOS.csproj
           -c Release -r ${{ matrix.rid }}

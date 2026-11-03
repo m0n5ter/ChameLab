@@ -38,3 +38,11 @@ RF08S seed vectors for `StaticEncryptedNestedRecoveryTests`. Build it with
 `crapto1.c`, `crypto1.c`, `bucketsort.c`, and `parity.c` from `software/src`.
 The fingerprint sorts keys numerically, then applies FNV-1a 64 to each key's
 six bytes in little-endian order. No device is required.
+
+## Hardnested
+
+`hardnested_capture.txt` is the deterministic 12,000-sample capture produced by
+`software/src/HardnestedRecovery/native/tests/generate_capture.c` using the C
+Crypto1 implementation. UID `12345678`, expected key `112233445566`, xorshift seed
+`9325abcd`. The managed regression recovers the full key from this independent
+fixture; it does not supply the known key to the solver.

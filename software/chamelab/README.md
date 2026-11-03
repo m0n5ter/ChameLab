@@ -155,101 +155,43 @@ and validation are in [benchmarks/static-encrypted](../benchmarks/static-encrypt
 ## Hardnested
 
 Hardnested recovery is available for hardened-PRNG MIFARE Classic cards when at
-least one key is known. Scan the card, find a seed key with the dictionary or
-another recovery method, then choose **Hardnested**. ChameLab collects encrypted
-nonces with the device, calls the original C solver, authenticates the recovered
-key on the same card, and reads the remaining blocks. Keep the card on the reader.
+least one key is known. Load known keys or recover one, then choose **Hardnested**.
+The app collects encrypted nonces and validates a recovered key against the card.
 
-The solver is built as a native library (`.dll`, `.so`, or `.dylib`) and loaded by
-`chamelab-hardnested-worker`, a separate process. The worker reports progress over
-stdout. Cancel terminates the worker and removes its temporary capture; during
-device acquisition, cancellation waits for the current batch response (up to
-30 seconds), since the firmware has no command-abort operation. Native crashes
-and memory exhaustion do not terminate the GUI. Only one solver runs at a time.
+All platforms use `ManagedHardnestedEngine`, a fully managed C# port of Proxmark3
+commit `1b71dfbbd4c156c34c02cfdd9140470d97d1336c`. Portable SIMD has a scalar
+fallback. The same sources run on Windows, Linux, macOS, Android, iOS and .NET
+WebAssembly; hardnested adds no native library, C compiler, NDK, standalone
+Emscripten SDK or compression library requirement to the app build.
 
-Android and iOS call the native C library through P/Invoke on a background thread.
-These embedded builds use a single solver thread, so errors and cooperative
-cancellation can unwind safely to the API boundary. All solver allocations and
-open capture streams are released on success, failure or cancellation. Progress
-is passed back to the UI. Desktop keeps its parallel worker implementation.
+Desktop and mobile calculations use a background task with cooperative
+cancellation and progress. Browser calculations run in a separate .NET Web Worker
+without starting Avalonia; Stop terminates that worker immediately. No server,
+SharedArrayBuffer or cross-origin isolation headers are needed. Acquisition
+cancellation still waits for the device's current response.
 
-The browser runs the same embedded core as a separate WebAssembly module in a
-Web Worker. Each attempt gets a fresh worker; Stop terminates it immediately and
-releases its memory. Calculations stay on the device. SharedArrayBuffer and
-cross-origin isolation headers are not required. Device access still depends on
-the browser supporting Web Serial or Web Bluetooth, including on mobile browsers.
+State tables and intermediate pages are compact and shared. Memory and execution
+time depend on the capture; more distinct nonce prefixes usually reduce the
+remaining search. Devices still need sufficient free memory for recovery.
 
-Embedded builds cap solver allocations at 1792 MiB. The core's nonce bitsets alone
-use 1 GiB, and the app, browser and operating system need additional memory.
-Low-memory devices may fail recovery; the budget cannot prevent the operating
-system from killing an app under overall memory pressure. Single-thread recovery
-can be slower than the desktop worker. Acquisition cancellation still waits for
-the device's current batch response on all platforms.
-
-All builds need Python 3, CMake 3.24+, Git and the platform C toolchain. Mobile and
-web app builds invoke `../src/HardnestedRecovery/native/build-embedded.py`
-automatically. It uses the Android NDK (r28+, `ANDROID_NDK_HOME` or the SDK's
-`ndk/` directory), Xcode on macOS for iOS, and an activated standalone Emscripten
-SDK 3.1.74+ for the web. The custom Emscripten bundled with .NET is used for the
-app runtime, but cannot build this standalone solver's setjmp/longjmp code.
-Android supports `android-arm64` and `android-x64`, including 16 KiB page sizes.
-iOS builds support `ios-arm64`, `iossimulator-arm64` and `iossimulator-x64`.
+Build normally with the .NET SDK and the app platform's workload:
 
 ```bash
-# Android: install the NDK once, then build the app and bundled libraries.
-sdkmanager "ndk;28.2.13676358"
+dotnet build ChameLab.Desktop -c Release
 dotnet build ChameLab.Android -c Release
-
-# iOS: build on macOS; configure your signing identity for installation on a phone.
-dotnet build ChameLab.iOS -c Release -r ios-arm64
-
-# Web: the solver module is copied to wwwroot/hardnested/ during publish.
-# Install/activate emsdk 3.1.74 and source emsdk_env.sh (emsdk_env.bat on Windows).
+dotnet build ChameLab.iOS -c Release -r ios-arm64  # on macOS
 dotnet publish ChameLab.Browser -c Release
 ```
 
-To reuse prebuilt components, pass `-p:BuildHardnested=false` and
-`-p:HardnestedNativeDirectory=/absolute/path/to/output`. That directory contains
-ABI subdirectories with `.so` files on Android, the solver and liblzma `.a`
-archives on iOS, or `hardnested.js` and `hardnested.wasm` for the browser. The build
-fails if the required files are absent. CI verifies known-key WebAssembly
-recovery and builds Android plus unsigned iOS device/simulator apps; iOS device
-installation still requires signing.
+The browser publish uses .NET's own AOT toolchain. iOS device installation still
+requires Apple signing. Tables are embedded in the shared assembly and cannot be
+omitted by a missing platform-specific packaging step.
 
-Desktop builds require CMake 3.24+, Git, and a C compiler (MSVC on Windows, GCC or
-Clang on Linux, Xcode command-line tools on macOS). The first build fetches the
-same XZ/liblzma version used by the CLI, v5.8.1, and links it statically. The
-original algorithm's memory requirements remain: the per-nonce state bitsets
-alone use 1 GiB, with additional tables and search buffers on top.
-
-`dotnet build ChameLab.Desktop -c Release` builds and copies the native component
-to the output's `hardnested/` directory. Windows also detects Visual Studio's
-bundled CMake automatically. To use another CMake installation, pass
-`-p:CMakeExecutable="PATH/TO/cmake"`. IDE design-time builds skip native compilation.
-
-For cross-platform publishing, build the native component for the target first:
-
-```bash
-cmake -S ../src/HardnestedRecovery/native -B native-build -DCMAKE_BUILD_TYPE=Release
-cmake --build native-build --config Release --target chamelab-hardnested-worker --parallel
-cmake --install native-build --config Release --prefix "$PWD/native-hardnested" --component Hardnested
-dotnet publish ChameLab.Desktop -c Release -r YOUR_RID \
-  -p:BuildHardnested=false -p:HardnestedNativeDirectory="$PWD/native-hardnested"
-```
-
-The CMake build must use the target's architecture/toolchain. Release CI builds
-Windows x64, Linux x64, macOS arm64 and macOS x64 components separately and keeps
-the library and worker beside the app, including single-file publishes.
-
-To test the native solver without RFID hardware:
-
-```bash
-cmake --build native-build --config Release --target chamelab-hardnested-fixture --parallel
-ctest --test-dir native-build -C Release --output-on-failure -R '^(missing_input|generate_capture|recover_capture)$'
-```
-
-The fixture generator uses the original C Crypto1 implementation to create a
-deterministic capture; the test requires recovery of the known 48-bit key.
+Source provenance, licensing and table regeneration are documented in
+[Crypto/Hardnested/NOTICE.md](ChameLab/Crypto/Hardnested/NOTICE.md). Run the tests
+with `dotnet test ChameLab.Tests -c Release`. Reproducible performance and browser
+worker checks live in [../benchmarks/hardnested](../benchmarks/hardnested).
+The Python CLI retains its existing native solver.
 
 ## Web Serial (browser)
 

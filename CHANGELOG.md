@@ -6,6 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: Hardnested now uses a shared, fully managed C# port of current Proxmark3 on desktop, Android, iOS and the web; compact state tables reduce memory use and remove the separate native hardnested build dependencies
 
 ## [v1.2.31][2026-11-03] · firmware v2.3.10-cl
  - ChameLab: Write another writes the same card onto the next tag right away, with the same options, instead of returning to the idle writer; on a Gen2 card whose previous target used the factory key in every sector, the next target is assumed to use it too, so no key recovery is needed first

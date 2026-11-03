@@ -1,0 +1,2113 @@
+{
+  "repository": "https://github.com/RfidResearchGroup/proxmark3",
+  "commit": "1b71dfbbd4c156c34c02cfdd9140470d97d1336c",
+  "packed_sha256": "3fa82d21cc97c41b7693bedbea299c6ff47fd972529936605f578867ae304192",
+  "tables": [
+    {
+      "file": "bitflip_0_001_states.bin.lz4",
+      "sha256": "b101cde15a173ba9496acbc88a8a3ac3d2625476654f6cfb2f9fdd9038339634",
+      "raw_sha256": "a040a124cff71364606cbeb1f924a3bb4237ffe14a5fa3925f1390bce0accdd8",
+      "count": 16015484
+    },
+    {
+      "file": "bitflip_0_003_states.bin.lz4",
+      "sha256": "be3152547a0dd1f3108f6e16cb903062bf3277e3ea7d938f3fbad1a34a314020",
+      "raw_sha256": "a0b086da6de6ead159255c3e9cab97911121c5e86a6e8877b0ecb407919cf461",
+      "count": 16648844
+    },
+    {
+      "file": "bitflip_0_005_states.bin.lz4",
+      "sha256": "6bf198483cee3b91862f390536bae746e6575e3200451e9cb858d468b3223a38",
+      "raw_sha256": "046dc4919e087fb118c52426aa2039d909e48fa8adf63914650c8a9f4050dce2",
+      "count": 14807440
+    },
+    {
+      "file": "bitflip_0_007_states.bin.lz4",
+      "sha256": "48e096a87869b8bd94fcc0b05e40e54829ca4e3705e129998ccf1c10e1bd73f9",
+      "raw_sha256": "7a6abe325f2ff95a8a8f24cf2611cf51f6bc217b97ee26ad7f7bf3b96bcbb2a0",
+      "count": 16678976
+    },
+    {
+      "file": "bitflip_0_009_states.bin.lz4",
+      "sha256": "b249dd966107c7d31450cee468f4c3b9c1f4402d60cb436e8e1847ad5050b477",
+      "raw_sha256": "41786ea13644ee52c81d1666b7e61c1f6d00e835ccef60293e095ded92078864",
+      "count": 16606276
+    },
+    {
+      "file": "bitflip_0_00b_states.bin.lz4",
+      "sha256": "49c5dbcf3ee8ac9000edf554aca6162ad840b3d10c46f75bb2f841a1dd25b163",
+      "raw_sha256": "dae25d7e03b6c660737610019144dd0204fa8bfa33e3851d320c3ca6fe4c26d7",
+      "count": 16751348
+    },
+    {
+      "file": "bitflip_0_00d_states.bin.lz4",
+      "sha256": "24f191b8a37d5636d67dc524751863e0d783e9bbbb0cb6e71f91084e618d88ed",
+      "raw_sha256": "4006e5da3b68fd4980c2d9136981140c82b8cb55ec48542c654e0b68e4935cc1",
+      "count": 16412208
+    },
+    {
+      "file": "bitflip_0_00f_states.bin.lz4",
+      "sha256": "d612b177857c9e4e199fb3eb73766aa8aaca6c8b60d338bf406e9807d7fb956a",
+      "raw_sha256": "2ed30a1812941a556b350ceb7758dc1d9799983f71d473ea8e241b6ed732e216",
+      "count": 16749184
+    },
+    {
+      "file": "bitflip_0_010_states.bin.lz4",
+      "sha256": "13694f34fb43734376c942ed7c421d9663977dc135c67a6b7b9af287d9c391f7",
+      "raw_sha256": "a9df18f179ad0f2dd36fd74e440e6e857eeb503688cc38d509c6fafbbd9fdb03",
+      "count": 4376256
+    },
+    {
+      "file": "bitflip_0_014_states.bin.lz4",
+      "sha256": "5fe095d6e8a63fb149f5b2ff71d5753d20fd454a5ec9aabfcf739cf10ac9256f",
+      "raw_sha256": "cf2cc805c39020c2e39e0775f5284871790ed3f9d7cb42aaf42ace042daa4c5c",
+      "count": 14282568
+    },
+    {
+      "file": "bitflip_0_01c_states.bin.lz4",
+      "sha256": "1e0c35d65a238411f4e2b62cc3f3abea73378d5610568a18685f661b21b2111e",
+      "raw_sha256": "3cdbc7f7861b05502f6d6a625c490c001134f5026e7a940db9e17fe72e5db05f",
+      "count": 16632504
+    },
+    {
+      "file": "bitflip_0_021_states.bin.lz4",
+      "sha256": "f1e925fecf027876d4dc3407d2286fb800b3fc3c1d7a402e2e943f74a835d0a0",
+      "raw_sha256": "888cc4167d4160141bc0c5bfac8ed29abfeb5f21561d1391802452fc48c76ede",
+      "count": 13998828
+    },
+    {
+      "file": "bitflip_0_023_states.bin.lz4",
+      "sha256": "ec11343d5b41995f069136194fd42deb725311aff9ad3b00d7f74bf1f2316982",
+      "raw_sha256": "db2d1d601061ea4b736c49438369d49e9cabc635ce1d696f9d8496babad6df86",
+      "count": 16521036
+    },
+    {
+      "file": "bitflip_0_025_states.bin.lz4",
+      "sha256": "68f78f46f3cfa13f991ce2fc728f83d8d1e27e035cd5889586891277c2af08ae",
+      "raw_sha256": "2dba04907aa291960d60d06423b07cd6a9d6d0bb4ec85a33afe9341cc00d45b2",
+      "count": 8706112
+    },
+    {
+      "file": "bitflip_0_027_states.bin.lz4",
+      "sha256": "ee9248538bc58156b386931bf05f53aefc96849c512c982eb676c680685ebd3c",
+      "raw_sha256": "bac63c2ea71599551ea9921153601eaa008b3f51d3bfbc0b94a40ceea013f90d",
+      "count": 15901296
+    },
+    {
+      "file": "bitflip_0_029_states.bin.lz4",
+      "sha256": "23b39d470c249bcd57e70420baf827a58ea1086dbc37e12208ac34299b697509",
+      "raw_sha256": "4f385c310c67df89905162db0dfb31823d06ab3e3d4cb6f165076e5eb2149882",
+      "count": 16248916
+    },
+    {
+      "file": "bitflip_0_02b_states.bin.lz4",
+      "sha256": "16f851b0ba03582f9f8bb65dae0b310b87d54da937640c70687f86ebbf5a14b7",
+      "raw_sha256": "1a24e20f15c40baed34c8e57dbf7d342f8d3b390050d9cdcc6813f441811ef69",
+      "count": 16708404
+    },
+    {
+      "file": "bitflip_0_02d_states.bin.lz4",
+      "sha256": "be46d8677639e50be0772ced32f2eb570bb2e9929582b79c1ba197584f67e526",
+      "raw_sha256": "c3501726a68ae844eddcf384d691f65fadac032d634581741217952499074e30",
+      "count": 14804992
+    },
+    {
+      "file": "bitflip_0_02f_states.bin.lz4",
+      "sha256": "e4f35397c8c8e6ca69191bd14941faa5f8c520573df6da5287913cd9c950f6f9",
+      "raw_sha256": "89e5a5ff92915d261b46f5e12ad47ec6dd6c0d059bf62888aa82883e198b6c55",
+      "count": 16526032
+    },
+    {
+      "file": "bitflip_0_030_states.bin.lz4",
+      "sha256": "0a093e79e6b245a843f689a56dd6d062a41ea520452877b74e2243cf49a6eb13",
+      "raw_sha256": "a483609c9eaa23389c0baf9a4c85fec71487ab31d35a7aa6d1a051589c9d3855",
+      "count": 15546688
+    },
+    {
+      "file": "bitflip_0_034_states.bin.lz4",
+      "sha256": "3ea2bac26027baf95a595739000b547aa8574f3d09fbbf8c417952ba8187e0a4",
+      "raw_sha256": "f4a091b7ffd35964bc351b632ede26c4ab0d7caf99453a086fe8d2cea0e71834",
+      "count": 16314104
+    },
+    {
+      "file": "bitflip_0_03c_states.bin.lz4",
+      "sha256": "c728c8483b48ef26692f658d5f6df2f7c0390f5af0cc0f5858dda7e0f3582145",
+      "raw_sha256": "25da3e576f7d660bfcb2aac6716e5b3d8125208c1d6163ec4ae840bea62623a7",
+      "count": 16733960
+    },
+    {
+      "file": "bitflip_0_040_states.bin.lz4",
+      "sha256": "fc9996a54a644be366cc5f74942bfe9e96986eed2d78c4e73a47570a0e992c11",
+      "raw_sha256": "bf369256ab1492d2aa662a95c56394f12303d3ab324d97062065e94a8a98243d",
+      "count": 1572864
+    },
+    {
+      "file": "bitflip_0_044_states.bin.lz4",
+      "sha256": "6993d7b1c848f815cd146f457d1e96e4d4e47e5e8a03ff90be711adae49e504b",
+      "raw_sha256": "ee4d0df6b455429d5e400b3f8a0a8cb58ec55308a302cd47c43e0d4e85e592f1",
+      "count": 13391336
+    },
+    {
+      "file": "bitflip_0_04c_states.bin.lz4",
+      "sha256": "fdfe83319a2e60edf98a950f85025a9caf4220d23495bc25beeb479b6600ce27",
+      "raw_sha256": "6431c9f0fee7c397b6f3a4bdf3549fb773b18f40af1c12922b87036f6b9d719e",
+      "count": 16323160
+    },
+    {
+      "file": "bitflip_0_051_states.bin.lz4",
+      "sha256": "701c59910236d0d9852370b794d5579fa996d2f1da219b48f1eb86d767ec5703",
+      "raw_sha256": "7ee49b3b9636696546526b87d1ecacaa0675745a0bef0d019899b82d75b84fd8",
+      "count": 16302292
+    },
+    {
+      "file": "bitflip_0_053_states.bin.lz4",
+      "sha256": "0367bc1f74b59f338d4df268a9f589b38bfe1f529ced632fa4bf51eb3a0dca3c",
+      "raw_sha256": "e61aa9b6898873330d1bd9374243ce6432b2a4c20fd3ffeeed34521032862fa0",
+      "count": 16707508
+    },
+    {
+      "file": "bitflip_0_055_states.bin.lz4",
+      "sha256": "630d023883bd0ffcbade625e115d03b614110c475e62034a759e32e236bd691c",
+      "raw_sha256": "f65521b707a33faab4178dc9d17d058e81dc23a5eb857866c81720966a65a4fb",
+      "count": 14733340
+    },
+    {
+      "file": "bitflip_0_057_states.bin.lz4",
+      "sha256": "2d322c109dea7a25cc12eb10d9bed9e4e5dd86ccf05bde123ea0ae2e8d88dbb9",
+      "raw_sha256": "f3ad2a1df7524dc222a8d7789d610dda9d8cf5f7f1e34f7b60a225dff005ca76",
+      "count": 16655740
+    },
+    {
+      "file": "bitflip_0_059_states.bin.lz4",
+      "sha256": "9fb2c77f9c9fabae552f80d413d888805c9e29e9e5366571d95af1feb63cd4e9",
+      "raw_sha256": "65695fdcfe883ed84e89974a59d68092ae3c38d0e4da8f1ae773fd0a3327a9a8",
+      "count": 16630060
+    },
+    {
+      "file": "bitflip_0_05b_states.bin.lz4",
+      "sha256": "04e2018fd6580b278bdf6c18484c047817171e7ddfce0de810a63be9e0a169d6",
+      "raw_sha256": "bcacf0e7ab99c2c339e6043221e9fb7e8217ca8fc5334065c7d74346f2087fcd",
+      "count": 16754380
+    },
+    {
+      "file": "bitflip_0_05d_states.bin.lz4",
+      "sha256": "6c612bb397bfc224f311daf9bb5983a422d56b46b56c4e708cfed72f330dcde3",
+      "raw_sha256": "644144b0793be9136ac7067200be5bee8fb57cca8a87eb7b243f2a2ca7683470",
+      "count": 16383076
+    },
+    {
+      "file": "bitflip_0_05f_states.bin.lz4",
+      "sha256": "ad53724cc0c5682a5f35a45d89548a1baeebc13e07d05d268489a551c22de212",
+      "raw_sha256": "a7d47a712105a6f50ff783bd635fb08d35f6b04bed5dbd6772cfe2c129ff0b29",
+      "count": 16741572
+    },
+    {
+      "file": "bitflip_0_064_states.bin.lz4",
+      "sha256": "e69d33c44ffbc90c7375b26eca0fdff5d7756d663872ead19b45272e27fe5b16",
+      "raw_sha256": "116d8f05f0239f97d4018bfd361d0e9b97b9265f0d33321569e460791ae9b1ee",
+      "count": 16008408
+    },
+    {
+      "file": "bitflip_0_06c_states.bin.lz4",
+      "sha256": "181b882d0c0bd5059c974edc4cec3a744705f5b12fca1966ca075d684287c0f5",
+      "raw_sha256": "e0ef9b79b3fed1be1a7184c63a7a9b1d8d471bab4afae7aa69fc7cc0d2dd4781",
+      "count": 16667368
+    },
+    {
+      "file": "bitflip_0_071_states.bin.lz4",
+      "sha256": "bcec523e45d0a6410a253b550c936063637ab55e7c0874fc5b2a35a8c9de4283",
+      "raw_sha256": "aa13881ea2691392df190a340fcc0040b413e60c7541ccad4b587222916231fe",
+      "count": 15056708
+    },
+    {
+      "file": "bitflip_0_073_states.bin.lz4",
+      "sha256": "95b4a1fc17c6553340c52c96283f0abba469837a134899ac72cc69354fa115fc",
+      "raw_sha256": "66be0cb2d07126a94eec6da52e8a8d72b3f20f45d99650136b721f6772b8df3c",
+      "count": 16613876
+    },
+    {
+      "file": "bitflip_0_075_states.bin.lz4",
+      "sha256": "038e557b48a74dd3b76f3f375533194620219f3c50b167939430aaf576f54ef9",
+      "raw_sha256": "0018085b3a9ab6ac24468fdb99d6c865b6520225a932287c6e692827db5b6600",
+      "count": 8780212
+    },
+    {
+      "file": "bitflip_0_077_states.bin.lz4",
+      "sha256": "74dfd6e5b45505301b878e17063e82cfb726dedd77deb52c3c1760d6e9797416",
+      "raw_sha256": "913bf359239d4433ff39f7e79b422871c272d9987674f49714693363018cdbff",
+      "count": 15924532
+    },
+    {
+      "file": "bitflip_0_079_states.bin.lz4",
+      "sha256": "f077a654f7d7b96eaaf1006928047f3992f355322af6a879422c8bafc53f3818",
+      "raw_sha256": "0358c1b2358a283bc8965bb446c7d920c23112aa859ef37c8c790cad135f3de5",
+      "count": 16293564
+    },
+    {
+      "file": "bitflip_0_07b_states.bin.lz4",
+      "sha256": "26213b21086a317ebb9ce38279940ca555f795cf9d719b57a39b1a60517a359a",
+      "raw_sha256": "8f82ccdb9b5787e8448aadea56538ba8e4e6f6ef8f4f2decda38b2742c6ac562",
+      "count": 16713612
+    },
+    {
+      "file": "bitflip_0_07f_states.bin.lz4",
+      "sha256": "3d72f37f1c1045c5e9215d467b669958bc71ecea81e06abd37f66449ca97291e",
+      "raw_sha256": "47581bdfcb054b8f09c48dc1733d98b60fd47d5cd3e5fd3d929afdc44cedd74e",
+      "count": 16533644
+    },
+    {
+      "file": "bitflip_0_081_states.bin.lz4",
+      "sha256": "f9117de3e9030a5e5b007cbd32fb2454aa7f93d9ecd3988dfad369da46e193ba",
+      "raw_sha256": "94632466db5b5cd3ffe9f46b2520ff5ee13b9322aee65323d18720fd1871d651",
+      "count": 14153068
+    },
+    {
+      "file": "bitflip_0_083_states.bin.lz4",
+      "sha256": "7a9e1fad86b6bf50ba2239dc89dfda18759a1ad492be71f1eeb0dc66dfac36c9",
+      "raw_sha256": "755438e6fd719959ab7c99e92d50394e04698db499cebc8358f8ae71f5a67001",
+      "count": 16451532
+    },
+    {
+      "file": "bitflip_0_085_states.bin.lz4",
+      "sha256": "34326491abee2178bb35708e541c7c8d827b54c0bb03c4cc4fa3af609ba4aaca",
+      "raw_sha256": "3d8b6524cb4efbccea6c87f53d1a655c74264d8be86ba5ccfaf0d0eaa58cb7cd",
+      "count": 16252344
+    },
+    {
+      "file": "bitflip_0_087_states.bin.lz4",
+      "sha256": "c0f76b4d4e9b3460860f423a1f8e2d303ad5e340b7deee987542884702c1fb9f",
+      "raw_sha256": "b66abfa0662b4415c4b080cab884ce36a17cffe03f41205311c7cb7f56238adf",
+      "count": 16730744
+    },
+    {
+      "file": "bitflip_0_089_states.bin.lz4",
+      "sha256": "a62193aeac52fbc98a5d411d16245b6a095a333f4d783727a85f23c50c90052b",
+      "raw_sha256": "2246d5607df1f28d2af836ed87506d1db88ba033ee90c65120b0bc3dc8cff77a",
+      "count": 16179348
+    },
+    {
+      "file": "bitflip_0_08b_states.bin.lz4",
+      "sha256": "d3078c25b24e9c4bfa8bd826cfaa4ab7c4c114e5aadb7348f7077d94bc73c0d4",
+      "raw_sha256": "1cfbde25a7d22178398bcad319ba462c52f48690373cdbab64a9aabfd7ea847c",
+      "count": 16693236
+    },
+    {
+      "file": "bitflip_0_08d_states.bin.lz4",
+      "sha256": "4e256439bcd9a93abdef279ef55f85533b73c57b20fef47710387a43742f7280",
+      "raw_sha256": "ec3fd57489633043833ba69d44bb53ab84c5802cec44d1a9bb709b9880ecfb9a",
+      "count": 16679112
+    },
+    {
+      "file": "bitflip_0_08f_states.bin.lz4",
+      "sha256": "7d57f5cfffa67525bd38ae935f370a0d1a2c0f1a908135fab03deda0b4758d6d",
+      "raw_sha256": "35a0e58e53bc6bdbc1df4e25386bcb9a19cd52e4361f1a91338d362ef3eb59f9",
+      "count": 16761992
+    },
+    {
+      "file": "bitflip_0_090_states.bin.lz4",
+      "sha256": "5f5cf12fe31aa5d7ad826b33f9038dc9c74841c80450b31a77e8df79d2143350",
+      "raw_sha256": "03a3286e2125e5a8a718ff2e14b7ebf696d081f701fb23691179ea567d6f6643",
+      "count": 13973824
+    },
+    {
+      "file": "bitflip_0_094_states.bin.lz4",
+      "sha256": "2fae66940a602b555aab439787b252c072f003cde3ac54b4745585978e026933",
+      "raw_sha256": "bb43ed86a2d12b0e84d175797bcc0cb021d034d13c10bec057fa717a8791bd65",
+      "count": 6870904
+    },
+    {
+      "file": "bitflip_0_09c_states.bin.lz4",
+      "sha256": "4fececf96f8d69632d377bfcef19982556211cf70d0ca75f34c348fa8385ef65",
+      "raw_sha256": "d81387096d398471bf25f0b1b4cc59cc4d08370c7e3510dede3292daec542b6e",
+      "count": 15691400
+    },
+    {
+      "file": "bitflip_0_0a1_states.bin.lz4",
+      "sha256": "9d600e63696d46f51ba234cb4f613de1bf2f91165381858303cc73842f1e1672",
+      "raw_sha256": "04e3e62c3390c3a73f4bf59ee8e1ba7989b5c233e25c4d7a2a320f71fee32c47",
+      "count": 10540524
+    },
+    {
+      "file": "bitflip_0_0a3_states.bin.lz4",
+      "sha256": "650c328584ef58fbf02eb5bae43fe770491993295797624b5543fda4210a4d31",
+      "raw_sha256": "d1e71abfc53fa47d243b7006fc144a81912c9d79de6a8005cd015632b29e7ebf",
+      "count": 16256924
+    },
+    {
+      "file": "bitflip_0_0a5_states.bin.lz4",
+      "sha256": "810697aef18c5968a3761c378b45d86ef6ed2f50aa352778c892d13ac6d2b76f",
+      "raw_sha256": "fe6e7c1c811af037c32e8149481ecb46d8396f9132e13b6f3a4c13128a0304c7",
+      "count": 14942008
+    },
+    {
+      "file": "bitflip_0_0a7_states.bin.lz4",
+      "sha256": "0b0b544590c3e68ba0839b99556cb504067cf535f690bdf6a41cef8f4afe53b1",
+      "raw_sha256": "ae7acb325816de7f93d8b8a5afc17a7a1ab3b01af219dcf7cfe950b4f772b140",
+      "count": 16567320
+    },
+    {
+      "file": "bitflip_0_0a9_states.bin.lz4",
+      "sha256": "654a76b773e8970adb2dbc862753db970e6b36ff21ad9e023d4b0d5e2c18d50b",
+      "raw_sha256": "79a514360786ea3a0f91c3b49886f3766678110d1049a2cd9f381213aae5e30e",
+      "count": 15270932
+    },
+    {
+      "file": "bitflip_0_0ab_states.bin.lz4",
+      "sha256": "6d487b75b037eb31a7606560a7c96fe4166a841a346998f507a480b2f337cc54",
+      "raw_sha256": "3d8956b1d19e11144d70a11386c0cfba50ddf1da9561ca046a1fcf60e3540a18",
+      "count": 16613540
+    },
+    {
+      "file": "bitflip_0_0ad_states.bin.lz4",
+      "sha256": "014fc1680df52613834690f65004b299ef30079715d448e648000f579bea4c71",
+      "raw_sha256": "5d6cbb7c23912b88ce763de4a6b1df91d889d67af6602576fb5d99bed0becd75",
+      "count": 16409160
+    },
+    {
+      "file": "bitflip_0_0af_states.bin.lz4",
+      "sha256": "90c5729e8d974be41d1f33b2dc0b2655272f2225932e36c29a0056c23e21220b",
+      "raw_sha256": "48d0645b0402bdf05aa8d7ef07fe9d893e7930d36de537657c218cb5d48ee2b8",
+      "count": 16729320
+    },
+    {
+      "file": "bitflip_0_0b0_states.bin.lz4",
+      "sha256": "ca97037f536a100147f115292e739203527965137251bd42c53951302b46e14c",
+      "raw_sha256": "557ab7030b354f2ebb3617bd75a02f6c6895ab4a3762d90825dd860caec3a317",
+      "count": 16434880
+    },
+    {
+      "file": "bitflip_0_0b4_states.bin.lz4",
+      "sha256": "ae3df607beaa7ad3d3b04730d0456e019287aa039ba7e46f1e73a14496549552",
+      "raw_sha256": "925264ba99430562f664d659f456352fc5f74ccf71568eaa0fc3f779a14df502",
+      "count": 14436936
+    },
+    {
+      "file": "bitflip_0_0bc_states.bin.lz4",
+      "sha256": "a541188a3868f2455bb7576b1cc7a6e395290984216138f6dcdfdd7d93758a27",
+      "raw_sha256": "700008b22ff4a86cfdd0420f30d6b2090125731c5d64da2c93595df083a1bc96",
+      "count": 16478136
+    },
+    {
+      "file": "bitflip_0_0c0_states.bin.lz4",
+      "sha256": "033353136995d64c42510e8e5743e57ca8c1d988e4fd5078064b1d42814283af",
+      "raw_sha256": "9b697ceb528e250f4538b5d9ae0b0eaccdf17415072cd003c6c6ae649c439665",
+      "count": 15204352
+    },
+    {
+      "file": "bitflip_0_0c4_states.bin.lz4",
+      "sha256": "e4f95cba42add2481590ffb248c40a23af2a01ab12bedd16d2072d06eb7d8259",
+      "raw_sha256": "6b08a7ac208ef061e3557900345fa0be62f38d3cef70e096c82bf9ab94d2ea67",
+      "count": 7762136
+    },
+    {
+      "file": "bitflip_0_0cc_states.bin.lz4",
+      "sha256": "f91e6da4d707777feeaf99f47f3013f37df1f87beccb29d14eb664f04701e158",
+      "raw_sha256": "68126823a195729765a0b4d27325e3aed3c8ed55cf33d9bb19063d602ee7e03d",
+      "count": 16000744
+    },
+    {
+      "file": "bitflip_0_0d1_states.bin.lz4",
+      "sha256": "b9bb7182f7db0513bfc0e6d8f1ea23607178ca7a57d313c7762aa67080905913",
+      "raw_sha256": "8f10824d93cb80fe09df23e8c29d7fedbfd850456f46d090fb8c4003fc98dad1",
+      "count": 13866260
+    },
+    {
+      "file": "bitflip_0_0d3_states.bin.lz4",
+      "sha256": "3b320cc16ac932909c20e271b5944b9c53f77cbb456918afaae53751b185c8ec",
+      "raw_sha256": "58112f7e052bb769a8ae8b8ccd9ba91f4cbadeac584ca454a4bd513277c44938",
+      "count": 16392868
+    },
+    {
+      "file": "bitflip_0_0d5_states.bin.lz4",
+      "sha256": "0eab316cd8ac5bf9428f8a670f0b022673a307aa580bf13bbd44dca9268cb562",
+      "raw_sha256": "b7728a72d3288f38011a8f04c7c04e1d014681f581fed2286b9b63d429703205",
+      "count": 16326444
+    },
+    {
+      "file": "bitflip_0_0d7_states.bin.lz4",
+      "sha256": "78b857445c6299043f5578b551432cac8607361ee3949d71a97d4a71bb40b5e8",
+      "raw_sha256": "b46e46d05ea69c864a0c39cbdee579b7fba5123f66045244488f262d44c6bf00",
+      "count": 16753980
+    },
+    {
+      "file": "bitflip_0_0d9_states.bin.lz4",
+      "sha256": "b5d333a64a590f50c12753d36548b278cf5d7d69276e4ba5ab1cd6777be67fa9",
+      "raw_sha256": "8fd6939cacbd86e3b0c7a2acfe5ec71a5710bcbde5763451e1e5d540e216ae29",
+      "count": 16155564
+    },
+    {
+      "file": "bitflip_0_0db_states.bin.lz4",
+      "sha256": "e1960ac224bd5a4dd22554a96a6730d61cdf9cbe0e0af93d2e3a54c8b1149852",
+      "raw_sha256": "38c873a219c529acd9240d44cdb974765b597e3e80a14a27c5734cdfebc08c96",
+      "count": 16690204
+    },
+    {
+      "file": "bitflip_0_0dd_states.bin.lz4",
+      "sha256": "500c9ee50b0ca489f7b7308ef9ce44f1b7e6b24daabd1fa488570e96e5c16395",
+      "raw_sha256": "4d24f19d05fa41abd54ed829c0fcdf24d594f264468c5a4dbb58e9dfb477667a",
+      "count": 16708244
+    },
+    {
+      "file": "bitflip_0_0df_states.bin.lz4",
+      "sha256": "94c1bf2bcda03218e23916676b535ace6b758b775f51bfec53ead08221efca81",
+      "raw_sha256": "5755ecca3774df3aa6ab8a6e31998b175c08ce00094b0750ab01f03497d06e0b",
+      "count": 16769604
+    },
+    {
+      "file": "bitflip_0_0e4_states.bin.lz4",
+      "sha256": "98e6e8ac1c2dee301b40bd292cb4e4d8494c2235b1163f9fea7c37deaddcba5f",
+      "raw_sha256": "553c3d0bef8c50aa3c7afaa564087927a6502d3b3ac39230656fb8d00c116a87",
+      "count": 14742632
+    },
+    {
+      "file": "bitflip_0_0ec_states.bin.lz4",
+      "sha256": "baea02d41ed0209dccabcba37dde193b699865e04e16672086d00fa37e146be4",
+      "raw_sha256": "f04a10fab58b3a7c0023848fefb64c3fc79fe9ef6a96b33ea8e5978bd857a5f8",
+      "count": 16544728
+    },
+    {
+      "file": "bitflip_0_0f1_states.bin.lz4",
+      "sha256": "bc77f4d584c5f265e90a328b5bf601ff44f73d2b2a461d42ec356cae2a3438e3",
+      "raw_sha256": "5af59305cfa7bff8a2cd2410c8927bf6fc9b7e2b707975c2f4fbafa45896666a",
+      "count": 9482644
+    },
+    {
+      "file": "bitflip_0_0f3_states.bin.lz4",
+      "sha256": "ab96af89ccef4b71e6825ab39c43bd3ddce19a4eeed6727250915f3a04dfc429",
+      "raw_sha256": "54c9510abaf0a7274a915425251240dd3c90f5d490ceb429dd667ce6556a1d17",
+      "count": 16164084
+    },
+    {
+      "file": "bitflip_0_0f5_states.bin.lz4",
+      "sha256": "bf76ac82f0b91fa4003b526eb101500e9467975d2cfefa9e65a1d99a57981919",
+      "raw_sha256": "980d85a68cf635e3592774d62ef529be4fa0aa8da9135dd9ffeb7946c6e4e3a2",
+      "count": 14867908
+    },
+    {
+      "file": "bitflip_0_0f7_states.bin.lz4",
+      "sha256": "f09c41c3e2519a8496c25d134d3fae82f0ef5a52090d04e9228dfaccc54635ba",
+      "raw_sha256": "c023c8feb3d47bef4b0a97047e8df4677db001d810c55e8adab9ae63f66d3277",
+      "count": 16544084
+    },
+    {
+      "file": "bitflip_0_0f9_states.bin.lz4",
+      "sha256": "430e021fdd012b6cdf333d2a5f79c45064cef9f7affdce0750d5680429c1a34a",
+      "raw_sha256": "b43e69a9bc57dadffd3e4a60cdd4a37e9606f18a0c28e8bcc4300f1641250e65",
+      "count": 15226284
+    },
+    {
+      "file": "bitflip_0_0fb_states.bin.lz4",
+      "sha256": "17d0012a70d6c35fc9971bba6ccfba076f380fabd858a745f36d884864511595",
+      "raw_sha256": "59bc6bcb203475724d1eb5ef32ebdd023cf3294d220084987b5280b220d157a5",
+      "count": 16608332
+    },
+    {
+      "file": "bitflip_0_0fd_states.bin.lz4",
+      "sha256": "65bbe8ec1d0f6eaa546e90a24f59055f42502bdb0f69cf40b2a437782a726817",
+      "raw_sha256": "391f06deda34240e266a1a88d794a65dc72b26f8882dc97975c18a308d59021f",
+      "count": 16380028
+    },
+    {
+      "file": "bitflip_0_0ff_states.bin.lz4",
+      "sha256": "372f9dfd10c65b810c5ffbe1d3126bb7987b834f87e84a1a97aa93568c5fd052",
+      "raw_sha256": "d84868a0ae9584b4f107db7363b0f5af79a4dfc9fa2bdc593c4ef6c4820da9d3",
+      "count": 16721708
+    },
+    {
+      "file": "bitflip_0_104_states.bin.lz4",
+      "sha256": "e2b017c1faa014aa9f8553e79e8d0b25547279ee7f2dea4853442c2c2d623508",
+      "raw_sha256": "2dbd63bc9382b17bda82497a067cadd628e82ea5b49faebb4b0b25ba0002fa9d",
+      "count": 13391336
+    },
+    {
+      "file": "bitflip_0_10c_states.bin.lz4",
+      "sha256": "53bb4c626d85060b72f83c0c3dc7c41a7a540397102d23f03e1c817b2aa313ba",
+      "raw_sha256": "ccb687123f6c2b1b15b4b9b97973fa6f204592d2fcec6386d58d37b497879b05",
+      "count": 16323160
+    },
+    {
+      "file": "bitflip_0_111_states.bin.lz4",
+      "sha256": "bbb5f4b52b27b3d9982b181348c997239fb8b0df77ed6477adc76880b98bdc54",
+      "raw_sha256": "59695095c350a8fd2e3bc6c6822c2e767271b07834022d6d77a1633e849accc4",
+      "count": 16302292
+    },
+    {
+      "file": "bitflip_0_113_states.bin.lz4",
+      "sha256": "f0bcad5b1eae91a7a8a92d8881e0666e0160723281e8fe9219d4b930683adb71",
+      "raw_sha256": "20958c36629557cdde3822a99a2348f8554bcbdbafec110fb60873170e2ae539",
+      "count": 16707508
+    },
+    {
+      "file": "bitflip_0_115_states.bin.lz4",
+      "sha256": "f41260e24241c6eec76c7dc0b0062be590f9f43933f3e945b29ce49dbe18a083",
+      "raw_sha256": "4823b180b81d2f6287adcaf937abe662c77f77a2dba787d21a7db65273575256",
+      "count": 14733340
+    },
+    {
+      "file": "bitflip_0_117_states.bin.lz4",
+      "sha256": "18f118828b0598e9eec5d6b1daad0131bfb122d9bd796763d55e6d8b1417a44a",
+      "raw_sha256": "0c3c76ee9c059d3b702fd07999ada5665340f393c1ce724fd2875253f66d24ae",
+      "count": 16655740
+    },
+    {
+      "file": "bitflip_0_119_states.bin.lz4",
+      "sha256": "2bb7f76574fd43ae643f7473e12a7bdcc80be62abbc16fe702852b0938b52835",
+      "raw_sha256": "aa9df9f6964d00ec36d9fcd480107285902f68ae98dc6e662f7b204946df265a",
+      "count": 16630060
+    },
+    {
+      "file": "bitflip_0_11b_states.bin.lz4",
+      "sha256": "32f4b5b610510c1a6370e0ffea27ea30e568b4fb114c7da7ca396102cdc4dadb",
+      "raw_sha256": "daf9fdad539343384d92fdee0e529cf06fdce5156ee1838c2b4d767b2537dfc3",
+      "count": 16754380
+    },
+    {
+      "file": "bitflip_0_11d_states.bin.lz4",
+      "sha256": "2a8b64414f2ceb46fd3426c17249d19857087219537179873a6693946bf0954c",
+      "raw_sha256": "19572b74e51c4025649cf17fff829a318d4365833b9425c94fe8a4bf06e64f92",
+      "count": 16383076
+    },
+    {
+      "file": "bitflip_0_11f_states.bin.lz4",
+      "sha256": "886ebc7db751f82f11bbcbebacf89d6a90ffece399cff3ffbc7212ade5cd1d8b",
+      "raw_sha256": "fcaacc1d334d2274876cdde399b52b6f642c7ea76e6a459c892199d1e898e01b",
+      "count": 16741572
+    },
+    {
+      "file": "bitflip_0_124_states.bin.lz4",
+      "sha256": "518a3fa460b84626a89080a43398fb52cdacfe4a48d2c884231bf3c798a87155",
+      "raw_sha256": "25b30f992524c1d0befac75c892cc89dc236256ddb6a2f6e145387789cb1703e",
+      "count": 16008408
+    },
+    {
+      "file": "bitflip_0_12c_states.bin.lz4",
+      "sha256": "99bc4c56a61c5fb2c56051f3f1701eae51ea7507a133027007ac11d1f8a07c61",
+      "raw_sha256": "e9cb81228b44db1364839284197c320c740f7adeb9587f089f70b2be831fc43f",
+      "count": 16667368
+    },
+    {
+      "file": "bitflip_0_131_states.bin.lz4",
+      "sha256": "005d874a02c70fbd05c0181c96f35de69a8f54827469ab02f57e86832e0b9230",
+      "raw_sha256": "e59888dd3805ee689b7e878d623e52baf36d502051ba237e3c8868eab0414a7d",
+      "count": 15056708
+    },
+    {
+      "file": "bitflip_0_133_states.bin.lz4",
+      "sha256": "17559f1616966996703e8041889c718adc363b98dc218f64546e99b22f07cefb",
+      "raw_sha256": "8c4b5c533930e3e503587ed0b1fe767d9ab54983c25743394999186e25fa139f",
+      "count": 16613876
+    },
+    {
+      "file": "bitflip_0_135_states.bin.lz4",
+      "sha256": "e20bd964f857d639fce7ede785c40350b0980ea7be99bcf1ed9d12d7b53cb0b0",
+      "raw_sha256": "fffaa0378006ec781607965996ffa29b7e46032fd30256f1440090ff20410007",
+      "count": 8780212
+    },
+    {
+      "file": "bitflip_0_137_states.bin.lz4",
+      "sha256": "b55002a084480e88a58578a0aa93a612e315ab3479ca31b38eddffb1778825d6",
+      "raw_sha256": "9a1a00c98193cb1006aaef5463cb2dc18ac7a9ab428f29b6537fdf57caead796",
+      "count": 15924532
+    },
+    {
+      "file": "bitflip_0_139_states.bin.lz4",
+      "sha256": "42ee823cb8c327e36cc2b2c504276da8fc22645630551ceb24a1068b386ab7b4",
+      "raw_sha256": "20c65e8c5a68a2789d8876004b83ad8ed4af253bbf3878cb57ec9f2ccbd34c40",
+      "count": 16293564
+    },
+    {
+      "file": "bitflip_0_13b_states.bin.lz4",
+      "sha256": "aa13d2fbd55ba7be5f1cac69fd9319d713e73ccf9b6eb91d8d50e4af3e88f6fe",
+      "raw_sha256": "7cd681c249924680146134025888e6fec14a50b6a46aa34d23bdac25d4c9b495",
+      "count": 16713612
+    },
+    {
+      "file": "bitflip_0_13d_states.bin.lz4",
+      "sha256": "aa6ffd0522e802be777482d1f01d132c40666a3b019148bd858407ba905b66c7",
+      "raw_sha256": "0bdd1280827aa5822ac7b2dcd702fa5b703fecb9432a2079fffcd955816c470b",
+      "count": 14834124
+    },
+    {
+      "file": "bitflip_0_13f_states.bin.lz4",
+      "sha256": "ebfdb9d0783a80b010a2ad3091a9c1999c880f658421933e1aeaa7faee2ed60e",
+      "raw_sha256": "1cedf4c1fefc7e10811c779c1c785b5dba31345c23ee0e44979c8aa3f0fee7c7",
+      "count": 16533644
+    },
+    {
+      "file": "bitflip_0_141_states.bin.lz4",
+      "sha256": "9acdcb95d9664ca2477e6179e84745dc741c5f91c24e4012c5b86f5f4de5783e",
+      "raw_sha256": "e596dbe0d100bd4390c0b72d2e748f6876a4c222d4948810479ade26a003cdc2",
+      "count": 16015484
+    },
+    {
+      "file": "bitflip_0_143_states.bin.lz4",
+      "sha256": "7201be2a2bb80903e8d7634d0d2dc1b16521924efaadf57e9d8c4b81d9e3c2d5",
+      "raw_sha256": "e3d77d18c34947644434e12554df0e5717e6d456c735698635e858531df4fe16",
+      "count": 16648844
+    },
+    {
+      "file": "bitflip_0_145_states.bin.lz4",
+      "sha256": "5cc5f88cf915159a3721a80464e13c6db6c2099a6c4918b516185082f67e36d7",
+      "raw_sha256": "9acdc133b8acdf0b7c5638742e0781bc2497a01003c374089598d728145bd78b",
+      "count": 14490824
+    },
+    {
+      "file": "bitflip_0_147_states.bin.lz4",
+      "sha256": "944de1e0a5be68d34a93e14d44bc3354117a88a6a50263d0e36af43fa27532f9",
+      "raw_sha256": "006c995ce833abb66c4c8b78b1cbb1c358b1cc44f95f309f38338fd9dfd7bd84",
+      "count": 16632504
+    },
+    {
+      "file": "bitflip_0_149_states.bin.lz4",
+      "sha256": "b3790b28fa7652a77ec497c337caceaa364f70fe74ca729b9975fb1705c9bf28",
+      "raw_sha256": "32e372acc7e4d2e966760bab7519c3fbd5ca58965a020978b606c5934f4d3a0a",
+      "count": 16606276
+    },
+    {
+      "file": "bitflip_0_14b_states.bin.lz4",
+      "sha256": "a9ee3f33fa480242b7a709898d92a5e4fbb28e0deb813af849dab48bebf988fa",
+      "raw_sha256": "98da7a4a091cc1e3badfedf7b0121950552a449a341cebef5a00f6ddb07c9627",
+      "count": 16751348
+    },
+    {
+      "file": "bitflip_0_14d_states.bin.lz4",
+      "sha256": "376a4e2e38b5523761307d4756e8240b52e83912680464ed41035be5fb9c453c",
+      "raw_sha256": "8d177be09b606df1a4af05eafb5183dd2f96db7581959c9448f0edb8b23b86b8",
+      "count": 16314104
+    },
+    {
+      "file": "bitflip_0_14f_states.bin.lz4",
+      "sha256": "2fc865acb8a690cee58c6e83116ce1adc4656a4cc7fb666bba7dcb8d2c44b6c3",
+      "raw_sha256": "d3bd27831e8b205c745a6be41a2a3b86837b51437c86fe1d0e0a705f72b6bac7",
+      "count": 16733960
+    },
+    {
+      "file": "bitflip_0_150_states.bin.lz4",
+      "sha256": "0db4e7658d9a46f167d48101b3dbf6e9c26c76fd3cdf668d2d58fcf7e42cc699",
+      "raw_sha256": "3b1908d02b4dd6a9649bc5f74b233ca6bbd53722b66576f67349deee45894fa8",
+      "count": 4376256
+    },
+    {
+      "file": "bitflip_0_154_states.bin.lz4",
+      "sha256": "15df530f7d3d9e495589bb93185e85bf7c76d68bac649a69511f8ba7cb536703",
+      "raw_sha256": "0bb694383bc1725137b07c13ece4f82d38242f62512dc3432bb17cd85a2194e6",
+      "count": 14282568
+    },
+    {
+      "file": "bitflip_0_15c_states.bin.lz4",
+      "sha256": "e6b25dec95a1cb3a2d796381f7a153a421013e512da9328ab52fc927f4012ab2",
+      "raw_sha256": "469bfe968a95afed266f6b205a0037fa160e4e328de43f3fb0035a3b0d734509",
+      "count": 16632504
+    },
+    {
+      "file": "bitflip_0_161_states.bin.lz4",
+      "sha256": "c5d118f2013699f1edbdbee9381e5457aab32069f4b2d23cef5cd4bb5955adc2",
+      "raw_sha256": "bcb752178daf1440fc0e527d9cc348ec9e535f33da5b6db42d6d4e3d313e7afb",
+      "count": 13998828
+    },
+    {
+      "file": "bitflip_0_163_states.bin.lz4",
+      "sha256": "b9a938c0881b5c9fdec5a922412421e08d37abe7a9ed536ba83375af3bc2538c",
+      "raw_sha256": "3d390bbc9640a3d346da92bfb629570269a8c12969feafac73759bac1a071084",
+      "count": 16521036
+    },
+    {
+      "file": "bitflip_0_165_states.bin.lz4",
+      "sha256": "5f96bc01b44de3c3e6f80a5019665a65658298d63e5fb26853733f1358776134",
+      "raw_sha256": "a229f7d0da598a8228344a522531b10f086b43a49b655912cd0dd19a6ede5109",
+      "count": 8007336
+    },
+    {
+      "file": "bitflip_0_167_states.bin.lz4",
+      "sha256": "2773d127cccde28261bdc6134fe98cddcef1c2f6df4e35794de8675fe3c34f14",
+      "raw_sha256": "4940a30f127584c6154b6ffe3b538370b94c4e3a74c33be96fcc06395ed7076a",
+      "count": 15842904
+    },
+    {
+      "file": "bitflip_0_169_states.bin.lz4",
+      "sha256": "f10dfa10e931a456e0a60f2cb6082b41da8a0baa8b7c28dfe37da9847226a553",
+      "raw_sha256": "f64d246f1d8a0ae71f4a49183666773b06602a652764aeb103cf93cd87c84887",
+      "count": 16248916
+    },
+    {
+      "file": "bitflip_0_16b_states.bin.lz4",
+      "sha256": "3434fb7e8064e230c1532a3f6e4fdc7498ef963d755161f459579cec712759dc",
+      "raw_sha256": "05d5bc5479ade79ac32da17d4e420292c27346b0ca4593a40455b0720e587c37",
+      "count": 16708404
+    },
+    {
+      "file": "bitflip_0_16d_states.bin.lz4",
+      "sha256": "b4c3441a08d509bfefcb1eb0ae40829942b7ee2f18896a4fdc7798cef962759f",
+      "raw_sha256": "fec900b1ccd0a9adf6968abed08e62fe787b949378aa6cdc32df7e0753dea6b7",
+      "count": 14505368
+    },
+    {
+      "file": "bitflip_0_16f_states.bin.lz4",
+      "sha256": "00d0eb593fa20614c785a453430c6f957210285da64bee724df6b0c0d857f682",
+      "raw_sha256": "2b422a435f7d3739b51215d4a8c15bfc40382a893a2abc658237dc423a986be5",
+      "count": 16486376
+    },
+    {
+      "file": "bitflip_0_170_states.bin.lz4",
+      "sha256": "3a83e325c8833b34ff6decb418da1ed7f5d436c9358668d28d9665bfaa64df60",
+      "raw_sha256": "be7c57832661b5574e5d66c92237736d26375d09c0d82de92ff18d8d82517d04",
+      "count": 15546688
+    },
+    {
+      "file": "bitflip_0_174_states.bin.lz4",
+      "sha256": "f1eb880ba747806f70b07f875b746872a1352086d9318569eb41b4c925400848",
+      "raw_sha256": "c062f6d8c396d873b415218811cee0a602ca7d28c50b86a0a83f73205ac12fd4",
+      "count": 16314104
+    },
+    {
+      "file": "bitflip_0_17c_states.bin.lz4",
+      "sha256": "e19fd668c9722771d2475076c0ebcd1dfdc537c693034a54ec6bbd505c8d1ad5",
+      "raw_sha256": "5ac4142e06d4958f5221cf0eebc0acab7dc49096d6e02612c8632f211c643673",
+      "count": 16733960
+    },
+    {
+      "file": "bitflip_0_184_states.bin.lz4",
+      "sha256": "af3a45492520802cd92ac24e18473b4c076e3ecedfcecb8ecad2ece65411af9f",
+      "raw_sha256": "8cb5a800de65a27e957e5756f48207e96d3ff000a7c1c165b5f5fbd2fc0ebd9b",
+      "count": 7762136
+    },
+    {
+      "file": "bitflip_0_18c_states.bin.lz4",
+      "sha256": "94f3cb8b92ab825e5b0d7653f3e4e1f201d24ac6cc458dd793cbb2ce3c34b559",
+      "raw_sha256": "a947b417defc244ad28782185935a4f6e88ebf81ad5aa1ec155f8516bf27b79b",
+      "count": 16000744
+    },
+    {
+      "file": "bitflip_0_191_states.bin.lz4",
+      "sha256": "3afe90d7187a8d33ddf41b47b9b862271db526f0e054e2d39f0041b3acd3cce0",
+      "raw_sha256": "20b5af658ab373022b45d50d5e8b00f8d638fa6776e726c821f585e8092330b3",
+      "count": 13866260
+    },
+    {
+      "file": "bitflip_0_193_states.bin.lz4",
+      "sha256": "79287d246f0beed94941510074d4ab55b1a378b6174ba00f7ac72f60a62b0766",
+      "raw_sha256": "ba62c1fe33b84f289adde68e5277b959d77f037c3252ea1ec24aa12b36cc89d5",
+      "count": 16392868
+    },
+    {
+      "file": "bitflip_0_195_states.bin.lz4",
+      "sha256": "a33da64a09dff487e7d7483b31eb3884d2db5393ab5210ddb00352d520bf9c65",
+      "raw_sha256": "8a96964b3e8379d3c7a238846ff590b7091394403f15486c8d79b7ba78e1a51d",
+      "count": 16326444
+    },
+    {
+      "file": "bitflip_0_197_states.bin.lz4",
+      "sha256": "04edcddc8b93f7f7f4a15361417118c7b5d9b84c611e7cbe8e380e8b76212d21",
+      "raw_sha256": "626118c6dc9dd2b7c607125f041a61da8ec4c78ba9fff049eb36411c361a1e7d",
+      "count": 16753980
+    },
+    {
+      "file": "bitflip_0_199_states.bin.lz4",
+      "sha256": "af192faaa0187e76ad0384729bf5b6aa062c967de63dde3e3e07ac9b37c0b85f",
+      "raw_sha256": "586c121ed2bd804a41b960ea18377173998be0bd1695391b8b9b1ef7634d4393",
+      "count": 16155564
+    },
+    {
+      "file": "bitflip_0_19b_states.bin.lz4",
+      "sha256": "660a9b382952349bc1a03248565c474f874f571719cff899cf339763ffe20df0",
+      "raw_sha256": "5e914ecaf11c5f56c873c7cbe91b078cc77072adbfb30b9ecd2ea489f782cdf6",
+      "count": 16690204
+    },
+    {
+      "file": "bitflip_0_19d_states.bin.lz4",
+      "sha256": "03d6ea66699e70e384f7d0ce4d111d1cbe2eb38b7233bdfec4a35ee4f823c0b1",
+      "raw_sha256": "50473fa46a0c74e5d856281b32eec0cc93e4a946a1ce317449f63e7bdc24f557",
+      "count": 16708244
+    },
+    {
+      "file": "bitflip_0_19f_states.bin.lz4",
+      "sha256": "f2db6b590357c04ae7a474809d82b22ceed8e373dec78cb9565cf6b23d712685",
+      "raw_sha256": "054b573de5d8ae12bddc609c3579dc05a1cfe3691f04c5fc79df20347ec2a3ec",
+      "count": 16769604
+    },
+    {
+      "file": "bitflip_0_1a4_states.bin.lz4",
+      "sha256": "7081bb5a6e818af54feea9d076120b84754050f2b1d72a82ced3ca7c57785f91",
+      "raw_sha256": "7893f129ced25c61d3ac6315c8bab25c5164fe39c9310d5ae8d2f607f937df84",
+      "count": 14742632
+    },
+    {
+      "file": "bitflip_0_1ac_states.bin.lz4",
+      "sha256": "a540a3028474e56411e3a9e745180de97ec2a04ae871eb342c8e09a5406e0673",
+      "raw_sha256": "f43a582e161e7df07f1dcbabd8c32d15f6e2c27f88448f6e70b758a5fdd8c019",
+      "count": 16544728
+    },
+    {
+      "file": "bitflip_0_1b1_states.bin.lz4",
+      "sha256": "5fb4327d42cbcea6344e644a9068ae48f25fb3740c925b2c01c20e68276d4810",
+      "raw_sha256": "aeba8d1d943fad080806e6456619ce4a565e14a5530ab588c9a25f15bc8bd625",
+      "count": 9482644
+    },
+    {
+      "file": "bitflip_0_1b3_states.bin.lz4",
+      "sha256": "00d0cf357d155bab07895489bfdca084793235b75818e63fd1f030042b248119",
+      "raw_sha256": "5b18e440100d737a2a89bf86990c97bdd9331cefe98e9f1ae7dc26bc6be6ef84",
+      "count": 16164084
+    },
+    {
+      "file": "bitflip_0_1b5_states.bin.lz4",
+      "sha256": "f64ea5f21a357fb5d6fa6124be13e566123f9d4ad2d72c2c2f5ce1cb8fa30ec1",
+      "raw_sha256": "9c8a6128bd58c6dced5c843a25d01327195d3a6f66d102eab62d3110d55ec8dd",
+      "count": 14867908
+    },
+    {
+      "file": "bitflip_0_1b7_states.bin.lz4",
+      "sha256": "6517f057e28642f321955d1790268272950645425a5ceee7b077f9c1a8389af0",
+      "raw_sha256": "96112cbf9823a05fa9edd43e705be736a163d8bfccd357aee70d000f403718c6",
+      "count": 16544084
+    },
+    {
+      "file": "bitflip_0_1b9_states.bin.lz4",
+      "sha256": "9cccb7c3e355cacfc78bf0c9e50890e48971cd31a69aa8fe256eb177e29a480d",
+      "raw_sha256": "23e6732ca32be4ca2dfa7867a7bef0ecba50b1201f37f58a21ad2674de51e490",
+      "count": 15226284
+    },
+    {
+      "file": "bitflip_0_1bb_states.bin.lz4",
+      "sha256": "57fe38584cf386bdcc400d59aa77c9b759fc621a828817671d06686f013e5bf3",
+      "raw_sha256": "da94f72432b529bc439354b92c59eefafc49c14bd37ab0d59b0b79ec6e287453",
+      "count": 16608332
+    },
+    {
+      "file": "bitflip_0_1bd_states.bin.lz4",
+      "sha256": "a073fff9f4c05d1f74a0e534108dca169f6bee2f769165f24b7129664d8c98e9",
+      "raw_sha256": "4d093d5d58e451c5a10a737e4e431e92b2be2485bb81208a08e8ab32e7f04a27",
+      "count": 16380028
+    },
+    {
+      "file": "bitflip_0_1bf_states.bin.lz4",
+      "sha256": "900cbfbf018fd80688be8bb31930c169c0bf00e555aaa4dcc743b83c1f8a3735",
+      "raw_sha256": "34d4303f2258de5f2642fa69163d5c57ca21075fdcf13d2b1d180f2dfb1d1f28",
+      "count": 16721708
+    },
+    {
+      "file": "bitflip_0_1c1_states.bin.lz4",
+      "sha256": "a64fb28679ca07006bb53d441bb4293333d9e191ade7f5f999e9f57055767678",
+      "raw_sha256": "8bcc922cdf7740723ed73bb2de124db9ed99fad0473a41f61f4385bde61667e7",
+      "count": 14153068
+    },
+    {
+      "file": "bitflip_0_1c3_states.bin.lz4",
+      "sha256": "45769796cc6b87e4ecb5ee6c39811c49ccc57a38fe961ec37a77d8930b994e95",
+      "raw_sha256": "e781e107d7bc29e147a7930df0965fcd8b752a3aa9b915e4255aedde9dd67de0",
+      "count": 16451532
+    },
+    {
+      "file": "bitflip_0_1c5_states.bin.lz4",
+      "sha256": "f6bd41e46165109fa6d99459ea52b17d4b4e91d1b1623a5d80400ed3a812310b",
+      "raw_sha256": "07b425124823b564355e82f98518ddcac371e95acdd12928a18801051be4c8b1",
+      "count": 16568960
+    },
+    {
+      "file": "bitflip_0_1c9_states.bin.lz4",
+      "sha256": "0e34698d01df03f186c30edd0f86511423105f7c03fbd8a95f6062c06e182570",
+      "raw_sha256": "b3bc7a7f332408ae8f0a8cf85c220a9ecc77d3b98e37d2f2ddb922c15cf67a17",
+      "count": 16179348
+    },
+    {
+      "file": "bitflip_0_1cb_states.bin.lz4",
+      "sha256": "8847708dcb3c05a80e7a580a8932e79c07b3e518906e387deeb60de7fb592ba9",
+      "raw_sha256": "acfdcfc9e9275cc063d16e592fc9ae97d4bcaa9c02b6d2828575eeed0d329c26",
+      "count": 16693236
+    },
+    {
+      "file": "bitflip_0_1d0_states.bin.lz4",
+      "sha256": "635a7e9b0adb731947740dd6b509e199e0b64d461abd217bf8363d58e34dd54a",
+      "raw_sha256": "789af476a60a797573dae5b148c2886f63aeba01126fc3f136d167beca6ccbcb",
+      "count": 13973824
+    },
+    {
+      "file": "bitflip_0_1d4_states.bin.lz4",
+      "sha256": "6b13950d7e75b2f433770abc14d909d7bed5fc7d2720636578f5b015b5c95478",
+      "raw_sha256": "ee136777282b5c3506e5c78e41195b76d1a0f30b788d10c753a9faf49e9bcae3",
+      "count": 6870904
+    },
+    {
+      "file": "bitflip_0_1dc_states.bin.lz4",
+      "sha256": "b939a2b7d496b986f3d1dd7c4d548eb0193697063dbc258d7511517e8d459ac6",
+      "raw_sha256": "fe72e32ff9eb2fdcc57796e5997d45d70be24f2ec9102c538d1b9b073ff992b7",
+      "count": 15691400
+    },
+    {
+      "file": "bitflip_0_1e1_states.bin.lz4",
+      "sha256": "264367335c9a3ffd75456205d77705821fe0f8062eeacf6b8df2cd6118e6b52f",
+      "raw_sha256": "9ecc305b8d61890b4e48a78ffaf1741f34f0ff68dd7e1f746eafba6d2cdcad8d",
+      "count": 10540524
+    },
+    {
+      "file": "bitflip_0_1e3_states.bin.lz4",
+      "sha256": "c763c390ed8976af16c0cd4941787e77379691ea9404f5cf09742352f1da85cf",
+      "raw_sha256": "4783dbc43518b9b9596de670c49794d2ab0a6d522bbc792b4e005cf5b47bb1e9",
+      "count": 16256924
+    },
+    {
+      "file": "bitflip_0_1e5_states.bin.lz4",
+      "sha256": "786eeecd04667cb959d817571c140f7c10098d7001f952efcba1480bc50b6b60",
+      "raw_sha256": "40645ff81f8bc078d01ac9dc5d78bb29d17fedda29ecc262afecdef40195066b",
+      "count": 15640784
+    },
+    {
+      "file": "bitflip_0_1e7_states.bin.lz4",
+      "sha256": "594035a564b1c04b3da3bda3b123dd3ea19d3b34d7a9f74d02a3daaa94f81861",
+      "raw_sha256": "5fcad7f05cbfade64379d1cb6d5313056f187b2751e83c201f12cada23fe4bb2",
+      "count": 16625712
+    },
+    {
+      "file": "bitflip_0_1e9_states.bin.lz4",
+      "sha256": "865367b8fb1667dd12c7e8ad7d1528195dd538c08600e17c1167e0179aae3532",
+      "raw_sha256": "c682dd3e902e9511c5d645470c77f50b17454b54008dcf01b8d93504d2b86e20",
+      "count": 15270932
+    },
+    {
+      "file": "bitflip_0_1eb_states.bin.lz4",
+      "sha256": "1bd1d85985cc38b3bb227ddfb948a762ff9793515885de952c7964210434d393",
+      "raw_sha256": "5591d7236b32169126c21644d9f31a83f45cee49dc13d9b5dc613c55f9989d99",
+      "count": 16613540
+    },
+    {
+      "file": "bitflip_0_1ed_states.bin.lz4",
+      "sha256": "534e48fb5207015370231bb76bac8f351cae270d9f9a030c0df8dd9017d69f66",
+      "raw_sha256": "218c0d8464090bbe08aa3a3a341d860fa816c3b2105db40e71f541cad4f4a459",
+      "count": 16708784
+    },
+    {
+      "file": "bitflip_0_1ef_states.bin.lz4",
+      "sha256": "b97ea635db2ebcc8aa9bfc4dd8bcc4884c5c90dcdc2207dd84b6a83e04a75685",
+      "raw_sha256": "5d1b67294d5491a4ad8a9ab0e56e07bcb615feabeb4e7721bcd642ef85ffb8b5",
+      "count": 16768976
+    },
+    {
+      "file": "bitflip_0_1f0_states.bin.lz4",
+      "sha256": "bb59c02c54f23ab79dcaced391f525214fcdf3e9d4f286668322bec9c1280e82",
+      "raw_sha256": "ee6f72fb8e7a135c4c56930aeb8169845ad836a0e930764aab2dfc4fdb4137b5",
+      "count": 16434880
+    },
+    {
+      "file": "bitflip_0_1f4_states.bin.lz4",
+      "sha256": "6f18bd786b131b3ccc52aa1f0cbb160e9c5ef10cb4dd5d186f3c5d6a1c7e283f",
+      "raw_sha256": "38c0e0a029f05cd566622587e7b8f668340f9c3eeddc0dfc7e5584598f4cffe4",
+      "count": 14436936
+    },
+    {
+      "file": "bitflip_0_1fc_states.bin.lz4",
+      "sha256": "9822855419fac699257bc55bc002b9ee7e2af643e14eeb054264c0e632b3a89a",
+      "raw_sha256": "44e9664a59f7fbf63caf55264476c0fa8f8bed4a45814bc8be824e297b4e44c7",
+      "count": 16478136
+    },
+    {
+      "file": "bitflip_0_210_states.bin.lz4",
+      "sha256": "ae775bc3c0f8cbfb5636997ae1962e2b86c911abd666f7c18359ec0f51ef77a2",
+      "raw_sha256": "706c4cce89b21413a980c2bc7b255854a03e867315cad82181b0f274d0004dd2",
+      "count": 10677248
+    },
+    {
+      "file": "bitflip_0_225_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_227_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_22d_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_0_22f_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_0_240_states.bin.lz4",
+      "sha256": "b4391fe49ea69562a43f36503daadc7b82b9c91e6dd235e025af9263a3f96637",
+      "raw_sha256": "02a9b993e4990c4740135d4f46164665632c5ed13528749183b03fc961f5058d",
+      "count": 6291456
+    },
+    {
+      "file": "bitflip_0_275_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_277_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_27f_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_0_294_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_0_2a1_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_2a3_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_2a9_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_0_2ab_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_0_2c4_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_0_2f1_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_2f3_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_2f9_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_0_2fb_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_0_335_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_337_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_33d_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_0_33f_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_0_350_states.bin.lz4",
+      "sha256": "ae775bc3c0f8cbfb5636997ae1962e2b86c911abd666f7c18359ec0f51ef77a2",
+      "raw_sha256": "706c4cce89b21413a980c2bc7b255854a03e867315cad82181b0f274d0004dd2",
+      "count": 10677248
+    },
+    {
+      "file": "bitflip_0_365_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_367_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_36d_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_0_36f_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_0_384_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_0_3b1_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_3b3_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_3b9_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_0_3bb_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_0_3d4_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_0_3e1_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_0_3e3_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_0_3e9_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_0_3eb_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_1_002_states.bin.lz4",
+      "sha256": "b7271ae583f7718cdce8da54c42c02b27fba6831a95aeab5e63b55530ee41b33",
+      "raw_sha256": "fe574872fe180860cc03eea1b4ba9f17670dcb0c7258f6ca322a2133d01725de",
+      "count": 15556682
+    },
+    {
+      "file": "bitflip_1_008_states.bin.lz4",
+      "sha256": "c8d07e3dc37dcee159aefb364ca4daecf8561bd8a3fb7c69eafab069c11dff79",
+      "raw_sha256": "9561085945c7df84d1e883c049c66e01de72774118676215404a2e5f976d973a",
+      "count": 7706764
+    },
+    {
+      "file": "bitflip_1_00a_states.bin.lz4",
+      "sha256": "d856e3705af747c03c9f0a64764e372a53460d460ef119d7ffd13bf677e03b04",
+      "raw_sha256": "a4fa6b4ff342d2ce110f1fc4145801cc9652e6f22f7da8b173a8d0393f63aee1",
+      "count": 14108664
+    },
+    {
+      "file": "bitflip_1_012_states.bin.lz4",
+      "sha256": "d4c8617afbf2ca1d6e0b364cdf43432a6fc4e6bd1b1f0c6e11ae2d6da99f426e",
+      "raw_sha256": "56323b62a73d9a63d011b4fbb2a3662c588468718dec70d8fb0bd80d07f265bd",
+      "count": 16514262
+    },
+    {
+      "file": "bitflip_1_018_states.bin.lz4",
+      "sha256": "0d9b651815570e700067513216f912fe1c6f01446e00f2e4c986cce7421d345d",
+      "raw_sha256": "93b20dcb719bf981d63afb080e87ab8e0d9a8ca0842659febb2a6f5ae8fd91d2",
+      "count": 15989076
+    },
+    {
+      "file": "bitflip_1_01a_states.bin.lz4",
+      "sha256": "e5b5697d3c6b5979633dd7a19a2be6a9cc4873ffc5818c7b6148ca6fdd458f55",
+      "raw_sha256": "27639570fb01d58d4bcd04c91165358580796a18231e8fbd358fcc3cbf5c5183",
+      "count": 16112584
+    },
+    {
+      "file": "bitflip_1_020_states.bin.lz4",
+      "sha256": "07484c7cc1082fca9883d21fe6f540ce1b8ac65ecbd5ebe8131ff46c8a618a39",
+      "raw_sha256": "b1e3999e81e2edd5029594d26e601a827b839f97d3f0d88a134254beba7ca915",
+      "count": 4309216
+    },
+    {
+      "file": "bitflip_1_028_states.bin.lz4",
+      "sha256": "b854ac31fe8ebb62296666f884b722887d5dc475dde4fdcd5ef55503077215c6",
+      "raw_sha256": "9fe5506bddf5db7c621fc7791c5953a66ebfc337ff3738c2f7ab89520c39d19b",
+      "count": 14185092
+    },
+    {
+      "file": "bitflip_1_02a_states.bin.lz4",
+      "sha256": "2362448ca4f2dd53f6a9272558f4eb92b675257acb28c57527d5c7fee3d1c205",
+      "raw_sha256": "8f17f4b8246fb0df5cef6f9d07900e07fc1ce2e4650d99f53a6802521b17497c",
+      "count": 15940006
+    },
+    {
+      "file": "bitflip_1_02e_states.bin.lz4",
+      "sha256": "97703e56045a77b19f25ee4b4bd6ac8547e2629bae6f976625c6e5f4a6a734b9",
+      "raw_sha256": "b774ff8c1038c629de83d9fcd24ef6df46da764bbff540be8dd5eeed66136677",
+      "count": 16713166
+    },
+    {
+      "file": "bitflip_1_032_states.bin.lz4",
+      "sha256": "622c5479d3dded7c364d17a5b6b11c8ad74fddd6ec8c7ad8ccfdad277ec3a85a",
+      "raw_sha256": "efde3ef5b6dbf1021575d540896ad38085f67e89fc4c126debff6c9b14809d5e",
+      "count": 16063550
+    },
+    {
+      "file": "bitflip_1_036_states.bin.lz4",
+      "sha256": "5a341ab7a1325e63a97ade825adb5382217a3416768b43d4f7e98bfde9c71a03",
+      "raw_sha256": "962facfa7128714700e2fb7b59b3309ceda557a569ba6be54efd21ce974c5540",
+      "count": 16678230
+    },
+    {
+      "file": "bitflip_1_038_states.bin.lz4",
+      "sha256": "de1890e4cca51abceaca1c6f1090b4b0fee6fa03b28d45381159e2701e4d64a4",
+      "raw_sha256": "798dac6173cebb2e955bf769eca7851cb848126c08e9de876b12b7c714257865",
+      "count": 16610876
+    },
+    {
+      "file": "bitflip_1_03a_states.bin.lz4",
+      "sha256": "9ef353d7458289ba784f3644e09a43a5a5dc10ea57f63a923d1b7b3219e1a824",
+      "raw_sha256": "5296a15ce8eb42e019218bc150c6d2eefcce03b48c2853fad1af596bb15dcf18",
+      "count": 16543866
+    },
+    {
+      "file": "bitflip_1_03e_states.bin.lz4",
+      "sha256": "3a91d4d1835d17468d746b9d2645975ad1fe77bfbf498085be95259d7b1210d7",
+      "raw_sha256": "314561bcff821f68b625bd9b685833a1ce1d58b14311c2cb01cb4df7773d90ef",
+      "count": 16745970
+    },
+    {
+      "file": "bitflip_1_040_states.bin.lz4",
+      "sha256": "033353136995d64c42510e8e5743e57ca8c1d988e4fd5078064b1d42814283af",
+      "raw_sha256": "9b697ceb528e250f4538b5d9ae0b0eaccdf17415072cd003c6c6ae649c439665",
+      "count": 15204352
+    },
+    {
+      "file": "bitflip_1_042_states.bin.lz4",
+      "sha256": "10a5c42b2b7b21c4d795bd7a6cfdc1916e68c9eee205e64e0c53d329e08421a4",
+      "raw_sha256": "6a2775f0e8f362a53a58808aa8e612c4d7cdd4cf044be217deeb0c004290e0bc",
+      "count": 13867610
+    },
+    {
+      "file": "bitflip_1_046_states.bin.lz4",
+      "sha256": "447b0b2462c06e92caf582e7e8c962d00c8528ad850e90c5bf6e41bd434aba27",
+      "raw_sha256": "c0a9be5a8f6ecae32b5f5696784f050821f6192526f45ba6e51035deb0311e06",
+      "count": 16509418
+    },
+    {
+      "file": "bitflip_1_048_states.bin.lz4",
+      "sha256": "cbfd3d740508dfcd982580c9fe1bc34aa2f35f206020001b99a34d91c0099edd",
+      "raw_sha256": "1d5d69010d88e72dc26b9b2ead18b9769fad82ffb2b9ecac892d0f0d61eb0c50",
+      "count": 14105556
+    },
+    {
+      "file": "bitflip_1_04a_states.bin.lz4",
+      "sha256": "e11cf44759ea1bfdd8cce529ec38d8a959c6a25b988c785b2cbee5bd59aa1034",
+      "raw_sha256": "c2317dcc57aae18d6efd2e188691d91438b2d16e04d190063138c9c1365b23a3",
+      "count": 8389496
+    },
+    {
+      "file": "bitflip_1_04e_states.bin.lz4",
+      "sha256": "ed49b327440aca0cd61c5ae09c2e871733cec54b90dc9855e64ece0d43f50cda",
+      "raw_sha256": "92a26d89e43325da9188bdb5fa522ff47a7a6f2ecd93b7a6417707176fe0aa21",
+      "count": 15854824
+    },
+    {
+      "file": "bitflip_1_052_states.bin.lz4",
+      "sha256": "dd81ac0dda7a214a9318de0e036449e72c7480fbffe6a289a3a8ed8852053941",
+      "raw_sha256": "bc6570695c001ceabff164948c05d343cb1c77715ce438e9d41032a0990db0e2",
+      "count": 16224390
+    },
+    {
+      "file": "bitflip_1_056_states.bin.lz4",
+      "sha256": "12afb3bde6bf4fadc74eb5500c4036acafa6e6ab66e9e42d6b2929d227ed58e1",
+      "raw_sha256": "879a99c4611fc111503b731cc839d09ce621ab38892f1e86ff835969b6514e57",
+      "count": 16704598
+    },
+    {
+      "file": "bitflip_1_058_states.bin.lz4",
+      "sha256": "bc0c2042bdd8fd522b11c2c5a083fe0d5c2f8fdd8bc482ce24fbc003d75f2daf",
+      "raw_sha256": "78279337dd00fb0a748ec8421ccaa0de1679b7fc0d9a2613c6747a6f6264bc6f",
+      "count": 16462412
+    },
+    {
+      "file": "bitflip_1_05a_states.bin.lz4",
+      "sha256": "24de33b40d375076e0ac072817957fe871985b1bd540fef0d0555e731e0b54d6",
+      "raw_sha256": "3ba3e654b8d9e624150fa41a9121f59ef5966f3edf490846d11d53d3c2ee5c7f",
+      "count": 14706888
+    },
+    {
+      "file": "bitflip_1_05e_states.bin.lz4",
+      "sha256": "62415d840cca001b3f5dd970dd2b86ca069c8445181859e8353a29c068cb25d9",
+      "raw_sha256": "f44a9383abd5b4bd0ac420d042bbe3b0822326b7a72c48e3d14f62352e340f65",
+      "count": 16510808
+    },
+    {
+      "file": "bitflip_1_060_states.bin.lz4",
+      "sha256": "3a5d4827302bffd1dcc84bf447f1d405469b0d01ac6b3ed617700a3407bb0cb1",
+      "raw_sha256": "f164296e712bf32646208c9781d9d3020f3cceef17b98b0bea26ac7b19876c55",
+      "count": 14827296
+    },
+    {
+      "file": "bitflip_1_062_states.bin.lz4",
+      "sha256": "d6eb94a77ca8c3071dd4460a8a9df9050c1d1e1f4d470096b6a771089f6a8fc4",
+      "raw_sha256": "2405bd2d3eda46ca02ea8afcbb79b428eae02069328bd9978ba42bcbf5fbbfe3",
+      "count": 9403490
+    },
+    {
+      "file": "bitflip_1_066_states.bin.lz4",
+      "sha256": "1368cad9a5b3ceee0560f690a74bcd149e41506e238c5fe288cd077c41a91c12",
+      "raw_sha256": "585b6fc4916b061d140653567e8fca20b1318f503aed20d1277e7ce8d650b4b1",
+      "count": 16152466
+    },
+    {
+      "file": "bitflip_1_068_states.bin.lz4",
+      "sha256": "ada8b8f0b2e132b7da7f919f7dcbe16dac85b85d044bc112aa7ae4993d91986d",
+      "raw_sha256": "2354df5e0034fd64600bba9c53f7bafce3cd2e02c81d75de381eae7415d03196",
+      "count": 15719132
+    },
+    {
+      "file": "bitflip_1_06a_states.bin.lz4",
+      "sha256": "b4b1eeb204fb693fdde50f3e281d7ed5cbbc14aa85cec85f31c742f2da50561e",
+      "raw_sha256": "c87ae73c61084525974c05d8ef7b68addf03c66460b9d91c11da29a123893482",
+      "count": 14746650
+    },
+    {
+      "file": "bitflip_1_06e_states.bin.lz4",
+      "sha256": "b5cc14086e838ffcded9d4a8103bab3cc4e8587991c3e7eb9c41a6e315bb99ae",
+      "raw_sha256": "65c320dea45961642f8d800e477347fa3a86de07634baf464090a95983b0cb4e",
+      "count": 16532466
+    },
+    {
+      "file": "bitflip_1_072_states.bin.lz4",
+      "sha256": "39766d42c3fb32faaffbae4ea2c8e3cc240c4a268612e61337801513ab1ea685",
+      "raw_sha256": "2a4cdc1277f63d9fdec49677f2896a3f43caeba79c2c5094052eff1202d78c78",
+      "count": 15201758
+    },
+    {
+      "file": "bitflip_1_076_states.bin.lz4",
+      "sha256": "18a23d888db1b98cc490e32e34efa3677ba44d4f06e84477fb082757283082bb",
+      "raw_sha256": "d55866f36b0b20b54f663757419a250cb01204f54f194c90e9f267c4ff8cad64",
+      "count": 16604526
+    },
+    {
+      "file": "bitflip_1_078_states.bin.lz4",
+      "sha256": "a4e9099d648cb4738f81315fba975b8844b5fb42fa61faf9c6e4d4fc49b07843",
+      "raw_sha256": "0e7a2fe97603bcf1ed5980641bade5239204ec722271caf0deddbd01a463b651",
+      "count": 16661604
+    },
+    {
+      "file": "bitflip_1_07a_states.bin.lz4",
+      "sha256": "b71be16740e26ce898997a052ba7aa72d4187e57d4b29afe4e03559ea1e440e4",
+      "raw_sha256": "a5d0555d370153b6169ee4dd845e86a5192f092c86eb01ef0baeb1851151b5c4",
+      "count": 16345542
+    },
+    {
+      "file": "bitflip_1_07e_states.bin.lz4",
+      "sha256": "3f95062cd28207d2e6f227e8b3614ff22b34cb3a2453a1a90573ef46fa1457c5",
+      "raw_sha256": "4eab3ce408b1829c0260eab47630bddbcfbdb6eeeba264128341c7a7161a4d74",
+      "count": 16717902
+    },
+    {
+      "file": "bitflip_1_080_states.bin.lz4",
+      "sha256": "fc9996a54a644be366cc5f74942bfe9e96986eed2d78c4e73a47570a0e992c11",
+      "raw_sha256": "bf369256ab1492d2aa662a95c56394f12303d3ab324d97062065e94a8a98243d",
+      "count": 1572864
+    },
+    {
+      "file": "bitflip_1_082_states.bin.lz4",
+      "sha256": "5ea5ed73ded11ac02c67214bc2eadb4da385713829f0d474c794324a5cb274e5",
+      "raw_sha256": "f3cca876b164f31d808a56a6292d9757bb0f596b96498014784086f9008bce53",
+      "count": 13694266
+    },
+    {
+      "file": "bitflip_1_086_states.bin.lz4",
+      "sha256": "d41250f296af0e401bfc6b5b9d67bff8f15cf37b34f6be19e8804b4dac98e907",
+      "raw_sha256": "5d3fb1e2c3b51a7d176e83617ccb9b30ce14921103bb4aeaca2319283aca803d",
+      "count": 16399058
+    },
+    {
+      "file": "bitflip_1_088_states.bin.lz4",
+      "sha256": "18cdb0a6a481b7fe29643a94d020ec44f22d39cca61f87c93d9fbcba794707f6",
+      "raw_sha256": "e746eb6b636b6e4503c3f0aabdca223199b46b439e47f1fa58f60c0978acb1b9",
+      "count": 13335964
+    },
+    {
+      "file": "bitflip_1_08a_states.bin.lz4",
+      "sha256": "c212b536a2c4d0d5534a29b1b78babd65e0fa110e1d2ad0db0afb49f336b4a88",
+      "raw_sha256": "827dbbb0931557497dcc4c448fae6da95627f9191b84e93848b100f6d98d027c",
+      "count": 15870184
+    },
+    {
+      "file": "bitflip_1_08e_states.bin.lz4",
+      "sha256": "964b46537796fc4f6455dfe62f87944a1c36b06fcb77700f4bdd21b74125371a",
+      "raw_sha256": "1121eea27bba63c301dc5b16f68acd44e5f830a91a0f92c65114f0ad24696283",
+      "count": 16718824
+    },
+    {
+      "file": "bitflip_1_092_states.bin.lz4",
+      "sha256": "e7ae10269f1cc809f370714de801c40aec46cb43eb9a3c059be23a9563d0a2b5",
+      "raw_sha256": "6cbe656f1baf4a44f17de421140f0e3c557080e7fbe283414b171a55af12ad9d",
+      "count": 16087334
+    },
+    {
+      "file": "bitflip_1_096_states.bin.lz4",
+      "sha256": "0b42ec8c57053f7de9ff148b42a698609e24a64be06727e7749ad3808e33d95a",
+      "raw_sha256": "50f57bb5498ec8404b3a22b9957fe0f667b4988acacb83a852cb301837d1c92c",
+      "count": 16681262
+    },
+    {
+      "file": "bitflip_1_098_states.bin.lz4",
+      "sha256": "a232bafe92230b57f93fcf589f0f6ef3d0f4b72e69de558ef2efbc0c18dc4b9e",
+      "raw_sha256": "840cfa289a9a711f3394600fc1a1ed5f8c38f6f30e0e2bf7e16b1cb5f75447cc",
+      "count": 16311492
+    },
+    {
+      "file": "bitflip_1_09a_states.bin.lz4",
+      "sha256": "15336d625725135dfe8db97710e04d8dc68460cc776360614d44c9637fce9c64",
+      "raw_sha256": "f72e3dda1f71f8c7fcc7087a7fdbcb079a5a5f3ed07752d818bd984739e31bec",
+      "count": 16477592
+    },
+    {
+      "file": "bitflip_1_09e_states.bin.lz4",
+      "sha256": "242ad5b0655177cbd99be03d3bc3f5129d69e8b069b43fcb03373e790929c79c",
+      "raw_sha256": "8151c01f9c774a198794f176c1779998c48485bb2234e8816fc6fcedfa81ee1c",
+      "count": 16737560
+    },
+    {
+      "file": "bitflip_1_0a0_states.bin.lz4",
+      "sha256": "d4647b60ee77eeaa8c4fa293c09c720a62bc9c017a4315b4814d03c5dc622836",
+      "raw_sha256": "5b0d62de6b301914eaa514c40cc7e832ab302c4cf8052f0d94d897fefc2adf0e",
+      "count": 13906784
+    },
+    {
+      "file": "bitflip_1_0a2_states.bin.lz4",
+      "sha256": "8f7a56b8cbe1fffc5b6b5fd8e43e14bf43c0f21d671f12377e4b57df185b9e7f",
+      "raw_sha256": "8ba7d894d4a47135949b2ddcd7089e51a27fe6623620ec017dccce927c745975",
+      "count": 15791426
+    },
+    {
+      "file": "bitflip_1_0a6_states.bin.lz4",
+      "sha256": "29d8e606b577ecaf6d3dfa2b9e45f297b5eaf7ace45a48526f1ac7fb528aa428",
+      "raw_sha256": "5e9d79d5f06b49e16a151a68caae63eba9705e09704b220d19490d451e2ad87a",
+      "count": 16655034
+    },
+    {
+      "file": "bitflip_1_0a8_states.bin.lz4",
+      "sha256": "3efc47a81190493d807d8ed971a2d88a7529a38b43d542261d7b537aab682970",
+      "raw_sha256": "43d8a4d4deebb072dcc00068cafdafec3d0ba5fe4e4d817a04f0c47f88197fc3",
+      "count": 6773428
+    },
+    {
+      "file": "bitflip_1_0aa_states.bin.lz4",
+      "sha256": "dd2c8f22bb9cd09d63d6eec50af63f934452e7e8b60d8f86290fc746146ba174",
+      "raw_sha256": "a20c1bfea526b7b7f572bc0bc28a052a75c3ee8a1d7b04877f64981c277da535",
+      "count": 14346902
+    },
+    {
+      "file": "bitflip_1_0ae_states.bin.lz4",
+      "sha256": "381d6ce07ebeba0412015cb44f784eaf5c6247700129bbf405c991d530922565",
+      "raw_sha256": "44b1af15a2e3b61fec541ba89a1a2e6fa6b00398dd479708df71b965eb424bfc",
+      "count": 16614926
+    },
+    {
+      "file": "bitflip_1_0b2_states.bin.lz4",
+      "sha256": "cd029613dad934fe41bc4022ba681e46c1804a58d31665bebfc0e86f2068b1f4",
+      "raw_sha256": "57bd38637400dd2b08f46090452f87d7a4f174047c2bd163d4d0a863a007ae14",
+      "count": 16538046
+    },
+    {
+      "file": "bitflip_1_0b6_states.bin.lz4",
+      "sha256": "d3faf431b5c8d0e3fc86a82d3d7be561449d136d89594a645db1c1398e8fb8ea",
+      "raw_sha256": "935158774c32678ef00f2273225cb941c4c3b9d29a7df6426431827792060782",
+      "count": 16742406
+    },
+    {
+      "file": "bitflip_1_0b8_states.bin.lz4",
+      "sha256": "f0731fa24928b8a4283272d2a5f9df4c7f61066776da529eef8c579bfa2c59e2",
+      "raw_sha256": "c064180fe78836b2f95e8fbd8725e53393a8140e68963992ad4b8d1d4b9cd408",
+      "count": 15669772
+    },
+    {
+      "file": "bitflip_1_0ba_states.bin.lz4",
+      "sha256": "556ec61be0222ed363811efb1e2bcb94ba31c45ac20edf0bbff493f19da3bc32",
+      "raw_sha256": "346230d6731149988e4b7e8ebca8e052e27fcc1437141daf9734a8f14b6eb27d",
+      "count": 16218698
+    },
+    {
+      "file": "bitflip_1_0be_states.bin.lz4",
+      "sha256": "a66366c517f49e416e4e7cb4f950c4d61c4c562aca9a586ff9c4cab340f1d603",
+      "raw_sha256": "530b18e189cc13086fc66db3e51c933f3ecfd3d158046cdf778caebd0d278027",
+      "count": 16717938
+    },
+    {
+      "file": "bitflip_1_0c0_states.bin.lz4",
+      "sha256": "033353136995d64c42510e8e5743e57ca8c1d988e4fd5078064b1d42814283af",
+      "raw_sha256": "9b697ceb528e250f4538b5d9ae0b0eaccdf17415072cd003c6c6ae649c439665",
+      "count": 15204352
+    },
+    {
+      "file": "bitflip_1_0c2_states.bin.lz4",
+      "sha256": "0fbad921e4941ea715a8d93f72f7e48de0a10dd7fa0ff6ef7b8e6cc40c19da2d",
+      "raw_sha256": "97e82ee8c856442e2989472789b5224df1c3a3cabc6054f0ee4126abfc21b099",
+      "count": 10409306
+    },
+    {
+      "file": "bitflip_1_0c6_states.bin.lz4",
+      "sha256": "0aa68254e3615869514aa9f95ff26927f8452f95b685acb3b74ca736a2a68aa0",
+      "raw_sha256": "28bd773b83966bb3fb0bfff6452840c02c82a4f8f5a51a9bf9838918b65ec053",
+      "count": 16245306
+    },
+    {
+      "file": "bitflip_1_0c8_states.bin.lz4",
+      "sha256": "05a1c900787975ab5c301175bd6254605f3430fbab19ef7b1a64998108fbe516",
+      "raw_sha256": "dd85bb3a594a9450dd08883f81658d633bd8f351b2de1e8240e88c4c81e4c7aa",
+      "count": 15371332
+    },
+    {
+      "file": "bitflip_1_0ca_states.bin.lz4",
+      "sha256": "d8de9184f6465dc9128607e01731f82d131b4fcd3fe5af9fba60c248044d6445",
+      "raw_sha256": "9c62c247e16259a76d5f99a9b196f5faf6c91272d9ff983e12386a0d08191ab6",
+      "count": 15324168
+    },
+    {
+      "file": "bitflip_1_0ce_states.bin.lz4",
+      "sha256": "c336e614f450c276f13f14dbb41158a935e35110d9f0e1ddd9d47cac3a238f73",
+      "raw_sha256": "84fe2ce13f0749c534b6a968077df3b98dce25d63742772e754bb9393f4b6f41",
+      "count": 16579240
+    },
+    {
+      "file": "bitflip_1_0d2_states.bin.lz4",
+      "sha256": "b766f860640f3b11fb1c4eb60160ae284a6d6516451b8ddd894c726f33f1ae78",
+      "raw_sha256": "964e5320292a0d91fc66ae0a219ae0c2bd52ebf15b8f88f7407993a89291ada1",
+      "count": 15246406
+    },
+    {
+      "file": "bitflip_1_0d6_states.bin.lz4",
+      "sha256": "e02eabc0c5a184a14017528d6e799158dca5a2075384e085aab09d022309188a",
+      "raw_sha256": "a28769d99a6bc864b7700d44c18e98208c69b58a3d50baf13710464090f6959e",
+      "count": 16609734
+    },
+    {
+      "file": "bitflip_1_0d8_states.bin.lz4",
+      "sha256": "e0d5a312197ca8ddf02de8c7f32c177c4ef05c459da35524572d1b42c2037af2",
+      "raw_sha256": "05cb71c9e75f4d215d2874220f8f9bf7a3eda03ec7cf0b9e4a957d418170234e",
+      "count": 16585052
+    },
+    {
+      "file": "bitflip_1_0da_states.bin.lz4",
+      "sha256": "9453c1d077e4c69ed91110aac6da7e48e9352e8ffc6e9f0bae7d622079934c97",
+      "raw_sha256": "4342f3a873a70852ff04cc31ac1901b4c0dc563320559953b7c746aa4e37401c",
+      "count": 16610680
+    },
+    {
+      "file": "bitflip_1_0de_states.bin.lz4",
+      "sha256": "aee591ad47ccb93c24b4ff13f805758e602eb26f282ca1cfb7341b8f034c57cf",
+      "raw_sha256": "5991cd7dae63f1deacde20f5546327fc0ef10f2def086f405bdd81af7feb409f",
+      "count": 16753752
+    },
+    {
+      "file": "bitflip_1_0e0_states.bin.lz4",
+      "sha256": "9ae8230fa1c255cc79746693cc34978c4510acd4d24d705312881108c9ec6f97",
+      "raw_sha256": "6a1d4b56527af6ff9e4f23b0b71bac30c158db70c36190bd76628ffc496bf350",
+      "count": 15715488
+    },
+    {
+      "file": "bitflip_1_0e8_states.bin.lz4",
+      "sha256": "adf8396ac47a6ceb42c642a035281f2b7cf2692b08bde4f5eea0a6e4fff99013",
+      "raw_sha256": "b641e16f38c8221320484db505c8d984cce49d8c053627717e698d13e9572271",
+      "count": 13841964
+    },
+    {
+      "file": "bitflip_1_0f8_states.bin.lz4",
+      "sha256": "90b72df33b2e43b9537278531a18e8183d56f948e6a063a5da0883f0e766754e",
+      "raw_sha256": "6e915c9cf1bc5b0f0582eff0770ccb35cb1b1aadca21bcbb0f030e3dcc3d3049",
+      "count": 16405780
+    },
+    {
+      "file": "bitflip_1_108_states.bin.lz4",
+      "sha256": "5686f1be0c27fb64471df3e4b85e109150e5f9646032baad247c44117ad2cca8",
+      "raw_sha256": "b743750ddf202b00c661f5bae01a8e98b6ab1e597f1461756e9e738dbe7c0eed",
+      "count": 13335964
+    },
+    {
+      "file": "bitflip_1_111_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_113_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_115_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_117_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_118_states.bin.lz4",
+      "sha256": "53a4fb8089729e648d7a13359ea62f870395e7dd233aedf59b6a70519e42921f",
+      "raw_sha256": "8c9aeeed26cccb948cd1b21cfe012374ffc214cf3b97dcdb1fc1d63d42db2f82",
+      "count": 16311492
+    },
+    {
+      "file": "bitflip_1_11a_states.bin.lz4",
+      "sha256": "4e256439bcd9a93abdef279ef55f85533b73c57b20fef47710387a43742f7280",
+      "raw_sha256": "ec3fd57489633043833ba69d44bb53ab84c5802cec44d1a9bb709b9880ecfb9a",
+      "count": 16679112
+    },
+    {
+      "file": "bitflip_1_11b_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_120_states.bin.lz4",
+      "sha256": "2b2d8404feb7a55a7ad085917de2194c4aec72be04054243802b93eab4b4dd5c",
+      "raw_sha256": "307e9aa873d2e824c7df42749de2f5488279fc45444c4eea540a963c96104cc5",
+      "count": 13906784
+    },
+    {
+      "file": "bitflip_1_122_states.bin.lz4",
+      "sha256": "23c73bc198921e704fee2c48198ca53f0ce81ae01c73bae5010f4ea546ccede5",
+      "raw_sha256": "5cdee1da593d2b0f2838b5e067953d463b358209cb8a0bf3116c93ad9d09bcd1",
+      "count": 15791426
+    },
+    {
+      "file": "bitflip_1_128_states.bin.lz4",
+      "sha256": "79ad9c5f37ec6aaed0aa138ffb5e8501202edd8f0079cb0454924e2c47704888",
+      "raw_sha256": "669c864b036a7fa1cec7eb238be09eb13f25425315a1bfe100c39ad81b7c332b",
+      "count": 6773428
+    },
+    {
+      "file": "bitflip_1_131_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_135_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_138_states.bin.lz4",
+      "sha256": "cd45a995787b8890c5c8d6d63433cb75999ee1789f80ce0387b4fe2c6157c06b",
+      "raw_sha256": "70a0471cb3dec5ccdfe45c9ef5c7308e1ed539ffb8275fa70b9280903e54d9b8",
+      "count": 15669772
+    },
+    {
+      "file": "bitflip_1_145_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_147_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_148_states.bin.lz4",
+      "sha256": "eb8837b27e4df19ff7fcf4f9c35e3f933c32c5eacdee8dc94c2ad45143b73a5a",
+      "raw_sha256": "4ba82135de178c2003951c4125028a0feaa0cc371c3b74d881decf408431a50f",
+      "count": 15371332
+    },
+    {
+      "file": "bitflip_1_158_states.bin.lz4",
+      "sha256": "f8eb088411e92aeb16fa9aadc5e856d2bbbc968475c3f661d8cd1f72de7a3a02",
+      "raw_sha256": "dd0bf5c831705fab481dcde5a1fd684bda6a360c17b667c67932a27354638b60",
+      "count": 16585052
+    },
+    {
+      "file": "bitflip_1_160_states.bin.lz4",
+      "sha256": "a317f0c0a52a6d52efa56796f6c6240404d1e2741b5d1901971c495ee9b15d60",
+      "raw_sha256": "13834670973eb5a52f574dacbf997289c9355b6ef6b2477e11d78fb709541946",
+      "count": 15715488
+    },
+    {
+      "file": "bitflip_1_161_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_163_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_165_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_168_states.bin.lz4",
+      "sha256": "99947c4e9ddd5d2a20a4b81a223c8c745d469565b551b9a9a4a2f22a6914fe5d",
+      "raw_sha256": "31ffb705c33254e2c55cd074527015c27133f87c943cfbbe389cccaa79af3986",
+      "count": 13841964
+    },
+    {
+      "file": "bitflip_1_178_states.bin.lz4",
+      "sha256": "aefaeaa22a065130faa8255118cc9dea1b4778238a4216afac6cad024d6e9b28",
+      "raw_sha256": "c73db68346ec589a8028fedff9879cf3c27a69d8608528f172c0eeb8a4e0aa5a",
+      "count": 16405780
+    },
+    {
+      "file": "bitflip_1_180_states.bin.lz4",
+      "sha256": "033353136995d64c42510e8e5743e57ca8c1d988e4fd5078064b1d42814283af",
+      "raw_sha256": "9b697ceb528e250f4538b5d9ae0b0eaccdf17415072cd003c6c6ae649c439665",
+      "count": 15204352
+    },
+    {
+      "file": "bitflip_1_188_states.bin.lz4",
+      "sha256": "94ce24a28a9b873c3373a08552de5305da3e8270ba91d03f40ade0611dcb42c1",
+      "raw_sha256": "6a0d114d471f115fc12b68014d21d4f4d4a4997c48bffe13e5a1c1ed81eb4540",
+      "count": 7706764
+    },
+    {
+      "file": "bitflip_1_191_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_198_states.bin.lz4",
+      "sha256": "44edd0a9d7c7e09f189eb940cf804b5bc020b2ce255d3ecaaf388081a60b1c28",
+      "raw_sha256": "cf665dd5c2fec181dd267763f69b72987a8d66e5999703f639a3bc1df950a63c",
+      "count": 15989076
+    },
+    {
+      "file": "bitflip_1_199_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_19d_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_19f_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1a0_states.bin.lz4",
+      "sha256": "0d1f251bcdb246bbe64fa26586e31ee46eb3b9b47a3f2c8937d7782c13fb6246",
+      "raw_sha256": "048b6ac8f0dd7ffd9f01603b28dcc48d9764d838133b1e558b72abc6dceb7902",
+      "count": 4309216
+    },
+    {
+      "file": "bitflip_1_1a8_states.bin.lz4",
+      "sha256": "fcb7cd1d21ba09517ef93ce9ebbaee8e4e00386dcd16101d4e48d7c2207f4dc9",
+      "raw_sha256": "fea737da451674751e5239f90216cb6135b401f37dbabec47e2a5cd2cdef98b7",
+      "count": 14185092
+    },
+    {
+      "file": "bitflip_1_1b3_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1b5_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1b7_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1b8_states.bin.lz4",
+      "sha256": "9d27265773203cae15dafc8802c3dd772b316e1dc085ed6aa7eaa40318d5fa48",
+      "raw_sha256": "f69b427e934febabe88963387c1183c40360e14d5d8246cac748ce083cd082cf",
+      "count": 16610876
+    },
+    {
+      "file": "bitflip_1_1b9_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1bd_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1c1_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1c3_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1c8_states.bin.lz4",
+      "sha256": "7a6fe9100ea7e69995a6e23316f587a16ef3367b9fc310308092c966b57576f9",
+      "raw_sha256": "d43d1b0f0a127433be36e6e49459370fd4cd0e8c1297f9e3043715ffb8705383",
+      "count": 14105556
+    },
+    {
+      "file": "bitflip_1_1c9_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1cd_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1cf_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1d8_states.bin.lz4",
+      "sha256": "f1ce1888ed820367c69767074440d06143fa50df701e13b84329eb95fb1e9cef",
+      "raw_sha256": "162e3f7a64c6de38640df0db46ff2309c5a8dda5f7b48045c5198e675dff7ced",
+      "count": 16462412
+    },
+    {
+      "file": "bitflip_1_1e0_states.bin.lz4",
+      "sha256": "7f3511ae237b6c7a31f9c86aba9e54c171dd8c11b6606124624c846dd80cdaf0",
+      "raw_sha256": "99e37e2a199c475f47df4e5bda7194b7707eb5d317877f2c0847ddf4909ba53e",
+      "count": 14827296
+    },
+    {
+      "file": "bitflip_1_1e1_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1e5_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1e7_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1e8_states.bin.lz4",
+      "sha256": "5682caab99fdd912b3178fbb7d491249cffa9548f89db837928ef7683b8714e1",
+      "raw_sha256": "9fbadae776ff9c542c99b96f93913526b280b16d38d058d0416f7fe5df36f4a0",
+      "count": 15719132
+    },
+    {
+      "file": "bitflip_1_1e9_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1eb_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1ed_states.bin.lz4",
+      "sha256": "5d7d5722f6de319a64d929ae445e29f242a0d46551e2351e4c871d822849275b",
+      "raw_sha256": "808018d32b820f0ccdd751168b6a679f94c7d4a448d3dfc074d124b35b56c229",
+      "count": 16771271
+    },
+    {
+      "file": "bitflip_1_1f8_states.bin.lz4",
+      "sha256": "ba2c0eedacab4d35c57a21e8959d9e3d3c73806206d89f61084d9f3aaf5f4104",
+      "raw_sha256": "8b351bf9600efc38d16d46d1f8d3121394deb077b1988fe0521c7ec5618a0ebe",
+      "count": 16661604
+    },
+    {
+      "file": "bitflip_1_208_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_1_220_states.bin.lz4",
+      "sha256": "ae775bc3c0f8cbfb5636997ae1962e2b86c911abd666f7c18359ec0f51ef77a2",
+      "raw_sha256": "706c4cce89b21413a980c2bc7b255854a03e867315cad82181b0f274d0004dd2",
+      "count": 10677248
+    },
+    {
+      "file": "bitflip_1_24a_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_1_24e_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_1_25a_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_1_25e_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_1_262_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_1_266_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_1_272_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_1_276_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_1_280_states.bin.lz4",
+      "sha256": "b4391fe49ea69562a43f36503daadc7b82b9c91e6dd235e025af9263a3f96637",
+      "raw_sha256": "02a9b993e4990c4740135d4f46164665632c5ed13528749183b03fc961f5058d",
+      "count": 6291456
+    },
+    {
+      "file": "bitflip_1_2a8_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_1_2c2_states.bin.lz4",
+      "sha256": "52d7d3ce2ba96ba83400ef01ccfe031c3a40765c0dec12564a6dd88833931439",
+      "raw_sha256": "6ada1a2feb921a61216398a685dacd1c8e134b18e193f0031902edbf282fe123",
+      "count": 12833600
+    },
+    {
+      "file": "bitflip_1_2c6_states.bin.lz4",
+      "sha256": "babbdcdcb077f2d1fffe5875f26259bb4bd96eb2fe7988f318124abb541dfb9c",
+      "raw_sha256": "faca008959dd9706a8f0666c9329f9768926d1674f05bdb0300f9e54f24fcc11",
+      "count": 16493184
+    },
+    {
+      "file": "bitflip_1_2d2_states.bin.lz4",
+      "sha256": "06487512f786ed8835bbc83567b87dbe18c4305058751c4d406034546b8f0771",
+      "raw_sha256": "f059ef148f9de42edcb74d7f252d0f781e96d345d4d62e24586e12503fb4fbfd",
+      "count": 16034176
+    },
+    {
+      "file": "bitflip_1_2d6_states.bin.lz4",
+      "sha256": "1987dc02df451ad9de2a5c362fcd49f7a2570c56f606446de39c7795b106058b",
+      "raw_sha256": "0882679ed30a4253ab926bfee526bef30868b65b0df2dd15eefcd23cb466144b",
+      "count": 16683136
+    },
+    {
+      "file": "bitflip_1_328_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_1_388_states.bin.lz4",
+      "sha256": "d738353679e8d5f6d175d4ba87e4a5b22b0d11ee43cd4d3e14b33e5d34cebcef",
+      "raw_sha256": "556ee04e267b3aa5fd43744ea44bbb0c1ffd461518148a8c075f7d1b8f875259",
+      "count": 11712448
+    },
+    {
+      "file": "bitflip_1_3a0_states.bin.lz4",
+      "sha256": "ae775bc3c0f8cbfb5636997ae1962e2b86c911abd666f7c18359ec0f51ef77a2",
+      "raw_sha256": "706c4cce89b21413a980c2bc7b255854a03e867315cad82181b0f274d0004dd2",
+      "count": 10677248
+    }
+  ]
+}

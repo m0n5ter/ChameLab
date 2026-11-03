@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <EmbeddedResource Include="Crypto/Hardnested/tables.bin" LogicalName="ChameLab.Hardnested.Tables" />
   </ItemGroup>
 
   <ItemGroup>
