@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
@@ -66,12 +67,14 @@ public sealed partial class CardsViewModel
         this.RaisePropertyChanged(nameof(CanChangeWriteOptions));
     }
 
-    private void WriteAnother()
+    // Starts a fresh write with the same options; a Gen2 target needs its own keys recovered first.
+    private async Task WriteAnotherAsync()
     {
         ResetWriteRecovery();
         WriteBlockStates = Array.Empty<MifareBlockState>();
         WriteProgressText = null;
         ClearMessages();
+        if (HasRequiredWriteKeys) await WriteAsync();
     }
 
     private bool IncludeWriteBlock0 => SelectedGeneration != MagicGeneration.Gen2 || WriteGen2Block0;

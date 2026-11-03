@@ -217,8 +217,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 x => x.WriteLfNewKeyError, x => x.IsBusy, x => x.HasRequiredWriteKeys, x => x.IsWriteSuccessful,
                 (online, ulError, lfError, lfNewError, busy, keysReady, succeeded) =>
                     online && !busy && !succeeded && keysReady && ulError is null && lfError is null && lfNewError is null));
-        WriteAnotherCommand = ReactiveCommand.Create(WriteAnother,
-            this.WhenAnyValue(x => x.IsBusy, x => x.IsWriteSuccessful, (busy, succeeded) => !busy && succeeded));
+        WriteAnotherCommand = ReactiveCommand.CreateFromTask(WriteAnotherAsync,
+            this.WhenAnyValue(x => x.IsConnected, x => x.IsBusy, x => x.IsWriteSuccessful,
+                (online, busy, succeeded) => online && !busy && succeeded));
         DetectCommand = ReactiveCommand.CreateFromTask(DetectAsync, connected);
         ResetFiltersCommand = ReactiveCommand.Create(ResetFilters, this.WhenAnyValue(x => x.HasFilters));
         NewFolderCommand = ReactiveCommand.Create(NewFolder);
