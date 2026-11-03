@@ -54,4 +54,12 @@ public class HexBufferSliceTests
         Assert.Equal(0, sector.Write(64, [1]));
         Assert.False(sector.CanResize);
     }
+
+    [Fact]
+    public void SliceKeepsRowsPerLine()
+    {
+        var rows = Enumerable.Range(0, 45).Select(_ => new byte[4]).ToList();
+        var memory = new HexBuffer(rows, 4) { RowsPerLine = 4 };
+        Assert.Equal(4, memory.Slice(4, 8).RowsPerLine);
+    }
 }

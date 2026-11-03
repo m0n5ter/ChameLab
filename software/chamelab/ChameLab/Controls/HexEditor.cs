@@ -237,7 +237,7 @@ public sealed class HexEditor : Control
     private void OnBufferChanged(object? sender, EventArgs e)
     {
         ClearLineText();
-        if (_buffer is { } buf && _lineY.Length != buf.ViewRowCount * LinesPerRow)
+        if (_buffer is { } buf && _lineY.Length != LineCount(buf))
         {
             // Rows were added or removed: lay the lines out again and keep the caret inside.
             if (_caret >= buf.ViewLength) { _caret = Math.Max(0, buf.ViewLength - 1); _lowNibble = false; }
@@ -260,7 +260,13 @@ public sealed class HexEditor : Control
 
     // ================================================================ Layout
 
-    private int LinesPerRow => _buffer is null ? 1 : Math.Max(1, _buffer.RowLength / _perLine);
+    // A line holds part of a row, a whole row or (RowsPerLine) several whole rows.
+    private int LineCount(HexBuffer buf) => (int)((buf.ViewLength + _perLine - 1) / _perLine);
+    private int RowOfLine(int line) => (int)((long)line * _perLine / _buffer!.RowLength);
+    private bool StartsRow(int line) => (long)line * _perLine % _buffer!.RowLength == 0;
+
+    /// <summary>Bytes of a line that are in the buffer: the last line of packed rows can be shorter.</summary>
+    private int LineBytes(HexBuffer buf, int line) => (int)Math.Min(_perLine, buf.ViewLength - (long)line * _perLine);
 
     /// <summary>Bytes between group gaps: fours where the line splits into fours, else none.</summary>
     private static int GroupSize(int perLine) => perLine % 4 == 0 ? 4 : perLine;
@@ -294,12 +300,15 @@ public sealed class HexEditor : Control
         // Widest layout that fits with the ASCII column (wrapping rows to 8 / 4 bytes
         // if needed); only when even that doesn't fit, drop ASCII.
         var avail = double.IsInfinity(availableSize.Width) ? double.MaxValue : availableSize.Width;
-        // The whole row on one line (up to 16 bytes, e.g. a 6-byte key), else halves, quarters…
-        var candidates = new[] { _buffer.RowLength, 16, 8, 4, 2, 1 }
-            .Where(n => n <= 16 && n <= _buffer.RowLength && _buffer.RowLength % n == 0)
+        // Several short rows side by side where allowed, else the whole row on one line
+        // (up to 16 bytes, e.g. a 6-byte key), else halves, quarters…
+        var rowLength = _buffer.RowLength;
+        var candidates = Enumerable.Range(1, Math.Max(1, _buffer.RowsPerLine)).Select(k => k * rowLength)
+            .Concat([16, 8, 4, 2, 1])
+            .Where(n => n <= 16 && (n <= rowLength ? rowLength % n == 0 : n % rowLength == 0 && n / rowLength <= _buffer.RowsPerLine))
             .Distinct().OrderDescending().ToArray();
         (int perLine, bool ascii) pick = (candidates[^1], false);
-        var asciiMin = Math.Min(4, _buffer.RowLength);
+        var asciiMin = Math.Min(4, rowLength);
         if (candidates.FirstOrDefault(n => n >= asciiMin && _hexX + HexWidth(n) + 2 * _digitW + n * _digitW <= avail) is > 0 and var withAscii)
             pick = (withAscii, true);
         else if (candidates.FirstOrDefault(n => _hexX + HexWidth(n) <= avail) is > 0 and var hexOnly)
@@ -308,13 +317,13 @@ public sealed class HexEditor : Control
         _asciiX = _hexX + HexWidth(_perLine) + 2 * _digitW;
         if (!_showAscii && _pane == Pane.Ascii) _pane = Pane.Hex;
 
-        var lines = _buffer.ViewRowCount * LinesPerRow;
+        var lines = LineCount(_buffer);
         _lineY = new double[lines];
         double y = 0;
         for (var i = 0; i < lines; i++)
         {
-            var row = i / LinesPerRow;
-            if (i % LinesPerRow == 0)
+            var row = RowOfLine(i);
+            if (StartsRow(i))
             {
                 if (row > 0 && _buffer.StartsGroup(row)) y += SeparatorGap;
                 // A group heading takes a line of its own above the group's first row.
@@ -359,12 +368,12 @@ public sealed class HexEditor : Control
 
         if (_showAscii && p.X >= _asciiX - _digitW)
         {
-            var col = Math.Clamp((int)((p.X - _asciiX) / _digitW), 0, _perLine - 1);
+            var col = Math.Clamp((int)((p.X - _asciiX) / _digitW), 0, LineBytes(_buffer!, line) - 1);
             return ((long)line * _perLine + col, false, Pane.Ascii);
         }
 
         var best = 0;
-        for (var c = 0; c < _perLine; c++)
+        for (var c = 0; c < LineBytes(_buffer!, line); c++)
             if (p.X >= ByteX(c) - _byteGap / 2) best = c;
         var low = p.X >= ByteX(best) + _digitW;
         return ((long)line * _perLine + best, low, Pane.Hex);
@@ -422,11 +431,11 @@ public sealed class HexEditor : Control
             }
         }
 
-        var row = line / LinesPerRow;
-        var read = buf.IsRead(row);
-        for (var col = 0; col < _perLine; col++)
+        for (var col = 0; col < LineBytes(buf, line); col++)
         {
             var offset = (long)line * _perLine + col;
+            var row = (int)(offset / buf.RowLength);
+            var read = buf.IsRead(row);
             // An unread row shows its template (blank-card defaults) dimmed, or dashes without one.
             var template = read ? null : buf.TemplateAt(offset);
             var b = read ? buf[offset] : template ?? 0;
@@ -487,9 +496,9 @@ public sealed class HexEditor : Control
         for (var line = drawFrom; line <= drawTo; line++)
         {
             var y = _lineY[line];
-            var row = line / LinesPerRow;
-            var firstOfRow = line % LinesPerRow == 0;
-            var rowRead = buf.IsRead(row);
+            var row = RowOfLine(line);
+            var firstOfRow = StartsRow(line);
+            var lineBytes = LineBytes(buf, line);
 
             var header = firstOfRow && ShowGroupHeaders ? buf.GroupHeader(row) : null;
             var top = header is null ? y : y - _lineH;
@@ -512,11 +521,11 @@ public sealed class HexEditor : Control
 
             if (firstOfRow)
             {
-                var ft = Text(buf.RowLabel(row), rowRead ? label : dim);
+                var ft = Text(buf.RowLabel(row), buf.IsRead(row) ? label : dim);
                 ctx.DrawText(ft, new Point(0, y + (_lineH - ft.Height) / 2));
             }
 
-            for (var col = 0; col < _perLine; col++)
+            for (var col = 0; col < lineBytes; col++)
             {
                 var offset = (long)line * _perLine + col;
                 var selected = offset >= selFrom && offset <= selTo;
@@ -543,19 +552,21 @@ public sealed class HexEditor : Control
                         ctx.DrawGlyphRun(brush, run);
             }
 
-            for (var col = 0; col < _perLine; col++)
+            for (var col = 0; col < lineBytes; col++)
             {
                 var offset = (long)line * _perLine + col;
+                var cellRow = (int)(offset / buf.RowLength);
                 var rowCol = (int)(offset % buf.RowLength);
                 var isCaret = offset == _caret;
 
                 if (!_canBatchText)
                 {
+                    var rowRead = buf.IsRead(cellRow);
                     IBrush brush;
                     string hex, ascii;
                     if (!rowRead)
                     {
-                        brush = buf.IsTemplateKnown(offset) ? KindBrush(buf.Classify(row, rowCol), fg) : dim;
+                        brush = buf.IsTemplateKnown(offset) ? KindBrush(buf.Classify(cellRow, rowCol), fg) : dim;
                         var template = buf.TemplateAt(offset);
                         hex = template is { } t ? HexBytes[t] : "--";
                         ascii = template is { } a ? AsciiBytes[a] : "·";
@@ -563,7 +574,7 @@ public sealed class HexEditor : Control
                     else
                     {
                         var b = buf[offset];
-                        brush = buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(row, rowCol), fg);
+                        brush = buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(cellRow, rowCol), fg);
                         hex = HexBytes[b];
                         ascii = AsciiBytes[b];
                     }

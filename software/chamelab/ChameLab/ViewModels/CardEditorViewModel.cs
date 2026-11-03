@@ -427,6 +427,8 @@ public sealed class CardEditorViewModel : ViewModelBase
             // MIFARE Classic sectors are set apart, each under a "Sector N · blocks a–b" heading,
             // so the gutter keeps just the block number, like the page number of other tags.
             RowLabel = row => $"{row:D3}",
+            // Four Ultralight pages make a 16-byte line, as one READ returns them.
+            RowsPerLine = ul ? 4 : 1,
             StartsGroup = row => mfc && MifareClassic.SectorFirstBlock(MifareClassic.SectorOfBlock(row)) == row,
             GroupHeader = row =>
             {

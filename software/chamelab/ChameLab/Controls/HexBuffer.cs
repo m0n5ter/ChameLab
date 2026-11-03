@@ -45,6 +45,7 @@ public sealed class HexBuffer
         Describe = (row, col) => parent.Describe(firstRow + row, col);
         Template = row => parent.Template(firstRow + row);
         TemplateKnown = (row, col) => parent.TemplateKnown(firstRow + row, col);
+        RowsPerLine = parent.RowsPerLine;
     }
 
     /// <summary>A fixed range sharing edits, original bytes and undo history with this buffer.</summary>
@@ -84,6 +85,13 @@ public sealed class HexBuffer
     /// </summary>
     public int ViewRowCount => RowCount + (CanResize ? 1 : 0);
     public long ViewLength => (long)ViewRowCount * RowLength;
+
+    /// <summary>
+    /// Short rows the editor may put side by side on one line when there is room (e.g. four
+    /// 4-byte Ultralight pages as one 16-byte line), labeled by the first. Group separators
+    /// and headings are only drawn at the start of a line, so keep 1 for grouped rows.
+    /// </summary>
+    public int RowsPerLine { get; init; } = 1;
 
     /// <summary>Row label shown in the gutter (defaults to the row number).</summary>
     public Func<int, string> RowLabel { get; init; } = row => row.ToString("D3");
