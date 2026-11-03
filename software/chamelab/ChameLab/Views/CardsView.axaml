@@ -1256,8 +1256,6 @@
                 <StackPanel Spacing="2">
                   <TextBlock Text="PASSWORD PROTECTION" Classes="overline" />
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ProtectionSummary}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding HasProtection}"
-                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
                 </StackPanel>
                 <StackPanel Spacing="10" IsVisible="{Binding HasProtection}">
                   <CheckBox Content="Protect with a password" IsChecked="{Binding IsProtected}"
@@ -1283,13 +1281,29 @@
                       </StackPanel>
                       <StackPanel Spacing="4">
                         <TextBlock Text="Attempt limit (AUTHLIM)" Classes="caption" />
-                        <NumericUpDown Value="{Binding AuthLimit}" Minimum="0" Maximum="7" Increment="1"
-                                       FormatString="0" ToolTip.Tip="0 = no limit" />
+                        <ComboBox ItemsSource="{Binding AuthLimitOptions}" SelectedItem="{Binding SelectedAuthLimit}"
+                                  HorizontalAlignment="Stretch" ToolTip.Tip="Wrong passwords before the card locks for good">
+                          <ComboBox.Styles>
+                            <Style Selector="ComboBoxItem" x:DataType="vm:AuthLimitOption">
+                              <Setter Property="IsEnabled" Value="{Binding !IsSeparator}" />
+                            </Style>
+                          </ComboBox.Styles>
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AuthLimitOption">
+                              <Panel>
+                                <TextBlock Text="{Binding Label}" IsVisible="{Binding !IsSeparator}" />
+                                <Separator Margin="0" IsVisible="{Binding IsSeparator}" />
+                              </Panel>
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
                       </StackPanel>
                     </c:FlowGrid>
                     <CheckBox Content="Protect reading too (PROT)" IsChecked="{Binding ReadProtected}" />
                     <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AuthLimitText}" />
                   </StackPanel>
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="A slot emulates the card with these settings. To put them on a real card, tick “Write password settings” when writing it." />
                 </StackPanel>
               </StackPanel>
             </Border>

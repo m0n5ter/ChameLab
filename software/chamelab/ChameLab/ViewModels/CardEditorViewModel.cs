@@ -675,13 +675,37 @@ public sealed class CardEditorViewModel : ViewModelBase
         set => SetProtection(p => p with { ReadProtected = value });
     }
 
-    /// <summary>AUTHLIM, 0 (no limit) to 7, as the attempt limit box edits it.</summary>
-    public decimal? AuthLimit
+    private IReadOnlyList<AuthLimitOption>? _authLimitOptions;
+    private TagSpecificType _authLimitTag;
+
+    /// <summary>
+    /// AUTHLIM choices as wrong attempts allowed: "No limit", a separator, then 1–7 on
+    /// Ultralight EV1 or 2–128 on NTAG21x. Kept while the type stays, so the list isn't reset.
+    /// </summary>
+    public IReadOnlyList<AuthLimitOption> AuthLimitOptions
     {
-        get => Protection?.AuthLimit ?? 0;
+        get
+        {
+            if (_authLimitOptions is null || _authLimitTag != _tag)
+            {
+                _authLimitTag = _tag;
+                _authLimitOptions =
+                [
+                    new(0, "No limit"),
+                    new(null, ""),
+                    .. Enumerable.Range(1, 7).Select(n => new AuthLimitOption(n, UltralightProtection.Attempts(_tag, n).ToString())),
+                ];
+            }
+            return _authLimitOptions;
+        }
+    }
+
+    public AuthLimitOption? SelectedAuthLimit
+    {
+        get => AuthLimitOptions.FirstOrDefault(o => o.Value == (Protection?.AuthLimit ?? 0));
         set
         {
-            if (value is { } limit) SetProtection(p => p with { AuthLimit = Math.Clamp((int)limit, 0, 7) });
+            if (value?.Value is { } limit) SetProtection(p => p with { AuthLimit = limit });
         }
     }
 
@@ -735,7 +759,8 @@ public sealed class CardEditorViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(ProtectFrom));
         this.RaisePropertyChanged(nameof(LastPage));
         this.RaisePropertyChanged(nameof(ReadProtected));
-        this.RaisePropertyChanged(nameof(AuthLimit));
+        this.RaisePropertyChanged(nameof(AuthLimitOptions));
+        this.RaisePropertyChanged(nameof(SelectedAuthLimit));
         this.RaisePropertyChanged(nameof(AuthLimitText));
         this.RaisePropertyChanged(nameof(Password));
         this.RaisePropertyChanged(nameof(Pack));
@@ -858,4 +883,10 @@ public sealed class CardEditorViewModel : ViewModelBase
     /// like ChameleonUltraGUI) and the low-byte-first order the card is stored and sent in (04 00).
     /// </summary>
     private static byte[] SwapAtqa(byte[] atqa) => CardTags.SwapAtqa(atqa);
+}
+
+/// <summary>An attempt limit choice: the AUTHLIM value and what it allows; a null value is the list's separator.</summary>
+public sealed record AuthLimitOption(int? Value, string Label)
+{
+    public bool IsSeparator => Value is null;
 }
