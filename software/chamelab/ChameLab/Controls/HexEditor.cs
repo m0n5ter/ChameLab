@@ -300,12 +300,14 @@ public sealed class HexEditor : Control
         // Widest layout that fits with the ASCII column (wrapping rows to 8 / 4 bytes
         // if needed); only when even that doesn't fit, drop ASCII.
         var avail = double.IsInfinity(availableSize.Width) ? double.MaxValue : availableSize.Width;
-        // Several short rows side by side where allowed, else the whole row on one line
-        // (up to 16 bytes, e.g. a 6-byte key), else halves, quarters…
+        // Several short rows side by side where allowed (a divisor of RowsPerLine, so 4 pages
+        // fall back to 2, then 1), else the whole row on one line (up to 16 bytes, e.g. a
+        // 6-byte key), else halves, quarters…
         var rowLength = _buffer.RowLength;
-        var candidates = Enumerable.Range(1, Math.Max(1, _buffer.RowsPerLine)).Select(k => k * rowLength)
+        var rowsPerLine = Math.Max(1, _buffer.RowsPerLine);
+        var candidates = Enumerable.Range(1, rowsPerLine).Where(k => rowsPerLine % k == 0).Select(k => k * rowLength)
             .Concat([16, 8, 4, 2, 1])
-            .Where(n => n <= 16 && (n <= rowLength ? rowLength % n == 0 : n % rowLength == 0 && n / rowLength <= _buffer.RowsPerLine))
+            .Where(n => n <= 16 && (n <= rowLength ? rowLength % n == 0 : n % rowLength == 0 && rowsPerLine % (n / rowLength) == 0))
             .Distinct().OrderDescending().ToArray();
         (int perLine, bool ascii) pick = (candidates[^1], false);
         var asciiMin = Math.Min(4, rowLength);
