@@ -962,11 +962,14 @@
             <StackPanel Spacing="12">
               <StackPanel Spacing="2">
                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                  <!-- What of the memory is known, on the heading's line: "Not read", "45/45 pages"… -->
-                  <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <TextBlock Text="MEMORY" Classes="overline" VerticalAlignment="Center" />
-                    <TextBlock Classes="caption" Text="{Binding Form?.DataSummary}" VerticalAlignment="Center" />
-                  </StackPanel>
+                  <!-- What of the memory is known, on the heading's line: "Not read", "45/45 pages"…
+                       One TextBlock so the 11px heading and the 12px summary share a baseline. -->
+                  <TextBlock Classes="caption" TextWrapping="NoWrap" VerticalAlignment="Center">
+                    <Run Text="MEMORY" FontSize="11" FontWeight="SemiBold" LetterSpacing="0.6"
+                         Foreground="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+                    <Run Text=" " />
+                    <Run Text="{Binding Form?.DataSummary}" />
+                  </TextBlock>
                   <!-- Ultralight / NTAG: the memory as hex, or as the NDEF records it holds. -->
                   <Border Grid.Column="2" Classes="segmented compact" IsVisible="{Binding CanShowNdef}">
                     <StackPanel Orientation="Horizontal">
@@ -1001,6 +1004,15 @@
               <StackPanel Spacing="8">
                 <!-- Actions and progress share a fixed-height slot to keep the sector grid still. -->
                 <c:KeyRecoveryPanel>
+                  <!-- Hidden when it has nothing to show, so its empty slot adds no spacing above the page map. -->
+                  <c:KeyRecoveryPanel.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                      <Binding Path="RecoveryIdentity" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                      <Binding Path="ShowRecoveryTools" />
+                      <Binding Path="ShowDumpNotice" />
+                      <Binding Path="HasDumpSectors" />
+                    </MultiBinding>
+                  </c:KeyRecoveryPanel.IsVisible>
                   <!-- Ultralight / NTAG: optional password for the protected pages, beside Read. -->
                   <c:KeyRecoveryPanel.ToolbarContent>
                     <c:HexBox Text="{Binding DumpPassword}" ByteLengths="4,16"
