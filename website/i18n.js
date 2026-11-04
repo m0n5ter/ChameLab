@@ -87,6 +87,8 @@
   });
   Promise.all([ready, loaded]).then(() => {
     if (lang !== 'en') apply();
+    // Links for one language only, such as the Russian-speaking channels.
+    for (const el of document.querySelectorAll('[data-only-lang]')) el.hidden = el.dataset.onlyLang !== lang;
     picker();
     fitNav();
     let frame = 0;

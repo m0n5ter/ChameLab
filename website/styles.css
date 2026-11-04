@@ -127,6 +127,7 @@ details.notes pre { white-space: pre-wrap; overflow-wrap: anywhere; background: 
 .shot figcaption { margin-top: 12px; color: var(--muted); font-size: .95rem; }
 footer { margin-top: 64px; border-top: 1px solid var(--line); padding-top: 24px; color: var(--muted); font-size: .95rem; }
 footer a { color: var(--text); text-decoration: none; }
+footer .social { margin-top: 8px; }
 @media (max-width: 960px) {
   .hero { gap: 32px; padding-top: 56px; }
   .device-card { padding: 18px; }
