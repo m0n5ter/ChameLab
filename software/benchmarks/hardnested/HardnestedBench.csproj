@@ -7,9 +7,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../chamelab/ChameLab/Crypto/**/*.cs" Link="Crypto/%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="../../chamelab/ChameLab/Services/HardnestedRecovery.cs" Link="HardnestedRecovery.cs" />
-    <Compile Include="../../chamelab/ChameLab/Services/ManagedHardnestedEngine.cs" Link="ManagedHardnestedEngine.cs" />
-    <EmbeddedResource Include="../../chamelab/ChameLab/Crypto/Hardnested/tables.bin" LogicalName="ChameLab.Hardnested.Tables" />
+    <!-- Exercise the actual shared assembly, including localized progress and resources. -->
+    <ProjectReference Include="../../chamelab/ChameLab/ChameLab.csproj" />
   </ItemGroup>
 </Project>

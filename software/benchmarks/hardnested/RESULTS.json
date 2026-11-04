@@ -1,0 +1,146 @@
+[
+  {
+    "engine": "managed",
+    "samples": 12000,
+    "key": "112233445566",
+    "iteration": 0,
+    "seconds": 5.12,
+    "peak_mib": 114.15234375
+  },
+  {
+    "engine": "native",
+    "samples": 12000,
+    "key": "112233445566",
+    "iteration": 0,
+    "seconds": 9.13,
+    "peak_mib": 1737.91015625
+  },
+  {
+    "engine": "managed",
+    "samples": 12000,
+    "key": "112233445566",
+    "iteration": 1,
+    "seconds": 5.39,
+    "peak_mib": 114.39453125
+  },
+  {
+    "engine": "native",
+    "samples": 12000,
+    "key": "112233445566",
+    "iteration": 1,
+    "seconds": 10.1,
+    "peak_mib": 1738.19140625
+  },
+  {
+    "engine": "managed",
+    "samples": 12000,
+    "key": "112233445566",
+    "iteration": 2,
+    "seconds": 5.38,
+    "peak_mib": 113.91015625
+  },
+  {
+    "engine": "native",
+    "samples": 12000,
+    "key": "112233445566",
+    "iteration": 2,
+    "seconds": 10.21,
+    "peak_mib": 1740.1953125
+  },
+  {
+    "engine": "managed",
+    "samples": 4096,
+    "key": "112233445566",
+    "iteration": 0,
+    "seconds": 4.09,
+    "peak_mib": 102.296875
+  },
+  {
+    "engine": "native",
+    "samples": 4096,
+    "key": "112233445566",
+    "iteration": 0,
+    "seconds": 9.17,
+    "peak_mib": 1781.328125
+  },
+  {
+    "engine": "managed",
+    "samples": 4096,
+    "key": "112233445566",
+    "iteration": 1,
+    "seconds": 4.17,
+    "peak_mib": 102.203125
+  },
+  {
+    "engine": "native",
+    "samples": 4096,
+    "key": "112233445566",
+    "iteration": 1,
+    "seconds": 9.62,
+    "peak_mib": 1780.80859375
+  },
+  {
+    "engine": "managed",
+    "samples": 4096,
+    "key": "112233445566",
+    "iteration": 2,
+    "seconds": 4.35,
+    "peak_mib": 101.93359375
+  },
+  {
+    "engine": "native",
+    "samples": 4096,
+    "key": "112233445566",
+    "iteration": 2,
+    "seconds": 9.48,
+    "peak_mib": 1784.96484375
+  },
+  {
+    "engine": "managed",
+    "samples": 4096,
+    "key": "FFFFFFFFFFFF",
+    "iteration": 0,
+    "seconds": 25.24,
+    "peak_mib": 235.765625
+  },
+  {
+    "engine": "native",
+    "samples": 4096,
+    "key": "FFFFFFFFFFFF",
+    "iteration": 0,
+    "seconds": 69.67,
+    "peak_mib": 1715.55859375
+  },
+  {
+    "engine": "managed",
+    "samples": 4096,
+    "key": "FFFFFFFFFFFF",
+    "iteration": 1,
+    "seconds": 25.81,
+    "peak_mib": 249.6328125
+  },
+  {
+    "engine": "native",
+    "samples": 4096,
+    "key": "FFFFFFFFFFFF",
+    "iteration": 1,
+    "seconds": 67.63,
+    "peak_mib": 1715.53515625
+  },
+  {
+    "engine": "managed",
+    "samples": 4096,
+    "key": "FFFFFFFFFFFF",
+    "iteration": 2,
+    "seconds": 25.28,
+    "peak_mib": 199.53515625
+  },
+  {
+    "engine": "native",
+    "samples": 4096,
+    "key": "FFFFFFFFFFFF",
+    "iteration": 2,
+    "seconds": 67.52,
+    "peak_mib": 1715.29296875
+  }
+]

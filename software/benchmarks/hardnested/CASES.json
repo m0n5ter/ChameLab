@@ -1,0 +1,10 @@
+[
+  { "id": "reference", "samples": 12000, "key": "112233445566", "uid": "12345678", "seed": "9325ABCD" },
+  { "id": "sparse", "samples": 4096, "key": "112233445566", "uid": "12345678", "seed": "9325ABCD" },
+  { "id": "ones-sparse", "samples": 4096, "key": "FFFFFFFFFFFF", "uid": "12345678", "seed": "9325ABCD" },
+  { "id": "zero", "samples": 12000, "key": "000000000000", "uid": "00000000", "seed": "00000001" },
+  { "id": "transport", "samples": 12000, "key": "A0A1A2A3A4A5", "uid": "DEADBEEF", "seed": "CAFEBABE" },
+  { "id": "mixed", "samples": 12000, "key": "3A94D6F07C21", "uid": "04A1B2C3", "seed": "13579BDF" },
+  { "id": "new-seed", "samples": 8192, "key": "112233445566", "uid": "12345678", "seed": "2468ACE1" },
+  { "id": "ones-dense", "samples": 24000, "key": "FFFFFFFFFFFF", "uid": "FFFFFFFF", "seed": "9325ABCD" }
+]

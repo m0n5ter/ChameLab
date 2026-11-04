@@ -42,15 +42,16 @@ THE SOFTWARE.
   circuits. All 19 sum guesses remain eligible when consistent with observations.
 - Evaluates partial sums by sharing binary-tree subproblems, instead of repeating
   the same filter calls for every path. Two 1 MiB arrays replace sum bitmaps.
-- `tables.bin` contains the same 241 effective tables selected by upstream's
+- `tables.bin` contains the same 241 effective (half, bitflip) tables selected by upstream's
   0.9901 threshold. It shares equal 256-byte pages; it requires no decompressor,
   native library, download, runtime code generation, or temporary file.
   `tables.manifest.json` records hashes for all 351 original LZ4 files, decoded
   files, and the packed resource. Integer storage is explicitly little endian.
 - Sparse active-word reduction, shared immutable result pages and early common
   high-bit elimination avoid the upstream 1 GiB of per-byte state bitmaps.
-- Candidate lists are partitioned once by both partial sums. Sum guesses are
-  ordered by hypergeometric likelihood; parallel search uses bounded work units.
+- Candidate lists are partitioned once by both partial sums. Cross-byte matching
+  is lazy and cached per partition; sum guesses are ordered by hypergeometric
+  likelihood. Parallel matching and search use bounded work units.
 - `Vector<ulong>` supplies portable SIMD, with a separate scalar `ulong` circuit
   when SIMD is unavailable. Both are generated from `tools/hardnested/core.cs.txt`.
   A surviving state is rolled back and checked against **every** original sample.
