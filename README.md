@@ -50,8 +50,11 @@ fully managed C# Hardnested solver on desktop, Android, iOS and the web. Hardnes
 needs a known key and substantial memory. Mobile and web calculations run locally;
 devices with insufficient memory report an error.
 
-Not there yet: editing slot data in place, backdoor key recovery,
-QR sharing and translations. The full list is in the
+The app speaks English, German, Spanish, French, Italian, Portuguese, Russian, Chinese
+(Simplified), Japanese and Korean; pick the language in Settings.
+
+Not there yet: editing slot data in place, backdoor key recovery and
+QR sharing. The full list is in the
 [roadmap](software/chamelab/ROADMAP.md).
 
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor

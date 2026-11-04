@@ -178,3 +178,15 @@ footer a { color: var(--text); text-decoration: none; }
   *, *::before, *::after { transition: none !important; }
   .led.dual i { animation: none; background: linear-gradient(90deg, var(--c1) 50%, var(--c2) 50%); }
 }
+.lang-select { font: inherit; font-size: .9rem; color: var(--text); background: var(--raised); border: 1px solid var(--line); border-radius: 8px; min-height: 44px; padding: 0 10px; cursor: pointer; }
+@media (max-width: 820px) { .lang-select { margin-top: 8px; } }
+/* Set by i18n.js when a language's links don't fit beside the brand: the phone menu at any width */
+.nav-links a { white-space: nowrap; }
+.nav-compact .nav-inner { flex-wrap: wrap; gap: 0; }
+.nav-compact .menu-toggle { display: inline-flex; align-items: center; gap: 12px; }
+.nav-compact .nav-links { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 4px; padding-top: 16px; }
+.nav-compact .menu-toggle[aria-expanded="true"] + .nav-links { display: flex; }
+.nav-compact .nav-links a { padding: 8px 12px; border-radius: 6px; }
+.nav-compact .nav-links a:hover { background: var(--raised); }
+.nav-compact .lang-select { margin-top: 8px; }
+.i18n-pending body { visibility: hidden; }

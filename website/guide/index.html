@@ -3,282 +3,284 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChameLab Guide</title>
-  <meta name="description" content="Step-by-step guide to ChameLab: connect a ChameleonUltra or ChameleonLite, read and save cards, emulate them in slots, use multi-card LF, dictionaries and sniffing.">
+  <title data-i18n="guide.page.1">ChameLab Guide</title>
+  <meta name="description" content="Step-by-step guide to ChameLab: connect a ChameleonUltra or ChameleonLite, read and save cards, emulate them in slots, use multi-card LF, dictionaries and sniffing." data-i18n-attr="content:guide.description">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#101112">
   <link rel="icon" href="../favicon.ico">
   <link rel="stylesheet" href="../styles.css">
+  <script src="../i18n.js"></script>
   <!-- Cloudflare Web Analytics -->
   <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7cca38a46a8343549564c3277c5cb102"}'></script>
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to content</a>
-<nav aria-label="Main navigation"><div class="nav-inner">
-  <a class="brand" href="../" aria-label="ChameLab home"><span class="brand-mark" aria-hidden="true">C</span>ChameLab<span class="brand-dot">.</span></a>
-  <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span aria-hidden="true">☰</span></button>
+<a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
+<nav aria-label="Main navigation" data-i18n-attr="aria-label:nav.1.aria-label"><div class="nav-inner">
+  <a class="brand" href="../" aria-label="ChameLab home" data-i18n-attr="aria-label:nav.2.aria-label"><span class="brand-mark" aria-hidden="true">C</span>ChameLab<span class="brand-dot">.</span></a>
+  <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" data-i18n="nav.3">Menu <span aria-hidden="true">☰</span></button>
   <div class="nav-links" id="nav-links">
-    <a href="../#app">The app</a>
-    <a href="../#why">Features</a>
-    <a href="../#firmware">Firmware</a>
-    <a href="./" aria-current="page">Guide</a>
-    <a href="https://github.com/m0n5ter/ChameLab">GitHub <span aria-hidden="true">↗</span></a>
-    <a class="nav-download" href="../#stable">Download <span aria-hidden="true">↓</span></a>
+    <a href="../#app" data-i18n="nav.4">The app</a>
+    <a href="../#why" data-i18n="nav.5">Features</a>
+    <a href="../#firmware" data-i18n="nav.6">Firmware</a>
+    <a href="./" aria-current="page" data-i18n="nav.7">Guide</a>
+    <a href="https://github.com/m0n5ter/ChameLab" data-i18n="nav.8">GitHub <span aria-hidden="true">↗</span></a>
+    <a class="nav-download" href="../#stable" data-i18n="nav.9">Download <span aria-hidden="true">↓</span></a>
+    <select class="lang-select" id="lang-select" aria-label="Language" data-i18n-attr="aria-label:lang.label"></select>
   </div>
 </div></nav>
 
 <main id="main" class="guide">
   <header class="guide-hero">
-    <p class="eyebrow">USER GUIDE</p>
-    <h1>Getting started with ChameLab</h1>
-    <p class="meta">From plugging in your ChameleonUltra or ChameleonLite to reading a card,
+    <p class="eyebrow" data-i18n="guide.guide-hero.1">USER GUIDE</p>
+    <h1 data-i18n="guide.guide-hero.2">Getting started with ChameLab</h1>
+    <p class="meta" data-i18n="guide.guide-hero.3">From plugging in your ChameleonUltra or ChameleonLite to reading a card,
       recovering its keys and emulating it. The screenshots are from the Windows app; macOS,
       Linux, Android and the web app look and work the same way.</p>
-    <nav class="toc" aria-label="Guide contents">
+    <nav class="toc" aria-label="Guide contents" data-i18n-attr="aria-label:guide.toc.1.aria-label">
       <ol>
-        <li><a href="#connect">Install and connect</a></li>
-        <li><a href="#device">The Chameleon page</a></li>
-        <li><a href="#cards">Your card library</a></li>
-        <li><a href="#read">Read a card</a></li>
-        <li><a href="#slots">Emulate cards in slots</a></li>
-        <li><a href="#multi-lf">Multi-card LF</a></li>
-        <li><a href="#dictionaries">Key dictionaries</a></li>
-        <li><a href="#tools">Sniffing</a></li>
-        <li><a href="#settings">App settings and backup</a></li>
+        <li data-i18n="guide.toc.2"><a href="#connect">Install and connect</a></li>
+        <li data-i18n="guide.toc.3"><a href="#device">The Chameleon page</a></li>
+        <li data-i18n="guide.toc.4"><a href="#cards">Your card library</a></li>
+        <li data-i18n="guide.toc.5"><a href="#read">Read a card</a></li>
+        <li data-i18n="guide.toc.6"><a href="#slots">Emulate cards in slots</a></li>
+        <li data-i18n="guide.toc.7"><a href="#multi-lf">Multi-card LF</a></li>
+        <li data-i18n="guide.toc.8"><a href="#dictionaries">Key dictionaries</a></li>
+        <li data-i18n="guide.toc.9"><a href="#tools">Sniffing</a></li>
+        <li data-i18n="guide.toc.10"><a href="#settings">App settings and backup</a></li>
       </ol>
     </nav>
   </header>
 
   <section id="connect">
-    <p class="eyebrow">01 / FIRST STEPS</p>
-    <h2>Install and connect</h2>
-    <p>Download ChameLab for your platform from the <a href="../#stable">downloads</a>, or open the
+    <p class="eyebrow" data-i18n="guide.connect.1">01 / FIRST STEPS</p>
+    <h2 data-i18n="guide.connect.2">Install and connect</h2>
+    <p data-i18n="guide.connect.3">Download ChameLab for your platform from the <a href="../#stable">downloads</a>, or open the
       <a href="../app/">web app</a> in Chrome or Edge on a desktop. Plug the Chameleon in over USB.
       It shows up under <b>Detected devices</b> on its own: select it and press
       <b>Connect</b>.</p>
     <figure class="shot">
-      <a href="connect.webp"><img src="connect.webp" alt="The Connect page with one Chameleon detected on COM8 and a Connect button" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>The Connect page lists every Chameleon plugged in over USB.</figcaption>
+      <a href="connect.webp"><img src="connect.webp" alt="The Connect page with one Chameleon detected on COM8 and a Connect button" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.connect.4.alt"></a>
+      <figcaption data-i18n="guide.connect.5">The Connect page lists every Chameleon plugged in over USB.</figcaption>
     </figure>
     <ul class="changes">
-      <li><b>USB</b> works on Windows, macOS, Linux, Android (with an OTG cable) and in the web
+      <li data-i18n="guide.connect.6"><b>USB</b> works on Windows, macOS, Linux, Android (with an OTG cable) and in the web
         app.</li>
-      <li><b>Bluetooth</b> is used on phones and tablets. If pairing with a PIN is enabled on the
+      <li data-i18n="guide.connect.7"><b>Bluetooth</b> is used on phones and tablets. If pairing with a PIN is enabled on the
         device, enter the PIN when the phone asks for it.</li>
-      <li><b>Network bridge (TCP)</b> connects to a <code>host:port</code> bridge or simulator.
+      <li data-i18n="guide.connect.8"><b>Network bridge (TCP)</b> connects to a <code>host:port</code> bridge or simulator.
         Expand it under the device list.</li>
     </ul>
-    <p class="note">You don't need a device for the card library, dictionaries and app settings.
+    <p class="note" data-i18n="guide.connect.9">You don't need a device for the card library, dictionaries and app settings.
       They work offline, and so does opening saved sniff captures.</p>
   </section>
 
   <section id="device">
-    <p class="eyebrow">02 / YOUR DEVICE</p>
-    <h2>The Chameleon page</h2>
-    <p>Once you're connected, <b>Connect</b> in the sidebar is replaced by <b>Chameleon</b>. This
+    <p class="eyebrow" data-i18n="guide.device.1">02 / YOUR DEVICE</p>
+    <h2 data-i18n="guide.device.2">The Chameleon page</h2>
+    <p data-i18n="guide.device.3">Once you're connected, <b>Connect</b> in the sidebar is replaced by <b>Chameleon</b>. This
       page shows everything about the device at a glance:</p>
     <ul class="changes">
-      <li><b>Battery</b>: charge, voltage and condition.</li>
-      <li><b>Operating mode</b>: <i>Emulator</i> presents the active slot to readers as a card,
+      <li data-i18n="guide.device.4"><b>Battery</b>: charge, voltage and condition.</li>
+      <li data-i18n="guide.device.5"><b>Operating mode</b>: <i>Emulator</i> presents the active slot to readers as a card,
         <i>Reader</i> lets the device read cards placed on it.</li>
-      <li><b>Active slot</b>: tap a number to switch slots, or use the arrows. Filled slots are
+      <li data-i18n="guide.device.6"><b>Active slot</b>: tap a number to switch slots, or use the arrows. Filled slots are
         drawn in their LED color, and the line below shows the HF and LF cards in the active
         slot.</li>
-      <li><b>Hardware and firmware identity</b>: model, firmware and git version, chip ID and BLE
+      <li data-i18n="guide.device.7"><b>Hardware and firmware identity</b>: model, firmware and git version, chip ID and BLE
         address, each with a copy button.</li>
     </ul>
     <figure class="shot">
-      <a href="chameleon.webp"><img src="chameleon.webp" alt="The Chameleon page showing battery at 99 percent, Emulator mode, slot 1 active with Office door on HF and three LF cards" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Slot 1 is active: a MIFARE Classic card on HF and three LF cards that take turns.</figcaption>
+      <a href="chameleon.webp"><img src="chameleon.webp" alt="The Chameleon page showing battery at 99 percent, Emulator mode, slot 1 active with Office door on HF and three LF cards" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.device.8.alt"></a>
+      <figcaption data-i18n="guide.device.9">Slot 1 is active: a MIFARE Classic card on HF and three LF cards that take turns.</figcaption>
     </figure>
-    <h3>Firmware updates</h3>
-    <p>The <b>Firmware update</b> card checks for the newest ChameLab firmware and installs it over
+    <h3 data-i18n="guide.device.10">Firmware updates</h3>
+    <p data-i18n="guide.device.11">The <b>Firmware update</b> card checks for the newest ChameLab firmware and installs it over
       USB or Bluetooth. Your slots, cards and settings are kept. <b>Install from file…</b> flashes a
       DFU package you downloaded yourself.</p>
-    <h3>Device settings</h3>
-    <p>Scroll down for the settings stored on the device: LED animation, sleep timeout, what
+    <h3 data-i18n="guide.device.12">Device settings</h3>
+    <p data-i18n="guide.device.13">Scroll down for the settings stored on the device: LED animation, sleep timeout, what
       buttons A and B do on a short and a long press, the long-press threshold, and Bluetooth
       pairing with a PIN. <b>Clear bonded devices</b> forgets paired phones; <b>Reset to
       defaults</b> and <b>Factory reset</b> are at the very bottom.</p>
     <figure class="shot">
-      <a href="device-settings.webp"><img src="device-settings.webp" alt="Device settings: LED animation, sleep timeout, button actions, long-press threshold, Bluetooth pairing and PIN" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Button A on a long press is set to read a card and emulate its UID.</figcaption>
+      <a href="device-settings.webp"><img src="device-settings.webp" alt="Device settings: LED animation, sleep timeout, button actions, long-press threshold, Bluetooth pairing and PIN" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.device.14.alt"></a>
+      <figcaption data-i18n="guide.device.15">Button A on a long press is set to read a card and emulate its UID.</figcaption>
     </figure>
   </section>
 
   <section id="cards">
-    <p class="eyebrow">03 / SAVED CARDS</p>
-    <h2>Your card library</h2>
-    <p><b>Cards</b> is your library of saved cards. Group them into folders (<b>New folder</b>, or
+    <p class="eyebrow" data-i18n="guide.cards.1">03 / SAVED CARDS</p>
+    <h2 data-i18n="guide.cards.2">Your card library</h2>
+    <p data-i18n="guide.cards.3"><b>Cards</b> is your library of saved cards. Group them into folders (<b>New folder</b>, or
       the folder icon in the sidebar), search by name, type or UID, and filter by HF or LF. Each
       card has a color, which also becomes its slot LED color.</p>
-    <p>Select a card to open it in the editor. From there you can change its details and memory,
+    <p data-i18n="guide.cards.4">Select a card to open it in the editor. From there you can change its details and memory,
       <b>Duplicate</b> or <b>Export</b> it, <b>Assign to slot</b> to emulate it, or <b>Write</b> it
       to a blank: LF IDs to T55xx, MIFARE Classic to Gen1a / Gen2 magic cards.</p>
     <figure class="shot">
-      <a href="card-editor.webp"><img src="card-editor.webp" alt="The Office folder with three cards; the Office door MIFARE Classic 1K card is open in the editor with its memory map" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>A MIFARE Classic 1K card in the editor. The grid shows the state of each sector; the hex view below shows the selected sector.</figcaption>
+      <a href="card-editor.webp"><img src="card-editor.webp" alt="The Office folder with three cards; the Office door MIFARE Classic 1K card is open in the editor with its memory map" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.cards.5.alt"></a>
+      <figcaption data-i18n="guide.cards.6">A MIFARE Classic 1K card in the editor. The grid shows the state of each sector; the hex view below shows the selected sector.</figcaption>
     </figure>
-    <h3>Adding cards</h3>
-    <p>Press <b>+ Add card</b> and choose how:</p>
+    <h3 data-i18n="guide.cards.7">Adding cards</h3>
+    <p data-i18n="guide.cards.8">Press <b>+ Add card</b> and choose how:</p>
     <ul class="changes">
-      <li><b>Scan HF</b> or <b>Scan LF</b>: hold a card on the Chameleon and read it (see
+      <li data-i18n="guide.cards.9"><b>Scan HF</b> or <b>Scan LF</b>: hold a card on the Chameleon and read it (see
         <a href="#read">Read a card</a>). For LF, pick the protocol below first.</li>
-      <li><b>Import file</b>: ChameleonUltraGUI and Proxmark3 JSON, Flipper <code>.nfc</code> /
+      <li data-i18n="guide.cards.10"><b>Import file</b>: ChameleonUltraGUI and Proxmark3 JSON, Flipper <code>.nfc</code> /
         <code>.rfid</code>, MCT, <code>.bin</code> and <code>.eml</code> dumps.</li>
-      <li><b>Enter manually</b>: pick a type and type the UID or ID.</li>
+      <li data-i18n="guide.cards.11"><b>Enter manually</b>: pick a type and type the UID or ID.</li>
     </ul>
     <figure class="shot">
-      <a href="add-card.webp"><img src="add-card.webp" alt="The Add card panel with Scan HF, Scan LF, Import file and Enter manually" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Four ways to add a card.</figcaption>
+      <a href="add-card.webp"><img src="add-card.webp" alt="The Add card panel with Scan HF, Scan LF, Import file and Enter manually" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.cards.12.alt"></a>
+      <figcaption data-i18n="guide.cards.13">Four ways to add a card.</figcaption>
     </figure>
   </section>
 
   <section id="read">
-    <p class="eyebrow">04 / READ AND DUMP</p>
-    <h2>Read a card</h2>
+    <p class="eyebrow" data-i18n="guide.read.1">04 / READ AND DUMP</p>
+    <h2 data-i18n="guide.read.2">Read a card</h2>
     <ol class="steps">
-      <li>Place the card on the Chameleon and press <b>+ Add card → Scan HF</b>. ChameLab shows
+      <li data-i18n="guide.read.3">Place the card on the Chameleon and press <b>+ Add card → Scan HF</b>. ChameLab shows
         the type, UID, SAK, ATQA and ATS straight away.</li>
-      <li>For a MIFARE Classic card the memory isn't read yet. Press <b>Try keys</b> to try every
+      <li data-i18n="guide.read.4">For a MIFARE Classic card the memory isn't read yet. Press <b>Try keys</b> to try every
         key from your <a href="#dictionaries">dictionaries</a>, plus the built-in defaults, on
         every sector.</li>
-      <li>If some sectors stay red (<i>No key</i>), press <b>Check recovery methods</b>. ChameLab
+      <li data-i18n="guide.read.5">If some sectors stay red (<i>No key</i>), press <b>Check recovery methods</b>. ChameLab
         tests the card and offers the attacks that work on it.</li>
-      <li>When every sector is green, press <b>Save card</b> to keep the full dump in your
+      <li data-i18n="guide.read.6">When every sector is green, press <b>Save card</b> to keep the full dump in your
         library.</li>
     </ol>
     <figure class="shot">
-      <a href="scan-hf.webp"><img src="scan-hf.webp" alt="A freshly scanned MIFARE Classic 1K card with UID 4D 4F 4E 53 and an unread memory map" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Right after the scan: identity known, memory not read yet.</figcaption>
+      <a href="scan-hf.webp"><img src="scan-hf.webp" alt="A freshly scanned MIFARE Classic 1K card with UID 4D 4F 4E 53 and an unread memory map" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.read.7.alt"></a>
+      <figcaption data-i18n="guide.read.8">Right after the scan: identity known, memory not read yet.</figcaption>
     </figure>
     <figure class="shot">
-      <a href="try-keys.webp"><img src="try-keys.webp" alt="Dictionary check in progress: sectors marked red have no key, with a Stop button" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Trying dictionary keys. Red sectors have no matching key, blue is the sector being searched.</figcaption>
+      <a href="try-keys.webp"><img src="try-keys.webp" alt="Dictionary check in progress: sectors marked red have no key, with a Stop button" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.read.9.alt"></a>
+      <figcaption data-i18n="guide.read.10">Trying dictionary keys. Red sectors have no matching key, blue is the sector being searched.</figcaption>
     </figure>
-    <h3>Recovering keys</h3>
-    <p>The memory header shows what ChameLab found out about the card, here
+    <h3 data-i18n="guide.read.11">Recovering keys</h3>
+    <p data-i18n="guide.read.12">The memory header shows what ChameLab found out about the card, here
       <i>PRNG Static (fixed nonces)</i>, and the toolbar offers the attacks that fit:
       darkside, nested, static nested, static encrypted nested or hardnested. To sniff keys from
       a reader with mfkey32 instead, load the card into a slot first. Recovered keys are saved under the
       card's UID in <b>Known card keys</b>, so the next read of the same card is instant.</p>
     <figure class="shot">
-      <a href="recovery.webp"><img src="recovery.webp" alt="Recovery methods offered for the card: Static nested enabled, others disabled" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>This card has a static PRNG, so <b>Static nested</b> is offered.</figcaption>
+      <a href="recovery.webp"><img src="recovery.webp" alt="Recovery methods offered for the card: Static nested enabled, others disabled" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.read.13.alt"></a>
+      <figcaption data-i18n="guide.read.14">This card has a static PRNG, so <b>Static nested</b> is offered.</figcaption>
     </figure>
     <figure class="shot">
-      <a href="dump-done.webp"><img src="dump-done.webp" alt="All 16 of 16 sectors read and shown in green, with Save card at the bottom" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>About fifteen seconds later: 16 of 16 sectors read. Save the card to keep the dump.</figcaption>
+      <a href="dump-done.webp"><img src="dump-done.webp" alt="All 16 of 16 sectors read and shown in green, with Save card at the bottom" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.read.15.alt"></a>
+      <figcaption data-i18n="guide.read.16">About fifteen seconds later: 16 of 16 sectors read. Save the card to keep the dump.</figcaption>
     </figure>
-    <p class="note">Every long operation, from dictionary checks to attacks, writing magic cards
+    <p class="note" data-i18n="guide.read.17">Every long operation, from dictionary checks to attacks, writing magic cards
       and sniffing, has a <b>Stop</b> button. Stopping keeps the keys and blocks already found,
       and the device is ready for the next job.</p>
   </section>
 
   <section id="slots">
-    <p class="eyebrow">05 / EMULATION</p>
-    <h2>Emulate cards in slots</h2>
-    <p>The Chameleon has eight slots. Each slot holds one HF card and one LF card, and the active
+    <p class="eyebrow" data-i18n="guide.slots.1">05 / EMULATION</p>
+    <h2 data-i18n="guide.slots.2">Emulate cards in slots</h2>
+    <p data-i18n="guide.slots.3">The Chameleon has eight slots. Each slot holds one HF card and one LF card, and the active
       slot is what readers see. <b>Slots</b> shows all eight at once. Select a slot to edit it on
       the right.</p>
     <ol class="steps">
-      <li>Select a slot and press <b>Choose saved</b> under HF or LF.</li>
-      <li>Pick a card from your library. Search works here too.</li>
-      <li>Adjust the emulator options if you need to: LED color, Gen1a / Gen2 magic mode, write
+      <li data-i18n="guide.slots.4">Select a slot and press <b>Choose saved</b> under HF or LF.</li>
+      <li data-i18n="guide.slots.5">Pick a card from your library. Search works here too.</li>
+      <li data-i18n="guide.slots.6">Adjust the emulator options if you need to: LED color, Gen1a / Gen2 magic mode, write
         mode and PRNG type for MIFARE Classic; magic mode and password detection for
         Ultralight / NTAG.</li>
-      <li>Press <b>Save</b>. ChameLab writes the slot to the device and keeps it after a
+      <li data-i18n="guide.slots.7">Press <b>Save</b>. ChameLab writes the slot to the device and keeps it after a
         reboot. If you switch slots with unsaved changes, it asks first.</li>
     </ol>
     <figure class="shot">
-      <a href="choose-saved.webp"><img src="choose-saved.webp" alt="Choosing a saved HF card for slot 1 from a list of three cards" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Choosing an HF card for slot 1. Only cards of the right frequency are listed.</figcaption>
+      <a href="choose-saved.webp"><img src="choose-saved.webp" alt="Choosing a saved HF card for slot 1 from a list of three cards" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.slots.8.alt"></a>
+      <figcaption data-i18n="guide.slots.9">Choosing an HF card for slot 1. Only cards of the right frequency are listed.</figcaption>
     </figure>
     <figure class="shot">
-      <a href="slots.webp"><img src="slots.webp" alt="Emulation slots page with slots 1 to 3 filled and slot 1 open in the editor with MIFARE Classic emulator options" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Three slots in use. Slot 1 is open with its MIFARE Classic emulator options.</figcaption>
+      <a href="slots.webp"><img src="slots.webp" alt="Emulation slots page with slots 1 to 3 filled and slot 1 open in the editor with MIFARE Classic emulator options" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.slots.10.alt"></a>
+      <figcaption data-i18n="guide.slots.11">Three slots in use. Slot 1 is open with its MIFARE Classic emulator options.</figcaption>
     </figure>
-    <p>Switch the active slot on the Chameleon page, or with the device buttons. With the default
+    <p data-i18n="guide.slots.12">Switch the active slot on the Chameleon page, or with the device buttons. With the default
       settings, button A goes to the next slot and button B to the previous one.</p>
   </section>
 
   <section id="multi-lf">
-    <p class="eyebrow">06 / ONLY IN CHAMELAB</p>
-    <h2>Multi-card LF</h2>
-    <p>One LF slot can hold up to eight LF cards of any emulated type, in any mix: EM410x,
+    <p class="eyebrow" data-i18n="guide.multi-lf.1">06 / ONLY IN CHAMELAB</p>
+    <h2 data-i18n="guide.multi-lf.2">Multi-card LF</h2>
+    <p data-i18n="guide.multi-lf.3">One LF slot can hold up to eight LF cards of any emulated type, in any mix: EM410x,
       Electra, HID Prox, ioProx, Viking, PAC, Jablotron, IDTECK and Pyramid. Each time the reader's
       field appears, the slot sends the next card in the list. Tap again and again until the right
       card opens the door.</p>
     <ol class="steps">
-      <li>Select a slot and add the first card with <b>Choose saved</b> under LF.</li>
-      <li>Press <b>Add saved</b> for each additional card. The counter shows how many of the eight
+      <li data-i18n="guide.multi-lf.4">Select a slot and add the first card with <b>Choose saved</b> under LF.</li>
+      <li data-i18n="guide.multi-lf.5">Press <b>Add saved</b> for each additional card. The counter shows how many of the eight
         places are taken.</li>
-      <li>Drag the cards to change the order, then <b>Save</b>.</li>
+      <li data-i18n="guide.multi-lf.6">Drag the cards to change the order, then <b>Save</b>.</li>
     </ol>
     <figure class="shot">
-      <a href="slots-multi-lf.webp"><img src="slots-multi-lf.webp" alt="The LF section of slot 1 holding three EM410x cards: Parking gate, Server room and Garage, 3 of 8" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Three LF cards in one slot. The device sends one per tap, then starts again from the first.</figcaption>
+      <a href="slots-multi-lf.webp"><img src="slots-multi-lf.webp" alt="The LF section of slot 1 holding three EM410x cards: Parking gate, Server room and Garage, 3 of 8" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.multi-lf.7.alt"></a>
+      <figcaption data-i18n="guide.multi-lf.8">Three LF cards in one slot. The device sends one per tap, then starts again from the first.</figcaption>
     </figure>
-    <p class="meta">The position in the list is kept while the device sleeps. Removing the battery
+    <p class="meta" data-i18n="guide.multi-lf.9">The position in the list is kept while the device sleeps. Removing the battery
       or switching slots starts again at the first card. More details:
       <a href="https://github.com/m0n5ter/ChameLab/blob/main/docs/lf-card-cycle.md">LF card cycling</a>.</p>
   </section>
 
   <section id="dictionaries">
-    <p class="eyebrow">07 / KEYS</p>
-    <h2>Key dictionaries</h2>
-    <p>Dictionaries are lists of MIFARE Classic keys that <b>Try keys</b> uses when reading a card.
+    <p class="eyebrow" data-i18n="guide.dictionaries.1">07 / KEYS</p>
+    <h2 data-i18n="guide.dictionaries.2">Key dictionaries</h2>
+    <p data-i18n="guide.dictionaries.3">Dictionaries are lists of MIFARE Classic keys that <b>Try keys</b> uses when reading a card.
       Create one with <b>+ New dictionary</b> or <b>Import</b> a <code>.dic</code> file. In the
       editor, type one key per row: an empty row at the end adds a key, and pasting a list adds
       them all at once. Repeated keys and rows you have changed are highlighted.</p>
-    <p><b>Known card keys</b> at the top holds every key ChameLab has recovered, sorted by card
+    <p data-i18n="guide.dictionaries.4"><b>Known card keys</b> at the top holds every key ChameLab has recovered, sorted by card
       UID. You don't need to add them anywhere: they are tried automatically on the card they
       came from.</p>
     <figure class="shot">
-      <a href="dictionaries.webp"><img src="dictionaries.webp" alt="Key dictionaries page with Common defaults and Office keys; Common defaults open showing twelve keys" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Two dictionaries; <i>Common defaults</i> is open in the editor.</figcaption>
+      <a href="dictionaries.webp"><img src="dictionaries.webp" alt="Key dictionaries page with Common defaults and Office keys; Common defaults open showing twelve keys" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.dictionaries.5.alt"></a>
+      <figcaption data-i18n="guide.dictionaries.6">Two dictionaries; <i>Common defaults</i> is open in the editor.</figcaption>
     </figure>
   </section>
 
   <section id="tools">
-    <p class="eyebrow">08 / TOOLS</p>
-    <h2>Sniffing</h2>
-    <p><b>Tools</b> shows what goes over the air between readers and cards.</p>
+    <p class="eyebrow" data-i18n="guide.tools.1">08 / TOOLS</p>
+    <h2 data-i18n="guide.tools.2">Sniffing</h2>
+    <p data-i18n="guide.tools.3"><b>Tools</b> shows what goes over the air between readers and cards.</p>
     <ul class="changes">
-      <li><b>Sniff HF</b>: the Chameleon answers a reader as the card in its active slot and
+      <li data-i18n="guide.tools.4"><b>Sniff HF</b>: the Chameleon answers a reader as the card in its active slot and
         records both sides. Every frame is labelled, and MIFARE Classic keys are recovered from the
         reader's authentications on the spot. Choose how long to listen, press <b>Capture</b> and
         hold the Chameleon to the reader. Traces load and save as Proxmark3 <code>.trace</code>
         files.</li>
-      <li><b>Sniff LF</b>: records 32 ms of the 125 kHz antenna signal with a tag held on the
+      <li data-i18n="guide.tools.5"><b>Sniff LF</b>: records 32 ms of the 125 kHz antenna signal with a tag held on the
         antenna. You get a zoomable waveform, a level summary, a guess at the modulation and clock,
         and a Manchester decode. Captures save as raw <code>.bin</code> and open later without a
         device.</li>
     </ul>
     <figure class="shot">
-      <a href="tools.webp"><img src="tools.webp" alt="Tools page with Sniff HF and Sniff LF" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>Pick a sniffer to open it.</figcaption>
+      <a href="tools.webp"><img src="tools.webp" alt="Tools page with Sniff HF and Sniff LF" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.tools.6.alt"></a>
+      <figcaption data-i18n="guide.tools.7">Pick a sniffer to open it.</figcaption>
     </figure>
   </section>
 
   <section id="settings">
-    <p class="eyebrow">09 / THE APP</p>
-    <h2>App settings and backup</h2>
-    <p><b>Settings</b> holds the settings of the app itself. They apply right away and work without
+    <p class="eyebrow" data-i18n="guide.settings.1">09 / THE APP</p>
+    <h2 data-i18n="guide.settings.2">App settings and backup</h2>
+    <p data-i18n="guide.settings.3"><b>Settings</b> holds the settings of the app itself. They apply right away and work without
       a device: accent color, scan sounds (a beep when a scan finishes, a buzz when no card is
       found) and the update check.</p>
-    <p><b>Export backup</b> saves all your cards and key dictionaries to one file, and <b>Import
+    <p data-i18n="guide.settings.4"><b>Export backup</b> saves all your cards and key dictionaries to one file, and <b>Import
       backup</b> restores it, for example on another computer or phone.</p>
     <figure class="shot">
-      <a href="settings.webp"><img src="settings.webp" alt="Settings page with accent color, scan sounds, backup and version" width="1386" height="1099" loading="lazy"></a>
-      <figcaption>App settings. The Chameleon's own settings are on the Chameleon page.</figcaption>
+      <a href="settings.webp"><img src="settings.webp" alt="Settings page with accent color, scan sounds, backup and version" width="1386" height="1099" loading="lazy" data-i18n-attr="alt:guide.settings.5.alt"></a>
+      <figcaption data-i18n="guide.settings.6">App settings. The Chameleon's own settings are on the Chameleon page.</figcaption>
     </figure>
-    <p class="meta">Questions or problems? Open an issue on
+    <p class="meta" data-i18n="guide.settings.7">Questions or problems? Open an issue on
       <a href="https://github.com/m0n5ter/ChameLab/issues">GitHub</a>.</p>
   </section>
 
   <footer>
-    <p>Free software under the GNU GPL v3:
+    <p data-i18n="footer">Free software under the GNU GPL v3:
       <a href="https://github.com/m0n5ter/ChameLab">source code</a> ·
       <a href="https://github.com/m0n5ter/ChameLab/releases">all releases</a> ·
       <a href="https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md">changelog</a></p>

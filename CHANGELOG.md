@@ -6,6 +6,8 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: the app is translated into German, Spanish, French, Italian, Portuguese, Russian, Chinese (Simplified), Japanese and Korean; the language is picked in Settings and applies after a restart. The web app bundles the Chinese, Japanese and Korean glyphs it needs and now loads the chosen translation
+ - Website: the download page and the guide are available in the same ten languages, picked from the menu or the browser's language
  - ChameLab: Hardnested now uses a shared, fully managed C# port of current Proxmark3 on desktop, Android, iOS and the web; compact state tables reduce memory use and remove the separate native hardnested build dependencies
 
 ## [v1.2.31][2026-11-03] · firmware v2.3.10-cl
