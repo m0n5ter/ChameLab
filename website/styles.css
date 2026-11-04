@@ -52,7 +52,7 @@ main { max-width: 1200px; padding: 0 32px 32px; margin: auto; }
 .device-top, .device-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; font-size: .875rem; letter-spacing: .1em; color: var(--muted); }
 .device-label { padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; font-size: .8rem; white-space: nowrap; }
 .device-image { min-height: 300px; display: grid; place-items: center; background: radial-gradient(ellipse, #d6ba8112, transparent 68%); }
-.device-image img { display: block; width: auto; max-width: 100%; height: min(340px, 45vh); filter: drop-shadow(0 22px 18px #0007); }
+.device-image img { display: block; width: auto; max-width: 100%; height: min(340px, 45vh); object-fit: contain; filter: drop-shadow(0 22px 18px #0007); }
 .device-bottom { border-top: 1px solid var(--line); padding-top: 18px; letter-spacing: .01em; }
 .device-bottom .status-dot { margin-right: 8px; background: var(--new); }
 .platforms { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; border-block: 1px solid var(--line); color: var(--muted); font-size: .875rem; }
