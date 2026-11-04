@@ -20,6 +20,7 @@
 #include "bsp_wdt.h"
 #include "lf_reader_generic.h"
 #include "lf_em4x05_data.h"
+#include "lf_125khz_radio.h"
 #include "rc522.h"
 #include "mf1_crapto1.h"
 #include "parity.h"
@@ -2353,8 +2354,18 @@ static data_frame_tx_t *cmd_processor_mf0_get_emulator_config(uint16_t cmd, uint
  *       cmd code                               before process               cmd processor                                after process
  */
 #if defined(PROJECT_CHAMELEON_ULTRA)
+/* Optional trailing password: [pwd:4 big-endian]. Zero means "no LOGIN". */
+static bool em4x05_take_password(const uint8_t *data, uint16_t length, uint16_t offset, uint32_t *pwd) {
+    *pwd = 0;
+    if (length >= offset + 4) {
+        *pwd = bytes_to_num((uint8_t *)data + offset, 4);
+    }
+    return *pwd != 0;
+}
+
 static data_frame_tx_t *cmd_processor_em4x05_scan(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     em4x05_data_t tag = {0};
+    tag.use_password = em4x05_take_password(data, length, 0, &tag.password);
     status = scan_em4x05(&tag);
     if (status != STATUS_LF_TAG_OK) {
         return data_frame_make(cmd, status, 0, NULL);
@@ -2364,12 +2375,59 @@ static data_frame_tx_t *cmd_processor_em4x05_scan(uint16_t cmd, uint16_t status,
         uint32_t uid;
         uint32_t uid_hi;
         uint8_t  is_em4x69;
+        uint8_t  uid_block;
     } PACKED payload;
     payload.config    = U32HTONL(tag.config);
     payload.uid       = U32HTONL(tag.uid);
     payload.uid_hi    = U32HTONL(tag.uid_hi);
     payload.is_em4x69 = tag.is_em4x69 ? 1 : 0;
+    payload.uid_block = tag.uid_block;
     return data_frame_make(cmd, STATUS_LF_TAG_OK, sizeof(payload), (uint8_t *)&payload);
+}
+
+/* Request: [id:5][pwd:4, optional]. Verified by reading the EM410x ID back. */
+static data_frame_tx_t *cmd_processor_em410x_write_to_em4x05(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if (length != 5 && length != 9) {
+        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    }
+    uint32_t pwd;
+    bool use_pwd = em4x05_take_password(data, length, 5, &pwd);
+    status = write_em410x_to_em4x05(data, pwd, use_pwd);
+    return data_frame_make(cmd, status, 0, NULL);
+}
+
+/* Request: [block:1][word:4 big-endian][pwd:4, optional]. Not verified. */
+static data_frame_tx_t *cmd_processor_em4x05_write_word(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if ((length != 5 && length != 9) || data[0] >= EM4X05_BLOCK_COUNT) {
+        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    }
+    uint32_t pwd;
+    bool use_pwd = em4x05_take_password(data, length, 5, &pwd);
+    status = em4x05_write_word(data[0], bytes_to_num(data + 1, 4), pwd, use_pwd);
+    return data_frame_make(cmd, status, 0, NULL);
+}
+
+/* Request: [block:1][pwd:4, optional]. Response: [word:4 big-endian]. */
+static data_frame_tx_t *cmd_processor_em4x05_read_word(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if ((length != 1 && length != 5) || data[0] >= EM4X05_BLOCK_COUNT) {
+        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    }
+    uint32_t pwd;
+    bool use_pwd = em4x05_take_password(data, length, 1, &pwd);
+    start_lf_125khz_radio();
+    bsp_delay_ms(10);
+    if (use_pwd) {
+        em4x05_send_login(pwd);
+        bsp_delay_ms(5);
+    }
+    uint32_t word = 0;
+    bool ok = em4x05_read_word(data[0], &word, 80);
+    stop_lf_125khz_radio();
+    if (!ok) {
+        return data_frame_make(cmd, STATUS_LF_TAG_NO_FOUND, 0, NULL);
+    }
+    uint32_t be = U32HTONL(word);
+    return data_frame_make(cmd, STATUS_LF_TAG_OK, sizeof(be), (uint8_t *)&be);
 }
 
 static data_frame_tx_t *cmd_processor_lf_sniff(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
@@ -3482,6 +3540,9 @@ static cmd_data_map_t m_data_cmd_map[] = {
     {    DATA_CMD_IOPROX_DECODE_RAW,            NULL,                        cmd_processor_ioprox_decode_raw,             NULL                   },
     {    DATA_CMD_IOPROX_COMPOSE_ID,            NULL,                        cmd_processor_ioprox_compose_id,             NULL                   },
     {    DATA_CMD_EM4X05_SCAN,                  before_reader_run,           cmd_processor_em4x05_scan,                   NULL                   },
+    {    DATA_CMD_EM410X_WRITE_TO_EM4X05,       before_reader_run,           cmd_processor_em410x_write_to_em4x05,        NULL                   },
+    {    DATA_CMD_EM4X05_WRITE_WORD,            before_reader_run,           cmd_processor_em4x05_write_word,             NULL                   },
+    {    DATA_CMD_EM4X05_READ_WORD,             before_reader_run,           cmd_processor_em4x05_read_word,              NULL                   },
     {    DATA_CMD_LF_SNIFF,                     before_reader_run,           cmd_processor_lf_sniff,                      NULL                   },
     {    DATA_CMD_HF14A_SNIFF,                  NULL,                        cmd_processor_hf14a_sniff,                   NULL                   },
     {    DATA_CMD_HF14A_AUTH_TRACE,             before_hf_reader_run,        cmd_processor_hf14a_auth_trace,              after_hf_reader_run    },

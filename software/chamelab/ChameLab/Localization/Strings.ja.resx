@@ -3360,4 +3360,31 @@
   <data name="Write_TargetUidChanged" xml:space="preserve">
     <value>ターゲットの UID が変わりました。書き込みを続けるには同じカードをリーダーに置いてください。</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>チップ</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>EM4205 / EM4305 タグをリーダーに置いてください。書き込み後に EM410x ID を読み戻して確認します。</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>EM4305 タグに書き込み</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>「{0}」を EM4305 タグに書き込みました。</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>書き込みにログインが必要な EM4305 タグのパスワード（4 バイト）。空のタグでは空欄のままにします。</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>EM4305 への書き込みに失敗しました: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>タグに書き込みましたが、EM410x ID を読み戻せませんでした。EM4205 / EM4305 であることを確認してください。書き込み保護されている場合は、パスワードを入力して再試行してください。</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>LF タグにパスワードが必要です</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>コマンドが失敗しました</value>
+  </data>
 </root>

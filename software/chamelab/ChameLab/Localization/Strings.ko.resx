@@ -3360,4 +3360,31 @@
   <data name="Write_TargetUidChanged" xml:space="preserve">
     <value>대상 UID가 바뀌었습니다. 쓰기를 계속하려면 같은 카드를 리더기에 올려 두세요.</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>칩</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>EM4205 / EM4305 태그를 리더기에 올려 두세요. 쓰기 후 EM410x ID를 다시 읽어 확인합니다.</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>EM4305 태그에 쓰기</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>“{0}”을(를) EM4305 태그에 썼습니다.</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>쓰기에 로그인이 필요한 EM4305 태그의 비밀번호(4바이트)입니다. 빈 태그라면 비워 두세요.</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>EM4305 쓰기 실패: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>태그에 썼지만 EM410x ID를 다시 읽지 못했습니다. EM4205 / EM4305인지 확인하세요. 쓰기 보호된 태그라면 비밀번호를 입력하고 다시 시도하세요.</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>LF 태그에 비밀번호가 필요합니다</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>명령 실패</value>
+  </data>
 </root>

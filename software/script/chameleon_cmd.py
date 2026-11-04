@@ -859,19 +859,58 @@ class ChameleonCMD:
         timeout_s = (timeout_ms // 1000) + 2
         return self.device.send_cmd_sync(Command.LF_SNIFF, payload, timeout=timeout_s)
 
+    @staticmethod
+    def _em4x05_pwd(pwd):
+        return b"" if pwd is None else struct.pack("!I", pwd & 0xFFFFFFFF)
+
+    @expect_response(Status.LF_TAG_OK)
+    def em410x_write_to_em4x05(self, id_bytes: bytes, pwd: int = None):
+        """
+        Clone an EM410x ID onto an EM4205/EM4305 tag.
+
+        The firmware writes blocks 5, 6 and the configuration word 4, then reads
+        the EM410x ID back; Status.CMD_ERR means the read-back did not match.
+
+        :param id_bytes: 5-byte EM410x ID
+        :param pwd: tag password, needed when the tag requires write LOGIN
+        """
+        if len(id_bytes) != 5:
+            raise ValueError("EM4305 cloning supports 5-byte EM410x IDs")
+        data = bytes(id_bytes) + self._em4x05_pwd(pwd)
+        return self.device.send_cmd_sync(Command.EM410X_WRITE_TO_EM4X05, data, timeout=5)
+
+    @expect_response(Status.LF_TAG_OK)
+    def em4x05_write_word(self, block: int, word: int, pwd: int = None):
+        """
+        Write one 32-bit word to an EM4205/EM4305 tag (not verified, read it back).
+        """
+        data = struct.pack("!BI", block, word & 0xFFFFFFFF) + self._em4x05_pwd(pwd)
+        return self.device.send_cmd_sync(Command.EM4X05_WRITE_WORD, data)
+
+    @expect_response(Status.LF_TAG_OK)
+    def em4x05_read_word(self, block: int, pwd: int = None):
+        """
+        Read one 32-bit word from an EM4205/EM4305 tag.
+        """
+        data = struct.pack("!B", block) + self._em4x05_pwd(pwd)
+        resp = self.device.send_cmd_sync(Command.EM4X05_READ_WORD, data)
+        if resp.status == Status.LF_TAG_OK:
+            resp.parsed = struct.unpack("!I", resp.data[:4])[0]
+        return resp
+
     @expect_response(Status.LF_TAG_OK)
     def em4x05_scan(self, pwd: int = 0):
         """
         Read an EM4x05 or EM4x69 tag (reader-talk-first).
 
         Response payload (14 bytes, big-endian):
-          config    4 bytes  — block 0 configuration word
-          uid       4 bytes  — EM4x05 UID
-          uid_hi    4 bytes  — EM4x69 uid_hi (zero for plain EM4x05)
-          is_em4x69 1 byte   — 1 if a 64-bit EM4x69 UID was read
+          config    4 bytes  — block 4 configuration word
+          uid       4 bytes  — block 1 device serial number
+          uid_hi    4 bytes  — reserved, zero
+          is_em4x69 1 byte   — reserved, zero
           uid_block 1 byte   — block number UID was read from
 
-        :param pwd: 32-bit password for LOGIN (default 0x00000000)
+        :param pwd: 32-bit password for LOGIN (0 = no LOGIN)
         :return: parsed tuple (config, uid, uid_hi, is_em4x69, uid_block)
         """
         pwd_bytes = struct.pack("!I", pwd & 0xFFFFFFFF)

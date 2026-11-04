@@ -30,7 +30,7 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
   your key dictionaries, edited as hex and emulated in one tap.
 - **Saved cards** — a card library with search and color tags. Imports
   ChameleonUltraGUI, Proxmark3, Flipper `.nfc` / `.rfid`, MCT, `.bin` and `.eml`.
-- **Cloning** — write LF IDs to T55xx and MIFARE Classic to Gen1a / Gen2 magic cards.
+- **Cloning** — write LF IDs to T55xx (EM410x also to EM4305) and MIFARE Classic to Gen1a / Gen2 magic cards.
 - **Emulator settings** — Gen1a / Gen2 modes, write modes, nonce detection for mfkey32,
   Ultralight / NTAG version, signature and counters.
 - **HF sniffing** — answer a reader as the card in the active slot and record both

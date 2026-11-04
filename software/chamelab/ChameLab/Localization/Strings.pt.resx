@@ -3360,4 +3360,31 @@
   <data name="Write_TargetUidChanged" xml:space="preserve">
     <value>O UID de destino mudou. Coloque o mesmo cartão no leitor para continuar gravando.</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>Chip</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>Coloque uma tag EM4205 / EM4305 no leitor. O ID EM410x é lido de volta após a gravação para confirmar.</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>Gravar na tag EM4305</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>“{0}” gravado na tag EM4305.</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>Senha (4 bytes) de uma tag EM4305 que exige login para gravar. Deixe vazio para uma tag virgem.</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>Falha ao gravar na EM4305: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>A tag foi gravada, mas o ID EM410x não pôde ser lido de volta. Verifique se é uma EM4205 / EM4305; se estiver protegida contra gravação, informe a senha e tente novamente.</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>A tag LF exige senha</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>O comando falhou</value>
+  </data>
 </root>

@@ -822,6 +822,26 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 Status.LfTagOk);
     }
 
+    /// <summary>
+    /// Clones a 5-byte EM410x ID onto an EM4205 / EM4305 tag. The firmware writes the
+    /// data words and the configuration word, then reads the EM410x ID back itself:
+    /// <see cref="Status.CmdErr"/> means the read-back did not match.
+    /// </summary>
+    /// <param name="password">The tag's 4-byte password when it requires login to write.</param>
+    public async Task WriteEm410xToEm4x05Async(byte[] id, byte[]? password = null, CancellationToken ct = default)
+    {
+        if (id.Length != 5)
+            throw new ArgumentException(string.Format(Strings.Device_IdLengthGot, TagSpecificType.Em410x.DisplayName(), 5, id.Length));
+        if (password is { Length: not 4 }) throw new ArgumentException(Strings.Common_Password4Bytes);
+        await SetDeviceModeAsync(DeviceMode.Reader, ct);
+        byte[] data = password is null ? id : [.. id, .. password];
+        var f = await conn.SendAsync(Command.Em410xWriteToEm4x05, data, timeoutMs: 5000, ct: ct);
+        if (f.Status == Status.CmdErr)
+            throw new ChameleonException(Strings.Device_Em4305NotVerified, f.Status);
+        if (f.Status != Status.LfTagOk)
+            throw new ChameleonException(string.Format(Strings.Device_Em4305WriteFailed, f.Status.Describe()), f.Status);
+    }
+
     // ---- MIFARE Classic ------------------------------------------------
 
     public async Task<bool> Mf1AuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct = default) =>

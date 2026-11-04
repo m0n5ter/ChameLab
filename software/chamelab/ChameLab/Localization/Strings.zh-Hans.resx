@@ -3360,4 +3360,31 @@
   <data name="Write_TargetUidChanged" xml:space="preserve">
     <value>目标 UID 已更改。请将同一张卡放在读卡器上以继续写入。</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>芯片</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>将 EM4205 / EM4305 标签放在读卡器上。写入后会回读 EM410x ID 进行确认。</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>写入 EM4305 标签</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>已将“{0}”写入 EM4305 标签。</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>写入时需要登录的 EM4305 标签的密码（4 字节）。空白标签请留空。</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>EM4305 写入失败：{0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>已写入标签，但无法回读其 EM410x ID。请确认它是 EM4205 / EM4305；如果标签有写保护，请输入其密码后重试。</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>LF 标签需要密码</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>命令失败</value>
+  </data>
 </root>

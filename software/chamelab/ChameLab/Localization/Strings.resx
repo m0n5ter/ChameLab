@@ -3363,4 +3363,31 @@
   <data name="Usb_WriteFailed" xml:space="preserve">
     <value>USB write failed. Check the cable and reconnect the device.</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>Tag chip</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>Place an EM4205 / EM4305 tag on the reader. The EM410x ID is read back after writing to confirm it.</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>Write to EM4305 tag</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>Wrote “{0}” to the EM4305 tag.</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>Password (4 bytes) of an EM4305 tag that requires login to write. Leave empty for a blank tag.</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>EM4305 write failed: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>Wrote the tag but its EM410x ID did not read back. Check that it is an EM4205 / EM4305; if it is write-protected, enter its password and try again.</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>LF tag requires a password</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>Command failed</value>
+  </data>
 </root>

@@ -16,6 +16,7 @@ public enum Status : ushort
 
     LfTagOk = 0x40,
     LfTagNoFound = 0x41,
+    LfTagLoginRequired = 0x42,
 
     ParErr = 0x60,
     DeviceModeError = 0x66,
@@ -25,6 +26,7 @@ public enum Status : ushort
     FlashWriteFail = 0x70,
     FlashReadFail = 0x71,
     InvalidSlotType = 0x72,
+    CmdErr = 0x75,
 }
 
 public static class StatusExtensions
@@ -43,6 +45,7 @@ public static class StatusExtensions
         Status.HfErrAts => Strings.Status_HfErrAts,
         Status.LfTagOk => Strings.Status_LfOk,
         Status.LfTagNoFound => Strings.Status_LfNotFound,
+        Status.LfTagLoginRequired => Strings.Status_LfLoginRequired,
         Status.ParErr => Strings.Status_ParErr,
         Status.DeviceModeError => Strings.Status_ModeErr,
         Status.InvalidCmd => Strings.Status_InvalidCmd,
@@ -51,6 +54,7 @@ public static class StatusExtensions
         Status.FlashWriteFail => Strings.Status_FlashWrite,
         Status.FlashReadFail => Strings.Status_FlashRead,
         Status.InvalidSlotType => Strings.Status_InvalidSlotType,
+        Status.CmdErr => Strings.Status_CmdErr,
         _ => string.Format(Strings.Status_Unknown, (ushort)status),
     };
 

@@ -935,7 +935,7 @@ hf_seos = hf.subgroup("seos", "SEOS commands")
 
 lf = root.subgroup("lf", "Low Frequency commands")
 lf_em = lf.subgroup("em", "EM commands")
-lf_em_4x05 = lf_em.subgroup("4x05", "EM4x05/EM4x69 commands")
+lf_em_4x05 = lf_em.subgroup("4x05", "EM4205/EM4305 commands")
 data = root.subgroup("data", "Data analysis and visualization commands")
 emv = root.subgroup("emv", "EMV contactless payment card commands")
 
@@ -5984,11 +5984,32 @@ class LFEMRead(ReaderRequiredUnit):
 class LFEM410xWriteT55xx(LFEMIdArgsUnit, ReaderRequiredUnit):
     def args_parser(self) -> ArgumentParserNoExit:
         parser = ArgumentParserNoExit()
-        parser.description = "Write em410x id to t55xx"
-        return self.add_card_arg(parser, required=True)
+        parser.description = "Write em410x id to t55xx (default) or EM4205/EM4305"
+        self.add_card_arg(parser, required=True)
+        parser.add_argument(
+            "--em4305",
+            action="store_true",
+            help="Write to an EM4205/EM4305 tag instead of a T55xx",
+        )
+        parser.add_argument(
+            "--pwd",
+            type=str,
+            metavar="<hex>",
+            help="EM4305 password (8 hex), when the tag requires write login",
+        )
+        return parser
 
     def on_exec(self, args: argparse.Namespace):
         id_hex = args.id
+        if args.em4305:
+            if len(id_hex) != 10:
+                raise ArgsParserError("EM4305 cloning supports 5-byte EM410X (10 hex) IDs.")
+            pwd = parse_em4x05_pwd(args.pwd)
+            self.cmd.em410x_write_to_em4x05(bytes.fromhex(id_hex), pwd)
+            print(f" - EM410x ID written to EM4305 and verified: {id_hex.upper()}")
+            return
+        if args.pwd is not None:
+            raise ArgsParserError("--pwd is only used with --em4305")
         if len(id_hex) not in (10, 26):
             raise ArgsParserError(
                 "Writing to T55xx supports 5-byte EM410X (10 hex) or 13-byte Electra (26 hex) IDs."
@@ -8079,36 +8100,103 @@ examples/notes:
             print(f" [*] {color_string((CY, 'No response'))}")
 
 
+def parse_em4x05_pwd(text):
+    """Parse an optional 8-hex-digit EM4x05 password; None means no LOGIN."""
+    if text is None:
+        return None
+    if not re.match(r"^[a-fA-F0-9]{8}$", text):
+        raise ArgsParserError("Password must be 8 hex characters")
+    return int(text, 16)
+
+
+def add_em4x05_pwd_arg(parser: ArgumentParserNoExit):
+    parser.add_argument(
+        "--pwd", type=str, metavar="<hex>", help="Password (8 hex) sent with LOGIN first"
+    )
+
+
+def parse_em4x05_block(parser_value):
+    if not 0 <= parser_value <= 15:
+        raise ArgsParserError("Block must be 0..15")
+    return parser_value
+
+
 @lf_em_4x05.command("read")
 class LFEm4x05Read(ReaderRequiredUnit):
     def args_parser(self) -> ArgumentParserNoExit:
         parser = ArgumentParserNoExit()
         parser.description = (
-            "Scan EM4x05 or EM4x69 tag (reader-talk-first) and print config, UID"
+            "Scan EM4205/EM4305 tag (reader-talk-first) and print config, UID"
         )
+        add_em4x05_pwd_arg(parser)
         return parser
 
     def on_exec(self, args: argparse.Namespace):
-        try:
-            pwd = int(args.pwd, 16) if hasattr(args, "pwd") and args.pwd else 0
-        except ValueError:
-            print(f"{CR}Invalid password, expected hex{C0}")
-            return
-        (config, uid, uid_hi, is_em4x69, uid_block) = self.cmd.em4x05_scan(pwd=pwd)
-        tag_label = "EM4x69" if is_em4x69 else "EM4x05"
-        rl = bool((config >> 6) & 1)
-        print(f" Tag type : {CG}{tag_label}{C0}")
+        pwd = parse_em4x05_pwd(args.pwd)
+        (config, uid, _uid_hi, _is_em4x69, uid_block) = self.cmd.em4x05_scan(pwd=pwd or 0)
+        print(f" Tag type : {CG}EM4x05{C0}")
+        print(f" UID      : {CG}{uid:08x}{C0} (block {uid_block})")
         print(f" Config   : {CG}{config:#010x}{C0}")
-        print(f" UID block: {CG}{uid_block}{C0}")
-        if rl:
-            print(
-                f" Auth     : {CG}LOGIN used (pwd={args.pwd.upper() if hasattr(args, 'pwd') and args.pwd else '00000000'}){C0}"
-            )
-        if is_em4x69:
-            uid64 = (uid_hi << 32) | uid
-            print(f" UID (64) : {CG}{uid64:016x}{C0}")
+        rate = ((config & 0x3F) + 1) * 2
+        encoder = {0: "NRZ", 1: "Manchester", 2: "Bi-phase", 3: "Miller"}.get(
+            (config >> 6) & 0xF, "other"
+        )
+        print(f"   {encoder}, RF/{rate}, last default-read word {(config >> 14) & 0xF}")
+        if (config >> 18) & 1:
+            print("   Read login required")
+        if (config >> 20) & 1:
+            print("   Write login required")
+
+
+@lf_em_4x05.command("rdbl")
+class LFEm4x05ReadBlock(ReaderRequiredUnit):
+    def args_parser(self) -> ArgumentParserNoExit:
+        parser = ArgumentParserNoExit()
+        parser.description = "Read one 32-bit word of an EM4205/EM4305 tag"
+        parser.add_argument("-b", "--block", type=int, required=True, help="Block 0..15")
+        add_em4x05_pwd_arg(parser)
+        return parser
+
+    def on_exec(self, args: argparse.Namespace):
+        block = parse_em4x05_block(args.block)
+        word = self.cmd.em4x05_read_word(block, parse_em4x05_pwd(args.pwd))
+        print(f" Block {block:2d}: {CG}{word:08X}{C0}")
+
+
+@lf_em_4x05.command("wrbl")
+class LFEm4x05WriteBlock(ReaderRequiredUnit):
+    def args_parser(self) -> ArgumentParserNoExit:
+        parser = ArgumentParserNoExit()
+        parser.description = (
+            "Write one 32-bit word to an EM4205/EM4305 tag and read it back. "
+            "Block 4 is the configuration word; a wrong value can make the tag unreadable."
+        )
+        parser.add_argument("-b", "--block", type=int, required=True, help="Block 0..15")
+        parser.add_argument("-d", "--data", type=str, required=True, metavar="<hex>", help="Word (8 hex)")
+        add_em4x05_pwd_arg(parser)
+        return parser
+
+    def on_exec(self, args: argparse.Namespace):
+        block = parse_em4x05_block(args.block)
+        if not re.match(r"^[a-fA-F0-9]{8}$", args.data):
+            raise ArgsParserError("Data must be 8 hex characters")
+        if block in (0, 1):
+            raise ArgsParserError("Blocks 0 and 1 are factory-programmed and read-only")
+        pwd = parse_em4x05_pwd(args.pwd)
+        word = int(args.data, 16)
+        self.cmd.em4x05_write_word(block, word, pwd)
+        if block == 2:
+            print(f" - Block 2 (password) written: {word:08X} (not readable back)")
+            return
+        try:
+            back = self.cmd.em4x05_read_word(block, pwd)
+        except Exception:
+            print(f" - Block {block} written, read-back failed (tag modulation may have changed)")
+            return
+        if back == word:
+            print(f" - Block {block} written and verified: {CG}{word:08X}{C0}")
         else:
-            print(f" UID      : {CG}{uid:08x}{C0}")
+            print(f" - {CR}Block {block} read back {back:08X}, expected {word:08X}{C0}")
 
 
 @lf.command("sniff")

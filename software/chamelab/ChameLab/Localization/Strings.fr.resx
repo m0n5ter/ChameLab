@@ -3360,4 +3360,31 @@
   <data name="Write_TargetUidChanged" xml:space="preserve">
     <value>L'UID cible a changé. Placez la même carte sur le lecteur pour continuer l'écriture.</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>Puce</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>Placez un tag EM4205 / EM4305 sur le lecteur. L’ID EM410x est relu après l’écriture pour le confirmer.</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>Écrire sur un tag EM4305</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>« {0} » a été écrit sur le tag EM4305.</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>Mot de passe (4 octets) d’un tag EM4305 qui exige une connexion pour l’écriture. Laissez vide pour un tag vierge.</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>Échec de l’écriture EM4305 : {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>Le tag a été écrit, mais son ID EM410x n’a pas pu être relu. Vérifiez qu’il s’agit d’un EM4205 / EM4305 ; s’il est protégé en écriture, saisissez son mot de passe et réessayez.</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>Le tag LF exige un mot de passe</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>Échec de la commande</value>
+  </data>
 </root>

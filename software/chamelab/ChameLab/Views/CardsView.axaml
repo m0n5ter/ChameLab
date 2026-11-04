@@ -746,16 +746,34 @@
                   </Border>
                 </StackPanel>
 
-                <!-- T55xx: current password (to unlock a locked tag) and the new password it's locked with -->
+                <!-- EM410x: clone onto a T55xx (default) or an EM4205 / EM4305 -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" IsVisible="{Binding CanWriteEm4305}" IsEnabled="{Binding !IsBusy}">
+                  <TextBlock Text="{x:Static loc:Strings.Cards_LfChip}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  <Border Grid.Column="1" Classes="segmented compact">
+                    <StackPanel Orientation="Horizontal">
+                      <RadioButton Classes="segment" IsChecked="{Binding WriteToT55xx}">
+                        <TextBlock Text="T55xx" FontWeight="SemiBold" />
+                      </RadioButton>
+                      <RadioButton Classes="segment" IsChecked="{Binding WriteToEm4305}">
+                        <TextBlock Text="EM4305" FontWeight="SemiBold" />
+                      </RadioButton>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+
+                <!-- T55xx: current password (to unlock a locked tag) and the new password it's locked with.
+                     EM4305: only the current password, sent with LOGIN when the tag is write-protected. -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsLfWrite}">
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="6">
                     <TextBlock Grid.Row="0" Text="{x:Static loc:Strings.Cards_CurrentPassword}" Classes="caption" VerticalAlignment="Center" />
                     <c:HexBox Grid.Row="0" Grid.Column="1" Text="{Binding WriteLfPassword}" ByteLengths="4"
                               IsEnabled="{Binding !IsBusy}" PlaceholderText="{x:Static loc:Strings.Cards_Optional}"
-                              ToolTip.Tip="{x:Static loc:Strings.Cards_Password4BytesOfAnAlready}" />
-                    <TextBlock Grid.Row="1" Text="{x:Static loc:Strings.Cards_NewPassword}" Classes="caption" VerticalAlignment="Center" />
+                              ToolTip.Tip="{Binding WriteLfPasswordTip}" />
+                    <TextBlock Grid.Row="1" Text="{x:Static loc:Strings.Cards_NewPassword}" Classes="caption" VerticalAlignment="Center"
+                               IsVisible="{Binding IsT55xxWrite}" />
                     <c:HexBox Grid.Row="1" Grid.Column="1" Text="{Binding WriteLfNewKey}" ByteLengths="4"
                               IsEnabled="{Binding !IsBusy}" PlaceholderText="{x:Static loc:Strings.Cards_KeepCurrent}"
+                              IsVisible="{Binding IsT55xxWrite}"
                               ToolTip.Tip="{x:Static loc:Strings.Cards_Password4BytesTheTagIs}" />
                   </Grid>
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteLfPasswordError}"

@@ -3360,4 +3360,31 @@
   <data name="Usb_WriteFailed" xml:space="preserve">
     <value>Ошибка записи по USB. Проверьте кабель и переподключите устройство.</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>Чип метки</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>Положите метку EM4205 / EM4305 на считыватель. После записи ID EM410x считывается обратно для проверки.</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>Запись на метку EM4305</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>«{0}» записана на метку EM4305.</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>Пароль (4 байта) метки EM4305, которая требует входа для записи. Для чистой метки оставьте пустым.</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>Не удалось записать EM4305: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>Метка записана, но её ID EM410x не считался обратно. Убедитесь, что это EM4205 / EM4305; если метка защищена от записи, введите её пароль и попробуйте снова.</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>Метка LF требует пароль</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>Команда не выполнена</value>
+  </data>
 </root>

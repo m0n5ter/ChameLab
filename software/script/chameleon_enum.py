@@ -195,6 +195,9 @@ class Command(enum.IntEnum):
     PYRAMID_GET_EMU_ID = 5901
 
     EM4X05_SCAN = 3030
+    EM410X_WRITE_TO_EM4X05 = 3034
+    EM4X05_WRITE_WORD = 3035
+    EM4X05_READ_WORD = 3036
     EM4X05_READSNIFF = 3032
     LF_SNIFF = 3031
 
@@ -215,6 +218,8 @@ class Status(enum.IntEnum):
     LF_TAG_OK = 0x40
     # Unable to search for a valid EM410X tag
     LF_TAG_NO_FOUND = 0x41
+    # The tag needs a LOGIN (password) before it answers
+    LF_TAG_LOGIN_REQUIRED = 0x42
 
     # The parameters passed by the BLE instruction are wrong, or the parameters passed
     # by calling some functions are wrong
@@ -227,6 +232,7 @@ class Status(enum.IntEnum):
     FLASH_WRITE_FAIL = 0x70
     FLASH_READ_FAIL = 0x71
     INVALID_SLOT_TYPE = 0x72
+    CMD_ERR = 0x75
 
     def __str__(self):
         if self == Status.HF_TAG_OK:
@@ -267,6 +273,10 @@ class Status(enum.IntEnum):
             return "Flash read failed"
         elif self == Status.INVALID_SLOT_TYPE:
             return "Invalid card type in slot"
+        elif self == Status.LF_TAG_LOGIN_REQUIRED:
+            return "LF tag requires a password (LOGIN)"
+        elif self == Status.CMD_ERR:
+            return "Command failed"
         return "Invalid status"
 
 

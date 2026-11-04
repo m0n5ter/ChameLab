@@ -3360,4 +3360,31 @@
   <data name="Write_TargetUidChanged" xml:space="preserve">
     <value>Die Ziel-UID hat sich geändert. Legen Sie dieselbe Karte auf das Lesegerät, um weiterzuschreiben.</value>
   </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>Chip</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>Legen Sie einen EM4205/EM4305-Tag auf das Lesegerät. Die EM410x-ID wird nach dem Schreiben zur Bestätigung zurückgelesen.</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>Auf EM4305-Tag schreiben</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>„{0}“ wurde auf den EM4305-Tag geschrieben.</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>Passwort (4 Bytes) eines EM4305-Tags, der zum Schreiben eine Anmeldung verlangt. Für einen leeren Tag leer lassen.</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>Schreiben auf EM4305 fehlgeschlagen: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>Der Tag wurde beschrieben, aber seine EM410x-ID ließ sich nicht zurücklesen. Prüfen Sie, ob es ein EM4205/EM4305 ist; ist er schreibgeschützt, geben Sie sein Passwort ein und versuchen Sie es erneut.</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>LF-Tag verlangt ein Passwort</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>Befehl fehlgeschlagen</value>
+  </data>
 </root>
