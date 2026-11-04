@@ -3387,4 +3387,16 @@
   <data name="Status_CmdErr" xml:space="preserve">
     <value>Команда не выполнена</value>
   </data>
+  <data name="Settings_UpdateChannel" xml:space="preserve">
+    <value>Канал обновлений</value>
+  </data>
+  <data name="Settings_UpdateChannelCaption" xml:space="preserve">
+    <value>Стабильные релизы или тестовые сборки с последними изменениями</value>
+  </data>
+  <data name="Settings_UpdateChannelStable" xml:space="preserve">
+    <value>Стабильный</value>
+  </data>
+  <data name="Settings_UpdateChannelDev" xml:space="preserve">
+    <value>Разработка</value>
+  </data>
 </root>

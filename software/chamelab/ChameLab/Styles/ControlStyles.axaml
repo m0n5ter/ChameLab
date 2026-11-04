@@ -1233,4 +1233,26 @@
     <Setter Property="Foreground" Value="{DynamicResource BrandRedBrush}" />
   </Style>
 
+  <!-- Draws the eye to something waiting, such as the top bar's app update icon. Set the class
+       only while it applies: the animation runs for as long as the class is on. -->
+  <Style Selector="PathIcon.pulse">
+    <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    <Style.Animations>
+      <Animation Duration="0:0:1.6" IterationCount="INFINITE" Easing="SineEaseInOut">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="1" />
+          <Setter Property="RenderTransform" Value="scale(1)" />
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="Opacity" Value="0.35" />
+          <Setter Property="RenderTransform" Value="scale(1.3)" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+          <Setter Property="RenderTransform" Value="scale(1)" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
 </Styles>

@@ -3387,4 +3387,16 @@
   <data name="Status_CmdErr" xml:space="preserve">
     <value>命令失败</value>
   </data>
+  <data name="Settings_UpdateChannel" xml:space="preserve">
+    <value>更新通道</value>
+  </data>
+  <data name="Settings_UpdateChannelCaption" xml:space="preserve">
+    <value>稳定版本，或包含最新更改的测试版本</value>
+  </data>
+  <data name="Settings_UpdateChannelStable" xml:space="preserve">
+    <value>稳定版</value>
+  </data>
+  <data name="Settings_UpdateChannelDev" xml:space="preserve">
+    <value>开发版</value>
+  </data>
 </root>

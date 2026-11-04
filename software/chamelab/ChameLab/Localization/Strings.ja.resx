@@ -3387,4 +3387,16 @@
   <data name="Status_CmdErr" xml:space="preserve">
     <value>コマンドが失敗しました</value>
   </data>
+  <data name="Settings_UpdateChannel" xml:space="preserve">
+    <value>アップデートチャネル</value>
+  </data>
+  <data name="Settings_UpdateChannelCaption" xml:space="preserve">
+    <value>安定版リリース、または最新の変更を含むテストビルド</value>
+  </data>
+  <data name="Settings_UpdateChannelStable" xml:space="preserve">
+    <value>安定版</value>
+  </data>
+  <data name="Settings_UpdateChannelDev" xml:space="preserve">
+    <value>開発版</value>
+  </data>
 </root>

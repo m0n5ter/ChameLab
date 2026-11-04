@@ -3387,4 +3387,16 @@
   <data name="Status_CmdErr" xml:space="preserve">
     <value>명령 실패</value>
   </data>
+  <data name="Settings_UpdateChannel" xml:space="preserve">
+    <value>업데이트 채널</value>
+  </data>
+  <data name="Settings_UpdateChannelCaption" xml:space="preserve">
+    <value>안정 릴리스 또는 최신 변경 사항이 담긴 테스트 빌드</value>
+  </data>
+  <data name="Settings_UpdateChannelStable" xml:space="preserve">
+    <value>안정</value>
+  </data>
+  <data name="Settings_UpdateChannelDev" xml:space="preserve">
+    <value>개발</value>
+  </data>
 </root>

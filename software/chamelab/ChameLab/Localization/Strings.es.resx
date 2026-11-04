@@ -3387,4 +3387,16 @@
   <data name="Status_CmdErr" xml:space="preserve">
     <value>El comando falló</value>
   </data>
+  <data name="Settings_UpdateChannel" xml:space="preserve">
+    <value>Canal de actualizaciones</value>
+  </data>
+  <data name="Settings_UpdateChannelCaption" xml:space="preserve">
+    <value>Versiones estables o compilaciones de prueba con los últimos cambios</value>
+  </data>
+  <data name="Settings_UpdateChannelStable" xml:space="preserve">
+    <value>Estable</value>
+  </data>
+  <data name="Settings_UpdateChannelDev" xml:space="preserve">
+    <value>Desarrollo</value>
+  </data>
 </root>

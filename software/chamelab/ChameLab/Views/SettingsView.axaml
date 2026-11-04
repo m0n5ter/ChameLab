@@ -144,6 +144,18 @@
           <!-- App update check: the web app is always current, so it has none. -->
           <!-- The status gets the full width; the buttons wrap under each other on a narrow screen. -->
           <StackPanel Spacing="8" IsVisible="{Binding AppUpdate.IsSupported}">
+            <c:SettingRow Classes="setting">
+              <Border Classes="iconwell blue"><PathIcon Data="{StaticResource Icon.upload}" /></Border>
+              <TextBlock Text="{x:Static loc:Strings.Settings_UpdateChannel}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_UpdateChannelCaption}" />
+              <ComboBox Classes="control" ItemsSource="{Binding AppUpdate.Channels}" SelectedItem="{Binding AppUpdate.Channel}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:UpdateChannelOption">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </c:SettingRow>
             <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding AppUpdate.Message}"
                        IsVisible="{Binding AppUpdate.Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             <WrapPanel ItemSpacing="8" LineSpacing="8">
