@@ -52,7 +52,7 @@ main { max-width: 1200px; padding: 0 32px 32px; margin: auto; }
 .device-top, .device-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; font-size: .875rem; letter-spacing: .1em; color: var(--muted); }
 .device-label { padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; font-size: .8rem; white-space: nowrap; }
 .device-image { min-height: 300px; display: grid; place-items: center; background: radial-gradient(ellipse, #d6ba8112, transparent 68%); }
-.device-image img { display: block; width: min(100%, 280px); height: auto; filter: drop-shadow(0 22px 18px #0007); }
+.device-image img { display: block; width: auto; max-width: 100%; height: min(340px, 45vh); filter: drop-shadow(0 22px 18px #0007); }
 .device-bottom { border-top: 1px solid var(--line); padding-top: 18px; letter-spacing: .01em; }
 .device-bottom .status-dot { margin-right: 8px; background: var(--new); }
 .platforms { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; border-block: 1px solid var(--line); color: var(--muted); font-size: .875rem; }
@@ -137,7 +137,7 @@ footer .social svg { width: 1em; height: 1em; margin-right: .35em; vertical-alig
 @media (max-width: 960px) {
   .hero { gap: 32px; padding-top: 56px; }
   .device-card { padding: 18px; }
-  .device-image { min-height: 260px; }
+  .device-image { min-height: 240px; }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .platform-license { display: none; }
   .nav-links { gap: 18px; }
@@ -157,8 +157,8 @@ footer .social svg { width: 1em; height: 1em; margin-right: .35em; vertical-alig
   .hero h1 { font-size: clamp(2.7rem, 9vw, 4rem); }
   .hero .eyebrow { font-size: .8rem; letter-spacing: .06em; }
   .hero p:not(.eyebrow) { font-size: 1rem; margin: 22px 0; }
-  .device-image { min-height: 210px; }
-  .device-image img { width: 210px; }
+  .device-image { min-height: 200px; }
+  .device-image img { height: 220px; }
   .device-bottom { font-size: .875rem; }
   .platforms { align-items: flex-start; flex-direction: column; gap: 12px; padding: 20px 0; }
   .platforms ul { gap: 10px 22px; font-size: .875rem; }
