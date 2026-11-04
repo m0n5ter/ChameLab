@@ -10,7 +10,7 @@ using ChameLab.Protocol;
 using ChameLab.Transport;
 using ChameLab.Localization;
 
-namespace ChameLab.Desktop;
+namespace ChameLab.Transport.Serial;
 
 /// <summary>Serial (USB-CDC) transport backed by <see cref="SerialPort"/>.</summary>
 public sealed class SerialTransport(string portName) : ITransport

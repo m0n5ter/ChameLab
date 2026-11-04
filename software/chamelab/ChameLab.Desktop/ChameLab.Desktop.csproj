@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="System.IO.Ports" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" >
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
@@ -21,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
+    <ProjectReference Include="..\ChameLab.Serial\ChameLab.Serial.csproj" />
   </ItemGroup>
 
 

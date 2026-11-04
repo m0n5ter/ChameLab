@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 namespace ChameLab.Services;
 
 /// <summary>Persistent choices, independent of which dictionaries are currently displayed.</summary>
-internal static class KeySourceSelection
+public static class KeySourceSelection
 {
     private const string Setting = "dumpUncheckedDictionaries";
 

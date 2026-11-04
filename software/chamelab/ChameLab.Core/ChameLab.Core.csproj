@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>ChameLab</RootNamespace>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <EmbeddedResource Update="Localization/Strings.resx">
+      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>ChameLab.Localization</StronglyTypedNamespace>
+      <StronglyTypedClassName>Strings</StronglyTypedClassName>
+      <PublicClass>true</PublicClass>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Crypto/Hardnested/tables.bin" LogicalName="ChameLab.Hardnested.Tables" />
+    <InternalsVisibleTo Include="ChameLab.Tests" />
+  </ItemGroup>
+</Project>

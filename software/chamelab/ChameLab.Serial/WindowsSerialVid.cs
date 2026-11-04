@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Microsoft.Win32;
 
-namespace ChameLab.Desktop;
+namespace ChameLab.Transport.Serial;
 
 /// <summary>
 /// Maps a COM port name to its USB VID on Windows by walking

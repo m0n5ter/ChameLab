@@ -1,4 +1,5 @@
-﻿using System;
+using ChameLab.Transport.Serial;
+using System;
 using Avalonia;
 using ReactiveUI.Avalonia;
 using ChameLab.Services;

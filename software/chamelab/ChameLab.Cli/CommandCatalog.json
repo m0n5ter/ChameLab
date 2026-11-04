@@ -1,0 +1,6434 @@
+[
+  {
+    "name": "hw slot list",
+    "description": "Get information about slots",
+    "options": [
+      {
+        "names": [
+          "--short"
+        ],
+        "dest": "short",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Hide slot nicknames and Mifare Classic emulator settings",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot prng",
+    "description": "Get or set the PRNG type for the MF1 emulator of a slot. PRNG controls the nonce used during MIFARE Classic authentication: 0=Static (fixed), 1=Weak (LFSR/predictable), 2=Hard (unpredictable). Omit --type to read the current setting.",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          0,
+          1,
+          2
+        ],
+        "help": "PRNG type: 0=Static, 1=Weak, 2=Hard",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hw slot change",
+    "description": "Set emulation tag slot activated",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot type",
+    "description": "Set emulation tag type",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "EM410X",
+          "EM410X_16",
+          "EM410X_32",
+          "EM410X_64",
+          "EM410X_ELECTRA",
+          "PAC",
+          "Viking",
+          "Jablotron",
+          "HIDProx",
+          "ioProx",
+          "Pyramid",
+          "IDTECK",
+          "MIFARE_Mini",
+          "MIFARE_1024",
+          "MIFARE_2048",
+          "MIFARE_4096",
+          "NTAG_213",
+          "NTAG_215",
+          "NTAG_216",
+          "MF0ICU1",
+          "MF0ICU2",
+          "MF0UL11",
+          "MF0UL21",
+          "NTAG_210",
+          "NTAG_212",
+          "HF14A_4",
+          "SEOS"
+        ],
+        "help": "Tag Type: EM410X, EM410X_16, EM410X_32, EM410X_64, EM410X_ELECTRA, PAC, Viking, Jablotron, HIDProx, ioProx, Pyramid, IDTECK, MIFARE_Mini, MIFARE_1024, MIFARE_2048, MIFARE_4096, NTAG_213, NTAG_215, NTAG_216, MF0ICU1, MF0ICU2, MF0UL11, MF0UL21, NTAG_210, NTAG_212, HF14A_4, SEOS",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot delete",
+    "description": "Delete sense type data for a specific slot",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--hf"
+        ],
+        "dest": "hf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "HF type",
+        "const": true
+      },
+      {
+        "names": [
+          "--lf"
+        ],
+        "dest": "lf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "LF type",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": true,
+        "members": [
+          1,
+          2
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot init",
+    "description": "Set emulation tag data to default",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "EM410X",
+          "EM410X_16",
+          "EM410X_32",
+          "EM410X_64",
+          "EM410X_ELECTRA",
+          "PAC",
+          "Viking",
+          "Jablotron",
+          "HIDProx",
+          "ioProx",
+          "Pyramid",
+          "IDTECK",
+          "MIFARE_Mini",
+          "MIFARE_1024",
+          "MIFARE_2048",
+          "MIFARE_4096",
+          "NTAG_213",
+          "NTAG_215",
+          "NTAG_216",
+          "MF0ICU1",
+          "MF0ICU2",
+          "MF0UL11",
+          "MF0UL21",
+          "NTAG_210",
+          "NTAG_212",
+          "HF14A_4",
+          "SEOS"
+        ],
+        "help": "Tag Type: EM410X, EM410X_16, EM410X_32, EM410X_64, EM410X_ELECTRA, PAC, Viking, Jablotron, HIDProx, ioProx, Pyramid, IDTECK, MIFARE_Mini, MIFARE_1024, MIFARE_2048, MIFARE_4096, NTAG_213, NTAG_215, NTAG_216, MF0ICU1, MF0ICU2, MF0UL11, MF0UL21, NTAG_210, NTAG_212, HF14A_4, SEOS",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot enable",
+    "description": "Enable tag slot",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--hf"
+        ],
+        "dest": "hf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "HF type",
+        "const": true
+      },
+      {
+        "names": [
+          "--lf"
+        ],
+        "dest": "lf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "LF type",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": true,
+        "members": [
+          1,
+          2
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot disable",
+    "description": "Disable tag slot",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--hf"
+        ],
+        "dest": "hf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "HF type",
+        "const": true
+      },
+      {
+        "names": [
+          "--lf"
+        ],
+        "dest": "lf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "LF type",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": true,
+        "members": [
+          1,
+          2
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot nick",
+    "description": "Get/Set/Delete tag nick name for slot",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--hf"
+        ],
+        "dest": "hf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "HF type",
+        "const": true
+      },
+      {
+        "names": [
+          "--lf"
+        ],
+        "dest": "lf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "LF type",
+        "const": true
+      },
+      {
+        "names": [
+          "-n",
+          "--name"
+        ],
+        "dest": "name",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Set tag nick name for slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-d",
+          "--delete"
+        ],
+        "dest": "delete",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Delete tag nick name for slot",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": true,
+        "members": [
+          1,
+          2
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          3,
+          4
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot color",
+    "description": "Get/Set the LED color shown for the tag of a slot",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--hf"
+        ],
+        "dest": "hf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "HF type",
+        "const": true
+      },
+      {
+        "names": [
+          "--lf"
+        ],
+        "dest": "lf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "LF type",
+        "const": true
+      },
+      {
+        "names": [
+          "-c",
+          "--color"
+        ],
+        "dest": "color",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Set the LED color, e.g. FF5722",
+        "const": null
+      },
+      {
+        "names": [
+          "-d",
+          "--default"
+        ],
+        "dest": "default",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Go back to the default HF / LF color",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": true,
+        "members": [
+          1,
+          2
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          3,
+          4
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot store",
+    "description": "Store slots config & data to device flash",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw slot openall",
+    "description": "Open all slot and set to default data",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings animation",
+    "description": "Get or change current animation mode value",
+    "options": [
+      {
+        "names": [
+          "-m",
+          "--mode"
+        ],
+        "dest": "mode",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "FULL",
+          "MINIMAL",
+          "SYMMETRIC",
+          "NONE"
+        ],
+        "help": "Mode: FULL, MINIMAL, SYMMETRIC, NONE",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings sleeptimeout",
+    "description": "Get or set the inactivity timeout before deep sleep (5-60 seconds)",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--seconds"
+        ],
+        "dest": "seconds",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Wake timeout in seconds (5-60)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings bleclearbonds",
+    "description": "Clear all BLE bindings. Warning: effect is immediate!",
+    "options": [
+      {
+        "names": [
+          "--force"
+        ],
+        "dest": "force",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Just to be sure",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings store",
+    "description": "Store current settings to flash",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings reset",
+    "description": "Reset settings to default values",
+    "options": [
+      {
+        "names": [
+          "--force"
+        ],
+        "dest": "force",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Just to be sure",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings btnpress",
+    "description": "Get or set button press function of Button A and Button B",
+    "options": [
+      {
+        "names": [
+          "-a",
+          "-A"
+        ],
+        "dest": "a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Button A",
+        "const": true
+      },
+      {
+        "names": [
+          "-b",
+          "-B"
+        ],
+        "dest": "b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Button B",
+        "const": true
+      },
+      {
+        "names": [
+          "-s",
+          "--short"
+        ],
+        "dest": "short",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Short-press (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "-l",
+          "--long"
+        ],
+        "dest": "long",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Long-press",
+        "const": true
+      },
+      {
+        "names": [
+          "-f",
+          "--function"
+        ],
+        "dest": "function",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "NONE",
+          "NEXTSLOT",
+          "PREVSLOT",
+          "CLONE",
+          "BATTERY",
+          "FIELDGEN"
+        ],
+        "help": "Function: NONE (No Function), NEXTSLOT (Select next slot), PREVSLOT (Select previous slot), CLONE (Read then simulate the ID/UID card number), BATTERY (Show Battery Level), FIELDGEN (Toggle NFC Field Generator)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          0,
+          1
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          2,
+          3
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings blekey",
+    "description": "Get or set the ble connect key",
+    "options": [
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Ble connect key for your device",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings blepair",
+    "description": "Show or configure BLE pairing",
+    "options": [
+      {
+        "names": [
+          "-e",
+          "--enable"
+        ],
+        "dest": "enable",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Enable BLE pairing",
+        "const": true
+      },
+      {
+        "names": [
+          "-d",
+          "--disable"
+        ],
+        "dest": "disable",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Disable BLE pairing",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          0,
+          1
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw settings longpressthreshold",
+    "description": "Get or set the long button press threshold (200-65535 ms)",
+    "options": [
+      {
+        "names": [
+          "-d",
+          "--duration"
+        ],
+        "dest": "duration",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Threshold in milliseconds (200-65535)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw connect",
+    "description": "Connect to chameleon by serial port",
+    "options": [
+      {
+        "names": [
+          "-p",
+          "--port"
+        ],
+        "dest": "port",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": null,
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw disconnect",
+    "description": "Disconnect chameleon",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw mode",
+    "description": "Get or change device mode: tag reader or tag emulator",
+    "options": [
+      {
+        "names": [
+          "-r",
+          "--reader"
+        ],
+        "dest": "reader",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Set reader mode",
+        "const": true
+      },
+      {
+        "names": [
+          "-e",
+          "--emulator"
+        ],
+        "dest": "emulator",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Set emulator mode",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          0,
+          1
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw chipid",
+    "description": "Get device chipset ID",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw address",
+    "description": "Get device address (used with Bluetooth)",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw version",
+    "description": "Get current device firmware version",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw dfu",
+    "description": "Restart application to bootloader/DFU mode",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw factory_reset",
+    "description": "Wipe all slot data and custom settings and return to factory settings",
+    "options": [
+      {
+        "names": [
+          "--force"
+        ],
+        "dest": "force",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Just to be sure",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw battery",
+    "description": "Get battery information, voltage and level",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw raw",
+    "description": "Send raw command",
+    "options": [
+      {
+        "names": [
+          "-c",
+          "--command"
+        ],
+        "dest": "command",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "ADC_GENERIC_READ",
+          "CHANGE_DEVICE_MODE",
+          "DELETE_ALL_BLE_BONDS",
+          "DELETE_SLOT_SENSE_TYPE",
+          "DELETE_SLOT_TAG_NICK",
+          "EM410X_ELECTRA_WRITE_TO_T55XX",
+          "EM410X_GET_EMU_ID",
+          "EM410X_SCAN",
+          "EM410X_SET_EMU_ID",
+          "EM410X_WRITE_TO_T55XX",
+          "EM4X05_READSNIFF",
+          "EM4X05_SCAN",
+          "ENTER_BOOTLOADER",
+          "GET_ACTIVE_SLOT",
+          "GET_ALL_SLOT_COLORS",
+          "GET_ALL_SLOT_NICKS",
+          "GET_ANIMATION_MODE",
+          "GET_APP_VERSION",
+          "GET_BATTERY_INFO",
+          "GET_BATTERY_INFO_EX",
+          "GET_BLE_PAIRING_ENABLE",
+          "GET_BLE_PAIRING_KEY",
+          "GET_BUTTON_PRESS_CONFIG",
+          "GET_DEVICE_ADDRESS",
+          "GET_DEVICE_CAPABILITIES",
+          "GET_DEVICE_CHIP_ID",
+          "GET_DEVICE_MODE",
+          "GET_DEVICE_MODEL",
+          "GET_DEVICE_SETTINGS",
+          "GET_ENABLED_SLOTS",
+          "GET_GIT_VERSION",
+          "GET_LONG_BUTTON_PRESS_CONFIG",
+          "GET_LONG_PRESS_THRESHOLD",
+          "GET_SLEEP_TIMEOUT",
+          "GET_SLOT_INFO",
+          "GET_SLOT_TAG_NICK",
+          "HF14A_4_APDU_RECV",
+          "HF14A_4_APDU_SEND",
+          "HF14A_4_EMV_SCAN",
+          "HF14A_4_READER_APDU",
+          "HF14A_4_SET_ANTI_COLL",
+          "HF14A_4_STATIC_RESP",
+          "HF14A_AUTH_TRACE",
+          "HF14A_GET_ANTI_COLL_DATA",
+          "HF14A_GET_CONFIG",
+          "HF14A_RAW",
+          "HF14A_SCAN",
+          "HF14A_SCAN_KEEP",
+          "HF14A_SET_ANTI_COLL_DATA",
+          "HF14A_SET_CONFIG",
+          "HF14A_SNIFF",
+          "HIDPROX_GET_EMU_ID",
+          "HIDPROX_SCAN",
+          "HIDPROX_SET_EMU_ID",
+          "HIDPROX_WRITE_TO_T55XX",
+          "IDTECK_GET_EMU_ID",
+          "IDTECK_SET_EMU_ID",
+          "IDTECK_WRITE_TO_T55XX",
+          "IOPROX_COMPOSE_ID",
+          "IOPROX_DECODE_RAW",
+          "IOPROX_GET_EMU_ID",
+          "IOPROX_SCAN",
+          "IOPROX_SET_EMU_ID",
+          "IOPROX_WRITE_TO_T55XX",
+          "JABLOTRON_GET_EMU_ID",
+          "JABLOTRON_SCAN",
+          "JABLOTRON_SET_EMU_ID",
+          "JABLOTRON_WRITE_TO_T55XX",
+          "LF_SNIFF",
+          "LF_T55XX_WRITE",
+          "MF0_NTAG_GET_COUNTER_DATA",
+          "MF0_NTAG_GET_DETECTION_COUNT",
+          "MF0_NTAG_GET_DETECTION_ENABLE",
+          "MF0_NTAG_GET_DETECTION_LOG",
+          "MF0_NTAG_GET_EMULATOR_CONFIG",
+          "MF0_NTAG_GET_PAGE_COUNT",
+          "MF0_NTAG_GET_SIGNATURE_DATA",
+          "MF0_NTAG_GET_UID_MAGIC_MODE",
+          "MF0_NTAG_GET_VERSION_DATA",
+          "MF0_NTAG_GET_WRITE_MODE",
+          "MF0_NTAG_READ_EMU_PAGE_DATA",
+          "MF0_NTAG_RESET_AUTH_CNT",
+          "MF0_NTAG_SET_COUNTER_DATA",
+          "MF0_NTAG_SET_DETECTION_ENABLE",
+          "MF0_NTAG_SET_SIGNATURE_DATA",
+          "MF0_NTAG_SET_UID_MAGIC_MODE",
+          "MF0_NTAG_SET_VERSION_DATA",
+          "MF0_NTAG_SET_WRITE_MODE",
+          "MF0_NTAG_WRITE_EMU_PAGE_DATA",
+          "MF0_ULC_AUTH",
+          "MF0_ULC_READ",
+          "MF0_ULC_SET_KEY",
+          "MF0_ULC_WRITE",
+          "MF1_AUTH_ONE_KEY_BLOCK",
+          "MF1_CHECK_KEYS_OF_SECTORS",
+          "MF1_CHECK_KEYS_ON_BLOCK",
+          "MF1_DARKSIDE_ACQUIRE",
+          "MF1_DETECT_NT_DIST",
+          "MF1_DETECT_PRNG",
+          "MF1_DETECT_SUPPORT",
+          "MF1_ENC_NESTED_ACQUIRE",
+          "MF1_GET_BLOCK_ANTI_COLL_MODE",
+          "MF1_GET_DETECTION_COUNT",
+          "MF1_GET_DETECTION_ENABLE",
+          "MF1_GET_DETECTION_LOG",
+          "MF1_GET_EMULATOR_CONFIG",
+          "MF1_GET_FIELD_OFF_DO_RESET",
+          "MF1_GET_GEN1A_MODE",
+          "MF1_GET_GEN2_MODE",
+          "MF1_GET_PRNG_TYPE",
+          "MF1_GET_WRITE_MODE",
+          "MF1_HARDNESTED_ACQUIRE",
+          "MF1_MANIPULATE_VALUE_BLOCK",
+          "MF1_NESTED_ACQUIRE",
+          "MF1_READ_EMU_BLOCK_DATA",
+          "MF1_READ_ONE_BLOCK",
+          "MF1_SET_BLOCK_ANTI_COLL_MODE",
+          "MF1_SET_DETECTION_ENABLE",
+          "MF1_SET_FIELD_OFF_DO_RESET",
+          "MF1_SET_GEN1A_MODE",
+          "MF1_SET_GEN2_MODE",
+          "MF1_SET_PRNG_TYPE",
+          "MF1_SET_WRITE_MODE",
+          "MF1_STATIC_NESTED_ACQUIRE",
+          "MF1_WRITE_EMU_BLOCK_DATA",
+          "MF1_WRITE_ONE_BLOCK",
+          "PAC_GET_EMU_ID",
+          "PAC_SCAN",
+          "PAC_SET_EMU_ID",
+          "PAC_WRITE_TO_T55XX",
+          "PYRAMID_GET_EMU_ID",
+          "PYRAMID_SCAN",
+          "PYRAMID_SET_EMU_ID",
+          "RESET_SETTINGS",
+          "SAVE_SETTINGS",
+          "SEOS_READ_EMU_DATA",
+          "SEOS_WRITE_EMU_DATA",
+          "SEOS_WRITE_EMU_KEYS",
+          "SET_ACTIVE_SLOT",
+          "SET_ANIMATION_MODE",
+          "SET_BLE_PAIRING_ENABLE",
+          "SET_BLE_PAIRING_KEY",
+          "SET_BUTTON_PRESS_CONFIG",
+          "SET_LONG_BUTTON_PRESS_CONFIG",
+          "SET_LONG_PRESS_THRESHOLD",
+          "SET_SLEEP_TIMEOUT",
+          "SET_SLOT_COLOR",
+          "SET_SLOT_DATA_DEFAULT",
+          "SET_SLOT_ENABLE",
+          "SET_SLOT_TAG_NICK",
+          "SET_SLOT_TAG_TYPE",
+          "SLOT_DATA_CONFIG_SAVE",
+          "VIKING_GET_EMU_ID",
+          "VIKING_SCAN",
+          "VIKING_SET_EMU_ID",
+          "VIKING_WRITE_TO_T55XX",
+          "WIPE_FDS"
+        ],
+        "help": "Command: ADC_GENERIC_READ, CHANGE_DEVICE_MODE, DELETE_ALL_BLE_BONDS, DELETE_SLOT_SENSE_TYPE, DELETE_SLOT_TAG_NICK, EM410X_ELECTRA_WRITE_TO_T55XX, EM410X_GET_EMU_ID, EM410X_SCAN, EM410X_SET_EMU_ID, EM410X_WRITE_TO_T55XX, EM4X05_READSNIFF, EM4X05_SCAN, ENTER_BOOTLOADER, GET_ACTIVE_SLOT, GET_ALL_SLOT_COLORS, GET_ALL_SLOT_NICKS, GET_ANIMATION_MODE, GET_APP_VERSION, GET_BATTERY_INFO, GET_BATTERY_INFO_EX, GET_BLE_PAIRING_ENABLE, GET_BLE_PAIRING_KEY, GET_BUTTON_PRESS_CONFIG, GET_DEVICE_ADDRESS, GET_DEVICE_CAPABILITIES, GET_DEVICE_CHIP_ID, GET_DEVICE_MODE, GET_DEVICE_MODEL, GET_DEVICE_SETTINGS, GET_ENABLED_SLOTS, GET_GIT_VERSION, GET_LONG_BUTTON_PRESS_CONFIG, GET_LONG_PRESS_THRESHOLD, GET_SLEEP_TIMEOUT, GET_SLOT_INFO, GET_SLOT_TAG_NICK, HF14A_4_APDU_RECV, HF14A_4_APDU_SEND, HF14A_4_EMV_SCAN, HF14A_4_READER_APDU, HF14A_4_SET_ANTI_COLL, HF14A_4_STATIC_RESP, HF14A_AUTH_TRACE, HF14A_GET_ANTI_COLL_DATA, HF14A_GET_CONFIG, HF14A_RAW, HF14A_SCAN, HF14A_SCAN_KEEP, HF14A_SET_ANTI_COLL_DATA, HF14A_SET_CONFIG, HF14A_SNIFF, HIDPROX_GET_EMU_ID, HIDPROX_SCAN, HIDPROX_SET_EMU_ID, HIDPROX_WRITE_TO_T55XX, IDTECK_GET_EMU_ID, IDTECK_SET_EMU_ID, IDTECK_WRITE_TO_T55XX, IOPROX_COMPOSE_ID, IOPROX_DECODE_RAW, IOPROX_GET_EMU_ID, IOPROX_SCAN, IOPROX_SET_EMU_ID, IOPROX_WRITE_TO_T55XX, JABLOTRON_GET_EMU_ID, JABLOTRON_SCAN, JABLOTRON_SET_EMU_ID, JABLOTRON_WRITE_TO_T55XX, LF_SNIFF, LF_T55XX_WRITE, MF0_NTAG_GET_COUNTER_DATA, MF0_NTAG_GET_DETECTION_COUNT, MF0_NTAG_GET_DETECTION_ENABLE, MF0_NTAG_GET_DETECTION_LOG, MF0_NTAG_GET_EMULATOR_CONFIG, MF0_NTAG_GET_PAGE_COUNT, MF0_NTAG_GET_SIGNATURE_DATA, MF0_NTAG_GET_UID_MAGIC_MODE, MF0_NTAG_GET_VERSION_DATA, MF0_NTAG_GET_WRITE_MODE, MF0_NTAG_READ_EMU_PAGE_DATA, MF0_NTAG_RESET_AUTH_CNT, MF0_NTAG_SET_COUNTER_DATA, MF0_NTAG_SET_DETECTION_ENABLE, MF0_NTAG_SET_SIGNATURE_DATA, MF0_NTAG_SET_UID_MAGIC_MODE, MF0_NTAG_SET_VERSION_DATA, MF0_NTAG_SET_WRITE_MODE, MF0_NTAG_WRITE_EMU_PAGE_DATA, MF0_ULC_AUTH, MF0_ULC_READ, MF0_ULC_SET_KEY, MF0_ULC_WRITE, MF1_AUTH_ONE_KEY_BLOCK, MF1_CHECK_KEYS_OF_SECTORS, MF1_CHECK_KEYS_ON_BLOCK, MF1_DARKSIDE_ACQUIRE, MF1_DETECT_NT_DIST, MF1_DETECT_PRNG, MF1_DETECT_SUPPORT, MF1_ENC_NESTED_ACQUIRE, MF1_GET_BLOCK_ANTI_COLL_MODE, MF1_GET_DETECTION_COUNT, MF1_GET_DETECTION_ENABLE, MF1_GET_DETECTION_LOG, MF1_GET_EMULATOR_CONFIG, MF1_GET_FIELD_OFF_DO_RESET, MF1_GET_GEN1A_MODE, MF1_GET_GEN2_MODE, MF1_GET_PRNG_TYPE, MF1_GET_WRITE_MODE, MF1_HARDNESTED_ACQUIRE, MF1_MANIPULATE_VALUE_BLOCK, MF1_NESTED_ACQUIRE, MF1_READ_EMU_BLOCK_DATA, MF1_READ_ONE_BLOCK, MF1_SET_BLOCK_ANTI_COLL_MODE, MF1_SET_DETECTION_ENABLE, MF1_SET_FIELD_OFF_DO_RESET, MF1_SET_GEN1A_MODE, MF1_SET_GEN2_MODE, MF1_SET_PRNG_TYPE, MF1_SET_WRITE_MODE, MF1_STATIC_NESTED_ACQUIRE, MF1_WRITE_EMU_BLOCK_DATA, MF1_WRITE_ONE_BLOCK, PAC_GET_EMU_ID, PAC_SCAN, PAC_SET_EMU_ID, PAC_WRITE_TO_T55XX, PYRAMID_GET_EMU_ID, PYRAMID_SCAN, PYRAMID_SET_EMU_ID, RESET_SETTINGS, SAVE_SETTINGS, SEOS_READ_EMU_DATA, SEOS_WRITE_EMU_DATA, SEOS_WRITE_EMU_KEYS, SET_ACTIVE_SLOT, SET_ANIMATION_MODE, SET_BLE_PAIRING_ENABLE, SET_BLE_PAIRING_KEY, SET_BUTTON_PRESS_CONFIG, SET_LONG_BUTTON_PRESS_CONFIG, SET_LONG_PRESS_THRESHOLD, SET_SLEEP_TIMEOUT, SET_SLOT_COLOR, SET_SLOT_DATA_DEFAULT, SET_SLOT_ENABLE, SET_SLOT_TAG_NICK, SET_SLOT_TAG_TYPE, SLOT_DATA_CONFIG_SAVE, VIKING_GET_EMU_ID, VIKING_SCAN, VIKING_SET_EMU_ID, VIKING_WRITE_TO_T55XX, WIPE_FDS",
+        "const": null
+      },
+      {
+        "names": [
+          "-n",
+          "--num_command"
+        ],
+        "dest": "num_command",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Numeric command ID: <dec>",
+        "const": null
+      },
+      {
+        "names": [
+          "-d",
+          "--data"
+        ],
+        "dest": "data",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": "",
+        "choices": null,
+        "help": "Data to send",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 3,
+        "choices": null,
+        "help": "Timeout in seconds",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": true,
+        "members": [
+          0,
+          1
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf 14a config",
+    "description": "Configure 14a settings (use with caution)",
+    "options": [
+      {
+        "names": [
+          "--std"
+        ],
+        "dest": "std",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Reset default configuration (follow standard)",
+        "const": true
+      },
+      {
+        "names": [
+          "--bcc"
+        ],
+        "dest": "bcc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "std",
+          "fix",
+          "ignore"
+        ],
+        "help": "follow standard / fix bad BCC / ignore bad BCC, always use card BCC",
+        "const": null
+      },
+      {
+        "names": [
+          "--cl2"
+        ],
+        "dest": "cl2",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "std",
+          "force",
+          "skip"
+        ],
+        "help": "follow standard / always do CL2 / always skip CL2",
+        "const": null
+      },
+      {
+        "names": [
+          "--cl3"
+        ],
+        "dest": "cl3",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "std",
+          "force",
+          "skip"
+        ],
+        "help": "follow standard / always do CL3 / always skip CL3",
+        "const": null
+      },
+      {
+        "names": [
+          "--rats"
+        ],
+        "dest": "rats",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "std",
+          "force",
+          "skip"
+        ],
+        "help": "follow standard / always do RATS / always skip RATS",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf 14a scan",
+    "description": "Scan 14a tag, and print basic information",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf 14a info",
+    "description": "Capture ISO14443A reader frames while CU acts as a tag. Place CU near a reader — all commands the reader sends are logged. Useful for understanding what a reader expects before configuring emulation.",
+    "options": [
+      {
+        "names": [
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 5000,
+        "choices": null,
+        "help": "Listen duration in milliseconds (default: 5000, max: 30000, firmware blocks for full duration)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf 14a raw",
+    "description": "Send raw command",
+    "options": [
+      {
+        "names": [
+          "-a",
+          "--activate-rf"
+        ],
+        "dest": "activate_rf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Active signal field ON without select",
+        "const": true
+      },
+      {
+        "names": [
+          "-s",
+          "--select-tag"
+        ],
+        "dest": "select_tag",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Active signal field ON with select",
+        "const": true
+      },
+      {
+        "names": [
+          "-d",
+          "--data"
+        ],
+        "dest": "data",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Data to be sent",
+        "const": null
+      },
+      {
+        "names": [
+          "-b",
+          "--bits"
+        ],
+        "dest": "bits",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Number of bits to send. Useful for send partial byte",
+        "const": null
+      },
+      {
+        "names": [
+          "-c",
+          "--crc"
+        ],
+        "dest": "crc",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Calculate and append CRC",
+        "const": true
+      },
+      {
+        "names": [
+          "-r",
+          "--no-response"
+        ],
+        "dest": "no_response",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Do not read response",
+        "const": true
+      },
+      {
+        "names": [
+          "-cc",
+          "--crc-clear"
+        ],
+        "dest": "crc_clear",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Verify and clear CRC of received data",
+        "const": true
+      },
+      {
+        "names": [
+          "-k",
+          "--keep-rf"
+        ],
+        "dest": "keep_rf",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Keep signal field ON after receive",
+        "const": true
+      },
+      {
+        "names": [
+          "-t",
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 100,
+        "choices": null,
+        "help": "Timeout in ms",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf 14a sniff",
+    "description": "Capture ISO14443A reader frames while CU acts as a tag. Place CU near a reader — all commands the reader sends are logged. Useful for understanding what a reader expects before configuring emulation.",
+    "options": [
+      {
+        "names": [
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 5000,
+        "choices": null,
+        "help": "Listen duration in milliseconds (default: 5000, max: 30000, firmware blocks for full duration)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf 14a auth-trace",
+    "description": "Run a full reader-side ISO14443A + MIFARE Classic Crypto1 auth against a real card and print every wire frame: REQA → ATQA → anticoll/SELECT → SAK → (RATS/ATS) → AUTH(0x60/0x61) → NT → NR||AR (enc) → AT (enc), with host-side Crypto1 decryption of the auth sub-frames for verification.",
+    "options": [
+      {
+        "names": [
+          "--blk",
+          "--block"
+        ],
+        "dest": "blk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Target block number",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "-A"
+        ],
+        "dest": "a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Use Key A (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "-b",
+          "-B"
+        ],
+        "dest": "b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Use Key B",
+        "const": true
+      },
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "6-byte sector key (12 hex chars)",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 5000,
+        "choices": null,
+        "help": "Tag-presence polling timeout in ms (1-30000, default 5000)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          1,
+          2
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf nested",
+    "description": "Mifare Classic nested recover key",
+    "options": [
+      {
+        "names": [
+          "--blk",
+          "--known-block"
+        ],
+        "dest": "blk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Known key block number",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "-A"
+        ],
+        "dest": "a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is A key (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "-b",
+          "-B"
+        ],
+        "dest": "b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is B key",
+        "const": true
+      },
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Known key",
+        "const": null
+      },
+      {
+        "names": [
+          "--tblk",
+          "--target-block"
+        ],
+        "dest": "tblk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Target key block number",
+        "const": null
+      },
+      {
+        "names": [
+          "--ta",
+          "--tA"
+        ],
+        "dest": "ta",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Target A key (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "--tb",
+          "--tB"
+        ],
+        "dest": "tb",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Target B key",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          1,
+          2
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          5,
+          6
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf darkside",
+    "description": "Mifare Classic darkside recover key",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf hardnested",
+    "description": "Mifare Classic hardnested recover key ",
+    "options": [
+      {
+        "names": [
+          "--blk",
+          "--known-block"
+        ],
+        "dest": "blk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Known key block number",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "-A"
+        ],
+        "dest": "a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is A key (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "-b",
+          "-B"
+        ],
+        "dest": "b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is B key",
+        "const": true
+      },
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Known key",
+        "const": null
+      },
+      {
+        "names": [
+          "--tblk",
+          "--target-block"
+        ],
+        "dest": "tblk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Target key block number",
+        "const": null
+      },
+      {
+        "names": [
+          "--ta",
+          "--tA"
+        ],
+        "dest": "ta",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Target A key (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "--tb",
+          "--tB"
+        ],
+        "dest": "tb",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Target B key",
+        "const": true
+      },
+      {
+        "names": [
+          "--slow"
+        ],
+        "dest": "slow",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Use slower acquisition mode (more nonces)",
+        "const": true
+      },
+      {
+        "names": [
+          "--keep-nonce-file"
+        ],
+        "dest": "keep_nonce_file",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Keep the generated nonce file (nonces.bin)",
+        "const": true
+      },
+      {
+        "names": [
+          "--max-runs"
+        ],
+        "dest": "max_runs",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 200,
+        "choices": null,
+        "help": "Maximum acquisition runs per attempt before giving up (default: 200)",
+        "const": null
+      },
+      {
+        "names": [
+          "--max-attempts"
+        ],
+        "dest": "max_attempts",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 3,
+        "choices": null,
+        "help": "Maximum acquisition attempts if MSB sum is invalid (default: 3)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          1,
+          2
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          5,
+          6
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf senested",
+    "description": "Mifare Classic static encrypted recover key via backdoor",
+    "options": [
+      {
+        "names": [
+          "--key",
+          "-k"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": "A396EFA4E24F",
+        "choices": null,
+        "help": "Backdoor key (as hex[12] format), currently known: A396EFA4E24F (default), A31667A8CEC1, 518B3354E760. See https://eprint.iacr.org/2024/1275",
+        "const": null
+      },
+      {
+        "names": [
+          "--sectors",
+          "-s"
+        ],
+        "dest": "sectors",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 16,
+        "choices": null,
+        "help": "Sector count",
+        "const": null
+      },
+      {
+        "names": [
+          "--starting-sector"
+        ],
+        "dest": "starting_sector",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 0,
+        "choices": null,
+        "help": "Start recovery from this sector",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf autopwn",
+    "description": "Mifare Classic auto recovery tool",
+    "options": [
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Known key",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf fchk",
+    "description": "Mifare Classic fast key check on sectors",
+    "options": [
+      {
+        "names": [
+          "--mini"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic Mini / S20",
+        "const": 5
+      },
+      {
+        "names": [
+          "--1k"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic 1k / S50 (default)",
+        "const": 16
+      },
+      {
+        "names": [
+          "--2k"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic/Plus 2k",
+        "const": 32
+      },
+      {
+        "names": [
+          "--4k"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic 4k / S70",
+        "const": 40
+      },
+      {
+        "names": [],
+        "dest": "keys",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": "*",
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Key (as hex[12] format)",
+        "const": null
+      },
+      {
+        "names": [
+          "--key"
+        ],
+        "dest": "import_key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Read keys from .key format file",
+        "const": null
+      },
+      {
+        "names": [
+          "--dic"
+        ],
+        "dest": "import_dic",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Read keys from .dic format file",
+        "const": null
+      },
+      {
+        "names": [
+          "--export-key"
+        ],
+        "dest": "export_key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Export result as .key format, file will be \u001b[31mOVERWRITTEN\u001b[0m if exists",
+        "const": null
+      },
+      {
+        "names": [
+          "--export-dic"
+        ],
+        "dest": "export_dic",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Export result as .dic format, file will be \u001b[31mOVERWRITTEN\u001b[0m if exists",
+        "const": null
+      },
+      {
+        "names": [
+          "-m",
+          "--mask"
+        ],
+        "dest": "mask",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": "00000000000000000000",
+        "choices": null,
+        "help": "Which sectorKey to be skip, 1 bit per sectorKey. `0b1` represent to skip to check. (in hex[20] format)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf rdbl",
+    "description": "Mifare Classic read one block",
+    "options": [
+      {
+        "names": [
+          "--blk",
+          "--block"
+        ],
+        "dest": "blk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "The block where the key of the card is known",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "-A"
+        ],
+        "dest": "a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is A key (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "-b",
+          "-B"
+        ],
+        "dest": "b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is B key",
+        "const": true
+      },
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "tag sector key",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          1,
+          2
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf wrbl",
+    "description": "Mifare Classic write one block",
+    "options": [
+      {
+        "names": [
+          "--blk",
+          "--block"
+        ],
+        "dest": "blk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "The block where the key of the card is known",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "-A"
+        ],
+        "dest": "a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is A key (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "-b",
+          "-B"
+        ],
+        "dest": "b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Known key is B key",
+        "const": true
+      },
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "tag sector key",
+        "const": null
+      },
+      {
+        "names": [
+          "-d",
+          "--data"
+        ],
+        "dest": "data",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Your block data, as hex string.",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          1,
+          2
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf view",
+    "description": "Display content from tag memory or dump file",
+    "options": [
+      {
+        "names": [
+          "--mini"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic Mini / S20",
+        "const": 5
+      },
+      {
+        "names": [
+          "--1k"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic 1k / S50 (default)",
+        "const": 16
+      },
+      {
+        "names": [
+          "--2k"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic/Plus 2k",
+        "const": 32
+      },
+      {
+        "names": [
+          "--4k"
+        ],
+        "dest": "maxSectors",
+        "required": false,
+        "action": "_StoreConstAction",
+        "nargs": 0,
+        "type": null,
+        "default": 16,
+        "choices": null,
+        "help": "MIFARE Classic 4k / S70",
+        "const": 40
+      },
+      {
+        "names": [
+          "-d",
+          "--dump-file"
+        ],
+        "dest": "dump_file",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Dump file to read",
+        "const": null
+      },
+      {
+        "names": [
+          "-k",
+          "--key-file"
+        ],
+        "dest": "key_file",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "File containing keys of tag to write (exported with fchk --export)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf dump",
+    "description": "Mifare Classic dump tag",
+    "options": [
+      {
+        "names": [
+          "-t",
+          "--dump-file-type"
+        ],
+        "dest": "dump_file_type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "bin",
+          "hex"
+        ],
+        "help": "Dump file content type",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--dump-file"
+        ],
+        "dest": "dump_file",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Dump file to write data from tag",
+        "const": null
+      },
+      {
+        "names": [
+          "-d",
+          "--dic"
+        ],
+        "dest": "dic",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Read keys (to communicate with tag to dump) from .dic format file",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf clone",
+    "description": "Mifare Classic clone tag from dump",
+    "options": [
+      {
+        "names": [
+          "-t",
+          "--dump-file-type"
+        ],
+        "dest": "dump_file_type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "bin",
+          "hex"
+        ],
+        "help": "Dump file content type",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "--clone-access"
+        ],
+        "dest": "clone_access",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "bool",
+        "default": false,
+        "choices": null,
+        "help": "Write ACL from original dump too (! could brick your tag)",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--dump-file"
+        ],
+        "dest": "dump_file",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Dump file containing data to write on new tag",
+        "const": null
+      },
+      {
+        "names": [
+          "-d",
+          "--dic"
+        ],
+        "dest": "dic",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Read keys (to communicate with tag to write) from .dic format file",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf value",
+    "description": "MIFARE Classic value block commands",
+    "options": [
+      {
+        "names": [
+          "--get"
+        ],
+        "dest": "get",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "get value from src block",
+        "const": true
+      },
+      {
+        "names": [
+          "--set"
+        ],
+        "dest": "set",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "set value X (-2147483647 ~ 2147483647) to src block",
+        "const": null
+      },
+      {
+        "names": [
+          "--inc"
+        ],
+        "dest": "inc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "increment value by X (0 ~ 2147483647) from src to dst",
+        "const": null
+      },
+      {
+        "names": [
+          "--dec"
+        ],
+        "dest": "dec",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "decrement value by X (0 ~ 2147483647) from src to dst",
+        "const": null
+      },
+      {
+        "names": [
+          "--res",
+          "--cp"
+        ],
+        "dest": "res",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "copy value from src to dst (Restore and Transfer)",
+        "const": true
+      },
+      {
+        "names": [
+          "--blk",
+          "--src-block"
+        ],
+        "dest": "blk",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "block number of src",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "-A"
+        ],
+        "dest": "a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "key of src is A key (default)",
+        "const": true
+      },
+      {
+        "names": [
+          "-b",
+          "-B"
+        ],
+        "dest": "b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "key of src is B key",
+        "const": true
+      },
+      {
+        "names": [
+          "-k",
+          "--src-key"
+        ],
+        "dest": "src_key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "key of src",
+        "const": null
+      },
+      {
+        "names": [
+          "--tblk",
+          "--dst-block"
+        ],
+        "dest": "tblk",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "block number of dst (default to src)",
+        "const": null
+      },
+      {
+        "names": [
+          "--ta",
+          "--tA"
+        ],
+        "dest": "ta",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "key of dst is A key (default to src)",
+        "const": true
+      },
+      {
+        "names": [
+          "--tb",
+          "--tB"
+        ],
+        "dest": "tb",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "key of dst is B key (default to src)",
+        "const": true
+      },
+      {
+        "names": [
+          "--tkey",
+          "--dst-key"
+        ],
+        "dest": "tkey",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "key of dst (default to src)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          6,
+          7
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          10,
+          11
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf elog",
+    "description": "MF1 Detection log count/decrypt",
+    "options": [
+      {
+        "names": [
+          "--decrypt"
+        ],
+        "dest": "decrypt",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Decrypt key from MF1 log list",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mf eload",
+    "description": "Load data to emulator memory",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "file path",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "bin",
+          "hex"
+        ],
+        "help": "content type",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf mf esave",
+    "description": "Read data from emulator memory",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "file path",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "bin",
+          "hex"
+        ],
+        "help": "content type",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf mf eview",
+    "description": "View data from emulator memory",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf mf econfig",
+    "description": "Settings of Mifare Classic emulator",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--uid"
+        ],
+        "dest": "uid",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Unique ID",
+        "const": null
+      },
+      {
+        "names": [
+          "--atqa"
+        ],
+        "dest": "atqa",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Answer To Request",
+        "const": null
+      },
+      {
+        "names": [
+          "--sak"
+        ],
+        "dest": "sak",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Select AcKnowledge",
+        "const": null
+      },
+      {
+        "names": [
+          "--ats"
+        ],
+        "dest": "ats",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Answer To Select",
+        "const": null
+      },
+      {
+        "names": [
+          "--delete-ats"
+        ],
+        "dest": "delete_ats",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Delete Answer To Select",
+        "const": true
+      },
+      {
+        "names": [
+          "--enable-gen1a"
+        ],
+        "dest": "enable_gen1a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Enable Gen1a magic mode",
+        "const": true
+      },
+      {
+        "names": [
+          "--disable-gen1a"
+        ],
+        "dest": "disable_gen1a",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Disable Gen1a magic mode",
+        "const": true
+      },
+      {
+        "names": [
+          "--enable-gen2"
+        ],
+        "dest": "enable_gen2",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Enable Gen2 magic mode",
+        "const": true
+      },
+      {
+        "names": [
+          "--disable-gen2"
+        ],
+        "dest": "disable_gen2",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Disable Gen2 magic mode",
+        "const": true
+      },
+      {
+        "names": [
+          "--enable-block0"
+        ],
+        "dest": "enable_block0",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Use anti-collision data from block 0 for 4 byte UID tags",
+        "const": true
+      },
+      {
+        "names": [
+          "--disable-block0"
+        ],
+        "dest": "disable_block0",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Use anti-collision data from settings",
+        "const": true
+      },
+      {
+        "names": [
+          "--write"
+        ],
+        "dest": "write",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "NORMAL",
+          "DENIED",
+          "DECEIVE",
+          "SHADOW"
+        ],
+        "help": "Write Mode: NORMAL, DENIED, DECEIVE, SHADOW",
+        "const": null
+      },
+      {
+        "names": [
+          "--enable-log"
+        ],
+        "dest": "enable_log",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Enable logging of MFC authentication data",
+        "const": true
+      },
+      {
+        "names": [
+          "--disable-log"
+        ],
+        "dest": "disable_log",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Disable logging of MFC authentication data",
+        "const": true
+      },
+      {
+        "names": [
+          "--enable_field_off_do_reset"
+        ],
+        "dest": "enable_field_off_do_reset",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Enable FIELD_OFF_DO_RESET",
+        "const": true
+      },
+      {
+        "names": [
+          "--disable_field_off_do_reset"
+        ],
+        "dest": "disable_field_off_do_reset",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Disable FIELD_OFF_DO_RESET",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          4,
+          5
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          6,
+          7
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          8,
+          9
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          10,
+          11
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          13,
+          14
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          15,
+          16
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf mfu ercnt",
+    "description": "Read MIFARE Ultralight / NTAG counter value.",
+    "options": [
+      {
+        "names": [
+          "-c",
+          "--counter"
+        ],
+        "dest": "counter",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Counter index.",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu ewcnt",
+    "description": "Write MIFARE Ultralight / NTAG counter value.",
+    "options": [
+      {
+        "names": [
+          "-c",
+          "--counter"
+        ],
+        "dest": "counter",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Counter index.",
+        "const": null
+      },
+      {
+        "names": [
+          "-v",
+          "--value"
+        ],
+        "dest": "value",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Counter value (24-bit).",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--reset-tearing"
+        ],
+        "dest": "reset_tearing",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Reset tearing event flag.",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu rdpg",
+    "description": "MIFARE Ultralight / NTAG read one page",
+    "options": [
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "key_parser",
+        "default": null,
+        "choices": null,
+        "help": "Authentication key: 4 bytes (UL EV1/NTAG password) or 16 bytes (Ultralight-C 3DES key, cipher order).",
+        "const": null
+      },
+      {
+        "names": [
+          "-l"
+        ],
+        "dest": "swap_endian",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Swap endianness of the key.",
+        "const": true
+      },
+      {
+        "names": [
+          "-p",
+          "--page"
+        ],
+        "dest": "page",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "The page where the key will be used against",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu wrpg",
+    "description": "MIFARE Ultralight / NTAG write one page",
+    "options": [
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "key_parser",
+        "default": null,
+        "choices": null,
+        "help": "Authentication key: 4 bytes (UL EV1/NTAG password) or 16 bytes (Ultralight-C 3DES key, cipher order).",
+        "const": null
+      },
+      {
+        "names": [
+          "-l"
+        ],
+        "dest": "swap_endian",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Swap endianness of the key.",
+        "const": true
+      },
+      {
+        "names": [
+          "-p",
+          "--page"
+        ],
+        "dest": "page",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "The index of the page to write to.",
+        "const": null
+      },
+      {
+        "names": [
+          "-d",
+          "--data"
+        ],
+        "dest": "data",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "fromhex",
+        "default": null,
+        "choices": null,
+        "help": "Your page data, as a 4 byte (8 character) hex string.",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu setkey",
+    "description": "Change the MIFARE Ultralight C 3DES key (authenticate with the current key, then write the new key)",
+    "options": [
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "key16",
+        "default": null,
+        "choices": null,
+        "help": "Current 16-byte 3DES key (cipher order).",
+        "const": null
+      },
+      {
+        "names": [
+          "-n",
+          "--new-key"
+        ],
+        "dest": "new_key",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "key16",
+        "default": null,
+        "choices": null,
+        "help": "New 16-byte 3DES key (cipher order).",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu eview",
+    "description": "MIFARE Ultralight / NTAG view emulator data",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu eload",
+    "description": "MIFARE Ultralight / NTAG load emulator data",
+    "options": [
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "File to load data from.",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "bin",
+          "hex"
+        ],
+        "help": "Force writing as either raw binary or hex.",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu esave",
+    "description": "MIFARE Ultralight / NTAG save emulator data",
+    "options": [
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "File to save data to.",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "bin",
+          "hex"
+        ],
+        "help": "Force writing as either raw binary or hex.",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu rcnt",
+    "description": "MIFARE Ultralight / NTAG read counter",
+    "options": [
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "key_parser",
+        "default": null,
+        "choices": null,
+        "help": "Authentication key: 4 bytes (UL EV1/NTAG password) or 16 bytes (Ultralight-C 3DES key, cipher order).",
+        "const": null
+      },
+      {
+        "names": [
+          "-l"
+        ],
+        "dest": "swap_endian",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Swap endianness of the key.",
+        "const": true
+      },
+      {
+        "names": [
+          "-c",
+          "--counter"
+        ],
+        "dest": "counter",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Index of the counter to read (always 0 for NTAG, 0-2 for Ultralight EV1).",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu dump",
+    "description": "MIFARE Ultralight dump pages",
+    "options": [
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "key_parser",
+        "default": null,
+        "choices": null,
+        "help": "Authentication key: 4 bytes (UL EV1/NTAG password) or 16 bytes (Ultralight-C 3DES key, cipher order).",
+        "const": null
+      },
+      {
+        "names": [
+          "-l"
+        ],
+        "dest": "swap_endian",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Swap endianness of the key.",
+        "const": true
+      },
+      {
+        "names": [
+          "-p",
+          "--page"
+        ],
+        "dest": "page",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 0,
+        "choices": null,
+        "help": "Manually set number of pages to dump",
+        "const": null
+      },
+      {
+        "names": [
+          "-q",
+          "--qty"
+        ],
+        "dest": "qty",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Manually set number of pages to dump",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": "",
+        "choices": null,
+        "help": "Specify a filename for dump file",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "bin",
+          "hex"
+        ],
+        "help": "Force writing as either raw binary or hex.",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu version",
+    "description": "Request MIFARE Ultralight / NTAG version data.",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu signature",
+    "description": "Request MIFARE Ultralight / NTAG ECC signature data.",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu authnonce",
+    "description": "Get authentication nonce from MIFARE Ultralight C tag.",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu ulcg",
+    "description": "Key recovery for Giantec ULCG and USCUID-UL cards (won't work on NXP cards!)",
+    "options": [
+      {
+        "names": [
+          "-c",
+          "--challenges"
+        ],
+        "dest": "challenges",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 1000,
+        "choices": null,
+        "help": "Number of challenges to collect (default: 1000)",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--threads"
+        ],
+        "dest": "threads",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 1,
+        "choices": null,
+        "help": "Number of threads for key recovery (default: 1)",
+        "const": null
+      },
+      {
+        "names": [
+          "-j",
+          "--json"
+        ],
+        "dest": "json",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Path to JSON file to load or save challenges",
+        "const": null
+      },
+      {
+        "names": [
+          "-o",
+          "--offline"
+        ],
+        "dest": "offline",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Use offline mode with pre-collected challenges",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf mfu econfig",
+    "description": "Settings of Mifare Ultralight / NTAG emulator",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--uid"
+        ],
+        "dest": "uid",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Unique ID",
+        "const": null
+      },
+      {
+        "names": [
+          "--atqa"
+        ],
+        "dest": "atqa",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Answer To Request",
+        "const": null
+      },
+      {
+        "names": [
+          "--sak"
+        ],
+        "dest": "sak",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Select AcKnowledge",
+        "const": null
+      },
+      {
+        "names": [
+          "--ats"
+        ],
+        "dest": "ats",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Answer To Select",
+        "const": null
+      },
+      {
+        "names": [
+          "--delete-ats"
+        ],
+        "dest": "delete_ats",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Delete Answer To Select",
+        "const": true
+      },
+      {
+        "names": [
+          "--enable-uid-magic"
+        ],
+        "dest": "enable_uid_magic",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Enable UID magic mode",
+        "const": true
+      },
+      {
+        "names": [
+          "--disable-uid-magic"
+        ],
+        "dest": "disable_uid_magic",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Disable UID magic mode",
+        "const": true
+      },
+      {
+        "names": [
+          "--write"
+        ],
+        "dest": "write",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "NORMAL",
+          "DENIED",
+          "DECEIVE",
+          "SHADOW"
+        ],
+        "help": "Write Mode: NORMAL, DENIED, DECEIVE, SHADOW",
+        "const": null
+      },
+      {
+        "names": [
+          "--set-version"
+        ],
+        "dest": "set_version",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "fromhex",
+        "default": null,
+        "choices": null,
+        "help": "Set data to be returned by the GET_VERSION command.",
+        "const": null
+      },
+      {
+        "names": [
+          "--set-signature"
+        ],
+        "dest": "set_signature",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "fromhex",
+        "default": null,
+        "choices": null,
+        "help": "Set data to be returned by the READ_SIG command.",
+        "const": null
+      },
+      {
+        "names": [
+          "--reset-auth-cnt"
+        ],
+        "dest": "reset_auth_cnt",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Resets the counter of unsuccessful authentication attempts.",
+        "const": true
+      },
+      {
+        "names": [
+          "--enable-log"
+        ],
+        "dest": "enable_log",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Enable password authentication logging",
+        "const": true
+      },
+      {
+        "names": [
+          "--disable-log"
+        ],
+        "dest": "disable_log",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Disable password authentication logging",
+        "const": true
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          4,
+          5
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          6,
+          7
+        ]
+      },
+      {
+        "required": false,
+        "members": [
+          12,
+          13
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf mfu edetect",
+    "description": "Get Mifare Ultralight / NTAG emulator detection logs",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--count"
+        ],
+        "dest": "count",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Number of log entries to retrieve",
+        "const": null
+      },
+      {
+        "names": [
+          "--index"
+        ],
+        "dest": "index",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 0,
+        "choices": null,
+        "help": "Starting index (default: 0)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf des info",
+    "description": "Get MIFARE DESFire card information (version, UID, AIDs).",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf des chk",
+    "description": "Check DESFire keys against a card (dictionary / pattern / single key). Tries DES, 2TDEA, and AES for each key. Iterates all AIDs on card unless --aid is specified.",
+    "options": [
+      {
+        "names": [
+          "--aid"
+        ],
+        "dest": "aid",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Target AID (3 hex bytes, e.g. 123456). Default: PICC master (000000) + all apps.",
+        "const": null
+      },
+      {
+        "names": [
+          "-n",
+          "--keyno"
+        ],
+        "dest": "keyno",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 0,
+        "choices": null,
+        "help": "Key number to authenticate with (default: 0)",
+        "const": null
+      },
+      {
+        "names": [
+          "-k",
+          "--key"
+        ],
+        "dest": "key",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Single key to try (8, 16 or 24 hex bytes)",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Dictionary file (one hex key per line)",
+        "const": null
+      },
+      {
+        "names": [
+          "--pattern1b"
+        ],
+        "dest": "pattern1b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Try all 1-byte patterns (0000..00, 0101..01, ..., FFFF..FF) for DES and AES",
+        "const": true
+      },
+      {
+        "names": [
+          "--pattern2b"
+        ],
+        "dest": "pattern2b",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Try all 2-byte patterns for AES (0000..00 to FFFF..FF, step 0x0101)",
+        "const": true
+      },
+      {
+        "names": [
+          "-t",
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 5000,
+        "choices": null,
+        "help": "Card presence timeout ms (default 5000)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "hf seos eview",
+    "description": "View data from emulator memory",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf seos eload",
+    "description": "Load data into emulator memory",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--uid"
+        ],
+        "dest": "uid",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Unique ID",
+        "const": null
+      },
+      {
+        "names": [
+          "--atqa"
+        ],
+        "dest": "atqa",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Answer To Request",
+        "const": null
+      },
+      {
+        "names": [
+          "--sak"
+        ],
+        "dest": "sak",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Select AcKnowledge",
+        "const": null
+      },
+      {
+        "names": [
+          "--ats"
+        ],
+        "dest": "ats",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Answer To Select",
+        "const": null
+      },
+      {
+        "names": [
+          "--delete-ats"
+        ],
+        "dest": "delete_ats",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Delete Answer To Select",
+        "const": true
+      },
+      {
+        "names": [
+          "-d",
+          "--data"
+        ],
+        "dest": "data",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Data to present to reader (2-255 bytes). Must be valid BER-TLV.",
+        "const": null
+      },
+      {
+        "names": [
+          "-o",
+          "--oid"
+        ],
+        "dest": "oid",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Target OID (1-32 bytes).",
+        "const": null
+      },
+      {
+        "names": [
+          "-t",
+          "--tag"
+        ],
+        "dest": "tag",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Tag of presented data (1-2 bytes).",
+        "const": null
+      },
+      {
+        "names": [
+          "--diversifier"
+        ],
+        "dest": "diversifier",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Simulated card diversifier (1-16 bytes).",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          4,
+          5
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "hf seos keys",
+    "description": "Load data into emulator memory",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-a",
+          "--auth"
+        ],
+        "dest": "auth",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Auth key (16 bytes)",
+        "const": null
+      },
+      {
+        "names": [
+          "-e",
+          "--privenc"
+        ],
+        "dest": "privenc",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "PrivEnc key (16 bytes)",
+        "const": null
+      },
+      {
+        "names": [
+          "-m",
+          "--privmac"
+        ],
+        "dest": "privmac",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "PrivMac key (16 bytes)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf em 4x05 read",
+    "description": "Scan EM4x05 or EM4x69 tag (reader-talk-first) and print config, UID",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf em 410x read",
+    "description": "Scan em410x tag and print id",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf em 410x write",
+    "description": "Write em410x id to t55xx",
+    "options": [
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "EM410x tag id",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf em 410x econfig",
+    "description": "Set emulated em410x card id",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "EM410x tag id",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf hid prox read",
+    "description": "Scan hid prox tag and print card format, facility code, card number, issue level and OEM code",
+    "options": [
+      {
+        "names": [
+          "-f",
+          "--format"
+        ],
+        "dest": "format",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "H10301",
+          "IND26",
+          "IND27",
+          "INDASC27",
+          "TECOM27",
+          "W2804",
+          "IND29",
+          "ATSW30",
+          "ADT31",
+          "HCP32",
+          "HPP32",
+          "KASTLE",
+          "KANTECH",
+          "WIE32",
+          "D10202",
+          "H10306",
+          "N10002",
+          "OPTUS34",
+          "SMP34",
+          "BQT34",
+          "C1K35S",
+          "C15001",
+          "S12906",
+          "ACTPHID",
+          "SIE36",
+          "H10320",
+          "H10302",
+          "H10304",
+          "P10004",
+          "HGEN37",
+          "MDI37"
+        ],
+        "help": "HIDProx card format hint",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf hid prox write",
+    "description": "Write hidprox card data to t55xx",
+    "options": [
+      {
+        "names": [
+          "-f",
+          "--format"
+        ],
+        "dest": "format",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "H10301",
+          "IND26",
+          "IND27",
+          "INDASC27",
+          "TECOM27",
+          "W2804",
+          "IND29",
+          "ATSW30",
+          "ADT31",
+          "HCP32",
+          "HPP32",
+          "KASTLE",
+          "KANTECH",
+          "WIE32",
+          "D10202",
+          "H10306",
+          "N10002",
+          "OPTUS34",
+          "SMP34",
+          "BQT34",
+          "C1K35S",
+          "C15001",
+          "S12906",
+          "ACTPHID",
+          "SIE36",
+          "H10320",
+          "H10302",
+          "H10304",
+          "P10004",
+          "HGEN37",
+          "MDI37"
+        ],
+        "help": "HIDProx card format",
+        "const": null
+      },
+      {
+        "names": [
+          "--fc"
+        ],
+        "dest": "fc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag facility code",
+        "const": null
+      },
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag card number",
+        "const": null
+      },
+      {
+        "names": [
+          "--il"
+        ],
+        "dest": "il",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag issue level",
+        "const": null
+      },
+      {
+        "names": [
+          "--oem"
+        ],
+        "dest": "oem",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag OEM",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf hid prox econfig",
+    "description": "Set emulated hidprox card id",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--format"
+        ],
+        "dest": "format",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "H10301",
+          "IND26",
+          "IND27",
+          "INDASC27",
+          "TECOM27",
+          "W2804",
+          "IND29",
+          "ATSW30",
+          "ADT31",
+          "HCP32",
+          "HPP32",
+          "KASTLE",
+          "KANTECH",
+          "WIE32",
+          "D10202",
+          "H10306",
+          "N10002",
+          "OPTUS34",
+          "SMP34",
+          "BQT34",
+          "C1K35S",
+          "C15001",
+          "S12906",
+          "ACTPHID",
+          "SIE36",
+          "H10320",
+          "H10302",
+          "H10304",
+          "P10004",
+          "HGEN37",
+          "MDI37"
+        ],
+        "help": "HIDProx card format",
+        "const": null
+      },
+      {
+        "names": [
+          "--fc"
+        ],
+        "dest": "fc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag facility code",
+        "const": null
+      },
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag card number",
+        "const": null
+      },
+      {
+        "names": [
+          "--il"
+        ],
+        "dest": "il",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag issue level",
+        "const": null
+      },
+      {
+        "names": [
+          "--oem"
+        ],
+        "dest": "oem",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "HIDProx tag OEM",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf ioprox read",
+    "description": "Scan ioProx tag and print version, facility, card number and raw",
+    "options": [
+      {
+        "names": [
+          "-v",
+          "--verbose"
+        ],
+        "dest": "verbose",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Verbose output",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf ioprox write",
+    "description": "Write ioProx card data to t55xx",
+    "options": [
+      {
+        "names": [
+          "--ver"
+        ],
+        "dest": "ver",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "ioProx version",
+        "const": null
+      },
+      {
+        "names": [
+          "--fc"
+        ],
+        "dest": "fc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "ioProx facility code, e.g., 83 or 0x53",
+        "const": null
+      },
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "ioProx card number",
+        "const": null
+      },
+      {
+        "names": [
+          "--raw8"
+        ],
+        "dest": "raw8",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "ioProx raw 8 bytes hex (e.g. 00AABBCCDDEEFF55)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf ioprox econfig",
+    "description": "Set/Get emulated ioProx card id (stored in slot)",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--ver"
+        ],
+        "dest": "ver",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "ioProx version",
+        "const": null
+      },
+      {
+        "names": [
+          "--fc"
+        ],
+        "dest": "fc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "ioProx facility code, e.g., 83 or 0x53",
+        "const": null
+      },
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "ioProx card number",
+        "const": null
+      },
+      {
+        "names": [
+          "--raw8"
+        ],
+        "dest": "raw8",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "ioProx raw 8 bytes hex (e.g. 00AABBCCDDEEFF55)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf pac read",
+    "description": "Scan PAC/Stanley tag and print card ID",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf pac write",
+    "description": "Write PAC/Stanley id to T55xx",
+    "options": [
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Card number (8 ASCII characters, e.g. CARD0001)",
+        "const": null
+      },
+      {
+        "names": [
+          "--raw"
+        ],
+        "dest": "raw",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "T55XX bitstream (32 hex chars, PM3 raw format)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": true,
+        "members": [
+          0,
+          1
+        ]
+      }
+    ],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf pac econfig",
+    "description": "Set emulated PAC/Stanley card ID",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Card number (8 ASCII characters, e.g. CARD0001)",
+        "const": null
+      },
+      {
+        "names": [
+          "--raw"
+        ],
+        "dest": "raw",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "T55XX bitstream (32 hex chars, PM3 raw format)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          1,
+          2
+        ]
+      }
+    ],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf viking read",
+    "description": "Scan Viking tag and print id",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf viking write",
+    "description": "Write Viking id to t55xx",
+    "options": [
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Viking tag id",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf viking econfig",
+    "description": "Set emulated Viking card id",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Viking tag id",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf jablotron read",
+    "description": "Scan Jablotron tag and print id",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf jablotron write",
+    "description": "Write Jablotron id to t55xx",
+    "options": [
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Jablotron tag id (5 bytes hex)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf jablotron econfig",
+    "description": "Set emulated Jablotron card id",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Jablotron tag id (5 bytes hex)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf generic adcread",
+    "description": "Read ADC and return the array",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf idteck write",
+    "description": "Clone an IDTECK PSK1 frame onto a T55xx tag.",
+    "options": [
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "IDTECK frame in hex: 16 chars for the full 64-bit frame, or 8 chars for the 32-bit payload only (preamble 4944544B is auto-prepended).",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf idteck econfig",
+    "description": "Get or set the IDTECK emulated id on a slot. Provide --id to set; omit it to read back the current value.",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "IDTECK frame in hex: 16 chars for the full 64-bit frame, or 8 chars for the 32-bit payload only (preamble 4944544B is auto-prepended).",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf pyramid econfig",
+    "description": "Set or get the emulated Farpointe/Pyramid card",
+    "options": [
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "help": "Slot Index: [1, 2, 3, 4, 5, 6, 7, 8] Default: active slot",
+        "const": null
+      },
+      {
+        "names": [
+          "--raw"
+        ],
+        "dest": "raw",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Raw 128-bit frame (16 bytes hex)",
+        "const": null
+      },
+      {
+        "names": [
+          "--fc"
+        ],
+        "dest": "fc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Facility code (26-bit format)",
+        "const": null
+      },
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Card number (26-bit format)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": true
+  },
+  {
+    "name": "lf pyramid read",
+    "description": "Scan a Farpointe/Pyramid tag and print card number and raw frame",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf clone",
+    "description": "Clone a LF card ID onto a blank T55xx tag.\nSupported types: em410x, electra, hid, ioprox, pac, viking, idteck.\nOnly supported on Chameleon Ultra (Lite has no LF writer).",
+    "options": [
+      {
+        "names": [
+          "-t",
+          "--type"
+        ],
+        "dest": "type",
+        "required": true,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "em410x",
+          "electra",
+          "hid",
+          "ioprox",
+          "pac",
+          "viking",
+          "idteck"
+        ],
+        "help": "Card type: em410x, electra, hid, ioprox, pac, viking, idteck",
+        "const": null
+      },
+      {
+        "names": [
+          "--id"
+        ],
+        "dest": "id",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Card ID in hex: 10 for em410x, 26 for electra, 8 for viking, 8 or 16 for idteck; 8 ASCII chars for pac",
+        "const": null
+      },
+      {
+        "names": [
+          "-f",
+          "--format"
+        ],
+        "dest": "format",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": [
+          "H10301",
+          "IND26",
+          "IND27",
+          "INDASC27",
+          "TECOM27",
+          "W2804",
+          "IND29",
+          "ATSW30",
+          "ADT31",
+          "HCP32",
+          "HPP32",
+          "KASTLE",
+          "KANTECH",
+          "WIE32",
+          "D10202",
+          "H10306",
+          "N10002",
+          "OPTUS34",
+          "SMP34",
+          "BQT34",
+          "C1K35S",
+          "C15001",
+          "S12906",
+          "ACTPHID",
+          "SIE36",
+          "H10320",
+          "H10302",
+          "H10304",
+          "P10004",
+          "HGEN37",
+          "MDI37"
+        ],
+        "help": "HID Prox format, e.g. H10301 (required for hid type)",
+        "const": null
+      },
+      {
+        "names": [
+          "--fc"
+        ],
+        "dest": "fc",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Facility code (HID / ioProx)",
+        "const": null
+      },
+      {
+        "names": [
+          "--cn"
+        ],
+        "dest": "cn",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Card number (HID / ioProx)",
+        "const": null
+      },
+      {
+        "names": [
+          "--il"
+        ],
+        "dest": "il",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Issue level (HID, optional)",
+        "const": null
+      },
+      {
+        "names": [
+          "--oem"
+        ],
+        "dest": "oem",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "OEM code (HID, optional)",
+        "const": null
+      },
+      {
+        "names": [
+          "--ver"
+        ],
+        "dest": "ver",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Version byte (ioProx)",
+        "const": null
+      },
+      {
+        "names": [
+          "--raw8"
+        ],
+        "dest": "raw8",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "ioProx raw 8 bytes in hex, e.g. 007854E03A5D65AB",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "lf sniff",
+    "description": "Capture raw LF field ADC samples (125kHz, 8µs/sample). ~0x80 = field on, lower values = gap or no field.",
+    "options": [
+      {
+        "names": [
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 2000,
+        "choices": null,
+        "help": "Capture duration in milliseconds (default: 2000, max: 10000, firmware blocks for full duration)",
+        "const": null
+      },
+      {
+        "names": [
+          "--out"
+        ],
+        "dest": "out",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Save raw samples to binary file (for offline analysis)",
+        "const": null
+      },
+      {
+        "names": [
+          "--hex"
+        ],
+        "dest": "hex",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Print hex dump of samples to screen",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "data hexsamples",
+    "description": "Dump last LF sniff capture as hex bytes (PM3 style)",
+    "options": [
+      {
+        "names": [
+          "-n",
+          "--num"
+        ],
+        "dest": "num",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 512,
+        "choices": null,
+        "help": "Number of bytes to display (default: 512)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "data plot",
+    "description": "Graphical waveform plot of last LF sniff capture (PyQt5 or matplotlib)",
+    "options": [
+      {
+        "names": [
+          "--start"
+        ],
+        "dest": "start",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 0,
+        "choices": null,
+        "help": "Start sample (default: 0)",
+        "const": null
+      },
+      {
+        "names": [
+          "--len"
+        ],
+        "dest": "len",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 4000,
+        "choices": null,
+        "help": "Number of samples to plot (default: all)",
+        "const": null
+      },
+      {
+        "names": [
+          "--ascii"
+        ],
+        "dest": "ascii",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Force ASCII plot even if GUI is available",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "data manrawdecode",
+    "description": "Manchester decode the last LF sniff capture",
+    "options": [
+      {
+        "names": [
+          "--clock"
+        ],
+        "dest": "clock",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 64,
+        "choices": null,
+        "help": "Clock divisor in Tc (default: 64 = RF/64)",
+        "const": null
+      },
+      {
+        "names": [
+          "--invert"
+        ],
+        "dest": "invert",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Invert logic (high=0, low=1)",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "data modulation",
+    "description": "Detect clock rate and modulation type in last LF capture",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "emv scan",
+    "description": "EMV contactless card scan (reader mode) — like PM3 emv scan -at",
+    "options": [
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": "",
+        "choices": null,
+        "help": "Save results to JSON file (PM3-compatible format)",
+        "const": null
+      },
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Also load scanned card into this slot for emulation",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "emv debug",
+    "description": "Show T=CL emulation debug counters",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "emv load",
+    "description": "Load EMV APDU responses into HF14A_4 slot for autonomous emulation",
+    "options": [
+      {
+        "names": [
+          "-f",
+          "--file"
+        ],
+        "dest": "file",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": "",
+        "choices": null,
+        "help": "Load from PM3 emv scan JSON file",
+        "const": null
+      },
+      {
+        "names": [
+          "-s",
+          "--slot"
+        ],
+        "dest": "slot",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": null,
+        "choices": null,
+        "help": "Target slot when using --file (default: active)",
+        "const": null
+      },
+      {
+        "names": [
+          "--clear"
+        ],
+        "dest": "clear",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Clear all static responses from active slot",
+        "const": true
+      },
+      {
+        "names": [
+          "--cmd"
+        ],
+        "dest": "cmd",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": "",
+        "choices": null,
+        "help": "Command APDU prefix to match (hex)",
+        "const": null
+      },
+      {
+        "names": [
+          "--resp"
+        ],
+        "dest": "resp",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": null,
+        "default": "",
+        "choices": null,
+        "help": "Response APDU to return (hex)",
+        "const": null
+      },
+      {
+        "names": [
+          "--defaults"
+        ],
+        "dest": "defaults",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Load built-in Mastercard test responses",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "emv apdu",
+    "description": "ISO14443-4 T=CL interactive APDU relay (manual response mode)",
+    "options": [
+      {
+        "names": [
+          "--timeout"
+        ],
+        "dest": "timeout",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 15000,
+        "choices": null,
+        "help": "Total relay timeout in ms (default: 15000)",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
+    "name": "clear",
+    "description": "Clear screen",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "rem",
+    "description": "Timestamped comment",
+    "options": [
+      {
+        "names": [],
+        "dest": "comment",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": "*",
+        "type": null,
+        "default": null,
+        "choices": null,
+        "help": "Your comment",
+        "const": null
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "exit",
+    "description": "Exit client",
+    "options": [],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "dump_help",
+    "description": "Dump available commands",
+    "options": [
+      {
+        "names": [
+          "-d",
+          "--show-desc"
+        ],
+        "dest": "show_desc",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Dump full command description",
+        "const": true
+      },
+      {
+        "names": [
+          "-g",
+          "--show-groups"
+        ],
+        "dest": "show_groups",
+        "required": false,
+        "action": "_StoreTrueAction",
+        "nargs": 0,
+        "type": null,
+        "default": false,
+        "choices": null,
+        "help": "Dump command groups as well",
+        "const": true
+      }
+    ],
+    "groups": [],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  }
+]

@@ -6,6 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../chamelab/ChameLab/ChameLab.csproj" />
+    <ProjectReference Include="../../chamelab/ChameLab.Core/ChameLab.Core.csproj" />
   </ItemGroup>
 </Project>
