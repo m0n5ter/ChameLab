@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using System.Windows.Input;
 using System.Linq;
 using System.Collections.Generic;
@@ -23,6 +25,7 @@ public sealed class SettingsViewModel : PageViewModelBase
 
         ExportBackupCommand = ReactiveCommand.CreateFromTask(ExportBackupAsync);
         ImportBackupCommand = ReactiveCommand.CreateFromTask(ImportBackupAsync);
+        OpenLinkCommand = ReactiveCommand.CreateFromTask<string>(OpenLinkAsync);
         LocalizationService.LanguageChanged += OnLanguageChanged;
     }
 
@@ -120,4 +123,32 @@ public sealed class SettingsViewModel : PageViewModelBase
     public AppUpdateViewModel AppUpdate { get; }
 
     public static string TrademarkNotice => Strings.Settings_TrademarkNotice;
+
+    private static readonly SocialLink Discord = new("Discord", "https://discord.gg/UBSReGd4Gc");
+
+    private static readonly SocialLink[] RussianLinks =
+    [
+        new("Telegram", "https://t.me/chamelab"),
+        new("MAX", "https://max.ru/channel_ChameLab"),
+        Discord,
+    ];
+
+    /// <summary>
+    /// Community links for the About card: the Russian-speaking channels only in the Russian UI,
+    /// Discord in every language. Read afresh when the views are rebuilt for a new language.
+    /// </summary>
+    public IReadOnlyList<SocialLink> SocialLinks =>
+        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ru" ? RussianLinks : [Discord];
+
+    /// <summary>Opens a community link in the browser.</summary>
+    public ICommand OpenLinkCommand { get; }
+
+    private static async System.Threading.Tasks.Task OpenLinkAsync(string url)
+    {
+        if (StorageService.TopLevelAccessor?.Invoke()?.Launcher is { } launcher)
+            await launcher.LaunchUriAsync(new Uri(url));
+    }
 }
+
+/// <summary>A community channel shown in the About card.</summary>
+public sealed record SocialLink(string Name, string Url);

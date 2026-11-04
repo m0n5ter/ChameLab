@@ -159,6 +159,22 @@
           </StackPanel>
           <TextBlock Classes="caption" TextWrapping="Wrap"
                      Text="{x:Static loc:Strings.Settings_CrossPlatformClientForTheChameleon}" />
+          <!-- Community channels: Telegram and MAX in the Russian UI, Discord everywhere. -->
+          <ItemsControl ItemsSource="{Binding SocialLinks}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel ItemSpacing="8" LineSpacing="8" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SocialLink">
+                <Button Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).OpenLinkCommand}"
+                        CommandParameter="{Binding Url}" ToolTip.Tip="{Binding Url}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.chat}" /><TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
           <SelectableTextBlock Classes="caption" TextWrapping="Wrap" FontSize="11" Opacity="0.8"
                                Text="{x:Static vm:SettingsViewModel.TrademarkNotice}" />
         </StackPanel>
