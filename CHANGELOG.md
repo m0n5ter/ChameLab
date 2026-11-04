@@ -9,6 +9,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - ChameLab: the app is translated into German, Spanish, French, Italian, Portuguese, Russian, Chinese (Simplified), Japanese and Korean; the language is picked in Settings and applies right away, without a restart: the window is rebuilt in the new language while the open page, the connection and running operations carry on. The web app bundles the Chinese, Japanese and Korean glyphs it needs and now loads the chosen translation
  - Website: the download page and the guide are available in the same ten languages, picked from the menu or the browser's language
  - ChameLab: Hardnested now uses a shared, fully managed C# port of current Proxmark3 on desktop, Android, iOS and the web; compact state tables reduce memory use and remove the separate native hardnested build dependencies
+ - ChameLab: sorting dictionaries and cards by name is now natural: numbers in names compare by value, so A1, A2, A11, A21 instead of A1, A11, A2, A21
 
 ## [v1.2.31][2026-11-03] · firmware v2.3.10-cl
  - ChameLab: Write another writes the same card onto the next tag right away, with the same options, instead of returning to the idle writer; on a Gen2 card whose previous target used the factory key in every sector, the next target is assumed to use it too, so no key recovery is needed first

@@ -342,12 +342,12 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
                 .Where(d => d.Matches(_filter));
             items = _sort switch
             {
-                DictionarySort.Name => items.OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
-                DictionarySort.NameDesc => items.OrderByDescending(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
+                DictionarySort.Name => items.OrderBy(d => d.Name, NaturalStringComparer.Instance),
+                DictionarySort.NameDesc => items.OrderByDescending(d => d.Name, NaturalStringComparer.Instance),
                 DictionarySort.Size => items.OrderByDescending(d => d.Dictionary.Count)
-                    .ThenBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(d => d.Name, NaturalStringComparer.Instance),
                 DictionarySort.SizeAsc => items.OrderBy(d => d.Dictionary.Count)
-                    .ThenBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(d => d.Name, NaturalStringComparer.Instance),
                 _ => items,
             };
             Dictionaries.Clear();

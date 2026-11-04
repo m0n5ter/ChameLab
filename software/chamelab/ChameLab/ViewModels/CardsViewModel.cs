@@ -819,18 +819,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 .Where(c => c.Matches(_filter));
             items = _sort switch
             {
-                CardSort.Name => items.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
-                CardSort.NameDesc => items.OrderByDescending(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
+                CardSort.Name => items.OrderBy(c => c.Name, NaturalStringComparer.Instance),
+                CardSort.NameDesc => items.OrderByDescending(c => c.Name, NaturalStringComparer.Instance),
                 // Types in their natural order (LF first, sizes ascending) or reversed; cards
                 // without one last either way, names A–Z within a type.
                 CardSort.Type => items
                     .OrderBy(c => c.Card.Tag == TagSpecificType.Undefined)
                     .ThenBy(c => c.Card.Tag)
-                    .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(c => c.Name, NaturalStringComparer.Instance),
                 CardSort.TypeDesc => items
                     .OrderBy(c => c.Card.Tag == TagSpecificType.Undefined)
                     .ThenByDescending(c => c.Card.Tag)
-                    .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(c => c.Name, NaturalStringComparer.Instance),
                 _ => items,
             };
             Cards.Clear();
