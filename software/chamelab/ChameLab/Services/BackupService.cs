@@ -37,7 +37,7 @@ public static class BackupService
         if (JsonNode.Parse(text) is not JsonObject o)
             throw new FormatException(Strings.Backup_Invalid);
         if ((string?)o["format"] != FormatTag)
-            throw new FormatException(Strings.Backup_NotChameLab);
+            return ImportChameleonGui(o, cards, dictionaries);
 
         var importedCards = o["cards"] is JsonArray ca
             ? ca.Where(n => n is not null).Select(n => CardSave.FromJson(n!)).ToList()
@@ -50,5 +50,20 @@ public static class BackupService
         if (importedCards.Count > 0) cards.AddRange(importedCards);
         if (importedDicts.Count > 0) dictionaries.AddRange(importedDicts);
         return (importedCards.Count, importedDicts.Count);
+    }
+
+    /// <summary>
+    /// Imports the Flutter Chameleon Ultra GUI's settings export (or its shared_preferences.json):
+    /// cards with their folders, and dictionaries not already here.
+    /// </summary>
+    private static (int cards, int dictionaries) ImportChameleonGui(JsonObject o, CardLibrary cards, DictionaryLibrary dictionaries)
+    {
+        if (ChameleonGuiImport.TryRead(o) is not { } gui)
+            throw new FormatException(Strings.Backup_NotChameLab);
+        var (added, refiled) = cards.Merge(gui.Cards, gui.Folders);
+        var have = dictionaries.Dictionaries.Select(d => d.Id).ToHashSet();
+        var newDicts = gui.Dictionaries.Where(d => have.Add(d.Id)).ToList();
+        if (newDicts.Count > 0) dictionaries.AddRange(newDicts);
+        return (added + refiled, newDicts.Count);
     }
 }

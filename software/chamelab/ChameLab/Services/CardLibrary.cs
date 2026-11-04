@@ -101,6 +101,35 @@ public sealed class CardLibrary
         Save();
     }
 
+    /// <summary>
+    /// Brings in another app's library: creates its folders (empty ones too) and adds its
+    /// cards. A card already here (same id, e.g. imported before without folders) is not
+    /// added again; if it is in no folder it is filed in the imported card's folder.
+    /// </summary>
+    /// <returns>Cards added, and cards already here that were filed in a folder.</returns>
+    public (int Added, int Refiled) Merge(IEnumerable<CardSave> cards, IEnumerable<string> folders)
+    {
+        foreach (var folder in folders) AddFolderName(folder);
+        int added = 0, refiled = 0;
+        foreach (var card in cards)
+        {
+            AddFolderName(card.Folder);
+            var folder = FindFolder(card.Folder) ?? string.Empty;
+            if (_cards.FirstOrDefault(c => c.Id == card.Id) is { } existing)
+            {
+                if (existing.Folder.Length > 0 || folder.Length == 0) continue;
+                existing.Folder = folder;
+                refiled++;
+                continue;
+            }
+            card.Folder = folder;
+            _cards.Add(card);
+            added++;
+        }
+        Save();
+        return (added, refiled);
+    }
+
     public void Update(CardSave card)
     {
         var i = _cards.FindIndex(c => c.Id == card.Id);

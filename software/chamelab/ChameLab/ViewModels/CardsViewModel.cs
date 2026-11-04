@@ -2050,6 +2050,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var picked = await StorageService.OpenAsync(Strings.Cards_ImportCardTitle, CardFormats.ImportExtensions);
         if (picked is not { } file) return;
 
+        // A Chameleon Ultra GUI library (settings export, folder export or shared_preferences.json) keeps its folders.
+        if (ChameleonGuiImport.TryRead(file.Data) is { } gui)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                var (added, refiled) = _library.Merge(gui.Cards, gui.Folders);
+                if (gui.Cards.Count > 0) SelectById(gui.Cards[^1].Id);
+                Notify(Loc.Plural(Strings.Plural_ImportedCards, added + refiled));
+            });
+            return;
+        }
+
         IReadOnlyList<CardSave> cards;
         try { cards = CardFormats.Import(file.Name, file.Data); }
         catch (Exception ex) { throw new FormatException(string.Format(Strings.Cards_UnsupportedFile, file.Name, ex.Message)); }
