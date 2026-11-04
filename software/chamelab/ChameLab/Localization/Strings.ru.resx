@@ -19,7 +19,7 @@
     <value>Язык</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>Применится после перезапуска приложения.</value>
+    <value>Меню, надписи и сообщения.</value>
   </data>
   <data name="Cards_125KHzCardsOnly" xml:space="preserve">
     <value>Только карты 125 кГц</value>

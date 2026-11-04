@@ -125,7 +125,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public override double MinContentWidth => 954;
 
     public CardsViewModel(DeviceService device, CardLibrary library, DictionaryLibrary dictionaries)
-        : base(Strings.Nav_Cards, "cards")
+        : base(() => Strings.Nav_Cards, "cards")
     {
         _device = device;
         _library = library;

@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using System.Linq;
 using System.Collections.Generic;
+using Avalonia.Threading;
 using ChameLab.Services;
 using ReactiveUI;
 using ChameLab.Localization;
@@ -14,7 +15,7 @@ public sealed class SettingsViewModel : PageViewModelBase
     private readonly DictionaryLibrary _dictionaries;
 
     public SettingsViewModel(CardLibrary cards, DictionaryLibrary dictionaries, AppUpdateViewModel appUpdate)
-        : base(Strings.Settings_Settings, "settings")
+        : base(() => Strings.Settings_Settings, "settings")
     {
         AppUpdate = appUpdate;
         _cards = cards;
@@ -22,7 +23,15 @@ public sealed class SettingsViewModel : PageViewModelBase
 
         ExportBackupCommand = ReactiveCommand.CreateFromTask(ExportBackupAsync);
         ImportBackupCommand = ReactiveCommand.CreateFromTask(ImportBackupAsync);
+        LocalizationService.LanguageChanged += OnLanguageChanged;
     }
+
+    /// <summary>
+    /// The list is rebuilt in the new language and the choice moves to its new entry. Nothing is
+    /// raised: the views are rebuilt over this view model and read both afresh, while the old
+    /// picker must not react (it would write its stale selection back).
+    /// </summary>
+    private void OnLanguageChanged() => _language = Languages.First(l => l.Code == _language.Code);
 
     public bool CanUseFiles => StorageService.IsAvailable;
 
@@ -42,17 +51,23 @@ public sealed class SettingsViewModel : PageViewModelBase
 
     public IReadOnlyList<LanguageOption> Languages => LocalizationService.Languages;
 
-    /// <summary>UI language; remembered as soon as it changes, applied from the next start.</summary>
+    private LanguageOption _language = LocalizationService.Languages.First(l => l.Code == LocalizationService.LoadLanguage());
+
+    /// <summary>
+    /// UI language; remembered and applied as soon as it changes. Applied once the picker has
+    /// finished its selection, since applying rebuilds the views, the picker included.
+    /// </summary>
     public LanguageOption Language
     {
-        get;
+        get => _language;
         set
         {
-            if (value is null || value == field) return;
-            this.RaiseAndSetIfChanged(ref field, value);
-            LocalizationService.SaveLanguage(value.Code);
+            if (value is null || value.Code == _language.Code) return;
+            this.RaiseAndSetIfChanged(ref _language, value);
+            var code = value.Code;
+            Dispatcher.UIThread.Post(() => LocalizationService.SaveLanguage(code));
         }
-    } = LocalizationService.Languages.First(l => l.Code == LocalizationService.LoadLanguage());
+    }
 
     /// <summary>Beep when a card scan or dump finishes; remembered as soon as it changes.</summary>
     public bool ScanSound

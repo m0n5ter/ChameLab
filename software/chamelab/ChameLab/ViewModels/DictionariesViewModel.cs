@@ -202,7 +202,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     // Page margins 56 + list 280 + gap 18 + details 420 (see DictionariesView).
     public override double MinContentWidth => 774;
 
-    public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base(Strings.Nav_Dictionaries, "key")
+    public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base(() => Strings.Nav_Dictionaries, "key")
     {
         _library = library;
         KnownEditor = new KnownKeysEditorViewModel(library.KnownKeys, cards ?? AppServices.Cards);

@@ -17,7 +17,7 @@ public sealed class ConnectViewModel : PageViewModelBase
 {
     private readonly DeviceService _device;
 
-    public ConnectViewModel(DeviceService device) : base(Strings.Connect_Connect, "link")
+    public ConnectViewModel(DeviceService device) : base(() => Strings.Connect_Connect, "link")
     {
         _device = device;
 

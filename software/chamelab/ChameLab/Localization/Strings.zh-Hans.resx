@@ -2611,7 +2611,7 @@
     <value>语言</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>重启应用后生效。</value>
+    <value>菜单、标签和提示信息。</value>
   </data>
   <data name="Settings_OpenTheReleasePage" xml:space="preserve">
     <value>打开发布页面</value>

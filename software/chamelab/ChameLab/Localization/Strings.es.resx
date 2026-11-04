@@ -2611,7 +2611,7 @@
     <value>Idioma</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>Se aplica al reiniciar la app.</value>
+    <value>Menús, etiquetas y mensajes.</value>
   </data>
   <data name="Settings_OpenTheReleasePage" xml:space="preserve">
     <value>Abrir la página de la versión</value>

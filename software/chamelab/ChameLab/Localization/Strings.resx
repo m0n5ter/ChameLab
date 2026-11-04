@@ -21,7 +21,7 @@
     <comment>Settings: language row title</comment>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>Takes effect after you restart the app.</value>
+    <value>Menus, labels and messages.</value>
     <comment>Settings: language row description</comment>
   </data>
   <data name="Cards_125KHzCardsOnly" xml:space="preserve">

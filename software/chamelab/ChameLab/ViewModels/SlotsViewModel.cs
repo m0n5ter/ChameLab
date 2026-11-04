@@ -34,7 +34,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     // Page margins 56 + list 280 + gap 18 + details 420 (see SlotsView).
     public override double MinContentWidth => 774;
 
-    public SlotsViewModel(DeviceService device, CardLibrary cards) : base(Strings.Nav_Slots, "slots")
+    public SlotsViewModel(DeviceService device, CardLibrary cards) : base(() => Strings.Nav_Slots, "slots")
     {
         _device = device;
         _cards = cards;

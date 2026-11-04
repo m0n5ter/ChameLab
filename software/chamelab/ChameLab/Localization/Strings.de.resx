@@ -2611,7 +2611,7 @@
     <value>Sprache</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>Wird nach einem Neustart der App wirksam.</value>
+    <value>Menüs, Beschriftungen und Meldungen.</value>
   </data>
   <data name="Settings_OpenTheReleasePage" xml:space="preserve">
     <value>Release-Seite öffnen</value>

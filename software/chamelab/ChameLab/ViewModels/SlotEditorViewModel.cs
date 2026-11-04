@@ -72,7 +72,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
         Action onChanged, Action<CardSave> openCard)
-        : base(string.Format(Strings.Slots_SlotN, info.Index), "slots")
+        : base(() => string.Format(Strings.Slots_SlotN, info.Index), "slots")
     {
         _device = device;
         _library = library;

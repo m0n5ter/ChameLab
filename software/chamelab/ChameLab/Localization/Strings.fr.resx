@@ -2611,7 +2611,7 @@
     <value>Langue</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>Prend effet après le redémarrage de l'application.</value>
+    <value>Menus, libellés et messages.</value>
   </data>
   <data name="Settings_OpenTheReleasePage" xml:space="preserve">
     <value>Ouvrir la page de la version</value>

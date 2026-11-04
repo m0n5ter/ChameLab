@@ -54,15 +54,40 @@ public partial class MainView : UserControl
         _topLevel.BackRequested += OnBackRequested;
         _inputPane = _topLevel.InputPane;
         if (_inputPane is not null) _inputPane.StateChanged += OnInputPaneChanged;
+        LocalizationService.LanguageChanged += OnLanguageChanged;
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
+        LocalizationService.LanguageChanged -= OnLanguageChanged;
         if (_topLevel is not null) _topLevel.BackRequested -= OnBackRequested;
         if (_inputPane is not null) _inputPane.StateChanged -= OnInputPaneChanged;
         _topLevel = null;
         _inputPane = null;
+    }
+
+    /// <summary>
+    /// Views read their strings once, when they are built, so a new UI language takes effect by
+    /// building the whole view again over the same view models: the page, the connection,
+    /// running operations and unsaved edits all carry on. Posted, so the language picker that
+    /// raised the change finishes its own selection first.
+    /// </summary>
+    private void OnLanguageChanged()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (Parent is not ContentControl host || !ReferenceEquals(host.Content, this)) return;
+            LocalizationService.UseOnThisThread();
+            var vm = DataContext;
+            // Lets the old views drop their bindings and handlers on the view models.
+            DataContext = null;
+            // Attached before it gets the view models, so its pages already see the window
+            // (file dialogs) when they first bind.
+            var view = new MainView();
+            host.Content = view;
+            view.DataContext = vm;
+        });
     }
 
     /// <summary>

@@ -2611,7 +2611,7 @@
     <value>言語</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>アプリの再起動後に反映されます。</value>
+    <value>メニュー、ラベル、メッセージ。</value>
   </data>
   <data name="Settings_OpenTheReleasePage" xml:space="preserve">
     <value>リリースページを開く</value>

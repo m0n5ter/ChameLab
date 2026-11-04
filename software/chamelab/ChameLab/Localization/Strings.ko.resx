@@ -2611,7 +2611,7 @@
     <value>언어</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>앱을 다시 시작하면 적용됩니다.</value>
+    <value>메뉴, 레이블, 메시지.</value>
   </data>
   <data name="Settings_OpenTheReleasePage" xml:space="preserve">
     <value>릴리스 페이지 열기</value>

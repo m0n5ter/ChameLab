@@ -34,7 +34,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     private int _cursorIndex = -1;
     private SniffTool _tool;
 
-    public ToolsViewModel(DeviceService device) : base(Strings.Tools_Tools, "tools")
+    public ToolsViewModel(DeviceService device) : base(() => Strings.Tools_Tools, "tools")
     {
         _device = device;
         var idle = this.WhenAnyValue(x => x.IsBusy, busy => !busy);
