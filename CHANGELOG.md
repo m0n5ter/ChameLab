@@ -7,7 +7,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
 
-## [v1.4.33][2026-11-05] · firmware v2.3.11-cl
+## [v1.3.33][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: Settings picks the update channel: Stable, or Development, which also offers the dev pre-release when it is newer than the latest release. The quiet update check repeats every four hours and keeps a found update when a later check fails, and the top bar update icon pulses while an update is available
  - ChameLab: Cards > Import file and Settings > Import backup read the ChameleonUltraGUI settings export, folder export and desktop shared_preferences.json: nested folders become one-level paths ("Work / Doors"), empty folders are created, and cards already in the library are filed into their folders instead of duplicated. The backup import also brings the dictionaries not yet here
  - ChameLab for Android: the APK also carries 32-bit ARM (armeabi-v7a), so it installs on devices with a 32-bit system, common on Android 8.x
