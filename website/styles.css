@@ -128,6 +128,7 @@ details.notes pre { white-space: pre-wrap; overflow-wrap: anywhere; background: 
 footer { margin-top: 64px; border-top: 1px solid var(--line); padding-top: 24px; color: var(--muted); font-size: .95rem; }
 footer a { color: var(--text); text-decoration: none; }
 footer .social { margin-top: 8px; }
+footer .social svg { width: 1em; height: 1em; margin-right: .35em; vertical-align: -.125em; fill: currentColor; }
 @media (max-width: 960px) {
   .hero { gap: 32px; padding-top: 56px; }
   .device-card { padding: 18px; }

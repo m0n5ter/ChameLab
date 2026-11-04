@@ -124,12 +124,12 @@ public sealed class SettingsViewModel : PageViewModelBase
 
     public static string TrademarkNotice => Strings.Settings_TrademarkNotice;
 
-    private static readonly SocialLink Discord = new("Discord", "https://discord.gg/UBSReGd4Gc");
+    private static readonly SocialLink Discord = new("Discord", "https://discord.gg/UBSReGd4Gc", "discord");
 
     private static readonly SocialLink[] RussianLinks =
     [
-        new("Telegram", "https://t.me/chamelab"),
-        new("MAX", "https://max.ru/channel_ChameLab"),
+        new("Telegram", "https://t.me/chamelab", "telegram"),
+        new("MAX", "https://max.ru/channel_ChameLab", "max"),
         Discord,
     ];
 
@@ -150,5 +150,5 @@ public sealed class SettingsViewModel : PageViewModelBase
     }
 }
 
-/// <summary>A community channel shown in the About card.</summary>
-public sealed record SocialLink(string Name, string Url);
+/// <summary>A community channel shown in the About card, with its <c>Icon.*</c> brand mark.</summary>
+public sealed record SocialLink(string Name, string Url, string IconKey);

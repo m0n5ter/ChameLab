@@ -93,7 +93,7 @@
  "index.firmware.20": "Прошейте пакет с помощью <code>firmware/flash-dfu-app.sh</code>, nRF Connect для телефона или nRF Connect for Desktop.",
  "index.firmware.21": "При обновлении приложения слоты, карты и настройки сохраняются. Полный <a href=\"https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md\">список изменений</a>.",
  "index.download-intro.1": "04 / НАЧАТЬ",
- "index.download-intro.2": "Под себя.",
+ "index.download-intro.2": "Всё в ваших руках.",
  "index.download-intro.3": "Скачайте ChameLab для своей платформы или откройте веб-приложение и подключите устройство.",
  "index.stable.1": "Последний релиз",
  "index.stable.2": "Загрузка…",

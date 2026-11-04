@@ -3,6 +3,7 @@
              xmlns:vm="using:ChameLab.ViewModels"
              xmlns:svc="using:ChameLab.Services"
              xmlns:c="using:ChameLab.Controls"
+             xmlns:conv="using:ChameLab.Converters"
              xmlns:loc="using:ChameLab.Localization"
              x:Class="ChameLab.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
@@ -181,7 +182,7 @@
                 <Button Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).OpenLinkCommand}"
                         CommandParameter="{Binding Url}" ToolTip.Tip="{Binding Url}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{StaticResource Icon.chat}" /><TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                    <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" /><TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
               </DataTemplate>
