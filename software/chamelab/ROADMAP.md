@@ -70,7 +70,7 @@ Tick `[x]` as things land, and drop finished items over time.
 - [ ] Emulated (demo) device — try the app without hardware
 - [ ] System / Light / Dark theme (currently only a Light/Dark toggle; `AppearanceService` already stores `Default`)
 - [ ] Sidebar mode (Expand / Retract / Auto)
-- [ ] Localization (~20 languages) and "Help translate"
+- [ ] Localization (~20 languages) and "Help translate" — 10 languages so far: en, de, es, fr, it, ja, ko, pt, ru, zh-Hans
 - [ ] Logs: production logging, view, copy, export, clear
 - [ ] Debug page
 - [ ] App changelog with recent commits (currently release notes exist only for firmware)

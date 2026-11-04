@@ -111,8 +111,12 @@ jobs:
         with:
           name: gui-browser
           path: _site/app
+      - name: Check the website translations
+        run: python3 website/i18n/check.py
       - name: Add the download page
-        run: cp -r website/. _site/
+        run: |
+          cp -r website/. _site/
+          rm _site/i18n/check.py
       - name: Upload the site
         uses: actions/upload-pages-artifact@v5
       - name: Deploy to GitHub Pages

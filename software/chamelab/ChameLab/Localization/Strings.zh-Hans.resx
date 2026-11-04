@@ -1,0 +1,3390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Anim_Full" xml:space="preserve">
+    <value>完整动画</value>
+  </data>
+  <data name="Anim_Minimal" xml:space="preserve">
+    <value>简约动画</value>
+  </data>
+  <data name="Anim_None" xml:space="preserve">
+    <value>无动画</value>
+  </data>
+  <data name="Anim_Symmetric" xml:space="preserve">
+    <value>对称动画</value>
+  </data>
+  <data name="Backup_Invalid" xml:space="preserve">
+    <value>不是有效的备份文件。</value>
+  </data>
+  <data name="Backup_NotChameLab" xml:space="preserve">
+    <value>这不是 ChameLab 备份。</value>
+  </data>
+  <data name="Battery_Critical" xml:space="preserve">
+    <value>电量危急</value>
+  </data>
+  <data name="Battery_Excellent" xml:space="preserve">
+    <value>电量充足</value>
+  </data>
+  <data name="Battery_Fair" xml:space="preserve">
+    <value>电量一般</value>
+  </data>
+  <data name="Battery_Good" xml:space="preserve">
+    <value>电量良好</value>
+  </data>
+  <data name="Battery_Low" xml:space="preserve">
+    <value>电量低</value>
+  </data>
+  <data name="Ble_LinkClosed" xml:space="preserve">
+    <value>BLE 连接已关闭。</value>
+  </data>
+  <data name="Ble_NoPermission" xml:space="preserve">
+    <value>未授予蓝牙权限。</value>
+  </data>
+  <data name="Ble_NoRx" xml:space="preserve">
+    <value>未找到 NUS RX 特征。</value>
+  </data>
+  <data name="Ble_NoTx" xml:space="preserve">
+    <value>未找到 NUS TX 特征。</value>
+  </data>
+  <data name="Ble_NoUart" xml:space="preserve">
+    <value>设备上未找到 Nordic UART 服务。</value>
+  </data>
+  <data name="Ble_Off" xml:space="preserve">
+    <value>蓝牙已关闭。</value>
+  </data>
+  <data name="Button_Battery" xml:space="preserve">
+    <value>显示电量</value>
+  </data>
+  <data name="Button_Clone" xml:space="preserve">
+    <value>读取后模拟 UID</value>
+  </data>
+  <data name="Button_FieldGen" xml:space="preserve">
+    <value>切换 NFC 场检测器</value>
+  </data>
+  <data name="Button_NextSlot" xml:space="preserve">
+    <value>选择下一个卡槽</value>
+  </data>
+  <data name="Button_None" xml:space="preserve">
+    <value>无功能</value>
+  </data>
+  <data name="Button_PrevSlot" xml:space="preserve">
+    <value>选择上一个卡槽</value>
+  </data>
+  <data name="Cards_125KHzCardsOnly" xml:space="preserve">
+    <value>仅 125 kHz 卡</value>
+  </data>
+  <data name="Cards_1356MHz" xml:space="preserve">
+    <value>13.56 MHz</value>
+  </data>
+  <data name="Cards_1356MHzCardsOnly" xml:space="preserve">
+    <value>仅 13.56 MHz 卡</value>
+  </data>
+  <data name="Cards_26BitFormat" xml:space="preserve">
+    <value>26 位格式</value>
+  </data>
+  <data name="Cards_3DesKey" xml:space="preserve">
+    <value>3DES 密钥</value>
+  </data>
+  <data name="Cards_AccessBits" xml:space="preserve">
+    <value>■ 访问位</value>
+  </data>
+  <data name="Cards_AccessBits2" xml:space="preserve">
+    <value>访问位</value>
+  </data>
+  <data name="Cards_AccessBitsInvalid" xml:space="preserve">
+    <value> （无效）</value>
+  </data>
+  <data name="Cards_AccessBitsValid" xml:space="preserve">
+    <value> （有效）</value>
+  </data>
+  <data name="Cards_AddACard" xml:space="preserve">
+    <value>添加卡片</value>
+  </data>
+  <data name="Cards_AddARecordAtTheEnd" xml:space="preserve">
+    <value>在消息末尾添加一条记录</value>
+  </data>
+  <data name="Cards_AddRecord" xml:space="preserve">
+    <value>添加记录</value>
+  </data>
+  <data name="Cards_AfterThePagesWriteTheSettings" xml:space="preserve">
+    <value>写完页面后，将下方设置写入目标卡</value>
+  </data>
+  <data name="Cards_All" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="Cards_AllTypes" xml:space="preserve">
+    <value>所有类型</value>
+  </data>
+  <data name="Cards_AlreadySavedHeader" xml:space="preserve">
+    <value>已保存</value>
+  </data>
+  <data name="Cards_AndroidApp" xml:space="preserve">
+    <value>Android 应用</value>
+  </data>
+  <data name="Cards_AssignToSlot" xml:space="preserve">
+    <value>分配到卡槽</value>
+  </data>
+  <data name="Cards_AssignToSlotHeader" xml:space="preserve">
+    <value>分配到卡槽</value>
+  </data>
+  <data name="Cards_AssumingGen2" xml:space="preserve">
+    <value>未检测到 Gen1a 或 Gen3 魔术卡；按 Gen2 / CUID 处理。</value>
+  </data>
+  <data name="Cards_AtqaLength" xml:space="preserve">
+    <value>ATQA 必须为 2 字节。</value>
+  </data>
+  <data name="Cards_Auth0FirstProtected" xml:space="preserve">
+    <value>AUTH0（第一个受保护页）</value>
+  </data>
+  <data name="Cards_Auth1" xml:space="preserve">
+    <value>AUTH1（0 = 仅写保护）</value>
+  </data>
+  <data name="Cards_BackToCards" xml:space="preserve">
+    <value>返回卡片</value>
+  </data>
+  <data name="Cards_BinDump" xml:space="preserve">
+    <value>.bin 转储</value>
+  </data>
+  <data name="Cards_Block0" xml:space="preserve">
+    <value>■ 块 0</value>
+  </data>
+  <data name="Cards_BlocksRange" xml:space="preserve">
+    <value>块 {0}–{1}</value>
+  </data>
+  <data name="Cards_CannotWriteType" xml:space="preserve">
+    <value>暂不支持写入此卡片类型</value>
+  </data>
+  <data name="Cards_CapabilityContainer" xml:space="preserve">
+    <value>能力容器</value>
+  </data>
+  <data name="Cards_CapturedAuths" xml:space="preserve">
+    <value>已捕获 {0} 次认证</value>
+  </data>
+  <data name="Cards_CardColor" xml:space="preserve">
+    <value>卡片颜色</value>
+  </data>
+  <data name="Cards_CardDetailsHeader" xml:space="preserve">
+    <value>卡片详情</value>
+  </data>
+  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
+    <value>卡片文件，与 Flutter 应用兼容</value>
+  </data>
+  <data name="Cards_CardId" xml:space="preserve">
+    <value>卡片 ID</value>
+  </data>
+  <data name="Cards_CardName" xml:space="preserve">
+    <value>卡片名称</value>
+  </data>
+  <data name="Cards_CardNumber065535" xml:space="preserve">
+    <value>卡号（0–65535）</value>
+  </data>
+  <data name="Cards_CardType" xml:space="preserve">
+    <value>卡片类型</value>
+  </data>
+  <data name="Cards_CardsOfBothFrequencies" xml:space="preserve">
+    <value>两种频率的卡片</value>
+  </data>
+  <data name="Cards_Cfg0Auth0" xml:space="preserve">
+    <value>CFG0 · AUTH0（第一个受保护页）</value>
+  </data>
+  <data name="Cards_CheckingKey" xml:space="preserve">
+    <value>正在检查密钥 {0}/{1}</value>
+  </data>
+  <data name="Cards_ClearSearchAndFilters" xml:space="preserve">
+    <value>清除搜索和筛选</value>
+  </data>
+  <data name="Cards_ClearTheSelectedSectorAndMark" xml:space="preserve">
+    <value>清除所选扇区并将其块标记为未读</value>
+  </data>
+  <data name="Cards_ClickToCopy" xml:space="preserve">
+    <value>点击复制</value>
+  </data>
+  <data name="Cards_CloseMfkey32Result" xml:space="preserve">
+    <value>关闭 mfkey32 结果</value>
+  </data>
+  <data name="Cards_CloseWriter" xml:space="preserve">
+    <value>关闭写卡器</value>
+  </data>
+  <data name="Cards_Config" xml:space="preserve">
+    <value>■ 配置</value>
+  </data>
+  <data name="Cards_ConfigPagesNotRead" xml:space="preserve">
+    <value>未读取配置页。请使用密码转储卡片以查看它们。</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToLoadThis" xml:space="preserve">
+    <value>连接 Chameleon 后才能将此卡载入卡槽。</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToScanTags" xml:space="preserve">
+    <value>连接 Chameleon 后才能扫描标签。</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToWriteCards" xml:space="preserve">
+    <value>连接 Chameleon 后才能写卡。</value>
+  </data>
+  <data name="Cards_ContactVCard" xml:space="preserve">
+    <value>联系人（vCard）</value>
+  </data>
+  <data name="Cards_Content" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="Cards_CouldNotSaveKnownKeys" xml:space="preserve">
+    <value>无法保存已知卡片密钥：{0}</value>
+  </data>
+  <data name="Cards_CouldNotSavePassword" xml:space="preserve">
+    <value>无法保存卡片密码：{0}</value>
+  </data>
+  <data name="Cards_Counter" xml:space="preserve">
+    <value>计数器</value>
+  </data>
+  <data name="Cards_Counter16" xml:space="preserve">
+    <value>16 位计数器</value>
+  </data>
+  <data name="Cards_Counters" xml:space="preserve">
+    <value>计数器</value>
+  </data>
+  <data name="Cards_CreateACardByEnteringIts" xml:space="preserve">
+    <value>输入类型和 UID / ID 来创建卡片</value>
+  </data>
+  <data name="Cards_CurrentCardPassword" xml:space="preserve">
+    <value>卡片当前密码</value>
+  </data>
+  <data name="Cards_CurrentPassword" xml:space="preserve">
+    <value>当前密码</value>
+  </data>
+  <data name="Cards_DataRows" xml:space="preserve">
+    <value>{0} 行数据</value>
+  </data>
+  <data name="Cards_DegreesEastNegativeWest" xml:space="preserve">
+    <value>东经度数（负数为西经）</value>
+  </data>
+  <data name="Cards_DegreesNorthNegativeSouth" xml:space="preserve">
+    <value>北纬度数（负数为南纬）</value>
+  </data>
+  <data name="Cards_DeleteThisCard" xml:space="preserve">
+    <value>删除此卡片</value>
+  </data>
+  <data name="Cards_DeleteThisCardPermanently" xml:space="preserve">
+    <value>永久删除此卡片？</value>
+  </data>
+  <data name="Cards_DeletedFolder" xml:space="preserve">
+    <value>已删除文件夹 {0}。</value>
+  </data>
+  <data name="Cards_Detect" xml:space="preserve">
+    <value>检测</value>
+  </data>
+  <data name="Cards_DetectedGen1a" xml:space="preserve">
+    <value>检测到 Gen1a（UID）魔术卡。</value>
+  </data>
+  <data name="Cards_DetectedGen3" xml:space="preserve">
+    <value>检测到 Gen3（APDU）魔术卡。</value>
+  </data>
+  <data name="Cards_DumpAlreadySaved" xml:space="preserve">
+    <value>已有一张保存的卡片与此转储内容相同。可以打开它，或继续再次保存此转储。</value>
+  </data>
+  <data name="Cards_DumpCanceled" xml:space="preserve">
+    <value>转储已取消。</value>
+  </data>
+  <data name="Cards_DumpClassicHint" xml:space="preserve">
+    <value>请将卡片保持在读卡器上，使用所选密钥字典读取每个块。</value>
+  </data>
+  <data name="Cards_DumpNotice" xml:space="preserve">
+    <value>连接设备以读取存储内容并恢复密钥。</value>
+  </data>
+  <data name="Cards_DumpStoppedKept" xml:space="preserve">
+    <value>转储已停止。已保留 {2} 的 {0}/{1} 个扇区。</value>
+  </data>
+  <data name="Cards_DumpTheCardFirstToSave" xml:space="preserve">
+    <value>先转储卡片，才能同时保存其存储内容。</value>
+  </data>
+  <data name="Cards_DumpUlHint" xml:space="preserve">
+    <value>请将卡片保持在读卡器上。密码只在卡片需要时发送一次；错误的密码会计入其锁定次数限制（AUTHLIM）。</value>
+  </data>
+  <data name="Cards_DynamicLockBytes" xml:space="preserve">
+    <value>动态锁定字节</value>
+  </data>
+  <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
+    <value>修改会直接写入存储内容。拖动记录可移动它。</value>
+  </data>
+  <data name="Cards_Em410xRead" xml:space="preserve">
+    <value>已读取 EM410x 标签。</value>
+  </data>
+  <data name="Cards_Email" xml:space="preserve">
+    <value>电子邮件</value>
+  </data>
+  <data name="Cards_EmailAddress" xml:space="preserve">
+    <value>电子邮件地址</value>
+  </data>
+  <data name="Cards_EmailOptional" xml:space="preserve">
+    <value>电子邮件（可选）</value>
+  </data>
+  <data name="Cards_EmlDump" xml:space="preserve">
+    <value>.eml 转储</value>
+  </data>
+  <data name="Cards_EmulateThisCardInOneOf" xml:space="preserve">
+    <value>在设备的某个卡槽中模拟此卡</value>
+  </data>
+  <data name="Cards_EnterIdentityFirst" xml:space="preserve">
+    <value>请先输入有效的卡片标识。</value>
+  </data>
+  <data name="Cards_EnterManually" xml:space="preserve">
+    <value>手动输入</value>
+  </data>
+  <data name="Cards_EveryPageAsHex" xml:space="preserve">
+    <value>所有页面（十六进制）</value>
+  </data>
+  <data name="Cards_ExportBinTitle" xml:space="preserve">
+    <value>将转储导出为 .bin</value>
+  </data>
+  <data name="Cards_ExportCardTitle" xml:space="preserve">
+    <value>导出卡片</value>
+  </data>
+  <data name="Cards_ExportEmlTitle" xml:space="preserve">
+    <value>将转储导出为 .eml</value>
+  </data>
+  <data name="Cards_FacilityCode0255" xml:space="preserve">
+    <value>设施码（0–255）</value>
+  </data>
+  <data name="Cards_FailedCount" xml:space="preserve">
+    <value> · {0} 个失败</value>
+  </data>
+  <data name="Cards_FileHasNoCards" xml:space="preserve">
+    <value>{0} 中没有卡片。</value>
+  </data>
+  <data name="Cards_Folder" xml:space="preserve">
+    <value>文件夹</value>
+  </data>
+  <data name="Cards_FolderExists" xml:space="preserve">
+    <value>已存在名为“{0}”的文件夹。</value>
+  </data>
+  <data name="Cards_FoldersHeader" xml:space="preserve">
+    <value>文件夹</value>
+  </data>
+  <data name="Cards_FoundAfterChecks" xml:space="preserve">
+    <value>检查 {0} 个密钥后找到</value>
+  </data>
+  <data name="Cards_HoldATagAgainstTheDevice" xml:space="preserve">
+    <value>将标签靠近设备并扫描，或导入文件，或手动输入卡片。</value>
+  </data>
+  <data name="Cards_IdLength" xml:space="preserve">
+    <value>{0} ID 必须为 {1} 字节。</value>
+  </data>
+  <data name="Cards_IdentityOnly" xml:space="preserve">
+    <value>仅标识</value>
+  </data>
+  <data name="Cards_ImportCardTitle" xml:space="preserve">
+    <value>导入卡片</value>
+  </data>
+  <data name="Cards_ImportFile" xml:space="preserve">
+    <value>导入文件</value>
+  </data>
+  <data name="Cards_ImportJSONFlipperNfcRfidProxmark3" xml:space="preserve">
+    <value>导入 JSON、Flipper .nfc/.rfid、Proxmark3 JSON、MCT、.bin 或 .eml</value>
+  </data>
+  <data name="Cards_Internal" xml:space="preserve">
+    <value>内部</value>
+  </data>
+  <data name="Cards_InvalidAccessBits" xml:space="preserve">
+    <value>扇区 {0} 的访问位无效：将其写入卡片会锁死该扇区。</value>
+  </data>
+  <data name="Cards_JSONNfcBinEml" xml:space="preserve">
+    <value>JSON、.nfc、.bin、.eml…</value>
+  </data>
+  <data name="Cards_Keep" xml:space="preserve">
+    <value>保留</value>
+  </data>
+  <data name="Cards_KeepCurrent" xml:space="preserve">
+    <value>保留当前</value>
+  </data>
+  <data name="Cards_KeepEditingThisCard" xml:space="preserve">
+    <value>继续编辑此卡片</value>
+  </data>
+  <data name="Cards_KeepTheOldVersionInThe" xml:space="preserve">
+    <value>在卡槽中保留旧版本</value>
+  </data>
+  <data name="Cards_KeyA" xml:space="preserve">
+    <value>■ 密钥 A</value>
+  </data>
+  <data name="Cards_KeyAOfSectors" xml:space="preserve">
+    <value>扇区 {0} 的密钥 A</value>
+  </data>
+  <data name="Cards_KeyB" xml:space="preserve">
+    <value>■ 密钥 B</value>
+  </data>
+  <data name="Cards_KeyBOfSectors" xml:space="preserve">
+    <value>扇区 {0} 的密钥 B</value>
+  </data>
+  <data name="Cards_LFProtocol" xml:space="preserve">
+    <value>LF 协议</value>
+  </data>
+  <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
+    <value>语言代码，例如 en、de、ru</value>
+  </data>
+  <data name="Cards_LatitudeEG488584" xml:space="preserve">
+    <value>纬度，例如 48.8584</value>
+  </data>
+  <data name="Cards_LeaveTheTargetCardsPasswordPACK" xml:space="preserve">
+    <value>保留目标卡的密码、PACK、AUTH0、PROT 和尝试次数限制不变</value>
+  </data>
+  <data name="Cards_Legend3DesKey" xml:space="preserve">
+    <value>■ 3DES 密钥</value>
+  </data>
+  <data name="Cards_LfTagRead" xml:space="preserve">
+    <value>已读取 {0} 标签。</value>
+  </data>
+  <data name="Cards_LinkURI" xml:space="preserve">
+    <value>链接（URI）</value>
+  </data>
+  <data name="Cards_LoadedInSlot" xml:space="preserve">
+    <value>“{0}”已载入卡槽 {1}。要更新设备吗？</value>
+  </data>
+  <data name="Cards_LoadedInSlots" xml:space="preserve">
+    <value>“{0}”已载入卡槽 {1}。要更新设备吗？</value>
+  </data>
+  <data name="Cards_Location" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="Cards_LockBytes" xml:space="preserve">
+    <value>■ 锁定字节</value>
+  </data>
+  <data name="Cards_LongitudeEG22945" xml:space="preserve">
+    <value>经度，例如 2.2945</value>
+  </data>
+  <data name="Cards_MIMEData" xml:space="preserve">
+    <value>MIME 数据</value>
+  </data>
+  <data name="Cards_MIMETypeEGTextPlain" xml:space="preserve">
+    <value>MIME 类型，例如 text/plain</value>
+  </data>
+  <data name="Cards_MagicGenerationHeader" xml:space="preserve">
+    <value>魔术卡代数</value>
+  </data>
+  <data name="Cards_ManualEntry" xml:space="preserve">
+    <value>手动输入</value>
+  </data>
+  <data name="Cards_ManufacturerData" xml:space="preserve">
+    <value>厂商数据</value>
+  </data>
+  <data name="Cards_MemoryHeader" xml:space="preserve">
+    <value>存储内容</value>
+  </data>
+  <data name="Cards_MessageOptional" xml:space="preserve">
+    <value>消息（可选）</value>
+  </data>
+  <data name="Cards_Mfkey32LoadIntoSlot" xml:space="preserve">
+    <value>开始 mfkey32 前，请先将此卡载入卡槽。</value>
+  </data>
+  <data name="Cards_Mfkey32NeedsClassic" xml:space="preserve">
+    <value>mfkey32 需要 MIFARE Classic 卡。</value>
+  </data>
+  <data name="Cards_Mfkey32Tip" xml:space="preserve">
+    <value>使用 mfkey32 从读卡器恢复卡片密钥</value>
+  </data>
+  <data name="Cards_Model" xml:space="preserve">
+    <value>型号</value>
+  </data>
+  <data name="Cards_MoveThisCardToAFolder" xml:space="preserve">
+    <value>将此卡片移到文件夹</value>
+  </data>
+  <data name="Cards_MovedOutOfFolder" xml:space="preserve">
+    <value>已将“{0}”移出其文件夹。</value>
+  </data>
+  <data name="Cards_MovedToFolder" xml:space="preserve">
+    <value>已将“{0}”移至 {1}。</value>
+  </data>
+  <data name="Cards_MustBeHex" xml:space="preserve">
+    <value>{0} 必须是有效的十六进制。</value>
+  </data>
+  <data name="Cards_Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Cards_NetworkNameSSID" xml:space="preserve">
+    <value>网络名称（SSID）</value>
+  </data>
+  <data name="Cards_NewCard" xml:space="preserve">
+    <value>新卡片</value>
+  </data>
+  <data name="Cards_NewFolderN" xml:space="preserve">
+    <value>新建文件夹 {0}</value>
+  </data>
+  <data name="Cards_NewPassword" xml:space="preserve">
+    <value>新密码</value>
+  </data>
+  <data name="Cards_NoCardOnReader" xml:space="preserve">
+    <value>读卡器上未找到卡片。</value>
+  </data>
+  <data name="Cards_NoCardsInThisFolderYet" xml:space="preserve">
+    <value>此文件夹中还没有卡片。在导航栏中将卡片拖到文件夹上，或在此添加。</value>
+  </data>
+  <data name="Cards_NoCardsMatchTheSearchAnd" xml:space="preserve">
+    <value>没有符合搜索和筛选条件的卡片。</value>
+  </data>
+  <data name="Cards_NoCardsYet" xml:space="preserve">
+    <value>还没有卡片</value>
+  </data>
+  <data name="Cards_NoFolder" xml:space="preserve">
+    <value>无文件夹</value>
+  </data>
+  <data name="Cards_NoHfTag" xml:space="preserve">
+    <value>未检测到 HF（13.56 MHz）标签。</value>
+  </data>
+  <data name="Cards_NoKeysSelected" xml:space="preserve">
+    <value>未选择密钥</value>
+  </data>
+  <data name="Cards_NotFound" xml:space="preserve">
+    <value>未找到</value>
+  </data>
+  <data name="Cards_NotFoundChecked" xml:space="preserve">
+    <value>未找到 · 已检查 {0}/{1} 个密钥</value>
+  </data>
+  <data name="Cards_NotNow" xml:space="preserve">
+    <value>以后再说</value>
+  </data>
+  <data name="Cards_NotRead" xml:space="preserve">
+    <value>未读取</value>
+  </data>
+  <data name="Cards_NotWritten" xml:space="preserve">
+    <value>未写入</value>
+  </data>
+  <data name="Cards_NowEmulated" xml:space="preserve">
+    <value>“{0}”正在卡槽 {1} 中模拟。</value>
+  </data>
+  <data name="Cards_OnlyTypesThatKeepThisCards" xml:space="preserve">
+    <value>仅提供能保持此卡数据有效的类型。如需其他类型，请添加新卡片。</value>
+  </data>
+  <data name="Cards_OpenTheSavedCard" xml:space="preserve">
+    <value>打开已保存的卡片</value>
+  </data>
+  <data name="Cards_Optional" xml:space="preserve">
+    <value>可选</value>
+  </data>
+  <data name="Cards_Optional2" xml:space="preserve">
+    <value>可选</value>
+  </data>
+  <data name="Cards_OrderOfTheListInManual" xml:space="preserve">
+    <value>列表排序。选择“手动”时可拖动卡片排列。</value>
+  </data>
+  <data name="Cards_OrganizationOptional" xml:space="preserve">
+    <value>组织（可选）</value>
+  </data>
+  <data name="Cards_PWD4BytesForNTAGUltralight" xml:space="preserve">
+    <value>NTAG / Ultralight EV1 的 PWD（4 字节），或 Ultralight C 的 3DES 密钥（16 字节）</value>
+  </data>
+  <data name="Cards_PWD4BytesOfTheTarget" xml:space="preserve">
+    <value>目标卡页面被写保护时所用的 PWD（4 字节）</value>
+  </data>
+  <data name="Cards_PackReadsBack" xml:space="preserve">
+    <value>PACK（读回为 00）</value>
+  </data>
+  <data name="Cards_PackageNameEGComExample" xml:space="preserve">
+    <value>包名，例如 com.example.app</value>
+  </data>
+  <data name="Cards_PageN" xml:space="preserve">
+    <value>第 {0} 页</value>
+  </data>
+  <data name="Cards_PageProgress" xml:space="preserve">
+    <value>页 {0}/{1}</value>
+  </data>
+  <data name="Cards_PagesOf" xml:space="preserve">
+    <value>{0}/{1} 页</value>
+  </data>
+  <data name="Cards_PagesRange" xml:space="preserve">
+    <value>页 {0}–{1}</value>
+  </data>
+  <data name="Cards_PagesRead" xml:space="preserve">
+    <value>已读页面</value>
+  </data>
+  <data name="Cards_PartlyWritten" xml:space="preserve">
+    <value>部分写入</value>
+  </data>
+  <data name="Cards_Password" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="Cards_Password4BytesOfAnAlready" xml:space="preserve">
+    <value>已锁定的 T55xx 标签的密码（4 字节）。空白标签请留空；也会尝试固件的默认密码。</value>
+  </data>
+  <data name="Cards_Password4BytesTheTagIs" xml:space="preserve">
+    <value>写入后用于锁定标签的密码（4 字节）。留空则保留当前密码，空白标签则使用固件默认密码（20206666）。</value>
+  </data>
+  <data name="Cards_PasswordNotSent" xml:space="preserve">
+    <value>未发送；卡片不需要密码</value>
+  </data>
+  <data name="Cards_PasswordOptional" xml:space="preserve">
+    <value>密码（可选）</value>
+  </data>
+  <data name="Cards_PasswordProtectionHeader" xml:space="preserve">
+    <value>密码保护</value>
+  </data>
+  <data name="Cards_PasswordRejected" xml:space="preserve">
+    <value>未被接受；受保护页面未读取</value>
+  </data>
+  <data name="Cards_PasswordSettings" xml:space="preserve">
+    <value>密码设置</value>
+  </data>
+  <data name="Cards_PayloadHex" xml:space="preserve">
+    <value>载荷（十六进制）</value>
+  </data>
+  <data name="Cards_PhoneNumber" xml:space="preserve">
+    <value>电话号码</value>
+  </data>
+  <data name="Cards_PhoneNumberEG1555" xml:space="preserve">
+    <value>电话号码，例如 +1 555 0100</value>
+  </data>
+  <data name="Cards_PhoneOptional" xml:space="preserve">
+    <value>电话（可选）</value>
+  </data>
+  <data name="Cards_PlaceSelectedCard" xml:space="preserve">
+    <value>继续之前，请将所选卡片放在读卡器上。</value>
+  </data>
+  <data name="Cards_PreparingEmulation" xml:space="preserve">
+    <value>正在准备模拟…</value>
+  </data>
+  <data name="Cards_PreparingSector" xml:space="preserve">
+    <value>正在准备扇区…</value>
+  </data>
+  <data name="Cards_PressToScanACardImport" xml:space="preserve">
+    <value>按 + 扫描卡片、导入文件或手动输入。已保存的卡片可在任意卡槽中模拟，或写入标签。</value>
+  </data>
+  <data name="Cards_ProbeTheCardOnTheReader" xml:space="preserve">
+    <value>探测读卡器上的卡片并选择其代数</value>
+  </data>
+  <data name="Cards_Protected" xml:space="preserve">
+    <value>受保护</value>
+  </data>
+  <data name="Cards_ProtectionNote" xml:space="preserve">
+    <value>卡槽会模拟这些设置；如需写入卡片，请在写入时勾选“用密码保护”。</value>
+  </data>
+  <data name="Cards_Proxmark3EmlDumpHexText" xml:space="preserve">
+    <value>Proxmark3 .eml 转储（十六进制文本）</value>
+  </data>
+  <data name="Cards_PwdReadsBack" xml:space="preserve">
+    <value>PWD（读回为 00）</value>
+  </data>
+  <data name="Cards_RawMemoryDumpReadableByMost" xml:space="preserve">
+    <value>原始存储转储，大多数 MIFARE 工具都能读取</value>
+  </data>
+  <data name="Cards_RawRecord" xml:space="preserve">
+    <value>原始记录</value>
+  </data>
+  <data name="Cards_ReadEveryPage" xml:space="preserve">
+    <value>读取所有页面、签名和计数器</value>
+  </data>
+  <data name="Cards_ReadMissingBlocks" xml:space="preserve">
+    <value>用所选密钥读取缺失的块</value>
+  </data>
+  <data name="Cards_ReadPagesFrom" xml:space="preserve">
+    <value>已从 {2} 读取 {0}/{1} 页。</value>
+  </data>
+  <data name="Cards_ReadSectorsFrom" xml:space="preserve">
+    <value>已从 {2} 读取 {0}/{1} 个扇区。</value>
+  </data>
+  <data name="Cards_ReadSectorsProgress" xml:space="preserve">
+    <value>已读取 {0}/{1} 个扇区。</value>
+  </data>
+  <data name="Cards_Reading" xml:space="preserve">
+    <value>读取</value>
+  </data>
+  <data name="Cards_ReadingCard" xml:space="preserve">
+    <value>正在读取卡片…</value>
+  </data>
+  <data name="Cards_RecoverAllKeysHint" xml:space="preserve">
+    <value>恢复目标卡每个扇区的密钥 A 和 B。所有扇区都变绿后即可写入。</value>
+  </data>
+  <data name="Cards_RecoverGen2KeysFirst" xml:space="preserve">
+    <value>写入前，请恢复目标 Gen2 卡每个扇区的两个密钥。</value>
+  </data>
+  <data name="Cards_RecoverySectorHint" xml:space="preserve">
+    <value>选择扇区以编辑其块；悬停可查看密钥</value>
+  </data>
+  <data name="Cards_ReloadSlots" xml:space="preserve">
+    <value>重新加载卡槽</value>
+  </data>
+  <data name="Cards_RememberedAccepted" xml:space="preserve">
+    <value>已记住的 {0} 被接受</value>
+  </data>
+  <data name="Cards_RememberedRejected" xml:space="preserve">
+    <value>已记住的密码未被接受；受保护页面未读取</value>
+  </data>
+  <data name="Cards_RemoveTheRecord" xml:space="preserve">
+    <value>删除该记录</value>
+  </data>
+  <data name="Cards_SakLength" xml:space="preserve">
+    <value>SAK 必须为 1 字节。</value>
+  </data>
+  <data name="Cards_SaveACopyOfThisCard" xml:space="preserve">
+    <value>保存此卡片的副本</value>
+  </data>
+  <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
+    <value>另存为 JSON（与 Flutter 应用兼容）</value>
+  </data>
+  <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>离开前保存新卡片？</value>
+  </data>
+  <data name="Cards_SaveTheCardToAFile" xml:space="preserve">
+    <value>将卡片保存到文件</value>
+  </data>
+  <data name="Cards_SaveUidOnly" xml:space="preserve">
+    <value>仅保存 UID</value>
+  </data>
+  <data name="Cards_ScanA125KHzTagOf" xml:space="preserve">
+    <value>扫描下方所选协议的 125 kHz 标签</value>
+  </data>
+  <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
+    <value>扫描 ISO14443-A 标签；设备会切换到读卡器模式</value>
+  </data>
+  <data name="Cards_ScanHF" xml:space="preserve">
+    <value>扫描 HF</value>
+  </data>
+  <data name="Cards_ScanImportOrEnterANew" xml:space="preserve">
+    <value>扫描、导入或输入新卡片</value>
+  </data>
+  <data name="Cards_ScanLF" xml:space="preserve">
+    <value>扫描 LF</value>
+  </data>
+  <data name="Cards_Searching" xml:space="preserve">
+    <value>正在搜索…</value>
+  </data>
+  <data name="Cards_SearchingProgress" xml:space="preserve">
+    <value>正在搜索 {0}</value>
+  </data>
+  <data name="Cards_SectorBlock" xml:space="preserve">
+    <value>扇区 {0} · 块 {1}</value>
+  </data>
+  <data name="Cards_SectorBlockKey" xml:space="preserve">
+    <value>扇区 {0} · 块 {1} · 密钥 {2}</value>
+  </data>
+  <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
+    <value>扇区 {0} · 块 {1} · 密钥 {2} · {3}</value>
+  </data>
+  <data name="Cards_SectorTrailer" xml:space="preserve">
+    <value>{0} 尾块 · {1}</value>
+  </data>
+  <data name="Cards_SectorWriteState" xml:space="preserve">
+    <value>{0} · 已写入 {1}/{2} 个块</value>
+  </data>
+  <data name="Cards_SectorsDontFit" xml:space="preserve">
+    <value>扇区 {0}–{1} 超出 {2} 的容量，保存卡片时将被丢弃。</value>
+  </data>
+  <data name="Cards_SectorsOf" xml:space="preserve">
+    <value>{0}/{1} 个扇区</value>
+  </data>
+  <data name="Cards_SectorsRead" xml:space="preserve">
+    <value>已读扇区</value>
+  </data>
+  <data name="Cards_SelectACardToEditEmulate" xml:space="preserve">
+    <value>选择卡片以编辑、模拟或写入，或按 + 添加。</value>
+  </data>
+  <data name="Cards_Signature" xml:space="preserve">
+    <value>签名</value>
+  </data>
+  <data name="Cards_SortTypeDown" xml:space="preserve">
+    <value>类型 ↓</value>
+  </data>
+  <data name="Cards_SortTypeUp" xml:space="preserve">
+    <value>类型 ↑</value>
+  </data>
+  <data name="Cards_SourceTag" xml:space="preserve">
+    <value>{0} 标签</value>
+  </data>
+  <data name="Cards_SourceTypeUid" xml:space="preserve">
+    <value>{0}，UID {1}</value>
+  </data>
+  <data name="Cards_StaticLockBytes" xml:space="preserve">
+    <value>静态锁定字节</value>
+  </data>
+  <data name="Cards_StopKeepMemory" xml:space="preserve">
+    <value>停止并保留已读取的存储内容（Esc）</value>
+  </data>
+  <data name="Cards_StopWriteTip" xml:space="preserve">
+    <value>停止写入；已写入的块保留在卡片上</value>
+  </data>
+  <data name="Cards_Stopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="Cards_StoppedAtPage" xml:space="preserve">
+    <value>卡片在第 {0} 页停止响应</value>
+  </data>
+  <data name="Cards_SubjectOptional" xml:space="preserve">
+    <value>主题（可选）</value>
+  </data>
+  <data name="Cards_TagAlreadySaved" xml:space="preserve">
+    <value>此标签已在你的卡库中。可以打开已保存的卡片，或继续再次保存。</value>
+  </data>
+  <data name="Cards_TagType" xml:space="preserve">
+    <value>标签类型</value>
+  </data>
+  <data name="Cards_Text" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Cards_TextMessageSMS" xml:space="preserve">
+    <value>短信（SMS）</value>
+  </data>
+  <data name="Cards_TheCardReplacesTheSlotsCurrent" xml:space="preserve">
+    <value>该卡片将替换卡槽的当前内容，卡槽变为活动状态并保存到闪存。</value>
+  </data>
+  <data name="Cards_TheCardsRandomNumberGeneratorMeasured" xml:space="preserve">
+    <value>卡片的随机数生成器（由扫描测得）</value>
+  </data>
+  <data name="Cards_TheNDEFRecordsInTheMemory" xml:space="preserve">
+    <value>存储内容中的 NDEF 记录</value>
+  </data>
+  <data name="Cards_ThisCardHasNoTagType" xml:space="preserve">
+    <value>此卡片没有标签类型。请在下方选择一个并保存后再模拟。</value>
+  </data>
+  <data name="Cards_Time" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="Cards_Type" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="Cards_TypeAndUIDByHand" xml:space="preserve">
+    <value>手动输入类型和 UID</value>
+  </data>
+  <data name="Cards_TypeNameFormat" xml:space="preserve">
+    <value>类型名称格式</value>
+  </data>
+  <data name="Cards_UID" xml:space="preserve">
+    <value>■ UID</value>
+  </data>
+  <data name="Cards_UidLength" xml:space="preserve">
+    <value>UID 必须为 4、7 或 10 字节。</value>
+  </data>
+  <data name="Cards_UlPasswordLength" xml:space="preserve">
+    <value>NTAG / Ultralight EV1 为 4 字节，Ultralight C 为 16 字节。</value>
+  </data>
+  <data name="Cards_UlcKeyNotReadable" xml:space="preserve">
+    <value>3DES 密钥（不可读）</value>
+  </data>
+  <data name="Cards_UnknownHeldAs00" xml:space="preserve">
+    <value> （未知，按 00 保存）</value>
+  </data>
+  <data name="Cards_UnknownKeys" xml:space="preserve">
+    <value>未知的{0}：按 00 保存，因此将此转储写入卡片会把该密钥设为 000000000000。</value>
+  </data>
+  <data name="Cards_UnsupportedFile" xml:space="preserve">
+    <value>{0}：文件不受支持或已损坏（{1}）。</value>
+  </data>
+  <data name="Cards_UpdatedSlot" xml:space="preserve">
+    <value>已用“{1}”更新卡槽 {0}。</value>
+  </data>
+  <data name="Cards_UpdatedSlots" xml:space="preserve">
+    <value>已用“{1}”更新卡槽 {0}。</value>
+  </data>
+  <data name="Cards_UpdatingSlot" xml:space="preserve">
+    <value>正在更新卡槽 {0}：{1}/{2}…</value>
+  </data>
+  <data name="Cards_UploadTheSavedCardToThese" xml:space="preserve">
+    <value>将已保存的卡片上传到这些卡槽</value>
+  </data>
+  <data name="Cards_UserByte" xml:space="preserve">
+    <value>用户字节</value>
+  </data>
+  <data name="Cards_WarnAccessBits" xml:space="preserve">
+    <value>警告：错误的扇区访问位可能使卡片永久损坏。写入前请仔细检查转储和目标卡。</value>
+  </data>
+  <data name="Cards_WarnBlock0" xml:space="preserve">
+    <value>警告：错误的块 0 数据或扇区访问位可能使卡片永久损坏。写入前请仔细检查转储和目标卡。</value>
+  </data>
+  <data name="Cards_WebsiteOptional" xml:space="preserve">
+    <value>网站（可选）</value>
+  </data>
+  <data name="Cards_WiFiNetwork" xml:space="preserve">
+    <value>Wi-Fi 网络</value>
+  </data>
+  <data name="Cards_Write" xml:space="preserve">
+    <value>写入</value>
+  </data>
+  <data name="Cards_WriteAnother" xml:space="preserve">
+    <value>再写一张</value>
+  </data>
+  <data name="Cards_WriteBlock0UID" xml:space="preserve">
+    <value>写入块 0（UID）</value>
+  </data>
+  <data name="Cards_WriteError" xml:space="preserve">
+    <value>写入错误</value>
+  </data>
+  <data name="Cards_WriteHintGen1a" xml:space="preserve">
+    <value>将 Gen1a（UID）魔术卡放在读卡器上。所有块（包括块 0）都将不使用密钥直接写入。</value>
+  </data>
+  <data name="Cards_WriteHintGen2" xml:space="preserve">
+    <value>将 Gen2 / CUID 魔术卡放在读卡器上。所有块（包括块 0）都将使用源转储的密钥或所选字典写入。</value>
+  </data>
+  <data name="Cards_WriteHintGen2KeepUid" xml:space="preserve">
+    <value>将 Gen2 / CUID 魔术卡放在读卡器上。跳过块 0，因此卡片保留其 UID。其他块使用源转储的密钥或所选字典写入。</value>
+  </data>
+  <data name="Cards_WriteHintGen3" xml:space="preserve">
+    <value>将 Gen3（APDU）魔术卡放在读卡器上。数据块使用源转储的密钥或所选字典写入；块 0 通过 Gen3 后门命令设置。</value>
+  </data>
+  <data name="Cards_WriteHintT55xx" xml:space="preserve">
+    <value>将空白 T55xx 标签放在读卡器上。写入错误数据可能使标签损坏，请仔细检查卡片。</value>
+  </data>
+  <data name="Cards_WriteHintUl" xml:space="preserve">
+    <value>将容量相同或更大的 Ultralight / NTAG 卡放在读卡器上。只写入用户页；UID、锁定字节和能力容器保持不变，因此卡片保留自己的 UID。仅在下方勾选时才写入密码设置。</value>
+  </data>
+  <data name="Cards_WriteNew" xml:space="preserve">
+    <value>写入新的</value>
+  </data>
+  <data name="Cards_WriteOntoAT55xxTagLF" xml:space="preserve">
+    <value>写入 T55xx 标签（LF）、魔术卡（MIFARE Classic）或 Ultralight / NTAG 卡的用户页</value>
+  </data>
+  <data name="Cards_WriteStoppedBlocks" xml:space="preserve">
+    <value>写入已停止。已写入的块保留在卡片上。</value>
+  </data>
+  <data name="Cards_WriteStoppedPages" xml:space="preserve">
+    <value>写入已停止。已写入的页面保留在卡片上。</value>
+  </data>
+  <data name="Cards_WriteStoppedResume" xml:space="preserve">
+    <value>写入已停止。按“写入”可在同一张卡上继续；会先检查其 UID。</value>
+  </data>
+  <data name="Cards_WriteTheSameCardToAnother" xml:space="preserve">
+    <value>用相同选项将同一张卡写入另一个标签</value>
+  </data>
+  <data name="Cards_WriteTheSourceDumpsManufacturerBlock" xml:space="preserve">
+    <value>写入源转储的厂商块和 UID。错误的块 0 数据可能使目标卡永久损坏。</value>
+  </data>
+  <data name="Cards_WriteToMagic" xml:space="preserve">
+    <value>写入魔术卡</value>
+  </data>
+  <data name="Cards_WriteToT55xx" xml:space="preserve">
+    <value>写入 T55xx 标签</value>
+  </data>
+  <data name="Cards_WriteToUl" xml:space="preserve">
+    <value>将页面写入 Ultralight / NTAG 卡</value>
+  </data>
+  <data name="Cards_WroteCard" xml:space="preserve">
+    <value>已将“{0}”写入卡片。</value>
+  </data>
+  <data name="Cards_WroteT55xx" xml:space="preserve">
+    <value>已将“{0}”写入 T55xx 标签。</value>
+  </data>
+  <data name="Chameleon_6DigitsBlankKeepsTheCurrent" xml:space="preserve">
+    <value>6 位数字。留空则保留当前 PIN。</value>
+  </data>
+  <data name="Chameleon_ActionOnALongPress" xml:space="preserve">
+    <value>长按时的操作。</value>
+  </data>
+  <data name="Chameleon_ActionOnAShortPress" xml:space="preserve">
+    <value>短按时的操作。</value>
+  </data>
+  <data name="Chameleon_ActiveSlotHeader" xml:space="preserve">
+    <value>活动卡槽</value>
+  </data>
+  <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
+    <value>所有卡槽、昵称、模拟数据和设置都将被清除。之后设备会断开连接。</value>
+  </data>
+  <data name="Chameleon_BatteryHeader" xml:space="preserve">
+    <value>电池</value>
+  </data>
+  <data name="Chameleon_BatteryVolts" xml:space="preserve">
+    <value>{0:F2} V</value>
+  </data>
+  <data name="Chameleon_BehaviorAndControlsSaveSendsYour" xml:space="preserve">
+    <value>行为和控制。“保存”会将修改发送到设备，重启后仍然保留。</value>
+  </data>
+  <data name="Chameleon_BleAddressHeader" xml:space="preserve">
+    <value>BLE 地址</value>
+  </data>
+  <data name="Chameleon_BluetoothPairing" xml:space="preserve">
+    <value>蓝牙配对</value>
+  </data>
+  <data name="Chameleon_BondsCleared" xml:space="preserve">
+    <value>已清除绑定的 BLE 设备。</value>
+  </data>
+  <data name="Chameleon_ButtonA" xml:space="preserve">
+    <value>按钮 A</value>
+  </data>
+  <data name="Chameleon_ButtonALongPress" xml:space="preserve">
+    <value>按钮 A（长按）</value>
+  </data>
+  <data name="Chameleon_ButtonB" xml:space="preserve">
+    <value>按钮 B</value>
+  </data>
+  <data name="Chameleon_ButtonBLongPress" xml:space="preserve">
+    <value>按钮 B（长按）</value>
+  </data>
+  <data name="Chameleon_ChipIdHeader" xml:space="preserve">
+    <value>芯片 ID</value>
+  </data>
+  <data name="Chameleon_ClearAllBondedBLEDevices" xml:space="preserve">
+    <value>清除所有已绑定的 BLE 设备？</value>
+  </data>
+  <data name="Chameleon_ClearBondedDevices" xml:space="preserve">
+    <value>清除已绑定设备</value>
+  </data>
+  <data name="Chameleon_ClearBonds" xml:space="preserve">
+    <value>清除绑定</value>
+  </data>
+  <data name="Chameleon_ClearBonds2" xml:space="preserve">
+    <value>清除绑定…</value>
+  </data>
+  <data name="Chameleon_CurrentDeviceSettingsWillBeReplaced" xml:space="preserve">
+    <value>当前设备设置将被出厂默认值替换。</value>
+  </data>
+  <data name="Chameleon_DeviceSettingsHeader" xml:space="preserve">
+    <value>设备设置</value>
+  </data>
+  <data name="Chameleon_DeviceStatusFirmwareAndSettings" xml:space="preserve">
+    <value>设备状态、固件和设置。</value>
+  </data>
+  <data name="Chameleon_Emulator" xml:space="preserve">
+    <value>模拟器</value>
+  </data>
+  <data name="Chameleon_EraseEverything" xml:space="preserve">
+    <value>全部清除</value>
+  </data>
+  <data name="Chameleon_FactoryReset" xml:space="preserve">
+    <value>恢复出厂设置</value>
+  </data>
+  <data name="Chameleon_FactoryReset2" xml:space="preserve">
+    <value>恢复出厂设置…</value>
+  </data>
+  <data name="Chameleon_FactoryResetDone" xml:space="preserve">
+    <value>已恢复出厂设置。设备已断开连接。</value>
+  </data>
+  <data name="Chameleon_FactoryResetTheChameleon" xml:space="preserve">
+    <value>将 Chameleon 恢复出厂设置？</value>
+  </data>
+  <data name="Chameleon_FirmwareHeader" xml:space="preserve">
+    <value>固件</value>
+  </data>
+  <data name="Chameleon_FirmwareInstalled" xml:space="preserve">
+    <value>已安装：{0}</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateHeader" xml:space="preserve">
+    <value>固件更新</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateTo" xml:space="preserve">
+    <value>更新到 {0}</value>
+  </data>
+  <data name="Chameleon_ForgetsEveryPhoneAndTabletPaired" xml:space="preserve">
+    <value>忘记所有通过蓝牙 LE 配对的手机和平板。</value>
+  </data>
+  <data name="Chameleon_GitVersionHeader" xml:space="preserve">
+    <value>GIT 版本</value>
+  </data>
+  <data name="Chameleon_HardwareAndFirmwareIdentity" xml:space="preserve">
+    <value>硬件和固件标识</value>
+  </data>
+  <data name="Chameleon_HoldTimeForALongPress" xml:space="preserve">
+    <value>长按的按住时间（毫秒）。</value>
+  </data>
+  <data name="Chameleon_IdleSecondsBeforeSleep560" xml:space="preserve">
+    <value>休眠前的空闲秒数（5–60）。</value>
+  </data>
+  <data name="Chameleon_InstallADFUPackageUltraDfu" xml:space="preserve">
+    <value>安装 DFU 包（ultra-dfu-app.zip / lite-dfu-app.zip）</value>
+  </data>
+  <data name="Chameleon_InstallFromFile" xml:space="preserve">
+    <value>从文件安装…</value>
+  </data>
+  <data name="Chameleon_LEDAnimation" xml:space="preserve">
+    <value>LED 动画</value>
+  </data>
+  <data name="Chameleon_LightPatternOnWakeUp" xml:space="preserve">
+    <value>唤醒时的灯光效果。</value>
+  </data>
+  <data name="Chameleon_LongPressThreshold" xml:space="preserve">
+    <value>长按阈值</value>
+  </data>
+  <data name="Chameleon_NextFilledSlot" xml:space="preserve">
+    <value>下一个非空卡槽</value>
+  </data>
+  <data name="Chameleon_NotAvailable" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="Chameleon_OperatingModeHeader" xml:space="preserve">
+    <value>工作模式</value>
+  </data>
+  <data name="Chameleon_PairedPhonesAndTabletsWillHave" xml:space="preserve">
+    <value>已配对的手机和平板需要重新配对，可能还需要先从其蓝牙列表中移除 Chameleon。</value>
+  </data>
+  <data name="Chameleon_PairingPIN" xml:space="preserve">
+    <value>配对 PIN</value>
+  </data>
+  <data name="Chameleon_PinLength" xml:space="preserve">
+    <value>BLE PIN 必须正好是 6 位数字。</value>
+  </data>
+  <data name="Chameleon_PreviousFilledSlot" xml:space="preserve">
+    <value>上一个非空卡槽</value>
+  </data>
+  <data name="Chameleon_Reader" xml:space="preserve">
+    <value>读卡器</value>
+  </data>
+  <data name="Chameleon_Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="Chameleon_ReleaseNotes" xml:space="preserve">
+    <value>发行说明</value>
+  </data>
+  <data name="Chameleon_ReloadDeviceInformation" xml:space="preserve">
+    <value>重新加载设备信息</value>
+  </data>
+  <data name="Chameleon_RequireAPINToConnectOver" xml:space="preserve">
+    <value>通过蓝牙 LE 连接时需要 PIN。</value>
+  </data>
+  <data name="Chameleon_Reset" xml:space="preserve">
+    <value>重置…</value>
+  </data>
+  <data name="Chameleon_ResetAllSettings" xml:space="preserve">
+    <value>重置所有设置？</value>
+  </data>
+  <data name="Chameleon_ResetSettings" xml:space="preserve">
+    <value>重置设置</value>
+  </data>
+  <data name="Chameleon_ResetToDefaults" xml:space="preserve">
+    <value>恢复默认值</value>
+  </data>
+  <data name="Chameleon_RestoresFactorySettingsForLEDsSleep" xml:space="preserve">
+    <value>将 LED、休眠和按钮恢复为出厂设置。</value>
+  </data>
+  <data name="Chameleon_SendTheseValuesToTheDevice" xml:space="preserve">
+    <value>将这些值发送到设备，重启后仍然保留</value>
+  </data>
+  <data name="Chameleon_SettingsReset" xml:space="preserve">
+    <value>设置已恢复为默认值。</value>
+  </data>
+  <data name="Chameleon_SleepTimeout" xml:space="preserve">
+    <value>休眠超时</value>
+  </data>
+  <data name="Chameleon_SlotActive" xml:space="preserve">
+    <value>卡槽 {0} 现已激活。</value>
+  </data>
+  <data name="Chameleon_SwitchedMode" xml:space="preserve">
+    <value>已切换到{0}模式。</value>
+  </data>
+  <data name="Chameleon_TheDefaultPINIs123456" xml:space="preserve">
+    <value>默认 PIN 为 123456。</value>
+  </data>
+  <data name="Chameleon_TheDevicePresentsTheActiveSlot" xml:space="preserve">
+    <value>设备将活动卡槽作为卡片呈现给读卡器。</value>
+  </data>
+  <data name="Chameleon_TheDeviceScansExternalCardsAnd" xml:space="preserve">
+    <value>设备扫描外部卡片和标签。</value>
+  </data>
+  <data name="Chameleon_ThisModelHasNoBatteryGauge" xml:space="preserve">
+    <value>此型号没有电量计。</value>
+  </data>
+  <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
+    <value>清除所有数据：每个卡槽、昵称、已保存的模拟内容和设置。此操作无法撤消。</value>
+  </data>
+  <data name="Common_125KHz" xml:space="preserve">
+    <value>125 kHz</value>
+  </data>
+  <data name="Common_AddCard" xml:space="preserve">
+    <value>添加卡片</value>
+  </data>
+  <data name="Common_And" xml:space="preserve">
+    <value>和</value>
+  </data>
+  <data name="Common_BackToTheList" xml:space="preserve">
+    <value>返回列表</value>
+  </data>
+  <data name="Common_Block" xml:space="preserve">
+    <value>块</value>
+  </data>
+  <data name="Common_BuiltInKeys" xml:space="preserve">
+    <value>内置密钥</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Common_Card" xml:space="preserve">
+    <value>卡片</value>
+  </data>
+  <data name="Common_CheckGitHubForANewerRelease" xml:space="preserve">
+    <value>在 GitHub 上检查新版本</value>
+  </data>
+  <data name="Common_CheckingDictKeys" xml:space="preserve">
+    <value>正在检查字典密钥…</value>
+  </data>
+  <data name="Common_CheckingRecoveryMethods" xml:space="preserve">
+    <value>正在检查恢复方法…</value>
+  </data>
+  <data name="Common_CheckingTargetUid" xml:space="preserve">
+    <value>正在检查目标 UID…</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Common_ConnectFirst" xml:space="preserve">
+    <value>请先连接 Chameleon。</value>
+  </data>
+  <data name="Common_Copied" xml:space="preserve">
+    <value>已复制</value>
+  </data>
+  <data name="Common_CopySuffix" xml:space="preserve">
+    <value> （副本）</value>
+  </data>
+  <data name="Common_CouldNotSave" xml:space="preserve">
+    <value>无法保存：{0}</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Common_DeleteFolder" xml:space="preserve">
+    <value>删除文件夹</value>
+  </data>
+  <data name="Common_DeleteFolderPrompt" xml:space="preserve">
+    <value>删除文件夹 {0}？</value>
+  </data>
+  <data name="Common_DictKeyFound" xml:space="preserve">
+    <value>已找到字典密钥。</value>
+  </data>
+  <data name="Common_DictKeyNotFound" xml:space="preserve">
+    <value>未找到字典密钥。</value>
+  </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>放弃</value>
+  </data>
+  <data name="Common_Done" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Common_Duplicate" xml:space="preserve">
+    <value>复制一份</value>
+  </data>
+  <data name="Common_Empty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="Common_EnterName" xml:space="preserve">
+    <value>请输入名称。</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Common_Export" xml:space="preserve">
+    <value>导出</value>
+  </data>
+  <data name="Common_ImportedFrom" xml:space="preserve">
+    <value>从 {0} 导入</value>
+  </data>
+  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
+    <value>其中的卡片不会被删除，而是回到“卡片”。</value>
+  </data>
+  <data name="Common_KeyA" xml:space="preserve">
+    <value>密钥 A</value>
+  </data>
+  <data name="Common_KeyB" xml:space="preserve">
+    <value>密钥 B</value>
+  </data>
+  <data name="Common_KeyDictionaries" xml:space="preserve">
+    <value>密钥字典</value>
+  </data>
+  <data name="Common_KeysTriedOf" xml:space="preserve">
+    <value>已尝试 {0}/{1} 个密钥</value>
+  </data>
+  <data name="Common_Modified" xml:space="preserve">
+    <value>■ 已修改</value>
+  </data>
+  <data name="Common_NewFolder" xml:space="preserve">
+    <value>新建文件夹</value>
+  </data>
+  <data name="Common_NoKey" xml:space="preserve">
+    <value>无密钥</value>
+  </data>
+  <data name="Common_NoName" xml:space="preserve">
+    <value>无名称</value>
+  </data>
+  <data name="Common_NotHex" xml:space="preserve">
+    <value>不是十六进制值。</value>
+  </data>
+  <data name="Common_NotTried" xml:space="preserve">
+    <value>未尝试</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="Common_Page" xml:space="preserve">
+    <value>页</value>
+  </data>
+  <data name="Common_Password4Bytes" xml:space="preserve">
+    <value>密码为 4 字节。</value>
+  </data>
+  <data name="Common_Pending" xml:space="preserve">
+    <value>待处理</value>
+  </data>
+  <data name="Common_Read" xml:space="preserve">
+    <value>读取</value>
+  </data>
+  <data name="Common_Rename" xml:space="preserve">
+    <value>重命名</value>
+  </data>
+  <data name="Common_RenameFolder" xml:space="preserve">
+    <value>重命名文件夹</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Common_SaveChangesTo" xml:space="preserve">
+    <value>保存对“{0}”的更改？</value>
+  </data>
+  <data name="Common_SavedFile" xml:space="preserve">
+    <value>已保存 {0}。</value>
+  </data>
+  <data name="Common_SearchByNameTypeOrUID" xml:space="preserve">
+    <value>按名称、类型或 UID 搜索</value>
+  </data>
+  <data name="Common_SectorN" xml:space="preserve">
+    <value>扇区 {0}</value>
+  </data>
+  <data name="Common_SortManual" xml:space="preserve">
+    <value>手动</value>
+  </data>
+  <data name="Common_SortNameAz" xml:space="preserve">
+    <value>名称 A–Z</value>
+  </data>
+  <data name="Common_SortNameZa" xml:space="preserve">
+    <value>名称 Z–A</value>
+  </data>
+  <data name="Common_Starting" xml:space="preserve">
+    <value>正在启动…</value>
+  </data>
+  <data name="Common_StartingRecovery" xml:space="preserve">
+    <value>正在开始恢复…</value>
+  </data>
+  <data name="Common_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Common_Stopping" xml:space="preserve">
+    <value>正在停止…</value>
+  </data>
+  <data name="Common_TryKeys" xml:space="preserve">
+    <value>尝试密钥</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="Common_UnsavedChanges" xml:space="preserve">
+    <value>未保存的更改</value>
+  </data>
+  <data name="Common_Untitled" xml:space="preserve">
+    <value>未命名</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Common_UploadingProgress" xml:space="preserve">
+    <value>正在上传 {0}/{1}…</value>
+  </data>
+  <data name="Common_WaitForOperation" xml:space="preserve">
+    <value>请等待当前操作完成。</value>
+  </data>
+  <data name="Common_Writing" xml:space="preserve">
+    <value>正在写入</value>
+  </data>
+  <data name="Common_Written" xml:space="preserve">
+    <value>已写入</value>
+  </data>
+  <data name="Connect_Connect" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Connect_ConnectThroughAUSBSerialTCP" xml:space="preserve">
+    <value>通过 USB 串口 → TCP 桥接器或模拟器连接。</value>
+  </data>
+  <data name="Connect_ConnectYourChameleon" xml:space="preserve">
+    <value>连接你的 Chameleon</value>
+  </data>
+  <data name="Connect_DetectedDevices" xml:space="preserve">
+    <value>检测到的设备</value>
+  </data>
+  <data name="Connect_HeroBle" xml:space="preserve">
+    <value>打开蓝牙，并按下 Chameleon 上的按钮将其唤醒。它会自动出现在这里。</value>
+  </data>
+  <data name="Connect_HeroUsb" xml:space="preserve">
+    <value>插入 Chameleon。它会自动出现在这里。</value>
+  </data>
+  <data name="Connect_HeroUsbBle" xml:space="preserve">
+    <value>插入 Chameleon，或按下它的按钮唤醒以使用蓝牙。它会自动出现在这里。</value>
+  </data>
+  <data name="Connect_IntroBle" xml:space="preserve">
+    <value>按下设备上的按钮将其唤醒，然后在下方选择它。</value>
+  </data>
+  <data name="Connect_IntroUsb" xml:space="preserve">
+    <value>通过 USB 插入设备，然后在下方选择它。</value>
+  </data>
+  <data name="Connect_IntroUsbBle" xml:space="preserve">
+    <value>通过 USB 插入设备，或按下它的按钮唤醒以使用蓝牙，然后在下方选择它。</value>
+  </data>
+  <data name="Connect_NearbyAuto" xml:space="preserve">
+    <value>附近处于唤醒状态的设备会自动显示在这里。</value>
+  </data>
+  <data name="Connect_NetworkBridgeTCP" xml:space="preserve">
+    <value>网络桥接（TCP）</value>
+  </data>
+  <data name="Connect_NoDevicesDetected" xml:space="preserve">
+    <value>未检测到设备</value>
+  </data>
+  <data name="Connect_NoneFound" xml:space="preserve">
+    <value>未找到 Chameleon。请插入设备，或使用网络桥接。</value>
+  </data>
+  <data name="Connect_PairOverBluetooth" xml:space="preserve">
+    <value>通过蓝牙配对</value>
+  </data>
+  <data name="Connect_PickAChameleonInTheBrowsers" xml:space="preserve">
+    <value>在浏览器的蓝牙选择器中选择 Chameleon</value>
+  </data>
+  <data name="Connect_PluggedAuto" xml:space="preserve">
+    <value>已插入的设备会自动显示在这里。</value>
+  </data>
+  <data name="Connect_Rescan" xml:space="preserve">
+    <value>重新扫描</value>
+  </data>
+  <data name="Connect_ScanAgain" xml:space="preserve">
+    <value>再次扫描</value>
+  </data>
+  <data name="Connect_SelectFirst" xml:space="preserve">
+    <value>请先选择设备。</value>
+  </data>
+  <data name="Connect_SelectedPressConnect" xml:space="preserve">
+    <value>已选择 {0}。请按“连接”。</value>
+  </data>
+  <data name="Connect_WebIntro" xml:space="preserve">
+    <value>插入 Chameleon，然后按“重新扫描”并允许此页面使用它（Chrome 或 Edge）。</value>
+  </data>
+  <data name="Connect_WebIntroBle" xml:space="preserve">
+    <value>插入 Chameleon 并按“重新扫描”，或唤醒它并按“通过蓝牙配对”，然后允许此页面使用它（Chrome 或 Edge）。</value>
+  </data>
+  <data name="Connect_WebPickOnce" xml:space="preserve">
+    <value>按“重新扫描”选择一次你的 Chameleon；之后它会自动出现在这里。</value>
+  </data>
+  <data name="Connect_WebPickOnceBle" xml:space="preserve">
+    <value>通过“重新扫描”（USB）或“通过蓝牙配对”选择一次你的 Chameleon；之后它会自动出现在这里。</value>
+  </data>
+  <data name="Device_AtqaLength" xml:space="preserve">
+    <value>ATQA 必须为 2 字节。</value>
+  </data>
+  <data name="Device_BlockLength" xml:space="preserve">
+    <value>块数据必须为 16 字节。</value>
+  </data>
+  <data name="Device_CannotEmulate" xml:space="preserve">
+    <value>无法模拟 {0}。</value>
+  </data>
+  <data name="Device_CannotReadFromSlot" xml:space="preserve">
+    <value>无法从卡槽读取 {0}。</value>
+  </data>
+  <data name="Device_CannotWriteT55xx" xml:space="preserve">
+    <value>无法将 {0} 写入 T55xx 标签。</value>
+  </data>
+  <data name="Device_CommandFailed" xml:space="preserve">
+    <value>{0} 失败：{1}</value>
+  </data>
+  <data name="Device_CommandTimeout" xml:space="preserve">
+    <value>命令 {0} 在 {1} ms 后超时。</value>
+  </data>
+  <data name="Device_ConfigLocked" xml:space="preserve">
+    <value>卡片配置已锁定（CFGLCK），因此无法更改其密码。</value>
+  </data>
+  <data name="Device_ConfigUnreadable" xml:space="preserve">
+    <value>无法读取卡片的配置页。如果它们受读保护，请输入卡片的当前密码。</value>
+  </data>
+  <data name="Device_CouldNotCheckCandidates" xml:space="preserve">
+    <value>无法检查候选密钥。</value>
+  </data>
+  <data name="Device_CouldNotCollectNested" xml:space="preserve">
+    <value>无法收集 nested nonce。</value>
+  </data>
+  <data name="Device_Disconnected" xml:space="preserve">
+    <value>Chameleon 已断开连接。</value>
+  </data>
+  <data name="Device_EmulatorBlocks" xml:space="preserve">
+    <value>模拟数据必须是整数个 16 字节块。</value>
+  </data>
+  <data name="Device_HfSniffFailed" xml:space="preserve">
+    <value>HF 嗅探失败：{0}</value>
+  </data>
+  <data name="Device_IdLengthGot" xml:space="preserve">
+    <value>{0} ID 必须为 {1} 字节（实际为 {2}）。</value>
+  </data>
+  <data name="Device_IncompleteNested" xml:space="preserve">
+    <value>nested nonce 响应不完整。</value>
+  </data>
+  <data name="Device_IncompleteStaticEnc" xml:space="preserve">
+    <value>static encrypted nested nonce 响应不完整。</value>
+  </data>
+  <data name="Device_IncompleteStaticNested" xml:space="preserve">
+    <value>static nested nonce 响应不完整。</value>
+  </data>
+  <data name="Device_InvalidHardnested" xml:space="preserve">
+    <value>hardnested nonce 响应无效。</value>
+  </data>
+  <data name="Device_LfScanUnsupported" xml:space="preserve">
+    <value>不支持 {0} 的 LF 扫描。</value>
+  </data>
+  <data name="Device_LfSniffFailed" xml:space="preserve">
+    <value>LF 嗅探失败：{0}</value>
+  </data>
+  <data name="Device_NewPasswordLength" xml:space="preserve">
+    <value>新密码必须为 4 字节，PACK 必须为 2 字节。</value>
+  </data>
+  <data name="Device_NickTooLong" xml:space="preserve">
+    <value>昵称过长（最多 32 字节）。</value>
+  </data>
+  <data name="Device_NoDistance" xml:space="preserve">
+    <value>无法测量 nonce 距离。</value>
+  </data>
+  <data name="Device_NoEm410x" xml:space="preserve">
+    <value>没有 EM410x 标签：{0}</value>
+  </data>
+  <data name="Device_NoHfTag" xml:space="preserve">
+    <value>没有 HF 标签：{0}</value>
+  </data>
+  <data name="Device_NoPasswordToSet" xml:space="preserve">
+    <value>读卡器上的卡片（{0}）没有可设置的密码。</value>
+  </data>
+  <data name="Device_NoPrng" xml:space="preserve">
+    <value>无法检测卡片的 PRNG。</value>
+  </data>
+  <data name="Device_NoTagOfType" xml:space="preserve">
+    <value>没有 {0} 标签：{1}</value>
+  </data>
+  <data name="Device_NotDarkside" xml:space="preserve">
+    <value>卡片不受 darkside 攻击影响。</value>
+  </data>
+  <data name="Device_NotUltralight" xml:space="preserve">
+    <value>不是 Ultralight / NTAG 卡（SAK {0:X2}）。</value>
+  </data>
+  <data name="Device_PageData" xml:space="preserve">
+    <value>页面数据必须是整数个 4 字节页。</value>
+  </data>
+  <data name="Device_PasswordLength" xml:space="preserve">
+    <value>密码必须为 4 字节。</value>
+  </data>
+  <data name="Device_PasswordRejected" xml:space="preserve">
+    <value>卡片不接受该密码。</value>
+  </data>
+  <data name="Device_PasswordsRejected" xml:space="preserve">
+    <value>卡片既不接受该密码，也不接受为其记住的密码。</value>
+  </data>
+  <data name="Device_PickTagType" xml:space="preserve">
+    <value>模拟前请为此卡片选择标签类型。</value>
+  </data>
+  <data name="Device_SlotHasNoCard" xml:space="preserve">
+    <value>卡槽 {0} 中没有 {1} 卡。</value>
+  </data>
+  <data name="Device_T55xxDifferentId" xml:space="preserve">
+    <value>标签读回的 ID 不同，写入没有生效。它很可能使用了其他密码锁定。请输入标签的当前密码后重试。</value>
+  </data>
+  <data name="Device_T55xxKeyLength" xml:space="preserve">
+    <value>T55xx 密钥必须为 4 字节。</value>
+  </data>
+  <data name="Device_T55xxNoReadBack" xml:space="preserve">
+    <value>已写入标签，但无法读回确认。它可能使用了其他密码锁定，或不是可写的 T55xx。请输入标签的当前密码后重试。</value>
+  </data>
+  <data name="Device_T55xxWriteFailed" xml:space="preserve">
+    <value>T55xx 写入失败：{0}</value>
+  </data>
+  <data name="Device_TargetChanged" xml:space="preserve">
+    <value>目标卡已更换。继续前请重新扫描。</value>
+  </data>
+  <data name="Device_UidLength" xml:space="preserve">
+    <value>UID 必须为 4、7 或 10 字节。</value>
+  </data>
+  <data name="Device_UlKeyLength" xml:space="preserve">
+    <value>密钥必须为 4 字节（NTAG / Ultralight EV1 密码）或 16 字节（Ultralight C）。</value>
+  </data>
+  <data name="Device_UnexpectedCandidate" xml:space="preserve">
+    <value>设备返回了意外的候选密钥。</value>
+  </data>
+  <data name="Device_UnknownModel" xml:space="preserve">
+    <value>未知型号</value>
+  </data>
+  <data name="Dfu_AppOnly" xml:space="preserve">
+    <value>仅支持应用程序更新，此包中没有应用程序。</value>
+  </data>
+  <data name="Dfu_Corrupted" xml:space="preserve">
+    <value>固件传输损坏（设备位于 {0}，CRC 为 {1:X8}，应为 {2} / {3:X8}）。</value>
+  </data>
+  <data name="Dfu_Empty" xml:space="preserve">
+    <value>安装包为空。</value>
+  </data>
+  <data name="Dfu_LinkLost" xml:space="preserve">
+    <value>与引导程序的连接已断开。</value>
+  </data>
+  <data name="Dfu_Missing" xml:space="preserve">
+    <value>缺少 {0}。</value>
+  </data>
+  <data name="Dfu_NoControlPoint" xml:space="preserve">
+    <value>缺少 DFU 控制点。</value>
+  </data>
+  <data name="Dfu_NoPacketChar" xml:space="preserve">
+    <value>缺少 DFU 数据包特征。</value>
+  </data>
+  <data name="Dfu_NoService" xml:space="preserve">
+    <value>引导程序没有 Secure DFU 服务。</value>
+  </data>
+  <data name="Dfu_NotPackage" xml:space="preserve">
+    <value>不是固件 DFU 包：{0}</value>
+  </data>
+  <data name="Dfu_Rejected" xml:space="preserve">
+    <value>引导程序拒绝了步骤 0x{0:X2}（错误 0x{1:X2}{2}）。</value>
+  </data>
+  <data name="Dfu_Stopped" xml:space="preserve">
+    <value>引导程序停止响应。</value>
+  </data>
+  <data name="Dfu_Unexpected" xml:space="preserve">
+    <value>引导程序响应异常：{0}。</value>
+  </data>
+  <data name="Dictionaries_ClearSearch" xml:space="preserve">
+    <value>清除搜索</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
+    <value>删除此字典</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionaryPermanently" xml:space="preserve">
+    <value>永久删除此字典？</value>
+  </data>
+  <data name="Dictionaries_DictionaryColor" xml:space="preserve">
+    <value>字典颜色</value>
+  </data>
+  <data name="Dictionaries_DictionaryName" xml:space="preserve">
+    <value>字典名称</value>
+  </data>
+  <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
+    <value>编辑按卡片 UID 分组的已知密钥</value>
+  </data>
+  <data name="Dictionaries_ExportTitle" xml:space="preserve">
+    <value>导出字典（.dic）</value>
+  </data>
+  <data name="Dictionaries_ForgetCard" xml:space="preserve">
+    <value>忘记卡片</value>
+  </data>
+  <data name="Dictionaries_Import" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="Dictionaries_ImportADicKeysTxtJson" xml:space="preserve">
+    <value>导入 .dic / .keys / .txt / .json 字典</value>
+  </data>
+  <data name="Dictionaries_ImportTitle" xml:space="preserve">
+    <value>导入字典</value>
+  </data>
+  <data name="Dictionaries_KeepEditingThisDictionary" xml:space="preserve">
+    <value>继续编辑此字典</value>
+  </data>
+  <data name="Dictionaries_KeyEmpty" xml:space="preserve">
+    <value>密钥 {0} · 为空，保存时丢弃</value>
+  </data>
+  <data name="Dictionaries_KeyN" xml:space="preserve">
+    <value>密钥 {0}</value>
+  </data>
+  <data name="Dictionaries_KeyRepeats" xml:space="preserve">
+    <value>密钥 {0} · 与密钥 {1} 重复，保存时丢弃</value>
+  </data>
+  <data name="Dictionaries_KeysHeader" xml:space="preserve">
+    <value>密钥</value>
+  </data>
+  <data name="Dictionaries_KnownCardKeys" xml:space="preserve">
+    <value>已知卡片密钥</value>
+  </data>
+  <data name="Dictionaries_KnownKeysCount" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
+    <value>读取卡片或运行恢复时找到的密钥将按 UID 分组显示在这里。</value>
+  </data>
+  <data name="Dictionaries_NewDictionary" xml:space="preserve">
+    <value>新建字典</value>
+  </data>
+  <data name="Dictionaries_NewKeyRow" xml:space="preserve">
+    <value>新密钥：输入或粘贴以添加</value>
+  </data>
+  <data name="Dictionaries_NoCardsMatchTheSearch" xml:space="preserve">
+    <value>没有符合搜索条件的卡片。</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
+    <value>没有符合搜索条件的字典。</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
+    <value>还没有字典</value>
+  </data>
+  <data name="Dictionaries_NoValidKeys" xml:space="preserve">
+    <value>{0} 中没有有效的密钥。</value>
+  </data>
+  <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
+    <value>每行一个密钥。在末尾的空行输入十六进制即可添加密钥，也可以在那里粘贴列表。Enter 打开一行，Delete 删除所选行。</value>
+  </data>
+  <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
+    <value>列表排序。选择“手动”时可拖动字典排列。</value>
+  </data>
+  <data name="Dictionaries_PressToStartADictionaryOf" xml:space="preserve">
+    <value>按 + 新建 MIFARE Classic 密钥字典，或导入 .dic 文件。转储卡片时会尝试这些密钥（以及内置默认密钥）。</value>
+  </data>
+  <data name="Dictionaries_Repeated" xml:space="preserve">
+    <value>■ 重复</value>
+  </data>
+  <data name="Dictionaries_Repeated2" xml:space="preserve">
+    <value>{0} 个重复</value>
+  </data>
+  <data name="Dictionaries_SaveACopyOfThisDictionary" xml:space="preserve">
+    <value>保存此字典的副本</value>
+  </data>
+  <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
+    <value>另存为 .dic 文件（每行一个密钥）</value>
+  </data>
+  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
+    <value>保存字典</value>
+  </data>
+  <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
+    <value>保存对已知卡片密钥的更改？</value>
+  </data>
+  <data name="Dictionaries_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>离开前保存新字典？</value>
+  </data>
+  <data name="Dictionaries_SearchByNameOrKey" xml:space="preserve">
+    <value>按名称或密钥搜索</value>
+  </data>
+  <data name="Dictionaries_SearchByUIDOrCardName" xml:space="preserve">
+    <value>按 UID 或卡片名称搜索</value>
+  </data>
+  <data name="Dictionaries_SelectADictionaryToSeeAnd" xml:space="preserve">
+    <value>选择字典以查看和编辑其密钥，或按 + 新建。</value>
+  </data>
+  <data name="Dictionaries_SortFewestKeys" xml:space="preserve">
+    <value>密钥最少</value>
+  </data>
+  <data name="Dictionaries_SortMostKeys" xml:space="preserve">
+    <value>密钥最多</value>
+  </data>
+  <data name="Dictionaries_StartANewDictionary" xml:space="preserve">
+    <value>新建字典</value>
+  </data>
+  <data name="Firmware_Available" xml:space="preserve">
+    <value>{0} 可用</value>
+  </data>
+  <data name="Firmware_AvailableConnect" xml:space="preserve">
+    <value>{0} 可用。通过 USB 或蓝牙连接后即可安装</value>
+  </data>
+  <data name="Firmware_CantInstallFile" xml:space="preserve">
+    <value>无法安装此文件</value>
+  </data>
+  <data name="Firmware_DidNotReturn" xml:space="preserve">
+    <value>固件已安装，但设备没有重新连接。请在“连接”页面重新连接它。</value>
+  </data>
+  <data name="Firmware_DontUnplug" xml:space="preserve">
+    <value>请勿拔出设备。</value>
+  </data>
+  <data name="Firmware_Downloading" xml:space="preserve">
+    <value>正在下载…</value>
+  </data>
+  <data name="Firmware_Failed" xml:space="preserve">
+    <value>固件更新失败</value>
+  </data>
+  <data name="Firmware_Flashing" xml:space="preserve">
+    <value>正在安装… {0:P0}</value>
+  </data>
+  <data name="Firmware_HowBle" xml:space="preserve">
+    <value>设备将重启进入引导程序，通过蓝牙获取新固件并重新连接。卡槽和设置会被保留。完成前请让设备靠近手机并保持此应用打开。</value>
+  </data>
+  <data name="Firmware_HowUsb" xml:space="preserve">
+    <value>设备将重启进入引导程序，通过 USB 获取新固件并重新连接。卡槽和设置会被保留。完成前请保持连接。</value>
+  </data>
+  <data name="Firmware_InstallFromPrompt" xml:space="preserve">
+    <value>从 {0} 安装固件？</value>
+  </data>
+  <data name="Firmware_InstallPrompt" xml:space="preserve">
+    <value>安装固件 {0}？</value>
+  </data>
+  <data name="Firmware_Installing" xml:space="preserve">
+    <value>正在安装 {0}</value>
+  </data>
+  <data name="Firmware_KeepClose" xml:space="preserve">
+    <value>请让设备保持在附近，并保持此应用打开。</value>
+  </data>
+  <data name="Firmware_NoBootloader" xml:space="preserve">
+    <value>设备没有以引导程序模式出现。请拔下设备，按住 B 键重新插入，然后重试。</value>
+  </data>
+  <data name="Firmware_NoPackage" xml:space="preserve">
+    <value>{0} 可用，但没有适用于此型号的安装包</value>
+  </data>
+  <data name="Firmware_NoPackageForDevice" xml:space="preserve">
+    <value>版本 {0} 没有适用于此设备的固件包。</value>
+  </data>
+  <data name="Firmware_NoRelease" xml:space="preserve">
+    <value>尚未发布任何固件。</value>
+  </data>
+  <data name="Firmware_NotSupportedHere" xml:space="preserve">
+    <value>固件可以通过桌面应用经 USB 安装，或通过手机应用经蓝牙安装。</value>
+  </data>
+  <data name="Firmware_NowRuns" xml:space="preserve">
+    <value>{0} 现在运行 {1}。卡槽和设置已保留。</value>
+  </data>
+  <data name="Firmware_PackageTitle" xml:space="preserve">
+    <value>固件 DFU 包</value>
+  </data>
+  <data name="Firmware_ReleaseNoVersion" xml:space="preserve">
+    <value>版本 {0} 未注明固件版本。</value>
+  </data>
+  <data name="Firmware_Restarted" xml:space="preserve">
+    <value>设备已使用新固件重启。</value>
+  </data>
+  <data name="Firmware_Restarting" xml:space="preserve">
+    <value>正在将设备重启进入引导程序…</value>
+  </data>
+  <data name="Firmware_TheFirmware" xml:space="preserve">
+    <value>固件</value>
+  </data>
+  <data name="Firmware_TimeoutLastError" xml:space="preserve">
+    <value>{0}（最后的错误：{1}）</value>
+  </data>
+  <data name="Firmware_UpToDate" xml:space="preserve">
+    <value>已是最新（最新版本 {0}）</value>
+  </data>
+  <data name="Firmware_Updated" xml:space="preserve">
+    <value>固件已更新</value>
+  </data>
+  <data name="Firmware_WaitingBootloader" xml:space="preserve">
+    <value>正在等待引导程序…</value>
+  </data>
+  <data name="Firmware_WaitingRestart" xml:space="preserve">
+    <value>正在等待设备重启…</value>
+  </data>
+  <data name="Grid_Blocks" xml:space="preserve">
+    <value>块</value>
+  </data>
+  <data name="Grid_NoBlocksSelected" xml:space="preserve">
+    <value>未选择块</value>
+  </data>
+  <data name="Grid_Read" xml:space="preserve">
+    <value> （已读）</value>
+  </data>
+  <data name="Grid_Sector" xml:space="preserve">
+    <value>扇区</value>
+  </data>
+  <data name="Hex_AddRowBelow" xml:space="preserve">
+    <value>在下方添加行</value>
+  </data>
+  <data name="Hex_Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="Hex_DeleteRows" xml:space="preserve">
+    <value>删除行</value>
+  </data>
+  <data name="Hex_ExpectedBytes" xml:space="preserve">
+    <value>应为 {0} 字节</value>
+  </data>
+  <data name="Hex_FromIdentity" xml:space="preserve">
+    <value>来自卡片标识，块未读取</value>
+  </data>
+  <data name="Hex_HalfByte" xml:space="preserve">
+    <value>半字节</value>
+  </data>
+  <data name="Hex_Memory" xml:space="preserve">
+    <value>存储内容</value>
+  </data>
+  <data name="Hex_NotRead" xml:space="preserve">
+    <value>未读取</value>
+  </data>
+  <data name="Hex_Paste" xml:space="preserve">
+    <value>粘贴</value>
+  </data>
+  <data name="Hex_Redo" xml:space="preserve">
+    <value>重做</value>
+  </data>
+  <data name="Hex_SelectAll" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="Hex_Selected" xml:space="preserve">
+    <value>已选择 {0}</value>
+  </data>
+  <data name="Hex_Undo" xml:space="preserve">
+    <value>撤消</value>
+  </data>
+  <data name="Import_BadKeyLine" xml:space="preserve">
+    <value>第 {0} 行：“{1}”不是 12 位十六进制密钥。</value>
+  </data>
+  <data name="Import_BadSectorHeader" xml:space="preserve">
+    <value>扇区标题“{0}”有误。</value>
+  </data>
+  <data name="Import_BlockNot16" xml:space="preserve">
+    <value>块 {0} 不是 16 字节。</value>
+  </data>
+  <data name="Import_CardNotObject" xml:space="preserve">
+    <value>卡片必须是 JSON 对象。</value>
+  </data>
+  <data name="Import_DataBeforeSector" xml:space="preserve">
+    <value>第一个 +Sector 标题之前有块数据。</value>
+  </data>
+  <data name="Import_DictNotObject" xml:space="preserve">
+    <value>字典必须是 JSON 对象。</value>
+  </data>
+  <data name="Import_EmptyFile" xml:space="preserve">
+    <value>文件为空。</value>
+  </data>
+  <data name="Import_EmptyJson" xml:space="preserve">
+    <value>JSON 文档为空。</value>
+  </data>
+  <data name="Import_FlipperNoData" xml:space="preserve">
+    <value>Flipper 文件中没有 Data。</value>
+  </data>
+  <data name="Import_FlipperNoUid" xml:space="preserve">
+    <value>Flipper 文件中没有 UID。</value>
+  </data>
+  <data name="Import_FlipperRfidUnsupported" xml:space="preserve">
+    <value>暂不支持 Flipper RFID 密钥类型“{0}”。</value>
+  </data>
+  <data name="Import_H10301Length" xml:space="preserve">
+    <value>H10301 数据必须为 3 字节。</value>
+  </data>
+  <data name="Import_HexOdd" xml:space="preserve">
+    <value>十六进制值的位数必须为偶数。</value>
+  </data>
+  <data name="Import_MctNoBlock0" xml:space="preserve">
+    <value>MIFARE Classic Tool 转储中没有块 0。</value>
+  </data>
+  <data name="Import_SectorTooManyBlocks" xml:space="preserve">
+    <value>扇区 {0} 的块数超过 {1}。</value>
+  </data>
+  <data name="KeyRecovery_CheckRecoveryMethods" xml:space="preserve">
+    <value>检查恢复方法</value>
+  </data>
+  <data name="KeyRecovery_KeyDictionariesHeader" xml:space="preserve">
+    <value>密钥字典</value>
+  </data>
+  <data name="KeyRecovery_RecoverKeysOnFM11RF08SAndCompatible" xml:space="preserve">
+    <value>使用已知后门密钥恢复 FM11RF08S 及兼容卡的密钥</value>
+  </data>
+  <data name="KeyRecovery_Searching" xml:space="preserve">
+    <value>正在搜索</value>
+  </data>
+  <data name="Keys_ExpectedGrouped" xml:space="preserve">
+    <value>应为按 UID 分组的密钥。</value>
+  </data>
+  <data name="Keys_InvalidKey" xml:space="preserve">
+    <value>卡片密钥无效。</value>
+  </data>
+  <data name="Keys_InvalidPassword" xml:space="preserve">
+    <value>NTAG 密码无效。</value>
+  </data>
+  <data name="Keys_InvalidPasswordSection" xml:space="preserve">
+    <value>NTAG 密码部分无效。</value>
+  </data>
+  <data name="Keys_InvalidUid" xml:space="preserve">
+    <value>UID 无效。</value>
+  </data>
+  <data name="Keys_InvalidUidGroup" xml:space="preserve">
+    <value>UID 分组无效。</value>
+  </data>
+  <data name="Keys_KeyLength" xml:space="preserve">
+    <value>每个密钥必须为 6 字节。</value>
+  </data>
+  <data name="Language_System" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
+  <data name="Lf_Bits" xml:space="preserve">
+    <value>{0} 位</value>
+  </data>
+  <data name="Lf_CardIdText" xml:space="preserve">
+    <value>卡片 ID（文本）</value>
+  </data>
+  <data name="Lf_CardNumber" xml:space="preserve">
+    <value>卡号</value>
+  </data>
+  <data name="Lf_FacilityCode" xml:space="preserve">
+    <value>设施码</value>
+  </data>
+  <data name="Lf_Format" xml:space="preserve">
+    <value>格式</value>
+  </data>
+  <data name="Lf_IssueLevel" xml:space="preserve">
+    <value>发行级别</value>
+  </data>
+  <data name="Lf_ModFewTransitions" xml:space="preserve">
+    <value>跳变太少</value>
+  </data>
+  <data name="Lf_ModNone" xml:space="preserve">
+    <value>无（平坦载波）</value>
+  </data>
+  <data name="Library_CardsLoadError" xml:space="preserve">
+    <value>无法读取已保存的卡片：{0}</value>
+  </data>
+  <data name="Library_DictionariesLoadError" xml:space="preserve">
+    <value>无法读取已保存的字典：{0}</value>
+  </data>
+  <data name="Library_KnownKeysLoadError" xml:space="preserve">
+    <value>无法读取已知卡片密钥：{0}</value>
+  </data>
+  <data name="Main_ChameLabDownloadUpdate" xml:space="preserve">
+    <value>ChameLab - 下载更新</value>
+  </data>
+  <data name="Main_Connected" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="Main_ConnectedDeviceHeader" xml:space="preserve">
+    <value>已连接设备</value>
+  </data>
+  <data name="Main_DeviceSummary" xml:space="preserve">
+    <value>{0} · 固件 {1}</value>
+  </data>
+  <data name="Main_Disconnect" xml:space="preserve">
+    <value>断开连接</value>
+  </data>
+  <data name="Main_DisconnectFromTheDevice" xml:space="preserve">
+    <value>与设备断开连接</value>
+  </data>
+  <data name="Main_Dismiss" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Main_IfTheDeviceStaysInIts" xml:space="preserve">
+    <value>如果设备停留在引导程序中（LED 4 和 5 闪烁），点击“重试”会再次安装固件。</value>
+  </data>
+  <data name="Main_Install" xml:space="preserve">
+    <value>安装</value>
+  </data>
+  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
+    <value>其中的卡片保留在“卡片”中</value>
+  </data>
+  <data name="Main_NavigationHeader" xml:space="preserve">
+    <value>导航</value>
+  </data>
+  <data name="Main_NoDeviceAttached" xml:space="preserve">
+    <value>未连接设备</value>
+  </data>
+  <data name="Main_NoDeviceHeader" xml:space="preserve">
+    <value>无设备</value>
+  </data>
+  <data name="Main_NoDeviceOpenConnectToAttach" xml:space="preserve">
+    <value>无设备。打开“连接”以连接设备。</value>
+  </data>
+  <data name="Main_NotConnected" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="Main_Offline" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="Main_Online" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="Main_PressBackAgainToExit" xml:space="preserve">
+    <value>再按一次返回键退出</value>
+  </data>
+  <data name="Main_Retry" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
+    <value>切换浅色 / 深色主题</value>
+  </data>
+  <data name="Main_ToggleNavigation" xml:space="preserve">
+    <value>切换导航栏</value>
+  </data>
+  <data name="Mfkey32_HoldToReader" xml:space="preserve">
+    <value>请将 Chameleon 靠近读卡器。</value>
+  </data>
+  <data name="Mfkey32_KeyFound" xml:space="preserve">
+    <value>找到密钥：{0}</value>
+  </data>
+  <data name="Mfkey32_PlaceOriginal" xml:space="preserve">
+    <value>请将原卡放在 Chameleon 上。</value>
+  </data>
+  <data name="Mfkey32_Recovering" xml:space="preserve">
+    <value>正在恢复密钥…</value>
+  </data>
+  <data name="Mfkey32_RestoreFailed" xml:space="preserve">
+    <value>mfkey32 结束后无法恢复设备状态。</value>
+  </data>
+  <data name="Mfkey32_SlotUidDiffers" xml:space="preserve">
+    <value>卡槽的 UID 与此卡不同。请重新将卡片载入卡槽。</value>
+  </data>
+  <data name="Nav_Cards" xml:space="preserve">
+    <value>卡片</value>
+  </data>
+  <data name="Nav_Chameleon" xml:space="preserve">
+    <value>Chameleon</value>
+  </data>
+  <data name="Nav_Dictionaries" xml:space="preserve">
+    <value>字典</value>
+  </data>
+  <data name="Nav_Slots" xml:space="preserve">
+    <value>卡槽</value>
+  </data>
+  <data name="Ndef_AreaMalformed" xml:space="preserve">
+    <value>NDEF 数据区格式错误。</value>
+  </data>
+  <data name="Ndef_BytesLeft" xml:space="preserve">
+    <value>{0}/{1} 字节 · 剩余 {2}</value>
+  </data>
+  <data name="Ndef_BytesOver" xml:space="preserve">
+    <value>{0}/{1} 字节 · 超出 {2}</value>
+  </data>
+  <data name="Ndef_ChunkCut" xml:space="preserve">
+    <value>分块记录被截断。</value>
+  </data>
+  <data name="Ndef_EmptyRecord" xml:space="preserve">
+    <value>空记录没有类型和载荷。</value>
+  </data>
+  <data name="Ndef_EmptyRecord2" xml:space="preserve">
+    <value>空记录</value>
+  </data>
+  <data name="Ndef_EnterContactName" xml:space="preserve">
+    <value>请输入联系人姓名。</value>
+  </data>
+  <data name="Ndef_EnterEmail" xml:space="preserve">
+    <value>请输入电子邮件地址。</value>
+  </data>
+  <data name="Ndef_EnterEmailOrEmpty" xml:space="preserve">
+    <value>请输入电子邮件地址，或留空。</value>
+  </data>
+  <data name="Ndef_EnterLatitude" xml:space="preserve">
+    <value>请输入纬度（度），-90 到 90，例如 48.8584。</value>
+  </data>
+  <data name="Ndef_EnterLink" xml:space="preserve">
+    <value>请输入链接。</value>
+  </data>
+  <data name="Ndef_EnterLongitude" xml:space="preserve">
+    <value>请输入经度（度），-180 到 180，例如 2.2945。</value>
+  </data>
+  <data name="Ndef_EnterMime" xml:space="preserve">
+    <value>请输入 MIME 类型，例如 text/plain。</value>
+  </data>
+  <data name="Ndef_EnterPackage" xml:space="preserve">
+    <value>请输入应用的包名，例如 com.example.app。</value>
+  </data>
+  <data name="Ndef_EnterPhone" xml:space="preserve">
+    <value>请输入电话号码，例如 +1 555 0100。</value>
+  </data>
+  <data name="Ndef_EnterSsid" xml:space="preserve">
+    <value>请输入网络名称（SSID）。</value>
+  </data>
+  <data name="Ndef_EnterType" xml:space="preserve">
+    <value>请输入记录类型。</value>
+  </data>
+  <data name="Ndef_External" xml:space="preserve">
+    <value>外部：{0}</value>
+  </data>
+  <data name="Ndef_LangTooLong" xml:space="preserve">
+    <value>语言代码过长。</value>
+  </data>
+  <data name="Ndef_Malformed" xml:space="preserve">
+    <value>NDEF 消息格式错误：{0}{1}</value>
+  </data>
+  <data name="Ndef_NoRecords" xml:space="preserve">
+    <value>没有记录</value>
+  </data>
+  <data name="Ndef_NotFormatted" xml:space="preserve">
+    <value>卡片未格式化为 NDEF（第 3 页没有能力容器）。</value>
+  </data>
+  <data name="Ndef_NotReadYet" xml:space="preserve">
+    <value>尚未读取存储内容：请读取卡片，或添加记录以新建消息。</value>
+  </data>
+  <data name="Ndef_Page3NotRead" xml:space="preserve">
+    <value>未读取第 3 页（能力容器）。</value>
+  </data>
+  <data name="Ndef_Page3Otp" xml:space="preserve">
+    <value>第 3 页存有能力容器以外的数据；该页为一次性可编程，因此卡片无法使用 NDEF。</value>
+  </data>
+  <data name="Ndef_PagesNotRead" xml:space="preserve">
+    <value> 从第 {0} 页起未读取。</value>
+  </data>
+  <data name="Ndef_PartUnread" xml:space="preserve">
+    <value>消息的一部分位于未读取的页面上。</value>
+  </data>
+  <data name="Ndef_PastArea" xml:space="preserve">
+    <value>NDEF 消息超出了数据区末尾。</value>
+  </data>
+  <data name="Ndef_PayloadHex" xml:space="preserve">
+    <value>载荷必须是十六进制。</value>
+  </data>
+  <data name="Ndef_RecordPastEnd" xml:space="preserve">
+    <value>某条记录超出了消息末尾。</value>
+  </data>
+  <data name="Ndef_SmartPoster" xml:space="preserve">
+    <value>智能海报</value>
+  </data>
+  <data name="Ndef_SsidTooLong" xml:space="preserve">
+    <value>网络名称最多 32 字节。</value>
+  </data>
+  <data name="Ndef_TextLang" xml:space="preserve">
+    <value>文本（{0}）</value>
+  </data>
+  <data name="Ndef_TnfAbsoluteUri" xml:space="preserve">
+    <value>绝对 URI</value>
+  </data>
+  <data name="Ndef_TnfExternal" xml:space="preserve">
+    <value>外部类型</value>
+  </data>
+  <data name="Ndef_TnfMedia" xml:space="preserve">
+    <value>MIME 媒体类型</value>
+  </data>
+  <data name="Ndef_TnfWellKnown" xml:space="preserve">
+    <value>知名类型（NFC RTD）</value>
+  </data>
+  <data name="Ndef_TooBig" xml:space="preserve">
+    <value>消息需要 {0} 字节，但卡片只能容纳 {1} 字节。</value>
+  </data>
+  <data name="Ndef_TypeTooLong" xml:space="preserve">
+    <value>记录的类型或 ID 过长。</value>
+  </data>
+  <data name="Ndef_UnchangedOutside" xml:space="preserve">
+    <value>分块之外出现了 unchanged 记录。</value>
+  </data>
+  <data name="Ndef_UnknownTlv" xml:space="preserve">
+    <value>NDEF 数据区中有未知 TLV {0:X2}。</value>
+  </data>
+  <data name="Ndef_UnknownType" xml:space="preserve">
+    <value>未知类型</value>
+  </data>
+  <data name="Ndef_WellKnown" xml:space="preserve">
+    <value>知名类型：{0}</value>
+  </data>
+  <data name="Ndef_WifiOpen" xml:space="preserve">
+    <value>开放（无密码）</value>
+  </data>
+  <data name="Ndef_WpaLength" xml:space="preserve">
+    <value>WPA 密码为 8 到 63 个字符。</value>
+  </data>
+  <data name="Plural_Bits" xml:space="preserve">
+    <value>{0} 位</value>
+  </data>
+  <data name="Plural_Breaks" xml:space="preserve">
+    <value>{0} 处中断</value>
+  </data>
+  <data name="Plural_BytesHex" xml:space="preserve">
+    <value>{0} 字节（十六进制）</value>
+  </data>
+  <data name="Plural_Cards" xml:space="preserve">
+    <value>{0} 张卡片</value>
+  </data>
+  <data name="Plural_DeletedFolderCards" xml:space="preserve">
+    <value>已删除文件夹 {1}；其中的 {0} 张卡片仍在“卡片”中。</value>
+  </data>
+  <data name="Plural_Dictionaries" xml:space="preserve">
+    <value>{0} 个字典</value>
+  </data>
+  <data name="Plural_EmptyRows" xml:space="preserve">
+    <value>{0} 个空行</value>
+  </data>
+  <data name="Plural_FoundDevices" xml:space="preserve">
+    <value>找到 {0} 台设备。</value>
+  </data>
+  <data name="Plural_FoundHfTags" xml:space="preserve">
+    <value>找到 {0} 个 HF 标签。</value>
+  </data>
+  <data name="Plural_ImportedCards" xml:space="preserve">
+    <value>已导入 {0} 张卡片。</value>
+  </data>
+  <data name="Plural_Keys" xml:space="preserve">
+    <value>{0} 个密钥</value>
+  </data>
+  <data name="Plural_KnownKeys" xml:space="preserve">
+    <value>{0} 个已知密钥</value>
+  </data>
+  <data name="Plural_NtagPasswords" xml:space="preserve">
+    <value> · {0} 个 NTAG 密码</value>
+  </data>
+  <data name="Plural_Records" xml:space="preserve">
+    <value>{0} 条记录</value>
+  </data>
+  <data name="Plural_SlotsInUse" xml:space="preserve">
+    <value>已使用 {0} 个卡槽</value>
+  </data>
+  <data name="Plural_UidsKeys" xml:space="preserve">
+    <value>{0} 个 UID</value>
+  </data>
+  <data name="Plural_UniqueKeys" xml:space="preserve">
+    <value>{0} 个唯一密钥</value>
+  </data>
+  <data name="Plural_WriteFailedBlocks" xml:space="preserve">
+    <value>已写入“{1}”，但有 {0} 个块失败：{2}。</value>
+  </data>
+  <data name="Plural_WriteFailedPages" xml:space="preserve">
+    <value>已写入“{1}”，但有 {0} 页失败：{2}。</value>
+  </data>
+  <data name="Plural_WrongTriesLock" xml:space="preserve">
+    <value>；错误 {0} 次将锁定卡片。</value>
+  </data>
+  <data name="Prng_Hard" xml:space="preserve">
+    <value>强（不可预测）</value>
+  </data>
+  <data name="Prng_Static" xml:space="preserve">
+    <value>静态（固定 nonce）</value>
+  </data>
+  <data name="Prng_Weak" xml:space="preserve">
+    <value>弱（可预测）</value>
+  </data>
+  <data name="Protection_AnswerPACK" xml:space="preserve">
+    <value>应答（PACK）</value>
+  </data>
+  <data name="Protection_AttemptLimitAUTHLIM" xml:space="preserve">
+    <value>尝试次数限制（AUTHLIM）</value>
+  </data>
+  <data name="Protection_FromPageAUTH0" xml:space="preserve">
+    <value>起始页（AUTH0）</value>
+  </data>
+  <data name="Protection_KeepPassword" xml:space="preserve">
+    <value>在页面之后写入。请记住密码（{0}）：没有它就无法修改受保护的页面。</value>
+  </data>
+  <data name="Protection_NoLimit" xml:space="preserve">
+    <value>无限制</value>
+  </data>
+  <data name="Protection_NoPage" xml:space="preserve">
+    <value>没有受保护的页面。</value>
+  </data>
+  <data name="Protection_Off" xml:space="preserve">
+    <value>在页面之后写入：保护已关闭，密码设为 {0}。</value>
+  </data>
+  <data name="Protection_PROTWithoutThePasswordTheProtected" xml:space="preserve">
+    <value>PROT：没有密码时，受保护的页面甚至无法读取</value>
+  </data>
+  <data name="Protection_PagesFromTheChosenOneOn" xml:space="preserve">
+    <value>从所选页开始的页面需要密码（AUTH0）</value>
+  </data>
+  <data name="Protection_PasswordPWD" xml:space="preserve">
+    <value>密码（PWD）</value>
+  </data>
+  <data name="Protection_ProtectReading" xml:space="preserve">
+    <value>保护读取</value>
+  </data>
+  <data name="Protection_ProtectWithAPassword" xml:space="preserve">
+    <value>用密码保护</value>
+  </data>
+  <data name="Protection_SummaryReadWrite" xml:space="preserve">
+    <value>第 {0} 页及之后的页面读写都需要密码</value>
+  </data>
+  <data name="Protection_SummaryWrite" xml:space="preserve">
+    <value>第 {0} 页及之后的页面写入需要密码</value>
+  </data>
+  <data name="Protection_WhatTheCardAnswersToThe" xml:space="preserve">
+    <value>卡片对正确密码的应答；读卡器可能会校验它</value>
+  </data>
+  <data name="Protection_WrongPasswordsBeforeTheCardLocks" xml:space="preserve">
+    <value>卡片被永久锁定前允许的错误密码次数</value>
+  </data>
+  <data name="Recovery_Attempt" xml:space="preserve">
+    <value>第 {0}/{1} 次尝试</value>
+  </data>
+  <data name="Recovery_AttemptOf5" xml:space="preserve">
+    <value>第 {0}/5 次尝试</value>
+  </data>
+  <data name="Recovery_AuthFailed" xml:space="preserve">
+    <value>无法用密钥完成认证。</value>
+  </data>
+  <data name="Recovery_BackdoorKey" xml:space="preserve">
+    <value>后门密钥 {0}</value>
+  </data>
+  <data name="Recovery_BlocksWritten" xml:space="preserve">
+    <value>已写入 {0}/{1} 个块</value>
+  </data>
+  <data name="Recovery_CalcDarkside" xml:space="preserve">
+    <value>正在计算 darkside 候选值…</value>
+  </data>
+  <data name="Recovery_CalcHardnested" xml:space="preserve">
+    <value>正在计算 hardnested 候选密钥…</value>
+  </data>
+  <data name="Recovery_CalcNested" xml:space="preserve">
+    <value>正在计算 nested 候选值…</value>
+  </data>
+  <data name="Recovery_CalcStaticEnc" xml:space="preserve">
+    <value>正在计算 static encrypted 候选值…</value>
+  </data>
+  <data name="Recovery_CalcStaticNested" xml:space="preserve">
+    <value>正在计算 static nested 候选值…</value>
+  </data>
+  <data name="Recovery_CandidateN" xml:space="preserve">
+    <value>候选 {0}/{1}</value>
+  </data>
+  <data name="Recovery_CandidatesRange" xml:space="preserve">
+    <value>候选 {0}–{1}/{2}</value>
+  </data>
+  <data name="Recovery_CardChanged" xml:space="preserve">
+    <value>卡片已更换。继续前请重新扫描。</value>
+  </data>
+  <data name="Recovery_CardRemoved" xml:space="preserve">
+    <value>卡片已移开或更换。继续前请重新扫描。</value>
+  </data>
+  <data name="Recovery_CheckStaticEnc" xml:space="preserve">
+    <value>正在检查 static encrypted 候选值…</value>
+  </data>
+  <data name="Recovery_CheckingCandidates" xml:space="preserve">
+    <value>正在检查恢复的候选密钥…</value>
+  </data>
+  <data name="Recovery_CheckingCandidatesN" xml:space="preserve">
+    <value>正在检查 {0} 个恢复的候选密钥…</value>
+  </data>
+  <data name="Recovery_CheckingDarkside" xml:space="preserve">
+    <value>正在检查 darkside 漏洞…</value>
+  </data>
+  <data name="Recovery_CheckingPrevious" xml:space="preserve">
+    <value>正在检查之前找到的密钥…</value>
+  </data>
+  <data name="Recovery_CollectingAgain" xml:space="preserve">
+    <value>没有一致的候选值；重新收集…</value>
+  </data>
+  <data name="Recovery_CollectingDarkside" xml:space="preserve">
+    <value>正在收集 darkside nonce…</value>
+  </data>
+  <data name="Recovery_CollectingHardnested" xml:space="preserve">
+    <value>正在收集 nonce（hardnested）…</value>
+  </data>
+  <data name="Recovery_CollectingNested" xml:space="preserve">
+    <value>正在收集 nonce（nested）…</value>
+  </data>
+  <data name="Recovery_CollectingNestedNonces" xml:space="preserve">
+    <value>正在收集 nested nonce…</value>
+  </data>
+  <data name="Recovery_CollectingStaticEnc" xml:space="preserve">
+    <value>正在收集 static encrypted nonce…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNested" xml:space="preserve">
+    <value>正在收集 nonce（static nested）…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNestedNonces" xml:space="preserve">
+    <value>正在收集 static nested nonce…</value>
+  </data>
+  <data name="Recovery_Finished" xml:space="preserve">
+    <value>恢复完成。</value>
+  </data>
+  <data name="Recovery_FoundKey" xml:space="preserve">
+    <value>找到一个密钥。</value>
+  </data>
+  <data name="Recovery_HardnestedCollecting" xml:space="preserve">
+    <value>正在收集 hardnested nonce：{0} 个样本，首字节 {1}/256…</value>
+  </data>
+  <data name="Recovery_HardnestedCollectingSlow" xml:space="preserve">
+    <value>正在收集 hardnested nonce（慢速模式）：{0} 个样本，首字节 {1}/256…</value>
+  </data>
+  <data name="Recovery_HardnestedInconsistent" xml:space="preserve">
+    <value>无法收集到一致的 hardnested nonce。请将同一张卡保持在读卡器上并重试。</value>
+  </data>
+  <data name="Recovery_HardnestedUnavailable" xml:space="preserve">
+    <value>此版本的 ChameLab 不提供 hardnested 引擎。</value>
+  </data>
+  <data name="Recovery_HoverKeys" xml:space="preserve">
+    <value>目标卡密钥 · 悬停在扇区上可查看密钥详情</value>
+  </data>
+  <data name="Recovery_HoverWritten" xml:space="preserve">
+    <value>悬停在扇区上可查看已写入块数和错误</value>
+  </data>
+  <data name="Recovery_InvalidNonceParity" xml:space="preserve">
+    <value>加密 nonce 的奇偶校验无效。</value>
+  </data>
+  <data name="Recovery_KeyNotRecovered" xml:space="preserve">
+    <value>未能恢复此扇区的密钥。</value>
+  </data>
+  <data name="Recovery_KnownKeyProgress" xml:space="preserve">
+    <value>已知密钥 {0}/{1}</value>
+  </data>
+  <data name="Recovery_LoadTargetIntoSlot" xml:space="preserve">
+    <value>开始 mfkey32 前，请先将目标卡载入卡槽。</value>
+  </data>
+  <data name="Recovery_LoadingTables" xml:space="preserve">
+    <value>正在加载托管 hardnested 表…</value>
+  </data>
+  <data name="Recovery_MatchingConstraints" xml:space="preserve">
+    <value>正在匹配 hardnested 状态约束…</value>
+  </data>
+  <data name="Recovery_MeasuringDistance" xml:space="preserve">
+    <value>正在测量 nested nonce 距离…</value>
+  </data>
+  <data name="Recovery_Mfkey32Tip" xml:space="preserve">
+    <value>使用 mfkey32 从读卡器恢复目标卡的密钥</value>
+  </data>
+  <data name="Recovery_NeedOneKey" xml:space="preserve">
+    <value>开始 nested 恢复前，请至少恢复一个密钥。</value>
+  </data>
+  <data name="Recovery_NoBackdoorAccepted" xml:space="preserve">
+    <value>卡片不接受任何已知的后门密钥。</value>
+  </data>
+  <data name="Recovery_NoHardnestedFirmware" xml:space="preserve">
+    <value>此设备固件不支持收集 hardnested nonce。</value>
+  </data>
+  <data name="Recovery_NoHfTag" xml:space="preserve">
+    <value>读卡器上未检测到 HF 标签。</value>
+  </data>
+  <data name="Recovery_NoKnownConfirmed" xml:space="preserve">
+    <value>此扇区没有任何已知密钥得到确认。</value>
+  </data>
+  <data name="Recovery_NoStaticEncFirmware" xml:space="preserve">
+    <value>此设备固件不支持 static encrypted nested 恢复。</value>
+  </data>
+  <data name="Recovery_NonceFailed" xml:space="preserve">
+    <value>此扇区的 nonce 收集失败。</value>
+  </data>
+  <data name="Recovery_NotDarksideVulnerable" xml:space="preserve">
+    <value>密钥不受 darkside 攻击影响。</value>
+  </data>
+  <data name="Recovery_PlaceExactlyOne" xml:space="preserve">
+    <value>请在读卡器上只放一张目标卡。</value>
+  </data>
+  <data name="Recovery_PlaceTarget" xml:space="preserve">
+    <value>将目标卡放在读卡器上，然后尝试密钥或检查恢复方法。</value>
+  </data>
+  <data name="Recovery_PreparingWrite" xml:space="preserve">
+    <value>正在准备写入…</value>
+  </data>
+  <data name="Recovery_PrngUnsupported" xml:space="preserve">
+    <value>卡片的 PRNG 不支持此恢复方法。</value>
+  </data>
+  <data name="Recovery_RunningDarkside" xml:space="preserve">
+    <value>正在运行 darkside…</value>
+  </data>
+  <data name="Recovery_ScanTargetFirst" xml:space="preserve">
+    <value>开始 mfkey32 前，请先扫描目标卡。</value>
+  </data>
+  <data name="Recovery_SectorKeyDetail" xml:space="preserve">
+    <value>扇区 {0} · 密钥 {1} · {2}</value>
+  </data>
+  <data name="Recovery_SectorKeyProgress" xml:space="preserve">
+    <value>扇区 {0} · 密钥 {1} · {2}/{3}</value>
+  </data>
+  <data name="Recovery_StopRecoveryTip" xml:space="preserve">
+    <value>停止恢复并保留已找到的密钥</value>
+  </data>
+  <data name="Recovery_StopWritingTip" xml:space="preserve">
+    <value>停止写入；已写入的块保留在卡片上</value>
+  </data>
+  <data name="Recovery_TargetChanged" xml:space="preserve">
+    <value>目标卡已更换。请关闭并重新打开写卡器后再继续。</value>
+  </data>
+  <data name="Recovery_TargetMustBeClassic" xml:space="preserve">
+    <value>目标必须是 MIFARE Classic 卡。</value>
+  </data>
+  <data name="Recovery_TargetUid" xml:space="preserve">
+    <value>目标 UID：{0}</value>
+  </data>
+  <data name="Recovery_TryKeysTip" xml:space="preserve">
+    <value>使用所选字典和源密钥查找目标卡的密钥</value>
+  </data>
+  <data name="Recovery_UniqueKeysWithSource" xml:space="preserve">
+    <value>{0} 个唯一密钥（也会尝试源密钥）</value>
+  </data>
+  <data name="Recovery_UsingNested" xml:space="preserve">
+    <value>改用 nested，不检查已知密钥…</value>
+  </data>
+  <data name="Recovery_WritingCard" xml:space="preserve">
+    <value>正在写卡…</value>
+  </data>
+  <data name="Serial_Disconnected" xml:space="preserve">
+    <value>{0} 已断开连接。</value>
+  </data>
+  <data name="Serial_Name" xml:space="preserve">
+    <value>串口（USB）</value>
+  </data>
+  <data name="Settings_AccentColor" xml:space="preserve">
+    <value>强调色</value>
+  </data>
+  <data name="Settings_AppSettingsTheyApplyRightAway" xml:space="preserve">
+    <value>应用设置。立即生效，无需连接设备；Chameleon 本身的设置在其页面上。</value>
+  </data>
+  <data name="Settings_Backup" xml:space="preserve">
+    <value>备份</value>
+  </data>
+  <data name="Settings_BackupSaved" xml:space="preserve">
+    <value>备份已保存：{0}。</value>
+  </data>
+  <data name="Settings_BeepWhenAScanFinishesBuzz" xml:space="preserve">
+    <value>扫描完成时发出提示音，未找到卡片时发出蜂鸣。</value>
+  </data>
+  <data name="Settings_ButtonsTogglesAndHighlights" xml:space="preserve">
+    <value>按钮、开关和高亮。</value>
+  </data>
+  <data name="Settings_CheckForUpdates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
+  <data name="Settings_CrossPlatformClientForTheChameleon" xml:space="preserve">
+    <value>基于 Avalonia 构建的 Chameleon Ultra 跨平台客户端。设备、固件和协议文档：github.com/RfidResearchGroup/ChameleonUltra</value>
+  </data>
+  <data name="Settings_Download" xml:space="preserve">
+    <value>下载</value>
+  </data>
+  <data name="Settings_ExportBackup" xml:space="preserve">
+    <value>导出备份</value>
+  </data>
+  <data name="Settings_ExportOrImportYourSavedCards" xml:space="preserve">
+    <value>导出或导入已保存的卡片和密钥字典。</value>
+  </data>
+  <data name="Settings_ImportBackup" xml:space="preserve">
+    <value>导入备份</value>
+  </data>
+  <data name="Settings_ImportedBackup" xml:space="preserve">
+    <value>已导入 {0} 和 {1}。</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="Settings_LanguageCaption" xml:space="preserve">
+    <value>菜单、标签和提示信息。</value>
+  </data>
+  <data name="Settings_OpenTheReleasePage" xml:space="preserve">
+    <value>打开发布页面</value>
+  </data>
+  <data name="Settings_ScanSounds" xml:space="preserve">
+    <value>扫描提示音</value>
+  </data>
+  <data name="Settings_Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Settings_TrademarkNotice" xml:space="preserve">
+    <value>MIFARE®、MIFARE® Classic 和 MIFARE® Ultralight 是 NXP B.V. 的注册商标。HID™ 和 HID ProxCard™ 是 HID Global 的商标。EM4100 及相关产品名称是 EM Microelectronic-Marin SA 的商标。本应用与上述公司均无关联。</value>
+  </data>
+  <data name="Settings_Version" xml:space="preserve">
+    <value>版本 {0}</value>
+  </data>
+  <data name="Settings_VibrateWhenACardScanOr" xml:space="preserve">
+    <value>卡片扫描或转储完成时振动。</value>
+  </data>
+  <data name="Settings_Vibration" xml:space="preserve">
+    <value>振动</value>
+  </data>
+  <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
+    <value>自选颜色（需要 ChameLab 固件）</value>
+  </data>
+  <data name="Slots_AddSaved" xml:space="preserve">
+    <value>添加已保存的</value>
+  </data>
+  <data name="Slots_AddSavedLf" xml:space="preserve">
+    <value>添加已保存的 LF 卡</value>
+  </data>
+  <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
+    <value>将此卡片添加到已保存的卡片</value>
+  </data>
+  <data name="Slots_ChooseSaved" xml:space="preserve">
+    <value>选择已保存的</value>
+  </data>
+  <data name="Slots_ChooseSavedSide" xml:space="preserve">
+    <value>选择已保存的 {0} 卡</value>
+  </data>
+  <data name="Slots_ConnectAChameleonToSeeAnd" xml:space="preserve">
+    <value>连接 Chameleon 以查看和编辑其八个模拟卡槽。</value>
+  </data>
+  <data name="Slots_Custom" xml:space="preserve">
+    <value>自定义</value>
+  </data>
+  <data name="Slots_Default" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
+    <value>拖动卡片以更改顺序。每当读卡器的场出现时，设备会依次发送下一张卡。</value>
+  </data>
+  <data name="Slots_EmptySlot" xml:space="preserve">
+    <value>空卡槽</value>
+  </data>
+  <data name="Slots_EmulationSlots" xml:space="preserve">
+    <value>模拟卡槽</value>
+  </data>
+  <data name="Slots_Gen1AMagicMode" xml:space="preserve">
+    <value>Gen1A 魔术模式</value>
+  </data>
+  <data name="Slots_Gen2MagicMode" xml:space="preserve">
+    <value>Gen2 魔术模式</value>
+  </data>
+  <data name="Slots_KeepEditingThisSlot" xml:space="preserve">
+    <value>继续编辑此卡槽</value>
+  </data>
+  <data name="Slots_LEDColor" xml:space="preserve">
+    <value>LED 颜色</value>
+  </data>
+  <data name="Slots_MifareClassicEmulatorHeader" xml:space="preserve">
+    <value>MIFARE CLASSIC 模拟器</value>
+  </data>
+  <data name="Slots_NoDevice" xml:space="preserve">
+    <value>未连接设备</value>
+  </data>
+  <data name="Slots_NoSavedSide" xml:space="preserve">
+    <value>还没有保存的 {0} 卡。</value>
+  </data>
+  <data name="Slots_NoSlotsToShow" xml:space="preserve">
+    <value>没有可显示的卡槽</value>
+  </data>
+  <data name="Slots_NotInSaved" xml:space="preserve">
+    <value>{0} · 不在已保存的卡片中</value>
+  </data>
+  <data name="Slots_NotInSavedId" xml:space="preserve">
+    <value>{0} · {1} {2} · 不在已保存的卡片中</value>
+  </data>
+  <data name="Slots_OpenThisCardInCards" xml:space="preserve">
+    <value>在“卡片”中打开此卡</value>
+  </data>
+  <data name="Slots_PRNGType" xml:space="preserve">
+    <value>PRNG 类型</value>
+  </data>
+  <data name="Slots_PasswordDetection" xml:space="preserve">
+    <value>密码检测</value>
+  </data>
+  <data name="Slots_PickTheLEDColor" xml:space="preserve">
+    <value>选择 LED 颜色</value>
+  </data>
+  <data name="Slots_PutOneOfYourSavedCards" xml:space="preserve">
+    <value>将一张已保存的卡片放入此频率</value>
+  </data>
+  <data name="Slots_ReadTheCardFromTheSlot" xml:space="preserve">
+    <value>从卡槽读取卡片并添加到已保存的卡片</value>
+  </data>
+  <data name="Slots_Reading" xml:space="preserve">
+    <value>正在读取卡槽…</value>
+  </data>
+  <data name="Slots_ReadingSlot" xml:space="preserve">
+    <value>正在读取卡槽 {0}</value>
+  </data>
+  <data name="Slots_ReadingSlotEllipsis" xml:space="preserve">
+    <value>正在读取卡槽 {0}…</value>
+  </data>
+  <data name="Slots_RemoveCardFromSlot" xml:space="preserve">
+    <value>从卡槽移除卡片</value>
+  </data>
+  <data name="Slots_RemoveTheCardFromThisFrequency" xml:space="preserve">
+    <value>从此频率移除卡片</value>
+  </data>
+  <data name="Slots_ResetOnFieldOff" xml:space="preserve">
+    <value>场关闭时重置</value>
+  </data>
+  <data name="Slots_SaveCard" xml:space="preserve">
+    <value>保存卡片</value>
+  </data>
+  <data name="Slots_SaveChangesTo" xml:space="preserve">
+    <value>保存对卡槽 {0} 的更改？</value>
+  </data>
+  <data name="Slots_SaveSlot" xml:space="preserve">
+    <value>保存卡槽</value>
+  </data>
+  <data name="Slots_SavedToCards" xml:space="preserve">
+    <value>已将“{0}”保存到已保存的卡片。</value>
+  </data>
+  <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
+    <value>选择一个卡槽以激活并编辑它。</value>
+  </data>
+  <data name="Slots_SlotN" xml:space="preserve">
+    <value>卡槽 {0}</value>
+  </data>
+  <data name="Slots_SlotSaved" xml:space="preserve">
+    <value>卡槽已保存。</value>
+  </data>
+  <data name="Slots_SwapFailed" xml:space="preserve">
+    <value>无法写入卡槽 {0}（{1}）。卡槽 {2} 已恢复；请检查卡槽 {3}。</value>
+  </data>
+  <data name="Slots_Swapped" xml:space="preserve">
+    <value>已交换卡槽 {0} 和 {1}。</value>
+  </data>
+  <data name="Slots_TheColorOfTheSavedCard" xml:space="preserve">
+    <value>已保存卡片的颜色（需要 ChameLab 固件）</value>
+  </data>
+  <data name="Slots_TheColorTheSlotLEDShows" xml:space="preserve">
+    <value>卡槽 LED 显示的颜色</value>
+  </data>
+  <data name="Slots_TheFirmwaresOwnColorGreenFor" xml:space="preserve">
+    <value>固件自带的颜色：HF 为绿色，LF 为蓝色，两者都有的卡槽为红色</value>
+  </data>
+  <data name="Slots_UIDMagicMode" xml:space="preserve">
+    <value>UID 魔术模式</value>
+  </data>
+  <data name="Slots_UltralightNtagEmulatorHeader" xml:space="preserve">
+    <value>ULTRALIGHT / NTAG 模拟器</value>
+  </data>
+  <data name="Slots_UseUIDSAKATQAFromBlock" xml:space="preserve">
+    <value>使用块 0 中的 UID/SAK/ATQA</value>
+  </data>
+  <data name="Slots_UsedActive" xml:space="preserve">
+    <value>{0} · 卡槽 {1} 活动</value>
+  </data>
+  <data name="Slots_WriteMode" xml:space="preserve">
+    <value>写入模式</value>
+  </data>
+  <data name="Slots_WriteTheSlotToTheDevice" xml:space="preserve">
+    <value>将卡槽写入设备并保存到闪存</value>
+  </data>
+  <data name="Slots_WritingSlot" xml:space="preserve">
+    <value>正在写入卡槽 {0}</value>
+  </data>
+  <data name="Slots_WritingSlotEllipsis" xml:space="preserve">
+    <value>正在写入卡槽 {0}…</value>
+  </data>
+  <data name="Sniff_BccOk" xml:space="preserve">
+    <value>BCC 正确</value>
+  </data>
+  <data name="Sniff_BccWrong" xml:space="preserve">
+    <value>BCC 错误</value>
+  </data>
+  <data name="Sniff_CardAnswer" xml:space="preserve">
+    <value>卡片应答</value>
+  </data>
+  <data name="Sniff_CardAnswerEnc" xml:space="preserve">
+    <value>卡片应答，已加密：at = {0}（读卡器的密钥已被接受）</value>
+  </data>
+  <data name="Sniff_CardNonce" xml:space="preserve">
+    <value>卡片 nonce nt = {0}</value>
+  </data>
+  <data name="Sniff_Command" xml:space="preserve">
+    <value>命令</value>
+  </data>
+  <data name="Sniff_Data16" xml:space="preserve">
+    <value>数据（16 字节）</value>
+  </data>
+  <data name="Sniff_Encrypted" xml:space="preserve">
+    <value>已加密</value>
+  </data>
+  <data name="Sniff_EncryptedCommand" xml:space="preserve">
+    <value>加密命令（或 nested AUTH）</value>
+  </data>
+  <data name="Sniff_ReaderAnswerEnc" xml:space="preserve">
+    <value>读卡器应答，已加密：nr = {0}，ar = {1}</value>
+  </data>
+  <data name="Sniff_Response" xml:space="preserve">
+    <value>响应 {0:X2}{1:X2}</value>
+  </data>
+  <data name="Sniff_SelectCascade" xml:space="preserve">
+    <value>SELECT CL{0}：UID 第 {1} 部分（级联标记）</value>
+  </data>
+  <data name="Sniff_ShortFrame" xml:space="preserve">
+    <value>短帧 {0:X2}（{1} 位）</value>
+  </data>
+  <data name="Sniff_SmartMx1K" xml:space="preserve">
+    <value>带 MIFARE Classic 1K 的 SmartMX</value>
+  </data>
+  <data name="Sniff_SmartMx4K" xml:space="preserve">
+    <value>带 MIFARE Classic 4K 的 SmartMX</value>
+  </data>
+  <data name="Sniff_SwBadP1P2" xml:space="preserve">
+    <value>P1-P2 不正确</value>
+  </data>
+  <data name="Sniff_SwBytesAvailable" xml:space="preserve">
+    <value>有 {0} 字节可用</value>
+  </data>
+  <data name="Sniff_SwClaUnsupported" xml:space="preserve">
+    <value>不支持该类</value>
+  </data>
+  <data name="Sniff_SwConditions" xml:space="preserve">
+    <value>不满足使用条件</value>
+  </data>
+  <data name="Sniff_SwDesfire" xml:space="preserve">
+    <value>DESFire 状态</value>
+  </data>
+  <data name="Sniff_SwFileNotFound" xml:space="preserve">
+    <value>未找到文件</value>
+  </data>
+  <data name="Sniff_SwInsUnsupported" xml:space="preserve">
+    <value>不支持该指令</value>
+  </data>
+  <data name="Sniff_SwRecordNotFound" xml:space="preserve">
+    <value>未找到记录</value>
+  </data>
+  <data name="Sniff_SwSecurity" xml:space="preserve">
+    <value>不满足安全状态</value>
+  </data>
+  <data name="Sniff_SwWrongLe" xml:space="preserve">
+    <value>Le 错误，请使用 {0}</value>
+  </data>
+  <data name="Sniff_SwWrongLength" xml:space="preserve">
+    <value>长度错误</value>
+  </data>
+  <data name="Sniff_UidNotComplete" xml:space="preserve">
+    <value>UID 不完整</value>
+  </data>
+  <data name="Sniff_UidPartCascade" xml:space="preserve">
+    <value>UID 第 {0} 部分（级联标记），{1}</value>
+  </data>
+  <data name="Sniff_UnknownCommand" xml:space="preserve">
+    <value>未知命令（无有效 CRC）</value>
+  </data>
+  <data name="Sniff_Version" xml:space="preserve">
+    <value>版本</value>
+  </data>
+  <data name="Status_FlashRead" xml:space="preserve">
+    <value>闪存读取失败</value>
+  </data>
+  <data name="Status_FlashWrite" xml:space="preserve">
+    <value>闪存写入失败</value>
+  </data>
+  <data name="Status_HfCollision" xml:space="preserve">
+    <value>HF 标签冲突</value>
+  </data>
+  <data name="Status_HfErrAts" xml:space="preserve">
+    <value>HF 标签本应发送 ATS 但未发送</value>
+  </data>
+  <data name="Status_HfErrBcc" xml:space="preserve">
+    <value>HF 标签 UID BCC 错误</value>
+  </data>
+  <data name="Status_HfErrCrc" xml:space="preserve">
+    <value>HF 标签数据 CRC 错误</value>
+  </data>
+  <data name="Status_HfErrParity" xml:space="preserve">
+    <value>HF 标签数据奇偶校验错误</value>
+  </data>
+  <data name="Status_HfErrStat" xml:space="preserve">
+    <value>HF 标签状态错误</value>
+  </data>
+  <data name="Status_HfNo" xml:space="preserve">
+    <value>未找到 HF 标签或已丢失</value>
+  </data>
+  <data name="Status_HfOk" xml:space="preserve">
+    <value>HF 标签操作成功</value>
+  </data>
+  <data name="Status_InvalidCmd" xml:space="preserve">
+    <value>API 请求失败：命令无效</value>
+  </data>
+  <data name="Status_InvalidSlotType" xml:space="preserve">
+    <value>卡槽中的卡片类型无效</value>
+  </data>
+  <data name="Status_LfNotFound" xml:space="preserve">
+    <value>未找到 LF 标签</value>
+  </data>
+  <data name="Status_LfOk" xml:space="preserve">
+    <value>LF 标签操作成功</value>
+  </data>
+  <data name="Status_MfErrAuth" xml:space="preserve">
+    <value>HF 标签认证失败</value>
+  </data>
+  <data name="Status_ModeErr" xml:space="preserve">
+    <value>API 请求失败：设备模式错误</value>
+  </data>
+  <data name="Status_NotImplemented" xml:space="preserve">
+    <value>API 未实现</value>
+  </data>
+  <data name="Status_ParErr" xml:space="preserve">
+    <value>API 请求失败：参数错误</value>
+  </data>
+  <data name="Status_Success" xml:space="preserve">
+    <value>设备操作成功</value>
+  </data>
+  <data name="Status_Unknown" xml:space="preserve">
+    <value>未知状态 0x{0:X2}</value>
+  </data>
+  <data name="Storage_NoWindow" xml:space="preserve">
+    <value>没有可用于文件访问的窗口。</value>
+  </data>
+  <data name="Strip_NotReadYet" xml:space="preserve">
+    <value>尚未读取</value>
+  </data>
+  <data name="Strip_NotWritten" xml:space="preserve">
+    <value>未写入</value>
+  </data>
+  <data name="Strip_ReadFailed" xml:space="preserve">
+    <value>读取失败</value>
+  </data>
+  <data name="Strip_Reading" xml:space="preserve">
+    <value>正在读取…</value>
+  </data>
+  <data name="Strip_WriteFailed" xml:space="preserve">
+    <value>写入失败</value>
+  </data>
+  <data name="Strip_Writing" xml:space="preserve">
+    <value>正在写入…</value>
+  </data>
+  <data name="Tcp_ExpectedHostPort" xml:space="preserve">
+    <value>应为 host:port，实际为“{0}”。</value>
+  </data>
+  <data name="Tcp_ManualEndpoint" xml:space="preserve">
+    <value>手动网络端点</value>
+  </data>
+  <data name="Tcp_Network" xml:space="preserve">
+    <value>网络（TCP）</value>
+  </data>
+  <data name="Tcp_NotConnected" xml:space="preserve">
+    <value>未连接。</value>
+  </data>
+  <data name="Tools_125KHzRawSignal" xml:space="preserve">
+    <value>125 kHz · 原始信号</value>
+  </data>
+  <data name="Tools_1356MHzISO14443A" xml:space="preserve">
+    <value>13.56 MHz · ISO14443-A</value>
+  </data>
+  <data name="Tools_AGuessFromTheLengthsOf" xml:space="preserve">
+    <value>根据高低电平持续长度推测</value>
+  </data>
+  <data name="Tools_AnswerAReaderAsACard" xml:space="preserve">
+    <value>作为卡片应答读卡器并记录双方通信</value>
+  </data>
+  <data name="Tools_ArqcRequested" xml:space="preserve">
+    <value>已请求 EMV ARQC</value>
+  </data>
+  <data name="Tools_AuthGroupHeader" xml:space="preserve">
+    <value>块 {0}（扇区 {1}）· 密钥 {2} · UID {3:X8}</value>
+  </data>
+  <data name="Tools_BackToTheTools" xml:space="preserve">
+    <value>返回工具</value>
+  </data>
+  <data name="Tools_Bits" xml:space="preserve">
+    <value>位</value>
+  </data>
+  <data name="Tools_BitsBreaks" xml:space="preserve">
+    <value>{0} · 码中有 {1}</value>
+  </data>
+  <data name="Tools_BlockKey" xml:space="preserve">
+    <value>块 {0} 密钥 {1}</value>
+  </data>
+  <data name="Tools_Capture" xml:space="preserve">
+    <value>捕获</value>
+  </data>
+  <data name="Tools_CaptureSaved" xml:space="preserve">
+    <value>捕获已保存：{0}。</value>
+  </data>
+  <data name="Tools_CapturedAt" xml:space="preserve">
+    <value>捕获于 {0:HH:mm:ss}</value>
+  </data>
+  <data name="Tools_CarrierCyclesPerBit" xml:space="preserve">
+    <value>每位的载波周期数</value>
+  </data>
+  <data name="Tools_ClassicAuthOn" xml:space="preserve">
+    <value>MIFARE Classic 认证于</value>
+  </data>
+  <data name="Tools_Clock" xml:space="preserve">
+    <value>时钟</value>
+  </data>
+  <data name="Tools_ClockRun" xml:space="preserve">
+    <value>RF/{0} · 最短持续 {1} 个采样（{2} µs）</value>
+  </data>
+  <data name="Tools_ComputeTheKeyFromTheseAuthentications" xml:space="preserve">
+    <value>根据这些认证计算密钥</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA" xml:space="preserve">
+    <value>连接 Chameleon 才能捕获。无需设备即可加载已保存的 Proxmark3 跟踪（.trace）。</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA2" xml:space="preserve">
+    <value>连接 Chameleon 才能捕获。无需设备即可加载已保存的捕获（.bin）。</value>
+  </data>
+  <data name="Tools_ConnectToCapture" xml:space="preserve">
+    <value>连接 Chameleon 才能捕获。</value>
+  </data>
+  <data name="Tools_CopyAll" xml:space="preserve">
+    <value>全部复制</value>
+  </data>
+  <data name="Tools_CopyN" xml:space="preserve">
+    <value>复制 {0}</value>
+  </data>
+  <data name="Tools_CopyTheSelectedFramesOrAll" xml:space="preserve">
+    <value>复制所选帧，或全部帧</value>
+  </data>
+  <data name="Tools_Cursor" xml:space="preserve">
+    <value>光标</value>
+  </data>
+  <data name="Tools_CursorSample" xml:space="preserve">
+    <value>采样 {0} · {1:0.000} ms · 0x{2:X2}</value>
+  </data>
+  <data name="Tools_DecodeThreshold" xml:space="preserve">
+    <value>解码阈值 0x{0:X2}</value>
+  </data>
+  <data name="Tools_EndedHalt" xml:space="preserve">
+    <value>以 HALT 结束</value>
+  </data>
+  <data name="Tools_FieldGap" xml:space="preserve">
+    <value>场间隙</value>
+  </data>
+  <data name="Tools_FileEmpty" xml:space="preserve">
+    <value>{0} 为空。</value>
+  </data>
+  <data name="Tools_Frames" xml:space="preserve">
+    <value>帧</value>
+  </data>
+  <data name="Tools_FramesHintMouse" xml:space="preserve">
+    <value>Shift+单击选择范围，Ctrl+单击添加一帧。</value>
+  </data>
+  <data name="Tools_FramesHintTouch" xml:space="preserve">
+    <value>点按一帧，再点按另一帧以选择两者之间的范围。</value>
+  </data>
+  <data name="Tools_FramesSummary" xml:space="preserve">
+    <value>{0} 帧：{1} 帧来自读卡器，{2} 帧来自卡片</value>
+  </data>
+  <data name="Tools_Gap" xml:space="preserve">
+    <value>（间隙）</value>
+  </data>
+  <data name="Tools_GapSamples" xml:space="preserve">
+    <value>{0} 个采样低于 0x{1:X2}</value>
+  </data>
+  <data name="Tools_GapThreshold" xml:space="preserve">
+    <value>间隙阈值 0x{0:X2}</value>
+  </data>
+  <data name="Tools_Gaps" xml:space="preserve">
+    <value>间隙</value>
+  </data>
+  <data name="Tools_High" xml:space="preserve">
+    <value>（高）</value>
+  </data>
+  <data name="Tools_HowLongToListen" xml:space="preserve">
+    <value>监听时长</value>
+  </data>
+  <data name="Tools_Invert" xml:space="preserve">
+    <value>反转</value>
+  </data>
+  <data name="Tools_ListenToTheReaderNow" xml:space="preserve">
+    <value>立即监听读卡器</value>
+  </data>
+  <data name="Tools_Listening" xml:space="preserve">
+    <value>正在监听…</value>
+  </data>
+  <data name="Tools_Load" xml:space="preserve">
+    <value>加载</value>
+  </data>
+  <data name="Tools_LoadHfTitle" xml:space="preserve">
+    <value>加载 HF 跟踪</value>
+  </data>
+  <data name="Tools_LoadLfTitle" xml:space="preserve">
+    <value>加载 LF 捕获</value>
+  </data>
+  <data name="Tools_LookAtWhatGoesOverThe" xml:space="preserve">
+    <value>查看读卡器与卡片之间的空中通信。</value>
+  </data>
+  <data name="Tools_Low" xml:space="preserve">
+    <value>（低）</value>
+  </data>
+  <data name="Tools_MIFAREClassicKeys" xml:space="preserve">
+    <value>MIFARE Classic 密钥</value>
+  </data>
+  <data name="Tools_ManchesterDecode" xml:space="preserve">
+    <value>曼彻斯特解码</value>
+  </data>
+  <data name="Tools_Mfkey32v2Command" xml:space="preserve">
+    <value>mfkey32v2 命令</value>
+  </data>
+  <data name="Tools_Modulation" xml:space="preserve">
+    <value>调制</value>
+  </data>
+  <data name="Tools_NoBits" xml:space="preserve">
+    <value>未解码出任何位。请尝试其他时钟或“反转”。</value>
+  </data>
+  <data name="Tools_NoGaps" xml:space="preserve">
+    <value>没有低于 0x{0:X2} 的采样：场稳定</value>
+  </data>
+  <data name="Tools_NoIsoFrames" xml:space="preserve">
+    <value>{0} 中没有 ISO14443-A 帧。</value>
+  </data>
+  <data name="Tools_NoLfSamples" xml:space="preserve">
+    <value>未捕获到 LF 采样。</value>
+  </data>
+  <data name="Tools_NoReaderSpoke" xml:space="preserve">
+    <value>读卡器没有通信。监听时请将 Chameleon 靠近读卡器，且活动卡槽中要有 HF 卡。</value>
+  </data>
+  <data name="Tools_NoSelect" xml:space="preserve">
+    <value>没有完成的 SELECT</value>
+  </data>
+  <data name="Tools_NoUniqueKey" xml:space="preserve">
+    <value>没有唯一密钥：请捕获更多认证。</value>
+  </data>
+  <data name="Tools_NothingMore" xml:space="preserve">
+    <value>没有更多可识别的内容</value>
+  </data>
+  <data name="Tools_OneAuthOnly" xml:space="preserve">
+    <value>只有一次认证：请再次捕获，让读卡器再尝试一次。</value>
+  </data>
+  <data name="Tools_OneBytePerCarrierCycleSelect" xml:space="preserve">
+    <value>每个载波周期一个字节；选中字节后可复制（Ctrl+C 或右键菜单）。</value>
+  </data>
+  <data name="Tools_OpenAProxmark3TraceTrace" xml:space="preserve">
+    <value>打开 Proxmark3 跟踪（.trace）</value>
+  </data>
+  <data name="Tools_OpenARawCaptureBinOne" xml:space="preserve">
+    <value>打开原始捕获（.bin）：每个采样一个字节</value>
+  </data>
+  <data name="Tools_Range" xml:space="preserve">
+    <value>范围</value>
+  </data>
+  <data name="Tools_RangeMean" xml:space="preserve">
+    <value>0x{0:X2}–0x{1:X2} · 平均 0x{2:X2}</value>
+  </data>
+  <data name="Tools_RecordTheLFFieldNow" xml:space="preserve">
+    <value>立即录制 LF 场</value>
+  </data>
+  <data name="Tools_RecordTheRawSignalAtThe" xml:space="preserve">
+    <value>录制天线上的原始信号</value>
+  </data>
+  <data name="Tools_RecoverAll" xml:space="preserve">
+    <value>全部恢复</value>
+  </data>
+  <data name="Tools_RecoverKey" xml:space="preserve">
+    <value>恢复密钥</value>
+  </data>
+  <data name="Tools_Recovering" xml:space="preserve">
+    <value>正在恢复…</value>
+  </data>
+  <data name="Tools_Samples" xml:space="preserve">
+    <value>采样</value>
+  </data>
+  <data name="Tools_SamplesDuration" xml:space="preserve">
+    <value>{0} 个采样 · {1:0.0} ms</value>
+  </data>
+  <data name="Tools_SaveEverySampleAsARaw" xml:space="preserve">
+    <value>将所有采样保存为原始 .bin 文件</value>
+  </data>
+  <data name="Tools_SaveHfTitle" xml:space="preserve">
+    <value>保存 HF 跟踪</value>
+  </data>
+  <data name="Tools_SaveLfTitle" xml:space="preserve">
+    <value>保存 LF 捕获</value>
+  </data>
+  <data name="Tools_SaveTheFramesAsAProxmark3" xml:space="preserve">
+    <value>将帧保存为 Proxmark3 跟踪（.trace）</value>
+  </data>
+  <data name="Tools_Seconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="Tools_Session" xml:space="preserve">
+    <value>会话</value>
+  </data>
+  <data name="Tools_Signal" xml:space="preserve">
+    <value>信号</value>
+  </data>
+  <data name="Tools_SniffHF" xml:space="preserve">
+    <value>嗅探 HF</value>
+  </data>
+  <data name="Tools_SniffLF" xml:space="preserve">
+    <value>嗅探 LF</value>
+  </data>
+  <data name="Tools_Summary" xml:space="preserve">
+    <value>摘要</value>
+  </data>
+  <data name="Tools_SwapHighAndLowDecodesThe" xml:space="preserve">
+    <value>交换高低电平：按反转的位解码</value>
+  </data>
+  <data name="Tools_TcRequested" xml:space="preserve">
+    <value>已请求 EMV TC</value>
+  </data>
+  <data name="Tools_TheChameleonAnswersAReaderAs" xml:space="preserve">
+    <value>Chameleon 以活动卡槽中的卡片身份应答读卡器，并记录双方通信：读卡器的命令和它自己的应答。监听时请将其靠近读卡器。</value>
+  </data>
+  <data name="Tools_TheReadersKeyFromItsAuthentications" xml:space="preserve">
+    <value>从读卡器的认证中得到其密钥：mfkey32 需要同一块的两次尝试，mfkey64 需要一次被卡片接受的认证。</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoHFSniffing" xml:space="preserve">
+    <value>此固件不支持 HF 嗅探。请更新 Chameleon 固件后使用。</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoLFSniffing" xml:space="preserve">
+    <value>此固件不支持 LF 嗅探。请更新 Chameleon 固件后使用（Chameleon Lite 没有读卡器）。</value>
+  </data>
+  <data name="Tools_Tools" xml:space="preserve">
+    <value>工具</value>
+  </data>
+  <data name="Tools_TraceSaved" xml:space="preserve">
+    <value>跟踪已保存：{0}。</value>
+  </data>
+  <data name="Tools_TurnsTheFieldOnAndRecords" xml:space="preserve">
+    <value>打开场并录制 32 ms 的天线信号，每个载波周期（8 µs）一个采样。录制时请将标签放在天线上。</value>
+  </data>
+  <data name="Tools_ViaMethod" xml:space="preserve">
+    <value>通过 {0}</value>
+  </data>
+  <data name="Tools_ViewInTheCapture" xml:space="preserve">
+    <value>在捕获中查看</value>
+  </data>
+  <data name="Tools_WaveHintMouse" xml:space="preserve">
+    <value>指向某处以读取采样。滚轮、双指缩放或滑块可缩放，拖动可平移；下方的条带可移动视图。</value>
+  </data>
+  <data name="Tools_WaveHintTouch" xml:space="preserve">
+    <value>点按以读取采样。双指缩放或滑块可缩放，拖动可平移；下方的条带可移动视图。</value>
+  </data>
+  <data name="Tools_Waveform" xml:space="preserve">
+    <value>波形</value>
+  </data>
+  <data name="Tools_Zoom" xml:space="preserve">
+    <value>缩放</value>
+  </data>
+  <data name="Update_AppAvailable" xml:space="preserve">
+    <value>ChameLab {0} 已发布。</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>无法检查更新：{0}</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>正在检查更新…</value>
+  </data>
+  <data name="Update_NoRelease" xml:space="preserve">
+    <value>尚未发布任何版本。</value>
+  </data>
+  <data name="Update_ReleaseNoVersion" xml:space="preserve">
+    <value>发布 {0} 未标注版本号。</value>
+  </data>
+  <data name="Update_UpToDate" xml:space="preserve">
+    <value>你使用的是最新版本。</value>
+  </data>
+  <data name="Usb_AlreadyConnected" xml:space="preserve">
+    <value>已连接。</value>
+  </data>
+  <data name="Usb_ClaimControl" xml:space="preserve">
+    <value>无法占用 USB CDC 控制接口。</value>
+  </data>
+  <data name="Usb_ClaimData" xml:space="preserve">
+    <value>无法占用 USB CDC 数据接口。</value>
+  </data>
+  <data name="Usb_Closed" xml:space="preserve">
+    <value>USB 连接已关闭。</value>
+  </data>
+  <data name="Usb_Configure" xml:space="preserve">
+    <value>无法配置 USB 串口。</value>
+  </data>
+  <data name="Usb_CouldNotOpen" xml:space="preserve">
+    <value>无法打开 USB 设备。请重新连接并允许 USB 访问。</value>
+  </data>
+  <data name="Usb_Denied" xml:space="preserve">
+    <value>USB 访问被拒绝。请重新选择设备并允许 USB 访问。</value>
+  </data>
+  <data name="Usb_Disconnected" xml:space="preserve">
+    <value>USB 设备已断开连接。</value>
+  </data>
+  <data name="Usb_Enable" xml:space="preserve">
+    <value>无法启用 USB 串口。</value>
+  </data>
+  <data name="Usb_NoCdc" xml:space="preserve">
+    <value>USB 设备没有 CDC ACM 串口接口。</value>
+  </data>
+  <data name="Usb_NoHostMode" xml:space="preserve">
+    <value>此手机不支持 USB 主机模式。</value>
+  </data>
+  <data name="Usb_NoLongerAttached" xml:space="preserve">
+    <value>Chameleon USB 设备已不再连接。</value>
+  </data>
+  <data name="Usb_NotConnected" xml:space="preserve">
+    <value>USB 设备未连接。</value>
+  </data>
+  <data name="Usb_UnpluggedWaiting" xml:space="preserve">
+    <value>等待授权时 USB 设备被拔出。</value>
+  </data>
+  <data name="Usb_WriteFailed" xml:space="preserve">
+    <value>USB 写入失败。请检查数据线并重新连接设备。</value>
+  </data>
+  <data name="WriteMode_Deceive" xml:space="preserve">
+    <value>欺骗（ACK，丢弃）</value>
+  </data>
+  <data name="WriteMode_Denied" xml:space="preserve">
+    <value>拒绝（NACK 写入）</value>
+  </data>
+  <data name="WriteMode_Normal" xml:space="preserve">
+    <value>正常</value>
+  </data>
+  <data name="WriteMode_Shadow" xml:space="preserve">
+    <value>影子（仅 RAM）</value>
+  </data>
+  <data name="WriteMode_ShadowRequested" xml:space="preserve">
+    <value>影子（已请求）</value>
+  </data>
+  <data name="Write_PlanChanged" xml:space="preserve">
+    <value>写入计划已更改。请开始新的写入会话。</value>
+  </data>
+  <data name="Write_TargetSmaller" xml:space="preserve">
+    <value>目标卡容量小于源转储。</value>
+  </data>
+  <data name="Write_TargetUidChanged" xml:space="preserve">
+    <value>目标 UID 已更改。请将同一张卡放在读卡器上以继续写入。</value>
+  </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>芯片</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>将 EM4205 / EM4305 标签放在读卡器上。写入后会回读 EM410x ID 进行确认。</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>写入 EM4305 标签</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>已将“{0}”写入 EM4305 标签。</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>写入时需要登录的 EM4305 标签的密码（4 字节）。空白标签请留空。</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>EM4305 写入失败：{0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>已写入标签，但无法回读其 EM410x ID。请确认它是 EM4205 / EM4305；如果标签有写保护，请输入其密码后重试。</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>LF 标签需要密码</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>命令失败</value>
+  </data>
+</root>

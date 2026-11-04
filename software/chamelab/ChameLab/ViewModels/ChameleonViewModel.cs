@@ -21,7 +21,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
     private bool _suppressModeWrite;
     private Values _saved;
 
-    public ChameleonViewModel(DeviceService device, CardLibrary cards, FirmwareUpdateViewModel firmware) : base(Strings.Nav_Chameleon, "dashboard")
+    public ChameleonViewModel(DeviceService device, CardLibrary cards, FirmwareUpdateViewModel firmware) : base(() => Strings.Nav_Chameleon, "dashboard")
     {
         _device = device;
         _cards = cards;

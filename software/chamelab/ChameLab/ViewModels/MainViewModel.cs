@@ -49,6 +49,9 @@ public sealed class MainViewModel : ViewModelBase
             this.WhenAnyValue(x => x.CurrentPage, x => x.Cards.IsPickingSource,
                 (page, picking) => !(ReferenceEquals(page, Cards) && picking)));
 
+        // Page titles are read again by the rebuilt views; the header text is kept here.
+        LocalizationService.LanguageChanged += UpdateDeviceSummary;
+
         Slots.OpenCardRequested += card => _ = OpenCardAsync(card.Id);
         Cards.PropertyChanged += (_, e) =>
         {
@@ -322,22 +325,28 @@ public sealed class MainViewModel : ViewModelBase
             {
                 _connect.StopWatching();
                 SetNavPages(_connectedPages);
-                var info = _device.DeviceInfo;
-                DeviceSummary = info is null
-                    ? Strings.Main_Connected
-                    : string.Format(Strings.Main_DeviceSummary, info.ModelName, info.FirmwareVersion);
+                UpdateDeviceSummary();
                 _ = Firmware.OnConnectedAsync();
                 // Connecting from the Connect page goes on to the device; any other page stays.
                 if (ReferenceEquals(CurrentPage, _connect)) await NavigateAsync(Chameleon);
             }
             else
             {
-                DeviceSummary = Strings.Main_NotConnected;
+                UpdateDeviceSummary();
                 SetNavPages(_disconnectedPages);
                 if (state == ConnectionState.Disconnected && !Firmware.IsInstalling) _connect.StartWatching();
                 // A device page has nothing left to show: back to Connect. App-side pages stay.
                 if (!NavPages.Contains(CurrentPage)) await NavigateAsync(_connect);
             }
         });
+    }
+
+    /// <summary>The header's device line, in the current UI language.</summary>
+    private void UpdateDeviceSummary()
+    {
+        var info = _device.DeviceInfo;
+        DeviceSummary = !IsConnected ? Strings.Main_NotConnected
+            : info is null ? Strings.Main_Connected
+            : string.Format(Strings.Main_DeviceSummary, info.ModelName, info.FirmwareVersion);
     }
 }

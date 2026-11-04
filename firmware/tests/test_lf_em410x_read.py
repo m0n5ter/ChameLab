@@ -19,9 +19,10 @@ typedef struct { union { const nrf_pwm_values_wave_form_t *p_wave_form; } values
 #define NRF_PWM_VALUES_LENGTH(a) (sizeof(a) / (sizeof(uint16_t)))
 """,
         "nordic_common.h": "#pragma once\n#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))\n#define IS_SET(x, b) (((x) >> (b)) & 1)\n",
-        "nrf_log.h": "#pragma once\n#define NRF_LOG_MODULE_REGISTER()\n",
+        "nrf_log.h": "#pragma once\n#define NRF_LOG_MODULE_REGISTER()\n#define NRF_LOG_INFO(...) ((void)0)\n#define NRF_LOG_DEBUG(...) ((void)0)\n",
         "nrf_log_ctrl.h": "#pragma once\n",
         "nrf_log_default_backends.h": "#pragma once\n",
+        "timeslot.h": "#pragma once\n#include <stdint.h>\ntypedef void (*timeslot_callback_t)();\nvoid request_timeslot(uint32_t time_us, timeslot_callback_t callback);\n",
         "bsp_delay.h": "#pragma once\n#include <stdint.h>\nvoid bsp_delay_ms(uint16_t);\nvoid bsp_delay_us(uint32_t);\n",
         "nrf_gpio.h": "#pragma once\n",
         "lf_125khz_radio.h": """
@@ -54,6 +55,16 @@ void lf_125khz_radio_gpiote_disable(void);
         subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-O2",
                         "-DPROJECT_CHAMELEON_ULTRA", *[f"-I{p}" for p in includes],
                         str(firmware / "tests/test_lf_t55xx_write.c"), str(writer), "-o", str(binary)], check=True)
+        subprocess.run([str(binary)], check=True)
+        em4x05 = []
+        for name in ("lf_em4x05_write.c", "lf_em4x05_data.c", "lf_em410x_data.c"):
+            (temp / name).write_bytes((src / "rfid/reader/lf" / name).read_bytes())
+            em4x05.append(str(temp / name))
+        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-O2",
+                        *[f"-I{p}" for p in includes], "-I", str(src),
+                        str(firmware / "tests/test_lf_em4x05_write.c"), *em4x05,
+                        str(src / "rfid/nfctag/lf/protocols/em410x.c"), str(src / "rfid/nfctag/lf/utils/manchester.c"),
+                        str(src / "rfid/parity.c"), "-o", str(binary)], check=True)
         subprocess.run([str(binary)], check=True)
 
 

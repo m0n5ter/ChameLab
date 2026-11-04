@@ -13,7 +13,7 @@ namespace ChameLab.Tests;
 /// <summary>Every translation covers every English string, with the same format placeholders.</summary>
 public sealed partial class LocalizationTests
 {
-    public static TheoryData<string> Translations => new() { "de", "es", "fr", "ru" };
+    public static TheoryData<string> Translations => new() { "de", "es", "fr", "it", "ja", "ko", "pt", "ru", "zh-Hans" };
 
     [Theory]
     [MemberData(nameof(Translations))]
@@ -45,7 +45,12 @@ public sealed partial class LocalizationTests
     [InlineData("de", 2)]
     [InlineData("es", 2)]
     [InlineData("fr", 2)]
+    [InlineData("it", 2)]
+    [InlineData("ja", 1)]
+    [InlineData("ko", 1)]
+    [InlineData("pt", 2)]
     [InlineData("ru", 3)]
+    [InlineData("zh-Hans", 1)]
     public void PluralStrings_HaveEveryForm(string language, int forms)
     {
         var strings = Read(language.Length == 0 ? CultureInfo.InvariantCulture : CultureInfo.GetCultureInfo(language));

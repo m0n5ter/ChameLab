@@ -20,6 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Noto Sans SC / JP / KR cut down to the characters of the Chinese, Japanese and Korean
+         translations (tools/fonts/subset_cjk.py): the browser gives Avalonia no system fonts. -->
+    <AvaloniaResource Include="Assets\Fonts\*.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
   </ItemGroup>
 </Project>

@@ -42,7 +42,7 @@ jobs:
             firmware/tests/test_lf_cycle_record.c firmware/application/src/rfid/nfctag/lf/lf_cycle_record.c \
             -o "$RUNNER_TEMP/test-lf-cycle-record"
           "$RUNNER_TEMP/test-lf-cycle-record"
-      - name: Test LF acquisition and T5577 writes
+      - name: Test LF acquisition, T5577 and EM4305 writes
         run: python3 firmware/tests/test_lf_em410x_read.py
       - name: Test USB and Bluetooth ownership
         run: |

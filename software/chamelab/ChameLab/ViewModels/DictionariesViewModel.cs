@@ -202,7 +202,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     // Page margins 56 + list 280 + gap 18 + details 420 (see DictionariesView).
     public override double MinContentWidth => 774;
 
-    public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base(Strings.Nav_Dictionaries, "key")
+    public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base(() => Strings.Nav_Dictionaries, "key")
     {
         _library = library;
         KnownEditor = new KnownKeysEditorViewModel(library.KnownKeys, cards ?? AppServices.Cards);
@@ -342,12 +342,12 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
                 .Where(d => d.Matches(_filter));
             items = _sort switch
             {
-                DictionarySort.Name => items.OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
-                DictionarySort.NameDesc => items.OrderByDescending(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
+                DictionarySort.Name => items.OrderBy(d => d.Name, NaturalStringComparer.Instance),
+                DictionarySort.NameDesc => items.OrderByDescending(d => d.Name, NaturalStringComparer.Instance),
                 DictionarySort.Size => items.OrderByDescending(d => d.Dictionary.Count)
-                    .ThenBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(d => d.Name, NaturalStringComparer.Instance),
                 DictionarySort.SizeAsc => items.OrderBy(d => d.Dictionary.Count)
-                    .ThenBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(d => d.Name, NaturalStringComparer.Instance),
                 _ => items,
             };
             Dictionaries.Clear();

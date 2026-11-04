@@ -2611,7 +2611,7 @@
     <value>Idioma</value>
   </data>
   <data name="Settings_LanguageCaption" xml:space="preserve">
-    <value>Se aplica al reiniciar la app.</value>
+    <value>Menús, etiquetas y mensajes.</value>
   </data>
   <data name="Settings_OpenTheReleasePage" xml:space="preserve">
     <value>Abrir la página de la versión</value>
@@ -3359,5 +3359,32 @@
   </data>
   <data name="Write_TargetUidChanged" xml:space="preserve">
     <value>El UID de destino cambió. Coloca la misma tarjeta en el lector para seguir escribiendo.</value>
+  </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>Chip</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>Coloque una etiqueta EM4205 / EM4305 en el lector. El ID EM410x se vuelve a leer después de escribir para confirmarlo.</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>Escribir en etiqueta EM4305</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>Se escribió «{0}» en la etiqueta EM4305.</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>Contraseña (4 bytes) de una etiqueta EM4305 que exige inicio de sesión para escribir. Déjela vacía para una etiqueta virgen.</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>Error al escribir en EM4305: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>Se escribió la etiqueta, pero su ID EM410x no se pudo volver a leer. Compruebe que sea una EM4205 / EM4305; si está protegida contra escritura, introduzca su contraseña y vuelva a intentarlo.</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>La etiqueta LF requiere contraseña</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>El comando falló</value>
   </data>
 </root>

@@ -125,7 +125,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public override double MinContentWidth => 954;
 
     public CardsViewModel(DeviceService device, CardLibrary library, DictionaryLibrary dictionaries)
-        : base(Strings.Nav_Cards, "cards")
+        : base(() => Strings.Nav_Cards, "cards")
     {
         _device = device;
         _library = library;
@@ -819,18 +819,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 .Where(c => c.Matches(_filter));
             items = _sort switch
             {
-                CardSort.Name => items.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
-                CardSort.NameDesc => items.OrderByDescending(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
+                CardSort.Name => items.OrderBy(c => c.Name, NaturalStringComparer.Instance),
+                CardSort.NameDesc => items.OrderByDescending(c => c.Name, NaturalStringComparer.Instance),
                 // Types in their natural order (LF first, sizes ascending) or reversed; cards
                 // without one last either way, names A–Z within a type.
                 CardSort.Type => items
                     .OrderBy(c => c.Card.Tag == TagSpecificType.Undefined)
                     .ThenBy(c => c.Card.Tag)
-                    .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(c => c.Name, NaturalStringComparer.Instance),
                 CardSort.TypeDesc => items
                     .OrderBy(c => c.Card.Tag == TagSpecificType.Undefined)
                     .ThenByDescending(c => c.Card.Tag)
-                    .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase),
+                    .ThenBy(c => c.Name, NaturalStringComparer.Instance),
                 _ => items,
             };
             Cards.Clear();
@@ -2504,6 +2504,49 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         set => RewriteProtection = !value;
     }
 
+    private bool _writeToEm4305;
+
+    /// <summary>An EM410x ID at RF/64 can also be cloned onto an EM4205 / EM4305 instead of a T55xx.</summary>
+    public bool CanWriteEm4305 => IsLfWrite && ActionTag is TagSpecificType.Em410x or TagSpecificType.Em410x64;
+
+    /// <summary>The LF write targets an EM4205 / EM4305 tag (the alternative to <see cref="WriteToT55xx"/>).</summary>
+    public bool WriteToEm4305
+    {
+        get => _writeToEm4305;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _writeToEm4305, value);
+            RaiseLfChip();
+        }
+    }
+
+    /// <summary>The other segment of the chip choice: the LF write targets a T55xx tag.</summary>
+    public bool WriteToT55xx
+    {
+        get => !_writeToEm4305;
+        set => WriteToEm4305 = !value;
+    }
+
+    /// <summary>The LF write actually goes to an EM4305: chosen, and possible for this card.</summary>
+    public bool IsEm4305Write => CanWriteEm4305 && _writeToEm4305;
+
+    /// <summary>A T55xx is written, so its new-password option applies.</summary>
+    public bool IsT55xxWrite => IsLfWrite && !IsEm4305Write;
+
+    public string WriteLfPasswordTip => IsEm4305Write ? Strings.Cards_Em4305PasswordTip : Strings.Cards_Password4BytesOfAnAlready;
+
+    private void RaiseLfChip()
+    {
+        this.RaisePropertyChanged(nameof(WriteToT55xx));
+        this.RaisePropertyChanged(nameof(CanWriteEm4305));
+        this.RaisePropertyChanged(nameof(IsEm4305Write));
+        this.RaisePropertyChanged(nameof(IsT55xxWrite));
+        this.RaisePropertyChanged(nameof(WriteLfPasswordTip));
+        this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
+        this.RaisePropertyChanged(nameof(WriteKind));
+        this.RaisePropertyChanged(nameof(WriteInstructions));
+    }
+
     /// <summary>
     /// Optional 4-byte password of an already-locked T55xx tag, tried before the firmware's
     /// defaults to unlock it. Left empty for a blank tag.
@@ -2541,7 +2584,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     /// <summary>Why <see cref="WriteLfNewKey"/> can't be used; null when it is empty or valid.</summary>
     public string? WriteLfNewKeyError =>
-        !IsLfWrite || string.IsNullOrWhiteSpace(_writeLfNewKey) ? null
+        !IsT55xxWrite || string.IsNullOrWhiteSpace(_writeLfNewKey) ? null
         : !Hex.TryParse(_writeLfNewKey, out var key) ? Strings.Common_NotHex
         : key.Length == 4 ? null
         : Strings.Common_Password4Bytes;
@@ -2569,7 +2612,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         null => string.Empty,
         { } t when t.IsMifareClassic() => Strings.Cards_WriteToMagic,
         { } t when t.IsUltralight() => Strings.Cards_WriteToUl,
-        { } t when t.SenseType() == TagSenseType.Lf && t.CanWriteToTag() => Strings.Cards_WriteToT55xx,
+        { } t when t.SenseType() == TagSenseType.Lf && t.CanWriteToTag() =>
+            IsEm4305Write ? Strings.Cards_WriteToEm4305 : Strings.Cards_WriteToT55xx,
         _ => Strings.Cards_CannotWriteType,
     };
 
@@ -2589,7 +2633,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         { } t when t.IsUltralight() =>
             Strings.Cards_WriteHintUl,
         { } t when t.SenseType() == TagSenseType.Lf =>
-            Strings.Cards_WriteHintT55xx,
+            IsEm4305Write ? Strings.Cards_WriteHintEm4305 : Strings.Cards_WriteHintT55xx,
         _ => string.Empty,
     };
 
@@ -2619,6 +2663,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(ShowWriteSectors));
         this.RaisePropertyChanged(nameof(IsUltralightWrite));
         this.RaisePropertyChanged(nameof(IsLfWrite));
+        RaiseLfChip();
         this.RaisePropertyChanged(nameof(WriteUnit));
         this.RaisePropertyChanged(nameof(WritePasswordError));
         this.RaisePropertyChanged(nameof(CanWriteProtection));
@@ -2790,6 +2835,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (card.Tag.SenseType() == TagSenseType.Lf)
             {
                 var hasCurrent = Hex.TryParse(WriteLfPassword, out var lfKey) && lfKey.Length == 4;
+                if (IsEm4305Write)
+                {
+                    await client.WriteEm410xToEm4x05Async(card.Uid, hasCurrent ? lfKey : null, cts.Token);
+                    succeeded = true;
+                    Notify(string.Format(Strings.Cards_WroteEm4305, card.Name));
+                    return;
+                }
                 IReadOnlyList<byte[]>? oldKeys = hasCurrent ? [lfKey, .. ChameleonClient.DefaultT55xxOldKeys] : null;
                 var newKey = Hex.TryParse(WriteLfNewKey, out var nk) && nk.Length == 4 ? nk
                     : hasCurrent ? lfKey : null;

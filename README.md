@@ -30,7 +30,7 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
   your key dictionaries, edited as hex and emulated in one tap.
 - **Saved cards** — a card library with search and color tags. Imports
   ChameleonUltraGUI, Proxmark3, Flipper `.nfc` / `.rfid`, MCT, `.bin` and `.eml`.
-- **Cloning** — write LF IDs to T55xx and MIFARE Classic to Gen1a / Gen2 magic cards.
+- **Cloning** — write LF IDs to T55xx (EM410x also to EM4305) and MIFARE Classic to Gen1a / Gen2 magic cards.
 - **Emulator settings** — Gen1a / Gen2 modes, write modes, nonce detection for mfkey32,
   Ultralight / NTAG version, signature and counters.
 - **HF sniffing** — answer a reader as the card in the active slot and record both
@@ -50,8 +50,11 @@ fully managed C# Hardnested solver on desktop, Android, iOS and the web. Hardnes
 needs a known key and substantial memory. Mobile and web calculations run locally;
 devices with insufficient memory report an error.
 
-Not there yet: editing slot data in place, backdoor key recovery,
-QR sharing and translations. The full list is in the
+The app speaks English, German, Spanish, French, Italian, Portuguese, Russian, Chinese
+(Simplified), Japanese and Korean; pick the language in Settings.
+
+Not there yet: editing slot data in place, backdoor key recovery and
+QR sharing. The full list is in the
 [roadmap](software/chamelab/ROADMAP.md).
 
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor

@@ -18,9 +18,12 @@ namespace ChameLab.ViewModels;
 /// </summary>
 public abstract class PageViewModelBase : ViewModelBase
 {
-    protected PageViewModelBase(string title, string icon)
+    private readonly Func<string> _title;
+
+    /// <param name="title">Reads the title, so it follows a change of UI language.</param>
+    protected PageViewModelBase(Func<string> title, string icon)
     {
-        Title = title;
+        _title = title;
         Icon = icon;
         DismissErrorCommand = ReactiveCommand.Create(ClearError);
     }
@@ -30,7 +33,7 @@ public abstract class PageViewModelBase : ViewModelBase
 
     public ICommand DismissErrorCommand { get; }
 
-    public string Title { get; }
+    public string Title => _title();
 
     /// <summary>Material-style glyph key resolved by the view (see IconConverter).</summary>
     public string Icon { get; }

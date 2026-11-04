@@ -1,0 +1,3390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Anim_Full" xml:space="preserve">
+    <value>フルアニメーション</value>
+  </data>
+  <data name="Anim_Minimal" xml:space="preserve">
+    <value>最小限のアニメーション</value>
+  </data>
+  <data name="Anim_None" xml:space="preserve">
+    <value>アニメーションなし</value>
+  </data>
+  <data name="Anim_Symmetric" xml:space="preserve">
+    <value>対称アニメーション</value>
+  </data>
+  <data name="Backup_Invalid" xml:space="preserve">
+    <value>有効なバックアップファイルではありません。</value>
+  </data>
+  <data name="Backup_NotChameLab" xml:space="preserve">
+    <value>ChameLab のバックアップではありません。</value>
+  </data>
+  <data name="Battery_Critical" xml:space="preserve">
+    <value>危険な状態</value>
+  </data>
+  <data name="Battery_Excellent" xml:space="preserve">
+    <value>非常に良好</value>
+  </data>
+  <data name="Battery_Fair" xml:space="preserve">
+    <value>普通</value>
+  </data>
+  <data name="Battery_Good" xml:space="preserve">
+    <value>良好</value>
+  </data>
+  <data name="Battery_Low" xml:space="preserve">
+    <value>低下</value>
+  </data>
+  <data name="Ble_LinkClosed" xml:space="preserve">
+    <value>BLE 接続が閉じられました。</value>
+  </data>
+  <data name="Ble_NoPermission" xml:space="preserve">
+    <value>Bluetooth の権限が許可されていません。</value>
+  </data>
+  <data name="Ble_NoRx" xml:space="preserve">
+    <value>NUS RX キャラクタリスティックが見つかりません。</value>
+  </data>
+  <data name="Ble_NoTx" xml:space="preserve">
+    <value>NUS TX キャラクタリスティックが見つかりません。</value>
+  </data>
+  <data name="Ble_NoUart" xml:space="preserve">
+    <value>デバイスに Nordic UART サービスが見つかりません。</value>
+  </data>
+  <data name="Ble_Off" xml:space="preserve">
+    <value>Bluetooth がオフです。</value>
+  </data>
+  <data name="Button_Battery" xml:space="preserve">
+    <value>バッテリー残量を表示</value>
+  </data>
+  <data name="Button_Clone" xml:space="preserve">
+    <value>読み取ってから UID をエミュレート</value>
+  </data>
+  <data name="Button_FieldGen" xml:space="preserve">
+    <value>NFC フィールド検出器を切り替え</value>
+  </data>
+  <data name="Button_NextSlot" xml:space="preserve">
+    <value>次のスロットを選択</value>
+  </data>
+  <data name="Button_None" xml:space="preserve">
+    <value>機能なし</value>
+  </data>
+  <data name="Button_PrevSlot" xml:space="preserve">
+    <value>前のスロットを選択</value>
+  </data>
+  <data name="Cards_125KHzCardsOnly" xml:space="preserve">
+    <value>125 kHz カードのみ</value>
+  </data>
+  <data name="Cards_1356MHz" xml:space="preserve">
+    <value>13.56 MHz</value>
+  </data>
+  <data name="Cards_1356MHzCardsOnly" xml:space="preserve">
+    <value>13.56 MHz カードのみ</value>
+  </data>
+  <data name="Cards_26BitFormat" xml:space="preserve">
+    <value>26 ビット形式</value>
+  </data>
+  <data name="Cards_3DesKey" xml:space="preserve">
+    <value>3DES キー</value>
+  </data>
+  <data name="Cards_AccessBits" xml:space="preserve">
+    <value>■ アクセスビット</value>
+  </data>
+  <data name="Cards_AccessBits2" xml:space="preserve">
+    <value>アクセスビット</value>
+  </data>
+  <data name="Cards_AccessBitsInvalid" xml:space="preserve">
+    <value> （無効）</value>
+  </data>
+  <data name="Cards_AccessBitsValid" xml:space="preserve">
+    <value> （有効）</value>
+  </data>
+  <data name="Cards_AddACard" xml:space="preserve">
+    <value>カードを追加</value>
+  </data>
+  <data name="Cards_AddARecordAtTheEnd" xml:space="preserve">
+    <value>メッセージの末尾にレコードを追加</value>
+  </data>
+  <data name="Cards_AddRecord" xml:space="preserve">
+    <value>レコードを追加</value>
+  </data>
+  <data name="Cards_AfterThePagesWriteTheSettings" xml:space="preserve">
+    <value>ページの書き込み後、以下の設定をターゲットカードに書き込む</value>
+  </data>
+  <data name="Cards_All" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="Cards_AllTypes" xml:space="preserve">
+    <value>すべての種類</value>
+  </data>
+  <data name="Cards_AlreadySavedHeader" xml:space="preserve">
+    <value>保存済み</value>
+  </data>
+  <data name="Cards_AndroidApp" xml:space="preserve">
+    <value>Android アプリ</value>
+  </data>
+  <data name="Cards_AssignToSlot" xml:space="preserve">
+    <value>スロットに割り当て</value>
+  </data>
+  <data name="Cards_AssignToSlotHeader" xml:space="preserve">
+    <value>スロットに割り当て</value>
+  </data>
+  <data name="Cards_AssumingGen2" xml:space="preserve">
+    <value>Gen1a または Gen3 マジックカードは検出されませんでした。Gen2 / CUID とみなします。</value>
+  </data>
+  <data name="Cards_AtqaLength" xml:space="preserve">
+    <value>ATQA は 2 バイトである必要があります。</value>
+  </data>
+  <data name="Cards_Auth0FirstProtected" xml:space="preserve">
+    <value>AUTH0（最初の保護ページ）</value>
+  </data>
+  <data name="Cards_Auth1" xml:space="preserve">
+    <value>AUTH1（0 = 書き込み保護のみ）</value>
+  </data>
+  <data name="Cards_BackToCards" xml:space="preserve">
+    <value>カード一覧に戻る</value>
+  </data>
+  <data name="Cards_BinDump" xml:space="preserve">
+    <value>.bin ダンプ</value>
+  </data>
+  <data name="Cards_Block0" xml:space="preserve">
+    <value>■ ブロック 0</value>
+  </data>
+  <data name="Cards_BlocksRange" xml:space="preserve">
+    <value>ブロック {0}–{1}</value>
+  </data>
+  <data name="Cards_CannotWriteType" xml:space="preserve">
+    <value>この種類のカードはまだ書き込めません</value>
+  </data>
+  <data name="Cards_CapabilityContainer" xml:space="preserve">
+    <value>Capability Container</value>
+  </data>
+  <data name="Cards_CapturedAuths" xml:space="preserve">
+    <value>{0} 件の認証をキャプチャしました</value>
+  </data>
+  <data name="Cards_CardColor" xml:space="preserve">
+    <value>カードの色</value>
+  </data>
+  <data name="Cards_CardDetailsHeader" xml:space="preserve">
+    <value>カードの詳細</value>
+  </data>
+  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
+    <value>カードファイル（Flutter アプリと互換）</value>
+  </data>
+  <data name="Cards_CardId" xml:space="preserve">
+    <value>カード ID</value>
+  </data>
+  <data name="Cards_CardName" xml:space="preserve">
+    <value>カード名</value>
+  </data>
+  <data name="Cards_CardNumber065535" xml:space="preserve">
+    <value>カード番号（0–65535）</value>
+  </data>
+  <data name="Cards_CardType" xml:space="preserve">
+    <value>カードの種類</value>
+  </data>
+  <data name="Cards_CardsOfBothFrequencies" xml:space="preserve">
+    <value>両方の周波数のカード</value>
+  </data>
+  <data name="Cards_Cfg0Auth0" xml:space="preserve">
+    <value>CFG0 · AUTH0（最初の保護ページ）</value>
+  </data>
+  <data name="Cards_CheckingKey" xml:space="preserve">
+    <value>キーを確認中 {0}/{1}</value>
+  </data>
+  <data name="Cards_ClearSearchAndFilters" xml:space="preserve">
+    <value>検索とフィルターをクリア</value>
+  </data>
+  <data name="Cards_ClearTheSelectedSectorAndMark" xml:space="preserve">
+    <value>選択したセクターをクリアし、そのブロックを未読にする</value>
+  </data>
+  <data name="Cards_ClickToCopy" xml:space="preserve">
+    <value>クリックしてコピー</value>
+  </data>
+  <data name="Cards_CloseMfkey32Result" xml:space="preserve">
+    <value>mfkey32 の結果を閉じる</value>
+  </data>
+  <data name="Cards_CloseWriter" xml:space="preserve">
+    <value>ライターを閉じる</value>
+  </data>
+  <data name="Cards_Config" xml:space="preserve">
+    <value>■ 設定</value>
+  </data>
+  <data name="Cards_ConfigPagesNotRead" xml:space="preserve">
+    <value>設定ページは読み取られていません。表示するにはパスワードを使ってカードをダンプしてください。</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToLoadThis" xml:space="preserve">
+    <value>このカードをスロットに読み込むには Chameleon を接続してください。</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToScanTags" xml:space="preserve">
+    <value>タグをスキャンするには Chameleon を接続してください。</value>
+  </data>
+  <data name="Cards_ConnectAChameleonToWriteCards" xml:space="preserve">
+    <value>カードに書き込むには Chameleon を接続してください。</value>
+  </data>
+  <data name="Cards_ContactVCard" xml:space="preserve">
+    <value>連絡先（vCard）</value>
+  </data>
+  <data name="Cards_Content" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="Cards_CouldNotSaveKnownKeys" xml:space="preserve">
+    <value>既知のカードキーを保存できませんでした: {0}</value>
+  </data>
+  <data name="Cards_CouldNotSavePassword" xml:space="preserve">
+    <value>カードのパスワードを保存できませんでした: {0}</value>
+  </data>
+  <data name="Cards_Counter" xml:space="preserve">
+    <value>カウンター</value>
+  </data>
+  <data name="Cards_Counter16" xml:space="preserve">
+    <value>16 ビットカウンター</value>
+  </data>
+  <data name="Cards_Counters" xml:space="preserve">
+    <value>カウンター</value>
+  </data>
+  <data name="Cards_CreateACardByEnteringIts" xml:space="preserve">
+    <value>種類と UID / ID を入力してカードを作成</value>
+  </data>
+  <data name="Cards_CurrentCardPassword" xml:space="preserve">
+    <value>カードの現在のパスワード</value>
+  </data>
+  <data name="Cards_CurrentPassword" xml:space="preserve">
+    <value>現在のパスワード</value>
+  </data>
+  <data name="Cards_DataRows" xml:space="preserve">
+    <value>{0} 行のデータ</value>
+  </data>
+  <data name="Cards_DegreesEastNegativeWest" xml:space="preserve">
+    <value>東経の度数（負の値は西経）</value>
+  </data>
+  <data name="Cards_DegreesNorthNegativeSouth" xml:space="preserve">
+    <value>北緯の度数（負の値は南緯）</value>
+  </data>
+  <data name="Cards_DeleteThisCard" xml:space="preserve">
+    <value>このカードを削除</value>
+  </data>
+  <data name="Cards_DeleteThisCardPermanently" xml:space="preserve">
+    <value>このカードを完全に削除しますか？</value>
+  </data>
+  <data name="Cards_DeletedFolder" xml:space="preserve">
+    <value>フォルダー {0} を削除しました。</value>
+  </data>
+  <data name="Cards_Detect" xml:space="preserve">
+    <value>検出</value>
+  </data>
+  <data name="Cards_DetectedGen1a" xml:space="preserve">
+    <value>Gen1a（UID）マジックカードを検出しました。</value>
+  </data>
+  <data name="Cards_DetectedGen3" xml:space="preserve">
+    <value>Gen3（APDU）マジックカードを検出しました。</value>
+  </data>
+  <data name="Cards_DumpAlreadySaved" xml:space="preserve">
+    <value>このダンプと同じメモリを持つ保存済みカードがあります。それを開くか、続けてもう一度保存してください。</value>
+  </data>
+  <data name="Cards_DumpCanceled" xml:space="preserve">
+    <value>ダンプをキャンセルしました。</value>
+  </data>
+  <data name="Cards_DumpClassicHint" xml:space="preserve">
+    <value>カードをリーダーに置いたまま、選択したキー辞書で全ブロックを読み取ります。</value>
+  </data>
+  <data name="Cards_DumpNotice" xml:space="preserve">
+    <value>メモリの読み取りとキーの復元にはデバイスを接続してください。</value>
+  </data>
+  <data name="Cards_DumpStoppedKept" xml:space="preserve">
+    <value>ダンプを停止しました。{2} の {0}/{1} セクターを保持しました。</value>
+  </data>
+  <data name="Cards_DumpTheCardFirstToSave" xml:space="preserve">
+    <value>メモリも保存するには、先にカードをダンプしてください。</value>
+  </data>
+  <data name="Cards_DumpUlHint" xml:space="preserve">
+    <value>カードをリーダーに置いたままにしてください。パスワードはカードが必要とする場合に 1 回だけ送信されます。誤ったパスワードはロック回数制限（AUTHLIM）に数えられます。</value>
+  </data>
+  <data name="Cards_DynamicLockBytes" xml:space="preserve">
+    <value>動的ロックバイト</value>
+  </data>
+  <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
+    <value>編集内容はそのままメモリに反映されます。レコードはドラッグで移動できます。</value>
+  </data>
+  <data name="Cards_Em410xRead" xml:space="preserve">
+    <value>EM410x タグを読み取りました。</value>
+  </data>
+  <data name="Cards_Email" xml:space="preserve">
+    <value>メール</value>
+  </data>
+  <data name="Cards_EmailAddress" xml:space="preserve">
+    <value>メールアドレス</value>
+  </data>
+  <data name="Cards_EmailOptional" xml:space="preserve">
+    <value>メール（任意）</value>
+  </data>
+  <data name="Cards_EmlDump" xml:space="preserve">
+    <value>.eml ダンプ</value>
+  </data>
+  <data name="Cards_EmulateThisCardInOneOf" xml:space="preserve">
+    <value>このカードをデバイスのスロットでエミュレート</value>
+  </data>
+  <data name="Cards_EnterIdentityFirst" xml:space="preserve">
+    <value>先に有効なカード識別情報を入力してください。</value>
+  </data>
+  <data name="Cards_EnterManually" xml:space="preserve">
+    <value>手動で入力</value>
+  </data>
+  <data name="Cards_EveryPageAsHex" xml:space="preserve">
+    <value>全ページ（16 進数）</value>
+  </data>
+  <data name="Cards_ExportBinTitle" xml:space="preserve">
+    <value>ダンプを .bin としてエクスポート</value>
+  </data>
+  <data name="Cards_ExportCardTitle" xml:space="preserve">
+    <value>カードをエクスポート</value>
+  </data>
+  <data name="Cards_ExportEmlTitle" xml:space="preserve">
+    <value>ダンプを .eml としてエクスポート</value>
+  </data>
+  <data name="Cards_FacilityCode0255" xml:space="preserve">
+    <value>ファシリティコード（0–255）</value>
+  </data>
+  <data name="Cards_FailedCount" xml:space="preserve">
+    <value> · {0} 件失敗</value>
+  </data>
+  <data name="Cards_FileHasNoCards" xml:space="preserve">
+    <value>{0} にはカードが含まれていません。</value>
+  </data>
+  <data name="Cards_Folder" xml:space="preserve">
+    <value>フォルダー</value>
+  </data>
+  <data name="Cards_FolderExists" xml:space="preserve">
+    <value>「{0}」という名前のフォルダーは既にあります。</value>
+  </data>
+  <data name="Cards_FoldersHeader" xml:space="preserve">
+    <value>フォルダー</value>
+  </data>
+  <data name="Cards_FoundAfterChecks" xml:space="preserve">
+    <value>{0} 回のキー確認で発見</value>
+  </data>
+  <data name="Cards_HoldATagAgainstTheDevice" xml:space="preserve">
+    <value>タグをデバイスにかざしてスキャンするか、ファイルをインポートするか、カードを手動で入力してください。</value>
+  </data>
+  <data name="Cards_IdLength" xml:space="preserve">
+    <value>{0} ID は {1} バイトである必要があります。</value>
+  </data>
+  <data name="Cards_IdentityOnly" xml:space="preserve">
+    <value>識別情報のみ</value>
+  </data>
+  <data name="Cards_ImportCardTitle" xml:space="preserve">
+    <value>カードをインポート</value>
+  </data>
+  <data name="Cards_ImportFile" xml:space="preserve">
+    <value>ファイルをインポート</value>
+  </data>
+  <data name="Cards_ImportJSONFlipperNfcRfidProxmark3" xml:space="preserve">
+    <value>JSON、Flipper .nfc/.rfid、Proxmark3 JSON、MCT、.bin、.eml をインポート</value>
+  </data>
+  <data name="Cards_Internal" xml:space="preserve">
+    <value>内部</value>
+  </data>
+  <data name="Cards_InvalidAccessBits" xml:space="preserve">
+    <value>セクター {0} のアクセスビットが無効です。これをカードに書き込むとセクターがロックされます。</value>
+  </data>
+  <data name="Cards_JSONNfcBinEml" xml:space="preserve">
+    <value>JSON、.nfc、.bin、.eml…</value>
+  </data>
+  <data name="Cards_Keep" xml:space="preserve">
+    <value>保持</value>
+  </data>
+  <data name="Cards_KeepCurrent" xml:space="preserve">
+    <value>現在のまま</value>
+  </data>
+  <data name="Cards_KeepEditingThisCard" xml:space="preserve">
+    <value>このカードの編集を続ける</value>
+  </data>
+  <data name="Cards_KeepTheOldVersionInThe" xml:space="preserve">
+    <value>スロットには古いバージョンを残す</value>
+  </data>
+  <data name="Cards_KeyA" xml:space="preserve">
+    <value>■ キー A</value>
+  </data>
+  <data name="Cards_KeyAOfSectors" xml:space="preserve">
+    <value>セクター {0} のキー A</value>
+  </data>
+  <data name="Cards_KeyB" xml:space="preserve">
+    <value>■ キー B</value>
+  </data>
+  <data name="Cards_KeyBOfSectors" xml:space="preserve">
+    <value>セクター {0} のキー B</value>
+  </data>
+  <data name="Cards_LFProtocol" xml:space="preserve">
+    <value>LF プロトコル</value>
+  </data>
+  <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
+    <value>言語コード（例: en、de、ru）</value>
+  </data>
+  <data name="Cards_LatitudeEG488584" xml:space="preserve">
+    <value>緯度（例: 48.8584）</value>
+  </data>
+  <data name="Cards_LeaveTheTargetCardsPasswordPACK" xml:space="preserve">
+    <value>ターゲットカードのパスワード、PACK、AUTH0、PROT、試行回数制限はそのままにする</value>
+  </data>
+  <data name="Cards_Legend3DesKey" xml:space="preserve">
+    <value>■ 3DES キー</value>
+  </data>
+  <data name="Cards_LfTagRead" xml:space="preserve">
+    <value>{0} タグを読み取りました。</value>
+  </data>
+  <data name="Cards_LinkURI" xml:space="preserve">
+    <value>リンク（URI）</value>
+  </data>
+  <data name="Cards_LoadedInSlot" xml:space="preserve">
+    <value>「{0}」はスロット {1} に読み込まれています。デバイスを更新しますか？</value>
+  </data>
+  <data name="Cards_LoadedInSlots" xml:space="preserve">
+    <value>「{0}」はスロット {1} に読み込まれています。デバイスを更新しますか？</value>
+  </data>
+  <data name="Cards_Location" xml:space="preserve">
+    <value>位置情報</value>
+  </data>
+  <data name="Cards_LockBytes" xml:space="preserve">
+    <value>■ ロックバイト</value>
+  </data>
+  <data name="Cards_LongitudeEG22945" xml:space="preserve">
+    <value>経度（例: 2.2945）</value>
+  </data>
+  <data name="Cards_MIMEData" xml:space="preserve">
+    <value>MIME データ</value>
+  </data>
+  <data name="Cards_MIMETypeEGTextPlain" xml:space="preserve">
+    <value>MIME タイプ（例: text/plain）</value>
+  </data>
+  <data name="Cards_MagicGenerationHeader" xml:space="preserve">
+    <value>マジックカードの世代</value>
+  </data>
+  <data name="Cards_ManualEntry" xml:space="preserve">
+    <value>手動入力</value>
+  </data>
+  <data name="Cards_ManufacturerData" xml:space="preserve">
+    <value>メーカーデータ</value>
+  </data>
+  <data name="Cards_MemoryHeader" xml:space="preserve">
+    <value>メモリ</value>
+  </data>
+  <data name="Cards_MessageOptional" xml:space="preserve">
+    <value>メッセージ（任意）</value>
+  </data>
+  <data name="Cards_Mfkey32LoadIntoSlot" xml:space="preserve">
+    <value>mfkey32 を開始する前に、このカードをスロットに読み込んでください。</value>
+  </data>
+  <data name="Cards_Mfkey32NeedsClassic" xml:space="preserve">
+    <value>mfkey32 には MIFARE Classic カードが必要です。</value>
+  </data>
+  <data name="Cards_Mfkey32Tip" xml:space="preserve">
+    <value>mfkey32 を使ってリーダーからカードのキーを復元</value>
+  </data>
+  <data name="Cards_Model" xml:space="preserve">
+    <value>モデル</value>
+  </data>
+  <data name="Cards_MoveThisCardToAFolder" xml:space="preserve">
+    <value>このカードをフォルダーに移動</value>
+  </data>
+  <data name="Cards_MovedOutOfFolder" xml:space="preserve">
+    <value>「{0}」をフォルダーから出しました。</value>
+  </data>
+  <data name="Cards_MovedToFolder" xml:space="preserve">
+    <value>「{0}」を {1} に移動しました。</value>
+  </data>
+  <data name="Cards_MustBeHex" xml:space="preserve">
+    <value>{0} は有効な 16 進数である必要があります。</value>
+  </data>
+  <data name="Cards_Name" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="Cards_NetworkNameSSID" xml:space="preserve">
+    <value>ネットワーク名（SSID）</value>
+  </data>
+  <data name="Cards_NewCard" xml:space="preserve">
+    <value>新しいカード</value>
+  </data>
+  <data name="Cards_NewFolderN" xml:space="preserve">
+    <value>新しいフォルダー {0}</value>
+  </data>
+  <data name="Cards_NewPassword" xml:space="preserve">
+    <value>新しいパスワード</value>
+  </data>
+  <data name="Cards_NoCardOnReader" xml:space="preserve">
+    <value>リーダーにカードが見つかりません。</value>
+  </data>
+  <data name="Cards_NoCardsInThisFolderYet" xml:space="preserve">
+    <value>このフォルダーにはまだカードがありません。ナビゲーションペインでカードをフォルダーにドラッグするか、ここで追加してください。</value>
+  </data>
+  <data name="Cards_NoCardsMatchTheSearchAnd" xml:space="preserve">
+    <value>検索とフィルターに一致するカードはありません。</value>
+  </data>
+  <data name="Cards_NoCardsYet" xml:space="preserve">
+    <value>カードはまだありません</value>
+  </data>
+  <data name="Cards_NoFolder" xml:space="preserve">
+    <value>フォルダーなし</value>
+  </data>
+  <data name="Cards_NoHfTag" xml:space="preserve">
+    <value>HF（13.56 MHz）タグが検出されません。</value>
+  </data>
+  <data name="Cards_NoKeysSelected" xml:space="preserve">
+    <value>キーが選択されていません</value>
+  </data>
+  <data name="Cards_NotFound" xml:space="preserve">
+    <value>見つかりません</value>
+  </data>
+  <data name="Cards_NotFoundChecked" xml:space="preserve">
+    <value>見つかりません · {0}/{1} キーを確認済み</value>
+  </data>
+  <data name="Cards_NotNow" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Cards_NotRead" xml:space="preserve">
+    <value>未読</value>
+  </data>
+  <data name="Cards_NotWritten" xml:space="preserve">
+    <value>未書き込み</value>
+  </data>
+  <data name="Cards_NowEmulated" xml:space="preserve">
+    <value>「{0}」をスロット {1} でエミュレート中です。</value>
+  </data>
+  <data name="Cards_OnlyTypesThatKeepThisCards" xml:space="preserve">
+    <value>このカードのデータが有効なままになる種類だけが表示されます。別の種類を使うには新しいカードを追加してください。</value>
+  </data>
+  <data name="Cards_OpenTheSavedCard" xml:space="preserve">
+    <value>保存済みのカードを開く</value>
+  </data>
+  <data name="Cards_Optional" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="Cards_Optional2" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="Cards_OrderOfTheListInManual" xml:space="preserve">
+    <value>一覧の並び順。「手動」ではカードをドラッグして並べ替えられます。</value>
+  </data>
+  <data name="Cards_OrganizationOptional" xml:space="preserve">
+    <value>組織（任意）</value>
+  </data>
+  <data name="Cards_PWD4BytesForNTAGUltralight" xml:space="preserve">
+    <value>NTAG / Ultralight EV1 の PWD（4 バイト）、または Ultralight C の 3DES キー（16 バイト）</value>
+  </data>
+  <data name="Cards_PWD4BytesOfTheTarget" xml:space="preserve">
+    <value>ページが書き込み保護されている場合のターゲットカードの PWD（4 バイト）</value>
+  </data>
+  <data name="Cards_PackReadsBack" xml:space="preserve">
+    <value>PACK（00 として読み出されます）</value>
+  </data>
+  <data name="Cards_PackageNameEGComExample" xml:space="preserve">
+    <value>パッケージ名（例: com.example.app）</value>
+  </data>
+  <data name="Cards_PageN" xml:space="preserve">
+    <value>ページ {0}</value>
+  </data>
+  <data name="Cards_PageProgress" xml:space="preserve">
+    <value>ページ {0}/{1}</value>
+  </data>
+  <data name="Cards_PagesOf" xml:space="preserve">
+    <value>{0}/{1} ページ</value>
+  </data>
+  <data name="Cards_PagesRange" xml:space="preserve">
+    <value>ページ {0}–{1}</value>
+  </data>
+  <data name="Cards_PagesRead" xml:space="preserve">
+    <value>読み取ったページ</value>
+  </data>
+  <data name="Cards_PartlyWritten" xml:space="preserve">
+    <value>一部書き込み済み</value>
+  </data>
+  <data name="Cards_Password" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="Cards_Password4BytesOfAnAlready" xml:space="preserve">
+    <value>ロック済み T55xx タグのパスワード（4 バイト）。空のタグの場合は空欄のままにしてください。ファームウェアの既定のパスワードも試されます。</value>
+  </data>
+  <data name="Cards_Password4BytesTheTagIs" xml:space="preserve">
+    <value>書き込み後にタグをロックするパスワード（4 バイト）。空欄の場合は現在のパスワードを保持し、空のタグではファームウェアの既定値（20206666）を使います。</value>
+  </data>
+  <data name="Cards_PasswordNotSent" xml:space="preserve">
+    <value>送信していません（カードが必要としていません）</value>
+  </data>
+  <data name="Cards_PasswordOptional" xml:space="preserve">
+    <value>パスワード（任意）</value>
+  </data>
+  <data name="Cards_PasswordProtectionHeader" xml:space="preserve">
+    <value>パスワード保護</value>
+  </data>
+  <data name="Cards_PasswordRejected" xml:space="preserve">
+    <value>受け入れられませんでした。保護されたページは読み取っていません</value>
+  </data>
+  <data name="Cards_PasswordSettings" xml:space="preserve">
+    <value>パスワード設定</value>
+  </data>
+  <data name="Cards_PayloadHex" xml:space="preserve">
+    <value>ペイロード（16 進数）</value>
+  </data>
+  <data name="Cards_PhoneNumber" xml:space="preserve">
+    <value>電話番号</value>
+  </data>
+  <data name="Cards_PhoneNumberEG1555" xml:space="preserve">
+    <value>電話番号（例: +1 555 0100）</value>
+  </data>
+  <data name="Cards_PhoneOptional" xml:space="preserve">
+    <value>電話（任意）</value>
+  </data>
+  <data name="Cards_PlaceSelectedCard" xml:space="preserve">
+    <value>続行する前に、選択したカードをリーダーに置いてください。</value>
+  </data>
+  <data name="Cards_PreparingEmulation" xml:space="preserve">
+    <value>エミュレーションを準備中…</value>
+  </data>
+  <data name="Cards_PreparingSector" xml:space="preserve">
+    <value>セクターを準備中…</value>
+  </data>
+  <data name="Cards_PressToScanACardImport" xml:space="preserve">
+    <value>+ を押してカードをスキャン、ファイルをインポート、または手動で入力します。保存したカードは任意のスロットでエミュレートしたり、タグに書き込んだりできます。</value>
+  </data>
+  <data name="Cards_ProbeTheCardOnTheReader" xml:space="preserve">
+    <value>リーダー上のカードを調べて世代を選択</value>
+  </data>
+  <data name="Cards_Protected" xml:space="preserve">
+    <value>保護</value>
+  </data>
+  <data name="Cards_ProtectionNote" xml:space="preserve">
+    <value>スロットはこれらの設定をエミュレートします。カードに適用するには、書き込み時に「パスワードで保護」をオンにしてください。</value>
+  </data>
+  <data name="Cards_Proxmark3EmlDumpHexText" xml:space="preserve">
+    <value>Proxmark3 .eml ダンプ（16 進テキスト）</value>
+  </data>
+  <data name="Cards_PwdReadsBack" xml:space="preserve">
+    <value>PWD（00 として読み出されます）</value>
+  </data>
+  <data name="Cards_RawMemoryDumpReadableByMost" xml:space="preserve">
+    <value>生のメモリダンプ（ほとんどの MIFARE ツールで読み込み可能）</value>
+  </data>
+  <data name="Cards_RawRecord" xml:space="preserve">
+    <value>生のレコード</value>
+  </data>
+  <data name="Cards_ReadEveryPage" xml:space="preserve">
+    <value>全ページ、署名、カウンターを読み取る</value>
+  </data>
+  <data name="Cards_ReadMissingBlocks" xml:space="preserve">
+    <value>選択したキーで不足しているブロックを読み取る</value>
+  </data>
+  <data name="Cards_ReadPagesFrom" xml:space="preserve">
+    <value>{2} から {0}/{1} ページを読み取りました。</value>
+  </data>
+  <data name="Cards_ReadSectorsFrom" xml:space="preserve">
+    <value>{2} から {0}/{1} セクターを読み取りました。</value>
+  </data>
+  <data name="Cards_ReadSectorsProgress" xml:space="preserve">
+    <value>{0}/{1} セクターを読み取りました。</value>
+  </data>
+  <data name="Cards_Reading" xml:space="preserve">
+    <value>読み取り</value>
+  </data>
+  <data name="Cards_ReadingCard" xml:space="preserve">
+    <value>カードを読み取り中…</value>
+  </data>
+  <data name="Cards_RecoverAllKeysHint" xml:space="preserve">
+    <value>ターゲットカードの全セクターのキー A と B を復元します。すべてのセクターが緑になると書き込めます。</value>
+  </data>
+  <data name="Cards_RecoverGen2KeysFirst" xml:space="preserve">
+    <value>書き込む前に、ターゲットの Gen2 カードの全セクターについて両方のキーを復元してください。</value>
+  </data>
+  <data name="Cards_RecoverySectorHint" xml:space="preserve">
+    <value>セクターを選択してブロックを編集。ポイントするとキーを表示</value>
+  </data>
+  <data name="Cards_ReloadSlots" xml:space="preserve">
+    <value>スロットを再読み込み</value>
+  </data>
+  <data name="Cards_RememberedAccepted" xml:space="preserve">
+    <value>記憶した {0} が受け入れられました</value>
+  </data>
+  <data name="Cards_RememberedRejected" xml:space="preserve">
+    <value>記憶したパスワードが受け入れられませんでした。保護されたページは読み取っていません</value>
+  </data>
+  <data name="Cards_RemoveTheRecord" xml:space="preserve">
+    <value>レコードを削除</value>
+  </data>
+  <data name="Cards_SakLength" xml:space="preserve">
+    <value>SAK は 1 バイトである必要があります。</value>
+  </data>
+  <data name="Cards_SaveACopyOfThisCard" xml:space="preserve">
+    <value>このカードのコピーを保存</value>
+  </data>
+  <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
+    <value>JSON として保存（Flutter アプリと互換）</value>
+  </data>
+  <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>移動する前に新しいカードを保存しますか？</value>
+  </data>
+  <data name="Cards_SaveTheCardToAFile" xml:space="preserve">
+    <value>カードをファイルに保存</value>
+  </data>
+  <data name="Cards_SaveUidOnly" xml:space="preserve">
+    <value>UID のみ保存</value>
+  </data>
+  <data name="Cards_ScanA125KHzTagOf" xml:space="preserve">
+    <value>下で選択したプロトコルの 125 kHz タグをスキャン</value>
+  </data>
+  <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
+    <value>ISO14443-A タグをスキャンします。デバイスはリーダーモードに切り替わります</value>
+  </data>
+  <data name="Cards_ScanHF" xml:space="preserve">
+    <value>HF をスキャン</value>
+  </data>
+  <data name="Cards_ScanImportOrEnterANew" xml:space="preserve">
+    <value>新しいカードをスキャン、インポート、または入力</value>
+  </data>
+  <data name="Cards_ScanLF" xml:space="preserve">
+    <value>LF をスキャン</value>
+  </data>
+  <data name="Cards_Searching" xml:space="preserve">
+    <value>検索中…</value>
+  </data>
+  <data name="Cards_SearchingProgress" xml:space="preserve">
+    <value>{0} を検索中</value>
+  </data>
+  <data name="Cards_SectorBlock" xml:space="preserve">
+    <value>セクター {0} · ブロック {1}</value>
+  </data>
+  <data name="Cards_SectorBlockKey" xml:space="preserve">
+    <value>セクター {0} · ブロック {1} · キー {2}</value>
+  </data>
+  <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
+    <value>セクター {0} · ブロック {1} · キー {2} · {3}</value>
+  </data>
+  <data name="Cards_SectorTrailer" xml:space="preserve">
+    <value>{0} トレーラー · {1}</value>
+  </data>
+  <data name="Cards_SectorWriteState" xml:space="preserve">
+    <value>{0} · {1}/{2} ブロック書き込み済み</value>
+  </data>
+  <data name="Cards_SectorsDontFit" xml:space="preserve">
+    <value>セクター {0}–{1} は {2} に収まらないため、カードの保存時に削除されます。</value>
+  </data>
+  <data name="Cards_SectorsOf" xml:space="preserve">
+    <value>{0}/{1} セクター</value>
+  </data>
+  <data name="Cards_SectorsRead" xml:space="preserve">
+    <value>読み取ったセクター</value>
+  </data>
+  <data name="Cards_SelectACardToEditEmulate" xml:space="preserve">
+    <value>カードを選択して編集、エミュレート、書き込みを行うか、+ を押して追加してください。</value>
+  </data>
+  <data name="Cards_Signature" xml:space="preserve">
+    <value>署名</value>
+  </data>
+  <data name="Cards_SortTypeDown" xml:space="preserve">
+    <value>種類 ↓</value>
+  </data>
+  <data name="Cards_SortTypeUp" xml:space="preserve">
+    <value>種類 ↑</value>
+  </data>
+  <data name="Cards_SourceTag" xml:space="preserve">
+    <value>{0} タグ</value>
+  </data>
+  <data name="Cards_SourceTypeUid" xml:space="preserve">
+    <value>{0}、UID {1}</value>
+  </data>
+  <data name="Cards_StaticLockBytes" xml:space="preserve">
+    <value>静的ロックバイト</value>
+  </data>
+  <data name="Cards_StopKeepMemory" xml:space="preserve">
+    <value>停止して、ここまでに読み取ったメモリを保持（Esc）</value>
+  </data>
+  <data name="Cards_StopWriteTip" xml:space="preserve">
+    <value>書き込みを停止。書き込み済みのブロックはカードに残ります</value>
+  </data>
+  <data name="Cards_Stopped" xml:space="preserve">
+    <value>停止しました</value>
+  </data>
+  <data name="Cards_StoppedAtPage" xml:space="preserve">
+    <value>カードはページ {0} で応答しなくなりました</value>
+  </data>
+  <data name="Cards_SubjectOptional" xml:space="preserve">
+    <value>件名（任意）</value>
+  </data>
+  <data name="Cards_TagAlreadySaved" xml:space="preserve">
+    <value>このタグは既にライブラリにあります。保存済みのカードを開くか、続けてもう一度保存してください。</value>
+  </data>
+  <data name="Cards_TagType" xml:space="preserve">
+    <value>タグの種類</value>
+  </data>
+  <data name="Cards_Text" xml:space="preserve">
+    <value>テキスト</value>
+  </data>
+  <data name="Cards_TextMessageSMS" xml:space="preserve">
+    <value>テキストメッセージ（SMS）</value>
+  </data>
+  <data name="Cards_TheCardReplacesTheSlotsCurrent" xml:space="preserve">
+    <value>カードはスロットの現在の内容を置き換え、スロットがアクティブになってフラッシュに保存されます。</value>
+  </data>
+  <data name="Cards_TheCardsRandomNumberGeneratorMeasured" xml:space="preserve">
+    <value>カードの乱数生成器（スキャンで測定）</value>
+  </data>
+  <data name="Cards_TheNDEFRecordsInTheMemory" xml:space="preserve">
+    <value>メモリ内の NDEF レコード</value>
+  </data>
+  <data name="Cards_ThisCardHasNoTagType" xml:space="preserve">
+    <value>このカードにはタグの種類がありません。エミュレートする前に下で選択して保存してください。</value>
+  </data>
+  <data name="Cards_Time" xml:space="preserve">
+    <value>時刻</value>
+  </data>
+  <data name="Cards_Type" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="Cards_TypeAndUIDByHand" xml:space="preserve">
+    <value>種類と UID を手動で</value>
+  </data>
+  <data name="Cards_TypeNameFormat" xml:space="preserve">
+    <value>タイプ名フォーマット</value>
+  </data>
+  <data name="Cards_UID" xml:space="preserve">
+    <value>■ UID</value>
+  </data>
+  <data name="Cards_UidLength" xml:space="preserve">
+    <value>UID は 4、7、または 10 バイトである必要があります。</value>
+  </data>
+  <data name="Cards_UlPasswordLength" xml:space="preserve">
+    <value>NTAG / Ultralight EV1 は 4 バイト、Ultralight C は 16 バイトです。</value>
+  </data>
+  <data name="Cards_UlcKeyNotReadable" xml:space="preserve">
+    <value>3DES キー（読み取り不可）</value>
+  </data>
+  <data name="Cards_UnknownHeldAs00" xml:space="preserve">
+    <value> （不明、00 として保持）</value>
+  </data>
+  <data name="Cards_UnknownKeys" xml:space="preserve">
+    <value>不明な{0}: 00 として保持されるため、このダンプをカードに書き込むとそのキーは 000000000000 になります。</value>
+  </data>
+  <data name="Cards_UnsupportedFile" xml:space="preserve">
+    <value>{0}: 未対応または破損したファイルです（{1}）。</value>
+  </data>
+  <data name="Cards_UpdatedSlot" xml:space="preserve">
+    <value>スロット {0} を「{1}」で更新しました。</value>
+  </data>
+  <data name="Cards_UpdatedSlots" xml:space="preserve">
+    <value>スロット {0} を「{1}」で更新しました。</value>
+  </data>
+  <data name="Cards_UpdatingSlot" xml:space="preserve">
+    <value>スロット {0} を更新中: {1}/{2}…</value>
+  </data>
+  <data name="Cards_UploadTheSavedCardToThese" xml:space="preserve">
+    <value>保存済みのカードをこれらのスロットにアップロード</value>
+  </data>
+  <data name="Cards_UserByte" xml:space="preserve">
+    <value>ユーザーバイト</value>
+  </data>
+  <data name="Cards_WarnAccessBits" xml:space="preserve">
+    <value>警告: セクターのアクセスビットが誤っていると、カードが永久に使えなくなることがあります。書き込む前にダンプとターゲットカードをよく確認してください。</value>
+  </data>
+  <data name="Cards_WarnBlock0" xml:space="preserve">
+    <value>警告: ブロック 0 のデータやセクターのアクセスビットが誤っていると、カードが永久に使えなくなることがあります。書き込む前にダンプとターゲットカードをよく確認してください。</value>
+  </data>
+  <data name="Cards_WebsiteOptional" xml:space="preserve">
+    <value>ウェブサイト（任意）</value>
+  </data>
+  <data name="Cards_WiFiNetwork" xml:space="preserve">
+    <value>Wi-Fi ネットワーク</value>
+  </data>
+  <data name="Cards_Write" xml:space="preserve">
+    <value>書き込み</value>
+  </data>
+  <data name="Cards_WriteAnother" xml:space="preserve">
+    <value>もう 1 枚書き込む</value>
+  </data>
+  <data name="Cards_WriteBlock0UID" xml:space="preserve">
+    <value>ブロック 0（UID）を書き込む</value>
+  </data>
+  <data name="Cards_WriteError" xml:space="preserve">
+    <value>書き込みエラー</value>
+  </data>
+  <data name="Cards_WriteHintGen1a" xml:space="preserve">
+    <value>Gen1a（UID）マジックカードをリーダーに置いてください。ブロック 0 を含むすべてのブロックがキーなしでそのまま書き込まれます。</value>
+  </data>
+  <data name="Cards_WriteHintGen2" xml:space="preserve">
+    <value>Gen2 / CUID マジックカードをリーダーに置いてください。ブロック 0 を含むすべてのブロックが、元ダンプのキーまたは選択した辞書を使って書き込まれます。</value>
+  </data>
+  <data name="Cards_WriteHintGen2KeepUid" xml:space="preserve">
+    <value>Gen2 / CUID マジックカードをリーダーに置いてください。ブロック 0 はスキップされるため、カードの UID は変わりません。他のブロックは元ダンプのキーまたは選択した辞書を使って書き込まれます。</value>
+  </data>
+  <data name="Cards_WriteHintGen3" xml:space="preserve">
+    <value>Gen3（APDU）マジックカードをリーダーに置いてください。データブロックは元ダンプのキーまたは選択した辞書を使って書き込まれ、ブロック 0 は Gen3 のバックドアコマンドで設定されます。</value>
+  </data>
+  <data name="Cards_WriteHintT55xx" xml:space="preserve">
+    <value>空の T55xx タグをリーダーに置いてください。誤ったデータを書き込むとタグが使えなくなることがあるため、カードをよく確認してください。</value>
+  </data>
+  <data name="Cards_WriteHintUl" xml:space="preserve">
+    <value>同じかそれ以上の容量の Ultralight / NTAG カードをリーダーに置いてください。ユーザーページが書き込まれます。UID、ロックバイト、Capability Container はそのままなので、カードは自身の UID を保ちます。パスワード設定は下でオンにした場合のみ書き込まれます。</value>
+  </data>
+  <data name="Cards_WriteNew" xml:space="preserve">
+    <value>新しく書き込む</value>
+  </data>
+  <data name="Cards_WriteOntoAT55xxTagLF" xml:space="preserve">
+    <value>T55xx タグ（LF）、マジックカード（MIFARE Classic）、または Ultralight / NTAG カードのユーザーページに書き込む</value>
+  </data>
+  <data name="Cards_WriteStoppedBlocks" xml:space="preserve">
+    <value>書き込みを停止しました。書き込み済みのブロックはカードに残ります。</value>
+  </data>
+  <data name="Cards_WriteStoppedPages" xml:space="preserve">
+    <value>書き込みを停止しました。書き込み済みのページはカードに残ります。</value>
+  </data>
+  <data name="Cards_WriteStoppedResume" xml:space="preserve">
+    <value>書き込みを停止しました。「書き込み」を押すと同じカードで続行します。先に UID が確認されます。</value>
+  </data>
+  <data name="Cards_WriteTheSameCardToAnother" xml:space="preserve">
+    <value>同じオプションで同じカードを別のタグに書き込む</value>
+  </data>
+  <data name="Cards_WriteTheSourceDumpsManufacturerBlock" xml:space="preserve">
+    <value>元ダンプのメーカーブロックと UID を書き込みます。ブロック 0 のデータが誤っていると、ターゲットカードが永久に使えなくなることがあります。</value>
+  </data>
+  <data name="Cards_WriteToMagic" xml:space="preserve">
+    <value>マジックカードに書き込む</value>
+  </data>
+  <data name="Cards_WriteToT55xx" xml:space="preserve">
+    <value>T55xx タグに書き込む</value>
+  </data>
+  <data name="Cards_WriteToUl" xml:space="preserve">
+    <value>Ultralight / NTAG カードにページを書き込む</value>
+  </data>
+  <data name="Cards_WroteCard" xml:space="preserve">
+    <value>「{0}」をカードに書き込みました。</value>
+  </data>
+  <data name="Cards_WroteT55xx" xml:space="preserve">
+    <value>「{0}」を T55xx タグに書き込みました。</value>
+  </data>
+  <data name="Chameleon_6DigitsBlankKeepsTheCurrent" xml:space="preserve">
+    <value>6 桁。空欄の場合は現在の PIN を保持します。</value>
+  </data>
+  <data name="Chameleon_ActionOnALongPress" xml:space="preserve">
+    <value>長押し時の動作。</value>
+  </data>
+  <data name="Chameleon_ActionOnAShortPress" xml:space="preserve">
+    <value>短押し時の動作。</value>
+  </data>
+  <data name="Chameleon_ActiveSlotHeader" xml:space="preserve">
+    <value>アクティブなスロット</value>
+  </data>
+  <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
+    <value>すべてのスロット、ニックネーム、エミュレーターデータ、設定が消去されます。その後デバイスは切断されます。</value>
+  </data>
+  <data name="Chameleon_BatteryHeader" xml:space="preserve">
+    <value>バッテリー</value>
+  </data>
+  <data name="Chameleon_BatteryVolts" xml:space="preserve">
+    <value>{0:F2} V</value>
+  </data>
+  <data name="Chameleon_BehaviorAndControlsSaveSendsYour" xml:space="preserve">
+    <value>動作と操作。「保存」で変更をデバイスに送信し、再起動後も保持します。</value>
+  </data>
+  <data name="Chameleon_BleAddressHeader" xml:space="preserve">
+    <value>BLE アドレス</value>
+  </data>
+  <data name="Chameleon_BluetoothPairing" xml:space="preserve">
+    <value>Bluetooth ペアリング</value>
+  </data>
+  <data name="Chameleon_BondsCleared" xml:space="preserve">
+    <value>ボンディング済みの BLE デバイスを削除しました。</value>
+  </data>
+  <data name="Chameleon_ButtonA" xml:space="preserve">
+    <value>ボタン A</value>
+  </data>
+  <data name="Chameleon_ButtonALongPress" xml:space="preserve">
+    <value>ボタン A（長押し）</value>
+  </data>
+  <data name="Chameleon_ButtonB" xml:space="preserve">
+    <value>ボタン B</value>
+  </data>
+  <data name="Chameleon_ButtonBLongPress" xml:space="preserve">
+    <value>ボタン B（長押し）</value>
+  </data>
+  <data name="Chameleon_ChipIdHeader" xml:space="preserve">
+    <value>チップ ID</value>
+  </data>
+  <data name="Chameleon_ClearAllBondedBLEDevices" xml:space="preserve">
+    <value>ボンディング済みの BLE デバイスをすべて削除しますか？</value>
+  </data>
+  <data name="Chameleon_ClearBondedDevices" xml:space="preserve">
+    <value>ボンディング済みデバイスを削除</value>
+  </data>
+  <data name="Chameleon_ClearBonds" xml:space="preserve">
+    <value>ボンディングを削除</value>
+  </data>
+  <data name="Chameleon_ClearBonds2" xml:space="preserve">
+    <value>ボンディングを削除…</value>
+  </data>
+  <data name="Chameleon_CurrentDeviceSettingsWillBeReplaced" xml:space="preserve">
+    <value>現在のデバイス設定は工場出荷時の既定値に置き換えられます。</value>
+  </data>
+  <data name="Chameleon_DeviceSettingsHeader" xml:space="preserve">
+    <value>デバイス設定</value>
+  </data>
+  <data name="Chameleon_DeviceStatusFirmwareAndSettings" xml:space="preserve">
+    <value>デバイスの状態、ファームウェア、設定。</value>
+  </data>
+  <data name="Chameleon_Emulator" xml:space="preserve">
+    <value>エミュレーター</value>
+  </data>
+  <data name="Chameleon_EraseEverything" xml:space="preserve">
+    <value>すべて消去</value>
+  </data>
+  <data name="Chameleon_FactoryReset" xml:space="preserve">
+    <value>工場出荷時にリセット</value>
+  </data>
+  <data name="Chameleon_FactoryReset2" xml:space="preserve">
+    <value>工場出荷時にリセット…</value>
+  </data>
+  <data name="Chameleon_FactoryResetDone" xml:space="preserve">
+    <value>工場出荷時の状態にリセットしました。デバイスは切断されました。</value>
+  </data>
+  <data name="Chameleon_FactoryResetTheChameleon" xml:space="preserve">
+    <value>Chameleon を工場出荷時の状態にリセットしますか？</value>
+  </data>
+  <data name="Chameleon_FirmwareHeader" xml:space="preserve">
+    <value>ファームウェア</value>
+  </data>
+  <data name="Chameleon_FirmwareInstalled" xml:space="preserve">
+    <value>インストール済み: {0}</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateHeader" xml:space="preserve">
+    <value>ファームウェア更新</value>
+  </data>
+  <data name="Chameleon_FirmwareUpdateTo" xml:space="preserve">
+    <value>{0} に更新</value>
+  </data>
+  <data name="Chameleon_ForgetsEveryPhoneAndTabletPaired" xml:space="preserve">
+    <value>Bluetooth LE でペアリングしたすべてのスマートフォンとタブレットの登録を解除します。</value>
+  </data>
+  <data name="Chameleon_GitVersionHeader" xml:space="preserve">
+    <value>GIT バージョン</value>
+  </data>
+  <data name="Chameleon_HardwareAndFirmwareIdentity" xml:space="preserve">
+    <value>ハードウェアとファームウェアの識別情報</value>
+  </data>
+  <data name="Chameleon_HoldTimeForALongPress" xml:space="preserve">
+    <value>長押しと判定する時間（ms）。</value>
+  </data>
+  <data name="Chameleon_IdleSecondsBeforeSleep560" xml:space="preserve">
+    <value>スリープまでのアイドル秒数（5–60）。</value>
+  </data>
+  <data name="Chameleon_InstallADFUPackageUltraDfu" xml:space="preserve">
+    <value>DFU パッケージをインストール（ultra-dfu-app.zip / lite-dfu-app.zip）</value>
+  </data>
+  <data name="Chameleon_InstallFromFile" xml:space="preserve">
+    <value>ファイルからインストール…</value>
+  </data>
+  <data name="Chameleon_LEDAnimation" xml:space="preserve">
+    <value>LED アニメーション</value>
+  </data>
+  <data name="Chameleon_LightPatternOnWakeUp" xml:space="preserve">
+    <value>起動時の点灯パターン。</value>
+  </data>
+  <data name="Chameleon_LongPressThreshold" xml:space="preserve">
+    <value>長押しのしきい値</value>
+  </data>
+  <data name="Chameleon_NextFilledSlot" xml:space="preserve">
+    <value>次の使用中スロット</value>
+  </data>
+  <data name="Chameleon_NotAvailable" xml:space="preserve">
+    <value>利用できません</value>
+  </data>
+  <data name="Chameleon_OperatingModeHeader" xml:space="preserve">
+    <value>動作モード</value>
+  </data>
+  <data name="Chameleon_PairedPhonesAndTabletsWillHave" xml:space="preserve">
+    <value>ペアリング済みのスマートフォンとタブレットは再度ペアリングが必要になり、先に Bluetooth の一覧から Chameleon を削除する必要がある場合もあります。</value>
+  </data>
+  <data name="Chameleon_PairingPIN" xml:space="preserve">
+    <value>ペアリング PIN</value>
+  </data>
+  <data name="Chameleon_PinLength" xml:space="preserve">
+    <value>BLE PIN はちょうど 6 桁である必要があります。</value>
+  </data>
+  <data name="Chameleon_PreviousFilledSlot" xml:space="preserve">
+    <value>前の使用中スロット</value>
+  </data>
+  <data name="Chameleon_Reader" xml:space="preserve">
+    <value>リーダー</value>
+  </data>
+  <data name="Chameleon_Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Chameleon_ReleaseNotes" xml:space="preserve">
+    <value>リリースノート</value>
+  </data>
+  <data name="Chameleon_ReloadDeviceInformation" xml:space="preserve">
+    <value>デバイス情報を再読み込み</value>
+  </data>
+  <data name="Chameleon_RequireAPINToConnectOver" xml:space="preserve">
+    <value>Bluetooth LE での接続に PIN を要求します。</value>
+  </data>
+  <data name="Chameleon_Reset" xml:space="preserve">
+    <value>リセット…</value>
+  </data>
+  <data name="Chameleon_ResetAllSettings" xml:space="preserve">
+    <value>すべての設定をリセットしますか？</value>
+  </data>
+  <data name="Chameleon_ResetSettings" xml:space="preserve">
+    <value>設定をリセット</value>
+  </data>
+  <data name="Chameleon_ResetToDefaults" xml:space="preserve">
+    <value>既定値にリセット</value>
+  </data>
+  <data name="Chameleon_RestoresFactorySettingsForLEDsSleep" xml:space="preserve">
+    <value>LED、スリープ、ボタンを工場出荷時の設定に戻します。</value>
+  </data>
+  <data name="Chameleon_SendTheseValuesToTheDevice" xml:space="preserve">
+    <value>これらの値をデバイスに送信し、再起動後も保持する</value>
+  </data>
+  <data name="Chameleon_SettingsReset" xml:space="preserve">
+    <value>設定を既定値にリセットしました。</value>
+  </data>
+  <data name="Chameleon_SleepTimeout" xml:space="preserve">
+    <value>スリープまでの時間</value>
+  </data>
+  <data name="Chameleon_SlotActive" xml:space="preserve">
+    <value>スロット {0} がアクティブになりました。</value>
+  </data>
+  <data name="Chameleon_SwitchedMode" xml:space="preserve">
+    <value>{0}モードに切り替えました。</value>
+  </data>
+  <data name="Chameleon_TheDefaultPINIs123456" xml:space="preserve">
+    <value>既定の PIN は 123456 です。</value>
+  </data>
+  <data name="Chameleon_TheDevicePresentsTheActiveSlot" xml:space="preserve">
+    <value>デバイスはアクティブなスロットをカードとしてリーダーに提示します。</value>
+  </data>
+  <data name="Chameleon_TheDeviceScansExternalCardsAnd" xml:space="preserve">
+    <value>デバイスは外部のカードやタグをスキャンします。</value>
+  </data>
+  <data name="Chameleon_ThisModelHasNoBatteryGauge" xml:space="preserve">
+    <value>このモデルにはバッテリー残量計がありません。</value>
+  </data>
+  <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
+    <value>すべてのデータ（すべてのスロット、ニックネーム、保存されたエミュレーター内容、設定）を消去します。元に戻すことはできません。</value>
+  </data>
+  <data name="Common_125KHz" xml:space="preserve">
+    <value>125 kHz</value>
+  </data>
+  <data name="Common_AddCard" xml:space="preserve">
+    <value>カードを追加</value>
+  </data>
+  <data name="Common_And" xml:space="preserve">
+    <value>と</value>
+  </data>
+  <data name="Common_BackToTheList" xml:space="preserve">
+    <value>一覧に戻る</value>
+  </data>
+  <data name="Common_Block" xml:space="preserve">
+    <value>ブロック</value>
+  </data>
+  <data name="Common_BuiltInKeys" xml:space="preserve">
+    <value>組み込みキー</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Common_Card" xml:space="preserve">
+    <value>カード</value>
+  </data>
+  <data name="Common_CheckGitHubForANewerRelease" xml:space="preserve">
+    <value>GitHub で新しいリリースを確認</value>
+  </data>
+  <data name="Common_CheckingDictKeys" xml:space="preserve">
+    <value>辞書のキーを確認中…</value>
+  </data>
+  <data name="Common_CheckingRecoveryMethods" xml:space="preserve">
+    <value>復元方法を確認中…</value>
+  </data>
+  <data name="Common_CheckingTargetUid" xml:space="preserve">
+    <value>ターゲットの UID を確認中…</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Common_ConnectFirst" xml:space="preserve">
+    <value>先に Chameleon を接続してください。</value>
+  </data>
+  <data name="Common_Copied" xml:space="preserve">
+    <value>コピーしました</value>
+  </data>
+  <data name="Common_CopySuffix" xml:space="preserve">
+    <value> （コピー）</value>
+  </data>
+  <data name="Common_CouldNotSave" xml:space="preserve">
+    <value>保存できませんでした: {0}</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Common_DeleteFolder" xml:space="preserve">
+    <value>フォルダーを削除</value>
+  </data>
+  <data name="Common_DeleteFolderPrompt" xml:space="preserve">
+    <value>フォルダー {0} を削除しますか？</value>
+  </data>
+  <data name="Common_DictKeyFound" xml:space="preserve">
+    <value>辞書のキーが見つかりました。</value>
+  </data>
+  <data name="Common_DictKeyNotFound" xml:space="preserve">
+    <value>辞書のキーは見つかりませんでした。</value>
+  </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>破棄</value>
+  </data>
+  <data name="Common_Done" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="Common_Duplicate" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="Common_Empty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="Common_EnterName" xml:space="preserve">
+    <value>名前を入力してください。</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="Common_Export" xml:space="preserve">
+    <value>エクスポート</value>
+  </data>
+  <data name="Common_ImportedFrom" xml:space="preserve">
+    <value>{0} からインポート</value>
+  </data>
+  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
+    <value>中のカードは削除されず、「カード」に戻ります。</value>
+  </data>
+  <data name="Common_KeyA" xml:space="preserve">
+    <value>キー A</value>
+  </data>
+  <data name="Common_KeyB" xml:space="preserve">
+    <value>キー B</value>
+  </data>
+  <data name="Common_KeyDictionaries" xml:space="preserve">
+    <value>キー辞書</value>
+  </data>
+  <data name="Common_KeysTriedOf" xml:space="preserve">
+    <value>{1} 個中 {0} 個のキーを試行</value>
+  </data>
+  <data name="Common_Modified" xml:space="preserve">
+    <value>■ 変更あり</value>
+  </data>
+  <data name="Common_NewFolder" xml:space="preserve">
+    <value>新しいフォルダー</value>
+  </data>
+  <data name="Common_NoKey" xml:space="preserve">
+    <value>キーなし</value>
+  </data>
+  <data name="Common_NoName" xml:space="preserve">
+    <value>名前なし</value>
+  </data>
+  <data name="Common_NotHex" xml:space="preserve">
+    <value>16 進数の値ではありません。</value>
+  </data>
+  <data name="Common_NotTried" xml:space="preserve">
+    <value>未試行</value>
+  </data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Page" xml:space="preserve">
+    <value>ページ</value>
+  </data>
+  <data name="Common_Password4Bytes" xml:space="preserve">
+    <value>パスワードは 4 バイトです。</value>
+  </data>
+  <data name="Common_Pending" xml:space="preserve">
+    <value>保留中</value>
+  </data>
+  <data name="Common_Read" xml:space="preserve">
+    <value>読み取り</value>
+  </data>
+  <data name="Common_Rename" xml:space="preserve">
+    <value>名前を変更</value>
+  </data>
+  <data name="Common_RenameFolder" xml:space="preserve">
+    <value>フォルダー名を変更</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Common_SaveChangesTo" xml:space="preserve">
+    <value>「{0}」への変更を保存しますか？</value>
+  </data>
+  <data name="Common_SavedFile" xml:space="preserve">
+    <value>{0} を保存しました。</value>
+  </data>
+  <data name="Common_SearchByNameTypeOrUID" xml:space="preserve">
+    <value>名前、種類、UID で検索</value>
+  </data>
+  <data name="Common_SectorN" xml:space="preserve">
+    <value>セクター {0}</value>
+  </data>
+  <data name="Common_SortManual" xml:space="preserve">
+    <value>手動</value>
+  </data>
+  <data name="Common_SortNameAz" xml:space="preserve">
+    <value>名前 A–Z</value>
+  </data>
+  <data name="Common_SortNameZa" xml:space="preserve">
+    <value>名前 Z–A</value>
+  </data>
+  <data name="Common_Starting" xml:space="preserve">
+    <value>開始中…</value>
+  </data>
+  <data name="Common_StartingRecovery" xml:space="preserve">
+    <value>復元を開始中…</value>
+  </data>
+  <data name="Common_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Common_Stopping" xml:space="preserve">
+    <value>停止中…</value>
+  </data>
+  <data name="Common_TryKeys" xml:space="preserve">
+    <value>キーを試す</value>
+  </data>
+  <data name="Common_Unknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="Common_UnsavedChanges" xml:space="preserve">
+    <value>未保存の変更</value>
+  </data>
+  <data name="Common_Untitled" xml:space="preserve">
+    <value>無題</value>
+  </data>
+  <data name="Common_Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Common_UploadingProgress" xml:space="preserve">
+    <value>アップロード中 {0}/{1}…</value>
+  </data>
+  <data name="Common_WaitForOperation" xml:space="preserve">
+    <value>現在の操作が完了するまでお待ちください。</value>
+  </data>
+  <data name="Common_Writing" xml:space="preserve">
+    <value>書き込み中</value>
+  </data>
+  <data name="Common_Written" xml:space="preserve">
+    <value>書き込み済み</value>
+  </data>
+  <data name="Connect_Connect" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Connect_ConnectThroughAUSBSerialTCP" xml:space="preserve">
+    <value>USB シリアル → TCP ブリッジまたはシミュレーター経由で接続します。</value>
+  </data>
+  <data name="Connect_ConnectYourChameleon" xml:space="preserve">
+    <value>Chameleon を接続</value>
+  </data>
+  <data name="Connect_DetectedDevices" xml:space="preserve">
+    <value>検出されたデバイス</value>
+  </data>
+  <data name="Connect_HeroBle" xml:space="preserve">
+    <value>Bluetooth をオンにし、Chameleon のボタンを押して起動してください。自動的にここに表示されます。</value>
+  </data>
+  <data name="Connect_HeroUsb" xml:space="preserve">
+    <value>Chameleon を接続してください。自動的にここに表示されます。</value>
+  </data>
+  <data name="Connect_HeroUsbBle" xml:space="preserve">
+    <value>Chameleon を接続するか、ボタンを押して Bluetooth 用に起動してください。自動的にここに表示されます。</value>
+  </data>
+  <data name="Connect_IntroBle" xml:space="preserve">
+    <value>デバイスのボタンを押して起動し、下で選択してください。</value>
+  </data>
+  <data name="Connect_IntroUsb" xml:space="preserve">
+    <value>デバイスを USB で接続し、下で選択してください。</value>
+  </data>
+  <data name="Connect_IntroUsbBle" xml:space="preserve">
+    <value>デバイスを USB で接続するか、ボタンを押して Bluetooth 用に起動し、下で選択してください。</value>
+  </data>
+  <data name="Connect_NearbyAuto" xml:space="preserve">
+    <value>起動中の近くのデバイスは自動的にここに表示されます。</value>
+  </data>
+  <data name="Connect_NetworkBridgeTCP" xml:space="preserve">
+    <value>ネットワークブリッジ（TCP）</value>
+  </data>
+  <data name="Connect_NoDevicesDetected" xml:space="preserve">
+    <value>デバイスが検出されません</value>
+  </data>
+  <data name="Connect_NoneFound" xml:space="preserve">
+    <value>Chameleon が見つかりません。接続するか、ネットワークブリッジを使ってください。</value>
+  </data>
+  <data name="Connect_PairOverBluetooth" xml:space="preserve">
+    <value>Bluetooth でペアリング</value>
+  </data>
+  <data name="Connect_PickAChameleonInTheBrowsers" xml:space="preserve">
+    <value>ブラウザーの Bluetooth 選択画面で Chameleon を選ぶ</value>
+  </data>
+  <data name="Connect_PluggedAuto" xml:space="preserve">
+    <value>接続されたデバイスは自動的にここに表示されます。</value>
+  </data>
+  <data name="Connect_Rescan" xml:space="preserve">
+    <value>再スキャン</value>
+  </data>
+  <data name="Connect_ScanAgain" xml:space="preserve">
+    <value>もう一度スキャン</value>
+  </data>
+  <data name="Connect_SelectFirst" xml:space="preserve">
+    <value>先にデバイスを選択してください。</value>
+  </data>
+  <data name="Connect_SelectedPressConnect" xml:space="preserve">
+    <value>{0} を選択しました。「接続」を押してください。</value>
+  </data>
+  <data name="Connect_WebIntro" xml:space="preserve">
+    <value>Chameleon を接続して「再スキャン」を押し、このページでの使用を許可してください（Chrome または Edge）。</value>
+  </data>
+  <data name="Connect_WebIntroBle" xml:space="preserve">
+    <value>Chameleon を接続して「再スキャン」を押すか、起動して「Bluetooth でペアリング」を押し、このページでの使用を許可してください（Chrome または Edge）。</value>
+  </data>
+  <data name="Connect_WebPickOnce" xml:space="preserve">
+    <value>「再スキャン」を押して Chameleon を一度選択すると、以降は自動的にここに表示されます。</value>
+  </data>
+  <data name="Connect_WebPickOnceBle" xml:space="preserve">
+    <value>「再スキャン」（USB）または「Bluetooth でペアリング」で Chameleon を一度選択すると、以降は自動的にここに表示されます。</value>
+  </data>
+  <data name="Device_AtqaLength" xml:space="preserve">
+    <value>ATQA は 2 バイトである必要があります。</value>
+  </data>
+  <data name="Device_BlockLength" xml:space="preserve">
+    <value>ブロックデータは 16 バイトである必要があります。</value>
+  </data>
+  <data name="Device_CannotEmulate" xml:space="preserve">
+    <value>{0} はエミュレートできません。</value>
+  </data>
+  <data name="Device_CannotReadFromSlot" xml:space="preserve">
+    <value>{0} はスロットから読み取れません。</value>
+  </data>
+  <data name="Device_CannotWriteT55xx" xml:space="preserve">
+    <value>{0} は T55xx タグに書き込めません。</value>
+  </data>
+  <data name="Device_CommandFailed" xml:space="preserve">
+    <value>{0} に失敗しました: {1}</value>
+  </data>
+  <data name="Device_CommandTimeout" xml:space="preserve">
+    <value>コマンド {0} が {1} ms 後にタイムアウトしました。</value>
+  </data>
+  <data name="Device_ConfigLocked" xml:space="preserve">
+    <value>カードの設定がロックされている（CFGLCK）ため、パスワードを変更できません。</value>
+  </data>
+  <data name="Device_ConfigUnreadable" xml:space="preserve">
+    <value>カードの設定ページを読み取れませんでした。読み取り保護されている場合は、カードの現在のパスワードを入力してください。</value>
+  </data>
+  <data name="Device_CouldNotCheckCandidates" xml:space="preserve">
+    <value>キー候補を確認できませんでした。</value>
+  </data>
+  <data name="Device_CouldNotCollectNested" xml:space="preserve">
+    <value>nested の nonce を収集できませんでした。</value>
+  </data>
+  <data name="Device_Disconnected" xml:space="preserve">
+    <value>Chameleon が切断されました。</value>
+  </data>
+  <data name="Device_EmulatorBlocks" xml:space="preserve">
+    <value>エミュレーターデータは 16 バイトのブロック単位である必要があります。</value>
+  </data>
+  <data name="Device_HfSniffFailed" xml:space="preserve">
+    <value>HF スニッフィングに失敗しました: {0}</value>
+  </data>
+  <data name="Device_IdLengthGot" xml:space="preserve">
+    <value>{0} ID は {1} バイトである必要があります（実際は {2}）。</value>
+  </data>
+  <data name="Device_IncompleteNested" xml:space="preserve">
+    <value>nested nonce の応答が不完全です。</value>
+  </data>
+  <data name="Device_IncompleteStaticEnc" xml:space="preserve">
+    <value>static encrypted nested nonce の応答が不完全です。</value>
+  </data>
+  <data name="Device_IncompleteStaticNested" xml:space="preserve">
+    <value>static nested nonce の応答が不完全です。</value>
+  </data>
+  <data name="Device_InvalidHardnested" xml:space="preserve">
+    <value>hardnested nonce の応答が無効です。</value>
+  </data>
+  <data name="Device_LfScanUnsupported" xml:space="preserve">
+    <value>{0} の LF スキャンには対応していません。</value>
+  </data>
+  <data name="Device_LfSniffFailed" xml:space="preserve">
+    <value>LF スニッフィングに失敗しました: {0}</value>
+  </data>
+  <data name="Device_NewPasswordLength" xml:space="preserve">
+    <value>新しいパスワードは 4 バイト、PACK は 2 バイトである必要があります。</value>
+  </data>
+  <data name="Device_NickTooLong" xml:space="preserve">
+    <value>ニックネームが長すぎます（最大 32 バイト）。</value>
+  </data>
+  <data name="Device_NoDistance" xml:space="preserve">
+    <value>nonce の距離を測定できませんでした。</value>
+  </data>
+  <data name="Device_NoEm410x" xml:space="preserve">
+    <value>EM410x タグがありません: {0}</value>
+  </data>
+  <data name="Device_NoHfTag" xml:space="preserve">
+    <value>HF タグがありません: {0}</value>
+  </data>
+  <data name="Device_NoPasswordToSet" xml:space="preserve">
+    <value>リーダー上のカード（{0}）には設定できるパスワードがありません。</value>
+  </data>
+  <data name="Device_NoPrng" xml:space="preserve">
+    <value>カードの PRNG を検出できませんでした。</value>
+  </data>
+  <data name="Device_NoTagOfType" xml:space="preserve">
+    <value>{0} タグがありません: {1}</value>
+  </data>
+  <data name="Device_NotDarkside" xml:space="preserve">
+    <value>カードは darkside 攻撃に対して脆弱ではありません。</value>
+  </data>
+  <data name="Device_NotUltralight" xml:space="preserve">
+    <value>Ultralight / NTAG カードではありません（SAK {0:X2}）。</value>
+  </data>
+  <data name="Device_PageData" xml:space="preserve">
+    <value>ページデータは 4 バイトのページ単位である必要があります。</value>
+  </data>
+  <data name="Device_PasswordLength" xml:space="preserve">
+    <value>パスワードは 4 バイトである必要があります。</value>
+  </data>
+  <data name="Device_PasswordRejected" xml:space="preserve">
+    <value>カードはパスワードを受け入れませんでした。</value>
+  </data>
+  <data name="Device_PasswordsRejected" xml:space="preserve">
+    <value>カードはパスワードも、記憶しているパスワードも受け入れませんでした。</value>
+  </data>
+  <data name="Device_PickTagType" xml:space="preserve">
+    <value>エミュレートする前に、このカードのタグの種類を選んでください。</value>
+  </data>
+  <data name="Device_SlotHasNoCard" xml:space="preserve">
+    <value>スロット {0} に {1} カードがありません。</value>
+  </data>
+  <data name="Device_T55xxDifferentId" xml:space="preserve">
+    <value>タグから読み戻した ID が異なるため、書き込みは反映されていません。別のパスワードでロックされている可能性が高いです。タグの現在のパスワードを入力して再試行してください。</value>
+  </data>
+  <data name="Device_T55xxKeyLength" xml:space="preserve">
+    <value>T55xx のキーは 4 バイトである必要があります。</value>
+  </data>
+  <data name="Device_T55xxNoReadBack" xml:space="preserve">
+    <value>タグに書き込みましたが、読み戻して確認できませんでした。別のパスワードでロックされているか、書き込み可能な T55xx ではない可能性があります。タグの現在のパスワードを入力して再試行してください。</value>
+  </data>
+  <data name="Device_T55xxWriteFailed" xml:space="preserve">
+    <value>T55xx への書き込みに失敗しました: {0}</value>
+  </data>
+  <data name="Device_TargetChanged" xml:space="preserve">
+    <value>ターゲットカードが変わりました。続行する前にもう一度スキャンしてください。</value>
+  </data>
+  <data name="Device_UidLength" xml:space="preserve">
+    <value>UID は 4、7、または 10 バイトである必要があります。</value>
+  </data>
+  <data name="Device_UlKeyLength" xml:space="preserve">
+    <value>キーは 4 バイト（NTAG / Ultralight EV1 のパスワード）または 16 バイト（Ultralight C）である必要があります。</value>
+  </data>
+  <data name="Device_UnexpectedCandidate" xml:space="preserve">
+    <value>デバイスが予期しないキー候補を返しました。</value>
+  </data>
+  <data name="Device_UnknownModel" xml:space="preserve">
+    <value>不明なモデル</value>
+  </data>
+  <data name="Dfu_AppOnly" xml:space="preserve">
+    <value>アプリケーションの更新のみに対応しています。このパッケージにはアプリケーションが含まれていません。</value>
+  </data>
+  <data name="Dfu_Corrupted" xml:space="preserve">
+    <value>ファームウェアの転送データが破損しました（デバイスは {0}、CRC {1:X8}、期待値 {2} / {3:X8}）。</value>
+  </data>
+  <data name="Dfu_Empty" xml:space="preserve">
+    <value>パッケージが空です。</value>
+  </data>
+  <data name="Dfu_LinkLost" xml:space="preserve">
+    <value>ブートローダーとの接続が切れました。</value>
+  </data>
+  <data name="Dfu_Missing" xml:space="preserve">
+    <value>{0} がありません。</value>
+  </data>
+  <data name="Dfu_NoControlPoint" xml:space="preserve">
+    <value>DFU コントロールポイントがありません。</value>
+  </data>
+  <data name="Dfu_NoPacketChar" xml:space="preserve">
+    <value>DFU パケットキャラクタリスティックがありません。</value>
+  </data>
+  <data name="Dfu_NoService" xml:space="preserve">
+    <value>ブートローダーに Secure DFU サービスがありません。</value>
+  </data>
+  <data name="Dfu_NotPackage" xml:space="preserve">
+    <value>ファームウェア DFU パッケージではありません: {0}</value>
+  </data>
+  <data name="Dfu_Rejected" xml:space="preserve">
+    <value>ブートローダーがステップ 0x{0:X2} を拒否しました（エラー 0x{1:X2}{2}）。</value>
+  </data>
+  <data name="Dfu_Stopped" xml:space="preserve">
+    <value>ブートローダーが応答しなくなりました。</value>
+  </data>
+  <data name="Dfu_Unexpected" xml:space="preserve">
+    <value>ブートローダーから予期しない応答 {0} がありました。</value>
+  </data>
+  <data name="Dictionaries_ClearSearch" xml:space="preserve">
+    <value>検索をクリア</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
+    <value>この辞書を削除</value>
+  </data>
+  <data name="Dictionaries_DeleteThisDictionaryPermanently" xml:space="preserve">
+    <value>この辞書を完全に削除しますか？</value>
+  </data>
+  <data name="Dictionaries_DictionaryColor" xml:space="preserve">
+    <value>辞書の色</value>
+  </data>
+  <data name="Dictionaries_DictionaryName" xml:space="preserve">
+    <value>辞書名</value>
+  </data>
+  <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
+    <value>カード UID ごとにまとめた既知のキーを編集</value>
+  </data>
+  <data name="Dictionaries_ExportTitle" xml:space="preserve">
+    <value>辞書をエクスポート（.dic）</value>
+  </data>
+  <data name="Dictionaries_ForgetCard" xml:space="preserve">
+    <value>カードを削除</value>
+  </data>
+  <data name="Dictionaries_Import" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="Dictionaries_ImportADicKeysTxtJson" xml:space="preserve">
+    <value>.dic / .keys / .txt / .json 辞書をインポート</value>
+  </data>
+  <data name="Dictionaries_ImportTitle" xml:space="preserve">
+    <value>辞書をインポート</value>
+  </data>
+  <data name="Dictionaries_KeepEditingThisDictionary" xml:space="preserve">
+    <value>この辞書の編集を続ける</value>
+  </data>
+  <data name="Dictionaries_KeyEmpty" xml:space="preserve">
+    <value>キー {0} · 空のため保存時に削除</value>
+  </data>
+  <data name="Dictionaries_KeyN" xml:space="preserve">
+    <value>キー {0}</value>
+  </data>
+  <data name="Dictionaries_KeyRepeats" xml:space="preserve">
+    <value>キー {0} · キー {1} と重複のため保存時に削除</value>
+  </data>
+  <data name="Dictionaries_KeysHeader" xml:space="preserve">
+    <value>キー</value>
+  </data>
+  <data name="Dictionaries_KnownCardKeys" xml:space="preserve">
+    <value>既知のカードキー</value>
+  </data>
+  <data name="Dictionaries_KnownKeysCount" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
+    <value>カードの読み取りや復元で見つかったキーが、UID ごとにここに表示されます。</value>
+  </data>
+  <data name="Dictionaries_NewDictionary" xml:space="preserve">
+    <value>新しい辞書</value>
+  </data>
+  <data name="Dictionaries_NewKeyRow" xml:space="preserve">
+    <value>新しいキー: 入力または貼り付けで追加</value>
+  </data>
+  <data name="Dictionaries_NoCardsMatchTheSearch" xml:space="preserve">
+    <value>検索に一致するカードはありません。</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
+    <value>検索に一致する辞書はありません。</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
+    <value>辞書はまだありません</value>
+  </data>
+  <data name="Dictionaries_NoValidKeys" xml:space="preserve">
+    <value>{0} に有効なキーがありません。</value>
+  </data>
+  <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
+    <value>1 行に 1 つのキー。末尾の空行に 16 進数を入力するとキーを追加でき、一覧を貼り付けることもできます。Enter で行を開き、Delete で選択した行を削除します。</value>
+  </data>
+  <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
+    <value>一覧の並び順。「手動」では辞書をドラッグして並べ替えられます。</value>
+  </data>
+  <data name="Dictionaries_PressToStartADictionaryOf" xml:space="preserve">
+    <value>+ を押して MIFARE Classic キーの辞書を作成するか、.dic ファイルをインポートしてください。カードのダンプ時にはこれらのキー（と組み込みの既定キー）が試されます。</value>
+  </data>
+  <data name="Dictionaries_Repeated" xml:space="preserve">
+    <value>■ 重複</value>
+  </data>
+  <data name="Dictionaries_Repeated2" xml:space="preserve">
+    <value>{0} 件重複</value>
+  </data>
+  <data name="Dictionaries_SaveACopyOfThisDictionary" xml:space="preserve">
+    <value>この辞書のコピーを保存</value>
+  </data>
+  <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
+    <value>.dic ファイルとして保存（1 行に 1 キー）</value>
+  </data>
+  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
+    <value>辞書を保存</value>
+  </data>
+  <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
+    <value>既知のカードキーへの変更を保存しますか？</value>
+  </data>
+  <data name="Dictionaries_SaveNewBeforeLeaving" xml:space="preserve">
+    <value>移動する前に新しい辞書を保存しますか？</value>
+  </data>
+  <data name="Dictionaries_SearchByNameOrKey" xml:space="preserve">
+    <value>名前またはキーで検索</value>
+  </data>
+  <data name="Dictionaries_SearchByUIDOrCardName" xml:space="preserve">
+    <value>UID またはカード名で検索</value>
+  </data>
+  <data name="Dictionaries_SelectADictionaryToSeeAnd" xml:space="preserve">
+    <value>辞書を選択してキーを表示・編集するか、+ を押して作成してください。</value>
+  </data>
+  <data name="Dictionaries_SortFewestKeys" xml:space="preserve">
+    <value>キーが少ない順</value>
+  </data>
+  <data name="Dictionaries_SortMostKeys" xml:space="preserve">
+    <value>キーが多い順</value>
+  </data>
+  <data name="Dictionaries_StartANewDictionary" xml:space="preserve">
+    <value>新しい辞書を作成</value>
+  </data>
+  <data name="Firmware_Available" xml:space="preserve">
+    <value>{0} が利用可能です</value>
+  </data>
+  <data name="Firmware_AvailableConnect" xml:space="preserve">
+    <value>{0} が利用可能です。インストールするには USB または Bluetooth で接続してください</value>
+  </data>
+  <data name="Firmware_CantInstallFile" xml:space="preserve">
+    <value>このファイルはインストールできません</value>
+  </data>
+  <data name="Firmware_DidNotReturn" xml:space="preserve">
+    <value>ファームウェアはインストールされましたが、デバイスが戻ってきませんでした。「接続」ページから再接続してください。</value>
+  </data>
+  <data name="Firmware_DontUnplug" xml:space="preserve">
+    <value>デバイスを取り外さないでください。</value>
+  </data>
+  <data name="Firmware_Downloading" xml:space="preserve">
+    <value>ダウンロード中…</value>
+  </data>
+  <data name="Firmware_Failed" xml:space="preserve">
+    <value>ファームウェアの更新に失敗しました</value>
+  </data>
+  <data name="Firmware_Flashing" xml:space="preserve">
+    <value>インストール中… {0:P0}</value>
+  </data>
+  <data name="Firmware_HowBle" xml:space="preserve">
+    <value>デバイスはブートローダーで再起動し、Bluetooth で新しいファームウェアを受け取って再接続します。スロットと設定は保持されます。完了するまでスマートフォンの近くに置き、このアプリを開いたままにしてください。</value>
+  </data>
+  <data name="Firmware_HowUsb" xml:space="preserve">
+    <value>デバイスはブートローダーで再起動し、USB で新しいファームウェアを受け取って再接続します。スロットと設定は保持されます。完了するまで接続したままにしてください。</value>
+  </data>
+  <data name="Firmware_InstallFromPrompt" xml:space="preserve">
+    <value>{0} からファームウェアをインストールしますか？</value>
+  </data>
+  <data name="Firmware_InstallPrompt" xml:space="preserve">
+    <value>ファームウェア {0} をインストールしますか？</value>
+  </data>
+  <data name="Firmware_Installing" xml:space="preserve">
+    <value>{0} をインストール中</value>
+  </data>
+  <data name="Firmware_KeepClose" xml:space="preserve">
+    <value>デバイスを近くに置き、このアプリを開いたままにしてください。</value>
+  </data>
+  <data name="Firmware_NoBootloader" xml:space="preserve">
+    <value>デバイスがブートローダーで認識されませんでした。取り外し、B を押しながら接続し直して再試行してください。</value>
+  </data>
+  <data name="Firmware_NoPackage" xml:space="preserve">
+    <value>{0} が利用可能ですが、このモデル用のパッケージがありません</value>
+  </data>
+  <data name="Firmware_NoPackageForDevice" xml:space="preserve">
+    <value>リリース {0} にはこのデバイス用のファームウェアパッケージがありません。</value>
+  </data>
+  <data name="Firmware_NoRelease" xml:space="preserve">
+    <value>ファームウェアはまだリリースされていません。</value>
+  </data>
+  <data name="Firmware_NotSupportedHere" xml:space="preserve">
+    <value>ファームウェアはデスクトップアプリから USB で、またはスマートフォンアプリから Bluetooth でインストールできます。</value>
+  </data>
+  <data name="Firmware_NowRuns" xml:space="preserve">
+    <value>{0} は {1} で動作中です。スロットと設定は保持されました。</value>
+  </data>
+  <data name="Firmware_PackageTitle" xml:space="preserve">
+    <value>ファームウェア DFU パッケージ</value>
+  </data>
+  <data name="Firmware_ReleaseNoVersion" xml:space="preserve">
+    <value>リリース {0} にはファームウェアのバージョンが記載されていません。</value>
+  </data>
+  <data name="Firmware_Restarted" xml:space="preserve">
+    <value>デバイスは新しいファームウェアで再起動しました。</value>
+  </data>
+  <data name="Firmware_Restarting" xml:space="preserve">
+    <value>デバイスをブートローダーで再起動中…</value>
+  </data>
+  <data name="Firmware_TheFirmware" xml:space="preserve">
+    <value>ファームウェア</value>
+  </data>
+  <data name="Firmware_TimeoutLastError" xml:space="preserve">
+    <value>{0}（最後のエラー: {1}）</value>
+  </data>
+  <data name="Firmware_UpToDate" xml:space="preserve">
+    <value>最新です（最新版 {0}）</value>
+  </data>
+  <data name="Firmware_Updated" xml:space="preserve">
+    <value>ファームウェアを更新しました</value>
+  </data>
+  <data name="Firmware_WaitingBootloader" xml:space="preserve">
+    <value>ブートローダーを待機中…</value>
+  </data>
+  <data name="Firmware_WaitingRestart" xml:space="preserve">
+    <value>デバイスの再起動を待機中…</value>
+  </data>
+  <data name="Grid_Blocks" xml:space="preserve">
+    <value>ブロック</value>
+  </data>
+  <data name="Grid_NoBlocksSelected" xml:space="preserve">
+    <value>ブロックが選択されていません</value>
+  </data>
+  <data name="Grid_Read" xml:space="preserve">
+    <value> （読み取り済み）</value>
+  </data>
+  <data name="Grid_Sector" xml:space="preserve">
+    <value>セクター</value>
+  </data>
+  <data name="Hex_AddRowBelow" xml:space="preserve">
+    <value>下に行を追加</value>
+  </data>
+  <data name="Hex_Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="Hex_DeleteRows" xml:space="preserve">
+    <value>行を削除</value>
+  </data>
+  <data name="Hex_ExpectedBytes" xml:space="preserve">
+    <value>{0} バイト必要です</value>
+  </data>
+  <data name="Hex_FromIdentity" xml:space="preserve">
+    <value>カードの識別情報から。ブロックは未読</value>
+  </data>
+  <data name="Hex_HalfByte" xml:space="preserve">
+    <value>½ バイト</value>
+  </data>
+  <data name="Hex_Memory" xml:space="preserve">
+    <value>メモリ</value>
+  </data>
+  <data name="Hex_NotRead" xml:space="preserve">
+    <value>未読</value>
+  </data>
+  <data name="Hex_Paste" xml:space="preserve">
+    <value>貼り付け</value>
+  </data>
+  <data name="Hex_Redo" xml:space="preserve">
+    <value>やり直し</value>
+  </data>
+  <data name="Hex_SelectAll" xml:space="preserve">
+    <value>すべて選択</value>
+  </data>
+  <data name="Hex_Selected" xml:space="preserve">
+    <value>{0} 選択中</value>
+  </data>
+  <data name="Hex_Undo" xml:space="preserve">
+    <value>元に戻す</value>
+  </data>
+  <data name="Import_BadKeyLine" xml:space="preserve">
+    <value>{0} 行目: 「{1}」は 12 桁の 16 進キーではありません。</value>
+  </data>
+  <data name="Import_BadSectorHeader" xml:space="preserve">
+    <value>セクターヘッダー「{0}」が正しくありません。</value>
+  </data>
+  <data name="Import_BlockNot16" xml:space="preserve">
+    <value>ブロック {0} が 16 バイトではありません。</value>
+  </data>
+  <data name="Import_CardNotObject" xml:space="preserve">
+    <value>カードは JSON オブジェクトである必要があります。</value>
+  </data>
+  <data name="Import_DataBeforeSector" xml:space="preserve">
+    <value>最初の +Sector ヘッダーより前にブロックデータがあります。</value>
+  </data>
+  <data name="Import_DictNotObject" xml:space="preserve">
+    <value>辞書は JSON オブジェクトである必要があります。</value>
+  </data>
+  <data name="Import_EmptyFile" xml:space="preserve">
+    <value>ファイルが空です。</value>
+  </data>
+  <data name="Import_EmptyJson" xml:space="preserve">
+    <value>JSON ドキュメントが空です。</value>
+  </data>
+  <data name="Import_FlipperNoData" xml:space="preserve">
+    <value>Flipper ファイルに Data がありません。</value>
+  </data>
+  <data name="Import_FlipperNoUid" xml:space="preserve">
+    <value>Flipper ファイルに UID がありません。</value>
+  </data>
+  <data name="Import_FlipperRfidUnsupported" xml:space="preserve">
+    <value>Flipper RFID のキーの種類「{0}」にはまだ対応していません。</value>
+  </data>
+  <data name="Import_H10301Length" xml:space="preserve">
+    <value>H10301 データは 3 バイトである必要があります。</value>
+  </data>
+  <data name="Import_HexOdd" xml:space="preserve">
+    <value>16 進数の値は偶数桁である必要があります。</value>
+  </data>
+  <data name="Import_MctNoBlock0" xml:space="preserve">
+    <value>MIFARE Classic Tool のダンプにブロック 0 がありません。</value>
+  </data>
+  <data name="Import_SectorTooManyBlocks" xml:space="preserve">
+    <value>セクター {0} のブロックが {1} 個を超えています。</value>
+  </data>
+  <data name="KeyRecovery_CheckRecoveryMethods" xml:space="preserve">
+    <value>復元方法を確認</value>
+  </data>
+  <data name="KeyRecovery_KeyDictionariesHeader" xml:space="preserve">
+    <value>キー辞書</value>
+  </data>
+  <data name="KeyRecovery_RecoverKeysOnFM11RF08SAndCompatible" xml:space="preserve">
+    <value>既知のバックドアキーを使って FM11RF08S と互換カードのキーを復元</value>
+  </data>
+  <data name="KeyRecovery_Searching" xml:space="preserve">
+    <value>検索中</value>
+  </data>
+  <data name="Keys_ExpectedGrouped" xml:space="preserve">
+    <value>UID ごとにまとめたキーが必要です。</value>
+  </data>
+  <data name="Keys_InvalidKey" xml:space="preserve">
+    <value>無効なカードキーです。</value>
+  </data>
+  <data name="Keys_InvalidPassword" xml:space="preserve">
+    <value>無効な NTAG パスワードです。</value>
+  </data>
+  <data name="Keys_InvalidPasswordSection" xml:space="preserve">
+    <value>無効な NTAG パスワードセクションです。</value>
+  </data>
+  <data name="Keys_InvalidUid" xml:space="preserve">
+    <value>無効な UID です。</value>
+  </data>
+  <data name="Keys_InvalidUidGroup" xml:space="preserve">
+    <value>無効な UID グループです。</value>
+  </data>
+  <data name="Keys_KeyLength" xml:space="preserve">
+    <value>各キーは 6 バイトである必要があります。</value>
+  </data>
+  <data name="Language_System" xml:space="preserve">
+    <value>システムの設定に従う</value>
+  </data>
+  <data name="Lf_Bits" xml:space="preserve">
+    <value>{0} ビット</value>
+  </data>
+  <data name="Lf_CardIdText" xml:space="preserve">
+    <value>カード ID（テキスト）</value>
+  </data>
+  <data name="Lf_CardNumber" xml:space="preserve">
+    <value>カード番号</value>
+  </data>
+  <data name="Lf_FacilityCode" xml:space="preserve">
+    <value>ファシリティコード</value>
+  </data>
+  <data name="Lf_Format" xml:space="preserve">
+    <value>形式</value>
+  </data>
+  <data name="Lf_IssueLevel" xml:space="preserve">
+    <value>発行レベル</value>
+  </data>
+  <data name="Lf_ModFewTransitions" xml:space="preserve">
+    <value>遷移が少なすぎます</value>
+  </data>
+  <data name="Lf_ModNone" xml:space="preserve">
+    <value>なし（平坦な搬送波）</value>
+  </data>
+  <data name="Library_CardsLoadError" xml:space="preserve">
+    <value>保存済みのカードを読み込めませんでした: {0}</value>
+  </data>
+  <data name="Library_DictionariesLoadError" xml:space="preserve">
+    <value>保存済みの辞書を読み込めませんでした: {0}</value>
+  </data>
+  <data name="Library_KnownKeysLoadError" xml:space="preserve">
+    <value>既知のカードキーを読み込めませんでした: {0}</value>
+  </data>
+  <data name="Main_ChameLabDownloadUpdate" xml:space="preserve">
+    <value>ChameLab - 更新をダウンロード</value>
+  </data>
+  <data name="Main_Connected" xml:space="preserve">
+    <value>接続済み</value>
+  </data>
+  <data name="Main_ConnectedDeviceHeader" xml:space="preserve">
+    <value>接続中のデバイス</value>
+  </data>
+  <data name="Main_DeviceSummary" xml:space="preserve">
+    <value>{0} · fw {1}</value>
+  </data>
+  <data name="Main_Disconnect" xml:space="preserve">
+    <value>切断</value>
+  </data>
+  <data name="Main_DisconnectFromTheDevice" xml:space="preserve">
+    <value>デバイスから切断</value>
+  </data>
+  <data name="Main_Dismiss" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Main_IfTheDeviceStaysInIts" xml:space="preserve">
+    <value>デバイスがブートローダーのまま（LED 4 と 5 が点滅）の場合は、「再試行」でファームウェアを再インストールします。</value>
+  </data>
+  <data name="Main_Install" xml:space="preserve">
+    <value>インストール</value>
+  </data>
+  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
+    <value>中のカードは「カード」に残ります</value>
+  </data>
+  <data name="Main_NavigationHeader" xml:space="preserve">
+    <value>ナビゲーション</value>
+  </data>
+  <data name="Main_NoDeviceAttached" xml:space="preserve">
+    <value>デバイスが接続されていません</value>
+  </data>
+  <data name="Main_NoDeviceHeader" xml:space="preserve">
+    <value>デバイスなし</value>
+  </data>
+  <data name="Main_NoDeviceOpenConnectToAttach" xml:space="preserve">
+    <value>デバイスがありません。「接続」を開いて接続してください。</value>
+  </data>
+  <data name="Main_NotConnected" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="Main_Offline" xml:space="preserve">
+    <value>オフライン</value>
+  </data>
+  <data name="Main_Online" xml:space="preserve">
+    <value>オンライン</value>
+  </data>
+  <data name="Main_PressBackAgainToExit" xml:space="preserve">
+    <value>もう一度「戻る」を押すと終了します</value>
+  </data>
+  <data name="Main_Retry" xml:space="preserve">
+    <value>再試行</value>
+  </data>
+  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
+    <value>ライト / ダークテーマを切り替え</value>
+  </data>
+  <data name="Main_ToggleNavigation" xml:space="preserve">
+    <value>ナビゲーションを切り替え</value>
+  </data>
+  <data name="Mfkey32_HoldToReader" xml:space="preserve">
+    <value>Chameleon をリーダーにかざしてください。</value>
+  </data>
+  <data name="Mfkey32_KeyFound" xml:space="preserve">
+    <value>キーが見つかりました: {0}</value>
+  </data>
+  <data name="Mfkey32_PlaceOriginal" xml:space="preserve">
+    <value>元のカードを Chameleon に置いてください。</value>
+  </data>
+  <data name="Mfkey32_Recovering" xml:space="preserve">
+    <value>キーを復元中…</value>
+  </data>
+  <data name="Mfkey32_RestoreFailed" xml:space="preserve">
+    <value>mfkey32 の後でデバイスの状態を元に戻せませんでした。</value>
+  </data>
+  <data name="Mfkey32_SlotUidDiffers" xml:space="preserve">
+    <value>スロットの UID がこのカードと異なります。カードをもう一度スロットに読み込んでください。</value>
+  </data>
+  <data name="Nav_Cards" xml:space="preserve">
+    <value>カード</value>
+  </data>
+  <data name="Nav_Chameleon" xml:space="preserve">
+    <value>Chameleon</value>
+  </data>
+  <data name="Nav_Dictionaries" xml:space="preserve">
+    <value>辞書</value>
+  </data>
+  <data name="Nav_Slots" xml:space="preserve">
+    <value>スロット</value>
+  </data>
+  <data name="Ndef_AreaMalformed" xml:space="preserve">
+    <value>NDEF データ領域の形式が正しくありません。</value>
+  </data>
+  <data name="Ndef_BytesLeft" xml:space="preserve">
+    <value>{1} バイト中 {0} バイト · 残り {2}</value>
+  </data>
+  <data name="Ndef_BytesOver" xml:space="preserve">
+    <value>{1} バイト中 {0} バイト · {2} 超過</value>
+  </data>
+  <data name="Ndef_ChunkCut" xml:space="preserve">
+    <value>チャンク化されたレコードが途中で切れています。</value>
+  </data>
+  <data name="Ndef_EmptyRecord" xml:space="preserve">
+    <value>空のレコードには種類もペイロードもありません。</value>
+  </data>
+  <data name="Ndef_EmptyRecord2" xml:space="preserve">
+    <value>空のレコード</value>
+  </data>
+  <data name="Ndef_EnterContactName" xml:space="preserve">
+    <value>連絡先の名前を入力してください。</value>
+  </data>
+  <data name="Ndef_EnterEmail" xml:space="preserve">
+    <value>メールアドレスを入力してください。</value>
+  </data>
+  <data name="Ndef_EnterEmailOrEmpty" xml:space="preserve">
+    <value>メールアドレスを入力するか、空欄のままにしてください。</value>
+  </data>
+  <data name="Ndef_EnterLatitude" xml:space="preserve">
+    <value>緯度を度で入力してください（-90～90、例: 48.8584）。</value>
+  </data>
+  <data name="Ndef_EnterLink" xml:space="preserve">
+    <value>リンクを入力してください。</value>
+  </data>
+  <data name="Ndef_EnterLongitude" xml:space="preserve">
+    <value>経度を度で入力してください（-180～180、例: 2.2945）。</value>
+  </data>
+  <data name="Ndef_EnterMime" xml:space="preserve">
+    <value>MIME タイプを入力してください（例: text/plain）。</value>
+  </data>
+  <data name="Ndef_EnterPackage" xml:space="preserve">
+    <value>アプリのパッケージ名を入力してください（例: com.example.app）。</value>
+  </data>
+  <data name="Ndef_EnterPhone" xml:space="preserve">
+    <value>電話番号を入力してください（例: +1 555 0100）。</value>
+  </data>
+  <data name="Ndef_EnterSsid" xml:space="preserve">
+    <value>ネットワーク名（SSID）を入力してください。</value>
+  </data>
+  <data name="Ndef_EnterType" xml:space="preserve">
+    <value>レコードの種類を入力してください。</value>
+  </data>
+  <data name="Ndef_External" xml:space="preserve">
+    <value>外部: {0}</value>
+  </data>
+  <data name="Ndef_LangTooLong" xml:space="preserve">
+    <value>言語コードが長すぎます。</value>
+  </data>
+  <data name="Ndef_Malformed" xml:space="preserve">
+    <value>NDEF メッセージの形式が正しくありません: {0}{1}</value>
+  </data>
+  <data name="Ndef_NoRecords" xml:space="preserve">
+    <value>レコードなし</value>
+  </data>
+  <data name="Ndef_NotFormatted" xml:space="preserve">
+    <value>カードは NDEF 用にフォーマットされていません（ページ 3 に Capability Container がありません）。</value>
+  </data>
+  <data name="Ndef_NotReadYet" xml:space="preserve">
+    <value>メモリはまだ読み取られていません。カードを読み取るか、レコードを追加して新しいメッセージを作成してください。</value>
+  </data>
+  <data name="Ndef_Page3NotRead" xml:space="preserve">
+    <value>ページ 3（Capability Container）は読み取られていません。</value>
+  </data>
+  <data name="Ndef_Page3Otp" xml:space="preserve">
+    <value>ページ 3 に Capability Container 以外のデータがあります。このページはワンタイムプログラマブルのため、カードは NDEF に使えません。</value>
+  </data>
+  <data name="Ndef_PagesNotRead" xml:space="preserve">
+    <value> ページ {0} 以降は読み取られていません。</value>
+  </data>
+  <data name="Ndef_PartUnread" xml:space="preserve">
+    <value>メッセージの一部が読み取られていないページにあります。</value>
+  </data>
+  <data name="Ndef_PastArea" xml:space="preserve">
+    <value>NDEF メッセージがデータ領域の末尾を超えています。</value>
+  </data>
+  <data name="Ndef_PayloadHex" xml:space="preserve">
+    <value>ペイロードは 16 進数である必要があります。</value>
+  </data>
+  <data name="Ndef_RecordPastEnd" xml:space="preserve">
+    <value>レコードがメッセージの末尾を超えています。</value>
+  </data>
+  <data name="Ndef_SmartPoster" xml:space="preserve">
+    <value>スマートポスター</value>
+  </data>
+  <data name="Ndef_SsidTooLong" xml:space="preserve">
+    <value>ネットワーク名は最大 32 バイトです。</value>
+  </data>
+  <data name="Ndef_TextLang" xml:space="preserve">
+    <value>テキスト（{0}）</value>
+  </data>
+  <data name="Ndef_TnfAbsoluteUri" xml:space="preserve">
+    <value>絶対 URI</value>
+  </data>
+  <data name="Ndef_TnfExternal" xml:space="preserve">
+    <value>外部タイプ</value>
+  </data>
+  <data name="Ndef_TnfMedia" xml:space="preserve">
+    <value>MIME メディアタイプ</value>
+  </data>
+  <data name="Ndef_TnfWellKnown" xml:space="preserve">
+    <value>Well-known（NFC RTD）</value>
+  </data>
+  <data name="Ndef_TooBig" xml:space="preserve">
+    <value>メッセージには {0} バイト必要ですが、カードの容量は {1} バイトです。</value>
+  </data>
+  <data name="Ndef_TypeTooLong" xml:space="preserve">
+    <value>レコードの種類または ID が長すぎます。</value>
+  </data>
+  <data name="Ndef_UnchangedOutside" xml:space="preserve">
+    <value>チャンクの外に unchanged レコードがあります。</value>
+  </data>
+  <data name="Ndef_UnknownTlv" xml:space="preserve">
+    <value>NDEF データ領域に不明な TLV {0:X2} があります。</value>
+  </data>
+  <data name="Ndef_UnknownType" xml:space="preserve">
+    <value>不明な種類</value>
+  </data>
+  <data name="Ndef_WellKnown" xml:space="preserve">
+    <value>Well-known: {0}</value>
+  </data>
+  <data name="Ndef_WifiOpen" xml:space="preserve">
+    <value>オープン（パスワードなし）</value>
+  </data>
+  <data name="Ndef_WpaLength" xml:space="preserve">
+    <value>WPA パスワードは 8～63 文字です。</value>
+  </data>
+  <data name="Plural_Bits" xml:space="preserve">
+    <value>{0} ビット</value>
+  </data>
+  <data name="Plural_Breaks" xml:space="preserve">
+    <value>{0} か所の途切れ</value>
+  </data>
+  <data name="Plural_BytesHex" xml:space="preserve">
+    <value>{0} バイト（16 進数）</value>
+  </data>
+  <data name="Plural_Cards" xml:space="preserve">
+    <value>{0} 枚のカード</value>
+  </data>
+  <data name="Plural_DeletedFolderCards" xml:space="preserve">
+    <value>フォルダー {1} を削除しました。中の {0} 枚のカードは「カード」に残っています。</value>
+  </data>
+  <data name="Plural_Dictionaries" xml:space="preserve">
+    <value>{0} 個の辞書</value>
+  </data>
+  <data name="Plural_EmptyRows" xml:space="preserve">
+    <value>{0} 行が空</value>
+  </data>
+  <data name="Plural_FoundDevices" xml:space="preserve">
+    <value>{0} 台のデバイスが見つかりました。</value>
+  </data>
+  <data name="Plural_FoundHfTags" xml:space="preserve">
+    <value>{0} 個の HF タグが見つかりました。</value>
+  </data>
+  <data name="Plural_ImportedCards" xml:space="preserve">
+    <value>{0} 枚のカードをインポートしました。</value>
+  </data>
+  <data name="Plural_Keys" xml:space="preserve">
+    <value>{0} 個のキー</value>
+  </data>
+  <data name="Plural_KnownKeys" xml:space="preserve">
+    <value>{0} 個の既知のキー</value>
+  </data>
+  <data name="Plural_NtagPasswords" xml:space="preserve">
+    <value> · {0} 個の NTAG パスワード</value>
+  </data>
+  <data name="Plural_Records" xml:space="preserve">
+    <value>{0} 件のレコード</value>
+  </data>
+  <data name="Plural_SlotsInUse" xml:space="preserve">
+    <value>{0} スロット使用中</value>
+  </data>
+  <data name="Plural_UidsKeys" xml:space="preserve">
+    <value>{0} 個の UID</value>
+  </data>
+  <data name="Plural_UniqueKeys" xml:space="preserve">
+    <value>{0} 個の一意なキー</value>
+  </data>
+  <data name="Plural_WriteFailedBlocks" xml:space="preserve">
+    <value>「{1}」を書き込みましたが、{0} ブロックが失敗しました: {2}。</value>
+  </data>
+  <data name="Plural_WriteFailedPages" xml:space="preserve">
+    <value>「{1}」を書き込みましたが、{0} ページが失敗しました: {2}。</value>
+  </data>
+  <data name="Plural_WrongTriesLock" xml:space="preserve">
+    <value>。{0} 回間違えるとカードがロックされます。</value>
+  </data>
+  <data name="Prng_Hard" xml:space="preserve">
+    <value>Hard（予測不可能）</value>
+  </data>
+  <data name="Prng_Static" xml:space="preserve">
+    <value>Static（固定 nonce）</value>
+  </data>
+  <data name="Prng_Weak" xml:space="preserve">
+    <value>Weak（予測可能）</value>
+  </data>
+  <data name="Protection_AnswerPACK" xml:space="preserve">
+    <value>応答（PACK）</value>
+  </data>
+  <data name="Protection_AttemptLimitAUTHLIM" xml:space="preserve">
+    <value>試行回数制限（AUTHLIM）</value>
+  </data>
+  <data name="Protection_FromPageAUTH0" xml:space="preserve">
+    <value>開始ページ（AUTH0）</value>
+  </data>
+  <data name="Protection_KeepPassword" xml:space="preserve">
+    <value>ページの後に書き込まれます。パスワード（{0}）を控えておいてください。これがないと保護されたページは変更できません。</value>
+  </data>
+  <data name="Protection_NoLimit" xml:space="preserve">
+    <value>制限なし</value>
+  </data>
+  <data name="Protection_NoPage" xml:space="preserve">
+    <value>保護されたページはありません。</value>
+  </data>
+  <data name="Protection_Off" xml:space="preserve">
+    <value>ページの後に書き込まれます: 保護はオフになり、パスワードは {0} に設定されます。</value>
+  </data>
+  <data name="Protection_PROTWithoutThePasswordTheProtected" xml:space="preserve">
+    <value>PROT: パスワードがないと保護されたページは読み取りもできません</value>
+  </data>
+  <data name="Protection_PagesFromTheChosenOneOn" xml:space="preserve">
+    <value>選択したページ以降はパスワードが必要です（AUTH0）</value>
+  </data>
+  <data name="Protection_PasswordPWD" xml:space="preserve">
+    <value>パスワード（PWD）</value>
+  </data>
+  <data name="Protection_ProtectReading" xml:space="preserve">
+    <value>読み取りを保護</value>
+  </data>
+  <data name="Protection_ProtectWithAPassword" xml:space="preserve">
+    <value>パスワードで保護</value>
+  </data>
+  <data name="Protection_SummaryReadWrite" xml:space="preserve">
+    <value>ページ {0} 以降は読み書きにパスワードが必要です</value>
+  </data>
+  <data name="Protection_SummaryWrite" xml:space="preserve">
+    <value>ページ {0} 以降は書き込みにパスワードが必要です</value>
+  </data>
+  <data name="Protection_WhatTheCardAnswersToThe" xml:space="preserve">
+    <value>正しいパスワードに対するカードの応答。リーダーが確認することがあります</value>
+  </data>
+  <data name="Protection_WrongPasswordsBeforeTheCardLocks" xml:space="preserve">
+    <value>カードが完全にロックされるまでに許される誤ったパスワードの回数</value>
+  </data>
+  <data name="Recovery_Attempt" xml:space="preserve">
+    <value>試行 {0}/{1}</value>
+  </data>
+  <data name="Recovery_AttemptOf5" xml:space="preserve">
+    <value>試行 {0}/5</value>
+  </data>
+  <data name="Recovery_AuthFailed" xml:space="preserve">
+    <value>キーで認証できませんでした。</value>
+  </data>
+  <data name="Recovery_BackdoorKey" xml:space="preserve">
+    <value>バックドアキー {0}</value>
+  </data>
+  <data name="Recovery_BlocksWritten" xml:space="preserve">
+    <value>{0}/{1} ブロック書き込み済み</value>
+  </data>
+  <data name="Recovery_CalcDarkside" xml:space="preserve">
+    <value>darkside の候補を計算中…</value>
+  </data>
+  <data name="Recovery_CalcHardnested" xml:space="preserve">
+    <value>hardnested のキー候補を計算中…</value>
+  </data>
+  <data name="Recovery_CalcNested" xml:space="preserve">
+    <value>nested の候補を計算中…</value>
+  </data>
+  <data name="Recovery_CalcStaticEnc" xml:space="preserve">
+    <value>static encrypted の候補を計算中…</value>
+  </data>
+  <data name="Recovery_CalcStaticNested" xml:space="preserve">
+    <value>static nested の候補を計算中…</value>
+  </data>
+  <data name="Recovery_CandidateN" xml:space="preserve">
+    <value>候補 {0}/{1}</value>
+  </data>
+  <data name="Recovery_CandidatesRange" xml:space="preserve">
+    <value>候補 {0}–{1}/{2}</value>
+  </data>
+  <data name="Recovery_CardChanged" xml:space="preserve">
+    <value>カードが変わりました。続行する前にもう一度スキャンしてください。</value>
+  </data>
+  <data name="Recovery_CardRemoved" xml:space="preserve">
+    <value>カードが外されたか変わりました。続行する前にもう一度スキャンしてください。</value>
+  </data>
+  <data name="Recovery_CheckStaticEnc" xml:space="preserve">
+    <value>static encrypted の候補を確認中…</value>
+  </data>
+  <data name="Recovery_CheckingCandidates" xml:space="preserve">
+    <value>復元したキー候補を確認中…</value>
+  </data>
+  <data name="Recovery_CheckingCandidatesN" xml:space="preserve">
+    <value>復元した {0} 個のキー候補を確認中…</value>
+  </data>
+  <data name="Recovery_CheckingDarkside" xml:space="preserve">
+    <value>darkside の脆弱性を確認中…</value>
+  </data>
+  <data name="Recovery_CheckingPrevious" xml:space="preserve">
+    <value>以前に見つかったキーを確認中…</value>
+  </data>
+  <data name="Recovery_CollectingAgain" xml:space="preserve">
+    <value>一貫した候補がありません。再度収集中…</value>
+  </data>
+  <data name="Recovery_CollectingDarkside" xml:space="preserve">
+    <value>darkside の nonce を収集中…</value>
+  </data>
+  <data name="Recovery_CollectingHardnested" xml:space="preserve">
+    <value>nonce を収集中（hardnested）…</value>
+  </data>
+  <data name="Recovery_CollectingNested" xml:space="preserve">
+    <value>nonce を収集中（nested）…</value>
+  </data>
+  <data name="Recovery_CollectingNestedNonces" xml:space="preserve">
+    <value>nested の nonce を収集中…</value>
+  </data>
+  <data name="Recovery_CollectingStaticEnc" xml:space="preserve">
+    <value>static encrypted の nonce を収集中…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNested" xml:space="preserve">
+    <value>nonce を収集中（static nested）…</value>
+  </data>
+  <data name="Recovery_CollectingStaticNestedNonces" xml:space="preserve">
+    <value>static nested の nonce を収集中…</value>
+  </data>
+  <data name="Recovery_Finished" xml:space="preserve">
+    <value>復元が完了しました。</value>
+  </data>
+  <data name="Recovery_FoundKey" xml:space="preserve">
+    <value>キーが見つかりました。</value>
+  </data>
+  <data name="Recovery_HardnestedCollecting" xml:space="preserve">
+    <value>hardnested の nonce を収集中: {0} サンプル、先頭バイト {1}/256…</value>
+  </data>
+  <data name="Recovery_HardnestedCollectingSlow" xml:space="preserve">
+    <value>hardnested の nonce を収集中（低速モード）: {0} サンプル、先頭バイト {1}/256…</value>
+  </data>
+  <data name="Recovery_HardnestedInconsistent" xml:space="preserve">
+    <value>一貫した hardnested の nonce を収集できませんでした。同じカードをリーダーに置いたまま再試行してください。</value>
+  </data>
+  <data name="Recovery_HardnestedUnavailable" xml:space="preserve">
+    <value>この ChameLab のビルドでは hardnested エンジンを利用できません。</value>
+  </data>
+  <data name="Recovery_HoverKeys" xml:space="preserve">
+    <value>ターゲットカードのキー · セクターをポイントするとキーの詳細を表示</value>
+  </data>
+  <data name="Recovery_HoverWritten" xml:space="preserve">
+    <value>セクターをポイントすると書き込み済みブロック数とエラーを表示</value>
+  </data>
+  <data name="Recovery_InvalidNonceParity" xml:space="preserve">
+    <value>暗号化された nonce のパリティが無効です。</value>
+  </data>
+  <data name="Recovery_KeyNotRecovered" xml:space="preserve">
+    <value>このセクターのキーは復元されませんでした。</value>
+  </data>
+  <data name="Recovery_KnownKeyProgress" xml:space="preserve">
+    <value>既知のキー {0}/{1}</value>
+  </data>
+  <data name="Recovery_LoadTargetIntoSlot" xml:space="preserve">
+    <value>mfkey32 を開始する前に、ターゲットカードをスロットに読み込んでください。</value>
+  </data>
+  <data name="Recovery_LoadingTables" xml:space="preserve">
+    <value>マネージド hardnested テーブルを読み込み中…</value>
+  </data>
+  <data name="Recovery_MatchingConstraints" xml:space="preserve">
+    <value>hardnested の状態制約を照合中…</value>
+  </data>
+  <data name="Recovery_MeasuringDistance" xml:space="preserve">
+    <value>nested nonce の距離を測定中…</value>
+  </data>
+  <data name="Recovery_Mfkey32Tip" xml:space="preserve">
+    <value>mfkey32 を使ってリーダーからターゲットカードのキーを復元</value>
+  </data>
+  <data name="Recovery_NeedOneKey" xml:space="preserve">
+    <value>nested 復元を始める前に、少なくとも 1 つのキーを復元してください。</value>
+  </data>
+  <data name="Recovery_NoBackdoorAccepted" xml:space="preserve">
+    <value>カードは既知のバックドアキーをどれも受け入れませんでした。</value>
+  </data>
+  <data name="Recovery_NoHardnestedFirmware" xml:space="preserve">
+    <value>このデバイスのファームウェアは hardnested の nonce 収集に対応していません。</value>
+  </data>
+  <data name="Recovery_NoHfTag" xml:space="preserve">
+    <value>リーダーに HF タグが検出されません。</value>
+  </data>
+  <data name="Recovery_NoKnownConfirmed" xml:space="preserve">
+    <value>このセクターで確認できた既知のキーはありません。</value>
+  </data>
+  <data name="Recovery_NoStaticEncFirmware" xml:space="preserve">
+    <value>このデバイスのファームウェアは static encrypted nested 復元に対応していません。</value>
+  </data>
+  <data name="Recovery_NonceFailed" xml:space="preserve">
+    <value>このセクターの nonce 収集に失敗しました。</value>
+  </data>
+  <data name="Recovery_NotDarksideVulnerable" xml:space="preserve">
+    <value>キーは darkside に対して脆弱ではありません。</value>
+  </data>
+  <data name="Recovery_PlaceExactlyOne" xml:space="preserve">
+    <value>リーダーにはターゲットカードを 1 枚だけ置いてください。</value>
+  </data>
+  <data name="Recovery_PlaceTarget" xml:space="preserve">
+    <value>ターゲットカードをリーダーに置き、キーを試すか復元方法を確認してください。</value>
+  </data>
+  <data name="Recovery_PreparingWrite" xml:space="preserve">
+    <value>書き込みを準備中…</value>
+  </data>
+  <data name="Recovery_PrngUnsupported" xml:space="preserve">
+    <value>この復元方法はカードの PRNG では使えません。</value>
+  </data>
+  <data name="Recovery_RunningDarkside" xml:space="preserve">
+    <value>darkside を実行中…</value>
+  </data>
+  <data name="Recovery_ScanTargetFirst" xml:space="preserve">
+    <value>mfkey32 を開始する前にターゲットカードをスキャンしてください。</value>
+  </data>
+  <data name="Recovery_SectorKeyDetail" xml:space="preserve">
+    <value>セクター {0} · キー {1} · {2}</value>
+  </data>
+  <data name="Recovery_SectorKeyProgress" xml:space="preserve">
+    <value>セクター {0} · キー {1} · {2}/{3}</value>
+  </data>
+  <data name="Recovery_StopRecoveryTip" xml:space="preserve">
+    <value>復元を停止し、見つかったキーを保持</value>
+  </data>
+  <data name="Recovery_StopWritingTip" xml:space="preserve">
+    <value>書き込みを停止。書き込み済みのブロックはカードに残ります</value>
+  </data>
+  <data name="Recovery_TargetChanged" xml:space="preserve">
+    <value>ターゲットカードが変わりました。続行する前にライターを閉じて開き直してください。</value>
+  </data>
+  <data name="Recovery_TargetMustBeClassic" xml:space="preserve">
+    <value>ターゲットは MIFARE Classic カードである必要があります。</value>
+  </data>
+  <data name="Recovery_TargetUid" xml:space="preserve">
+    <value>ターゲット UID: {0}</value>
+  </data>
+  <data name="Recovery_TryKeysTip" xml:space="preserve">
+    <value>選択した辞書と元のキーを使ってターゲットカードのキーを探す</value>
+  </data>
+  <data name="Recovery_UniqueKeysWithSource" xml:space="preserve">
+    <value>{0} 個の一意なキー（元のキーも試します）</value>
+  </data>
+  <data name="Recovery_UsingNested" xml:space="preserve">
+    <value>既知のキーを確認する代わりに nested を使用中…</value>
+  </data>
+  <data name="Recovery_WritingCard" xml:space="preserve">
+    <value>カードに書き込み中…</value>
+  </data>
+  <data name="Serial_Disconnected" xml:space="preserve">
+    <value>{0} が切断されました。</value>
+  </data>
+  <data name="Serial_Name" xml:space="preserve">
+    <value>シリアル（USB）</value>
+  </data>
+  <data name="Settings_AccentColor" xml:space="preserve">
+    <value>アクセントカラー</value>
+  </data>
+  <data name="Settings_AppSettingsTheyApplyRightAway" xml:space="preserve">
+    <value>アプリの設定。すぐに反映され、デバイスなしでも使えます。Chameleon 本体の設定はそのページにあります。</value>
+  </data>
+  <data name="Settings_Backup" xml:space="preserve">
+    <value>バックアップ</value>
+  </data>
+  <data name="Settings_BackupSaved" xml:space="preserve">
+    <value>バックアップを保存しました: {0}。</value>
+  </data>
+  <data name="Settings_BeepWhenAScanFinishesBuzz" xml:space="preserve">
+    <value>スキャン完了時にビープ音、カードが見つからないときにブザー音を鳴らします。</value>
+  </data>
+  <data name="Settings_ButtonsTogglesAndHighlights" xml:space="preserve">
+    <value>ボタン、トグル、ハイライト。</value>
+  </data>
+  <data name="Settings_CheckForUpdates" xml:space="preserve">
+    <value>更新を確認</value>
+  </data>
+  <data name="Settings_CrossPlatformClientForTheChameleon" xml:space="preserve">
+    <value>Avalonia で作られた Chameleon Ultra 用クロスプラットフォームクライアント。デバイス、ファームウェア、プロトコルのドキュメント: github.com/RfidResearchGroup/ChameleonUltra</value>
+  </data>
+  <data name="Settings_Download" xml:space="preserve">
+    <value>ダウンロード</value>
+  </data>
+  <data name="Settings_ExportBackup" xml:space="preserve">
+    <value>バックアップをエクスポート</value>
+  </data>
+  <data name="Settings_ExportOrImportYourSavedCards" xml:space="preserve">
+    <value>保存したカードとキー辞書をエクスポートまたはインポートします。</value>
+  </data>
+  <data name="Settings_ImportBackup" xml:space="preserve">
+    <value>バックアップをインポート</value>
+  </data>
+  <data name="Settings_ImportedBackup" xml:space="preserve">
+    <value>{0}と{1}をインポートしました。</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="Settings_LanguageCaption" xml:space="preserve">
+    <value>メニュー、ラベル、メッセージ。</value>
+  </data>
+  <data name="Settings_OpenTheReleasePage" xml:space="preserve">
+    <value>リリースページを開く</value>
+  </data>
+  <data name="Settings_ScanSounds" xml:space="preserve">
+    <value>スキャン音</value>
+  </data>
+  <data name="Settings_Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="Settings_TrademarkNotice" xml:space="preserve">
+    <value>MIFARE®、MIFARE® Classic、MIFARE® Ultralight は NXP B.V. の登録商標です。HID™ と HID ProxCard™ は HID Global の商標です。EM4100 および関連製品名は EM Microelectronic-Marin SA の商標です。本アプリはこれらのいずれとも提携していません。</value>
+  </data>
+  <data name="Settings_Version" xml:space="preserve">
+    <value>バージョン {0}</value>
+  </data>
+  <data name="Settings_VibrateWhenACardScanOr" xml:space="preserve">
+    <value>カードのスキャンやダンプが完了したら振動します。</value>
+  </data>
+  <data name="Settings_Vibration" xml:space="preserve">
+    <value>振動</value>
+  </data>
+  <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
+    <value>好きな色（ChameLab ファームウェアが必要）</value>
+  </data>
+  <data name="Slots_AddSaved" xml:space="preserve">
+    <value>保存済みを追加</value>
+  </data>
+  <data name="Slots_AddSavedLf" xml:space="preserve">
+    <value>保存済みの LF カードを追加</value>
+  </data>
+  <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
+    <value>このカードを保存済みカードに追加</value>
+  </data>
+  <data name="Slots_ChooseSaved" xml:space="preserve">
+    <value>保存済みから選択</value>
+  </data>
+  <data name="Slots_ChooseSavedSide" xml:space="preserve">
+    <value>保存済みの {0} カードを選択</value>
+  </data>
+  <data name="Slots_ConnectAChameleonToSeeAnd" xml:space="preserve">
+    <value>Chameleon を接続すると、8 つのエミュレーションスロットを表示・編集できます。</value>
+  </data>
+  <data name="Slots_Custom" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="Slots_Default" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
+    <value>カードをドラッグして順序を変更します。リーダーのフィールドが現れるたびに、デバイスは次のカードを順番に送信します。</value>
+  </data>
+  <data name="Slots_EmptySlot" xml:space="preserve">
+    <value>空のスロット</value>
+  </data>
+  <data name="Slots_EmulationSlots" xml:space="preserve">
+    <value>エミュレーションスロット</value>
+  </data>
+  <data name="Slots_Gen1AMagicMode" xml:space="preserve">
+    <value>Gen1A マジックモード</value>
+  </data>
+  <data name="Slots_Gen2MagicMode" xml:space="preserve">
+    <value>Gen2 マジックモード</value>
+  </data>
+  <data name="Slots_KeepEditingThisSlot" xml:space="preserve">
+    <value>このスロットの編集を続ける</value>
+  </data>
+  <data name="Slots_LEDColor" xml:space="preserve">
+    <value>LED の色</value>
+  </data>
+  <data name="Slots_MifareClassicEmulatorHeader" xml:space="preserve">
+    <value>MIFARE CLASSIC エミュレーター</value>
+  </data>
+  <data name="Slots_NoDevice" xml:space="preserve">
+    <value>デバイスが接続されていません</value>
+  </data>
+  <data name="Slots_NoSavedSide" xml:space="preserve">
+    <value>保存済みの {0} カードはまだありません。</value>
+  </data>
+  <data name="Slots_NoSlotsToShow" xml:space="preserve">
+    <value>表示するスロットがありません</value>
+  </data>
+  <data name="Slots_NotInSaved" xml:space="preserve">
+    <value>{0} · 保存済みカードにありません</value>
+  </data>
+  <data name="Slots_NotInSavedId" xml:space="preserve">
+    <value>{0} · {1} {2} · 保存済みカードにありません</value>
+  </data>
+  <data name="Slots_OpenThisCardInCards" xml:space="preserve">
+    <value>このカードを「カード」で開く</value>
+  </data>
+  <data name="Slots_PRNGType" xml:space="preserve">
+    <value>PRNG の種類</value>
+  </data>
+  <data name="Slots_PasswordDetection" xml:space="preserve">
+    <value>パスワード検出</value>
+  </data>
+  <data name="Slots_PickTheLEDColor" xml:space="preserve">
+    <value>LED の色を選ぶ</value>
+  </data>
+  <data name="Slots_PutOneOfYourSavedCards" xml:space="preserve">
+    <value>保存したカードをこの周波数に入れる</value>
+  </data>
+  <data name="Slots_ReadTheCardFromTheSlot" xml:space="preserve">
+    <value>スロットからカードを読み取り、保存済みカードに追加</value>
+  </data>
+  <data name="Slots_Reading" xml:space="preserve">
+    <value>スロットを読み取り中…</value>
+  </data>
+  <data name="Slots_ReadingSlot" xml:space="preserve">
+    <value>スロット {0} を読み取り中</value>
+  </data>
+  <data name="Slots_ReadingSlotEllipsis" xml:space="preserve">
+    <value>スロット {0} を読み取り中…</value>
+  </data>
+  <data name="Slots_RemoveCardFromSlot" xml:space="preserve">
+    <value>スロットからカードを削除</value>
+  </data>
+  <data name="Slots_RemoveTheCardFromThisFrequency" xml:space="preserve">
+    <value>この周波数からカードを削除</value>
+  </data>
+  <data name="Slots_ResetOnFieldOff" xml:space="preserve">
+    <value>フィールドオフでリセット</value>
+  </data>
+  <data name="Slots_SaveCard" xml:space="preserve">
+    <value>カードを保存</value>
+  </data>
+  <data name="Slots_SaveChangesTo" xml:space="preserve">
+    <value>スロット {0} への変更を保存しますか？</value>
+  </data>
+  <data name="Slots_SaveSlot" xml:space="preserve">
+    <value>スロットを保存</value>
+  </data>
+  <data name="Slots_SavedToCards" xml:space="preserve">
+    <value>「{0}」を保存済みカードに保存しました。</value>
+  </data>
+  <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
+    <value>スロットを選択するとアクティブになり、編集できます。</value>
+  </data>
+  <data name="Slots_SlotN" xml:space="preserve">
+    <value>スロット {0}</value>
+  </data>
+  <data name="Slots_SlotSaved" xml:space="preserve">
+    <value>スロットを保存しました。</value>
+  </data>
+  <data name="Slots_SwapFailed" xml:space="preserve">
+    <value>スロット {0} に書き込めませんでした（{1}）。スロット {2} は元に戻しました。スロット {3} を確認してください。</value>
+  </data>
+  <data name="Slots_Swapped" xml:space="preserve">
+    <value>スロット {0} と {1} を入れ替えました。</value>
+  </data>
+  <data name="Slots_TheColorOfTheSavedCard" xml:space="preserve">
+    <value>保存済みカードの色（ChameLab ファームウェアが必要）</value>
+  </data>
+  <data name="Slots_TheColorTheSlotLEDShows" xml:space="preserve">
+    <value>スロットの LED が表示する色</value>
+  </data>
+  <data name="Slots_TheFirmwaresOwnColorGreenFor" xml:space="preserve">
+    <value>ファームウェア標準の色: HF は緑、LF は青、両方あるスロットは赤</value>
+  </data>
+  <data name="Slots_UIDMagicMode" xml:space="preserve">
+    <value>UID マジックモード</value>
+  </data>
+  <data name="Slots_UltralightNtagEmulatorHeader" xml:space="preserve">
+    <value>ULTRALIGHT / NTAG エミュレーター</value>
+  </data>
+  <data name="Slots_UseUIDSAKATQAFromBlock" xml:space="preserve">
+    <value>ブロック 0 の UID/SAK/ATQA を使用</value>
+  </data>
+  <data name="Slots_UsedActive" xml:space="preserve">
+    <value>{0} · スロット {1} がアクティブ</value>
+  </data>
+  <data name="Slots_WriteMode" xml:space="preserve">
+    <value>書き込みモード</value>
+  </data>
+  <data name="Slots_WriteTheSlotToTheDevice" xml:space="preserve">
+    <value>スロットをデバイスに書き込み、フラッシュに保存</value>
+  </data>
+  <data name="Slots_WritingSlot" xml:space="preserve">
+    <value>スロット {0} に書き込み中</value>
+  </data>
+  <data name="Slots_WritingSlotEllipsis" xml:space="preserve">
+    <value>スロット {0} に書き込み中…</value>
+  </data>
+  <data name="Sniff_BccOk" xml:space="preserve">
+    <value>BCC 正常</value>
+  </data>
+  <data name="Sniff_BccWrong" xml:space="preserve">
+    <value>BCC 不正</value>
+  </data>
+  <data name="Sniff_CardAnswer" xml:space="preserve">
+    <value>カードの応答</value>
+  </data>
+  <data name="Sniff_CardAnswerEnc" xml:space="preserve">
+    <value>カードの応答（暗号化）: at = {0}（リーダーのキーが受け入れられました）</value>
+  </data>
+  <data name="Sniff_CardNonce" xml:space="preserve">
+    <value>カード nonce nt = {0}</value>
+  </data>
+  <data name="Sniff_Command" xml:space="preserve">
+    <value>コマンド</value>
+  </data>
+  <data name="Sniff_Data16" xml:space="preserve">
+    <value>データ（16 バイト）</value>
+  </data>
+  <data name="Sniff_Encrypted" xml:space="preserve">
+    <value>暗号化</value>
+  </data>
+  <data name="Sniff_EncryptedCommand" xml:space="preserve">
+    <value>暗号化されたコマンド（または nested AUTH）</value>
+  </data>
+  <data name="Sniff_ReaderAnswerEnc" xml:space="preserve">
+    <value>リーダーの応答（暗号化）: nr = {0}、ar = {1}</value>
+  </data>
+  <data name="Sniff_Response" xml:space="preserve">
+    <value>応答 {0:X2}{1:X2}</value>
+  </data>
+  <data name="Sniff_SelectCascade" xml:space="preserve">
+    <value>SELECT CL{0}: UID パート {1}（カスケードタグ）</value>
+  </data>
+  <data name="Sniff_ShortFrame" xml:space="preserve">
+    <value>ショートフレーム {0:X2}（{1} ビット）</value>
+  </data>
+  <data name="Sniff_SmartMx1K" xml:space="preserve">
+    <value>MIFARE Classic 1K 搭載 SmartMX</value>
+  </data>
+  <data name="Sniff_SmartMx4K" xml:space="preserve">
+    <value>MIFARE Classic 4K 搭載 SmartMX</value>
+  </data>
+  <data name="Sniff_SwBadP1P2" xml:space="preserve">
+    <value>P1-P2 が不正</value>
+  </data>
+  <data name="Sniff_SwBytesAvailable" xml:space="preserve">
+    <value>{0} バイト利用可能</value>
+  </data>
+  <data name="Sniff_SwClaUnsupported" xml:space="preserve">
+    <value>クラス未対応</value>
+  </data>
+  <data name="Sniff_SwConditions" xml:space="preserve">
+    <value>使用条件を満たしていません</value>
+  </data>
+  <data name="Sniff_SwDesfire" xml:space="preserve">
+    <value>DESFire ステータス</value>
+  </data>
+  <data name="Sniff_SwFileNotFound" xml:space="preserve">
+    <value>ファイルが見つかりません</value>
+  </data>
+  <data name="Sniff_SwInsUnsupported" xml:space="preserve">
+    <value>命令未対応</value>
+  </data>
+  <data name="Sniff_SwRecordNotFound" xml:space="preserve">
+    <value>レコードが見つかりません</value>
+  </data>
+  <data name="Sniff_SwSecurity" xml:space="preserve">
+    <value>セキュリティ状態を満たしていません</value>
+  </data>
+  <data name="Sniff_SwWrongLe" xml:space="preserve">
+    <value>Le が不正。{0} を使用してください</value>
+  </data>
+  <data name="Sniff_SwWrongLength" xml:space="preserve">
+    <value>長さが不正</value>
+  </data>
+  <data name="Sniff_UidNotComplete" xml:space="preserve">
+    <value>UID が不完全</value>
+  </data>
+  <data name="Sniff_UidPartCascade" xml:space="preserve">
+    <value>UID パート {0}（カスケードタグ）、{1}</value>
+  </data>
+  <data name="Sniff_UnknownCommand" xml:space="preserve">
+    <value>不明なコマンド（有効な CRC なし）</value>
+  </data>
+  <data name="Sniff_Version" xml:space="preserve">
+    <value>バージョン</value>
+  </data>
+  <data name="Status_FlashRead" xml:space="preserve">
+    <value>フラッシュの読み取りに失敗しました</value>
+  </data>
+  <data name="Status_FlashWrite" xml:space="preserve">
+    <value>フラッシュの書き込みに失敗しました</value>
+  </data>
+  <data name="Status_HfCollision" xml:space="preserve">
+    <value>HF タグの衝突</value>
+  </data>
+  <data name="Status_HfErrAts" xml:space="preserve">
+    <value>HF タグが ATS を送信するはずが送信しませんでした</value>
+  </data>
+  <data name="Status_HfErrBcc" xml:space="preserve">
+    <value>HF タグ UID の BCC エラー</value>
+  </data>
+  <data name="Status_HfErrCrc" xml:space="preserve">
+    <value>HF タグデータの CRC エラー</value>
+  </data>
+  <data name="Status_HfErrParity" xml:space="preserve">
+    <value>HF タグデータのパリティエラー</value>
+  </data>
+  <data name="Status_HfErrStat" xml:space="preserve">
+    <value>HF タグのステータスエラー</value>
+  </data>
+  <data name="Status_HfNo" xml:space="preserve">
+    <value>HF タグが見つからないか失われました</value>
+  </data>
+  <data name="Status_HfOk" xml:space="preserve">
+    <value>HF タグの操作に成功しました</value>
+  </data>
+  <data name="Status_InvalidCmd" xml:space="preserve">
+    <value>API リクエスト失敗: 無効なコマンド</value>
+  </data>
+  <data name="Status_InvalidSlotType" xml:space="preserve">
+    <value>スロットのカードの種類が無効です</value>
+  </data>
+  <data name="Status_LfNotFound" xml:space="preserve">
+    <value>LF タグが見つかりません</value>
+  </data>
+  <data name="Status_LfOk" xml:space="preserve">
+    <value>LF タグの操作に成功しました</value>
+  </data>
+  <data name="Status_MfErrAuth" xml:space="preserve">
+    <value>HF タグの認証に失敗しました</value>
+  </data>
+  <data name="Status_ModeErr" xml:space="preserve">
+    <value>API リクエスト失敗: デバイスモードのエラー</value>
+  </data>
+  <data name="Status_NotImplemented" xml:space="preserve">
+    <value>API は実装されていません</value>
+  </data>
+  <data name="Status_ParErr" xml:space="preserve">
+    <value>API リクエスト失敗: パラメーターエラー</value>
+  </data>
+  <data name="Status_Success" xml:space="preserve">
+    <value>デバイスの操作に成功しました</value>
+  </data>
+  <data name="Status_Unknown" xml:space="preserve">
+    <value>不明なステータス 0x{0:X2}</value>
+  </data>
+  <data name="Storage_NoWindow" xml:space="preserve">
+    <value>ファイルアクセスに使えるウィンドウがありません。</value>
+  </data>
+  <data name="Strip_NotReadYet" xml:space="preserve">
+    <value>まだ読み取っていません</value>
+  </data>
+  <data name="Strip_NotWritten" xml:space="preserve">
+    <value>未書き込み</value>
+  </data>
+  <data name="Strip_ReadFailed" xml:space="preserve">
+    <value>読み取り失敗</value>
+  </data>
+  <data name="Strip_Reading" xml:space="preserve">
+    <value>読み取り中…</value>
+  </data>
+  <data name="Strip_WriteFailed" xml:space="preserve">
+    <value>書き込み失敗</value>
+  </data>
+  <data name="Strip_Writing" xml:space="preserve">
+    <value>書き込み中…</value>
+  </data>
+  <data name="Tcp_ExpectedHostPort" xml:space="preserve">
+    <value>host:port の形式が必要ですが、「{0}」が指定されました。</value>
+  </data>
+  <data name="Tcp_ManualEndpoint" xml:space="preserve">
+    <value>手動のネットワークエンドポイント</value>
+  </data>
+  <data name="Tcp_Network" xml:space="preserve">
+    <value>ネットワーク（TCP）</value>
+  </data>
+  <data name="Tcp_NotConnected" xml:space="preserve">
+    <value>接続されていません。</value>
+  </data>
+  <data name="Tools_125KHzRawSignal" xml:space="preserve">
+    <value>125 kHz · 生信号</value>
+  </data>
+  <data name="Tools_1356MHzISO14443A" xml:space="preserve">
+    <value>13.56 MHz · ISO14443-A</value>
+  </data>
+  <data name="Tools_AGuessFromTheLengthsOf" xml:space="preserve">
+    <value>High と Low の持続長からの推定</value>
+  </data>
+  <data name="Tools_AnswerAReaderAsACard" xml:space="preserve">
+    <value>カードとしてリーダーに応答し、双方の通信を記録</value>
+  </data>
+  <data name="Tools_ArqcRequested" xml:space="preserve">
+    <value>EMV ARQC を要求</value>
+  </data>
+  <data name="Tools_AuthGroupHeader" xml:space="preserve">
+    <value>ブロック {0}（セクター {1}）· キー {2} · UID {3:X8}</value>
+  </data>
+  <data name="Tools_BackToTheTools" xml:space="preserve">
+    <value>ツールに戻る</value>
+  </data>
+  <data name="Tools_Bits" xml:space="preserve">
+    <value>ビット</value>
+  </data>
+  <data name="Tools_BitsBreaks" xml:space="preserve">
+    <value>{0} · コード内に {1}</value>
+  </data>
+  <data name="Tools_BlockKey" xml:space="preserve">
+    <value>ブロック {0} キー {1}</value>
+  </data>
+  <data name="Tools_Capture" xml:space="preserve">
+    <value>キャプチャ</value>
+  </data>
+  <data name="Tools_CaptureSaved" xml:space="preserve">
+    <value>キャプチャを保存しました: {0}。</value>
+  </data>
+  <data name="Tools_CapturedAt" xml:space="preserve">
+    <value>{0:HH:mm:ss} にキャプチャ</value>
+  </data>
+  <data name="Tools_CarrierCyclesPerBit" xml:space="preserve">
+    <value>1 ビットあたりの搬送波サイクル数</value>
+  </data>
+  <data name="Tools_ClassicAuthOn" xml:space="preserve">
+    <value>MIFARE Classic 認証:</value>
+  </data>
+  <data name="Tools_Clock" xml:space="preserve">
+    <value>クロック</value>
+  </data>
+  <data name="Tools_ClockRun" xml:space="preserve">
+    <value>RF/{0} · 最短の連続 {1} サンプル（{2} µs）</value>
+  </data>
+  <data name="Tools_ComputeTheKeyFromTheseAuthentications" xml:space="preserve">
+    <value>これらの認証からキーを計算</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA" xml:space="preserve">
+    <value>キャプチャするには Chameleon を接続してください。保存済みの Proxmark3 トレース（.trace）はデバイスなしで読み込めます。</value>
+  </data>
+  <data name="Tools_ConnectAChameleonToCaptureA2" xml:space="preserve">
+    <value>キャプチャするには Chameleon を接続してください。保存済みのキャプチャ（.bin）はデバイスなしで読み込めます。</value>
+  </data>
+  <data name="Tools_ConnectToCapture" xml:space="preserve">
+    <value>キャプチャするには Chameleon を接続してください。</value>
+  </data>
+  <data name="Tools_CopyAll" xml:space="preserve">
+    <value>すべてコピー</value>
+  </data>
+  <data name="Tools_CopyN" xml:space="preserve">
+    <value>{0} をコピー</value>
+  </data>
+  <data name="Tools_CopyTheSelectedFramesOrAll" xml:space="preserve">
+    <value>選択したフレーム、またはすべてをコピー</value>
+  </data>
+  <data name="Tools_Cursor" xml:space="preserve">
+    <value>カーソル</value>
+  </data>
+  <data name="Tools_CursorSample" xml:space="preserve">
+    <value>サンプル {0} · {1:0.000} ms · 0x{2:X2}</value>
+  </data>
+  <data name="Tools_DecodeThreshold" xml:space="preserve">
+    <value>復号しきい値 0x{0:X2}</value>
+  </data>
+  <data name="Tools_EndedHalt" xml:space="preserve">
+    <value>HALT で終了</value>
+  </data>
+  <data name="Tools_FieldGap" xml:space="preserve">
+    <value>フィールドの途切れ</value>
+  </data>
+  <data name="Tools_FileEmpty" xml:space="preserve">
+    <value>{0} は空です。</value>
+  </data>
+  <data name="Tools_Frames" xml:space="preserve">
+    <value>フレーム</value>
+  </data>
+  <data name="Tools_FramesHintMouse" xml:space="preserve">
+    <value>Shift+クリックで範囲を選択、Ctrl+クリックでフレームを追加します。</value>
+  </data>
+  <data name="Tools_FramesHintTouch" xml:space="preserve">
+    <value>フレームをタップし、別のフレームをタップするとその間が選択されます。</value>
+  </data>
+  <data name="Tools_FramesSummary" xml:space="preserve">
+    <value>{0} フレーム: リーダーから {1}、カードから {2}</value>
+  </data>
+  <data name="Tools_Gap" xml:space="preserve">
+    <value>（途切れ）</value>
+  </data>
+  <data name="Tools_GapSamples" xml:space="preserve">
+    <value>0x{1:X2} 未満のサンプル {0} 個</value>
+  </data>
+  <data name="Tools_GapThreshold" xml:space="preserve">
+    <value>途切れのしきい値 0x{0:X2}</value>
+  </data>
+  <data name="Tools_Gaps" xml:space="preserve">
+    <value>途切れ</value>
+  </data>
+  <data name="Tools_High" xml:space="preserve">
+    <value>（High）</value>
+  </data>
+  <data name="Tools_HowLongToListen" xml:space="preserve">
+    <value>受信する時間</value>
+  </data>
+  <data name="Tools_Invert" xml:space="preserve">
+    <value>反転</value>
+  </data>
+  <data name="Tools_ListenToTheReaderNow" xml:space="preserve">
+    <value>今すぐリーダーを受信</value>
+  </data>
+  <data name="Tools_Listening" xml:space="preserve">
+    <value>受信中…</value>
+  </data>
+  <data name="Tools_Load" xml:space="preserve">
+    <value>読み込む</value>
+  </data>
+  <data name="Tools_LoadHfTitle" xml:space="preserve">
+    <value>HF トレースを読み込む</value>
+  </data>
+  <data name="Tools_LoadLfTitle" xml:space="preserve">
+    <value>LF キャプチャを読み込む</value>
+  </data>
+  <data name="Tools_LookAtWhatGoesOverThe" xml:space="preserve">
+    <value>リーダーとカードの間でやり取りされる無線通信を確認します。</value>
+  </data>
+  <data name="Tools_Low" xml:space="preserve">
+    <value>（Low）</value>
+  </data>
+  <data name="Tools_MIFAREClassicKeys" xml:space="preserve">
+    <value>MIFARE Classic キー</value>
+  </data>
+  <data name="Tools_ManchesterDecode" xml:space="preserve">
+    <value>マンチェスター復号</value>
+  </data>
+  <data name="Tools_Mfkey32v2Command" xml:space="preserve">
+    <value>mfkey32v2 コマンド</value>
+  </data>
+  <data name="Tools_Modulation" xml:space="preserve">
+    <value>変調</value>
+  </data>
+  <data name="Tools_NoBits" xml:space="preserve">
+    <value>ビットを復号できませんでした。別のクロックか「反転」を試してください。</value>
+  </data>
+  <data name="Tools_NoGaps" xml:space="preserve">
+    <value>0x{0:X2} 未満なし: 安定したフィールド</value>
+  </data>
+  <data name="Tools_NoIsoFrames" xml:space="preserve">
+    <value>{0} には ISO14443-A フレームがありません。</value>
+  </data>
+  <data name="Tools_NoLfSamples" xml:space="preserve">
+    <value>LF サンプルはキャプチャされませんでした。</value>
+  </data>
+  <data name="Tools_NoReaderSpoke" xml:space="preserve">
+    <value>リーダーからの通信がありません。アクティブなスロットに HF カードを入れた状態で、受信中は Chameleon をリーダーにかざしてください。</value>
+  </data>
+  <data name="Tools_NoSelect" xml:space="preserve">
+    <value>完了した SELECT なし</value>
+  </data>
+  <data name="Tools_NoUniqueKey" xml:space="preserve">
+    <value>一意なキーがありません。さらに認証をキャプチャしてください。</value>
+  </data>
+  <data name="Tools_NothingMore" xml:space="preserve">
+    <value>これ以上認識できるものはありません</value>
+  </data>
+  <data name="Tools_OneAuthOnly" xml:space="preserve">
+    <value>認証が 1 回だけです。リーダーがもう一度試すよう、再度キャプチャしてください。</value>
+  </data>
+  <data name="Tools_OneBytePerCarrierCycleSelect" xml:space="preserve">
+    <value>搬送波 1 サイクルにつき 1 バイト。バイトを選択してコピーできます（Ctrl+C またはコンテキストメニュー）。</value>
+  </data>
+  <data name="Tools_OpenAProxmark3TraceTrace" xml:space="preserve">
+    <value>Proxmark3 トレース（.trace）を開く</value>
+  </data>
+  <data name="Tools_OpenARawCaptureBinOne" xml:space="preserve">
+    <value>生キャプチャ（.bin）を開く: 1 サンプル 1 バイト</value>
+  </data>
+  <data name="Tools_Range" xml:space="preserve">
+    <value>範囲</value>
+  </data>
+  <data name="Tools_RangeMean" xml:space="preserve">
+    <value>0x{0:X2}–0x{1:X2} · 平均 0x{2:X2}</value>
+  </data>
+  <data name="Tools_RecordTheLFFieldNow" xml:space="preserve">
+    <value>今すぐ LF フィールドを記録</value>
+  </data>
+  <data name="Tools_RecordTheRawSignalAtThe" xml:space="preserve">
+    <value>アンテナの生信号を記録</value>
+  </data>
+  <data name="Tools_RecoverAll" xml:space="preserve">
+    <value>すべて復元</value>
+  </data>
+  <data name="Tools_RecoverKey" xml:space="preserve">
+    <value>キーを復元</value>
+  </data>
+  <data name="Tools_Recovering" xml:space="preserve">
+    <value>復元中…</value>
+  </data>
+  <data name="Tools_Samples" xml:space="preserve">
+    <value>サンプル</value>
+  </data>
+  <data name="Tools_SamplesDuration" xml:space="preserve">
+    <value>{0} サンプル · {1:0.0} ms</value>
+  </data>
+  <data name="Tools_SaveEverySampleAsARaw" xml:space="preserve">
+    <value>すべてのサンプルを生の .bin ファイルとして保存</value>
+  </data>
+  <data name="Tools_SaveHfTitle" xml:space="preserve">
+    <value>HF トレースを保存</value>
+  </data>
+  <data name="Tools_SaveLfTitle" xml:space="preserve">
+    <value>LF キャプチャを保存</value>
+  </data>
+  <data name="Tools_SaveTheFramesAsAProxmark3" xml:space="preserve">
+    <value>フレームを Proxmark3 トレース（.trace）として保存</value>
+  </data>
+  <data name="Tools_Seconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="Tools_Session" xml:space="preserve">
+    <value>セッション</value>
+  </data>
+  <data name="Tools_Signal" xml:space="preserve">
+    <value>信号</value>
+  </data>
+  <data name="Tools_SniffHF" xml:space="preserve">
+    <value>HF スニッフィング</value>
+  </data>
+  <data name="Tools_SniffLF" xml:space="preserve">
+    <value>LF スニッフィング</value>
+  </data>
+  <data name="Tools_Summary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="Tools_SwapHighAndLowDecodesThe" xml:space="preserve">
+    <value>High と Low を入れ替え: ビットを反転して復号します</value>
+  </data>
+  <data name="Tools_TcRequested" xml:space="preserve">
+    <value>EMV TC を要求</value>
+  </data>
+  <data name="Tools_TheChameleonAnswersAReaderAs" xml:space="preserve">
+    <value>Chameleon はアクティブなスロットのカードとしてリーダーに応答し、リーダーのコマンドと自身の応答の両方を記録します。受信中はリーダーにかざしてください。</value>
+  </data>
+  <data name="Tools_TheReadersKeyFromItsAuthentications" xml:space="preserve">
+    <value>リーダーの認証からそのキーを求めます。mfkey32 には同じブロックへの 2 回の試行、mfkey64 にはカードが受け入れた 1 回の認証が必要です。</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoHFSniffing" xml:space="preserve">
+    <value>このファームウェアは HF スニッフィングに対応していません。使用するには Chameleon のファームウェアを更新してください。</value>
+  </data>
+  <data name="Tools_ThisFirmwareHasNoLFSniffing" xml:space="preserve">
+    <value>このファームウェアは LF スニッフィングに対応していません。使用するには Chameleon のファームウェアを更新してください（Chameleon Lite にはリーダーがありません）。</value>
+  </data>
+  <data name="Tools_Tools" xml:space="preserve">
+    <value>ツール</value>
+  </data>
+  <data name="Tools_TraceSaved" xml:space="preserve">
+    <value>トレースを保存しました: {0}。</value>
+  </data>
+  <data name="Tools_TurnsTheFieldOnAndRecords" xml:space="preserve">
+    <value>フィールドをオンにし、アンテナ信号を 32 ms、搬送波 1 サイクル（8 µs）ごとに 1 サンプル記録します。記録中はタグをアンテナに当ててください。</value>
+  </data>
+  <data name="Tools_ViaMethod" xml:space="preserve">
+    <value>{0} で</value>
+  </data>
+  <data name="Tools_ViewInTheCapture" xml:space="preserve">
+    <value>キャプチャで表示</value>
+  </data>
+  <data name="Tools_WaveHintMouse" xml:space="preserve">
+    <value>ポイントするとサンプルを表示します。ホイール、ピンチ、スライダーでズーム、ドラッグでパンします。下のストリップで表示範囲を移動できます。</value>
+  </data>
+  <data name="Tools_WaveHintTouch" xml:space="preserve">
+    <value>タップするとサンプルを表示します。ピンチやスライダーでズーム、ドラッグでパンします。下のストリップで表示範囲を移動できます。</value>
+  </data>
+  <data name="Tools_Waveform" xml:space="preserve">
+    <value>波形</value>
+  </data>
+  <data name="Tools_Zoom" xml:space="preserve">
+    <value>ズーム</value>
+  </data>
+  <data name="Update_AppAvailable" xml:space="preserve">
+    <value>ChameLab {0} が利用可能です。</value>
+  </data>
+  <data name="Update_CheckFailed" xml:space="preserve">
+    <value>更新を確認できませんでした: {0}</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>更新を確認中…</value>
+  </data>
+  <data name="Update_NoRelease" xml:space="preserve">
+    <value>まだバージョンはリリースされていません。</value>
+  </data>
+  <data name="Update_ReleaseNoVersion" xml:space="preserve">
+    <value>リリース {0} にはバージョンのタグがありません。</value>
+  </data>
+  <data name="Update_UpToDate" xml:space="preserve">
+    <value>最新バージョンです。</value>
+  </data>
+  <data name="Usb_AlreadyConnected" xml:space="preserve">
+    <value>既に接続されています。</value>
+  </data>
+  <data name="Usb_ClaimControl" xml:space="preserve">
+    <value>USB CDC 制御インターフェースを確保できませんでした。</value>
+  </data>
+  <data name="Usb_ClaimData" xml:space="preserve">
+    <value>USB CDC データインターフェースを確保できませんでした。</value>
+  </data>
+  <data name="Usb_Closed" xml:space="preserve">
+    <value>USB 接続が閉じられました。</value>
+  </data>
+  <data name="Usb_Configure" xml:space="preserve">
+    <value>USB シリアルポートを設定できませんでした。</value>
+  </data>
+  <data name="Usb_CouldNotOpen" xml:space="preserve">
+    <value>USB デバイスを開けませんでした。接続し直して USB アクセスを許可してください。</value>
+  </data>
+  <data name="Usb_Denied" xml:space="preserve">
+    <value>USB アクセスが拒否されました。もう一度デバイスを選択して USB アクセスを許可してください。</value>
+  </data>
+  <data name="Usb_Disconnected" xml:space="preserve">
+    <value>USB デバイスが切断されました。</value>
+  </data>
+  <data name="Usb_Enable" xml:space="preserve">
+    <value>USB シリアルポートを有効にできませんでした。</value>
+  </data>
+  <data name="Usb_NoCdc" xml:space="preserve">
+    <value>USB デバイスに CDC ACM シリアルインターフェースがありません。</value>
+  </data>
+  <data name="Usb_NoHostMode" xml:space="preserve">
+    <value>このスマートフォンは USB ホストモードに対応していません。</value>
+  </data>
+  <data name="Usb_NoLongerAttached" xml:space="preserve">
+    <value>Chameleon の USB デバイスはもう接続されていません。</value>
+  </data>
+  <data name="Usb_NotConnected" xml:space="preserve">
+    <value>USB デバイスが接続されていません。</value>
+  </data>
+  <data name="Usb_UnpluggedWaiting" xml:space="preserve">
+    <value>許可を待っている間に USB デバイスが取り外されました。</value>
+  </data>
+  <data name="Usb_WriteFailed" xml:space="preserve">
+    <value>USB への書き込みに失敗しました。ケーブルを確認してデバイスを接続し直してください。</value>
+  </data>
+  <data name="WriteMode_Deceive" xml:space="preserve">
+    <value>偽装（ACK して破棄）</value>
+  </data>
+  <data name="WriteMode_Denied" xml:space="preserve">
+    <value>拒否（書き込みに NACK）</value>
+  </data>
+  <data name="WriteMode_Normal" xml:space="preserve">
+    <value>通常</value>
+  </data>
+  <data name="WriteMode_Shadow" xml:space="preserve">
+    <value>シャドウ（RAM のみ）</value>
+  </data>
+  <data name="WriteMode_ShadowRequested" xml:space="preserve">
+    <value>シャドウ（要求済み）</value>
+  </data>
+  <data name="Write_PlanChanged" xml:space="preserve">
+    <value>書き込み計画が変わりました。新しい書き込みセッションを開始してください。</value>
+  </data>
+  <data name="Write_TargetSmaller" xml:space="preserve">
+    <value>ターゲットカードが元ダンプより小さいです。</value>
+  </data>
+  <data name="Write_TargetUidChanged" xml:space="preserve">
+    <value>ターゲットの UID が変わりました。書き込みを続けるには同じカードをリーダーに置いてください。</value>
+  </data>
+  <data name="Cards_LfChip" xml:space="preserve">
+    <value>チップ</value>
+  </data>
+  <data name="Cards_WriteHintEm4305" xml:space="preserve">
+    <value>EM4205 / EM4305 タグをリーダーに置いてください。書き込み後に EM410x ID を読み戻して確認します。</value>
+  </data>
+  <data name="Cards_WriteToEm4305" xml:space="preserve">
+    <value>EM4305 タグに書き込み</value>
+  </data>
+  <data name="Cards_WroteEm4305" xml:space="preserve">
+    <value>「{0}」を EM4305 タグに書き込みました。</value>
+  </data>
+  <data name="Cards_Em4305PasswordTip" xml:space="preserve">
+    <value>書き込みにログインが必要な EM4305 タグのパスワード（4 バイト）。空のタグでは空欄のままにします。</value>
+  </data>
+  <data name="Device_Em4305WriteFailed" xml:space="preserve">
+    <value>EM4305 への書き込みに失敗しました: {0}</value>
+  </data>
+  <data name="Device_Em4305NotVerified" xml:space="preserve">
+    <value>タグに書き込みましたが、EM410x ID を読み戻せませんでした。EM4205 / EM4305 であることを確認してください。書き込み保護されている場合は、パスワードを入力して再試行してください。</value>
+  </data>
+  <data name="Status_LfLoginRequired" xml:space="preserve">
+    <value>LF タグにパスワードが必要です</value>
+  </data>
+  <data name="Status_CmdErr" xml:space="preserve">
+    <value>コマンドが失敗しました</value>
+  </data>
+</root>

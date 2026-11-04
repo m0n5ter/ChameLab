@@ -6,7 +6,16 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+
+## [v1.3.32][2026-11-04] · firmware v2.3.11-cl
+ - ChameLab: the app is translated into German, Spanish, French, Italian, Portuguese, Russian, Chinese (Simplified), Japanese and Korean; the language is picked in Settings and applies right away, without a restart: the window is rebuilt in the new language while the open page, the connection and running operations carry on. The web app bundles the Chinese, Japanese and Korean glyphs it needs and now loads the chosen translation
+ - Website: the download page and the guide are available in the same ten languages, picked from the menu or the browser's language
  - ChameLab: Hardnested now uses a shared, fully managed C# port of current Proxmark3 on desktop, Android, iOS and the web; compact state tables reduce memory use and remove the separate native hardnested build dependencies
+ - ChameLab: sorting dictionaries and cards by name is now natural: numbers in names compare by value, so A1, A2, A11, A21 instead of A1, A11, A2, A21
+ - Firmware: write EM410x IDs onto EM4205 / EM4305 tags (new command 3034): blocks 5–6 get the ID and block 4 the EM410x configuration (Manchester, RF/64, as Proxmark3 writes it); the result is read back with the EM410x reader and a mismatch is reported as an error. Raw word write and read (3035, 3036) take an optional password for tags that require login
+ - Firmware: EM4x05 scan now follows the EM4205 / EM4305 datasheet: correct command framing and parity, UID from block 1 and configuration from block 4, read-login and write-login bits from their real positions, and an optional LOGIN password. The previous framing did not match the chip
+ - ChameLab: EM410x cards can be cloned onto an EM4305 instead of a T55xx: pick the chip in the writer; the current password field is sent as LOGIN when the tag is write-protected
+ - CLI: `lf em 410x write --em4305 [--pwd]`, `lf em 4x05 rdbl` and `lf em 4x05 wrbl`; `lf em 4x05 read` takes `--pwd` and decodes the configuration word
 
 ## [v1.2.31][2026-11-03] · firmware v2.3.10-cl
  - ChameLab: Write another writes the same card onto the next tag right away, with the same options, instead of returning to the idle writer; on a Gen2 card whose previous target used the factory key in every sector, the next target is assumed to use it too, so no key recovery is needed first
