@@ -99,6 +99,7 @@
  "index.stable.2": "Caricamento…",
  "index.dev.1": "Build di sviluppo",
  "index.dev.2": "Caricamento…",
+ "index.download.macos": "macOS 15 (Sequoia) o successivo: <code>osx-x64</code> per i Mac Intel, <code>osx-arm64</code> per Apple Silicon. L'app non è firmata da Apple, quindi macOS ne blocca il primo avvio: consentilo in Impostazioni di Sistema → Privacy e sicurezza → Apri comunque, oppure esegui <code>xattr -dr com.apple.quarantine</code> sulla cartella estratta.",
  "footer": "Software libero sotto GNU GPL v3: <a href=\"https://github.com/m0n5ter/ChameLab\">codice sorgente</a> · <a href=\"https://github.com/m0n5ter/ChameLab/releases\">tutte le versioni</a> · <a href=\"https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md\">changelog</a>",
  "guide.page.1": "Guida di ChameLab",
  "guide.description": "Guida passo passo a ChameLab: collegare un ChameleonUltra o ChameleonLite, leggere e salvare schede, emularle negli slot, usare LF multi-scheda, dizionari e sniffing.",

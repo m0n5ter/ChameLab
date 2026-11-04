@@ -99,6 +99,7 @@
  "index.stable.2": "Загрузка…",
  "index.dev.1": "Сборка для разработки",
  "index.dev.2": "Загрузка…",
+ "index.download.macos": "macOS 15 (Sequoia) или новее: <code>osx-x64</code> для Mac на Intel, <code>osx-arm64</code> для Apple Silicon. Приложение не подписано Apple, поэтому macOS блокирует первый запуск: разрешите его в «Системные настройки» → «Конфиденциальность и безопасность» → «Всё равно открыть» или выполните <code>xattr -dr com.apple.quarantine</code> для распакованной папки.",
  "footer": "Свободное ПО под лицензией GNU GPL v3: <a href=\"https://github.com/m0n5ter/ChameLab\">исходный код</a> · <a href=\"https://github.com/m0n5ter/ChameLab/releases\">все релизы</a> · <a href=\"https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md\">список изменений</a>",
  "guide.page.1": "Руководство ChameLab",
  "guide.description": "Пошаговое руководство по ChameLab: подключите ChameleonUltra или ChameleonLite, считывайте и сохраняйте карты, эмулируйте их в слотах, используйте несколько LF-карт в слоте, словари и сниффинг.",

@@ -99,6 +99,7 @@
  "index.stable.2": "正在加载…",
  "index.dev.1": "开发版",
  "index.dev.2": "正在加载…",
+ "index.download.macos": "需要 macOS 15 (Sequoia) 或更高版本：Intel Mac 用 <code>osx-x64</code>，Apple 芯片用 <code>osx-arm64</code>。应用未经 Apple 签名，macOS 会阻止首次启动：在“系统设置”→“隐私与安全性”→“仍要打开”中允许，或对解压后的文件夹运行 <code>xattr -dr com.apple.quarantine</code>。",
  "footer": "GNU GPL v3 自由软件：<a href=\"https://github.com/m0n5ter/ChameLab\">源代码</a> · <a href=\"https://github.com/m0n5ter/ChameLab/releases\">所有版本</a> · <a href=\"https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md\">更新日志</a>",
  "guide.page.1": "ChameLab 指南",
  "guide.description": "ChameLab 分步指南：连接 ChameleonUltra 或 ChameleonLite，读取和保存卡片，在卡槽中模拟，使用多卡 LF、字典和嗅探。",

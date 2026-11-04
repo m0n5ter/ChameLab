@@ -99,6 +99,7 @@
  "index.stable.2": "読み込み中…",
  "index.dev.1": "開発版ビルド",
  "index.dev.2": "読み込み中…",
+ "index.download.macos": "macOS 15 (Sequoia) 以降が必要です。Intel Mac は <code>osx-x64</code>、Apple シリコンは <code>osx-arm64</code> を使ってください。アプリは Apple の署名がないため、macOS は初回の起動をブロックします。「システム設定」→「プライバシーとセキュリティ」→「このまま開く」で許可するか、展開したフォルダに <code>xattr -dr com.apple.quarantine</code> を実行してください。",
  "footer": "GNU GPL v3 のフリーソフトウェア: <a href=\"https://github.com/m0n5ter/ChameLab\">ソースコード</a> · <a href=\"https://github.com/m0n5ter/ChameLab/releases\">すべてのリリース</a> · <a href=\"https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md\">変更履歴</a>",
  "guide.page.1": "ChameLab ガイド",
  "guide.description": "ChameLab のステップバイステップガイド: ChameleonUltra や ChameleonLite の接続、カードの読み取りと保存、スロットでのエミュレーション、マルチカード LF、辞書、スニッフィング。",

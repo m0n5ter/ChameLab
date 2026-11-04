@@ -60,6 +60,18 @@ QR sharing. The full list is in the
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor
 Web Bluetooth.
 
+On macOS the app needs macOS 15 (Sequoia) or later: `osx-x64` for Intel Macs, `osx-arm64`
+for Apple Silicon. It isn't signed by Apple, so macOS blocks the first launch as failing its
+security check. Allow it under System Settings → Privacy & Security → Open Anyway, or clear
+the quarantine flag on the unpacked folder:
+
+```sh
+xattr -dr com.apple.quarantine path/to/chamelab-osx-x64
+```
+
+`ChameLab` is a plain executable rather than an `.app`, so opening it from Finder also opens
+a Terminal window; keep it open while the app runs.
+
 Sources, architecture and build steps: [software/chamelab](software/chamelab).
 
 ## The firmware

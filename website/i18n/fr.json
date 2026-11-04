@@ -99,6 +99,7 @@
  "index.stable.2": "Chargement…",
  "index.dev.1": "Version de développement",
  "index.dev.2": "Chargement…",
+ "index.download.macos": "macOS 15 (Sequoia) ou ultérieur : <code>osx-x64</code> pour les Mac Intel, <code>osx-arm64</code> pour Apple Silicon. L'app n'est pas signée par Apple, donc macOS bloque son premier lancement : autorisez-le dans Réglages Système → Confidentialité et sécurité → Ouvrir quand même, ou exécutez <code>xattr -dr com.apple.quarantine</code> sur le dossier décompressé.",
  "footer": "Logiciel libre sous GNU GPL v3 : <a href=\"https://github.com/m0n5ter/ChameLab\">code source</a> · <a href=\"https://github.com/m0n5ter/ChameLab/releases\">toutes les versions</a> · <a href=\"https://github.com/m0n5ter/ChameLab/blob/main/CHANGELOG.md\">journal des modifications</a>",
  "guide.page.1": "Guide ChameLab",
  "guide.description": "Guide pas à pas de ChameLab : connecter un ChameleonUltra ou un ChameleonLite, lire et enregistrer des cartes, les émuler dans des emplacements, utiliser le LF multicarte, les dictionnaires et la capture.",
