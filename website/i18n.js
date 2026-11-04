@@ -66,9 +66,12 @@
     }
     select.addEventListener('change', () => {
       try { localStorage.setItem('lang', select.value); } catch { /* still switches for this visit */ }
+      // Reloads the page: the release list and other script-built text are made in one language.
+      // A URL that differs only by its #anchor would just scroll, so that one is reloaded.
       const url = new URL(location.href);
       url.searchParams.delete('lang');
-      location.replace(url);
+      if (url.href === location.href) location.reload();
+      else location.replace(url);
     });
   }
 

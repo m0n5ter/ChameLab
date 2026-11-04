@@ -1,0 +1,60 @@
+name: Deploy the website
+
+# The download page and guide from main, with two web apps from the releases: the latest
+# release's at app/ and the dev pre-release's at dev/. Runs after every dev release on main
+# and is started on main by a tagged release, so the new stable web app goes out at once.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check the website translations
+        run: python3 website/i18n/check.py
+      - name: Add the download page
+        run: |
+          mkdir _site
+          cp -r website/. _site/
+          rm _site/i18n/check.py
+          # The download page shows each release's part of it
+          cp CHANGELOG.md _site/
+      - name: Add the web apps
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # <release tag, or nothing for the latest release> <folder>
+          web() {
+            rm -rf web && mkdir web &&
+              gh release download $1 --repo "$GITHUB_REPOSITORY" --pattern 'chamelab-*-web.zip' --dir web &&
+              mkdir -p "$2" && unzip -q web/*.zip -d "$2"
+          }
+          web dev _site/dev
+          if ! web "" _site/app; then
+            # Releases made before the web app was released with them
+            echo "::warning::The latest release has no web app; app/ serves the development build"
+            rm -rf _site/app && cp -r _site/dev _site/app
+          fi
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v5
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -140,11 +140,14 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/hardnested-browser-tests" playwright
           "$RUNNER_TEMP/hardnested-browser-tests/node_modules/.bin/playwright" install --with-deps chromium
           NODE_PATH="$RUNNER_TEMP/hardnested-browser-tests/node_modules" node software/benchmarks/hardnested/browser-worker.cjs publish/wwwroot software/chamelab/ChameLab.Tests/Reference/hardnested_capture.txt
-      - name: Upload the web app
+      - name: Package the web app
+        # Released with the other files; the website serves the stable and the development one
+        run: (cd publish/wwwroot && zip -qr "$OLDPWD/chamelab-web.zip" .)
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: gui-browser
-          path: publish/wwwroot
+          name: release-artifacts-gui-browser
+          path: chamelab-web.zip
 
   build_android:
     name: Build GUI (android)

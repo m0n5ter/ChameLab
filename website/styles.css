@@ -99,16 +99,21 @@ li::marker { color: var(--accent); }
 .downloads section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 28px; }
 .downloads h2 { font-size: 1.5rem; }
 .downloads h3 { font-size: 1rem; }
-ul.assets { list-style: none; padding: 0; margin: 0; }
-ul.assets li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
-ul.assets li div { min-width: 0; }
-ul.assets a { overflow-wrap: anywhere; font: .95rem/1.7 ui-monospace, Consolas, monospace; text-decoration: none; }
-ul.assets a:hover { text-decoration: underline; }
-ul.assets small { display: block; margin-top: 4px; color: var(--muted); font-size: .875rem; }
-ul.assets span { white-space: nowrap; font-size: .875rem; color: var(--muted); }
-ul.assets li.mine small::after { content: " · for this device"; color: var(--new); }
+.buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+a.platform { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--raised); color: var(--text); text-decoration: none; transition: background .18s, border-color .18s, transform .18s; }
+a.platform:hover { border-color: #62543b; transform: translateY(-2px); }
+a.platform svg { width: 22px; height: 22px; flex-shrink: 0; fill: currentColor; }
+a.platform span { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+a.platform b { font-size: .95rem; font-weight: 650; overflow-wrap: anywhere; }
+a.platform small { color: var(--muted); font-size: .8rem; }
+/* The download for the visitor's system */
+a.platform.mine { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+a.platform.mine:hover { background: #e4c992; }
+a.platform.mine small { color: #18150ebb; }
 details.notes { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 16px; }
 details.notes summary { cursor: pointer; font-size: 1rem; color: var(--accent); padding: 4px 0; }
+details.notes ul.changes { margin: 8px 0 0; }
+details.notes ul.changes li { margin: 8px 0; }
 details.notes pre { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--code); border-radius: 8px; padding: 16px; font: .875rem/1.7 ui-monospace, Consolas, monospace; }
 .nav-links a[aria-current="page"] { color: var(--text); }
 .guide-hero { padding: 64px 0 40px; border-bottom: 1px solid var(--line); }

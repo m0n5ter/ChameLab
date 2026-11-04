@@ -6,6 +6,8 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - Website: the Stable release and Development build offer a button per platform with its icon, the one for this device highlighted, and show their part of the changelog; each has its own web app button: the stable web app at `app/` (the top button), the development one at `dev/`. Releases carry the web app as `chamelab-<version>-web.zip`
+ - Website: picking a language reloads the page, also when its address has an #anchor
 
 ## [v1.3.32][2026-11-04] · firmware v2.3.11-cl
  - ChameLab: the app is translated into German, Spanish, French, Italian, Portuguese, Russian, Chinese (Simplified), Japanese and Korean; the language is picked in Settings and applies right away, without a restart: the window is rebuilt in the new language while the open page, the connection and running operations carry on. The web app bundles the Chinese, Japanese and Korean glyphs it needs and now loads the chosen translation
