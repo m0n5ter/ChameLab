@@ -23,6 +23,7 @@ internal sealed partial class Program
 
         return BuildAvaloniaApp()
             .WithInterFont()
+            .WithCjkFonts()
             .UseReactiveUI(_ => { })
             // Warm up the JS modules now so the first Rescan or Pair over Bluetooth click spends its
             // (time-limited) user-activation on the chooser, not the import.

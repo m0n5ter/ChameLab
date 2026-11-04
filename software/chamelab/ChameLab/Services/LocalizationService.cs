@@ -24,7 +24,12 @@ public static class LocalizationService
         ("de", "Deutsch"),
         ("es", "Español"),
         ("fr", "Français"),
+        ("it", "Italiano"),
+        ("ja", "日本語"),
+        ("ko", "한국어"),
+        ("pt", "Português"),
         ("ru", "Русский"),
+        ("zh-Hans", "简体中文"),
     ];
 
     /// <summary>"System default" first, then every translation.</summary>
