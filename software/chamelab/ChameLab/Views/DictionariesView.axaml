@@ -296,7 +296,7 @@
           <TextBlock Grid.Row="2" Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                      ToolTip.Tip="{Binding #KeysEditor.StatusDetail}"
                      IsVisible="{Binding #KeysEditor.StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Run FontFamily="Cascadia Code,Consolas,Menlo,monospace" Text="{Binding #KeysEditor.StatusText}" />
+            <Run FontFamily="{x:Static c:AppFonts.Mono}" Text="{Binding #KeysEditor.StatusText}" />
             <Run Text="  " />
             <Run Text="{Binding #KeysEditor.StatusDetail}" />
           </TextBlock>

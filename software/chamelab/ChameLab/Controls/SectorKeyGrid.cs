@@ -560,7 +560,6 @@ public class SectorKeyGrid : Control
     /// </summary>
     private sealed class SectorTip
     {
-        private static readonly FontFamily Mono = new("Cascadia Code,Consolas,Menlo,monospace");
         private readonly TextBlock _sector = Value(), _blocks = Value(), _keyA = Value(), _keyB = Value(), _write = Value();
         private readonly TextBlock _writeLabel;
 
@@ -599,7 +598,7 @@ public class SectorKeyGrid : Control
         {
             var isKey = text.Length == 12 && ulong.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _);
             t.Text = isKey ? $"{text[..2]} {text[2..4]} {text[4..6]} {text[6..8]} {text[8..10]} {text[10..12]}" : text;
-            if (state == KeyCellState.Found || state == KeyCellState.Unknown && text.Length == 12) t.FontFamily = Mono;
+            if (state == KeyCellState.Found || state == KeyCellState.Unknown && text.Length == 12) t.FontFamily = AppFonts.Mono;
             else t.ClearValue(TextBlock.FontFamilyProperty);
         }
 

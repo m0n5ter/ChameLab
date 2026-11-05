@@ -25,9 +25,6 @@ public partial class MarkdownView : StackPanel
     public static readonly StyledProperty<IBrush?> CodeBackgroundProperty =
         AvaloniaProperty.Register<MarkdownView, IBrush?>(nameof(CodeBackground));
 
-    // No Cascadia Code: its ligatures turn file names like "chamelab-<os>.zip" into arrows.
-    private static readonly FontFamily Mono = new("Consolas,Menlo,monospace");
-
     static MarkdownView()
     {
         MarkdownProperty.Changed.AddClassHandler<MarkdownView>((v, _) => v.Rebuild());
@@ -180,7 +177,7 @@ public partial class MarkdownView : StackPanel
         {
             HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
             VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
-            Content = new SelectableTextBlock { Text = code, FontFamily = Mono },
+            Content = new SelectableTextBlock { Text = code, FontFamily = AppFonts.Mono },
         },
     };
 
@@ -201,7 +198,7 @@ public partial class MarkdownView : StackPanel
             if (g[1].Success)
             {
                 var run = Run(block, g[1].Value, weight, style);
-                run.FontFamily = Mono;
+                run.FontFamily = AppFonts.Mono;
                 run.Background = CodeBackground;
                 target.Add(run);
             }

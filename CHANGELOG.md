@@ -7,6 +7,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 
 ## [unreleased][unreleased]
  - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in small strips that scrolling only moves, adding one strip at a time as the view nears it; the bytes and row numbers are drawn as batched glyphs, one run per color for each strip, also with a proportional font (Android falls back to Roboto, where every byte was laid out as text of its own and the renderer's memory use made scrolling hitch a few times a second), and the blinking caret no longer redraws the text
+ - ChameLab: hex, keys and code use the bundled Cascadia Mono font on every platform (Android showed them in Roboto, so columns did not line up)
 
 ## [v1.3.33][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: Settings picks the update channel: Stable, or Development, which also offers the dev pre-release when it is newer than the latest release. The quiet update check repeats every four hours and keeps a found update when a later check fails, and the top bar update icon pulses while an update is available

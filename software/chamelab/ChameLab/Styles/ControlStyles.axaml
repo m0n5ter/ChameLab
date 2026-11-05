@@ -151,7 +151,7 @@
     <Setter Property="CodeBackground" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
   </Style>
   <Style Selector="TextBlock.mono, SelectableTextBlock.mono">
-    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,DejaVu Sans Mono,monospace" />
+    <Setter Property="FontFamily" Value="{x:Static c:AppFonts.Mono}" />
   </Style>
   <Style Selector="TextBlock.value">
     <Setter Property="FontSize" Value="15" />
@@ -1178,7 +1178,7 @@
   <!-- ==================== Hex editing ==================== -->
 
   <Style Selector="TextBox.hex">
-    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,monospace" />
+    <Setter Property="FontFamily" Value="{x:Static c:AppFonts.Mono}" />
   </Style>
   <Style Selector="TextBox.hex TextBlock.hexcount">
     <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
@@ -1193,7 +1193,7 @@
   </Style>
 
   <Style Selector="c|HexEditor">
-    <Setter Property="FontFamily" Value="Cascadia Code,Consolas,Menlo,monospace" />
+    <Setter Property="FontFamily" Value="{x:Static c:AppFonts.Mono}" />
     <Setter Property="FontSize" Value="12" />
     <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrush}" />
     <Setter Property="LabelBrush" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />

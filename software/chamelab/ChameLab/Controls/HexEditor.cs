@@ -620,7 +620,8 @@ public sealed class HexEditor : Control
             var info = new GlyphInfo[list.Count];
             for (var i = 0; i < info.Length; i++)
                 info[i] = new GlyphInfo(list[i].Glyph, i, 0, new Vector(list[i].X, list[i].Y));
-            runs.Add((brush, new GlyphRun(face, FontSize, ReadOnlyMemory<char>.Empty, info, default)));
+            // An explicit origin: left out (null), the run would start at the font's ascent instead.
+            runs.Add((brush, new GlyphRun(face, FontSize, ReadOnlyMemory<char>.Empty, info, new Point(0, 0))));
         }
     }
 
