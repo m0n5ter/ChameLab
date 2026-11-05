@@ -94,12 +94,12 @@
     file: '<path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 3v12m-5-5 5 5 5-5M4 21h16"/>',
   };
 
-  // Asset name -> group, in display order
+  // Asset name -> group, in display order; the firmware goes two to a row (ChameleonUltra, then ChameleonLite)
   const groups = [
     [['js.group.app', 'ChameLab app'], /^chamelab-/],
-    [['js.group.dfu', 'Firmware (DFU)'], /-dfu-/],
     [['js.group.client', 'Command line client'], /^client-/],
-    [['js.group.binaries', 'Firmware binaries (for SWD flashing)'], /-binaries/],
+    [['js.group.dfu', 'Firmware (DFU)'], /-dfu-/, 'pairs'],
+    [['js.group.binaries', 'Firmware binaries (for SWD flashing)'], /-binaries/, 'pairs'],
   ];
 
   // Asset name (with its version: chamelab-1.0.7-win-x64.zip, ultra-dfu-app-2.3.2-cl.zip) -> its button
@@ -239,7 +239,7 @@
       el('a', { href: release.html_url }, release.name || release.tag_name), ` · ${date}`));
 
     const rest = release.assets.filter(a => !webPackage.test(a.name));
-    for (const [name, pattern] of [...groups, [['js.group.other', 'Other'], /./]]) {
+    for (const [name, pattern, layout] of [...groups, [['js.group.other', 'Other'], /./]]) {
       const assets = rest.filter(a => pattern.test(a.name));
       // The web app comes first, across the whole row
       const web = pattern === groups[0][1]
@@ -248,9 +248,7 @@
       web.forEach(b => b.classList.add('wide'));
       if (!assets.length && !web.length) continue;
       rest.splice(0, rest.length, ...rest.filter(a => !assets.includes(a)));
-      // The firmware goes two to a row: ChameleonUltra above, ChameleonLite below (DFU), side by side (SWD)
-      const grid = pattern === groups[1][1] || pattern === groups[3][1] ? 'buttons pairs' : 'buttons';
-      section.append(el('h3', {}, text(name)), el('div', { className: grid },
+      section.append(el('h3', {}, text(name)), el('div', { className: layout ? `buttons ${layout}` : 'buttons' },
         ...web, ...assets.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name)).map(assetButton)));
     }
 

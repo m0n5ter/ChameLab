@@ -97,7 +97,8 @@ li::marker { color: var(--accent); }
 .downloads h2 { font-size: 1.5rem; }
 .downloads h3 { font-size: 1rem; }
 .buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.buttons.pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Two to a row, or one when two don't fit */
+.buttons.pairs { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(230px, calc(50% - 5px))), 1fr)); }
 .buttons > .wide { grid-column: 1 / -1; }
 a.platform { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--raised); color: var(--text); text-decoration: none; transition: background .18s, border-color .18s, transform .18s; }
 a.platform:hover { border-color: #62543b; transform: translateY(-2px); }
