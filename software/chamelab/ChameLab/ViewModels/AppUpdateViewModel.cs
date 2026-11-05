@@ -160,8 +160,8 @@ public sealed class AppUpdateViewModel : ViewModelBase
     private async Task OpenDownloadAsync()
     {
         var url = Latest?.IsDevelopment == true
-            ? "https://m0n5ter.github.io/ChameLab/#dev"
-            : "https://m0n5ter.github.io/ChameLab/#stable";
+            ? "https://m0n5ter.github.io/ChameLab/download/#dev"
+            : "https://m0n5ter.github.io/ChameLab/download/#stable";
         if (StorageService.TopLevelAccessor?.Invoke()?.Launcher is { } launcher)
             await launcher.LaunchUriAsync(new Uri(url));
     }

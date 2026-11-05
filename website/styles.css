@@ -95,6 +95,8 @@ li::marker { color: var(--accent); }
 .led.dual i { animation: dual 2s steps(1) infinite; }
 @keyframes dual { 50% { background: var(--c2); box-shadow: 0 0 14px var(--c2); } }
 .download-intro { padding-top: 64px; }
+.download-intro .actions { margin-top: 24px; }
+.guide-hero + .downloads { margin-top: 40px; }
 .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
 .downloads section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 28px; }
 .downloads h2 { font-size: 1.5rem; }

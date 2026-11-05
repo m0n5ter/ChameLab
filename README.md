@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://m0n5ter.github.io/ChameLab/"><b>Open in the browser</b></a> ·
-  <a href="https://m0n5ter.github.io/ChameLab/#stable">Download</a> ·
+  <a href="https://m0n5ter.github.io/ChameLab/download/">Download</a> ·
   <a href="CHANGELOG.md">Changelog</a> (<a href="CHANGELOG.ru.md">на русском</a>)
 </p>
 

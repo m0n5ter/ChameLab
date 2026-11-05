@@ -2,7 +2,7 @@
 
     python website/i18n/check.py
 
-Every data-i18n key of index.html and guide/index.html must be in en.json, every translation
+Every data-i18n key of index.html, download/index.html and guide/index.html must be in en.json, every translation
 must have exactly the keys of en.json, and each translated string must keep the English
 markup: the same tags with the same attributes (links, code, bold), in any order.
 en.json is the English text of the pages; update it with the pages.
@@ -18,7 +18,7 @@ TAG = re.compile(r'<(/?[a-z0-9]+)((?:\s+[a-z-]+="[^"]*")*)\s*/?>')
 
 def page_keys():
     keys = set()
-    for page in ('index.html', 'guide/index.html'):
+    for page in ('index.html', 'download/index.html', 'guide/index.html'):
         html = (SITE / page).read_text('utf-8')
         keys |= set(re.findall(r'data-i18n="([^"]+)"', html))
         for attrs in re.findall(r'data-i18n-attr="([^"]+)"', html):
