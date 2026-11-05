@@ -219,6 +219,7 @@
  "js.web": "Web app",
  "js.sub.browser": "In the browser",
  "js.sub.x64": "64-bit",
+ "js.sub.32bit": "32-bit",
  "js.sub.update": "Application update",
  "js.sub.recovery": "With bootloader (recovery)",
  "js.whatsNew": "What's new",

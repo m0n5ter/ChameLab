@@ -192,21 +192,24 @@ jobs:
       - name: Publish
         env:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        run: >
-          dotnet publish software/chamelab/ChameLab.Android/ChameLab.Android.csproj
-          -c Release -f net10.0-android
-          -p:Version=${{ needs.version.outputs.version }}
-          -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }}
-          -p:ApplicationVersion=${{ needs.version.outputs.code }}
-          ${{ steps.signing.outputs.args }}
-          -o publish
-      - name: Name the APK for release
-        run: cp publish/*-Signed.apk chamelab-android.apk
+        run: |
+          # One APK per ABI, half the size of a universal one: arm64 for most phones,
+          # arm for 32-bit systems (common on Android 8 and older devices)
+          for rid in android-arm64 android-arm; do
+            dotnet publish software/chamelab/ChameLab.Android/ChameLab.Android.csproj \
+              -c Release -f net10.0-android -r "$rid" \
+              -p:Version=${{ needs.version.outputs.version }} \
+              -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }} \
+              -p:ApplicationVersion=${{ needs.version.outputs.code }} \
+              ${{ steps.signing.outputs.args }} \
+              -o "publish/$rid"
+            cp publish/"$rid"/*-Signed.apk "chamelab-$rid.apk"
+          done
       - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:
           name: release-artifacts-gui-android
-          path: chamelab-android.apk
+          path: chamelab-android-*.apk
 
   build_ios:
     name: Build GUI (iOS, ${{ matrix.rid }})

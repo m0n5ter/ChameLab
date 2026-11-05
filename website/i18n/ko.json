@@ -219,6 +219,7 @@
  "js.web": "웹 앱",
  "js.sub.browser": "브라우저에서",
  "js.sub.x64": "64비트",
+ "js.sub.32bit": "32비트",
  "js.sub.update": "애플리케이션 업데이트",
  "js.sub.recovery": "부트로더 포함(복구용)",
  "js.whatsNew": "새로운 기능",

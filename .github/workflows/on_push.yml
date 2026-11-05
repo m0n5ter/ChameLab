@@ -140,7 +140,7 @@ jobs:
             ChameLab ${{ github.ref_name }} with firmware v${{ needs.firmware_pipeline.outputs.version }}
             - `ultra-dfu-app-<firmware>.zip` / `lite-dfu-app-<firmware>.zip`: firmware update (ChameLab installs it from the Dashboard)
             - `chamelab-<version>-<os>.zip`: ChameLab for desktop
-            - `chamelab-<version>-android.apk`: ChameLab for Android (BLE)
+            - `chamelab-<version>-android-arm64.apk`: ChameLab for Android (most phones); `-android-arm.apk` for 32-bit Android
             - `client-<version>-<os>.zip`: command line client
             - `chamelab-<version>-web.zip`: the web app, as the website serves it
             Built from commit ${{ github.sha }}

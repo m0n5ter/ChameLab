@@ -219,6 +219,7 @@
  "js.web": "网页版",
  "js.sub.browser": "在浏览器中",
  "js.sub.x64": "64 位",
+ "js.sub.32bit": "32 位",
  "js.sub.update": "应用程序更新",
  "js.sub.recovery": "含引导程序（恢复用）",
  "js.whatsNew": "新功能",
