@@ -241,13 +241,17 @@
     const rest = release.assets.filter(a => !webPackage.test(a.name));
     for (const [name, pattern] of [...groups, [['js.group.other', 'Other'], /./]]) {
       const assets = rest.filter(a => pattern.test(a.name));
+      // The web app comes first, across the whole row
       const web = pattern === groups[0][1]
         ? [button(channel.web, 'web', t('js.web', 'Web app'), t('js.sub.browser', 'In the browser'))]
         : [];
+      web.forEach(b => b.classList.add('wide'));
       if (!assets.length && !web.length) continue;
       rest.splice(0, rest.length, ...rest.filter(a => !assets.includes(a)));
-      section.append(el('h3', {}, text(name)), el('div', { className: 'buttons' },
-        ...assets.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name)).map(assetButton), ...web));
+      // The firmware goes two to a row: ChameleonUltra above, ChameleonLite below
+      const grid = pattern === groups[1][1] ? 'buttons pairs' : 'buttons';
+      section.append(el('h3', {}, text(name)), el('div', { className: grid },
+        ...web, ...assets.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name)).map(assetButton)));
     }
 
     if (channel.changes) section.append(whatsNew(channel.changes, channel.empty));
