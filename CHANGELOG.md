@@ -6,7 +6,7 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
- - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in strips that scrolling only moves, draws row numbers with the bytes instead of laying each out as text, and the blinking caret no longer redraws the text
+ - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in small strips that scrolling only moves, adding one strip at a time as the view nears it; row numbers are drawn with the bytes instead of laid out as text, and the blinking caret no longer redraws the text
 
 ## [v1.3.33][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: Settings picks the update channel: Stable, or Development, which also offers the dev pre-release when it is newer than the latest release. The quiet update check repeats every four hours and keeps a found update when a later check fails, and the top bar update icon pulses while an update is available

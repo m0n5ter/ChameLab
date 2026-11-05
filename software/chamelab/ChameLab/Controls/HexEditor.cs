@@ -92,7 +92,9 @@ public sealed class HexEditor : Control
     // with the part of the editor on screen, so a long key list never draws all its lines.
     // The editor itself draws only the row and cell highlights under them, and the caret
     // layer above them blinks on its own without redrawing any text.
-    private const int ChunkLines = 32;
+    // Small strips: the one the view scrolls to is drawn within a frame, so a fling adds a
+    // little text every few frames instead of a large batch at once.
+    private const int ChunkLines = 16;
     private readonly Dictionary<int, LineChunk> _chunks = new();
     private readonly Stack<LineChunk> _spareChunks = new();
     private readonly CaretLayer _caretLayer;
@@ -100,6 +102,10 @@ public sealed class HexEditor : Control
     private int _winFrom, _winTo = -1;
     // The strips were placed for a viewport reported by the layout (not a guess before one came).
     private bool _windowFits;
+    // Strips to place on the next arrange (laid out again, added, or the width changed). Scrolling
+    // re-arranges the editor every frame at a new position; without changes there is nothing to do.
+    private bool _chunksDirty = true;
+    private Size _arrangedSize;
 
     // Layout (recomputed on measure).
     private Typeface _typeface;
@@ -306,11 +312,17 @@ public sealed class HexEditor : Control
     protected override Size MeasureOverride(Size availableSize)
     {
         InvalidateText();
+        _chunksDirty = true;
         _textCache.Clear();
         _typeface = new Typeface(FontFamily);
         var glyphMap = _typeface.GlyphTypeface.CharacterToGlyphMap;
         _canBatchText = Enumerable.Range(0x20, 0x7F - 0x20).Append(0xB7)
             .All(glyphMap.ContainsGlyph);
+        if (_canBatchText)
+        {
+            for (var c = 0x20; c < 0x7F; c++) _asciiGlyphs[c] = glyphMap[c];
+            _dotGlyph = glyphMap[0xB7];
+        }
         _digitW = "0123456789ABCDEF".Max(c => Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace);
         _canBatchText &= "0123456789ABCDEF".All(c =>
             Math.Abs(Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace - _digitW) < 0.001);
@@ -371,7 +383,11 @@ public sealed class HexEditor : Control
 
     protected override Size ArrangeOverride(Size finalSize)
     {
+        if (finalSize != _arrangedSize) _chunksDirty = true;
+        if (!_chunksDirty) return finalSize;
+        _arrangedSize = finalSize;
         if (UpdateWindow()) InvalidateVisual();
+        _chunksDirty = false;
         _caretLayer.Measure(finalSize);
         _caretLayer.Arrange(new Rect(finalSize));
         foreach (var (index, chunk) in _chunks)
@@ -423,9 +439,11 @@ public sealed class HexEditor : Control
         var from = Math.Clamp(LineAt(view.Top - margin) / ChunkLines, 0, lastChunk);
         var to = Math.Clamp(LineAt(view.Bottom + margin) / ChunkLines, from, lastChunk);
         (_winFrom, _winTo) = (from * ChunkLines, Math.Min(_lineY.Length, (to + 1) * ChunkLines) - 1);
-        // Add strips half a screenful before the view reaches the edge, so no blank lines show.
-        _drawnTop = from > 0 ? LineTop(_winFrom) + margin / 2 : double.NegativeInfinity;
-        _drawnBottom = to < lastChunk ? _lineY[_winTo] + _lineH - margin / 2 : double.PositiveInfinity;
+        // Move the window on once the view has scrolled about a strip, so each step adds one strip
+        // (a screenful ahead of the view, so no blank lines show) rather than several in one frame.
+        var lead = Math.Max(margin / 2, margin - ChunkLines * _lineH);
+        _drawnTop = from > 0 ? LineTop(_winFrom) + lead : double.NegativeInfinity;
+        _drawnBottom = to < lastChunk ? _lineY[_winTo] + _lineH - lead : double.PositiveInfinity;
 
         foreach (var index in _chunks.Keys.Where(i => i < from || i > to).ToArray())
             changed |= DropChunk(index);
@@ -438,7 +456,7 @@ public sealed class HexEditor : Control
             // Under the caret layer, which stays last.
             VisualChildren.Insert(VisualChildren.Count - 1, chunk);
             chunk.InvalidateVisual();
-            changed = true;
+            changed = _chunksDirty = true;
         }
         return changed;
     }
@@ -527,23 +545,15 @@ public sealed class HexEditor : Control
     private bool LineText(int line, HexBuffer buf, IBrush fg, IBrush dim, IBrush changed, IBrush label,
         List<(IBrush Brush, GlyphRun Run)> runs)
     {
-        var glyphs = new Dictionary<IBrush, List<(ushort Glyph, double X)>>();
+        // The per-brush lists are kept between lines: a strip of lines is drawn as the view scrolls
+        // to it, and allocating them for every line made garbage collections cut into the scrolling.
+        // Brushes change only with the theme; drop the lists of those no longer used.
+        if (_glyphs.Count >= 16) _glyphs.Clear();
+        foreach (var list in _glyphs.Values) list.Clear();
         var face = _typeface.GlyphTypeface;
         var sample = Text("00", fg);
         var baseline = (_lineH - sample.Height) / 2 + sample.Baseline;
-        void Add(string text, IBrush brush, double center)
-        {
-            var width = Text(text, brush).WidthIncludingTrailingWhitespace;
-            var x = center - width / 2;
-            // Coverage and fixed-width hex digits were checked during measure.
-            foreach (var c in text)
-            {
-                var glyph = face.CharacterToGlyphMap[c];
-                if (!glyphs.TryGetValue(brush, out var list)) glyphs[brush] = list = new();
-                list.Add((glyph, x));
-                x += width / text.Length;
-            }
-        }
+        void Add(string text, IBrush brush, double center) => AddGlyphs(text, brush, center);
 
         var labelDrawn = false;
         if (StartsRow(line))
@@ -582,9 +592,10 @@ public sealed class HexEditor : Control
                 Add(read || template is not null ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);
         }
 
-        foreach (var (brush, list) in glyphs)
+        foreach (var (brush, list) in _glyphs)
         {
-            list.Sort((a, b) => a.X.CompareTo(b.X));
+            if (list.Count == 0) continue;
+            list.Sort(static (a, b) => a.X.CompareTo(b.X));
             var info = new GlyphInfo[list.Count];
             for (var i = 0; i < info.Length; i++)
                 info[i] = new GlyphInfo(list[i].Glyph, i,
@@ -593,6 +604,25 @@ public sealed class HexEditor : Control
                 new Point(list[0].X, baseline))));
         }
         return labelDrawn;
+    }
+
+    private readonly Dictionary<IBrush, List<(ushort Glyph, double X)>> _glyphs = new();
+    // Glyphs of printable ASCII and '·' (looked up once per layout; the map is a lookup per character).
+    private readonly ushort[] _asciiGlyphs = new ushort[0x80];
+    private ushort _dotGlyph;
+
+    private void AddGlyphs(string text, IBrush brush, double center)
+    {
+        var width = Text(text, brush).WidthIncludingTrailingWhitespace;
+        var x = center - width / 2;
+        if (!_glyphs.TryGetValue(brush, out var list)) _glyphs[brush] = list = new();
+        // Coverage and fixed-width hex digits were checked during measure.
+        foreach (var c in text)
+        {
+            var glyph = c < 0x80 ? _asciiGlyphs[c] : c == '·' ? _dotGlyph : _typeface.GlyphTypeface.CharacterToGlyphMap[c];
+            list.Add((glyph, x));
+            x += width / text.Length;
+        }
     }
 
     // The editor draws what changes with the caret: the active row, the selection and the caret's
