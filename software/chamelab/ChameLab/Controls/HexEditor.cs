@@ -315,17 +315,31 @@ public sealed class HexEditor : Control
         _chunksDirty = true;
         _textCache.Clear();
         _typeface = new Typeface(FontFamily);
-        var glyphMap = _typeface.GlyphTypeface.CharacterToGlyphMap;
+        // The bytes are drawn as glyphs placed by their own advances, so any font with printable
+        // ASCII and '·' will do: the font list falls back to a proportional one (Roboto on Android),
+        // and requiring same-width hex digits sent every byte through a text layout of its own there.
+        var face = _typeface.GlyphTypeface;
+        var glyphMap = face.CharacterToGlyphMap;
         _canBatchText = Enumerable.Range(0x20, 0x7F - 0x20).Append(0xB7)
             .All(glyphMap.ContainsGlyph);
         if (_canBatchText)
         {
-            for (var c = 0x20; c < 0x7F; c++) _asciiGlyphs[c] = glyphMap[c];
+            var scale = FontSize / face.Metrics.DesignEmHeight;
+            double Advance(ushort glyph)
+            {
+                if (face.TryGetHorizontalGlyphAdvance(glyph, out var advance)) return advance * scale;
+                _canBatchText = false;
+                return 0;
+            }
+            for (var c = 0x20; c < 0x7F; c++)
+            {
+                _asciiGlyphs[c] = glyphMap[c];
+                _asciiAdvances[c] = Advance(_asciiGlyphs[c]);
+            }
             _dotGlyph = glyphMap[0xB7];
+            _dotAdvance = Advance(_dotGlyph);
         }
         _digitW = "0123456789ABCDEF".Max(c => Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace);
-        _canBatchText &= "0123456789ABCDEF".All(c =>
-            Math.Abs(Text(c.ToString(), Brushes.Black).WidthIncludingTrailingWhitespace - _digitW) < 0.001);
         _lineH = LineHeight;
         _byteGap = _digitW * 0.6;
         _groupGap = _digitW * 0.6;
@@ -538,22 +552,16 @@ public sealed class HexEditor : Control
         _ => fg,
     };
 
-    // Batch a line by brush instead of recording a separate text draw for every byte (and its
-    // row label: a label of its own was laid out as text for every row, thousands in a key list).
-    // Explicit glyph advances preserve the cell positions, including fractional group gaps.
-    // The caller owns (and disposes) the runs. Returns whether the row label is in them.
-    private bool LineText(int line, HexBuffer buf, IBrush fg, IBrush dim, IBrush changed, IBrush label,
-        List<(IBrush Brush, GlyphRun Run)> runs)
+    // Batch a strip of lines by brush instead of recording a separate text draw for every byte (and
+    // its row label: a label of its own was laid out as text for every row, thousands in a key list).
+    // Every glyph is placed by its own offset, so a strip is one glyph run per color rather than
+    // a run and a transform for every line, which the renderer replays every frame of a scroll.
+    // Adds the glyphs of a line whose top is at y; returns whether the row label is among them.
+    private bool LineGlyphs(int line, HexBuffer buf, IBrush fg, IBrush dim, IBrush changed, IBrush label, double y)
     {
-        // The per-brush lists are kept between lines: a strip of lines is drawn as the view scrolls
-        // to it, and allocating them for every line made garbage collections cut into the scrolling.
-        // Brushes change only with the theme; drop the lists of those no longer used.
-        if (_glyphs.Count >= 16) _glyphs.Clear();
-        foreach (var list in _glyphs.Values) list.Clear();
-        var face = _typeface.GlyphTypeface;
         var sample = Text("00", fg);
-        var baseline = (_lineH - sample.Height) / 2 + sample.Baseline;
-        void Add(string text, IBrush brush, double center) => AddGlyphs(text, brush, center);
+        var baseline = y + (_lineH - sample.Height) / 2 + sample.Baseline;
+        void Add(string text, IBrush brush, double center) => AddGlyphs(text, brush, center, baseline);
 
         var labelDrawn = false;
         if (StartsRow(line))
@@ -567,9 +575,8 @@ public sealed class HexEditor : Control
                 double labelX = 0;
                 foreach (var ch in rowLabel)
                 {
-                    var glyphText = AsciiBytes[ch];
-                    var advance = Text(glyphText, labelBrush).WidthIncludingTrailingWhitespace;
-                    Add(glyphText, labelBrush, labelX + advance / 2);
+                    var advance = _asciiAdvances[ch];
+                    Add(AsciiBytes[ch], labelBrush, labelX + advance / 2);
                     labelX += advance;
                 }
                 labelDrawn = true;
@@ -591,37 +598,50 @@ public sealed class HexEditor : Control
             if (_showAscii)
                 Add(read || template is not null ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);
         }
-
-        foreach (var (brush, list) in _glyphs)
-        {
-            if (list.Count == 0) continue;
-            list.Sort(static (a, b) => a.X.CompareTo(b.X));
-            var info = new GlyphInfo[list.Count];
-            for (var i = 0; i < info.Length; i++)
-                info[i] = new GlyphInfo(list[i].Glyph, i,
-                    i + 1 < info.Length ? list[i + 1].X - list[i].X : _digitW);
-            runs.Add((brush, new GlyphRun(face, FontSize, ReadOnlyMemory<char>.Empty, info,
-                new Point(list[0].X, baseline))));
-        }
         return labelDrawn;
     }
 
-    private readonly Dictionary<IBrush, List<(ushort Glyph, double X)>> _glyphs = new();
-    // Glyphs of printable ASCII and '·' (looked up once per layout; the map is a lookup per character).
-    private readonly ushort[] _asciiGlyphs = new ushort[0x80];
-    private ushort _dotGlyph;
-
-    private void AddGlyphs(string text, IBrush brush, double center)
+    /// <summary>Starts collecting the glyphs of a strip.</summary>
+    private void BeginGlyphs()
     {
-        var width = Text(text, brush).WidthIncludingTrailingWhitespace;
+        // The per-brush lists are kept between strips, so drawing one allocates little.
+        // Brushes change only with the theme; drop the lists of those no longer used.
+        if (_glyphs.Count >= 16) _glyphs.Clear();
+        foreach (var list in _glyphs.Values) list.Clear();
+    }
+
+    /// <summary>Turns the collected glyphs into one run per brush (the caller owns and disposes them).</summary>
+    private void EndGlyphs(List<(IBrush Brush, GlyphRun Run)> runs)
+    {
+        var face = _typeface.GlyphTypeface;
+        foreach (var (brush, list) in _glyphs)
+        {
+            if (list.Count == 0) continue;
+            var info = new GlyphInfo[list.Count];
+            for (var i = 0; i < info.Length; i++)
+                info[i] = new GlyphInfo(list[i].Glyph, i, 0, new Vector(list[i].X, list[i].Y));
+            runs.Add((brush, new GlyphRun(face, FontSize, ReadOnlyMemory<char>.Empty, info, default)));
+        }
+    }
+
+    private readonly Dictionary<IBrush, List<(ushort Glyph, double X, double Y)>> _glyphs = new();
+    // Glyphs of printable ASCII and '·' and their advances (looked up once per layout).
+    private readonly ushort[] _asciiGlyphs = new ushort[0x80];
+    private readonly double[] _asciiAdvances = new double[0x80];
+    private ushort _dotGlyph;
+    private double _dotAdvance;
+
+    /// <summary>Places a short text of printable ASCII and '·' (covered, as measure checked) centered on x.</summary>
+    private void AddGlyphs(string text, IBrush brush, double center, double baseline)
+    {
+        double width = 0;
+        foreach (var c in text) width += c == '·' ? _dotAdvance : _asciiAdvances[c];
         var x = center - width / 2;
         if (!_glyphs.TryGetValue(brush, out var list)) _glyphs[brush] = list = new();
-        // Coverage and fixed-width hex digits were checked during measure.
         foreach (var c in text)
         {
-            var glyph = c < 0x80 ? _asciiGlyphs[c] : c == '·' ? _dotGlyph : _typeface.GlyphTypeface.CharacterToGlyphMap[c];
-            list.Add((glyph, x));
-            x += width / text.Length;
+            list.Add((c == '·' ? _dotGlyph : _asciiGlyphs[c], x, baseline));
+            x += c == '·' ? _dotAdvance : _asciiAdvances[c];
         }
     }
 
@@ -673,6 +693,9 @@ public sealed class HexEditor : Control
         if (_textCache.Count > 4096) _textCache.Clear();
 
         using var strip = ctx.PushTransform(Matrix.CreateTranslation(0, -top));
+        // The runs' own bounds leave out the glyph offsets; the strip's area is its content.
+        ctx.FillRectangle(Brushes.Transparent, new Rect(0, top, width, _lineY[last] + _lineH - top));
+        if (_canBatchText) BeginGlyphs();
         for (var line = first; line <= last; line++)
         {
             var y = _lineY[line];
@@ -695,15 +718,7 @@ public sealed class HexEditor : Control
                 }
             }
 
-            var labelDrawn = false;
-            if (_canBatchText)
-            {
-                var from = runs.Count;
-                labelDrawn = LineText(line, buf, fg, dim, changed, label, runs);
-                using (ctx.PushTransform(Matrix.CreateTranslation(0, y)))
-                    for (var i = from; i < runs.Count; i++)
-                        ctx.DrawGlyphRun(runs[i].Brush, runs[i].Run);
-            }
+            var labelDrawn = _canBatchText && LineGlyphs(line, buf, fg, dim, changed, label, y);
 
             if (firstOfRow && !labelDrawn)
             {
@@ -740,6 +755,10 @@ public sealed class HexEditor : Control
                     DrawCentered(ctx, ascii, rowRead && ascii != "·" ? brush : dim, AsciiX(col) + _digitW / 2, y);
             }
         }
+
+        if (!_canBatchText) return;
+        EndGlyphs(runs);
+        foreach (var (brush, run) in runs) ctx.DrawGlyphRun(brush, run);
     }
 
     // Caret: a blinking text-cursor bar before the active nibble (hex) or character (ASCII).
