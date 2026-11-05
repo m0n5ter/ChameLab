@@ -6,6 +6,8 @@ Releases are tagged with the ChameLab version, which goes up with every release 
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
 ## [unreleased][unreleased]
+ - ChameLab: a new logo, a geometric redraw of the chameleon with the gear: the app icon, the Android splash screen, the Windows window and .exe icon and the top bar mark (in place of the ChameleonUltra picture)
+ - Website: the header shows the new logo in place of the "C" badge, without the dot after ChameLab; the website and the web app (app/ and dev/) have the new favicon (the web app had the browser's default one)
 
 ## [v1.3.34][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in small strips that scrolling only moves, adding one strip at a time as the view nears it; the bytes and row numbers are drawn as batched glyphs, one run per color for each strip, also with a proportional font (Android falls back to Roboto, where every byte was laid out as text of its own and the renderer's memory use made scrolling hitch a few times a second), and the blinking caret no longer redraws the text

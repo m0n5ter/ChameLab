@@ -8,6 +8,7 @@
 
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\ChameLab\Assets\chameleon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

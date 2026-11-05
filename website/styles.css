@@ -28,8 +28,7 @@ code { background: var(--code); padding: 2px 6px; border-radius: 5px; font: .85e
 nav { position: sticky; top: 0; z-index: 20; background: #101112f2; border-bottom: 1px solid var(--line); backdrop-filter: blur(16px); }
 .nav-inner { max-width: 1200px; margin: auto; min-height: 80px; padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { display: inline-flex; gap: 10px; align-items: center; color: var(--text); font-size: 1.3rem; font-weight: 700; letter-spacing: -.6px; text-decoration: none; }
-.brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #62543b; border-radius: 9px; color: var(--accent); background: var(--accent-soft); font: 700 20px/1 ui-monospace, monospace; }
-.brand-dot { color: var(--accent); margin-left: -9px; }
+.brand-mark { display: block; width: 33px; height: 34px; }
 .nav-links { display: flex; align-items: center; gap: 28px; }
 .nav-links a { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; text-decoration: none; color: var(--muted); font-size: 1rem; font-weight: 600; }
 .nav-links a:hover { color: var(--text); }

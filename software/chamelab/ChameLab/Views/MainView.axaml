@@ -23,10 +23,10 @@
           <PathIcon Data="{StaticResource Icon.menu}" />
         </Button>
 
-        <!-- Brand mark: the device itself. -->
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
-          <Image Source="/Assets/chameleon-ultra.png" Height="36" Classes="header-logo"
-                 RenderOptions.BitmapInterpolationMode="HighQuality" />
+        <!-- Brand mark: the ChameLab logo. -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Path Data="{StaticResource Logo.chamelab}" Fill="#BBA678" Stretch="Uniform" Height="32"
+                VerticalAlignment="Center" Classes="header-logo" />
           <Button Classes="brand" VerticalAlignment="Center"
                   Command="{Binding AppUpdate.OpenDownloadCommand}"
                   IsHitTestVisible="{Binding AppUpdate.IsUpdateAvailable}"
