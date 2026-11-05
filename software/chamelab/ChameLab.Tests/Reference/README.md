@@ -1,5 +1,23 @@
 # Independent C reference vectors
 
+Native reference sources are preserved at repository commit
+`471f13c1d36c8bdb955c7252abc5f66b46cef684`. Reproduce them in a separate checkout:
+
+```text
+git worktree add ../ChameLab-reference 471f13c1d36c8bdb955c7252abc5f66b46cef684
+```
+
+All C source paths below refer to that historical checkout. Build its original
+executables, then run the current C# orchestrator:
+
+```text
+dotnet run --project software/chamelab/ChameLab.Tools -c Release -- reference-vectors --generator PATH/crypto_vectors --nested PATH/nested --staticnested PATH/staticnested --mfkey32v2 PATH/mfkey32v2 --output crypto_vectors.json
+```
+
+On 2026-11-05, all 20 regenerated vectors and full nested candidate multisets
+matched the saved JSON using GCC-built original solvers. The following sections
+document the historical fixture provenance and build procedure.
+
 `crypto_vectors.c` generates synthetic authentication data with the original
 `software/src/crypto1.c`, not with the managed implementation being tested.
 It also runs the original Darkside solver (`mfkey.c` / `crapto1.c`), including

@@ -1,0 +1,32 @@
+name: .NET client checks
+
+on:
+  pull_request:
+    paths:
+      - 'software/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify generated circuits
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- generate-hardnested --check
+      - name: Audit source languages
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release --no-build -- check-languages
+      - name: Test shared recovery engines and application
+        run: dotnet test software/chamelab/ChameLab.Tests -c Release --nologo
+      - name: Test CLI
+        run: dotnet test software/chamelab/ChameLab.Cli.Tests -c Release --nologo
+      - name: Build desktop
+        run: dotnet build software/chamelab/ChameLab.Desktop -c Release --nologo

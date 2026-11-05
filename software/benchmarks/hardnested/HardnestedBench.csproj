@@ -8,6 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Exercise the actual shared assembly, including localized progress and resources. -->
-    <ProjectReference Include="../../chamelab/ChameLab/ChameLab.csproj" />
+    <ProjectReference Include="../../chamelab/ChameLab.Core/ChameLab.Core.csproj" />
   </ItemGroup>
 </Project>

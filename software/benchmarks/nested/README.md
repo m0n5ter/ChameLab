@@ -3,10 +3,13 @@
 Run on Windows x64 with .NET 10 SDK and Visual Studio C++ build tools:
 
 ```powershell
-./software/benchmarks/nested/run.ps1 -Iterations 7 -Warmups 2
+dotnet run --project software/chamelab/ChameLab.Tools -c Release -- benchmark nested 7 2
 ```
 
-The runner builds MSVC C11 `/O2` and .NET Release. The managed project links
+The current runner builds .NET Release and runs managed modes. To reproduce the
+historical native comparison below, use a separate checkout at commit
+`471f13c1d36c8bdb955c7252abc5f66b46cef684`; it preserves the original MSVC runner
+and C sources. The managed project links
 the actual application sources, without Avalonia or third-party packages.
 It compiles the original `nested_util.c`, `crapto1.c`, `crypto1.c`,
 `bucketsort.c` and `parity.c` unchanged. `native.c` reproduces the nonce

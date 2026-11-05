@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -11,20 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- UI strings: Strings.resx is English, Strings.<lang>.resx are translations.
-         The build generates the typed ChameLab.Localization.Strings class. -->
-    <EmbeddedResource Update="Localization\Strings.resx">
-      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
-      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
-      <StronglyTypedNamespace>ChameLab.Localization</StronglyTypedNamespace>
-      <StronglyTypedClassName>Strings</StronglyTypedClassName>
-      <PublicClass>true</PublicClass>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
-    <EmbeddedResource Include="Crypto/Hardnested/tables.bin" LogicalName="ChameLab.Hardnested.Tables" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,5 +29,8 @@
   <ItemGroup>
     <!-- Crypto/ uses internals in tests (the candidate validation pipeline). -->
     <InternalsVisibleTo Include="ChameLab.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ChameLab.Core\ChameLab.Core.csproj" />
   </ItemGroup>
 </Project>

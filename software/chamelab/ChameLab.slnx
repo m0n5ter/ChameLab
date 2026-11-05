@@ -6,9 +6,16 @@
     <Deploy />
   </Project>
   <Project Path="ChameLab.Browser/ChameLab.Browser.csproj" />
+  <Project Path="ChameLab.Cli.Plot/ChameLab.Cli.Plot.csproj" />
+  <Project Path="ChameLab.Cli.Tests/ChameLab.Cli.Tests.csproj" />
+  <Project Path="ChameLab.Cli/ChameLab.Cli.csproj" />
+  <Project Path="ChameLab.Core/ChameLab.Core.csproj" />
   <Project Path="ChameLab.Desktop/ChameLab.Desktop.csproj" />
   <Project Path="ChameLab.iOS/ChameLab.iOS.csproj">
     <Deploy />
   </Project>
+  <Project Path="ChameLab.Serial/ChameLab.Serial.csproj" />
+  <Project Path="ChameLab.Tests/ChameLab.Tests.csproj" />
+  <Project Path="ChameLab.Tools/ChameLab.Tools.csproj" />
   <Project Path="ChameLab/ChameLab.csproj" />
 </Solution>

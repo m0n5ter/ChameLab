@@ -1,0 +1,85 @@
+{
+  "provenance": "LFSR expressions from software/src/mfulc_des_brute.c at 471f13c1; TripleDES ECB from Python cryptography/OpenSSL, generated 2026-11-05. Both generators interpret decrypted bytes big endian.",
+  "vectors": [
+    {
+      "generator": "Giantec",
+      "segment": 0,
+      "index": 66051,
+      "plain": "1234091b848dc247",
+      "zeroKeyNonce": "f828dfefd4887f6a",
+      "encrypted": "51c0a514302384b0",
+      "key": "06080800b0b2b4b6c0c2c4c6d0d2d4d6",
+      "baseKey": "00000000b0b2b4b6c0c2c4c6d0d2d4d6"
+    },
+    {
+      "generator": "Giantec",
+      "segment": 1,
+      "index": 66052,
+      "plain": "1234091b848dc247",
+      "zeroKeyNonce": "f828dfefd4887f6a",
+      "encrypted": "40ceea330a0448bd",
+      "key": "a0a2a4a608080800c0c2c4c6d0d2d4d6",
+      "baseKey": "a0a2a4a600000000c0c2c4c6d0d2d4d6"
+    },
+    {
+      "generator": "Giantec",
+      "segment": 2,
+      "index": 66053,
+      "plain": "1234091b848dc247",
+      "zeroKeyNonce": "f828dfefd4887f6a",
+      "encrypted": "07f51950ee05ead7",
+      "key": "a0a2a4a6b0b2b4b60a080800d0d2d4d6",
+      "baseKey": "a0a2a4a6b0b2b4b600000000d0d2d4d6"
+    },
+    {
+      "generator": "Giantec",
+      "segment": 3,
+      "index": 66054,
+      "plain": "1234091b848dc247",
+      "zeroKeyNonce": "f828dfefd4887f6a",
+      "encrypted": "4c7dde41679cf05a",
+      "key": "a0a2a4a6b0b2b4b6c0c2c4c60c080800",
+      "baseKey": "a0a2a4a6b0b2b4b6c0c2c4c600000000"
+    },
+    {
+      "generator": "Uscuid",
+      "segment": 0,
+      "index": 66051,
+      "plain": "cc7050db246e1234",
+      "zeroKeyNonce": "bf4e18376544da3a",
+      "encrypted": "3d4732c6fdb5a99b",
+      "key": "06080800b0b2b4b6c0c2c4c6d0d2d4d6",
+      "baseKey": "00000000b0b2b4b6c0c2c4c6d0d2d4d6"
+    },
+    {
+      "generator": "Uscuid",
+      "segment": 1,
+      "index": 66052,
+      "plain": "cc7050db246e1234",
+      "zeroKeyNonce": "bf4e18376544da3a",
+      "encrypted": "1b0e7e86b0700a79",
+      "key": "a0a2a4a608080800c0c2c4c6d0d2d4d6",
+      "baseKey": "a0a2a4a600000000c0c2c4c6d0d2d4d6"
+    },
+    {
+      "generator": "Uscuid",
+      "segment": 2,
+      "index": 66053,
+      "plain": "cc7050db246e1234",
+      "zeroKeyNonce": "bf4e18376544da3a",
+      "encrypted": "1ae3f20a9e256ee4",
+      "key": "a0a2a4a6b0b2b4b60a080800d0d2d4d6",
+      "baseKey": "a0a2a4a6b0b2b4b600000000d0d2d4d6"
+    },
+    {
+      "generator": "Uscuid",
+      "segment": 3,
+      "index": 66054,
+      "plain": "cc7050db246e1234",
+      "zeroKeyNonce": "bf4e18376544da3a",
+      "encrypted": "07076ffb0d57f5b4",
+      "key": "a0a2a4a6b0b2b4b6c0c2c4c60c080800",
+      "baseKey": "a0a2a4a6b0b2b4b6c0c2c4c600000000"
+    }
+  ]
+}

@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../chamelab/ChameLab/Services/NestedRecovery.cs" Link="NestedRecovery.cs" />
-    <Compile Include="../../chamelab/ChameLab/Crypto/Crypto1.cs" Link="Crypto1.cs" />
-    <Compile Include="../../chamelab/ChameLab/Crypto/Crypto1State.cs" Link="Crypto1State.cs" />
-    <Compile Include="../../chamelab/ChameLab/Crypto/Crapto1.cs" Link="Crapto1.cs" />
-    <Compile Include="../../chamelab/ChameLab/Crypto/Crypto1RecoveryWorkspace.cs" Link="Crypto1RecoveryWorkspace.cs" />
-    <Compile Include="../../chamelab/ChameLab/Crypto/Extensions/UIntExtension.cs" Link="UIntExtension.cs" />
+    <Compile Include="../../chamelab/ChameLab.Core/Services/NestedRecovery.cs" Link="NestedRecovery.cs" />
+    <Compile Include="../../chamelab/ChameLab.Core/Crypto/Crypto1.cs" Link="Crypto1.cs" />
+    <Compile Include="../../chamelab/ChameLab.Core/Crypto/Crypto1State.cs" Link="Crypto1State.cs" />
+    <Compile Include="../../chamelab/ChameLab.Core/Crypto/Crapto1.cs" Link="Crapto1.cs" />
+    <Compile Include="../../chamelab/ChameLab.Core/Crypto/Crypto1RecoveryWorkspace.cs" Link="Crypto1RecoveryWorkspace.cs" />
+    <Compile Include="../../chamelab/ChameLab.Core/Crypto/Extensions/UIntExtension.cs" Link="UIntExtension.cs" />
   </ItemGroup>
 </Project>

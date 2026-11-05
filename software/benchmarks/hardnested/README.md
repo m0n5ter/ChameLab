@@ -20,27 +20,27 @@ The expected key is used only to check the result, never passed to the solver.
 ## Comparison with current Proxmark3
 
 Use the pinned upstream revision documented in
-`software/chamelab/ChameLab/Crypto/Hardnested/NOTICE.md`:
+`software/chamelab/ChameLab.Core/Crypto/Hardnested/NOTICE.md`:
 
 ```sh
 git clone https://github.com/RfidResearchGroup/proxmark3.git /path/to/reference
 git -C /path/to/reference checkout 1b71dfbbd4c156c34c02cfdd9140470d97d1336c
-python3 software/benchmarks/hardnested/prepare_reference.py /path/to/reference
+dotnet run --project software/chamelab/ChameLab.Tools -- prepare-hardnested-reference /path/to/reference
 make -C /path/to/reference -j8 client SKIPQT=1 SKIPGD=1
 dotnet publish software/benchmarks/hardnested -c Release -r linux-x64 \
   --self-contained -o /path/to/managed
-python3 software/benchmarks/hardnested/compare.py \
+dotnet run --project software/chamelab/ChameLab.Tools -- compare-hardnested \
   /path/to/managed/HardnestedBench /path/to/reference/client/proxmark3 \
   /path/to/results 3
 ```
 
 This revision of the upstream CLI rejects `-r` without connected hardware and
-overwrites `-f`. `prepare_reference.py` fixes only those two command-routing
+overwrites `-f`. `prepare-hardnested-reference` fixes only those two command-routing
 conditions in a disposable checkout. The C hardnested implementation, compiler
 optimizations, SIMD detection and threading are unchanged. All original tables
 are available to it. No known target key is passed to either recovery engine.
 
-`compare.py` runs all eight deterministic sets in [CASES.json](CASES.json): five
+`compare-hardnested` runs all eight deterministic sets in [CASES.json](CASES.json): five
 keys, five UIDs, five seeds and four capture sizes. Use `--only reference zero`
 to select cases. It checks the reference set against the independent C fixture
 and requires all 256 first-byte values in every capture.
@@ -68,7 +68,7 @@ Publish the browser project with Release AOT, install Playwright and Chromium,
 then run:
 
 ```sh
-node software/benchmarks/hardnested/browser-worker.cjs \
+node software/chamelab/ChameLab.Browser/tests/browser-worker.cjs \
   /path/to/publish/wwwroot \
   software/chamelab/ChameLab.Tests/Reference/hardnested_capture.txt
 ```
