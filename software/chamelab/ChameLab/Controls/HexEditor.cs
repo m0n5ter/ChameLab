@@ -83,17 +83,23 @@ public sealed class HexEditor : Control
     private static readonly TimeSpan CaretBlink = TimeSpan.FromMilliseconds(530);
 
     private readonly Dictionary<(string, IBrush), FormattedText> _textCache = new();
-    private readonly Dictionary<int, List<(IBrush Brush, GlyphRun Run)>> _lineText = new();
     private static readonly string[] HexBytes = Enumerable.Range(0, 256).Select(b => b.ToString("X2")).ToArray();
     private static readonly string[] AsciiBytes = Enumerable.Range(0, 256)
         .Select(b => b is >= 0x20 and < 0x7F ? ((char)b).ToString() : "·").ToArray();
 
-    private void ClearLineText()
-    {
-        foreach (var runs in _lineText.Values)
-            foreach (var (_, run) in runs) run.Dispose();
-        _lineText.Clear();
-    }
+    // The text is drawn by strips of lines (child visuals) that keep what they drew: scrolling
+    // only moves them, and a strip draws again only when its text changes. Strips come and go
+    // with the part of the editor on screen, so a long key list never draws all its lines.
+    // The editor itself draws only the row and cell highlights under them, and the caret
+    // layer above them blinks on its own without redrawing any text.
+    private const int ChunkLines = 32;
+    private readonly Dictionary<int, LineChunk> _chunks = new();
+    private readonly Stack<LineChunk> _spareChunks = new();
+    private readonly CaretLayer _caretLayer;
+    // Lines with strips (and highlights drawn): _winFrom.._winTo.
+    private int _winFrom, _winTo = -1;
+    // The strips were placed for a viewport reported by the layout (not a guess before one came).
+    private bool _windowFits;
 
     // Layout (recomputed on measure).
     private Typeface _typeface;
@@ -138,8 +144,10 @@ public sealed class HexEditor : Control
     public HexEditor()
     {
         _ime = new InputClient(this);
+        _caretLayer = new CaretLayer(this);
+        VisualChildren.Add(_caretLayer);
         _blink = new DispatcherTimer { Interval = CaretBlink };
-        _blink.Tick += (_, _) => { _caretOn = !_caretOn; InvalidateVisual(); };
+        _blink.Tick += (_, _) => { _caretOn = !_caretOn; _caretLayer.InvalidateVisual(); };
         Cursor = new Cursor(StandardCursorType.Ibeam);
         // The caret and the active row show focus; no keyboard focus frame around the whole grid.
         FocusAdorner = null;
@@ -154,16 +162,20 @@ public sealed class HexEditor : Control
             if (_pointerFocus && !_movingCaret) { e.Handled = true; return; }
             e.TargetRect = CaretViewRect();
         });
-        // Scrolling moves the drawn lines without redrawing them; draw again only once
-        // the visible part nears the edge of what was drawn. A partly visible editor
-        // (the page scrolling it in) gets a new viewport height every frame, and
-        // redrawing on each made touch scrolling stutter on phones.
+        // Scrolling moves the drawn strips without redrawing them; strips are added and dropped
+        // only once the visible part nears the edge of those there are. A partly visible editor
+        // (the page scrolling it in) gets a new viewport height every frame, and redrawing on
+        // each made touch scrolling stutter on phones.
         EffectiveViewportChanged += (_, e) =>
         {
             _viewport = e.EffectiveViewport;
             var top = Math.Max(0, _viewport.Top);
             var bottom = Math.Min(_contentHeight, _viewport.Bottom);
-            if (bottom > top && (top < _drawnTop || bottom > _drawnBottom)) InvalidateVisual();
+            if (bottom > top && (!_windowFits || top < _drawnTop || bottom > _drawnBottom) && UpdateWindow())
+            {
+                InvalidateArrange();
+                InvalidateVisual();
+            }
         };
         TextInputOptions.SetShowSuggestions(this, false);
         TextInputOptions.SetAutoCapitalization(this, false);
@@ -221,7 +233,6 @@ public sealed class HexEditor : Control
         base.OnPropertyChanged(change);
         if (change.Property == BufferProperty)
         {
-            ClearLineText();
             if (_buffer is not null) _buffer.Changed -= OnBufferChanged;
             _buffer = Buffer;
             if (_buffer is not null) _buffer.Changed += OnBufferChanged;
@@ -234,13 +245,27 @@ public sealed class HexEditor : Control
                  change.Property.PropertyType == typeof(IBrush))
         {
             _textCache.Clear();
-            ClearLineText();
+            InvalidateText();
+            _caretLayer.InvalidateVisual();
         }
+    }
+
+    /// <summary>The caret or the selection moved: the highlights and the caret draw again, the text does not.</summary>
+    private void InvalidateCaret()
+    {
+        InvalidateVisual();
+        _caretLayer.InvalidateVisual();
+    }
+
+    /// <summary>The bytes, their colors or their layout changed: every strip of lines draws again.</summary>
+    private void InvalidateText()
+    {
+        foreach (var chunk in _chunks.Values) chunk.InvalidateVisual();
     }
 
     private void OnBufferChanged(object? sender, EventArgs e)
     {
-        ClearLineText();
+        InvalidateText();
         if (_buffer is { } buf && _lineY.Length != LineCount(buf))
         {
             // Rows were added or removed: lay the lines out again and keep the caret inside.
@@ -249,7 +274,7 @@ public sealed class HexEditor : Control
             InvalidateMeasure();
         }
         UpdateStatus();
-        InvalidateVisual();
+        InvalidateCaret();
     }
 
     /// <summary>Puts the caret on a byte (and shows it), e.g. at a row just added.</summary>
@@ -280,7 +305,7 @@ public sealed class HexEditor : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        ClearLineText();
+        InvalidateText();
         _textCache.Clear();
         _typeface = new Typeface(FontFamily);
         var glyphMap = _typeface.GlyphTypeface.CharacterToGlyphMap;
@@ -295,7 +320,7 @@ public sealed class HexEditor : Control
         _byteStride = 2 * _digitW + _byteGap;
         _textCache.Clear();
 
-        if (_buffer is null) return default;
+        if (_buffer is null) { _lineY = Array.Empty<double>(); _contentHeight = 0; return default; }
 
         var labelChars = Enumerable.Range(0, _buffer.ViewRowCount).Select(r => _buffer.RowLabel(r).Length).DefaultIfEmpty(2).Max();
         _labelW = (labelChars + 1.5) * _digitW;
@@ -342,6 +367,89 @@ public sealed class HexEditor : Control
 
         var width = _showAscii ? _asciiX + _perLine * _digitW : _hexX + HexWidth(_perLine);
         return new Size(Math.Min(width, avail), _contentHeight);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        if (UpdateWindow()) InvalidateVisual();
+        _caretLayer.Measure(finalSize);
+        _caretLayer.Arrange(new Rect(finalSize));
+        foreach (var (index, chunk) in _chunks)
+        {
+            var rect = ChunkRect(index, finalSize.Width);
+            // The group separators run the whole width.
+            if (Math.Abs(chunk.Bounds.Width - rect.Width) > 1e-7) chunk.InvalidateVisual();
+            chunk.Measure(rect.Size);
+            chunk.Arrange(rect);
+        }
+        return finalSize;
+    }
+
+    private int ChunkCount => (_lineY.Length + ChunkLines - 1) / ChunkLines;
+
+    /// <summary>Top of a line's band: just under the line before, so a separator and heading above it are inside.</summary>
+    private double LineTop(int line) => line <= 0 ? 0 : _lineY[line - 1] + _lineH;
+
+    private Rect ChunkRect(int index, double width)
+    {
+        var first = index * ChunkLines;
+        var last = Math.Min(first + ChunkLines, _lineY.Length) - 1;
+        var top = LineTop(first);
+        return new Rect(0, top, width, Math.Max(0, _lineY[last] + _lineH - top));
+    }
+
+    /// <summary>
+    /// Keeps strips of lines for the view plus a screenful around it (the window's height, not
+    /// the view's, which is short while the editor is partly scrolled in), and drops the rest.
+    /// </summary>
+    /// <returns>Whether strips were added or dropped.</returns>
+    private bool UpdateWindow()
+    {
+        var changed = false;
+        if (_buffer is null || _lineY.Length == 0)
+        {
+            foreach (var index in _chunks.Keys.ToArray()) changed |= DropChunk(index);
+            (_winFrom, _winTo) = (0, -1);
+            (_drawnTop, _drawnBottom) = (double.NegativeInfinity, double.PositiveInfinity);
+            return changed;
+        }
+
+        var client = TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 0;
+        _windowFits = _viewport.Height > 0;
+        // Before the layout says what is on screen, assume the top of the editor is.
+        var view = _windowFits ? _viewport : new Rect(0, 0, Bounds.Width, client > 0 ? client : 1000);
+        var margin = Math.Max(view.Height, client);
+        var lastChunk = ChunkCount - 1;
+        var from = Math.Clamp(LineAt(view.Top - margin) / ChunkLines, 0, lastChunk);
+        var to = Math.Clamp(LineAt(view.Bottom + margin) / ChunkLines, from, lastChunk);
+        (_winFrom, _winTo) = (from * ChunkLines, Math.Min(_lineY.Length, (to + 1) * ChunkLines) - 1);
+        // Add strips half a screenful before the view reaches the edge, so no blank lines show.
+        _drawnTop = from > 0 ? LineTop(_winFrom) + margin / 2 : double.NegativeInfinity;
+        _drawnBottom = to < lastChunk ? _lineY[_winTo] + _lineH - margin / 2 : double.PositiveInfinity;
+
+        foreach (var index in _chunks.Keys.Where(i => i < from || i > to).ToArray())
+            changed |= DropChunk(index);
+        for (var index = from; index <= to; index++)
+        {
+            if (_chunks.ContainsKey(index)) continue;
+            var chunk = _spareChunks.Count > 0 ? _spareChunks.Pop() : new LineChunk(this);
+            chunk.Index = index;
+            _chunks[index] = chunk;
+            // Under the caret layer, which stays last.
+            VisualChildren.Insert(VisualChildren.Count - 1, chunk);
+            chunk.InvalidateVisual();
+            changed = true;
+        }
+        return changed;
+    }
+
+    private bool DropChunk(int index)
+    {
+        if (!_chunks.Remove(index, out var chunk)) return false;
+        VisualChildren.Remove(chunk);
+        chunk.ReleaseRuns();
+        if (_spareChunks.Count < 8) _spareChunks.Push(chunk);
+        return true;
     }
 
     private double ByteX(int col) => _hexX + col * _byteStride + col / GroupSize(_perLine) * _groupGap;
@@ -412,13 +520,13 @@ public sealed class HexEditor : Control
         _ => fg,
     };
 
-    // Batch a line by brush instead of recording a separate text draw for every byte.
+    // Batch a line by brush instead of recording a separate text draw for every byte (and its
+    // row label: a label of its own was laid out as text for every row, thousands in a key list).
     // Explicit glyph advances preserve the cell positions, including fractional group gaps.
-    // Keep only the drawn window cached, so scrolling a large capture has bounded memory use.
-    private List<(IBrush Brush, GlyphRun Run)> LineText(int line, HexBuffer buf,
-        IBrush fg, IBrush dim, IBrush changed)
+    // The caller owns (and disposes) the runs. Returns whether the row label is in them.
+    private bool LineText(int line, HexBuffer buf, IBrush fg, IBrush dim, IBrush changed, IBrush label,
+        List<(IBrush Brush, GlyphRun Run)> runs)
     {
-        if (_lineText.TryGetValue(line, out var cached)) return cached;
         var glyphs = new Dictionary<IBrush, List<(ushort Glyph, double X)>>();
         var face = _typeface.GlyphTypeface;
         var sample = Text("00", fg);
@@ -434,6 +542,27 @@ public sealed class HexEditor : Control
                 if (!glyphs.TryGetValue(brush, out var list)) glyphs[brush] = list = new();
                 list.Add((glyph, x));
                 x += width / text.Length;
+            }
+        }
+
+        var labelDrawn = false;
+        if (StartsRow(line))
+        {
+            var row = RowOfLine(line);
+            var rowLabel = buf.RowLabel(row);
+            // Printable ASCII is covered (checked during measure); anything else is laid out as text.
+            if (rowLabel.All(ch => ch is >= ' ' and < (char)0x7F))
+            {
+                var labelBrush = buf.IsRead(row) ? label : dim;
+                double labelX = 0;
+                foreach (var ch in rowLabel)
+                {
+                    var glyphText = AsciiBytes[ch];
+                    var advance = Text(glyphText, labelBrush).WidthIncludingTrailingWhitespace;
+                    Add(glyphText, labelBrush, labelX + advance / 2);
+                    labelX += advance;
+                }
+                labelDrawn = true;
             }
         }
 
@@ -453,7 +582,6 @@ public sealed class HexEditor : Control
                 Add(read || template is not null ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);
         }
 
-        var runs = new List<(IBrush, GlyphRun)>();
         foreach (var (brush, list) in glyphs)
         {
             list.Sort((a, b) => a.X.CompareTo(b.X));
@@ -464,9 +592,11 @@ public sealed class HexEditor : Control
             runs.Add((brush, new GlyphRun(face, FontSize, ReadOnlyMemory<char>.Empty, info,
                 new Point(list[0].X, baseline))));
         }
-        return _lineText[line] = runs;
+        return labelDrawn;
     }
 
+    // The editor draws what changes with the caret: the active row, the selection and the caret's
+    // cell, under the strips of text. Only within the lines that have strips.
     public override void Render(DrawingContext ctx)
     {
         var buf = _buffer;
@@ -474,136 +604,177 @@ public sealed class HexEditor : Control
 
         // Paint the whole area so clicks between and around bytes still reach the editor.
         ctx.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
+        if (_winTo < _winFrom || buf.ViewLength == 0) return;
+
+        var caretLine = LineOf(_caret);
+        var caretShown = caretLine >= _winFrom && caretLine <= _winTo;
+        if (caretShown && ActiveRowBrush is { } activeRow)
+            ctx.FillRectangle(activeRow, new Rect(0, _lineY[caretLine], Bounds.Width, _lineH), 4);
+
+        var panes = _showAscii ? 2 : 1;
+        var (selFrom, selTo) = Selection();
+        if (selTo >= selFrom && SelectionBrush is { } selBrush)
+        {
+            var from = Math.Max(selFrom, (long)_winFrom * _perLine);
+            var to = Math.Min(Math.Min(selTo, ((long)_winTo + 1) * _perLine - 1), buf.ViewLength - 1);
+            for (var offset = from; offset <= to; offset++)
+                for (var p = 0; p < panes; p++)
+                    ctx.FillRectangle(selBrush, CellRect(offset, p == 0 ? Pane.Hex : Pane.Ascii));
+        }
+
+        if (caretShown && (_caret < selFrom || _caret > selTo) && CaretCellBrush is { } caretCell)
+            for (var p = 0; p < panes; p++)
+                ctx.FillRectangle(caretCell, CellRect(_caret, p == 0 ? Pane.Hex : Pane.Ascii).Deflate(new Thickness(0, 2)), 3);
+    }
+
+    /// <summary>Draws the text of lines <paramref name="first"/>..<paramref name="last"/> for a strip whose top is at <paramref name="top"/>.</summary>
+    private void RenderLines(DrawingContext ctx, int first, int last, double top, double width,
+        List<(IBrush Brush, GlyphRun Run)> runs)
+    {
+        var buf = _buffer;
+        if (buf is null || _lineY.Length == 0) return;
+        last = Math.Min(last, _lineY.Length - 1);
 
         var fg = Foreground ?? Brushes.White;
         var dim = DimBrush ?? fg;
         var label = LabelBrush ?? dim;
         var changed = ChangedBrush ?? fg;
-        var focused = IsKeyboardFocusWithin;
-        var (selFrom, selTo) = Selection();
-
-        // Only the lines in view (plus a screenful around them) are drawn: a key list can be thousands long.
-        // The screenful is the window's height, not the view's, which is short while partly scrolled in.
-        var (drawFrom, drawTo) = (0, _lineY.Length - 1);
-        (_drawnTop, _drawnBottom) = (double.NegativeInfinity, double.PositiveInfinity);
-        if (_viewport is { Height: > 0 } view)
-        {
-            var margin = Math.Max(view.Height, TopLevel.GetTopLevel(this)?.ClientSize.Height ?? 0);
-            drawFrom = Math.Max(0, LineAt(view.Top - margin));
-            drawTo = Math.Min(_lineY.Length - 1, LineAt(view.Bottom + margin));
-            // Redraw half a screenful before the view reaches the edge, so no blank lines show.
-            if (drawFrom > 0) _drawnTop = _lineY[drawFrom] + margin / 2;
-            if (drawTo < _lineY.Length - 1) _drawnBottom = _lineY[drawTo] + _lineH - margin / 2;
-        }
-
-        foreach (var line in _lineText.Keys.Where(line => line < drawFrom || line > drawTo).ToArray())
-        {
-            foreach (var (_, run) in _lineText[line]) run.Dispose();
-            _lineText.Remove(line);
-        }
-        // Gutter labels are unique; do not retain every offset visited while scrolling.
+        // Group headings and labels laid out as text are few; do not keep every one seen while scrolling.
         if (_textCache.Count > 4096) _textCache.Clear();
 
-        var caretLine = LineOf(_caret);
-        for (var line = drawFrom; line <= drawTo; line++)
+        using var strip = ctx.PushTransform(Matrix.CreateTranslation(0, -top));
+        for (var line = first; line <= last; line++)
         {
             var y = _lineY[line];
             var row = RowOfLine(line);
             var firstOfRow = StartsRow(line);
-            var lineBytes = LineBytes(buf, line);
 
             var header = firstOfRow && ShowGroupHeaders ? buf.GroupHeader(row) : null;
-            var top = header is null ? y : y - _lineH;
+            var headerTop = header is null ? y : y - _lineH;
             if (firstOfRow && row > 0 && buf.StartsGroup(row) && SeparatorBrush is { } sep)
-                ctx.FillRectangle(sep, new Rect(0, top - SeparatorGap / 2 - 0.5, Bounds.Width, 1));
+                ctx.FillRectangle(sep, new Rect(0, headerTop - SeparatorGap / 2 - 0.5, width, 1));
 
             if (header is { } h)
             {
                 var title = Text(h.Title, label);
-                ctx.DrawText(title, new Point(0, top + (_lineH - title.Height) / 2));
+                ctx.DrawText(title, new Point(0, headerTop + (_lineH - title.Height) / 2));
                 if (h.Detail is { } detail)
                 {
                     var ft = Text(detail, dim);
-                    ctx.DrawText(ft, new Point(title.WidthIncludingTrailingWhitespace + 2 * _digitW, top + (_lineH - ft.Height) / 2));
+                    ctx.DrawText(ft, new Point(title.WidthIncludingTrailingWhitespace + 2 * _digitW, headerTop + (_lineH - ft.Height) / 2));
                 }
             }
 
-            if (line == caretLine && ActiveRowBrush is { } activeRow)
-                ctx.FillRectangle(activeRow, new Rect(0, y, Bounds.Width, _lineH), 4);
+            var labelDrawn = false;
+            if (_canBatchText)
+            {
+                var from = runs.Count;
+                labelDrawn = LineText(line, buf, fg, dim, changed, label, runs);
+                using (ctx.PushTransform(Matrix.CreateTranslation(0, y)))
+                    for (var i = from; i < runs.Count; i++)
+                        ctx.DrawGlyphRun(runs[i].Brush, runs[i].Run);
+            }
 
-            if (firstOfRow)
+            if (firstOfRow && !labelDrawn)
             {
                 var ft = Text(buf.RowLabel(row), buf.IsRead(row) ? label : dim);
                 ctx.DrawText(ft, new Point(0, y + (_lineH - ft.Height) / 2));
             }
 
-            for (var col = 0; col < lineBytes; col++)
-            {
-                var offset = (long)line * _perLine + col;
-                var selected = offset >= selFrom && offset <= selTo;
-                var isCaret = offset == _caret;
-
-                // Most cells have no background. Avoid per-byte pane arrays and rectangle work.
-                if (selected || isCaret)
-                {
-                    for (var p = 0; p < (_showAscii ? 2 : 1); p++)
-                    {
-                        var cell = CellRect(offset, p == 0 ? Pane.Hex : Pane.Ascii);
-                        if (selected && SelectionBrush is { } selBrush)
-                            ctx.FillRectangle(selBrush, cell);
-                        else if (isCaret && CaretCellBrush is { } caretCell)
-                            ctx.FillRectangle(caretCell, cell.Deflate(new Thickness(0, 2)), 3);
-                    }
-                }
-            }
-
-            if (_canBatchText)
-            {
-                using (ctx.PushTransform(Matrix.CreateTranslation(0, y)))
-                    foreach (var (brush, run) in LineText(line, buf, fg, dim, changed))
-                        ctx.DrawGlyphRun(brush, run);
-            }
-
-            for (var col = 0; col < lineBytes; col++)
+            if (_canBatchText) continue;
+            for (var col = 0; col < LineBytes(buf, line); col++)
             {
                 var offset = (long)line * _perLine + col;
                 var cellRow = (int)(offset / buf.RowLength);
                 var rowCol = (int)(offset % buf.RowLength);
-                var isCaret = offset == _caret;
-
-                if (!_canBatchText)
+                var rowRead = buf.IsRead(cellRow);
+                IBrush brush;
+                string hex, ascii;
+                if (!rowRead)
                 {
-                    var rowRead = buf.IsRead(cellRow);
-                    IBrush brush;
-                    string hex, ascii;
-                    if (!rowRead)
-                    {
-                        brush = buf.IsTemplateKnown(offset) ? KindBrush(buf.Classify(cellRow, rowCol), fg) : dim;
-                        var template = buf.TemplateAt(offset);
-                        hex = template is { } t ? HexBytes[t] : "--";
-                        ascii = template is { } a ? AsciiBytes[a] : "·";
-                    }
-                    else
-                    {
-                        var b = buf[offset];
-                        brush = buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(cellRow, rowCol), fg);
-                        hex = HexBytes[b];
-                        ascii = AsciiBytes[b];
-                    }
-
-                    DrawCentered(ctx, hex, brush, ByteX(col) + _digitW, y);
-                    if (_showAscii)
-                        DrawCentered(ctx, ascii, rowRead && ascii != "·" ? brush : dim, AsciiX(col) + _digitW / 2, y);
+                    brush = buf.IsTemplateKnown(offset) ? KindBrush(buf.Classify(cellRow, rowCol), fg) : dim;
+                    var template = buf.TemplateAt(offset);
+                    hex = template is { } t ? HexBytes[t] : "--";
+                    ascii = template is { } a ? AsciiBytes[a] : "·";
+                }
+                else
+                {
+                    var b = buf[offset];
+                    brush = buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(cellRow, rowCol), fg);
+                    hex = HexBytes[b];
+                    ascii = AsciiBytes[b];
                 }
 
-                // Caret: a blinking text-cursor bar before the active nibble (hex) or character (ASCII).
-                if (isCaret && focused && _caretOn && CaretBrush is { } caret)
-                {
-                    var cx = _pane == Pane.Hex ? ByteX(col) + (_lowNibble ? _digitW : 0) : AsciiX(col);
-                    ctx.FillRectangle(caret, new Rect(cx - 1, y + 2, 2, _lineH - 4));
-                }
+                DrawCentered(ctx, hex, brush, ByteX(col) + _digitW, y);
+                if (_showAscii)
+                    DrawCentered(ctx, ascii, rowRead && ascii != "·" ? brush : dim, AsciiX(col) + _digitW / 2, y);
             }
         }
+    }
+
+    // Caret: a blinking text-cursor bar before the active nibble (hex) or character (ASCII).
+    private void RenderCaret(DrawingContext ctx)
+    {
+        if (_buffer is not { ViewLength: > 0 } || _lineY.Length == 0 || !IsKeyboardFocusWithin || !_caretOn ||
+            CaretBrush is not { } caret)
+            return;
+        var line = LineOf(_caret);
+        if (line >= _lineY.Length) return;
+        var col = (int)(_caret % _perLine);
+        var cx = _pane == Pane.Hex ? ByteX(col) + (_lowNibble ? _digitW : 0) : AsciiX(col);
+        ctx.FillRectangle(caret, new Rect(cx - 1, _lineY[line] + 2, 2, _lineH - 4));
+    }
+
+    /// <summary>A strip of <see cref="ChunkLines"/> lines of text; keeps what it drew until the text changes.</summary>
+    private sealed class LineChunk : Control
+    {
+        private readonly HexEditor _owner;
+        private readonly List<(IBrush Brush, GlyphRun Run)> _runs = new();
+
+        public LineChunk(HexEditor owner)
+        {
+            _owner = owner;
+            IsHitTestVisible = false;
+        }
+
+        public int Index { get; set; }
+
+        protected override Size MeasureOverride(Size availableSize) => default;
+
+        public override void Render(DrawingContext context)
+        {
+            ReleaseRuns();
+            var first = Index * ChunkLines;
+            _owner.RenderLines(context, first, first + ChunkLines - 1, Bounds.Top, Bounds.Width, _runs);
+        }
+
+        public void ReleaseRuns()
+        {
+            foreach (var (_, run) in _runs) run.Dispose();
+            _runs.Clear();
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            ReleaseRuns();
+        }
+    }
+
+    /// <summary>The caret bar above the text, so blinking draws only the bar.</summary>
+    private sealed class CaretLayer : Control
+    {
+        private readonly HexEditor _owner;
+
+        public CaretLayer(HexEditor owner)
+        {
+            _owner = owner;
+            IsHitTestVisible = false;
+        }
+
+        protected override Size MeasureOverride(Size availableSize) => default;
+
+        public override void Render(DrawingContext context) => _owner.RenderCaret(context);
     }
 
     // ================================================================ Caret & selection
@@ -622,7 +793,7 @@ public sealed class HexEditor : Control
         _lowNibble = low && !extend;
         RestartBlink();
         UpdateStatus();
-        InvalidateVisual();
+        InvalidateCaret();
         if (_lineY.Length == 0) return;
         _movingCaret = true;
         try { this.BringIntoView(CaretViewRect()); }
@@ -694,7 +865,7 @@ public sealed class HexEditor : Control
         base.OnGotFocus(e);
         _pointerFocus = e.NavigationMethod == NavigationMethod.Pointer;
         RestartBlink();
-        InvalidateVisual();
+        _caretLayer.InvalidateVisual();
     }
 
     protected override void OnLostFocus(FocusChangedEventArgs e)
@@ -702,14 +873,13 @@ public sealed class HexEditor : Control
         base.OnLostFocus(e);
         _pointerFocus = false;
         _blink.Stop();
-        InvalidateVisual();
+        _caretLayer.InvalidateVisual();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
         _blink.Stop();
-        ClearLineText();
     }
 
     /// <summary>Shows the caret solid after a move and blinks it while focused.</summary>
@@ -769,7 +939,7 @@ public sealed class HexEditor : Control
             e.Pointer.Capture(null);
             if (_anchor == _caret) _anchor = -1;
             UpdateStatus();
-            InvalidateVisual();
+            InvalidateCaret();
         }
         else if (e.Pointer.Type == PointerType.Touch && _buffer is not null && _lineY.Length > 0 &&
                  e.InitialPressMouseButton == MouseButton.Left)
@@ -873,12 +1043,12 @@ public sealed class HexEditor : Control
 
     private void Undo()
     {
-        if (_buffer is { IsReadOnly: false } && _buffer.Undo()) InvalidateVisual();
+        if (_buffer is { IsReadOnly: false } && _buffer.Undo()) InvalidateCaret();
     }
 
     private void Redo()
     {
-        if (_buffer is { IsReadOnly: false } && _buffer.Redo()) InvalidateVisual();
+        if (_buffer is { IsReadOnly: false } && _buffer.Redo()) InvalidateCaret();
     }
 
     /// <summary>
