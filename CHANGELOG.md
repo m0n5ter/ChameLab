@@ -10,6 +10,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - Website: the header shows the new logo in place of the "C" badge, without the dot after ChameLab; the website and the web app (app/ and dev/) have the new favicon (the web app had the browser's default one)
  - Website: the home page headline has no dot, and "The lab for your" is set smaller above "Chameleon"
  - Website: the home page hero shows the ChameLab logo in place of the large ChameleonUltra photo
+ - Website: headings no longer end with a period
 
 ## [v1.3.34][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in small strips that scrolling only moves, adding one strip at a time as the view nears it; the bytes and row numbers are drawn as batched glyphs, one run per color for each strip, also with a proportional font (Android falls back to Roboto, where every byte was laid out as text of its own and the renderer's memory use made scrolling hitch a few times a second), and the blinking caret no longer redraws the text
