@@ -86,7 +86,8 @@
         <TextBlock Classes="caption" TextWrapping="Wrap"
                    Text="{x:Static loc:Strings.Tools_LookAtWhatGoesOverThe}" />
       </StackPanel>
-      <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8" IsVisible="{Binding IsHome}">
+      <!-- Two tiles to a row while both fit untrimmed, else one under the other. -->
+      <c:FitGrid Columns="2" ColumnSpacing="8" RowSpacing="8" IsVisible="{Binding IsHome}">
         <Button Classes="tile source" Command="{Binding OpenHfCommand}"
                 ToolTip.Tip="{x:Static loc:Strings.Tools_AnswerAReaderAsACard}">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
@@ -113,7 +114,7 @@
             </StackPanel>
           </Grid>
         </Button>
-      </UniformGrid>
+      </c:FitGrid>
 
       <!-- A tool: Back to the list, as in Add card. -->
       <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10" IsVisible="{Binding !IsHome}">

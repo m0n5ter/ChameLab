@@ -29,6 +29,9 @@
     <Style Selector="c|ActionRow > ContentPresenter.iconic > Button > StackPanel > TextBlock">
       <Setter Property="IsVisible" Value="False" />
     </Style>
+    <Style Selector="ItemsControl.links c|ActionRow > ContentPresenter" x:DataType="vm:SocialLink">
+      <Setter Property="c:ActionRow.Priority" Value="{Binding Priority}" />
+    </Style>
     <Style Selector="c|ActionRow > ContentPresenter.iconic > Button">
       <Setter Property="Width" Value="40" />
       <Setter Property="Height" Value="40" />
@@ -133,12 +136,12 @@
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Button Command="{Binding ExportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="{x:Static loc:Strings.Settings_ExportBackup}" VerticalAlignment="Center" />
+                <PathIcon Data="{StaticResource Icon.export}" /><TextBlock Text="{x:Static loc:Strings.Common_Export}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
             <Button Command="{Binding ImportBackupCommand}" IsEnabled="{Binding CanUseFiles}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="{x:Static loc:Strings.Settings_ImportBackup}" VerticalAlignment="Center" />
+                <PathIcon Data="{StaticResource Icon.import}" /><TextBlock Text="{x:Static loc:Strings.Common_Import}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -186,8 +189,9 @@
           <TextBlock Classes="caption" TextWrapping="Wrap"
                      Text="{x:Static loc:Strings.Settings_CrossPlatformClientForTheChameleon}" />
           <!-- The website, then community channels: Telegram and MAX in the Russian UI, Discord
-               everywhere. Short of room, the last buttons drop their labels first. -->
-          <ItemsControl ItemsSource="{Binding SocialLinks}">
+               everywhere. Short of room, they drop their labels by priority: MAX first, then
+               Discord, Telegram, and the website last. -->
+          <ItemsControl Classes="links" ItemsSource="{Binding SocialLinks}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate><c:ActionRow /></ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>

@@ -124,12 +124,12 @@ public sealed class SettingsViewModel : PageViewModelBase
 
     public static string TrademarkNotice => Strings.Settings_TrademarkNotice;
 
-    private static readonly SocialLink Discord = new("Discord", "https://discord.gg/UBSReGd4Gc", "discord");
+    private static readonly SocialLink Discord = new("Discord", "https://discord.gg/UBSReGd4Gc", "discord", 1);
 
     private static readonly SocialLink[] RussianLinks =
     [
-        new("Telegram", "https://t.me/chamelab", "telegram"),
-        new("MAX", "https://max.ru/channel_ChameLab", "max"),
+        new("Telegram", "https://t.me/chamelab", "telegram", 2),
+        new("MAX", "https://max.ru/channel_ChameLab", "max", 0),
         Discord,
     ];
 
@@ -142,7 +142,7 @@ public sealed class SettingsViewModel : PageViewModelBase
     /// </summary>
     public IReadOnlyList<SocialLink> SocialLinks =>
     [
-        new(Strings.Settings_Website, WebsiteUrl, "web"),
+        new(Strings.Settings_Website, WebsiteUrl, "web", 3),
         .. CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ru" ? RussianLinks : [Discord],
     ];
 
@@ -156,5 +156,8 @@ public sealed class SettingsViewModel : PageViewModelBase
     }
 }
 
-/// <summary>A community channel shown in the About card, with its <c>Icon.*</c> brand mark.</summary>
-public sealed record SocialLink(string Name, string Url, string IconKey);
+/// <summary>
+/// A link shown in the About card, with its <c>Icon.*</c> mark. Short of room, lower
+/// <paramref name="Priority"/> drops its label first (see <see cref="Controls.ActionRow"/>).
+/// </summary>
+public sealed record SocialLink(string Name, string Url, string IconKey, int Priority);

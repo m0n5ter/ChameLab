@@ -19,6 +19,8 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - ChameLab: the Cancel / Discard / Save prompts about unsaved changes have icons, and on a narrow screen the buttons fall back to icons one at a time, Cancel first and Save last
  - ChameLab: Settings has a link to the website, first in the row of community links; short of room, the links drop their labels from the end
  - ChameLab: no empty space at the bottom of Settings and Chameleon
+ - ChameLab: Tools shows the two sniffing tiles one under the other when they do not fit side by side untrimmed
+ - ChameLab: Settings: the website and community links drop their labels by priority (MAX first, then Discord, Telegram, the website last); the backup buttons are just Export and Import
 
 ## [v1.3.34][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in small strips that scrolling only moves, adding one strip at a time as the view nears it; the bytes and row numbers are drawn as batched glyphs, one run per color for each strip, also with a proportional font (Android falls back to Roboto, where every byte was laid out as text of its own and the renderer's memory use made scrolling hitch a few times a second), and the blinking caret no longer redraws the text

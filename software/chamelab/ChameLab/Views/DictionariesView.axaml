@@ -50,7 +50,7 @@
                 VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ImportADicKeysTxtJson}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.import}" />
-            <TextBlock Text="{x:Static loc:Strings.Dictionaries_Import}" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static loc:Strings.Common_Import}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
         <Button Classes="accent" Command="{Binding NewCommand}" VerticalAlignment="Center" c:ActionRow.Priority="1"

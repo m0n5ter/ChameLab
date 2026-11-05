@@ -30,7 +30,7 @@ public class ActionRow : Panel
     static ActionRow()
     {
         AffectsMeasure<ActionRow>(SpacingProperty, WrapProperty);
-        PriorityProperty.Changed.AddClassHandler<Control>((c, _) => (c.Parent as ActionRow)?.InvalidateMeasure());
+        PriorityProperty.Changed.AddClassHandler<Control>((c, _) => (c.GetVisualParent() as ActionRow)?.InvalidateMeasure());
     }
 
     public double Spacing

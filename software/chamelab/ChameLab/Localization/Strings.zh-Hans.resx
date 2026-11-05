@@ -1659,7 +1659,7 @@
   <data name="Dictionaries_ForgetCard" xml:space="preserve">
     <value>忘记卡片</value>
   </data>
-  <data name="Dictionaries_Import" xml:space="preserve">
+  <data name="Common_Import" xml:space="preserve">
     <value>导入</value>
   </data>
   <data name="Dictionaries_ImportADicKeysTxtJson" xml:space="preserve">
