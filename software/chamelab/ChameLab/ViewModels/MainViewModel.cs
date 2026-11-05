@@ -61,15 +61,11 @@ public sealed class MainViewModel : ViewModelBase
         Cards.Folders.CollectionChanged += (_, _) => SyncNavItems();
         SyncNavItems();
         _device.StateChanged += OnStateChanged;
-        _connect.StartWatching();
+        UpdateWatching();
         _ = AppUpdate.CheckInBackgroundAsync();
-        // A firmware install looks for the bootloader itself: a Connect page scan running beside
-        // it would cut its BLE scan short, so watching resumes only once the install is over.
         Firmware.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(FirmwareUpdateViewModel.IsInstalling) && !Firmware.IsInstalling &&
-                _device.State == ConnectionState.Disconnected)
-                _connect.StartWatching();
+            if (e.PropertyName == nameof(FirmwareUpdateViewModel.IsInstalling)) UpdateWatching();
         };
     }
 
@@ -101,7 +97,24 @@ public sealed class MainViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _currentPage, value);
             this.RaisePropertyChanged(nameof(SelectedNavItem));
             this.RaisePropertyChanged(nameof(SelectedNavPage));
+            UpdateWatching();
         }
+    }
+
+    /// <summary>
+    /// Looks for devices only while the Connect page, which lists them, is shown and nothing is
+    /// connected. Scanning on other pages wasted battery and, on Android, filled the heap with
+    /// Java objects for every nearby device's advertisement: each garbage collection then had to
+    /// check them with the Java side and froze the app for 100-200 ms every few seconds.
+    /// </summary>
+    private void UpdateWatching()
+    {
+        // A firmware install looks for the bootloader itself: a Connect page scan running beside
+        // it would cut its BLE scan short, so watching resumes only once the install is over.
+        if (ReferenceEquals(_currentPage, _connect) && _device.State != ConnectionState.Connected && !Firmware.IsInstalling)
+            _connect.StartWatching();
+        else
+            _connect.StopWatching();
     }
 
     /// <summary>The page shown, for the bottom tab bar of narrow layouts (the card folders stay in the pane).</summary>
@@ -323,7 +336,7 @@ public sealed class MainViewModel : ViewModelBase
             IsConnected = state == ConnectionState.Connected;
             if (state == ConnectionState.Connected)
             {
-                _connect.StopWatching();
+                UpdateWatching();
                 SetNavPages(_connectedPages);
                 UpdateDeviceSummary();
                 _ = Firmware.OnConnectedAsync();
@@ -334,7 +347,7 @@ public sealed class MainViewModel : ViewModelBase
             {
                 UpdateDeviceSummary();
                 SetNavPages(_disconnectedPages);
-                if (state == ConnectionState.Disconnected && !Firmware.IsInstalling) _connect.StartWatching();
+                UpdateWatching();
                 // A device page has nothing left to show: back to Connect. App-side pages stay.
                 if (!NavPages.Contains(CurrentPage)) await NavigateAsync(_connect);
             }

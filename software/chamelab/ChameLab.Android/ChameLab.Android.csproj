@@ -16,6 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Mono runtime settings (a larger garbage collector nursery, see the file). -->
+    <AndroidEnvironment Include="environment.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AndroidResource Include="Icon.png">
       <Link>Resources\drawable\Icon.png</Link>
     </AndroidResource>

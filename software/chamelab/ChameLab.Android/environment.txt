@@ -1,0 +1,6 @@
+# Mono runtime settings read at startup.
+# A 32 MB nursery (default 4 MB): the UI allocates about 1 MB a second while scrolling, so the
+# young-generation collection, which pauses every thread, runs every 30 s or so instead of every
+# few seconds. Measured on a 120 Hz phone: 2 pauses of ~40 ms per minute of scrolling instead of
+# ~16 of ~25 ms.
+MONO_GC_PARAMS=nursery-size=32m
