@@ -69,7 +69,7 @@ public sealed class CliArguments
     public byte[] Hex(string name, int? length = null)
     {
         byte[] bytes;
-        try { bytes = Convert.FromHexString(Text(name)); }
+        try { bytes = Convert.FromHexString(string.Concat(Text(name).Where(c => !char.IsWhiteSpace(c)))); }
         catch (FormatException) { throw new ArgumentException($"{name} must contain hexadecimal bytes."); }
         if (length is { } n && bytes.Length != n) throw new ArgumentException($"{name} must contain {n} bytes.");
         return bytes;
@@ -143,6 +143,7 @@ public sealed class CliArguments
 
     private static void Validate(OptionSpec o, string value)
     {
+        if (o.Type == "bool" && !bool.TryParse(value, out _)) throw new ArgumentException($"{o.Label} requires true or false.");
         if (o.Type == "int" && !long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
             throw new ArgumentException($"{o.Label} requires an integer.");
         if (o.Choices.ValueKind == JsonValueKind.Array && !o.Choices.EnumerateArray().Any(c => Value(c) == value))
@@ -150,7 +151,7 @@ public sealed class CliArguments
         if (o.Type is "fromhex" or "key_parser" or "key16")
         {
             byte[] bytes;
-            try { bytes = Convert.FromHexString(value); }
+            try { bytes = Convert.FromHexString(string.Concat(value.Where(c => !char.IsWhiteSpace(c)))); }
             catch (FormatException) { throw new ArgumentException($"{o.Label} requires hexadecimal bytes."); }
             if (o.Type == "key16" && bytes.Length != 16 || o.Type == "key_parser" && bytes.Length is not (4 or 16))
                 throw new ArgumentException($"Invalid key length for {o.Label}.");

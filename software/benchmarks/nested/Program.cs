@@ -33,7 +33,7 @@ foreach (var v in document.RootElement.EnumerateArray().Where(v => v.GetProperty
     Console.WriteLine($"{key}: nonce candidates={nonceCandidates}; available logical CPUs={Environment.ProcessorCount}");
     var reference = v.GetProperty("cKeys").EnumerateArray()
         .Select(k => ulong.Parse(k.GetString()!, NumberStyles.HexNumber)).Order().ToArray();
-    string[] modes = args.Length > 3 ? args[3].Split(',') : ["C/1", "C/4", "C#/1", "C#/4", "C#/all"];
+    string[] modes = args.Length > 3 ? args[3].Split(',') : ["C#/1", "C#/4", "C#/all"];
     if (modes.Any(m => m is not ("C/1" or "C/4" or "C#/1" or "C#/4" or "C#/all"))) throw new ArgumentException("Unknown mode");
     var timings = modes.ToDictionary(m => m, _ => new List<double>());
     var results = new Dictionary<string, ulong[]>();

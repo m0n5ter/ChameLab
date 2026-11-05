@@ -60,7 +60,7 @@ public static class HfSniff
 {
     // ---- Chameleon buffer ----------------------------------------------
 
-    public static List<HfFrame> ParseChameleon(ReadOnlySpan<byte> buffer)
+    public static List<HfFrame> ParseChameleon(ReadOnlySpan<byte> buffer, bool includesParity = true)
     {
         var frames = new List<HfFrame>();
         var o = 0;
@@ -75,7 +75,7 @@ public static class HfSniff
             var raw = buffer.Slice(o, rawBytes);
             o += rawBytes;
             var direction = (header & 0x8000) != 0 ? HfDirection.Card : HfDirection.Reader;
-            frames.Add(rawBits >= 9 && rawBits % 9 == 0
+            frames.Add(includesParity && rawBits >= 9 && rawBits % 9 == 0
                 ? new HfFrame(direction, rawBits / 9 * 8, StripParity(raw, rawBits / 9))
                 : new HfFrame(direction, rawBits, raw.ToArray()));
         }

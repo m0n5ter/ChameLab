@@ -1,4 +1,3 @@
-# This is just a placeholder while the whole PyInstaller thing gets figured out
 name: Client build
 
 on:
@@ -10,64 +9,48 @@ on:
 
 jobs:
   build_client:
-    name: Build client
+    name: Build client (${{ matrix.name }})
     permissions:
       contents: read
     strategy:
+      fail-fast: false
       matrix:
-        # Hosted macOS runners are often not available at all, so macOS is only built for tagged releases
-        name: ${{ fromJSON(startsWith(github.ref, 'refs/tags/v') && '["windows", "linux", "macos"]' || '["windows", "linux"]') }}
-    runs-on: ${{ matrix.name == 'linux' && 'ubuntu' || matrix.name }}-latest
+        include:
+          - name: windows
+            runner: windows-latest
+            rid: win-x64
+          - name: linux
+            runner: ubuntu-latest
+            rid: linux-x64
+          - name: macos
+            runner: macos-latest
+            rid: osx-arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v7
         with:
           ref: ${{ inputs.checkout-sha == null && github.sha || inputs.checkout-sha }}
           persist-credentials: false
-      # The client is built only when its sources change: software/dist is cached under a hash of the
-      # script, the native code, the spec, the requirements and this workflow. A cached client keeps the
-      # PyInstaller and packages it was built with. Bump v1 to force a rebuild.
-      - name: Restore the client built from this source
-        id: cache
-        uses: actions/cache@v6
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
         with:
-          path: software/dist
-          key: client-v1-${{ matrix.name }}-${{ hashFiles('software/script/**', '!software/script/**/__pycache__/**', 'software/src/**', 'software/pyinstaller.spec', '.github/workflows/build_client.yml') }}
-      - name: Set up Python
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-      - name: Install PyInstaller and client dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
-          pip install -r software/script/requirements.txt
-      - name: Compile native code
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          cd software/src
-          mkdir out
-          cd out
-          cmake ..
-          cmake --build . --config Release
-      - name: Run PyInstaller
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          cd software
-          pyinstaller pyinstaller.spec
+          dotnet-version: '10.0.x'
+      - name: Verify generated recovery circuits
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- generate-hardnested --check
+      - name: Test CLI and protocol contracts
+        run: dotnet test software/chamelab/ChameLab.Cli.Tests -c Release --nologo
+      - name: Publish standalone client
+        run: dotnet publish software/chamelab/ChameLab.Cli -c Release -r ${{ matrix.rid }} --self-contained true -o software/dist --nologo
+      - name: Smoke test published client
+        run: ./software/dist/chamelab -c "dump_help" -c "hf mf hardnested --help"
       - name: Upload built client
         uses: actions/upload-artifact@v7
         with:
           name: client-${{ matrix.name }}
           path: software/dist/*
-      - name: Zip up client for release
-        if: runner.os == 'Windows'
-        run: Compress-Archive -Path software\dist\* -DestinationPath client-windows.zip
-      - name: Zip up client for release
-        if: runner.os != 'Windows'
-        run: (cd software/dist && zip -r "$OLDPWD/client-${{ matrix.name }}.zip" .)
+      - name: Package client for release
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release --no-build -- zip software/dist client-${{ matrix.name }}.zip
       - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:

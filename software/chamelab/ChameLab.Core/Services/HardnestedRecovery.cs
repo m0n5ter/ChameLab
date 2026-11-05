@@ -36,11 +36,12 @@ public static class HardnestedCollector
     public static async Task<HardnestedCapture> CollectAsync(
         IHardnestedNonceSource source, uint authenticationUid,
         IProgress<string>? progress, CancellationToken ct,
-        int minimumSamples = 4096, int maximumBatches = 256)
+        int minimumSamples = 4096, int maximumBatches = 256, int maximumAttempts = 2)
     {
         if (minimumSamples < 1) throw new ArgumentOutOfRangeException(nameof(minimumSamples));
         if (maximumBatches < 1) throw new ArgumentOutOfRangeException(nameof(maximumBatches));
-        for (var attempt = 0; attempt < 2; attempt++)
+        if (maximumAttempts < 1) throw new ArgumentOutOfRangeException(nameof(maximumAttempts));
+        for (var attempt = 0; attempt < maximumAttempts; attempt++)
         {
             var samples = new List<HardnestedSample>();
             var parityByFirstByte = new int?[256];

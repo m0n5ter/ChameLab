@@ -55,7 +55,7 @@ public sealed partial class CliSession
         });
         Add("hf mfu dump", async (a, ct) =>
         {
-            var start = Range(a.Int("page"), 0, 255, "page"); byte[] data;
+            var start = Range(a.Int("page"), 0, 255, "page"); byte[] data; var incomplete = false;
             if (a.Has("qty"))
             {
                 var count = Range(a.Int("qty"), 1, 256 - start, "qty"); var result = new List<byte>();
@@ -66,10 +66,12 @@ public sealed partial class CliSession
             {
                 var dump = await Client.DumpUltralightAsync(UlKey(a), ct: ct);
                 data = dump.Card.Data.Skip(start).SelectMany(s => s.Length == 0 ? new byte[4] : s).ToArray();
-                if (dump.PagesRead < dump.PageCount) Error.WriteLine($"Partial dump: {dump.PagesRead}/{dump.PageCount} pages; unread pages contain zeros.");
+                incomplete = dump.PagesRead < dump.PageCount;
+                if (incomplete) Error.WriteLine($"Partial dump: {dump.PagesRead}/{dump.PageCount} pages; unread pages contain zeros.");
             }
             Dump(data, 4);
             if (!string.IsNullOrEmpty(a.Get("file"))) SaveDump(a.Text("file"), data, a.Get("type"), 4);
+            if (incomplete) throw new IOException("The Ultralight dump is incomplete.");
         });
         Add("hf mfu econfig", async (a, ct) =>
         {

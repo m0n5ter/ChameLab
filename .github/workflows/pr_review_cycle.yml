@@ -48,12 +48,15 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
-      - name: Label all currently ready PRs
-        uses: actions/github-script@v9
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
         with:
-          script: |
-            const run = require('./.github/scripts/pr-review-cycle.js');
-            await run({ github, context, core, mode: 'start-feature-freeze' });
+          dotnet-version: '10.0.x'
+      - name: Label all currently ready PRs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- pr-review start-feature-freeze
 
   handle-pull-activity:
     name: Update labels after PR activity
@@ -64,12 +67,15 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
-      - name: Update the PR lifecycle
-        uses: actions/github-script@v9
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
         with:
-          script: |
-            const run = require('./.github/scripts/pr-review-cycle.js');
-            await run({ github, context, core, mode: 'pull-activity' });
+          dotnet-version: '10.0.x'
+      - name: Update the PR lifecycle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- pr-review pull-activity
 
   handle-discussion-activity:
     name: Reset inactive draft after discussion
@@ -80,12 +86,15 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
-      - name: Update the draft lifecycle
-        uses: actions/github-script@v9
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
         with:
-          script: |
-            const run = require('./.github/scripts/pr-review-cycle.js');
-            await run({ github, context, core, mode: 'discussion-activity' });
+          dotnet-version: '10.0.x'
+      - name: Update the draft lifecycle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- pr-review discussion-activity
 
   scan-inactive-drafts:
     name: Scan inactive drafts
@@ -96,9 +105,12 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
-      - name: Warn, label, or close inactive drafts
-        uses: actions/github-script@v9
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
         with:
-          script: |
-            const run = require('./.github/scripts/pr-review-cycle.js');
-            await run({ github, context, core, mode: 'scan-drafts' });
+          dotnet-version: '10.0.x'
+      - name: Warn, label, or close inactive drafts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- pr-review scan-drafts

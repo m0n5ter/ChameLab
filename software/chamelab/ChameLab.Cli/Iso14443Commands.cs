@@ -31,7 +31,7 @@ public sealed partial class CliSession
         });
         Add("hf seos keys", async (a, ct) => { await Wire(4044, [.. a.Hex("auth", 16), .. a.Hex("privenc", 16), .. a.Hex("privmac", 16)], ct); });
         Add("emv scan", EmvScanAsync);
-        Add("emv load", EmvLoadAsync);
+        Add("emv load", (a, ct) => InSlot(a, ct, () => EmvLoadAsync(a, ct)));
         Add("emv debug", async (_, ct) =>
         {
             var b = await Wire(6010, null, ct);
@@ -127,6 +127,7 @@ public sealed partial class CliSession
     }
     private async Task InstallEmv(EmvCapture capture, int slot, CancellationToken ct)
     {
+        ValidateEmvInstallation(capture);
         var previous = await Client.GetActiveSlotAsync(ct);
         try
         {
@@ -144,8 +145,20 @@ public sealed partial class CliSession
     }
     private async Task AddApduPair(byte[] command, byte[] response, CancellationToken ct)
     {
-        Range(command.Length, 1, 255, "APDU command length"); Range(response.Length, 2, 4096 - command.Length - 3, "APDU response length");
+        Range(command.Length, 1, 255, "APDU command length"); Range(response.Length, 2, 253, "APDU response length supported by persistent firmware slots");
         await Wire(6003, [B(command.Length), .. command, .. U16(response.Length), .. response], ct);
+    }
+    internal static void ValidateEmvInstallation(EmvCapture capture)
+    {
+        Range(capture.Pairs.Count, 1, 12, "APDU response count supported by firmware slots");
+        Range(capture.Ats.Length, 0, 254, "ATS length");
+        foreach (var pair in capture.Pairs)
+        {
+            Range(pair.Command.Length, 1, 255, "APDU command length");
+            Range(pair.Response.Length, 2, 253, "APDU response length supported by persistent firmware slots");
+        }
+        if (capture.Pairs.Select(p => Convert.ToHexString(p.Command.AsSpan(0, Math.Min(16, p.Command.Length)))).Distinct().Count() != capture.Pairs.Count)
+            throw new ArgumentException("Firmware matches only the first 16 command bytes; this capture contains ambiguous APDU responses.");
     }
     internal static byte[] HexText(string text) => Convert.FromHexString(string.Concat(text.Where(c => !char.IsWhiteSpace(c))));
 

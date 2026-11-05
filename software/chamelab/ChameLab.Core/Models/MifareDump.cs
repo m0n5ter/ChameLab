@@ -25,6 +25,7 @@ public static class MifareClassic
     {
         0x09 => MifareClassicType.Mini,
         0x18 => MifareClassicType.Classic4K,
+        0x19 => MifareClassicType.Classic2K,
         _ => MifareClassicType.Classic1K, // 0x08/0x88/0x28 and unknown → treat as 1K
     };
 

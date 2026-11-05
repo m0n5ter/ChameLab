@@ -28,6 +28,10 @@ public sealed partial class CliSession : IAsyncDisposable
         Add("rem", (a, _) => { Output.WriteLine($"{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.ffffff}Z remark: {string.Join(' ', a.Many("comment"))}"); return Task.CompletedTask; });
         Add("dump_help", (a, _) =>
         {
+            if (a.Flag("show_groups"))
+                foreach (var group in CommandCatalog.Commands.SelectMany(c =>
+                    Enumerable.Range(1, c.Name.Split(' ').Length - 1).Select(n => string.Join(' ', c.Name.Split(' ').Take(n)))).Distinct())
+                    Output.WriteLine($"== {group} ==");
             if (a.Flag("show_desc")) foreach (var c in CommandCatalog.Commands) CommandCatalog.Help(Output, c);
             else CommandCatalog.Help(Output);
             return Task.CompletedTask;
@@ -62,10 +66,12 @@ public sealed partial class CliSession : IAsyncDisposable
             if (args.Any(a => a is "-h" or "--help")) { CommandCatalog.Help(Output, spec); return 0; }
             var parsed = CliArguments.Parse(spec, args);
             if (!_handlers.TryGetValue(spec.Name, out var handler)) throw new NotSupportedException("Command is not migrated: " + spec.Name);
-            var offline = spec.Name == "hf mfu ulcg" && parsed.Flag("offline");
+            var offline = spec.Name == "hf mfu ulcg" && parsed.Flag("offline")
+                || spec.Name == "hf mf view" && parsed.Has("dump_file");
             if (spec.Device && !offline) _ = Client;
             DeviceMode? previousMode = null;
             int? previousSlot = null;
+            var succeeded = false;
             try
             {
                 if (spec.Reader && !offline)
@@ -78,7 +84,7 @@ public sealed partial class CliSession : IAsyncDisposable
                     previousSlot = await Client.GetActiveSlotAsync(ct);
                     await Client.SetActiveSlotAsync(parsed.Int("slot"), ct);
                 }
-                await handler(parsed, ct); return 0;
+                await handler(parsed, ct); succeeded = true; return 0;
             }
             finally
             {
@@ -90,7 +96,11 @@ public sealed partial class CliSession : IAsyncDisposable
                         if (previousSlot is { } slot) await Client.SetActiveSlotAsync(slot, cleanup.Token);
                         if (previousMode is { } mode && mode != DeviceMode.Reader) await Client.SetDeviceModeAsync(mode, cleanup.Token);
                     }
-                    catch (Exception ex) { Error.WriteLine("Could not restore device state: " + ex.Message); }
+                    catch (Exception ex)
+                    {
+                        if (succeeded) throw new IOException("Could not restore device state: " + ex.Message, ex);
+                        Error.WriteLine("Could not restore device state: " + ex.Message);
+                    }
                 }
             }
         }

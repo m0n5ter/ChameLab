@@ -36,7 +36,12 @@ public sealed partial class CliSession
                     PrintLf(family.Type, bytes);
                 }
             });
-            if (family.Write != 0) Add($"lf {family.Path} write", async (a, ct) => await WriteLf(family.Type, family.Write, await LfId(family.Type, a, ct), ct));
+            if (family.Write != 0) Add($"lf {family.Path} write", async (a, ct) =>
+            {
+                var electra = family.Type == TagSpecificType.Em410x && a.Hex("id").Length == 13;
+                var type = electra ? TagSpecificType.Em410xElectra : family.Type;
+                await WriteLf(type, electra ? 3006 : family.Write, await LfId(type, a, ct), ct);
+            });
             Add($"lf {family.Path} econfig", async (a, ct) =>
             {
                 if (new[] { "id", "cn", "raw", "raw8", "fc", "ver" }.Any(a.Has))
@@ -48,6 +53,7 @@ public sealed partial class CliSession
         Add("lf generic adcread", async (_, ct) => Print(await Wire(3009, null, ct)));
         Add("lf clone", async (a, ct) =>
         {
+            if (a.Text("type") == "hid" && (!a.Has("format") || !a.Has("cn"))) throw new ArgumentException("HID clone requires --format and --cn.");
             var path = a.Text("type") switch { "em410x" or "electra" => "em 410x", "hid" => "hid prox", var p => p };
             var f = LfFamilies.Single(x => x.Path == path);
             var electra = a.Text("type") == "electra";
@@ -94,14 +100,16 @@ public sealed partial class CliSession
         switch (type)
         {
             case TagSpecificType.HidProx:
-                var format = CommandCatalog.EnumValue("HIDFormat", a.Text("format", "H10301"));
+                var formatName = a.Text("format", "H10301");
+                var format = CommandCatalog.EnumValue("HIDFormat", formatName);
+                HidLimits.Validate(formatName, a.Long("fc"), a.Long("cn"), a.Long("il"), a.Long("oem"));
                 var cn = a.Long("cn"); if (cn < 0 || cn > 0xFFFFFFFFFFL) throw new ArgumentException("Invalid HID card number.");
                 return [B(format), .. U32(checked((uint)a.Long("fc"))), B((int)(cn >> 32)), .. U32((uint)(cn & uint.MaxValue)), B(a.Int("il")), .. U16(a.Int("oem"))];
             case TagSpecificType.IoProx:
                 if (a.Has("raw8")) return await Wire(3012, a.Hex("raw8", 8), ct);
                 var fc = a.Text("fc", "0");
                 var facility = fc.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? int.Parse(fc[2..], NumberStyles.HexNumber) : int.Parse(fc, CultureInfo.InvariantCulture);
-                return await Wire(3013, [B(a.Int("ver")), B(facility), .. U16(a.Int("cn"))], ct);
+                return await Wire(3013, [B(a.Int("ver", 1)), B(facility), .. U16(a.Int("cn"))], ct);
             case TagSpecificType.Pac:
                 if (a.Has("raw")) return DecodePac(a.Hex("raw", 16));
                 var card = a.Text("cn", a.Text("id"));

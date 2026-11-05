@@ -1,6 +1,7 @@
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
+using ChameLab.Crypto;
 
 namespace ChameLab.Cli;
 
@@ -18,7 +19,12 @@ public sealed partial class CliSession
         Add("hf 14a auth-trace", async (a, ct) =>
         {
             var timeout = Range(a.Int("timeout"), 1, 30000, "timeout");
-            PrintHf(await Wire(2017, [(byte)KeyType(a), B(a.Int("blk")), .. a.Hex("key", 6), .. U16(timeout)], ct, timeout + 3000));
+            var key = a.Hex("key", 6);
+            var response = await Client.Connection.SendAsync((Command)2017,
+                [(byte)KeyType(a), B(a.Int("blk")), .. key, .. U16(timeout)], timeoutMs: timeout + 3000, ct: ct);
+            // Failed authentication still carries useful partial frames. Auth-trace bytes already have parity removed.
+            PrintHf(response.Data, includesParity: false, knownKey: Convert.ToUInt64(Convert.ToHexString(key), 16));
+            if (!response.Status.IsOk()) throw new ChameleonException(response.Status.Describe(), response.Status);
         });
         Add("hf 14a config", async (a, ct) =>
         {
@@ -42,10 +48,29 @@ public sealed partial class CliSession
         });
     }
 
-    private void PrintHf(byte[] buffer)
+    private void PrintHf(byte[] buffer, bool includesParity = true, ulong? knownKey = null)
     {
-        var frames = HfSniff.ParseChameleon(buffer);
+        var frames = HfSniff.ParseChameleon(buffer, includesParity);
         foreach (var f in HfSniff.Annotate(frames)) Print($"{f.Index,4} {f.Frame.Direction,-6} {f.Frame.Hex,-40} {f.Label}");
+        if (knownKey is { } key)
+        {
+            foreach (var auth in HfSniff.AuthExchanges(frames))
+            {
+                var state = new Crypto1State(key);
+                state.Crypto1Word(auth.Uid ^ auth.Nt);
+                var nr = auth.NrEnc ^ state.Crypto1Word(auth.NrEnc, true);
+                var ar = auth.ArEnc ^ state.Crypto1Word();
+                Print($"UID={auth.Uid:X8} NT={auth.Nt:X8} NR={nr:X8}");
+                Print($"AR={ar:X8}; expected={Crypto1.PrngSuccessor(auth.Nt, 64):X8}; {(ar == Crypto1.PrngSuccessor(auth.Nt, 64) ? "MATCH" : "MISMATCH")}");
+                if (auth.AtEnc is { } encryptedAt)
+                {
+                    var at = encryptedAt ^ state.Crypto1Word();
+                    Print($"AT={at:X8}; expected={Crypto1.PrngSuccessor(auth.Nt, 96):X8}; {(at == Crypto1.PrngSuccessor(auth.Nt, 96) ? "MATCH" : "MISMATCH")}");
+                }
+                else Print("AT not received; authentication was not completed.");
+            }
+            return;
+        }
         foreach (var group in HfSniff.GroupAuths(HfSniff.AuthExchanges(frames)))
             if (Mfkey32Recovery.Recover(group) is { } result) Print($"Block {group.Block}, key {group.KeyChar}: {result.Key:X12} ({result.Method})");
     }

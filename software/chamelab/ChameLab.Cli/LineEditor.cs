@@ -15,11 +15,21 @@ internal sealed class LineEditor
 
     public string? Read(string prompt)
     {
+        var previous = Console.TreatControlCAsInput;
+        Console.TreatControlCAsInput = true;
+        try { return ReadLine(prompt); }
+        finally { Console.TreatControlCAsInput = previous; }
+    }
+
+    private string? ReadLine(string prompt)
+    {
         Console.Write(prompt);
-        var text = new StringBuilder(); var cursor = 0; var history = _history.Count; var painted = 0;
+        var text = new StringBuilder(); var cursor = 0; var history = _history.Count;
         while (true)
         {
             var key = Console.ReadKey(intercept: true);
+            if (key.Modifiers.HasFlag(ConsoleModifiers.Control) && key.Key == ConsoleKey.C)
+            { Console.WriteLine("^C"); return ""; }
             if (key.Modifiers.HasFlag(ConsoleModifiers.Control) && key.Key is ConsoleKey.D or ConsoleKey.Z && text.Length == 0)
             { Console.WriteLine(); return null; }
             switch (key.Key)
@@ -47,15 +57,23 @@ internal sealed class LineEditor
                 case ConsoleKey.Tab:
                     var prefix = text.ToString(0, cursor);
                     var matches = Complete(prefix);
-                    if (matches.Length == 1) { text.Clear().Append(matches[0]).Append(' '); cursor = text.Length; }
-                    else if (matches.Length > 1) { Console.WriteLine(); Console.WriteLine(string.Join("  ", matches)); painted = 0; }
+                    if (matches.Length == 1)
+                    {
+                        var suffix = text.ToString(cursor, text.Length - cursor);
+                        text.Clear().Append(matches[0]).Append(' '); cursor = text.Length; text.Append(suffix);
+                    }
+                    else if (matches.Length > 1) { Console.WriteLine(); Console.WriteLine(string.Join("  ", matches)); }
                     break;
                 default: if (!char.IsControl(key.KeyChar)) text.Insert(cursor++, key.KeyChar); break;
             }
-            Console.Write('\r' + prompt + text + new string(' ', Math.Max(0, painted - text.Length)));
-            painted = text.Length;
-            // ANSI cursor movement also handles command lines wider than the terminal.
-            if (cursor < text.Length) Console.Write($"\u001b[{text.Length - cursor}D");
+            // Keep one physical line, scrolling horizontally instead of wrapping and corrupting history.
+            var width = Math.Max(1, Console.WindowWidth - 1);
+            var shownPrompt = prompt[..Math.Min(prompt.Length, Math.Max(0, width - 1))];
+            var capacity = width - shownPrompt.Length;
+            var start = Math.Max(0, cursor - capacity + 1);
+            var shown = text.ToString(start, Math.Min(capacity, text.Length - start));
+            Console.Write('\r' + shownPrompt + shown + new string(' ', capacity - shown.Length));
+            Console.Write('\r' + shownPrompt + text.ToString(start, cursor - start));
         }
     }
 

@@ -37,7 +37,7 @@ DeviceService          connection state + scanner registry (AppServices composit
 ViewModels (ReactiveUI) → Views (Actipro ModernTheme, adaptive SplitView shell)
 ```
 
-The wire format mirrors the reference Python client (`software/script`): a
+The app and C# CLI share the protocol implementation in `ChameLab.Core`: a
 big-endian frame `SOF | LRC1 | CMD | STATUS | LEN | LRC2 | DATA | LRC3`, with
 responses matched to requests by command id.
 
@@ -188,7 +188,7 @@ requires Apple signing. Tables are embedded in the shared assembly and cannot be
 omitted by a missing platform-specific packaging step.
 
 Source provenance, licensing and table regeneration are documented in
-[Crypto/Hardnested/NOTICE.md](ChameLab/Crypto/Hardnested/NOTICE.md). Run the tests
+[Crypto/Hardnested/NOTICE.md](ChameLab.Core/Crypto/Hardnested/NOTICE.md). Run the tests
 with `dotnet test ChameLab.Tests -c Release`. Reproducible performance and browser
 worker checks live in [../benchmarks/hardnested](../benchmarks/hardnested).
 The Python CLI retains its existing native solver.

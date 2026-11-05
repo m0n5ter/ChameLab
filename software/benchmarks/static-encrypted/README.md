@@ -3,7 +3,7 @@
 Run with the .NET 10 SDK (no card or native compiler required):
 
 ```powershell
-./software/benchmarks/static-encrypted/run.ps1 -Iterations 7 -Warmups 2
+dotnet run --project software/chamelab/ChameLab.Tools -c Release -- benchmark static-encrypted 7 2
 ```
 
 The benchmark calls the actual application assembly. `BaselineRecovery.cs`

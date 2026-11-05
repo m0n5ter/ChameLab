@@ -60,9 +60,12 @@ THE SOFTWARE.
   its isolated .NET worker. There is no dependence on a particular endianness,
   pointer size, OS, native library, executable, unsafe block or P/Invoke.
 
-Regenerate tables with Python + `lz4` installed, pointing at the pinned upstream
-checkout: `python tools/hardnested/import_tables.py PATH_TO_PROXMARK3`.
-Regenerate circuits with `python tools/hardnested/generate_core.py`.
+From the repository root, regenerate tables using the pinned upstream checkout:
+`dotnet run --project software/chamelab/ChameLab.Tools -- import-hardnested-tables PATH_TO_PROXMARK3`.
+The importer verifies every compressed and decoded input against the manifest,
+and requires the final packed SHA-256 to match before replacing the resource.
+Regenerate circuits with
+`dotnet run --project software/chamelab/ChameLab.Tools -- generate-hardnested`.
 Neither tool is needed to build or run the application.
 
 See `software/benchmarks/hardnested` for repeatable performance comparisons and

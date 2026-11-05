@@ -15,7 +15,7 @@ assignees: ''
 * for issues specific to another client than the Python CLI, use the corresponding issue tracker. E.g. [here](https://github.com/GameTec-live/ChameleonUltraGUI/issues) for the ChameleonUltraGUI
 
 ***Compilation problems***
-Try compiling with verbose. Use `make VERBOSE=1` for the firmware and the software/src tools.
+Try compiling with verbose. Use `make VERBOSE=1` for firmware or `dotnet build -v:diag` for the C# client.
 Include the verbose compilation logs.
 
 ***flashing problems***

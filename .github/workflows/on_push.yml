@@ -46,8 +46,15 @@ jobs:
           pattern: release-artifacts-*
           merge-multiple: true
           path: release-artifacts
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
       - name: Put the versions into the file names
-        run: bash .github/scripts/name-release-files.sh release-artifacts ${{ needs.gui_pipeline.outputs.version }} ${{ needs.firmware_pipeline.outputs.version }}
+        env:
+          APP_VERSION: ${{ needs.gui_pipeline.outputs.version }}
+          FW_VERSION: ${{ needs.firmware_pipeline.outputs.version }}
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- name-release-files release-artifacts "$APP_VERSION" "$FW_VERSION"
       - name: Checksum the files
         id: checksums
         run: |
@@ -139,8 +146,15 @@ jobs:
           pattern: release-artifacts-*
           merge-multiple: true
           path: release-artifacts
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
       - name: Put the versions into the file names
-        run: bash .github/scripts/name-release-files.sh release-artifacts ${{ needs.gui_pipeline.outputs.version }} ${{ needs.firmware_pipeline.outputs.version }}
+        env:
+          APP_VERSION: ${{ needs.gui_pipeline.outputs.version }}
+          FW_VERSION: ${{ needs.firmware_pipeline.outputs.version }}
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- name-release-files release-artifacts "$APP_VERSION" "$FW_VERSION"
       - name: Checksum the files
         id: checksums
         run: |

@@ -40,7 +40,7 @@ public static class UlcgRecovery
         }
         if (generator == UlcNonceGenerator.Uscuid)
         {
-            var x = BinaryPrimitives.ReadUInt64LittleEndian(plaintext); var seed = (ushort)x;
+            var x = BinaryPrimitives.ReadUInt64BigEndian(plaintext); var seed = (ushort)x;
             for (var shift = 16; shift <= 48; shift += 16)
             {
                 for (var i = 0; i < 16; i++) seed = (ushort)(seed >> 1 | (seed ^ seed >> 2 ^ seed >> 3 ^ seed >> 5) << 15);

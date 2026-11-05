@@ -8,6 +8,7 @@ public sealed partial class CliSession
     private async Task UlcgAsync(CliArguments a, CancellationToken ct)
     {
         var threads = Range(a.Int("threads"), 1, 256, "threads");
+        byte[]? expectedUid = null;
         Dictionary<string, string> challenges;
         if (a.Flag("offline"))
         {
@@ -18,6 +19,7 @@ public sealed partial class CliSession
         else
         {
             var tag = (await Client.Hf14aScanAsync(ct)).Single();
+            expectedUid = tag.Uid;
             if (tag.Sak != 0) throw new InvalidOperationException("The tag is not Ultralight C.");
             var config = await RawHf([0x30, 40], ct);
             if (config.Length < 16 || config[8] < 48 || (config[1] & 128) != 0)
@@ -47,6 +49,8 @@ public sealed partial class CliSession
         Print("Recovered key (DES parity bits zero): " + Convert.ToHexString(recovered));
         if (!a.Flag("offline"))
         {
+            var current = (await Client.Hf14aScanAsync(ct)).Single();
+            if (!current.Uid.AsSpan().SequenceEqual(expectedUid)) throw new InvalidOperationException("Card changed before key restoration. The recovered key was not written.");
             var swapped = recovered[..8].Reverse().Concat(recovered[8..].Reverse()).ToArray();
             for (var i = 0; i < 4; i++) await WriteUlcKeyPage(44 + i, swapped[(i * 4)..(i * 4 + 4)], ct);
             await Wire(2018, recovered, ct); Print("Key restored and authentication verified.");

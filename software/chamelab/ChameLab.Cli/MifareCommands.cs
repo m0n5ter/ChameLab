@@ -30,11 +30,21 @@ public sealed partial class CliSession
             if (dump.RecoveredBlocks != dump.BlockCount) throw new IOException("The saved dump is incomplete; unread blocks contain zeros.");
         });
         Add("hf mf clone", CloneMifareAsync);
-        Add("hf mf view", (a, _) =>
+        Add("hf mf view", async (a, ct) =>
         {
-            var data = LoadDump(a.Text("dump_file")); Dump(data, 16);
-            if (a.Has("key_file")) Dump(File.ReadAllBytes(a.Text("key_file")), 12);
-            return Task.CompletedTask;
+            if (a.Has("dump_file")) { Dump(LoadDump(a.Text("dump_file")), 16); return; }
+            if (!a.Has("key_file")) throw new ArgumentException("Specify --dump-file or --key-file.");
+            var sectors = a.Int("maxSectors", 16);
+            var keys = ReadSectorKeys(File.ReadAllBytes(a.Text("key_file")), sectors);
+            var blocks = MifareClassic.SectorFirstBlock(sectors);
+            var bytes = new List<byte>();
+            for (var block = 0; block < blocks; block++)
+            {
+                var s = MifareClassic.SectorOfBlock(block);
+                try { bytes.AddRange(await Client.Mf1ReadBlockAsync(block, MfKeyType.B, keys[s].B, ct)); }
+                catch (ChameleonException) { bytes.AddRange(await Client.Mf1ReadBlockAsync(block, MfKeyType.A, keys[s].A, ct)); }
+            }
+            Dump(bytes.ToArray(), 16);
         });
         Add("hf mf eload", async (a, ct) =>
         {
@@ -131,11 +141,11 @@ public sealed partial class CliSession
         HardnestedCapture? capture = null;
         for (var i = 0; i < attempts; i++)
         {
-            try { capture = await HardnestedCollector.CollectAsync(source, uid, new DirectProgress<string>(Print), ct, maximumBatches: Range(a.Int("max_runs"), 1, 10000, "max-runs")); break; }
+            try { capture = await HardnestedCollector.CollectAsync(source, uid, new DirectProgress<string>(Print), ct, maximumBatches: Range(a.Int("max_runs"), 1, 10000, "max-runs"), maximumAttempts: 1); break; }
             catch (InvalidOperationException) when (i + 1 < attempts) { Print("Retrying acquisition."); }
         }
         if (capture is null) throw new InvalidOperationException("No usable nonces.");
-        if (a.Flag("keep_nonce_file")) await File.WriteAllTextAsync("nonces.txt", HardnestedCaptureCodec.Encode(capture), ct);
+        if (a.Flag("keep_nonce_file")) await File.WriteAllBytesAsync("nonces.bin", HardnestedCaptureCodec.EncodeBinary(capture, target, KeyType(a, "t") == MfKeyType.B), ct);
         var found = await new ManagedHardnestedEngine().RecoverAsync(capture, new DirectProgress<string>(Print), ct);
         if (found is null || !await Client.Mf1AuthAsync(target, KeyType(a, "t"), KeyBytes(found.Value), ct)) throw new InvalidOperationException("Recovered key could not be verified.");
         Print($"Key: {found:X12}");
@@ -171,9 +181,21 @@ public sealed partial class CliSession
         var recovery = new MifareKeyRecovery(Client, new ManagedHardnestedEngine(), keyRecovery: new ManagedKeyRecoveryEngine());
         var progress = new DirectProgress<KeyRecoveryProgress>(p => Print(p.Status));
         if (dump.KeyA.All(k => k is null) && dump.KeyB.All(k => k is null))
-            await recovery.RecoverAsync(dump, MifareRecoveryMethod.Darkside, progress, ct);
-        var type = await Client.DetectNtLevelAsync(ct);
-        await recovery.RecoverAsync(dump, type switch { MifareClassicPrngType.Static => MifareRecoveryMethod.StaticNested, MifareClassicPrngType.Weak => MifareRecoveryMethod.Nested, _ => MifareRecoveryMethod.Hardnested }, progress, ct);
+        {
+            try { await recovery.RecoverAsync(dump, MifareRecoveryMethod.Darkside, progress, ct); }
+            catch (Exception ex) when (ex is InvalidOperationException or ChameleonException or NotSupportedException)
+            { Print("Darkside did not recover a key: " + ex.Message); }
+        }
+        if (dump.KeyA.All(k => k is null) && dump.KeyB.All(k => k is null))
+            await recovery.RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested, progress, ct);
+        if (dump.KeyA.Any(k => k is null) || dump.KeyB.Any(k => k is null))
+        {
+            var type = await Client.DetectNtLevelAsync(ct);
+            await recovery.RecoverAsync(dump, type switch { MifareClassicPrngType.Static => MifareRecoveryMethod.StaticNested, MifareClassicPrngType.Weak => MifareRecoveryMethod.Nested, _ => MifareRecoveryMethod.Hardnested }, progress, ct);
+        }
+        await File.WriteAllBytesAsync(dump.UidHex + ".key", Enumerable.Range(0, dump.SectorCount)
+            .SelectMany(i => (dump.KeyA[i] ?? new byte[6]).Concat(dump.KeyB[i] ?? new byte[6])).ToArray(), ct);
+        await File.WriteAllLinesAsync(dump.UidHex + ".dic", dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Select(Convert.ToHexString).Distinct(), ct);
         dump = await Client.ReadMifareClassicAsync(keys, ct: ct, existing: dump);
         var name = dump.UidHex + ".bin"; SaveDump(name, dump.ToBin(), "bin", 16); Print("Saved " + name);
         for (var i = 0; i < dump.SectorCount; i++) Print($"{i}: A={HexKey(dump.KeyA[i])} B={HexKey(dump.KeyB[i])}");
@@ -240,6 +262,14 @@ public sealed partial class CliSession
         var bytes = LoadDump(a.Text("dump_file"), a.Get("dump_file_type"));
         if (bytes.Length is not (320 or 1024 or 2048 or 4096)) throw new ArgumentException("Expected a complete Mini, 1K, 2K or 4K dump.");
         var keys = ReadDictionary(a.Text("dic"));
+        // Validate every trailer before the first card write, including trailers in later sectors.
+        for (var block = 0; block < bytes.Length / 16; block++)
+        {
+            if (!MifareClassic.IsTrailer(block)) continue;
+            var trailer = bytes.AsSpan(block * 16, 16);
+            if (!a.Flag("clone_access")) { trailer[6] = 255; trailer[7] = 7; trailer[8] = 128; }
+            if (!MifareClassic.AccessBitsValid(trailer)) throw new ArgumentException($"Invalid access bits for sector {MifareClassic.SectorOfBlock(block)}.");
+        }
         for (var block = 0; block < bytes.Length / 16;)
         {
             var sector = MifareClassic.SectorOfBlock(block); var trailer = MifareClassic.SectorTrailerBlock(sector);
@@ -249,11 +279,6 @@ public sealed partial class CliSession
             for (; block <= trailer; block++)
             {
                 var data = bytes[(block * 16)..(block * 16 + 16)];
-                if (block == trailer)
-                {
-                    if (!a.Flag("clone_access")) { data[6] = 255; data[7] = 7; data[8] = 128; }
-                    if (!MifareClassic.AccessBitsValid(data)) throw new ArgumentException($"Invalid access bits for sector {sector}.");
-                }
                 if (keyB is not null && await Client.Mf1WriteBlockAsync(block, MfKeyType.B, keyB, data, ct)) continue;
                 if (keyA is not null && await Client.Mf1WriteBlockAsync(block, MfKeyType.A, keyA, data, ct)) continue;
                 throw new IOException($"Write failed at block {block}.");
@@ -264,6 +289,18 @@ public sealed partial class CliSession
 
     private static byte[] ParseKey(string value)
     { var bytes = Convert.FromHexString(value); return bytes.Length == 6 ? bytes : throw new ArgumentException("MIFARE keys must contain six bytes."); }
+    internal static (byte[] A, byte[] B)[] ReadSectorKeys(byte[] bytes, int sectors)
+    {
+        if (bytes.Length == sectors * 12) return bytes.Chunk(12).Select(pair => (pair[..6], pair[6..])).ToArray();
+        var lines = System.Text.Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF').Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        if (lines.Length != sectors) throw new ArgumentException($"Expected {sectors} pairs of sector keys.");
+        return lines.Select(line =>
+        {
+            var pair = line.Trim().Split(':');
+            if (pair.Length != 2) throw new ArgumentException("Text key files require A:B on each line.");
+            return (ParseKey(pair[0]), ParseKey(pair[1]));
+        }).ToArray();
+    }
     private static byte[][] ReadDictionary(string path) => File.ReadLines(path).Select(s => s.Split('#')[0].Trim()).Where(s => s.Length != 0).Select(ParseKey).DistinctBy(Convert.ToHexString).ToArray();
     private static byte[] LoadDump(string path, string? type = null)
         => type == "hex" || type is null && Path.GetExtension(path).ToLowerInvariant() is ".eml" or ".hex"

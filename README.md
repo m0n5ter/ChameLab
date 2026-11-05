@@ -104,16 +104,21 @@ Use `build-lite` for the ChameleonLite. The packages land in `firmware/objects/`
 
 ## The CLI
 
-The Python command line client lives in [software/script](software/script) and is
-managed with [uv](https://docs.astral.sh/uv/):
+The C# command line client shares protocol and recovery engines with the app.
+Build or run it with the .NET 10 SDK:
 
 ```bash
-cd software
-uv run script/chameleon_cli_main.py
+dotnet run --project software/chamelab/ChameLab.Cli -c Release
+# Run several commands in the same connection/session:
+dotnet run --project software/chamelab/ChameLab.Cli -c Release -- -c "hw connect" -c "hw version"
 ```
 
 It covers what the app does not have yet, such as raw access to every firmware
 command, for example `hw slot color`.
+
+Use `dump_help` for all commands and `COMMAND --help` for options. Release packages
+include the .NET runtime; launch `chamelab` (`chamelab.exe` on Windows).
+Migration progress and verification are recorded in [docs/cli-migration.md](docs/cli-migration.md).
 
 ## Versions
 
@@ -126,7 +131,7 @@ release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSI
 | Folder | What's in it |
 | --- | --- |
 | [`software/chamelab`](software/chamelab) | The ChameLab app (Avalonia, .NET) |
-| [`software/script`](software/script) | The Python CLI |
+| [`software/chamelab/ChameLab.Cli`](software/chamelab/ChameLab.Cli) | The C# CLI |
 | [`firmware`](firmware) | Application and bootloader firmware for nRF52840 |
 | [`hardware`](hardware) | Schematics and PCB files for Ultra and Lite |
 | [`website`](website) | The download page and the web app host |
