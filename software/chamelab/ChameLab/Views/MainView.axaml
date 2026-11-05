@@ -33,6 +33,7 @@
                   Focusable="{Binding AppUpdate.IsUpdateAvailable}"
                   ToolTip.Tip="{Binding AppUpdate.Message}"
                   ToolTip.IsEnabled="{Binding AppUpdate.IsUpdateAvailable}"
+                  Padding="4,0"
                   AutomationProperties.Name="{x:Static loc:Strings.Main_ChameLabDownloadUpdate}">
             <StackPanel Spacing="0">
               <StackPanel Orientation="Horizontal" Spacing="5">
