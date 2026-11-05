@@ -1,4 +1,6 @@
 #include "usb_main.h"
+
+#include <string.h>
 #include "syssleep.h"
 #include "settings.h"
 #include "dataframe.h"
@@ -44,6 +46,38 @@ volatile bool g_usb_port_opened = false;
 volatile bool g_usb_led_marquee_enable = true;
 static uint8_t cdc_data_buffer[NRF_DRV_USBD_EPSIZE];
 
+// Replies wait here until the host collects them. The CDC driver sends straight from the
+// caller's buffer and takes one transfer at a time: a reply made while the previous one was
+// still going out used to overwrite it and then fail with NRF_ERROR_BUSY, which reset the
+// device. A desktop OS reads a serial port continuously, so that rarely happened there; the
+// Android USB Host API reads only when the app asks, and requests sent back to back hit it.
+// Two full frames fit (4096 data bytes plus framing each).
+#define USB_TX_QUEUE_SIZE 8448
+static uint8_t m_tx_queue[USB_TX_QUEUE_SIZE];
+static size_t m_tx_head;       // where the next reply goes
+static size_t m_tx_tail;       // first byte not yet sent
+static size_t m_tx_used;       // queued bytes, including the transfer in flight
+static size_t m_tx_in_flight;  // bytes of the transfer the driver is sending
+
+static void usb_tx_reset(void) {
+    m_tx_head = m_tx_tail = m_tx_used = m_tx_in_flight = 0;
+}
+
+/** @brief Hands the driver the next contiguous run of queued bytes, unless a transfer is going out. */
+static void usb_tx_kick(void) {
+    if (m_tx_in_flight != 0 || m_tx_used == 0) return;
+    size_t chunk = MIN(m_tx_used, USB_TX_QUEUE_SIZE - m_tx_tail);
+    ret_code_t ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, &m_tx_queue[m_tx_tail], chunk);
+    if (ret == NRF_SUCCESS) {
+        m_tx_in_flight = chunk;
+    } else if (ret != NRF_ERROR_BUSY) {
+        // The port went away (closed, unplugged): nobody is left to read the replies.
+        NRF_LOG_WARNING("USB reply dropped, write failed: %d", ret);
+        usb_tx_reset();
+    }
+    // NRF_ERROR_BUSY: a transfer we no longer track is finishing; its TX_DONE sends ours.
+}
+
 static void usb_port_set_open(bool open) {
     g_usb_port_opened = open;
     ble_usb_cdc_set_open(open);
@@ -61,6 +95,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst, app_usb
             UNUSED_VARIABLE(ret);
 
             NRF_LOG_INFO("CDC ACM port opened");
+            usb_tx_reset();
             usb_port_set_open(true);
             break;
         }
@@ -68,10 +103,17 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const *p_inst, app_usb
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
             NRF_LOG_INFO("CDC ACM port closed");
             usb_port_set_open(false);
+            usb_tx_reset();
             g_usb_led_marquee_enable = true;
             break;
 
         case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
+            if (m_tx_in_flight != 0) {
+                m_tx_tail = (m_tx_tail + m_tx_in_flight) % USB_TX_QUEUE_SIZE;
+                m_tx_used -= m_tx_in_flight;
+                m_tx_in_flight = 0;
+            }
+            usb_tx_kick();
             break;
 
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE: {
@@ -106,6 +148,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event) {
         case APP_USBD_EVT_STOPPED:
             NRF_LOG_INFO("USB STOPPED");
             usb_port_set_open(false);
+            usb_tx_reset();
             app_usbd_disable();
             break;
 
@@ -123,6 +166,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event) {
             NRF_LOG_INFO("USB power removed");
             g_usb_connected = false;
             usb_port_set_open(false);
+            usb_tx_reset();
             g_usb_led_marquee_enable = false;
             app_usbd_stop();
             break;
@@ -157,9 +201,23 @@ void usb_cdc_init(void) {
     APP_ERROR_CHECK(ret);
 }
 
+/**
+ * @brief Queues a reply for the host; it goes out once the replies before it have been read.
+ * Main loop context only, like the USB event processing that sends the queue on.
+ */
 void usb_cdc_write(const void *p_buf, uint16_t length) {
-    ret_code_t err_code = app_usbd_cdc_acm_write(&m_app_cdc_acm, p_buf, length);
-    APP_ERROR_CHECK(err_code);
+    if (length > USB_TX_QUEUE_SIZE - m_tx_used) {
+        // The host has stopped reading: losing this reply beats resetting the device.
+        NRF_LOG_WARNING("USB reply dropped, %d bytes still unread", m_tx_used);
+        return;
+    }
+    const uint8_t *src = p_buf;
+    size_t first = MIN((size_t)length, USB_TX_QUEUE_SIZE - m_tx_head);
+    memcpy(&m_tx_queue[m_tx_head], src, first);
+    memcpy(m_tx_queue, src + first, length - first);
+    m_tx_head = (m_tx_head + length) % USB_TX_QUEUE_SIZE;
+    m_tx_used += length;
+    usb_tx_kick();
 }
 
 // override fputc to printf to cdc serial

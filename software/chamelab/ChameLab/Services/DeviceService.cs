@@ -76,7 +76,11 @@ public sealed class DeviceService(IEnumerable<ITransportScanner> scanners)
         try
         {
             var conn = new ChameleonConnection(transport);
-            conn.Disconnected += ex => { _ = HandleDropAsync(conn); };
+            conn.Disconnected += ex =>
+            {
+                Console.WriteLine($"[Device] {candidate.Id} link dropped: {ex}");
+                _ = HandleDropAsync(conn);
+            };
             await conn.OpenAsync(ct);
 
             var client = new ChameleonClient(conn);
@@ -88,8 +92,9 @@ public sealed class DeviceService(IEnumerable<ITransportScanner> scanners)
             Candidate = candidate;
             SetState(ConnectionState.Connected);
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[Device] Connecting to {candidate.Id} failed: {ex}");
             await transport.DisposeAsync();
             SetState(ConnectionState.Disconnected);
             throw;

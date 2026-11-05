@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -138,6 +139,33 @@ public class UsbCdcTransportTests
         Assert.Equal(new byte[] { 1 }, host.Connection.Written);
     }
 
+    [Fact]
+    public async Task NextRequestWaitsUntilTheReplyToThePreviousOneIsRead()
+    {
+        // The firmware resets if a second USB reply comes while the first is still uncollected.
+        var host = new Host();
+        await using var protocol = new ChameleonConnection(new UsbCdcTransport(host, "usb1", "Chameleon"));
+        await protocol.OpenAsync();
+        var first = FrameCodec.Encode(Command.GetAppVersion);
+        var version = protocol.SendAsync(Command.GetAppVersion);
+        var battery = protocol.SendAsync(Command.GetBatteryInfo);
+        await Task.Delay(200);
+        lock (host.Connection.Written) Assert.Equal(first, host.Connection.Written.ToArray());
+
+        host.Connection.Reads.Enqueue(FrameCodec.Encode(Command.GetAppVersion, [1, 2]));
+        await version.WaitAsync(TimeSpan.FromSeconds(5));
+        var second = FrameCodec.Encode(Command.GetBatteryInfo);
+        for (var i = 0; i < 500; i++)
+        {
+            lock (host.Connection.Written)
+                if (host.Connection.Written.Count == first.Length + second.Length) break;
+            await Task.Delay(10);
+        }
+        lock (host.Connection.Written) Assert.Equal(first.Concat(second), host.Connection.Written);
+        host.Connection.Reads.Enqueue(FrameCodec.Encode(Command.GetBatteryInfo, [3]));
+        await battery.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
     private sealed class Host : IUsbCdcHost
     {
         public IReadOnlyList<UsbCdcDevice> Devices = [];
@@ -156,7 +184,7 @@ public class UsbCdcTransportTests
     {
         public bool IsAttached { get; set; } = true;
         public int MaxWrite = int.MaxValue, ReadCalls, Disposals;
-        public readonly Queue<byte[]> Reads = new();
+        public readonly ConcurrentQueue<byte[]> Reads = new();
         public readonly List<byte> Written = new();
         public readonly List<int> WriteSizes = new();
         public Action? AfterWrite;
@@ -169,9 +197,12 @@ public class UsbCdcTransportTests
         }
         public int Write(byte[] buffer, int offset, int count, int timeoutMs)
         {
-            WriteSizes.Add(count);
             var n = Math.Min(count, MaxWrite);
-            if (n > 0) Written.AddRange(buffer.AsSpan(offset, n).ToArray());
+            lock (Written)
+            {
+                WriteSizes.Add(count);
+                if (n > 0) Written.AddRange(buffer.AsSpan(offset, n).ToArray());
+            }
             AfterWrite?.Invoke();
             return n;
         }

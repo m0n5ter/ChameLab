@@ -60,6 +60,7 @@ internal sealed class UsbCdcTransport(IUsbCdcHost host, string id, string name) 
     public TransportKind Kind => TransportKind.Serial;
     public string DisplayName => name;
     public bool IsConnected => Volatile.Read(ref _connection)?.IsAttached == true;
+    public bool OneRequestAtATime => true;
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {

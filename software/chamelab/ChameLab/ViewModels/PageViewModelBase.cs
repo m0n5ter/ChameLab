@@ -136,6 +136,7 @@ public abstract class PageViewModelBase : ViewModelBase
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[{GetType().Name}] {ex}");
             report(ex.Message);
         }
         finally

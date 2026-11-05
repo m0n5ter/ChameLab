@@ -11,6 +11,8 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - Website: the home page headline has no dot, and "The lab for your" is set smaller above "Chameleon"
  - Website: the home page hero shows the ChameLab logo in place of the large ChameleonUltra photo
  - Website: headings no longer end with a period
+ - ChameLab: connecting over USB on Android works: the device restarted a second after connecting (the app showed an error for a moment and went back to Connect), because the app sent the next command before it had read the reply to the previous one; over Android USB it now waits for each reply first
+ - Firmware: replies over USB wait in a queue until the host reads them; a reply made while the previous one was still going out used to overwrite it and restart the device
 
 ## [v1.3.34][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in small strips that scrolling only moves, adding one strip at a time as the view nears it; the bytes and row numbers are drawn as batched glyphs, one run per color for each strip, also with a proportional font (Android falls back to Roboto, where every byte was laid out as text of its own and the renderer's memory use made scrolling hitch a few times a second), and the blinking caret no longer redraws the text

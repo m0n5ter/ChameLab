@@ -29,6 +29,8 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
     private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _writeLock = new(1, 1);
     private readonly ConcurrentDictionary<Command, SemaphoreSlim> _commandLocks = new();
+    // Taken after the command's own lock, for transports that allow one request in flight.
+    private readonly SemaphoreSlim _requestGate = new(1, 1);
     private Task? _readLoop;
     private volatile bool _closed;
 
@@ -92,8 +94,16 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
         if (_closed) throw new ChameleonDisconnectedException();
         var turn = _commandLocks.GetOrAdd(cmd, _ => new SemaphoreSlim(1, 1));
         await turn.WaitAsync(ct);
+        var gated = false;
         try
         {
+            // The timeout starts once the request may go out: waiting behind a long command
+            // (a nested attack, an LF scan) must not use it up.
+            if (transport.OneRequestAtATime)
+            {
+                await _requestGate.WaitAsync(ct);
+                gated = true;
+            }
             if (_closed) throw new ChameleonDisconnectedException();
             var tcs = new TaskCompletionSource<ChameleonFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
             _pending[cmd] = tcs;
@@ -132,6 +142,7 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
         }
         finally
         {
+            if (gated) _requestGate.Release();
             turn.Release();
         }
     }

@@ -35,6 +35,14 @@ public interface ITransport : IAsyncDisposable
     string DisplayName { get; }
     bool IsConnected { get; }
 
+    /// <summary>
+    /// The device must not get a request before the reply to the previous one has been read.
+    /// The firmware holds one USB reply at a time and resets if another comes while the host has
+    /// not collected it yet. A desktop OS reads USB serial continuously; the Android USB Host API
+    /// reads only as often as the app asks, so commands sent back to back can catch it busy.
+    /// </summary>
+    bool OneRequestAtATime => false;
+
     Task ConnectAsync(CancellationToken ct = default);
 
     Task WriteAsync(ReadOnlyMemory<byte> data, CancellationToken ct = default);
