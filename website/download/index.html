@@ -248,8 +248,8 @@
       web.forEach(b => b.classList.add('wide'));
       if (!assets.length && !web.length) continue;
       rest.splice(0, rest.length, ...rest.filter(a => !assets.includes(a)));
-      // The firmware goes two to a row: ChameleonUltra above, ChameleonLite below
-      const grid = pattern === groups[1][1] ? 'buttons pairs' : 'buttons';
+      // The firmware goes two to a row: ChameleonUltra above, ChameleonLite below (DFU), side by side (SWD)
+      const grid = pattern === groups[1][1] || pattern === groups[3][1] ? 'buttons pairs' : 'buttons';
       section.append(el('h3', {}, text(name)), el('div', { className: grid },
         ...web, ...assets.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name)).map(assetButton)));
     }

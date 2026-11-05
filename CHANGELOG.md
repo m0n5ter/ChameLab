@@ -11,7 +11,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - Website: the home page headline has no dot, and "The lab for your" is set smaller above "Chameleon"
  - Website: the home page hero shows the ChameLab logo in place of the large ChameleonUltra photo
  - Website: headings no longer end with a period
- - Website: on the download page the web app button comes first, across the whole row, and the firmware packages go two to a row: ChameleonUltra above, ChameleonLite below
+ - Website: on the download page the web app button comes first, across the whole row, and the firmware packages go two to a row: ChameleonUltra above, ChameleonLite below, and the two SWD firmware binaries share the whole row
  - ChameLab: connecting over USB on Android works: the device restarted a second after connecting (the app showed an error for a moment and went back to Connect), because the app sent the next command before it had read the reply to the previous one; over Android USB it now waits for each reply first
  - Firmware: replies over USB wait in a queue until the host reads them; a reply made while the previous one was still going out used to overwrite it and restart the device
 
