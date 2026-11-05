@@ -372,11 +372,18 @@
   }
 
   // The site carries a copy of the changelog; GitHub's is the fallback (a local preview)
-  const changelog = fetch('CHANGELOG.md')
-    .then(r => r.ok ? r.text() : Promise.reject(r.status))
-    .catch(() => fetch(`https://raw.githubusercontent.com/${repo}/main/CHANGELOG.md`).then(r => r.ok ? r.text() : ''))
-    .then(parseChangelog)
-    .catch(() => new Map());
+  function fetchChangelog(file) {
+    return fetch(file)
+      .then(r => r.ok ? r.text() : Promise.reject(r.status))
+      .catch(() => fetch(`https://raw.githubusercontent.com/${repo}/main/${file}`).then(r => r.ok ? r.text() : ''))
+      .then(parseChangelog)
+      .catch(() => new Map());
+  }
+  // The Russian page takes the entries from CHANGELOG.ru.md, the English ones where a version has none
+  const changelog = window.i18n.lang === 'ru'
+    ? Promise.all([fetchChangelog('CHANGELOG.md'), fetchChangelog('CHANGELOG.ru.md')])
+      .then(([en, ru]) => new Map([...en].map(([version, items]) => [version, ru.get(version)?.length ? ru.get(version) : items])))
+    : fetchChangelog('CHANGELOG.md');
 
   // `code` in a changelog entry
   function inline(entry) {

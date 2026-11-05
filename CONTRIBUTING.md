@@ -10,7 +10,9 @@ so we can agree on the approach before you spend time on it.
 - Commit messages say what changed for the user, with the area first:
   `Slots: match the slot's card to Saved cards by UID`.
 - Add a line to the `[unreleased]` section of [CHANGELOG.md](CHANGELOG.md) for anything a
-  user would notice. Start it with `ChameLab:` when it is about the app.
+  user would notice. Start it with `ChameLab:` when it is about the app. The same line goes
+  into [CHANGELOG.ru.md](CHANGELOG.ru.md) in Russian (the maintainers translate it if you
+  can't); release announcements in the Russian channels are taken from it.
 - Test on a real device where you can, and say in the PR what you tested on.
 
 ## The app

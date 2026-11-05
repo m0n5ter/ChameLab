@@ -163,6 +163,28 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run deploy_site.yml --repo "$GITHUB_REPOSITORY" --ref main
 
+  announce_release:
+    name: Announce the release
+    # Telegram (and MAX) in Russian from CHANGELOG.ru.md, Discord in English from CHANGELOG.md;
+    # a channel without its secrets is skipped
+    if: startsWith(github.ref, 'refs/tags/v') && needs.create_release.result == 'success'
+    needs: create_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Post to Telegram, MAX and Discord
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          MAX_BOT_TOKEN: ${{ secrets.MAX_BOT_TOKEN }}
+          MAX_CHAT_ID: ${{ vars.MAX_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 .github/scripts/announce_release.py "$GITHUB_REF_NAME"
+
   start_feature_freeze:
     name: Start the next PR review cycle
     # Upstream's review process; forks don't run it

@@ -36,7 +36,7 @@ jobs:
           cp -r website/. _site/
           rm _site/i18n/check.py
           # The download page shows each release's part of it
-          cp CHANGELOG.md _site/
+          cp CHANGELOG.md CHANGELOG.ru.md _site/
       - name: Add the web apps
         env:
           GH_TOKEN: ${{ github.token }}
