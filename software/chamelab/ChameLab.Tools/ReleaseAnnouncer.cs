@@ -7,18 +7,24 @@ namespace ChameLab.Tools;
 
 internal static class ReleaseAnnouncer
 {
-    internal static (string? Firmware, List<string> Bullets)? Section(string path, string tag)
+    internal static (string? Firmware, List<string> Bullets)? Section(string path, string tag) => Section(File.ReadAllLines(path), tag);
+
+    // A release's entries: those under "### Summary" ("### Кратко") when it has that part, else all of them
+    internal static (string? Firmware, List<string> Bullets)? Section(string[] lines, string tag)
     {
-        var lines = File.ReadAllLines(path); var start = Array.FindIndex(lines, l => Regex.IsMatch(l, "^## \\[" + Regex.Escape(tag) + "\\]"));
+        var start = Array.FindIndex(lines, l => Regex.IsMatch(l, "^## \\[" + Regex.Escape(tag) + "\\]"));
         if (start < 0) return null;
-        var match = Regex.Match(lines[start], @"(?:firmware|прошивка) (v\S+)"); var bullets = new List<string>();
+        var match = Regex.Match(lines[start], @"(?:firmware|прошивка) (v\S+)");
+        var summary = new List<string>(); var all = new List<string>(); var inSummary = false;
         foreach (var line in lines.Skip(start + 1).TakeWhile(l => !l.StartsWith("## ")))
         {
             var text = line.Trim();
-            if (text.StartsWith("- ")) bullets.Add(text[2..].Trim());
-            else if (text.Length > 0 && bullets.Count > 0) bullets[^1] += " " + text;
+            if (text.StartsWith("### ")) { inSummary = Regex.IsMatch(text[4..].Trim(), "^(summary|кратко)$", RegexOptions.IgnoreCase); continue; }
+            var list = inSummary ? summary : all;
+            if (text.StartsWith("- ")) list.Add(text[2..].Trim());
+            else if (text.Length > 0 && list.Count > 0) list[^1] += " " + text;
         }
-        return (match.Success ? match.Groups[1].Value : null, bullets);
+        return (match.Success ? match.Groups[1].Value : null, summary.Count > 0 ? summary : all);
     }
     internal static string Html(string text) => string.Join('\n', text.Split('\n').Select(line =>
     {
@@ -42,15 +48,18 @@ internal static class ReleaseAnnouncer
         var english = Section("CHANGELOG.md", tag) ?? throw new ArgumentException("CHANGELOG.md has no section for " + tag);
         var russian = Section("CHANGELOG.ru.md", tag);
         var repo = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY") ?? "m0n5ter/ChameLab";
-        var link = $"https://github.com/{repo}/releases/tag/{tag}"; const string site = "https://m0n5ter.github.io/ChameLab/#stable";
+        // The posts carry the summary and link to the full changelog
+        const string site = "https://m0n5ter.github.io/ChameLab/download/";
+        var enChangelog = $"https://github.com/{repo}/blob/main/CHANGELOG.md";
+        var ruChangelog = $"https://github.com/{repo}/blob/main/CHANGELOG.ru.md";
         var enTitle = $"ChameLab {tag} is out" + (english.Firmware is { } fw ? " · firmware " + fw : "");
         var ruTitle = $"Вышел ChameLab {tag}" + (english.Firmware is { } rf ? " · прошивка " + rf : "");
-        var ruLinks = $"Скачать: {site}\nОписание релиза: {link}";
+        var ruLinks = $"Скачать: {site}\nПолный список изменений: {ruChangelog}";
         var posts = new Dictionary<string, string>
         {
-            ["discord"] = Post(enTitle, english.Bullets, "- …and more in the release notes", $"Download: {site}\nRelease notes: {link}", 1900, false),
-            ["telegram"] = Post(ruTitle, russian?.Bullets ?? [], "- …и другие изменения в описании релиза", ruLinks, 4000, true),
-            ["max"] = Post(ruTitle, russian?.Bullets ?? [], "- …и другие изменения в описании релиза", ruLinks, 3900, true)
+            ["discord"] = Post(enTitle, english.Bullets, "- …and more in the full changelog", $"Download: {site}\nFull changelog: {enChangelog}", 1900, false),
+            ["telegram"] = Post(ruTitle, russian?.Bullets ?? [], "- …и другие изменения в полном списке", ruLinks, 4000, true),
+            ["max"] = Post(ruTitle, russian?.Bullets ?? [], "- …и другие изменения в полном списке", ruLinks, 3900, true)
         };
         if (dryRun) { foreach (var (channel, text) in posts) Console.WriteLine($"{channel} ({text.Length} chars):\n{text}\n"); return; }
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) }; http.DefaultRequestHeaders.UserAgent.ParseAdd("ChameLab-release-announcer"); var failed = false;

@@ -182,22 +182,29 @@
       .toLocaleString(window.i18n.lang === 'en' ? undefined : window.i18n.lang, { dateStyle: 'medium', timeStyle: 'short' });
   }
 
-  // CHANGELOG.md, as version ("v1.3.32", "unreleased") -> its entries:
-  // "## [v1.3.32][2026-11-04] · firmware v2.3.11-cl" headings with " - " entries under them
+  // CHANGELOG.md, as version ("v1.3.32", "unreleased") -> { items, summary }, the entries to show:
+  // "## [v1.3.32][2026-11-04] · firmware v2.3.11-cl" headings with " - " entries under them.
+  // A version with a "### Summary" ("### Кратко") part shows just that (summary: true);
+  // the rest of its entries are in the full changelog
   function parseChangelog(md) {
     const versions = new Map();
-    let items = null;
+    let version = null, items = null;
     for (const line of md.split(/\r?\n/)) {
       const heading = /^##\s+\[([^\]]+)\]/.exec(line);
+      const part = /^###\s+(.*)/.exec(line);
       if (heading) {
-        versions.set(heading[1].toLowerCase(), items = []);
+        versions.set(heading[1].toLowerCase(), version = { summary: [], details: [] });
+        items = version.details;
+      } else if (part && version) {
+        items = /^(summary|кратко)$/i.test(part[1].trim()) ? version.summary : version.details;
       } else if (items) {
         const item = /^\s*[-*]\s+(.*)/.exec(line);
         if (item) items.push(item[1]);
         else if (line.trim() && items.length) items[items.length - 1] += ` ${line.trim()}`;
       }
     }
-    return versions;
+    return new Map([...versions].map(([name, v]) =>
+      [name, v.summary.length ? { items: v.summary, summary: true } : { items: v.details, summary: false }]));
   }
 
   // The site carries a copy of the changelog; GitHub's is the fallback (a local preview)
@@ -211,7 +218,7 @@
   // The Russian page takes the entries from CHANGELOG.ru.md, the English ones where a version has none
   const changelog = window.i18n.lang === 'ru'
     ? Promise.all([fetchChangelog('CHANGELOG.md'), fetchChangelog('CHANGELOG.ru.md')])
-      .then(([en, ru]) => new Map([...en].map(([version, items]) => [version, ru.get(version)?.length ? ru.get(version) : items])))
+      .then(([en, ru]) => new Map([...en].map(([version, notes]) => [version, ru.get(version)?.items.length ? ru.get(version) : notes])))
     : fetchChangelog('CHANGELOG.md');
 
   // `code` in a changelog entry
@@ -219,12 +226,17 @@
     return entry.split(/`([^`]*)`/).map((part, i) => i % 2 ? el('code', {}, part) : part);
   }
 
-  function whatsNew(items, empty) {
-    return el('details', { className: 'notes', open: true },
-      el('summary', {}, t('js.whatsNew', "What's new")),
-      items.length
-        ? el('ul', { className: 'changes' }, ...items.map(entry => el('li', {}, ...inline(entry))))
-        : el('p', { className: 'meta' }, empty));
+  const changelogUrl = `https://github.com/${repo}/blob/main/${window.i18n.lang === 'ru' ? 'CHANGELOG.ru.md' : 'CHANGELOG.md'}`;
+
+  // notes: { items, summary }; a summary is followed by a link to the full changelog
+  function whatsNew(notes, empty) {
+    const list = notes.items.length
+      ? el('ul', { className: 'changes' }, ...notes.items.map(entry => el('li', {}, ...inline(entry))))
+      : el('p', { className: 'meta' }, empty);
+    const full = notes.summary
+      ? [el('p', { className: 'meta' }, el('a', { href: changelogUrl }, t('js.fullChangelog', 'Full changelog')))]
+      : [];
+    return el('details', { className: 'notes', open: true }, el('summary', {}, t('js.whatsNew', "What's new")), list, ...full);
   }
 
   // channel: the web app's folder and the release's changelog entries ([] when it has none)
@@ -282,7 +294,7 @@
       // The development build has what the changelog lists as unreleased
       render(dev, releases.find(r => r.tag_name === 'dev'), devTitle(), {
         web: '../dev/',
-        changes: changes.size ? changes.get('unreleased') || [] : null,
+        changes: changes.size ? changes.get('unreleased') || { items: [], summary: false } : null,
         empty: latest
           ? t('js.noChanges', 'No notable changes since {version}.').replace('{version}', latest.tag_name)
           : t('js.noChangesYet', 'No notable changes yet.'),

@@ -5,7 +5,21 @@ This project uses the changelog in accordance with [keepchangelog](http://keepac
 Releases are tagged with the ChameLab version, which goes up with every release (v1.0.7 on).
 The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped only when the firmware changes.
 
+Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
+
 ## [unreleased][unreleased]
+
+## [v1.4.35][2026-11-05] · firmware v2.3.12-cl
+### Summary
+ - CLI: the command line client is rewritten in C# on the same protocol and key recovery code as the app; it comes as a single self-contained program for Windows, macOS and Linux, with no Python to install
+ - ChameLab: a new logo, in the app and on the website
+ - ChameLab for Android: connecting over USB works (the device used to restart a second after connecting)
+
+### Details
+ - CLI: the command line client is rewritten in C#: it shares the protocol, card models and key recovery (darkside, nested, static nested, hardnested, Ultralight C) with the app instead of the Python client and its native solvers. Every command, flag and file format of the Python client is kept, with history and Tab completion, repeated `-c` / `--command`, Ctrl+C to stop a command and meaningful exit codes. The release carries it as `client-windows.zip`, `client-linux.zip` and `client-macos.zip`, a self-contained `chamelab` program that needs neither Python nor .NET
+ - CLI: the development tools are in C# too (hardnested table import and code generation, benchmarks, the MIFARE Classic 4K reader, release packaging and announcements); the DFU helper scripts moved to `firmware/tools`
+ - Website: the home page says the CLI is written in C# and shares the app's code
+ - Website: the download page shows a release's summary with a link to the full changelog; the Telegram and Discord announcements do the same
  - ChameLab: a new logo, a geometric redraw of the chameleon with the gear: the app icon, the Android splash screen, the Windows window and .exe icon and the top bar mark (in place of the ChameleonUltra picture)
  - Website: the header shows the new logo in place of the "C" badge, without the dot after ChameLab; the website and the web app (app/ and dev/) have the new favicon (the web app had the browser's default one)
  - Website: the home page headline has no dot, and "The lab for your" is set smaller above "Chameleon"
