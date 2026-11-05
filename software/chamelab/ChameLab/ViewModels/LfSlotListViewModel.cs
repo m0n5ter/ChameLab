@@ -50,7 +50,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     public void CommitOrder() { /* The slot save bar persists the edited list. */ }
     public LfSlotCardViewModel? SelectedCard { get => null; set { if (value is not null) OpenItem(value); } }
     public bool HasCards => Cards.Count > 0;
-    public string ChooseLabel => HasCards ? Strings.Slots_AddSaved : Strings.Slots_ChooseSaved;
+    public string ChooseLabel => HasCards ? Strings.Slots_Add : Strings.Slots_Choose;
     public string CountLabel => $"{Cards.Count} / 8";
     public bool CanAdd => !HasCards || (_supportsCycle && Cards.Count < 8 && CanCycle(Cards[0].Card));
     public bool IsDirty => !Cards.Select(c => Key(c.Card)).SequenceEqual(_saved.Select(Key));

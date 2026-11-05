@@ -1731,9 +1731,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>Enregistrer en fichier .dic (une clé par ligne)</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>Enregistrer le dictionnaire</value>
-  </data>
   <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
     <value>Enregistrer les modifications des clés de carte connues ?</value>
   </data>
@@ -2607,6 +2604,9 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>{0} et {1} importés.</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>Site web</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Langue</value>
   </data>
@@ -2637,8 +2637,8 @@
   <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
     <value>Une couleur au choix (nécessite le firmware ChameLab)</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>Ajouter une enregistrée</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>Ajouter</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>Ajouter une carte LF enregistrée</value>
@@ -2646,8 +2646,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>Ajouter cette carte aux cartes enregistrées</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>Choisir une enregistrée</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>Choisir</value>
   </data>
   <data name="Slots_ChooseSavedSide" xml:space="preserve">
     <value>Choisir une carte {0} enregistrée</value>
@@ -2741,9 +2741,6 @@
   </data>
   <data name="Slots_SaveChangesTo" xml:space="preserve">
     <value>Enregistrer les modifications de l'emplacement {0} ?</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>Enregistrer l'emplacement</value>
   </data>
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>« {0} » ajoutée aux cartes enregistrées.</value>

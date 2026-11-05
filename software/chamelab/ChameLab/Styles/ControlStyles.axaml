@@ -165,7 +165,7 @@
   <!-- ==================== Page layout ==================== -->
 
   <Style Selector="StackPanel.page">
-    <Setter Property="Margin" Value="28,24,28,88" />
+    <Setter Property="Margin" Value="28,24,28,24" />
     <Setter Property="Spacing" Value="12" />
     <Setter Property="MaxWidth" Value="980" />
   </Style>
@@ -1080,7 +1080,7 @@
   </Style>
 
   <Style Selector=".compact StackPanel.page">
-    <Setter Property="Margin" Value="14,10,14,88" />
+    <Setter Property="Margin" Value="14,10,14,8" />
     <Setter Property="Spacing" Value="8" />
   </Style>
   <Style Selector=".compact Grid.page">

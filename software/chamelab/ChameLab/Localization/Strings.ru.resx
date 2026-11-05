@@ -15,6 +15,9 @@
   <data name="Language_System" xml:space="preserve">
     <value>Как в системе</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>Сайт</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Язык</value>
   </data>
@@ -816,9 +819,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>Сохранить в файл .dic (один ключ в строке)</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>Сохранить словарь</value>
-  </data>
   <data name="Dictionaries_SearchByNameOrKey" xml:space="preserve">
     <value>Поиск по названию или ключу</value>
   </data>
@@ -981,8 +981,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>Добавить карту в «Сохранённые карты»</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>Выбрать сохранённую</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>Выбрать</value>
   </data>
   <data name="Slots_ConnectAChameleonToSeeAnd" xml:space="preserve">
     <value>Подключите Chameleon, чтобы просматривать и изменять его восемь слотов эмуляции.</value>
@@ -1046,9 +1046,6 @@
   </data>
   <data name="Slots_SaveCard" xml:space="preserve">
     <value>Сохранить карту</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>Сохранить слот</value>
   </data>
   <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
     <value>Выберите слот, чтобы сделать его активным и изменить.</value>
@@ -2229,8 +2226,8 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>Импортировано: {0} и {1}.</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>Добавить сохранённую</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>Добавить</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>Добавить сохранённую карту LF</value>

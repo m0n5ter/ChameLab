@@ -16,6 +16,9 @@
     <value>System default</value>
     <comment>Language picker: follow the operating system language</comment>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>Website</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Language</value>
     <comment>Settings: language row title</comment>
@@ -819,9 +822,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>Save as a .dic file (one key per line)</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>Save dictionary</value>
-  </data>
   <data name="Dictionaries_SearchByNameOrKey" xml:space="preserve">
     <value>Search by name or key</value>
   </data>
@@ -984,8 +984,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>Add this card to Saved cards</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>Choose saved</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>Choose</value>
   </data>
   <data name="Slots_ConnectAChameleonToSeeAnd" xml:space="preserve">
     <value>Connect a Chameleon to see and edit its eight emulation slots.</value>
@@ -1049,9 +1049,6 @@
   </data>
   <data name="Slots_SaveCard" xml:space="preserve">
     <value>Save card</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>Save slot</value>
   </data>
   <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
     <value>Select a slot to make it active and edit it.</value>
@@ -2232,8 +2229,8 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>Imported {0} and {1}.</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>Add saved</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>Add</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>Add a saved LF card</value>

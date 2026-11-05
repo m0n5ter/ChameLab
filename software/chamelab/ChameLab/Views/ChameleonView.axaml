@@ -522,16 +522,15 @@
           </StackPanel>
         </Border>
 
-        <!-- Danger zone -->
+        <!-- Danger zone: rows laid out like settings, without icons (hidden placeholders). -->
         <Border Classes="card" BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}">
           <StackPanel>
             <!-- Bonded BLE devices -->
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" IsVisible="{Binding SupportsBle}">
-              <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearBondedDevices}" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ForgetsEveryPhoneAndTabletPaired}" />
-              </StackPanel>
-              <Button Grid.Column="1" x:Name="ClearBondsButton" Classes="danger" VerticalAlignment="Center">
+            <c:SettingRow IsVisible="{Binding SupportsBle}">
+              <Panel IsVisible="False" />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearBondedDevices}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ForgetsEveryPhoneAndTabletPaired}" />
+              <Button x:Name="ClearBondsButton" Classes="danger">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.ble}" />
                   <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearBonds2}" VerticalAlignment="Center" />
@@ -547,16 +546,15 @@
                   </Flyout>
                 </Button.Flyout>
               </Button>
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-              <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="{x:Static loc:Strings.Chameleon_ResetToDefaults}" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_RestoresFactorySettingsForLEDsSleep}" />
-              </StackPanel>
-              <Button Grid.Column="1" x:Name="ResetButton" Classes="danger" VerticalAlignment="Center">
+            <c:SettingRow>
+              <Panel IsVisible="False" />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_ResetToDefaults}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_RestoresFactorySettingsForLEDsSleep}" />
+              <Button x:Name="ResetButton" Classes="danger">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.reset}" />
                   <TextBlock Text="{x:Static loc:Strings.Chameleon_Reset}" VerticalAlignment="Center" />
@@ -572,18 +570,16 @@
                   </Flyout>
                 </Button.Flyout>
               </Button>
-            </Grid>
+            </c:SettingRow>
 
             <Separator Classes="row" />
 
             <!-- Factory reset (wipe) -->
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
-              <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryReset}" FontWeight="SemiBold" />
-                <TextBlock Classes="caption" TextWrapping="Wrap"
-                           Text="{x:Static loc:Strings.Chameleon_WipesALLDataEverySlotNickname}" />
-              </StackPanel>
-              <Button Grid.Column="1" x:Name="WipeButton" Classes="danger" VerticalAlignment="Center">
+            <c:SettingRow>
+              <Panel IsVisible="False" />
+              <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryReset}" FontWeight="SemiBold" />
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_WipesALLDataEverySlotNickname}" />
+              <Button x:Name="WipeButton" Classes="danger">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.delete}" />
                   <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryReset2}" VerticalAlignment="Center" />
@@ -599,7 +595,7 @@
                   </Flyout>
                 </Button.Flyout>
               </Button>
-            </Grid>
+            </c:SettingRow>
           </StackPanel>
         </Border>
       </StackPanel>

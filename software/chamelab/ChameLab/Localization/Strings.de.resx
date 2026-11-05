@@ -1731,9 +1731,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>Als .dic-Datei speichern (ein Schlüssel pro Zeile)</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>Wörterbuch speichern</value>
-  </data>
   <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
     <value>Änderungen an den bekannten Kartenschlüsseln speichern?</value>
   </data>
@@ -2607,6 +2604,9 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>{0} und {1} importiert.</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>Website</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Sprache</value>
   </data>
@@ -2637,8 +2637,8 @@
   <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
     <value>Eine Farbe Ihrer Wahl (erfordert die ChameLab-Firmware)</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>Gespeicherte hinzufügen</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>Hinzufügen</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>Gespeicherte LF-Karte hinzufügen</value>
@@ -2646,8 +2646,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>Diese Karte zu den gespeicherten Karten hinzufügen</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>Gespeicherte wählen</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>Wählen</value>
   </data>
   <data name="Slots_ChooseSavedSide" xml:space="preserve">
     <value>Gespeicherte {0}-Karte wählen</value>
@@ -2741,9 +2741,6 @@
   </data>
   <data name="Slots_SaveChangesTo" xml:space="preserve">
     <value>Änderungen an Slot {0} speichern?</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>Slot speichern</value>
   </data>
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>„{0}“ in den gespeicherten Karten abgelegt.</value>

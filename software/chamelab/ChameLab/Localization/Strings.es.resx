@@ -1731,9 +1731,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>Guardar como archivo .dic (una clave por línea)</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>Guardar diccionario</value>
-  </data>
   <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
     <value>¿Guardar los cambios en las claves de tarjeta conocidas?</value>
   </data>
@@ -2607,6 +2604,9 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>Se importaron {0} y {1}.</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>Sitio web</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Idioma</value>
   </data>
@@ -2637,8 +2637,8 @@
   <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
     <value>Un color a tu elección (requiere el firmware de ChameLab)</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>Añadir guardada</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>Añadir</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>Añadir una tarjeta LF guardada</value>
@@ -2646,8 +2646,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>Añadir esta tarjeta a Tarjetas guardadas</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>Elegir guardada</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>Elegir</value>
   </data>
   <data name="Slots_ChooseSavedSide" xml:space="preserve">
     <value>Elegir una tarjeta {0} guardada</value>
@@ -2741,9 +2741,6 @@
   </data>
   <data name="Slots_SaveChangesTo" xml:space="preserve">
     <value>¿Guardar los cambios en la ranura {0}?</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>Guardar ranura</value>
   </data>
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>«{0}» guardada en Tarjetas guardadas.</value>

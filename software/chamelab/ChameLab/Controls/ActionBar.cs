@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 
@@ -9,7 +10,9 @@ namespace ChameLab.Controls;
 /// A message followed by action buttons. The first child is the message, the rest are the
 /// buttons, kept right-aligned at their natural size. When the message fits on one line
 /// beside the buttons everything shares a row; otherwise the message takes its own row
-/// above them, so the buttons never stretch to the height of wrapped text.
+/// above them, so the buttons never stretch to the height of wrapped text. A single
+/// <see cref="ActionRow"/> in place of the buttons gets the bar's width on that row, so its
+/// buttons fall back to icons when even a row of their own is too narrow.
 /// </summary>
 public class ActionBar : Panel
 {
@@ -82,6 +85,13 @@ public class ActionBar : Panel
         }
 
         message.Measure(new Size(limit, double.PositiveInfinity));
+        if (count == 1 && _buttonsWidth > limit)
+        {
+            var row = Buttons().First();
+            row.Measure(new Size(limit, double.PositiveInfinity));
+            _buttonsWidth = row.DesiredSize.Width;
+            _buttonsHeight = row.DesiredSize.Height;
+        }
         var height = message.DesiredSize.Height + (count > 0 ? RowSpacing + _buttonsHeight : 0);
         return new Size(limit, height);
     }

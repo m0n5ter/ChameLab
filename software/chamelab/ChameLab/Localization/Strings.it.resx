@@ -1731,9 +1731,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>Salva come file .dic (una chiave per riga)</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>Salva dizionario</value>
-  </data>
   <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
     <value>Salvare le modifiche alle chiavi delle schede note?</value>
   </data>
@@ -2607,6 +2604,9 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>Importati {0} e {1}.</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>Sito web</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Lingua</value>
   </data>
@@ -2637,8 +2637,8 @@
   <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
     <value>Un colore a tua scelta (richiede il firmware ChameLab)</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>Aggiungi salvata</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>Aggiungi</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>Aggiungi una scheda LF salvata</value>
@@ -2646,8 +2646,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>Aggiungi questa scheda alle Schede salvate</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>Scegli salvata</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>Scegli</value>
   </data>
   <data name="Slots_ChooseSavedSide" xml:space="preserve">
     <value>Scegli una scheda {0} salvata</value>
@@ -2741,9 +2741,6 @@
   </data>
   <data name="Slots_SaveChangesTo" xml:space="preserve">
     <value>Salvare le modifiche allo slot {0}?</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>Salva slot</value>
   </data>
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>«{0}» salvata nelle Schede salvate.</value>

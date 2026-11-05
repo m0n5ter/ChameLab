@@ -133,12 +133,18 @@ public sealed class SettingsViewModel : PageViewModelBase
         Discord,
     ];
 
+    public const string WebsiteUrl = "https://m0n5ter.github.io/ChameLab/";
+
     /// <summary>
-    /// Community links for the About card: the Russian-speaking channels only in the Russian UI,
-    /// Discord in every language. Read afresh when the views are rebuilt for a new language.
+    /// Links for the About card: the website first, then the Russian-speaking channels only in
+    /// the Russian UI and Discord in every language. Read afresh when the views are rebuilt for a
+    /// new language (the website's name is localized).
     /// </summary>
     public IReadOnlyList<SocialLink> SocialLinks =>
-        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ru" ? RussianLinks : [Discord];
+    [
+        new(Strings.Settings_Website, WebsiteUrl, "web"),
+        .. CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ru" ? RussianLinks : [Discord],
+    ];
 
     /// <summary>Opens a community link in the browser.</summary>
     public ICommand OpenLinkCommand { get; }

@@ -1731,9 +1731,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>.dic ファイルとして保存（1 行に 1 キー）</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>辞書を保存</value>
-  </data>
   <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
     <value>既知のカードキーへの変更を保存しますか？</value>
   </data>
@@ -2607,6 +2604,9 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>{0}と{1}をインポートしました。</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>ウェブサイト</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>言語</value>
   </data>
@@ -2637,8 +2637,8 @@
   <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
     <value>好きな色（ChameLab ファームウェアが必要）</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>保存済みを追加</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>追加</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>保存済みの LF カードを追加</value>
@@ -2646,8 +2646,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>このカードを保存済みカードに追加</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>保存済みから選択</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>選択</value>
   </data>
   <data name="Slots_ChooseSavedSide" xml:space="preserve">
     <value>保存済みの {0} カードを選択</value>
@@ -2741,9 +2741,6 @@
   </data>
   <data name="Slots_SaveChangesTo" xml:space="preserve">
     <value>スロット {0} への変更を保存しますか？</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>スロットを保存</value>
   </data>
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>「{0}」を保存済みカードに保存しました。</value>

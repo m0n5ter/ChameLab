@@ -1731,9 +1731,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>Salvar como arquivo .dic (uma chave por linha)</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>Salvar dicionário</value>
-  </data>
   <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
     <value>Salvar as alterações nas chaves de cartão conhecidas?</value>
   </data>
@@ -2607,6 +2604,9 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>{0} e {1} importados.</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>Site</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>Idioma</value>
   </data>
@@ -2637,8 +2637,8 @@
   <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
     <value>Uma cor à sua escolha (requer o firmware ChameLab)</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>Adicionar salvo</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>Adicionar</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>Adicionar um cartão LF salvo</value>
@@ -2646,8 +2646,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>Adicionar este cartão aos Cartões salvos</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>Escolher salvo</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>Escolher</value>
   </data>
   <data name="Slots_ChooseSavedSide" xml:space="preserve">
     <value>Escolher um cartão {0} salvo</value>
@@ -2741,9 +2741,6 @@
   </data>
   <data name="Slots_SaveChangesTo" xml:space="preserve">
     <value>Salvar as alterações no slot {0}?</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>Salvar slot</value>
   </data>
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>“{0}” salvo nos Cartões salvos.</value>

@@ -37,11 +37,11 @@ public class LfSlotListTests
     public void AddsUpToEightAndUsesOneChooseButton()
     {
         var (list, side, _) = Create();
-        Assert.Equal("Choose saved", list.ChooseLabel);
+        Assert.Equal("Choose", list.ChooseLabel);
         for (var i = 1; i <= 9; i++) list.Add(Card(i));
         Assert.Equal(8, list.Cards.Count);
         Assert.False(list.CanAdd);
-        Assert.Equal("Add saved", list.ChooseLabel);
+        Assert.Equal("Add", list.ChooseLabel);
         Assert.Equal(Card(1).Uid, side.CurrentCard().Uid);
         Assert.Equal(7, list.Cycle().Extras.Length);
         Assert.True(list.IsDirty);
@@ -87,7 +87,7 @@ public class LfSlotListTests
         Assert.True(side.IsDirty);
         Assert.False(list.HasCards);
         Assert.True(list.CanAdd);
-        Assert.Equal("Choose saved", list.ChooseLabel);
+        Assert.Equal("Choose", list.ChooseLabel);
     }
 
     [Fact]

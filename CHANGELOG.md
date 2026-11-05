@@ -14,6 +14,11 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
  - Website: on the download page the web app button comes first, across the whole row, and the firmware packages go two to a row: ChameleonUltra above, ChameleonLite below, and the two SWD firmware binaries share the whole row
  - ChameLab: connecting over USB on Android works: the device restarted a second after connecting (the app showed an error for a moment and went back to Connect), because the app sent the next command before it had read the reply to the previous one; over Android USB it now waits for each reply first
  - Firmware: replies over USB wait in a queue until the host reads them; a reply made while the previous one was still going out used to overwrite it and restart the device
+ - ChameLab: on narrow screens the Rescan button on Connect and the actions of the Chameleon danger zone are laid out like settings: the title gets the full width, the description and the button share the line under it
+ - ChameLab: shorter button labels: Add and Choose in the slot editor (were Add saved / Choose saved), Save in the slot editor and the dictionary import (were Save slot / Save dictionary)
+ - ChameLab: the Cancel / Discard / Save prompts about unsaved changes have icons, and on a narrow screen the buttons fall back to icons one at a time, Cancel first and Save last
+ - ChameLab: Settings has a link to the website, first in the row of community links; short of room, the links drop their labels from the end
+ - ChameLab: no empty space at the bottom of Settings and Chameleon
 
 ## [v1.3.34][2026-11-05] · firmware v2.3.11-cl
  - ChameLab: smoother scrolling of long key lists (thousands of keys) and card memory on phones: the hex editor keeps the lines it has drawn in small strips that scrolling only moves, adding one strip at a time as the view nears it; the bytes and row numbers are drawn as batched glyphs, one run per color for each strip, also with a proportional font (Android falls back to Roboto, where every byte was laid out as text of its own and the renderer's memory use made scrolling hitch a few times a second), and the blinking caret no longer redraws the text

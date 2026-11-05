@@ -24,6 +24,19 @@
     <Style Selector=":is(Control).setting.stacked > NumericUpDown.control, :is(Control).setting.stacked > TextBox.control">
       <Setter Property="Width" Value="116" />
     </Style>
+    <!-- Link buttons short of room: icon only (the tooltip has the address). ActionRow marks the
+         item containers, so the generic ActionRow styles do not reach the buttons inside. -->
+    <Style Selector="c|ActionRow > ContentPresenter.iconic > Button > StackPanel > TextBlock">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="c|ActionRow > ContentPresenter.iconic > Button">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Height" Value="40" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
     <Style Selector="Separator.row">
       <Setter Property="Margin" Value="0,14" />
       <Setter Property="Opacity" Value="0.6" />
@@ -172,10 +185,11 @@
           </StackPanel>
           <TextBlock Classes="caption" TextWrapping="Wrap"
                      Text="{x:Static loc:Strings.Settings_CrossPlatformClientForTheChameleon}" />
-          <!-- Community channels: Telegram and MAX in the Russian UI, Discord everywhere. -->
+          <!-- The website, then community channels: Telegram and MAX in the Russian UI, Discord
+               everywhere. Short of room, the last buttons drop their labels first. -->
           <ItemsControl ItemsSource="{Binding SocialLinks}">
             <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate><WrapPanel ItemSpacing="8" LineSpacing="8" /></ItemsPanelTemplate>
+              <ItemsPanelTemplate><c:ActionRow /></ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:SocialLink">

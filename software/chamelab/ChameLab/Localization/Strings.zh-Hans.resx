@@ -1731,9 +1731,6 @@
   <data name="Dictionaries_SaveAsADicFileOne" xml:space="preserve">
     <value>另存为 .dic 文件（每行一个密钥）</value>
   </data>
-  <data name="Dictionaries_SaveDictionary" xml:space="preserve">
-    <value>保存字典</value>
-  </data>
   <data name="Dictionaries_SaveKnownKeys" xml:space="preserve">
     <value>保存对已知卡片密钥的更改？</value>
   </data>
@@ -2607,6 +2604,9 @@
   <data name="Settings_ImportedBackup" xml:space="preserve">
     <value>已导入 {0} 和 {1}。</value>
   </data>
+  <data name="Settings_Website" xml:space="preserve">
+    <value>网站</value>
+  </data>
   <data name="Settings_Language" xml:space="preserve">
     <value>语言</value>
   </data>
@@ -2637,8 +2637,8 @@
   <data name="Slots_AColorOfYourChoiceNeeds" xml:space="preserve">
     <value>自选颜色（需要 ChameLab 固件）</value>
   </data>
-  <data name="Slots_AddSaved" xml:space="preserve">
-    <value>添加已保存的</value>
+  <data name="Slots_Add" xml:space="preserve">
+    <value>添加</value>
   </data>
   <data name="Slots_AddSavedLf" xml:space="preserve">
     <value>添加已保存的 LF 卡</value>
@@ -2646,8 +2646,8 @@
   <data name="Slots_AddThisCardToSavedCards" xml:space="preserve">
     <value>将此卡片添加到已保存的卡片</value>
   </data>
-  <data name="Slots_ChooseSaved" xml:space="preserve">
-    <value>选择已保存的</value>
+  <data name="Slots_Choose" xml:space="preserve">
+    <value>选择</value>
   </data>
   <data name="Slots_ChooseSavedSide" xml:space="preserve">
     <value>选择已保存的 {0} 卡</value>
@@ -2741,9 +2741,6 @@
   </data>
   <data name="Slots_SaveChangesTo" xml:space="preserve">
     <value>保存对卡槽 {0} 的更改？</value>
-  </data>
-  <data name="Slots_SaveSlot" xml:space="preserve">
-    <value>保存卡槽</value>
   </data>
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>已将“{0}”保存到已保存的卡片。</value>

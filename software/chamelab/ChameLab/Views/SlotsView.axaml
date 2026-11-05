@@ -212,7 +212,7 @@
             <Button Command="{Binding PickCommand}" ToolTip.Tip="{x:Static loc:Strings.Slots_PutOneOfYourSavedCards}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.cards}" />
-                <TextBlock Text="{x:Static loc:Strings.Slots_ChooseSaved}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Slots_Choose}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
             <Button Classes="danger" Command="{Binding ClearCommand}" IsVisible="{Binding HasCard}"
@@ -474,7 +474,7 @@
                     ToolTip.Tip="{x:Static loc:Strings.Slots_WriteTheSlotToTheDevice}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.save}" />
-                <TextBlock Text="{x:Static loc:Strings.Slots_SaveSlot}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </c:ActionBar>
@@ -485,15 +485,30 @@
         <c:ActionBar>
           <TextBlock Text="{Binding LeaveText}" VerticalAlignment="Center"
                      FontWeight="SemiBold" TextWrapping="Wrap" />
-          <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
-                  ToolTip.Tip="{x:Static loc:Strings.Slots_KeepEditingThisSlot}" />
-          <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardAndLeaveCommand}" />
-          <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}" b:DialogKeys.IsDefault="True">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.save}" />
-              <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
+          <!-- Short of room, Cancel gives up its label first, then Discard; Save keeps it longest. -->
+          <c:ActionRow>
+            <Button Command="{Binding StayCommand}" b:DialogKeys.IsCancel="True"
+                    ToolTip.Tip="{x:Static loc:Strings.Slots_KeepEditingThisSlot}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.close}" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding DiscardAndLeaveCommand}" c:ActionRow.Priority="1"
+                    ToolTip.Tip="{x:Static loc:Strings.Common_Discard}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Discard}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="accent" Command="{Binding SaveAndLeaveCommand}" b:DialogKeys.IsDefault="True"
+                    c:ActionRow.Priority="2" ToolTip.Tip="{x:Static loc:Strings.Common_Save}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.save}" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Save}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </c:ActionRow>
         </c:ActionBar>
       </Border>
       <!-- Choosing a saved card for a frequency: search, then click one. -->
