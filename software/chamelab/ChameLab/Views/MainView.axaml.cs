@@ -256,6 +256,9 @@ public partial class MainView : UserControl
         _was = (compact, overlay);
 
         Classes.Set("compact", compact);
+        // Its opposite, for styles that must not depend on their order against the compact ones
+        // (container queries).
+        Classes.Set("wide", !compact);
         if (!overlayChanged) return;
 
         vm.IsCompact = overlay;

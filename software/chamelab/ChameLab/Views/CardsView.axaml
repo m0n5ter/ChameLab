@@ -167,7 +167,7 @@
 
     <!-- ==================== Card list ==================== -->
     <!-- Locked while a new card is open: save it or cancel to get back to the list. -->
-    <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,Auto,*"
+    <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,*"
           IsEnabled="{Binding !ListLocked}">
       <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
         <!-- Back from a folder to Cards, also when the navigation pane is hidden (narrow, or closed). -->
@@ -237,140 +237,148 @@
         </c:TitleRow>
       </Grid>
 
-      <StackPanel Grid.Row="1" Spacing="8" IsVisible="{Binding !IsEmpty}">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-          <TextBox Grid.Column="0" Text="{Binding Filter}" PlaceholderText="{x:Static loc:Strings.Common_SearchByNameTypeOrUID}">
-            <TextBox.InnerLeftContent>
-              <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
-            </TextBox.InnerLeftContent>
-          </TextBox>
-          <Button Grid.Column="1" Classes="icon" Command="{Binding ResetFiltersCommand}"
-                  VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Cards_ClearSearchAndFilters}">
-            <PathIcon Data="{StaticResource Icon.close}" />
-          </Button>
-        </Grid>
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-          <Border Grid.Column="0" Classes="segmented filter">
-            <StackPanel Orientation="Horizontal">
-              <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandAll}"
-                           ToolTip.Tip="{x:Static loc:Strings.Cards_CardsOfBothFrequencies}">
-                <TextBlock Text="{x:Static loc:Strings.Cards_All}" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandHf}"
-                           ToolTip.Tip="{x:Static loc:Strings.Cards_1356MHzCardsOnly}">
-                <TextBlock Text="HF" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandLf}"
-                           ToolTip.Tip="{x:Static loc:Strings.Cards_125KHzCardsOnly}">
-                <TextBlock Text="LF" FontWeight="SemiBold" />
-              </RadioButton>
+      <!-- Under the title everything scrolls together once the window is too short for the list's
+           minimum; until then the list fills the rest and scrolls on its own. The scroller reaches past
+           the column like the list does, so a dragged card's shadow is not clipped. -->
+      <ScrollViewer Grid.Row="1" Name="ListPaneScroll" Margin="-12,0,-12,-16" HorizontalScrollBarVisibility="Disabled">
+        <c:FillStack Classes="panestack" Margin="12,0,12,16">
+          <StackPanel Spacing="8" IsVisible="{Binding !IsEmpty}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBox Grid.Column="0" Text="{Binding Filter}" PlaceholderText="{x:Static loc:Strings.Common_SearchByNameTypeOrUID}">
+                <TextBox.InnerLeftContent>
+                  <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
+                </TextBox.InnerLeftContent>
+              </TextBox>
+              <Button Grid.Column="1" Classes="icon" Command="{Binding ResetFiltersCommand}"
+                      VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Cards_ClearSearchAndFilters}">
+                <PathIcon Data="{StaticResource Icon.close}" />
+              </Button>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+              <Border Grid.Column="0" Classes="segmented filter">
+                <StackPanel Orientation="Horizontal">
+                  <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandAll}"
+                               ToolTip.Tip="{x:Static loc:Strings.Cards_CardsOfBothFrequencies}">
+                    <TextBlock Text="{x:Static loc:Strings.Cards_All}" FontWeight="SemiBold" />
+                  </RadioButton>
+                  <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandHf}"
+                               ToolTip.Tip="{x:Static loc:Strings.Cards_1356MHzCardsOnly}">
+                    <TextBlock Text="HF" FontWeight="SemiBold" />
+                  </RadioButton>
+                  <RadioButton Classes="segment" GroupName="CardBand" IsChecked="{Binding IsBandLf}"
+                               ToolTip.Tip="{x:Static loc:Strings.Cards_125KHzCardsOnly}">
+                    <TextBlock Text="LF" FontWeight="SemiBold" />
+                  </RadioButton>
+                </StackPanel>
+              </Border>
+              <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                        ItemsSource="{Binding TypeOptions}" SelectedItem="{Binding TypeFilter}"
+                        ToolTip.Tip="{x:Static loc:Strings.Cards_CardType}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CardTypeOption">
+                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <ComboBox Grid.Column="2" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="{x:Static loc:Strings.Cards_OrderOfTheListInManual}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+          </StackPanel>
+          <Panel c:FillStack.Fill="True" MinHeight="180">
+          <!-- Empty library -->
+          <Border Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
+            <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
+              <PathIcon Data="{StaticResource Icon.cards}" Width="40" Height="40" Opacity="0.4"
+                        HorizontalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Cards_NoCardsYet}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+              <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360" TextWrapping="Wrap"
+                         Text="{x:Static loc:Strings.Cards_PressToScanACardImport}" />
             </StackPanel>
           </Border>
-          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                    ItemsSource="{Binding TypeOptions}" SelectedItem="{Binding TypeFilter}"
-                    ToolTip.Tip="{x:Static loc:Strings.Cards_CardType}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate x:DataType="vm:CardTypeOption">
-                <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-          <ComboBox Grid.Column="2" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
-                    VerticalAlignment="Center"
-                    ToolTip.Tip="{x:Static loc:Strings.Cards_OrderOfTheListInManual}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-        </Grid>
-      </StackPanel>
-
-      <!-- Empty library -->
-      <Border Grid.Row="2" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
-        <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
-          <PathIcon Data="{StaticResource Icon.cards}" Width="40" Height="40" Opacity="0.4"
-                    HorizontalAlignment="Center" />
-          <TextBlock Text="{x:Static loc:Strings.Cards_NoCardsYet}" FontWeight="SemiBold" HorizontalAlignment="Center" />
-          <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360" TextWrapping="Wrap"
-                     Text="{x:Static loc:Strings.Cards_PressToScanACardImport}" />
-        </StackPanel>
-      </Border>
 
 
-      <!-- In manual order the cards can be dragged into place, and in any order onto a folder in
-           the navigation pane (see CardsView.axaml.cs). -->
-      <!-- Reaches past the column by as much as the list is padded, so the shadow of a
-           dragged card is not clipped at the sides and bottom; the cards stay in place. -->
-      <ScrollViewer Grid.Row="2" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
-        <StackPanel>
-          <!-- In the flow above the list, so they never overlap the folder tiles below it. -->
-          <TextBlock Classes="caption" Margin="12,0,12,8" Text="{x:Static loc:Strings.Cards_NoCardsMatchTheSearchAnd}"
-                     IsVisible="{Binding NoMatches}" />
-          <TextBlock Classes="caption" Margin="12,0,12,8" TextWrapping="Wrap" IsVisible="{Binding IsFolderEmpty}"
-                     Text="{x:Static loc:Strings.Cards_NoCardsInThisFolderYet}" />
-          <ListBox Name="CardList" Classes="cards" ItemsSource="{Binding Cards}" Padding="8,0,8,12"
-                   SelectedItem="{Binding Selected}">
-            <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="vm:CardItemViewModel">
-                <Panel>
-                  <Border Classes="cardrow"><Border Classes="cardclip">
-                    <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
-                      <Border Grid.Column="0" Background="{Binding ColorBrush}" />
-                      <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-                        <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
-                        <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
-                                   TextTrimming="CharacterEllipsis" />
-                      </StackPanel>
-                      <Panel Grid.Column="2" VerticalAlignment="Center">
-                        <Border Classes="chip hf" IsVisible="{Binding IsHf}"><TextBlock Text="HF" /></Border>
-                        <Border Classes="chip lf" IsVisible="{Binding IsLf}"><TextBlock Text="LF" /></Border>
-                        <Border Classes="chip" IsVisible="{Binding IsUnknownType}"
-                                Background="{actipro:ThemeResource Container3BackgroundBrush}">
-                          <TextBlock Text="?" />
+          <!-- In manual order the cards can be dragged into place, and in any order onto a folder in
+               the navigation pane (see CardsView.axaml.cs). -->
+          <!-- Reaches past the column by as much as the list is padded, so the shadow of a
+               dragged card is not clipped at the sides and bottom; the cards stay in place. -->
+          <ScrollViewer Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
+            <StackPanel>
+              <!-- In the flow above the list, so they never overlap the folder tiles below it. -->
+              <TextBlock Classes="caption" Margin="12,0,12,8" Text="{x:Static loc:Strings.Cards_NoCardsMatchTheSearchAnd}"
+                         IsVisible="{Binding NoMatches}" />
+              <TextBlock Classes="caption" Margin="12,0,12,8" TextWrapping="Wrap" IsVisible="{Binding IsFolderEmpty}"
+                         Text="{x:Static loc:Strings.Cards_NoCardsInThisFolderYet}" />
+              <ListBox Name="CardList" Classes="cards" ItemsSource="{Binding Cards}" Padding="8,0,8,12"
+                       SelectedItem="{Binding Selected}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CardItemViewModel">
+                    <Panel>
+                      <Border Classes="cardrow"><Border Classes="cardclip">
+                        <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
+                          <Border Grid.Column="0" Background="{Binding ColorBrush}" />
+                          <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
+                            <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
+                            <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <Panel Grid.Column="2" VerticalAlignment="Center">
+                            <Border Classes="chip hf" IsVisible="{Binding IsHf}"><TextBlock Text="HF" /></Border>
+                            <Border Classes="chip lf" IsVisible="{Binding IsLf}"><TextBlock Text="LF" /></Border>
+                            <Border Classes="chip" IsVisible="{Binding IsUnknownType}"
+                                    Background="{actipro:ThemeResource Container3BackgroundBrush}">
+                              <TextBlock Text="?" />
+                            </Border>
+                          </Panel>
+                        </Grid>
+                      </Border></Border>
+                      <Border Classes="dragframe" />
+                    </Panel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <!-- Cards (no folder open): the folders after its own cards. A tile opens its folder, and cards
+                   are dragged onto it like onto a folder in the navigation pane (see ListReorder). -->
+              <StackPanel Spacing="4" Margin="8,4,8,12" IsVisible="{Binding ShowsFolderTiles}">
+                <TextBlock Text="{x:Static loc:Strings.Cards_FoldersHeader}" Classes="overline" Margin="4,0" />
+                <ItemsControl ItemsSource="{Binding Folders}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <c:TileGrid MinItemWidth="280" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CardFolderViewModel">
+                      <Button Classes="foldertile" Classes.empty="{Binding IsEmpty}"
+                              Command="{Binding OpenCommand}" b:ListReorder.IsDropTarget="True"
+                              ToolTip.Tip="{Binding Name}">
+                        <Border Classes="cardrow">
+                          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="14,8,14,8" MinHeight="36">
+                            <PathIcon Grid.Column="0" Classes="foldericon" Width="20" Height="20"
+                                      Data="{StaticResource Icon.folder}" />
+                            <TextBlock Grid.Column="1" Classes="foldername" Text="{Binding Name}" FontWeight="SemiBold"
+                                       FontSize="15" VerticalAlignment="Center" TextWrapping="Wrap" MaxLines="2"
+                                       LineSpacing="-2" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="2" Classes="caption foldercount" VerticalAlignment="Center"
+                                       Text="{Binding CountText}" />
+                          </Grid>
                         </Border>
-                      </Panel>
-                    </Grid>
-                  </Border></Border>
-                  <Border Classes="dragframe" />
-                </Panel>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-
-          <!-- Cards (no folder open): the folders after its own cards. A tile opens its folder, and cards
-               are dragged onto it like onto a folder in the navigation pane (see ListReorder). -->
-          <StackPanel Spacing="4" Margin="8,4,8,12" IsVisible="{Binding ShowsFolderTiles}">
-            <TextBlock Text="{x:Static loc:Strings.Cards_FoldersHeader}" Classes="overline" Margin="4,0" />
-            <ItemsControl ItemsSource="{Binding Folders}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <c:TileGrid MinItemWidth="280" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:CardFolderViewModel">
-                  <Button Classes="foldertile" Classes.empty="{Binding IsEmpty}"
-                          Command="{Binding OpenCommand}" b:ListReorder.IsDropTarget="True"
-                          ToolTip.Tip="{Binding Name}">
-                    <Border Classes="cardrow">
-                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Margin="14,8,14,8" MinHeight="36">
-                        <PathIcon Grid.Column="0" Classes="foldericon" Width="20" Height="20"
-                                  Data="{StaticResource Icon.folder}" />
-                        <TextBlock Grid.Column="1" Classes="foldername" Text="{Binding Name}" FontWeight="SemiBold"
-                                   FontSize="15" VerticalAlignment="Center" TextWrapping="Wrap" MaxLines="2"
-                                   LineSpacing="-2" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="2" Classes="caption foldercount" VerticalAlignment="Center"
-                                   Text="{Binding CountText}" />
-                      </Grid>
-                    </Border>
-                  </Button>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
-        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+          </Panel>
+        </c:FillStack>
       </ScrollViewer>
     </Grid>
 
@@ -378,7 +386,7 @@
     <Grid Classes="detailpane" RowDefinitions="Auto,*,Auto">
       <!-- ===================== Card header + actions (saved or new card; stays in view) ===================== -->
       <!-- Disabled under the lightbox so Tab can't reach it. -->
-      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowCardHeader}"
+      <Border Grid.Row="0" Classes="card panehead" IsVisible="{Binding ShowCardHeader}"
               IsEnabled="{Binding !IsAsking}">
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,Auto,*">
@@ -548,7 +556,7 @@
                 </Button>
                 <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                   <TextBlock Text="{x:Static loc:Strings.Cards_AddACard}" Classes="h2" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                  <TextBlock Classes="caption hint" TextWrapping="Wrap"
                              Text="{x:Static loc:Strings.Cards_HoldATagAgainstTheDevice}" />
                 </StackPanel>
                 <Button Grid.Column="2" Classes="icon" Command="{Binding CloseCommand}"

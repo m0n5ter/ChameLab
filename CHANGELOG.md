@@ -8,6 +8,9 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: on a short window the Cards and Dictionaries lists and the dictionary keys scroll under the page title: the list (or the key editor) fills the page while it can, and once the window is too short for it the whole area under the title scrolls
+ - ChameLab: long explanatory captions (Tools, the key editor, Add card, Settings, device settings) shrink to one line when the page is short of height, such as a phone in landscape or with the keyboard up; the tooltip shows the whole text
+ - ChameLab: when the page is short of height, the gaps between its blocks and the padding above and below their content are smaller
 
 ## [v1.4.35][2026-11-05] · firmware v2.3.12-cl
 ### Summary

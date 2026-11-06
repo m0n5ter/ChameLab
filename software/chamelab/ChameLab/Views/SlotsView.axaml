@@ -285,7 +285,7 @@
     <!-- ==================== Slot editor ==================== -->
     <Grid Classes="detailpane" RowDefinitions="Auto,*,Auto">
       <!-- Header + actions (stays in view); disabled under the lightbox so Tab can't reach it. -->
-      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding HasPane}"
+      <Border Grid.Row="0" Classes="card panehead" IsVisible="{Binding HasPane}"
               IsEnabled="{Binding !IsAsking}">
         <StackPanel>
           <!-- The back arrow sits under the slot number, centered on it (36 wide against 30). -->

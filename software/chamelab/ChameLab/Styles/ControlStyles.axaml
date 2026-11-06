@@ -164,6 +164,16 @@
 
   <!-- ==================== Page layout ==================== -->
 
+  <!-- Long explanatory captions ("hint") shrink to one line when the page is short of height,
+       e.g. a phone in landscape or with the keyboard up; the tooltip has the whole text. -->
+  <ContainerQuery Name="pagearea" Query="max-height:520">
+    <Style Selector="TextBlock.hint">
+      <Setter Property="MaxLines" Value="1" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+      <Setter Property="ToolTip.Tip" Value="{ReflectionBinding $self.Text}" />
+    </Style>
+  </ContainerQuery>
+
   <Style Selector="StackPanel.page">
     <Setter Property="Margin" Value="28,24,28,24" />
     <Setter Property="Spacing" Value="12" />
@@ -178,6 +188,13 @@
   <!-- Columns of a split page (list / details) stack their blocks with the same gap as a page. -->
   <Style Selector="Grid.panestack">
     <Setter Property="RowSpacing" Value="12" />
+  </Style>
+  <Style Selector="c|FillStack.panestack">
+    <Setter Property="Spacing" Value="12" />
+  </Style>
+  <!-- The fixed header card of a details pane, above its scrolling content. -->
+  <Style Selector="Border.card.panehead">
+    <Setter Property="Margin" Value="0,0,0,12" />
   </Style>
   <Style Selector="StackPanel.panestack">
     <Setter Property="Spacing" Value="12" />
@@ -1090,8 +1107,14 @@
   <Style Selector=".compact Grid.panestack">
     <Setter Property="RowSpacing" Value="8" />
   </Style>
+  <Style Selector=".compact c|FillStack.panestack">
+    <Setter Property="Spacing" Value="8" />
+  </Style>
   <Style Selector=".compact StackPanel.panestack">
     <Setter Property="Spacing" Value="8" />
+  </Style>
+  <Style Selector=".compact Border.card.panehead">
+    <Setter Property="Margin" Value="0,0,0,8" />
   </Style>
   <Style Selector=".compact Border.card">
     <Setter Property="Padding" Value="14" />
@@ -1258,5 +1281,45 @@
       </Animation>
     </Style.Animations>
   </Style>
+
+  <!-- ==================== Short pages ==================== -->
+  <!-- Short of height (a phone in landscape or with the keyboard up): tighter gaps between the
+       page's top-level blocks and less vertical padding inside them. Last in the file, so it wins
+       over the regular and compact values. -->
+  <ContainerQuery Name="pagearea" Query="max-height:520">
+    <!-- Wide or compact, never both: the horizontal margins stay those of the width. -->
+    <Style Selector=".wide StackPanel.page, .wide Grid.page">
+      <Setter Property="Margin" Value="28,12,28,12" />
+    </Style>
+    <Style Selector=".compact StackPanel.page, .compact Grid.page">
+      <Setter Property="Margin" Value="14,6,14,6" />
+    </Style>
+    <Style Selector="StackPanel.page, StackPanel.panestack">
+      <Setter Property="Spacing" Value="6" />
+    </Style>
+    <Style Selector="c|FillStack.panestack">
+      <Setter Property="Spacing" Value="6" />
+    </Style>
+    <Style Selector="Grid.page, Grid.panestack">
+      <Setter Property="RowSpacing" Value="6" />
+    </Style>
+    <Style Selector=".wide Border.card">
+      <Setter Property="Padding" Value="20,10" />
+    </Style>
+    <Style Selector=".compact Border.card">
+      <Setter Property="Padding" Value="14,8" />
+    </Style>
+    <Style Selector="Border.card.panehead">
+      <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+    <Style Selector="Border.savebar">
+      <Setter Property="Padding" Value="14,6" />
+      <Setter Property="Margin" Value="0,6,0,0" />
+    </Style>
+    <Style Selector="Border.savebar.dialog">
+      <Setter Property="Margin" Value="16" />
+      <Setter Property="Padding" Value="18,10" />
+    </Style>
+  </ContainerQuery>
 
 </Styles>

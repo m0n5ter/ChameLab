@@ -375,7 +375,7 @@
           <StackPanel>
             <StackPanel Spacing="2" Margin="0,0,0,14">
               <TextBlock Text="{x:Static loc:Strings.Chameleon_DeviceSettingsHeader}" Classes="overline" />
-              <TextBlock Classes="caption" TextWrapping="Wrap"
+              <TextBlock Classes="caption hint" TextWrapping="Wrap"
                          Text="{x:Static loc:Strings.Chameleon_BehaviorAndControlsSaveSendsYour}" />
             </StackPanel>
             <!-- LED animation -->

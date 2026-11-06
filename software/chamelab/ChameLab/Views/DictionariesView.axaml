@@ -36,7 +36,7 @@
 
     <!-- ==================== Dictionary list ==================== -->
     <!-- Locked while a new dictionary is open: save it or discard it to get back to the list. -->
-    <Grid Grid.Column="0" Classes="listpane panestack dictionary-list" RowDefinitions="Auto,Auto,Auto,*"
+    <Grid Grid.Column="0" Classes="listpane panestack dictionary-list" RowDefinitions="Auto,*"
           SizeChanged="OnListPaneSizeChanged"
           IsEnabled="{Binding !IsNew}">
       <!-- Measure the title first; give actions the remaining finite width so they collapse by priority. -->
@@ -63,87 +63,94 @@
         </c:ActionRow>
       </Grid>
 
-      <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8"
-            IsVisible="{Binding !IsEmpty}">
-        <ComboBox Grid.Column="0" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
-                  VerticalAlignment="Center"
-                  ToolTip.Tip="{x:Static loc:Strings.Dictionaries_OrderOfTheListInManual}">
-          <ComboBox.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-        <TextBox Classes="library-search" Text="{Binding Filter}" PlaceholderText="{x:Static loc:Strings.Dictionaries_SearchByNameOrKey}">
-          <TextBox.InnerLeftContent>
-            <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
-          </TextBox.InnerLeftContent>
-        </TextBox>
-        <Button Grid.Column="2" Classes="icon library-clear" Command="{Binding ResetFiltersCommand}"
-                VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ClearSearch}">
-          <PathIcon Data="{StaticResource Icon.close}" />
-        </Button>
-      </Grid>
-
-      <StackPanel Grid.Row="1" Spacing="10">
-        <Button Classes="accent theme-outline" Command="{Binding OpenKnownKeysCommand}" HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Stretch" Height="NaN" Padding="16,12"
-                ToolTip.Tip="{x:Static loc:Strings.Dictionaries_EditKnownKeysGroupedByCard}">
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <PathIcon Data="{StaticResource Icon.key}" Width="22" Height="22" VerticalAlignment="Center" />
-            <StackPanel Spacing="2">
-              <TextBlock Text="{x:Static loc:Strings.Dictionaries_KnownCardKeys}" FontWeight="SemiBold" FontSize="15" />
-              <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
-            </StackPanel>
+      <!-- Under the title everything scrolls together once the window is too short for the list's
+           minimum; until then the list fills the rest and scrolls on its own. The scroller reaches past
+           the column like the list used to, so a dragged row's shadow is not clipped. -->
+      <ScrollViewer Grid.Row="1" Name="ListPaneScroll" Margin="-12,0,-12,-16" HorizontalScrollBarVisibility="Disabled">
+        <c:FillStack Classes="panestack" Margin="12,0,12,16">
+          <StackPanel Spacing="10">
+            <Button Classes="accent theme-outline" Command="{Binding OpenKnownKeysCommand}" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch" Height="NaN" Padding="16,12"
+                    ToolTip.Tip="{x:Static loc:Strings.Dictionaries_EditKnownKeysGroupedByCard}">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource Icon.key}" Width="22" Height="22" VerticalAlignment="Center" />
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{x:Static loc:Strings.Dictionaries_KnownCardKeys}" FontWeight="SemiBold" FontSize="15" />
+                  <TextBlock Text="{Binding KnownKeysCountText}" Classes="caption" />
+                </StackPanel>
+              </StackPanel>
+            </Button>
+            <Separator />
           </StackPanel>
-        </Button>
-        <Separator />
-      </StackPanel>
+          <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8"
+                IsVisible="{Binding !IsEmpty}">
+            <ComboBox Grid.Column="0" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
+                      VerticalAlignment="Center"
+                      ToolTip.Tip="{x:Static loc:Strings.Dictionaries_OrderOfTheListInManual}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBox Classes="library-search" Text="{Binding Filter}" PlaceholderText="{x:Static loc:Strings.Dictionaries_SearchByNameOrKey}">
+              <TextBox.InnerLeftContent>
+                <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
+              </TextBox.InnerLeftContent>
+            </TextBox>
+            <Button Grid.Column="2" Classes="icon library-clear" Command="{Binding ResetFiltersCommand}"
+                    VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ClearSearch}">
+              <PathIcon Data="{StaticResource Icon.close}" />
+            </Button>
+          </Grid>
+          <Panel c:FillStack.Fill="True" MinHeight="180">
+          <!-- Empty library -->
+          <Border Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
+            <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
+              <PathIcon Data="{StaticResource Icon.key}" Width="40" Height="40" Opacity="0.4" HorizontalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:Strings.Dictionaries_NoDictionariesYet}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+              <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360"
+                         Text="{x:Static loc:Strings.Dictionaries_PressToStartADictionaryOf}" />
+            </StackPanel>
+          </Border>
 
-      <!-- Empty library -->
-      <Border Grid.Row="3" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsEmpty}">
-        <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,12">
-          <PathIcon Data="{StaticResource Icon.key}" Width="40" Height="40" Opacity="0.4" HorizontalAlignment="Center" />
-          <TextBlock Text="{x:Static loc:Strings.Dictionaries_NoDictionariesYet}" FontWeight="SemiBold" HorizontalAlignment="Center" />
-          <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="360"
-                     Text="{x:Static loc:Strings.Dictionaries_PressToStartADictionaryOf}" />
-        </StackPanel>
-      </Border>
+          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Dictionaries_NoDictionariesMatchTheSearch}"
+                     IsVisible="{Binding NoMatches}" VerticalAlignment="Top" />
 
-      <TextBlock Grid.Row="3" Classes="caption" Text="{x:Static loc:Strings.Dictionaries_NoDictionariesMatchTheSearch}"
-                 IsVisible="{Binding NoMatches}" VerticalAlignment="Top" />
-
-      <!-- In manual order the dictionaries can be dragged into place (ListReorder). Reaches past the
-           column by as much as the list is padded, so a dragged row's shadow is not clipped. -->
-      <ScrollViewer Grid.Row="3" Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
-        <ListBox Name="DictList" Classes="cards" ItemsSource="{Binding Dictionaries}" Padding="8,0,8,12"
-                 SelectedItem="{Binding Selected}">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:DictionaryItemViewModel">
-              <Panel>
-                <Border Classes="cardrow"><Border Classes="cardclip">
-                  <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
-                    <Border Grid.Column="0" Background="{Binding ColorBrush}" />
-                    <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-                      <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
-                      <TextBlock Text="{Binding CountLabel}" Classes="caption" TextWrapping="NoWrap" />
-                    </StackPanel>
-                    <PathIcon Grid.Column="2" Data="{StaticResource Icon.key}" Width="16" Height="16"
-                              VerticalAlignment="Center" Opacity="0.5" />
-                  </Grid>
-                </Border></Border>
-                <Border Classes="dragframe" />
-              </Panel>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+          <!-- In manual order the dictionaries can be dragged into place (ListReorder). Reaches past the
+               column by as much as the list is padded, so a dragged row's shadow is not clipped. -->
+          <ScrollViewer Name="ListScroll" IsVisible="{Binding !IsEmpty}" Margin="-12,0,-12,-16">
+            <ListBox Name="DictList" Classes="cards" ItemsSource="{Binding Dictionaries}" Padding="8,0,8,12"
+                     SelectedItem="{Binding Selected}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:DictionaryItemViewModel">
+                  <Panel>
+                    <Border Classes="cardrow"><Border Classes="cardclip">
+                      <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
+                        <Border Grid.Column="0" Background="{Binding ColorBrush}" />
+                        <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
+                          <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
+                          <TextBlock Text="{Binding CountLabel}" Classes="caption" TextWrapping="NoWrap" />
+                        </StackPanel>
+                        <PathIcon Grid.Column="2" Data="{StaticResource Icon.key}" Width="16" Height="16"
+                                  VerticalAlignment="Center" Opacity="0.5" />
+                      </Grid>
+                    </Border></Border>
+                    <Border Classes="dragframe" />
+                  </Panel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </ScrollViewer>
+          </Panel>
+        </c:FillStack>
       </ScrollViewer>
     </Grid>
 
     <!-- ==================== Dictionary pane ==================== -->
     <Grid Classes="detailpane" RowDefinitions="Auto,*,Auto">
       <!-- Header + actions (stays in view); disabled under the lightbox so Tab can't reach it. -->
-      <Border Grid.Row="0" Classes="card" Margin="0,0,0,12" IsVisible="{Binding IsEditorPane}"
+      <Border Grid.Row="0" Classes="card panehead" IsVisible="{Binding IsEditorPane}"
               IsEnabled="{Binding !IsAsking}">
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,Auto,*">
@@ -280,33 +287,39 @@
         </StackPanel>
       </Border>
 
-      <!-- Keys: one per row in the hex editor, as card memory is; fills the pane and scrolls on its own. -->
-      <Border Grid.Row="1" Classes="card" IsVisible="{Binding IsEditorPane}" IsEnabled="{Binding !IsAsking}">
-        <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
-          <StackPanel Grid.Row="0" Spacing="2">
-            <TextBlock Text="{x:Static loc:Strings.Dictionaries_KeysHeader}" Classes="overline" />
-            <TextBlock Classes="caption" TextWrapping="Wrap"
-                       Text="{x:Static loc:Strings.Dictionaries_OneKeyPerRowTypeHex}" />
-          </StackPanel>
-          <WrapPanel Grid.Row="1" Classes="hexlegend">
-            <TextBlock Classes="access" Text="{x:Static loc:Strings.Dictionaries_Repeated}" />
-            <TextBlock Classes="changed" Text="{x:Static loc:Strings.Common_Modified}" />
-          </WrapPanel>
-          <!-- Fixed-width position/value part, then the meaning (as under card memory). -->
-          <TextBlock Grid.Row="2" Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                     ToolTip.Tip="{Binding #KeysEditor.StatusDetail}"
-                     IsVisible="{Binding #KeysEditor.StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Run FontFamily="{x:Static c:AppFonts.Mono}" Text="{Binding #KeysEditor.StatusText}" />
-            <Run Text="  " />
-            <Run Text="{Binding #KeysEditor.StatusDetail}" />
-          </TextBlock>
-          <Border Grid.Row="3" Classes="inset" Padding="8,6">
-            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-              <c:HexEditor x:Name="KeysEditor" Buffer="{Binding Form?.Keys}" />
-            </ScrollViewer>
+      <!-- Keys: one per row in the hex editor, as card memory is; fills the pane and scrolls on its own.
+           On a window too short for the editor's minimum, the card scrolls under the header instead. -->
+      <ScrollViewer Grid.Row="1" IsVisible="{Binding IsEditorPane}" IsEnabled="{Binding !IsAsking}"
+                    HorizontalScrollBarVisibility="Disabled">
+        <c:FillStack>
+          <Border Classes="card" c:FillStack.Fill="True" MinHeight="260">
+            <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
+              <StackPanel Grid.Row="0" Spacing="2">
+                <TextBlock Text="{x:Static loc:Strings.Dictionaries_KeysHeader}" Classes="overline" />
+                <TextBlock Classes="caption hint" TextWrapping="Wrap"
+                           Text="{x:Static loc:Strings.Dictionaries_OneKeyPerRowTypeHex}" />
+              </StackPanel>
+              <WrapPanel Grid.Row="1" Classes="hexlegend">
+                <TextBlock Classes="access" Text="{x:Static loc:Strings.Dictionaries_Repeated}" />
+                <TextBlock Classes="changed" Text="{x:Static loc:Strings.Common_Modified}" />
+              </WrapPanel>
+              <!-- Fixed-width position/value part, then the meaning (as under card memory). -->
+              <TextBlock Grid.Row="2" Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding #KeysEditor.StatusDetail}"
+                         IsVisible="{Binding #KeysEditor.StatusText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Run FontFamily="{x:Static c:AppFonts.Mono}" Text="{Binding #KeysEditor.StatusText}" />
+                <Run Text="  " />
+                <Run Text="{Binding #KeysEditor.StatusDetail}" />
+              </TextBlock>
+              <Border Grid.Row="3" Classes="inset" Padding="8,6">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                  <c:HexEditor x:Name="KeysEditor" Buffer="{Binding Form?.Keys}" />
+                </ScrollViewer>
+              </Border>
+            </Grid>
           </Border>
-        </Grid>
-      </Border>
+        </c:FillStack>
+      </ScrollViewer>
 
       <!-- Lightbox: dims and blocks the editor while a question waits for an answer. -->
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="lightbox" Classes.on="{Binding IsAsking}" CornerRadius="12" />

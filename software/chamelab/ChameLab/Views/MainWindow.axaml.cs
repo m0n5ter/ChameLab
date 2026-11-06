@@ -22,6 +22,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+#if DEBUG
+        // Debug builds can go half as short, to try the pages' scrolling on short windows.
+        MinHeight /= 2;
+#endif
         _normalSize = new Size(Width, Height);
         Restore();
 

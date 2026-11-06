@@ -52,7 +52,7 @@
       <!-- Header -->
       <StackPanel Spacing="2">
         <TextBlock Text="{x:Static loc:Strings.Settings_Settings}" Classes="h1" />
-        <TextBlock Classes="caption" TextWrapping="Wrap"
+        <TextBlock Classes="caption hint" TextWrapping="Wrap"
                    Text="{x:Static loc:Strings.Settings_AppSettingsTheyApplyRightAway}" />
       </StackPanel>
 

@@ -83,7 +83,7 @@
       <!-- The list of tools -->
       <StackPanel Spacing="2" IsVisible="{Binding IsHome}">
         <TextBlock Text="{x:Static loc:Strings.Tools_Tools}" Classes="h1" />
-        <TextBlock Classes="caption" TextWrapping="Wrap"
+        <TextBlock Classes="caption hint" TextWrapping="Wrap"
                    Text="{x:Static loc:Strings.Tools_LookAtWhatGoesOverThe}" />
       </StackPanel>
       <!-- Two tiles to a row while both fit untrimmed, else one under the other. -->
@@ -132,7 +132,7 @@
 
       <!-- HF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsHf}">
-        <TextBlock Classes="caption" TextWrapping="Wrap"
+        <TextBlock Classes="caption hint" TextWrapping="Wrap"
                    Text="{x:Static loc:Strings.Tools_TheChameleonAnswersAReaderAs}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
                    Text="{x:Static loc:Strings.Tools_ConnectAChameleonToCaptureA}" />
@@ -175,7 +175,7 @@
 
       <!-- LF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsLf}">
-        <TextBlock Classes="caption" TextWrapping="Wrap"
+        <TextBlock Classes="caption hint" TextWrapping="Wrap"
                    Text="{x:Static loc:Strings.Tools_TurnsTheFieldOnAndRecords}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
                    Text="{x:Static loc:Strings.Tools_ConnectAChameleonToCaptureA2}" />
@@ -209,7 +209,7 @@
 
     <!-- ==================== Results ==================== -->
     <ScrollViewer Grid.Row="1" Margin="0,4,0,0">
-      <StackPanel Spacing="12">
+      <StackPanel Classes="panestack">
 
         <!-- ========== HF ========== -->
         <StackPanel Spacing="12" IsVisible="{Binding IsHf}">
@@ -237,7 +237,7 @@
               <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                 <StackPanel Spacing="2">
                   <TextBlock Text="{x:Static loc:Strings.Tools_MIFAREClassicKeys}" Classes="h2" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                  <TextBlock Classes="caption hint" TextWrapping="Wrap"
                              Text="{x:Static loc:Strings.Tools_TheReadersKeyFromItsAuthentications}" />
                 </StackPanel>
                 <Button Grid.Column="1" VerticalAlignment="Top" Content="{x:Static loc:Strings.Tools_RecoverAll}"
@@ -439,7 +439,7 @@
             <StackPanel Spacing="10">
               <StackPanel Spacing="2">
                 <TextBlock Text="{x:Static loc:Strings.Tools_Samples}" Classes="h2" />
-                <TextBlock Classes="caption" TextWrapping="Wrap"
+                <TextBlock Classes="caption hint" TextWrapping="Wrap"
                            Text="{x:Static loc:Strings.Tools_OneBytePerCarrierCycleSelect}" />
               </StackPanel>
               <ScrollViewer Classes="samples" HorizontalScrollBarVisibility="Disabled">
