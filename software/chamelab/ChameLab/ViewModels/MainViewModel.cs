@@ -307,6 +307,19 @@ public sealed class MainViewModel : ViewModelBase
 
     private Task DisconnectAsync() => _device.DisconnectAsync();
 
+    /// <summary>Drops the device connection as the app closes; a failure only gets logged.</summary>
+    public async Task ReleaseDeviceAsync()
+    {
+        try
+        {
+            await _device.DisconnectAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Device] Disconnect on exit failed: {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Swaps the listed pages. Our CollectionChanged handler runs before the tab bar's, so any selection
     /// raised mid-swap (even none) makes the ListBox read an index it has not caught up with: the

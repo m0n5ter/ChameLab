@@ -5,6 +5,7 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Views;
 using Avalonia.Android;
+using ChameLab.Services;
 
 namespace ChameLab.Android;
 
@@ -28,7 +29,16 @@ public class MainActivity : AvaloniaMainActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+        // Back on the start screen would only move the task to the background (Android 12+).
+        PlatformExit.Quit = Finish;
         RequestBlePermissions();
+    }
+
+    protected override void OnDestroy()
+    {
+        // Only drop the hook if a newer activity hasn't already set its own.
+        if (PlatformExit.Quit?.Target == this) PlatformExit.Quit = null;
+        base.OnDestroy();
     }
 
     private void RequestBlePermissions()

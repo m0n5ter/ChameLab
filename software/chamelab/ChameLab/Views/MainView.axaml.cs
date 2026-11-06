@@ -111,7 +111,19 @@ public partial class MainView : UserControl
                     || DialogKeys.TryGoBack(_topLevel)
                     || vm.TryGoBack()
                     // Only phones and the browser tab close on an unhandled Back; desktop ignores it.
-                    || (OperatingSystem.IsAndroid() || OperatingSystem.IsBrowser()) && !vm.ConfirmExit();
+                    || (OperatingSystem.IsAndroid() || OperatingSystem.IsBrowser()) && (!vm.ConfirmExit() || Quit(vm));
+    }
+
+    /// <summary>
+    /// Leaving the app lets the device go and, where the platform would only hide the app,
+    /// closes it. Returns true when it closed the app itself, so Back goes no further.
+    /// </summary>
+    private static bool Quit(MainViewModel vm)
+    {
+        if (PlatformExit.Quit is not { } quit) return false;
+        _ = vm.ReleaseDeviceAsync();
+        quit();
+        return true;
     }
 
     // ---- Card folder names, edited in place ----------------------------------
