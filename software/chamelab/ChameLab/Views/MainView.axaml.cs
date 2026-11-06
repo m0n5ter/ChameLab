@@ -23,6 +23,7 @@ public partial class MainView : UserControl
     private MainViewModel? _vm;
     private TopLevel? _topLevel;
     private IInputPane? _inputPane;
+    private IInsetsManager? _insets;
     /// <summary>Size of the top level while the keyboard is closed.</summary>
     private Size _restSize;
     private Rect _lastBounds;
@@ -54,6 +55,8 @@ public partial class MainView : UserControl
         _topLevel.BackRequested += OnBackRequested;
         _inputPane = _topLevel.InputPane;
         if (_inputPane is not null) _inputPane.StateChanged += OnInputPaneChanged;
+        _insets = _topLevel.InsetsManager;
+        if (_insets is not null) _insets.SafeAreaChanged += OnSafeAreaChanged;
         LocalizationService.LanguageChanged += OnLanguageChanged;
     }
 
@@ -63,8 +66,10 @@ public partial class MainView : UserControl
         LocalizationService.LanguageChanged -= OnLanguageChanged;
         if (_topLevel is not null) _topLevel.BackRequested -= OnBackRequested;
         if (_inputPane is not null) _inputPane.StateChanged -= OnInputPaneChanged;
+        if (_insets is not null) _insets.SafeAreaChanged -= OnSafeAreaChanged;
         _topLevel = null;
         _inputPane = null;
+        _insets = null;
     }
 
     /// <summary>
@@ -151,6 +156,21 @@ public partial class MainView : UserControl
     private void OnInputPaneChanged(object? sender, InputPaneStateEventArgs e)
     {
         if (KeepClearOfKeyboard(e.NewState == InputPaneState.Open ? e.EndRect : default)) RevealFocused();
+    }
+
+    /// <summary>
+    /// Android reports the keyboard only through its slide animation. When the app goes to the
+    /// background the keyboard is dropped without one, so no state change arrives and the room
+    /// kept for it would stay empty on return. Every insets change raises this, though, so the
+    /// keyboard is re-checked here. Posted: Android raises it before it updates the pane state.
+    /// </summary>
+    private void OnSafeAreaChanged(object? sender, SafeAreaChangedArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_inputPane is not null)
+                KeepClearOfKeyboard(_inputPane.State == InputPaneState.Open ? _inputPane.OccludedRect : default);
+        });
     }
 
     /// <summary>The focused field may now sit under the keyboard; scrolls it back up once laid out.</summary>
