@@ -169,7 +169,7 @@
   <Style Selector="c|PageHost.short TextBlock.hint">
     <Setter Property="MaxLines" Value="1" />
     <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-    <Setter Property="ToolTip.Tip" Value="{ReflectionBinding $self.Text}" />
+    <Setter Property="ToolTip.Tip" Value="{Binding $self.Text}" />
   </Style>
 
   <Style Selector="StackPanel.page">
