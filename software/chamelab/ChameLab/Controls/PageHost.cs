@@ -31,6 +31,9 @@ public class PageHost : Panel
     private Control? _warming;
     private bool _preloadQueued;
 
+    /// <summary>At this height or less the host gets the <c>short</c> class: pages tighten up.</summary>
+    public const double ShortHeight = 520;
+
     public PageHost()
     {
         // Takes the focus off a page being left, so its text box drops the keyboard.
@@ -65,6 +68,16 @@ public class PageHost : Panel
     {
         base.OnAttachedToVisualTree(e);
         QueuePreload();
+    }
+
+    /// <remarks>
+    /// Its height comes from the shell, never from the pages, so the class can't feed back into
+    /// the size that set it.
+    /// </remarks>
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        Classes.Set("short", e.NewSize.Height <= ShortHeight);
     }
 
     private void OnPreloadChanged(object? sender, NotifyCollectionChangedEventArgs e) => QueuePreload();
