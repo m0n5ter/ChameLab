@@ -63,12 +63,6 @@
       <Setter Property="Width" Value="14" />
       <Setter Property="Height" Value="14" />
     </Style>
-    <!-- Battery and mode stack once the page itself is too narrow for both, whatever the window does. -->
-    <ContainerQuery Name="hero" Query="max-width:600">
-      <Style Selector="UniformGrid.cols2">
-        <Setter Property="Columns" Value="1" />
-      </Style>
-    </ContainerQuery>
     <!-- One setting: icon, title + description, and its control (SettingRow stacks them when narrow). -->
     <Style Selector=":is(Control).setting > :is(Control).control">
       <Setter Property="Width" Value="220" />
@@ -118,8 +112,9 @@
         </Grid>
 
         <!-- Hero: battery + mode -->
+        <!-- Battery and mode stack before either card gets too narrow for its content. -->
         <Panel>
-          <UniformGrid Classes="cols2">
+          <c:FitGrid Columns="2" MinColumnWidth="320" ColumnSpacing="16" RowSpacing="16">
             <Border Classes="card">
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
                 <!-- Ring gauge -->
@@ -182,7 +177,7 @@
                            Text="{x:Static loc:Strings.Chameleon_TheDeviceScansExternalCardsAnd}" />
               </StackPanel>
             </Border>
-          </UniformGrid>
+          </c:FitGrid>
         </Panel>
 
         <!-- Active slot: the eight slots with their LED colors; arrows step through the filled ones -->

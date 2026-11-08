@@ -147,6 +147,7 @@ public sealed partial class CardsViewModel
         WriteRecovery.Cancel();
         if (WriteRecovery.RunningTask is { IsCompleted: false } recovery) await recovery;
         CancelWrite();
+        await _writeTask;
         if (!_mfkey32Running) return;
         CancelDump();
         if (_mfkey32Task is { } task) await task;

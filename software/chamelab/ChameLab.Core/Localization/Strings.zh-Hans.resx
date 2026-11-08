@@ -3396,4 +3396,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>开发版</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>字典类型</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>同一字典不能混合 4 字节 T55XX 密码和 6 字节 MIFARE Classic 密钥。</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>T55XX 密码恢复</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>尝试字典中的密码</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>将 T55XX 标签放在读卡器上。通过写入并读取不同的 ID 来验证密钥。找到有效密钥后，恢复原始 ID 并设置新密码。</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>新密钥（4 字节，十六进制）</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>留空则使用 20206666。</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>此固件不支持写入 T55XX 密码。请更新固件；需要 Chameleon Ultra。</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>已检查密钥：{0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>原始 ID 已恢复并验证。新密钥：{0}。</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>已取消。</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>匹配的密钥：{0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>标签未受密码保护。</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>所选字典中没有匹配的密钥。</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>无法读取支持的 LF ID。请将标签留在读卡器上。</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>无法验证测试 ID。搜索已停止，并已尝试恢复原始 ID。</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>无法恢复 {0} ID {1}。候选密钥：{2}；新密钥：{3}。请保存此 ID 和两个密钥以便恢复。{4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>原始 {0} ID：{1}</value>
+  </data>
 </root>

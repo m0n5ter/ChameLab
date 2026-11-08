@@ -114,6 +114,17 @@
             </StackPanel>
           </Grid>
         </Button>
+        <Button Classes="tile source" Command="{Binding OpenT55xxCommand}">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Border Classes="iconwell amber" VerticalAlignment="Center">
+              <PathIcon Data="{StaticResource Icon.key}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="{x:Static loc:Strings.Tools_T55xxPassword}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{x:Static loc:Strings.Tools_T55xxDictionaryHint}" Classes="caption" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Grid>
+        </Button>
       </c:FitGrid>
 
       <!-- A tool: Back to the list, as in Add card. -->
@@ -124,10 +135,13 @@
         </Button>
         <Border Grid.Column="1" Classes="iconwell" Classes.blue="{Binding IsHf}" Classes.amber="{Binding IsLf}"
                 VerticalAlignment="Center">
-          <PathIcon Data="{StaticResource Icon.sniff}" />
+          <Panel>
+            <PathIcon Data="{StaticResource Icon.sniff}" IsVisible="{Binding !IsT55xx}" />
+            <PathIcon Data="{StaticResource Icon.key}" IsVisible="{Binding IsT55xx}" />
+          </Panel>
         </Border>
         <TextBlock Grid.Column="2" Classes="h1" VerticalAlignment="Center"
-                   Text="{Binding IsHf, Converter={x:Static vm:ToolsViewModel.ToolTitle}}" />
+                   Text="{Binding CurrentToolTitle}" TextWrapping="Wrap" />
       </Grid>
 
       <!-- HF -->
@@ -210,6 +224,81 @@
     <!-- ==================== Results ==================== -->
     <ScrollViewer Grid.Row="1" Margin="0,4,0,0">
       <StackPanel Classes="panestack">
+
+        <StackPanel Spacing="12" IsVisible="{Binding IsT55xx}">
+          <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_T55xxDescription}" />
+          <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
+                     Text="{x:Static loc:Strings.Common_ConnectFirst}" />
+          <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding IsT55xxUnsupported}"
+                     Foreground="{DynamicResource BrandAmberBrush}" Text="{x:Static loc:Strings.Tools_T55xxUnsupported}" />
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="6" IsEnabled="{Binding !IsBusy}">
+                <TextBlock Text="{x:Static loc:Strings.Tools_T55xxNewKey}" FontWeight="SemiBold" />
+                <TextBox Text="{Binding T55xxNewKey}" PlaceholderText="20206666" MaxWidth="260" HorizontalAlignment="Left"
+                         FontFamily="{x:Static c:AppFonts.Mono}"
+                         AutomationProperties.Name="{x:Static loc:Strings.Tools_T55xxNewKey}" />
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_T55xxDefaultKeyHint}" />
+                <TextBlock Classes="caption danger" Text="{Binding T55xxNewKeyError}"
+                           IsVisible="{Binding T55xxNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Grid HorizontalAlignment="Left">
+                  <StackPanel Orientation="Horizontal" Spacing="0">
+                    <Button x:Name="T55xxTryKeysButton" Command="{Binding TryT55xxCommand}" Classes="accent theme-outline"
+                            Height="40" CornerRadius="8,0,0,8" BorderThickness="0">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.key}" />
+                        <TextBlock Text="{x:Static loc:Strings.Common_TryKeys}" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </Button>
+                    <Button Height="40" Width="40" Padding="0" CornerRadius="0,8,8,0" BorderThickness="1,0,0,0"
+                            BorderBrush="{Binding #T55xxTryKeysButton.BorderBrush}" ToolTip.Tip="{Binding T55xxKeyCountText}"
+                            AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
+                      <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
+                      <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                          <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12" IsEnabled="{Binding !IsBusy}">
+                            <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline" />
+                            <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+                              <ItemsControl ItemsSource="{Binding T55xxKeySources}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
+                                      <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                      <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
+                                      <ToggleSwitch Grid.Column="2" OnContent="" OffContent="" IsChecked="{Binding IsSelected}" />
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </ScrollViewer>
+                            <Separator />
+                            <TextBlock Text="{Binding T55xxKeyCountText}" FontWeight="SemiBold" />
+                          </StackPanel>
+                        </Flyout>
+                      </Button.Flyout>
+                    </Button>
+                  </StackPanel>
+                  <Border BorderBrush="{Binding #T55xxTryKeysButton.BorderBrush}" BorderThickness="1" CornerRadius="8" IsHitTestVisible="False" />
+                </Grid>
+                <TextBlock Classes="caption" Text="{Binding T55xxKeyCountText}" />
+              </StackPanel>
+              <StackPanel Spacing="8" IsVisible="{Binding T55xxProgressText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <ProgressBar Minimum="0" Maximum="100" Value="{Binding T55xxProgress}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                  <TextBlock Text="{Binding T55xxProgressText}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Command="{Binding CancelT55xxCommand}" IsVisible="{Binding IsT55xxRunning}"
+                          Content="{x:Static loc:Strings.Common_Cancel}" />
+                </Grid>
+              </StackPanel>
+              <SelectableTextBlock Text="{Binding T55xxOriginalId}" TextWrapping="Wrap"
+                                   IsVisible="{Binding T55xxOriginalId, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <SelectableTextBlock Text="{Binding T55xxFoundKey}" TextWrapping="Wrap" FontWeight="SemiBold"
+                                   IsVisible="{Binding T55xxFoundKey, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <SelectableTextBlock Text="{Binding T55xxResult}" TextWrapping="Wrap"
+                                   IsVisible="{Binding T55xxResult, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
 
         <!-- ========== HF ========== -->
         <StackPanel Spacing="12" IsVisible="{Binding IsHf}">

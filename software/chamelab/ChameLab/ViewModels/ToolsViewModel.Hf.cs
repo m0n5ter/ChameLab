@@ -201,9 +201,6 @@ public sealed partial class ToolsViewModel
 
     // ---- View helpers --------------------------------------------------
 
-    public static readonly Avalonia.Data.Converters.IValueConverter ToolTitle =
-        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(hf => hf ? Strings.Tools_SniffHF : Strings.Tools_SniffLF);
-
     public static readonly Avalonia.Data.Converters.IValueConverter DirectionLabel =
         new Avalonia.Data.Converters.FuncValueConverter<bool, string>(reader => reader ? Strings.Chameleon_Reader : Strings.Common_Card);
 

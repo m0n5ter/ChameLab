@@ -3396,4 +3396,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>Разработка</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>Тип словаря</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>В одном словаре нельзя смешивать 4-байтовые пароли T55XX и 6-байтовые ключи MIFARE Classic.</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>Подбор пароля T55XX</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>Перебор паролей из словарей</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>Положите метку T55XX на считыватель. Ключ проверяется записью другого ID и чтением результата. Когда ключ подходит, исходный ID восстанавливается и устанавливается новый пароль.</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>Новый ключ (4 байта, hex)</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>Оставьте пустым, чтобы использовать 20206666.</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>Эта прошивка не поддерживает запись пароля T55XX. Обновите прошивку; требуется Chameleon Ultra.</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>Проверено ключей: {0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>Исходный ID восстановлен и проверен. Новый ключ: {0}.</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>Отменено.</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>Подошедший ключ: {0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>Метка не защищена паролем.</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>В выбранных словарях подходящий ключ не найден.</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>Не удалось прочитать поддерживаемый LF ID. Держите метку на считывателе.</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>Не удалось подтвердить тестовый ID. Подбор остановлен, выполнена попытка восстановить исходный ID.</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>Не удалось восстановить ID {0}: {1}. Проверяемый ключ: {2}; новый ключ: {3}. Сохраните этот ID и оба ключа для восстановления. {4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>Исходный ID {0}: {1}</value>
+  </data>
 </root>

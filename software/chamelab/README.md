@@ -78,6 +78,16 @@ responses matched to requests by command id.
 - **Settings** — LED animation, sleep timeout, button functions; apply / save /
   reset.
 
+**T55XX password recovery** is available in Tools and when writing an LF card.
+Choose 4-byte T55XX dictionaries using the key selector; MIFARE Classic dictionaries
+remain separate. Each candidate is checked by writing a different test ID and reading
+it back. Tools then restores and verifies the original ID; the card writer writes and
+verifies the requested ID. Both show the matching key, progress and Cancel. An empty
+new-key field uses `20206666`. Cancellation waits for an active probe to be verified
+and the original ID restored before returning. Keep the tag on the reader until this
+finishes. Recovery needs firmware with raw T55XX block writes and a readable LF format;
+normal writing also supports blank, unprotected tags.
+
 ## Build & run
 
 ```bash

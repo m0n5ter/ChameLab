@@ -19,15 +19,22 @@ public class FitGrid : Panel
         AvaloniaProperty.Register<FitGrid, double>(nameof(ColumnSpacing));
     public static readonly StyledProperty<double> RowSpacingProperty =
         AvaloniaProperty.Register<FitGrid, double>(nameof(RowSpacing));
+    /// <summary>
+    /// When set, the narrowest a column may get, instead of the children's natural widths
+    /// (which wrapping text makes as wide as its whole line).
+    /// </summary>
+    public static readonly StyledProperty<double> MinColumnWidthProperty =
+        AvaloniaProperty.Register<FitGrid, double>(nameof(MinColumnWidth));
 
     static FitGrid()
     {
-        AffectsMeasure<FitGrid>(ColumnsProperty, ColumnSpacingProperty, RowSpacingProperty);
+        AffectsMeasure<FitGrid>(ColumnsProperty, ColumnSpacingProperty, RowSpacingProperty, MinColumnWidthProperty);
     }
 
     public int Columns { get => GetValue(ColumnsProperty); set => SetValue(ColumnsProperty, value); }
     public double ColumnSpacing { get => GetValue(ColumnSpacingProperty); set => SetValue(ColumnSpacingProperty, value); }
     public double RowSpacing { get => GetValue(RowSpacingProperty); set => SetValue(RowSpacingProperty, value); }
+    public double MinColumnWidth { get => GetValue(MinColumnWidthProperty); set => SetValue(MinColumnWidthProperty, value); }
 
     // Decided by the last measure, reused by arrange.
     private int _columns = 1;
@@ -49,7 +56,8 @@ public class FitGrid : Panel
 
         var width = availableSize.Width;
         var columns = Math.Max(1, Math.Min(Columns, children.Length));
-        if (!double.IsInfinity(width) && ItemWidth(width, columns) < widest) columns = 1;
+        var needed = MinColumnWidth > 0 ? MinColumnWidth : widest;
+        if (!double.IsInfinity(width) && ItemWidth(width, columns) < needed) columns = 1;
         _columns = columns;
 
         var itemWidth = double.IsInfinity(width) ? double.PositiveInfinity : ItemWidth(width, columns);

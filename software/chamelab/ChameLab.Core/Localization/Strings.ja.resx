@@ -3396,4 +3396,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>開発版</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>辞書の種類</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>4 バイトの T55XX パスワードと 6 バイトの MIFARE Classic キーを同じ辞書に混在させることはできません。</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>T55XX パスワード復旧</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>辞書のパスワードを試す</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>T55XX タグをリーダーに置いてください。別の ID を書き込んで読み取り、キーを検証します。キーが有効なら元の ID を復元し、新しいパスワードを設定します。</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>新しいキー（4 バイト、16 進数）</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>空欄の場合は 20206666 を使用します。</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>このファームウェアは T55XX パスワードの書き込みに対応していません。更新してください。Chameleon Ultra が必要です。</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>検証済みキー：{0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>元の ID を復元し、確認しました。新しいキー：{0}。</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>キャンセルしました。</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>一致したキー：{0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>タグはパスワードで保護されていません。</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>選択した辞書に一致するキーがありません。</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>対応する LF ID を読み取れませんでした。タグをリーダー上に置いたままにしてください。</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>テスト ID を確認できませんでした。検索を停止し、元の ID の復元を試みました。</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>{0} ID {1} を復元できませんでした。候補キー：{2}、新しいキー：{3}。復元のため、この ID と両方のキーを保存してください。{4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>元の {0} ID：{1}</value>
+  </data>
 </root>

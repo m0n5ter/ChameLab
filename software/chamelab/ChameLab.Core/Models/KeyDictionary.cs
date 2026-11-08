@@ -7,8 +7,10 @@ using ChameLab.Localization;
 
 namespace ChameLab.Models;
 
+public enum KeyDictionaryType { MifareClassic, T55xx }
+
 /// <summary>
-/// A named set of MIFARE Classic keys (6 bytes each). The JSON shape matches
+/// A named set of MIFARE Classic keys (6 bytes) or T55xx passwords (4 bytes). The JSON shape matches
 /// the Flutter ChameleonUltraGUI <c>Dictionary</c> so dictionaries move between
 /// the two apps; a plain <c>.dic</c> / <c>.keys</c> / <c>.txt</c> file (one hex key per line)
 /// also imports and exports.
@@ -18,8 +20,10 @@ public sealed class KeyDictionary
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Name { get; set; } = string.Empty;
     public string Color { get; set; } = CardSave.DefaultColor;
+    public KeyDictionaryType Type { get; set; }
+    public int KeyLength => Type == KeyDictionaryType.T55xx ? 4 : 6;
 
-    /// <summary>6-byte keys.</summary>
+    /// <summary>Keys of the dictionary's type.</summary>
     public List<byte[]> Keys { get; set; } = new();
 
     public int Count => Keys.Count;
@@ -38,7 +42,8 @@ public sealed class KeyDictionary
         ["id"] = Id,
         ["name"] = Name,
         ["color"] = Color,
-        ["keyLength"] = 12,
+        ["type"] = Type.ToString(),
+        ["keyLength"] = KeyLength * 2,
         ["keys"] = new JsonArray(Keys.Select(k =>
             (JsonNode)new JsonArray(k.Select(b => (JsonNode)(int)b).ToArray())).ToArray()),
     };
@@ -51,13 +56,16 @@ public sealed class KeyDictionary
             Id = (string?)o["id"] ?? Guid.NewGuid().ToString(),
             Name = (string?)o["name"] ?? string.Empty,
             Color = CardSave.NormalizeColor((string?)o["color"]),
+            // Older dictionaries have no type. Flutter stores the length in hex characters.
+            Type = (string?)o["type"] == nameof(KeyDictionaryType.T55xx) || (int?)o["keyLength"] == 8
+                ? KeyDictionaryType.T55xx : KeyDictionaryType.MifareClassic,
         };
         if (o["keys"] is JsonArray keys)
             foreach (var k in keys)
                 if (k is JsonArray a)
                 {
                     var bytes = a.Select(v => (byte)((int?)v ?? 0)).ToArray();
-                    if (bytes.Length == 6) dict.Keys.Add(bytes);
+                    if (bytes.Length == dict.KeyLength) dict.Keys.Add(bytes);
                 }
         return dict;
     }
@@ -67,17 +75,20 @@ public sealed class KeyDictionary
 
     // ---- Plain text (.dic) --------------------------------------------
 
-    /// <summary>Parses a <c>.dic</c> / <c>.txt</c> file: one 12-hex-char key per line, '#' comments.</summary>
-    public static KeyDictionary FromText(string name, string text)
+    /// <summary>Parses one hex key per line, with '#' comments; detects the type from the first valid key.</summary>
+    public static KeyDictionary FromText(string name, string text, KeyDictionaryType? type = null)
     {
-        var dict = new KeyDictionary { Name = name };
+        var dict = new KeyDictionary { Name = name, Type = type ?? KeyDictionaryType.MifareClassic };
         var seen = new HashSet<string>();
         foreach (var raw in text.Split('\n'))
         {
             var line = raw.Trim();
             if (line.Length == 0 || line.StartsWith('#')) continue;
-            if (Hex.TryParse(line, out var key) && key.Length == 6 && seen.Add(Convert.ToHexString(key)))
-                dict.Keys.Add(key);
+            if (!Hex.TryParse(line, out var key) || key.Length is not (4 or 6)) continue;
+            if (dict.Count == 0 && type is null)
+                dict.Type = key.Length == 4 ? KeyDictionaryType.T55xx : KeyDictionaryType.MifareClassic;
+            if (key.Length != dict.KeyLength) throw new FormatException(Strings.Dictionaries_MixedKeyTypes);
+            if (seen.Add(Convert.ToHexString(key))) dict.Keys.Add(key);
         }
         return dict;
     }
@@ -96,7 +107,7 @@ public sealed class KeyDictionary
     /// Parses the keys from an editor text box, dropping repeats (counted in
     /// <paramref name="duplicates"/>); throws on an invalid line.
     /// </summary>
-    public static List<byte[]> ParseKeys(string text, out int duplicates)
+    public static List<byte[]> ParseKeys(string text, out int duplicates, KeyDictionaryType type = KeyDictionaryType.MifareClassic)
     {
         var keys = new List<byte[]>();
         var seen = new HashSet<string>();
@@ -107,7 +118,7 @@ public sealed class KeyDictionary
             lineNo++;
             var line = raw.Trim();
             if (line.Length == 0 || line.StartsWith('#')) continue;
-            if (!Hex.TryParse(line, out var key) || key.Length != 6)
+            if (!Hex.TryParse(line, out var key) || key.Length != (type == KeyDictionaryType.T55xx ? 4 : 6))
                 throw new FormatException(string.Format(Strings.Import_BadKeyLine, lineNo, line));
             if (seen.Add(Convert.ToHexString(key))) keys.Add(key);
             else duplicates++;

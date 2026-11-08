@@ -106,11 +106,11 @@ public sealed class DictionaryLibrary
     }
 
     /// <summary>All keys from every dictionary, de-duplicated, for a dump pass.</summary>
-    public IReadOnlyList<byte[]> AllKeys()
+    public IReadOnlyList<byte[]> AllKeys(KeyDictionaryType type = KeyDictionaryType.MifareClassic)
     {
         var seen = new HashSet<string>();
         var keys = new List<byte[]>();
-        foreach (var k in _dicts.SelectMany(d => d.Keys))
+        foreach (var k in _dicts.Where(d => d.Type == type).SelectMany(d => d.Keys))
             if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
         return keys;
     }

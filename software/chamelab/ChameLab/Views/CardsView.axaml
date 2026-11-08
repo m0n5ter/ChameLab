@@ -780,9 +780,9 @@
                     <TextBlock Grid.Row="1" Text="{x:Static loc:Strings.Cards_NewPassword}" Classes="caption" VerticalAlignment="Center"
                                IsVisible="{Binding IsT55xxWrite}" />
                     <c:HexBox Grid.Row="1" Grid.Column="1" Text="{Binding WriteLfNewKey}" ByteLengths="4"
-                              IsEnabled="{Binding !IsBusy}" PlaceholderText="{x:Static loc:Strings.Cards_KeepCurrent}"
+                              IsEnabled="{Binding !IsBusy}" PlaceholderText="20206666"
                               IsVisible="{Binding IsT55xxWrite}"
-                              ToolTip.Tip="{x:Static loc:Strings.Cards_Password4BytesTheTagIs}" />
+                              ToolTip.Tip="{x:Static loc:Strings.Tools_T55xxDefaultKeyHint}" />
                   </Grid>
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteLfPasswordError}"
                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
@@ -790,6 +790,41 @@
                   <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteLfNewKeyError}"
                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
                              IsVisible="{Binding WriteLfNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  <StackPanel Spacing="6" IsVisible="{Binding IsT55xxWrite}">
+                    <Button HorizontalAlignment="Left" IsEnabled="{Binding !IsBusy}"
+                            ToolTip.Tip="{x:Static loc:Strings.Tools_T55xxDictionaryHint}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="{StaticResource Icon.key}" />
+                        <TextBlock Text="{x:Static loc:Strings.Common_KeyDictionaries}" />
+                        <TextBlock Text="{Binding WriteT55xxKeys.CountText}" Classes="caption" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                          <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12" IsEnabled="{Binding !IsBusy}">
+                            <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline" />
+                            <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+                              <ItemsControl ItemsSource="{Binding WriteT55xxKeys.Sources}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
+                                      <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                      <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
+                                      <ToggleSwitch Grid.Column="2" OnContent="" OffContent="" IsChecked="{Binding IsSelected}" />
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </ScrollViewer>
+                            <Separator />
+                            <TextBlock Text="{Binding WriteT55xxKeys.CountText}" FontWeight="SemiBold" />
+                          </StackPanel>
+                        </Flyout>
+                      </Button.Flyout>
+                    </Button>
+                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding WriteT55xxProgress}" IsVisible="{Binding IsWriting}" />
+                    <SelectableTextBlock Text="{Binding WriteT55xxFoundKey}" TextWrapping="Wrap" FontWeight="SemiBold"
+                                         IsVisible="{Binding WriteT55xxFoundKey, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
                 </StackPanel>
 
                 <Border Classes="inset">

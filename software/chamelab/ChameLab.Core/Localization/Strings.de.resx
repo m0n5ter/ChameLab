@@ -3396,4 +3396,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>Entwicklung</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>Wörterbuchtyp</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>Ein Wörterbuch darf keine 4-Byte-T55XX-Passwörter und 6-Byte-MIFARE-Classic-Schlüssel mischen.</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>T55XX-Passwortsuche</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>Passwörter aus Wörterbüchern versuchen</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>Lege einen T55XX-Tag auf das Lesegerät. Schlüssel werden durch Schreiben und Lesen einer anderen ID geprüft. Bei einem Treffer wird die ursprüngliche ID wiederhergestellt und das neue Passwort gesetzt.</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>Neuer Schlüssel (4 Byte, Hex)</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>Leer lassen, um 20206666 zu verwenden.</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>Diese Firmware unterstützt keine T55XX-Passwortänderungen. Aktualisiere die Firmware; ein Chameleon Ultra ist erforderlich.</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>Geprüfte Schlüssel: {0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>Ursprüngliche ID wiederhergestellt und geprüft. Neuer Schlüssel: {0}.</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>Abgebrochen.</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>Passender Schlüssel: {0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>Der Tag ist nicht passwortgeschützt.</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>Kein passender Schlüssel in den ausgewählten Wörterbüchern.</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>Keine unterstützte LF-ID lesbar. Lass den Tag auf dem Lesegerät.</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>Die Test-ID konnte nicht bestätigt werden. Die Suche wurde gestoppt und die Wiederherstellung der ursprünglichen ID versucht.</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>{0}-ID {1} konnte nicht wiederhergestellt werden. Kandidat: {2}; neuer Schlüssel: {3}. Bewahre diese ID und beide Schlüssel zur Wiederherstellung auf. {4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>Ursprüngliche {0}-ID: {1}</value>
+  </data>
 </root>

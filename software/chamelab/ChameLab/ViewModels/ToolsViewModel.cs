@@ -34,7 +34,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     private int _cursorIndex = -1;
     private SniffTool _tool;
 
-    public ToolsViewModel(DeviceService device) : base(() => Strings.Tools_Tools, "tools")
+    public ToolsViewModel(DeviceService device, DictionaryLibrary? dictionaries = null) : base(() => Strings.Tools_Tools, "tools")
     {
         _device = device;
         var idle = this.WhenAnyValue(x => x.IsBusy, busy => !busy);
@@ -45,6 +45,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         LoadCommand = ReactiveCommand.CreateFromTask(LoadAsync, idle);
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, hasCapture);
         InitHf(idle);
+        InitT55xx(dictionaries ?? AppServices.Dictionaries, idle);
         OpenHfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Hf; });
         OpenLfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Lf; });
         BackCommand = ReactiveCommand.Create(() => { Tool = SniffTool.None; }, idle);
@@ -53,6 +54,8 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             this.RaisePropertyChanged(nameof(IsConnected));
             IsSupported = null;
             IsHfSupported = null;
+            IsT55xxSupported = null;
+            if (!IsConnected) _t55xxCts?.Cancel();
         });
     }
 
@@ -86,12 +89,21 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             this.RaisePropertyChanged(nameof(IsHome));
             this.RaisePropertyChanged(nameof(IsHf));
             this.RaisePropertyChanged(nameof(IsLf));
+            this.RaisePropertyChanged(nameof(IsT55xx));
+            this.RaisePropertyChanged(nameof(CurrentToolTitle));
         }
     }
 
     public bool IsHome => _tool == SniffTool.None;
     public bool IsHf => _tool == SniffTool.Hf;
     public bool IsLf => _tool == SniffTool.Lf;
+    public bool IsT55xx => _tool == SniffTool.T55xx;
+    public string CurrentToolTitle => _tool switch
+    {
+        SniffTool.Hf => Strings.Tools_SniffHF,
+        SniffTool.T55xx => Strings.Tools_T55xxPassword,
+        _ => Strings.Tools_SniffLF,
+    };
 
     public ICommand OpenHfCommand { get; }
     public ICommand OpenLfCommand { get; }
@@ -100,7 +112,8 @@ public sealed partial class ToolsViewModel : PageViewModelBase
 
     public override async Task OnActivatedAsync()
     {
-        if (!IsConnected || IsSupported is not null && IsHfSupported is not null || _device.Client is not { } client) return;
+        RebuildT55xxKeySources();
+        if (!IsConnected || IsSupported is not null && IsHfSupported is not null && IsT55xxSupported is not null || _device.Client is not { } client) return;
         try
         {
             var capabilities = await client.GetCapabilitiesAsync();
@@ -108,6 +121,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             if (capabilities.Count == 0) return;
             IsSupported = capabilities.Contains((ushort)Command.LfSniff);
             IsHfSupported = capabilities.Contains((ushort)Command.Hf14aSniff);
+            IsT55xxSupported = capabilities.Contains((ushort)Command.LfT55xxWrite);
         }
         catch { /* unknown: just try */ }
     }
@@ -319,4 +333,4 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         };
 }
 
-public enum SniffTool { None, Hf, Lf }
+public enum SniffTool { None, Hf, Lf, T55xx }

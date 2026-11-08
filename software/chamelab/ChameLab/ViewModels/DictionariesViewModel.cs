@@ -23,7 +23,7 @@ public sealed class DictionaryItemViewModel(KeyDictionary dict) : ViewModelBase
 {
     public KeyDictionary Dictionary { get; } = dict;
     public string Name => string.IsNullOrWhiteSpace(Dictionary.Name) ? Strings.Common_NoName : Dictionary.Name;
-    public string CountLabel => Loc.Plural(Strings.Plural_Keys, Dictionary.Count);
+    public string CountLabel => $"{Dictionary.Type.Label()} · {Loc.Plural(Strings.Plural_Keys, Dictionary.Count)}";
     public IBrush ColorBrush => HexBrushConverter.Brush(Dictionary.Color) ?? Brushes.OrangeRed;
 
     /// <summary>The name contains the search, or (two hex digits or more) one of the keys does.</summary>
@@ -38,12 +38,12 @@ public sealed class DictionaryItemViewModel(KeyDictionary dict) : ViewModelBase
 
 /// <summary>
 /// Editable working copy of a dictionary: name, color and keys, edited in a hex editor with one
-/// key (6 bytes) per row. <see cref="IsDirty"/> tells whether anything differs from what the
+/// key (6 bytes for Classic, 4 for T55xx) per row. <see cref="IsDirty"/> tells whether anything differs from what the
 /// editor was opened with.
 /// </summary>
 public sealed class DictionaryEditorViewModel : ViewModelBase
 {
-    private const int KeyLength = 6;
+    private KeyDictionaryType _type;
 
     private readonly string _id;
     private readonly string _baseline;
@@ -59,8 +59,16 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
         _id = source.Id;
         _name = source.Name;
         _color = source.Color;
+        _type = source.Type;
         _rows = source.Keys.Select(k => (byte[])k.Clone()).ToList();
-        Keys = new HexBuffer(_rows, KeyLength)
+        Keys = CreateBuffer();
+        Analyze();
+        _baseline = Fingerprint();
+    }
+
+    private HexBuffer CreateBuffer()
+    {
+        var buffer = new HexBuffer(_rows, _type == KeyDictionaryType.T55xx ? 4 : 6)
         {
             CanResize = true,
             RowLabel = row => (row + 1).ToString(),
@@ -68,9 +76,23 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
             Classify = (row, _) => _repeats.ContainsKey(row) ? HexCellKind.AccessBits : HexCellKind.Data,
             Describe = (row, _) => Describe(row),
         };
-        Keys.Changed += (_, _) => { Analyze(); Touch(); };
-        Analyze();
-        _baseline = Fingerprint();
+        buffer.Changed += (_, _) => { Analyze(); Touch(); };
+        return buffer;
+    }
+
+    public IReadOnlyList<KeyDictionaryType> Types { get; } = Enum.GetValues<KeyDictionaryType>();
+    public bool CanChangeType => _rows.All(r => r.Length == 0);
+    public KeyDictionaryType Type
+    {
+        get => _type;
+        set
+        {
+            if (_type == value || !CanChangeType) return;
+            this.RaiseAndSetIfChanged(ref _type, value);
+            Keys = CreateBuffer();
+            this.RaisePropertyChanged(nameof(Keys));
+            Touch();
+        }
     }
 
     public string Name { get => _name; set { this.RaiseAndSetIfChanged(ref _name, value); Touch(); } }
@@ -91,7 +113,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     /// The keys, one per row. Typing into the empty row at the end adds a key; Enter opens a row,
     /// Delete removes rows.
     /// </summary>
-    public HexBuffer Keys { get; }
+    public HexBuffer Keys { get; private set; }
 
     /// <summary>“12 keys · 2 repeated · 1 empty”.</summary>
     public string KeyCountText
@@ -134,6 +156,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
             else seen[hex] = i;
         }
         this.RaisePropertyChanged(nameof(KeyCountText));
+        this.RaisePropertyChanged(nameof(CanChangeType));
     }
 
     private void Touch()
@@ -144,7 +167,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     }
 
     private string Fingerprint() =>
-        _name.Trim() + "|" + CardSave.NormalizeColor(_color) + "|"
+        _type + "|" + _name.Trim() + "|" + CardSave.NormalizeColor(_color) + "|"
         + string.Join(",", _rows.Select(r => r.Length == 0 ? "-" : Convert.ToHexString(r)));
 
     /// <summary>
@@ -159,6 +182,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
             Id = _id,
             Name = _name.Trim(),
             Color = CardSave.NormalizeColor(_color),
+            Type = _type,
             Keys = _rows.Where((r, i) => r.Length > 0 && !_repeats.ContainsKey(i)).Select(r => (byte[])r.Clone()).ToList(),
         };
     }
@@ -170,6 +194,12 @@ public enum DictionariesPane { None, New, Dictionary, KnownKeys }
 /// <summary>Order of the dictionary list; <see cref="Manual"/> is the library's own order, changed by dragging.</summary>
 /// <remarks><see cref="Size"/> is largest first, <see cref="SizeAsc"/> smallest first.</remarks>
 public enum DictionarySort { Manual, Name, NameDesc, Size, SizeAsc }
+
+public static class KeyDictionaryTypeExtensions
+{
+    public static string Label(this KeyDictionaryType type) =>
+        type == KeyDictionaryType.T55xx ? "T55XX" : "MIFARE Classic";
+}
 
 public static class DictionarySortExtensions
 {

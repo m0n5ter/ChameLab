@@ -3396,4 +3396,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>개발</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>사전 유형</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>하나의 사전에 4바이트 T55XX 비밀번호와 6바이트 MIFARE Classic 키를 혼합할 수 없습니다.</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>T55XX 비밀번호 복구</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>사전의 비밀번호 시도</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>T55XX 태그를 리더기에 놓으세요. 다른 ID를 쓰고 읽어 키를 검증합니다. 키가 맞으면 원래 ID를 복원하고 새 비밀번호를 설정합니다.</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>새 키 (4바이트, 16진수)</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>비워 두면 20206666을 사용합니다.</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>이 펌웨어는 T55XX 비밀번호 쓰기를 지원하지 않습니다. 펌웨어를 업데이트하세요. Chameleon Ultra가 필요합니다.</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>검증한 키: {0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>원래 ID를 복원하고 확인했습니다. 새 키: {0}.</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>취소했습니다.</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>일치하는 키: {0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>태그가 비밀번호로 보호되어 있지 않습니다.</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>선택한 사전에서 일치하는 키를 찾지 못했습니다.</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>지원되는 LF ID를 읽지 못했습니다. 태그를 리더기에 놓아 두세요.</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>테스트 ID를 확인하지 못했습니다. 검색을 중지하고 원래 ID 복원을 시도했습니다.</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>{0} ID {1} 복원에 실패했습니다. 후보 키: {2}, 새 키: {3}. 복구를 위해 이 ID와 두 키를 보관하세요. {4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>원래 {0} ID: {1}</value>
+  </data>
 </root>

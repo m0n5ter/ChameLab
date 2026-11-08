@@ -130,6 +130,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _device = device;
         _library = library;
         _dictionaries = dictionaries;
+        WriteT55xxKeys = new(dictionaries);
         _isConnected = device.State == ConnectionState.Connected;
         WriteRecovery = new MifareKeyRecoveryViewModel(() => _device.Client, _dictionaries,
             () => _slotInfos, SourceWriteKeys, work => RunAsync(work), cancelWrite: CancelWrite,
@@ -799,6 +800,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public override Task OnActivatedAsync()
     {
+        WriteT55xxKeys.Refresh();
         IsConnected = _device.State == ConnectionState.Connected;
         return IsConnected ? RefreshSlotsAsync() : Task.CompletedTask;
     }
@@ -2001,7 +2003,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Add(NewKeySource(KnownCardKeys.Id, KnownCardKeys.Name,
             _classicDump is { } dump ? _dictionaries.KnownKeys.ForUid(dump.Uid) : Array.Empty<byte[]>()));
         DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, Strings.Common_BuiltInKeys, MifareClassic.DefaultKeys));
-        foreach (var d in _dictionaries.Dictionaries)
+        foreach (var d in _dictionaries.Dictionaries.Where(d => d.Type == KeyDictionaryType.MifareClassic))
             DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.Keys));
         WriteRecovery.SetKeySources(DumpKeySources);
         UpdateDumpKeyCount();
@@ -2334,6 +2336,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Action = _action == action ? CardAction.None : action;
         if (_action == CardAction.Write)
         {
+            WriteT55xxKeys.Refresh();
+            WriteT55xxFoundKey = null;
             WriteBlockStates = Array.Empty<MifareBlockState>();
             ResetWriteRecovery();
             // A clone of a protected card gets its settings rewritten; otherwise the target keeps its own.
@@ -2544,6 +2548,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     /// <summary>A T55xx is written, so its new-password option applies.</summary>
     public bool IsT55xxWrite => IsLfWrite && !IsEm4305Write;
+
+    public T55xxKeySelectionViewModel WriteT55xxKeys { get; }
+    public double WriteT55xxProgress { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+    public string? WriteT55xxFoundKey { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+    private Task _writeTask = Task.CompletedTask;
 
     public string WriteLfPasswordTip => IsEm4305Write ? Strings.Cards_Em4305PasswordTip : Strings.Cards_Password4BytesOfAnAlready;
 
@@ -2791,7 +2800,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Notify(string.Format(Strings.Cards_NowEmulated, card.Name, target.Index));
     });
 
-    private Task WriteAsync() => RunAsync(async () =>
+    private Task WriteAsync() => _writeTask = RunAsync(async () =>
     {
         var client = _device.Client;
         if (client is null || ActionCard() is not { } card) return;
@@ -2854,10 +2863,25 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     Notify(string.Format(Strings.Cards_WroteEm4305, card.Name));
                     return;
                 }
-                IReadOnlyList<byte[]>? oldKeys = hasCurrent ? [lfKey, .. ChameleonClient.DefaultT55xxOldKeys] : null;
-                var newKey = Hex.TryParse(WriteLfNewKey, out var nk) && nk.Length == 4 ? nk
-                    : hasCurrent ? lfKey : null;
-                await client.WriteLfToT55xxAsync(card.Tag, card.Uid, newKey: newKey, oldKeys: oldKeys, ct: cts.Token);
+                var oldKeys = hasCurrent ? new[] { lfKey }.Concat(WriteT55xxKeys.BuildKeys()) : WriteT55xxKeys.BuildKeys();
+                var newKey = Hex.TryParse(WriteLfNewKey, out var nk) && nk.Length == 4 ? nk : null;
+                WriteT55xxFoundKey = null;
+                WriteT55xxProgress = 0;
+                var result = await T55xxPasswordRecovery.WriteAsync(client, card.Tag, card.Uid, oldKeys, newKey,
+                    (done, total) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        if (version != _writeVersion) return;
+                        WriteT55xxProgress = total == 0 ? 0 : 100.0 * done / total;
+                        if (!cts.IsCancellationRequested)
+                            WriteProgressText = string.Format(Strings.Tools_T55xxProgress, done, total);
+                    }), key => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        if (version == _writeVersion)
+                            WriteT55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected :
+                                string.Format(Strings.Tools_T55xxFoundKey, Convert.ToHexString(key));
+                    }), cts.Token);
+                if (result is null) throw new InvalidOperationException(Strings.Tools_T55xxNoMatch);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => WriteT55xxProgress = 100);
                 succeeded = true;
                 Notify(string.Format(Strings.Cards_WroteT55xx, card.Name));
                 return;
@@ -2886,7 +2910,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            Notify(session is not null
+            Notify(IsT55xxWrite ? Strings.Tools_T55xxCancelled : session is not null
                 ? Strings.Cards_WriteStoppedResume
                 : card.Tag.IsUltralight() ? Strings.Cards_WriteStoppedPages : Strings.Cards_WriteStoppedBlocks);
         }

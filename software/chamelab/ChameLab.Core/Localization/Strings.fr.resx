@@ -3396,4 +3396,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>Développement</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>Type de dictionnaire</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>Un dictionnaire ne peut pas mélanger des mots de passe T55XX de 4 octets et des clés MIFARE Classic de 6 octets.</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>Recherche de mot de passe T55XX</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>Essayer les mots de passe des dictionnaires</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>Placez un badge T55XX sur le lecteur. Les clés sont vérifiées en écrivant puis en lisant un autre ID. Si une clé fonctionne, l’ID d’origine est restauré et le nouveau mot de passe est défini.</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>Nouvelle clé (4 octets, hex)</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>Laissez vide pour utiliser 20206666.</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>Ce micrologiciel ne permet pas de modifier les mots de passe T55XX. Mettez-le à jour ; un Chameleon Ultra est nécessaire.</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>Clés vérifiées : {0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>ID d’origine restauré et vérifié. Nouvelle clé : {0}.</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>Annulé.</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>Clé correspondante : {0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>Le badge n’est pas protégé par mot de passe.</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>Aucune clé correspondante dans les dictionnaires sélectionnés.</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>Impossible de lire un ID LF pris en charge. Gardez le badge sur le lecteur.</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>Impossible de vérifier l’ID de test. La recherche a été arrêtée et la restauration de l’ID d’origine a été tentée.</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>Impossible de restaurer l’ID {0} : {1}. Clé candidate : {2} ; nouvelle clé : {3}. Conservez cet ID et les deux clés pour la restauration. {4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>ID {0} d’origine : {1}</value>
+  </data>
 </root>

@@ -3396,4 +3396,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>Desarrollo</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>Tipo de diccionario</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>Un diccionario no puede mezclar contraseñas T55XX de 4 bytes y claves MIFARE Classic de 6 bytes.</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>Recuperar contraseña T55XX</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>Probar contraseñas de diccionarios</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>Coloca una etiqueta T55XX en el lector. Las claves se verifican escribiendo y leyendo otro ID. Si una clave funciona, se restaura el ID original y se establece la nueva contraseña.</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>Nueva clave (4 bytes, hex)</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>Déjalo vacío para usar 20206666.</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>Este firmware no admite escribir contraseñas T55XX. Actualiza el firmware; se requiere un Chameleon Ultra.</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>Claves probadas: {0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>ID original restaurado y verificado. Nueva clave: {0}.</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>Cancelado.</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>Clave válida: {0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>La etiqueta no está protegida por contraseña.</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>No se encontró una clave válida en los diccionarios seleccionados.</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>No se pudo leer un ID LF compatible. Mantén la etiqueta en el lector.</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>No se pudo verificar el ID de prueba. Se detuvo la búsqueda y se intentó restaurar el ID original.</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>No se pudo restaurar el ID {0}: {1}. Clave candidata: {2}; nueva clave: {3}. Guarda este ID y ambas claves para recuperarlo. {4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>ID {0} original: {1}</value>
+  </data>
 </root>

@@ -766,6 +766,26 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     ];
 
     /// <summary>
+    /// Writes one page-0 block. T55xx has no write ACK; verify the resulting ID with a scan.
+    /// </summary>
+    public async Task WriteT55xxBlockAsync(byte block, uint word, byte[]? password, CancellationToken ct = default)
+    {
+        if (block > 7) throw new ArgumentOutOfRangeException(nameof(block));
+        if (password is { Length: not 4 })
+            throw new ArgumentException(Strings.Device_T55xxKeyLength);
+        var data = new byte[11];
+        data[0] = block;
+        BinaryPrimitives.WriteUInt32BigEndian(data.AsSpan(1), word);
+        if (password is not null)
+        {
+            data[5] = 1;
+            password.CopyTo(data, 6);
+        }
+        await conn.SendExpectAsync(Command.LfT55xxWrite, Status.LfTagOk,
+            data, ct: ct);
+    }
+
+    /// <summary>
     /// Writes an LF card onto a blank T55xx tag. <paramref name="id"/> is the raw
     /// emulator-ID buffer for the protocol (as produced by a scan or stored on a card).
     /// </summary>

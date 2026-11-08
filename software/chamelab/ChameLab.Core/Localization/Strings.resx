@@ -3399,4 +3399,58 @@
   <data name="Settings_UpdateChannelDev" xml:space="preserve">
     <value>Development</value>
   </data>
+  <data name="Dictionaries_Type" xml:space="preserve">
+    <value>Dictionary type</value>
+  </data>
+  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
+    <value>A dictionary cannot mix 4-byte T55XX passwords and 6-byte MIFARE Classic keys.</value>
+  </data>
+  <data name="Tools_T55xxPassword" xml:space="preserve">
+    <value>T55XX password recovery</value>
+  </data>
+  <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
+    <value>Try passwords from dictionaries</value>
+  </data>
+  <data name="Tools_T55xxDescription" xml:space="preserve">
+    <value>Place a T55XX tag on the reader. Keys are verified by writing and reading a different ID. When a key works, the original ID is restored and the new password is set.</value>
+  </data>
+  <data name="Tools_T55xxNewKey" xml:space="preserve">
+    <value>New key (4 bytes, hex)</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyHint" xml:space="preserve">
+    <value>Leave empty to use 20206666.</value>
+  </data>
+  <data name="Tools_T55xxUnsupported" xml:space="preserve">
+    <value>This firmware does not support T55XX password writes. Update the firmware; a Chameleon Ultra is required.</value>
+  </data>
+  <data name="Tools_T55xxProgress" xml:space="preserve">
+    <value>Keys checked: {0} / {1}</value>
+  </data>
+  <data name="Tools_T55xxComplete" xml:space="preserve">
+    <value>Original ID restored and verified. New key: {0}.</value>
+  </data>
+  <data name="Tools_T55xxCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+  </data>
+  <data name="Tools_T55xxFoundKey" xml:space="preserve">
+    <value>Matching key: {0}</value>
+  </data>
+  <data name="Tools_T55xxUnprotected" xml:space="preserve">
+    <value>The tag is not password-protected.</value>
+  </data>
+  <data name="Tools_T55xxNoMatch" xml:space="preserve">
+    <value>No matching key in the selected dictionaries.</value>
+  </data>
+  <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
+    <value>Could not read a supported LF ID. Keep the tag on the reader.</value>
+  </data>
+  <data name="Tools_T55xxProbeFailed" xml:space="preserve">
+    <value>Could not verify the test ID. Recovery was stopped and restoration of the original ID was attempted.</value>
+  </data>
+  <data name="Tools_T55xxRestoreFailed" xml:space="preserve">
+    <value>Could not restore {0} ID {1}. Candidate key: {2}; new key: {3}. Keep this ID and both keys for recovery. {4}</value>
+  </data>
+  <data name="Tools_T55xxOriginalId" xml:space="preserve">
+    <value>Original {0} ID: {1}</value>
+  </data>
 </root>
