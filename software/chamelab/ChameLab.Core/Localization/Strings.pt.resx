@@ -3421,7 +3421,7 @@
     <value>Chaves verificadas: {0} / {1}</value>
   </data>
   <data name="Tools_T55xxComplete" xml:space="preserve">
-    <value>ID original restaurado e verificado. Nova chave: {0}.</value>
+    <value>ID original restaurado e verificado.</value>
   </data>
   <data name="Tools_T55xxCancelled" xml:space="preserve">
     <value>Cancelado.</value>
@@ -3473,5 +3473,20 @@
   </data>
   <data name="Dictionaries_KeyTooShort" xml:space="preserve">
     <value>A chave {0} tem menos de {1} bytes</value>
+  </data>
+  <data name="Tools_T55xxSetNewKey" xml:space="preserve">
+    <value>Definir uma nova chave</value>
+  </data>
+  <data name="Common_Start" xml:space="preserve">
+    <value>Iniciar</value>
+  </data>
+  <data name="Tools_T55xxUid" xml:space="preserve">
+    <value>UID</value>
+  </data>
+  <data name="Tools_T55xxFound" xml:space="preserve">
+    <value>Encontrada</value>
+  </data>
+  <data name="Tools_T55xxNew" xml:space="preserve">
+    <value>Nova</value>
   </data>
 </root>

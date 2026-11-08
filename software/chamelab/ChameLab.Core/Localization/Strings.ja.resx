@@ -3421,7 +3421,7 @@
     <value>検証済みキー：{0} / {1}</value>
   </data>
   <data name="Tools_T55xxComplete" xml:space="preserve">
-    <value>元の ID を復元し、確認しました。新しいキー：{0}。</value>
+    <value>元の ID を復元し、確認しました。</value>
   </data>
   <data name="Tools_T55xxCancelled" xml:space="preserve">
     <value>キャンセルしました。</value>
@@ -3473,5 +3473,20 @@
   </data>
   <data name="Dictionaries_KeyTooShort" xml:space="preserve">
     <value>キー {0} が {1} バイト未満です</value>
+  </data>
+  <data name="Tools_T55xxSetNewKey" xml:space="preserve">
+    <value>新しいキーを設定</value>
+  </data>
+  <data name="Common_Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="Tools_T55xxUid" xml:space="preserve">
+    <value>UID</value>
+  </data>
+  <data name="Tools_T55xxFound" xml:space="preserve">
+    <value>検出</value>
+  </data>
+  <data name="Tools_T55xxNew" xml:space="preserve">
+    <value>新規</value>
   </data>
 </root>

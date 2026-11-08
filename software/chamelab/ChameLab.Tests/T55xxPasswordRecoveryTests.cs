@@ -296,7 +296,10 @@ public class T55xxPasswordRecoveryTests
             selected.IsSelected = false;
             Assert.False(new ToolsViewModel(new DeviceService([]), library)
                 .T55xxKeySources.Single(s => s.Id == passwords.Id).IsSelected);
+            // A bad key is only flagged once the user chose to set one.
             tools.T55xxNewKey = "bad";
+            Assert.Null(tools.T55xxNewKeyError);
+            tools.T55xxSetNewKey = true;
             Assert.NotNull(tools.T55xxNewKeyError);
             tools.T55xxNewKey = "";
             Assert.Null(tools.T55xxNewKeyError);

@@ -3421,7 +3421,7 @@
     <value>검증한 키: {0} / {1}</value>
   </data>
   <data name="Tools_T55xxComplete" xml:space="preserve">
-    <value>원래 ID를 복원하고 확인했습니다. 새 키: {0}.</value>
+    <value>원래 ID를 복원하고 확인했습니다.</value>
   </data>
   <data name="Tools_T55xxCancelled" xml:space="preserve">
     <value>취소했습니다.</value>
@@ -3473,5 +3473,20 @@
   </data>
   <data name="Dictionaries_KeyTooShort" xml:space="preserve">
     <value>키 {0}이(가) {1}바이트보다 짧습니다</value>
+  </data>
+  <data name="Tools_T55xxSetNewKey" xml:space="preserve">
+    <value>새 키 설정</value>
+  </data>
+  <data name="Common_Start" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="Tools_T55xxUid" xml:space="preserve">
+    <value>UID</value>
+  </data>
+  <data name="Tools_T55xxFound" xml:space="preserve">
+    <value>찾음</value>
+  </data>
+  <data name="Tools_T55xxNew" xml:space="preserve">
+    <value>새 키</value>
   </data>
 </root>
