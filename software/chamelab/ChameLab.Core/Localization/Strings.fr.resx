@@ -1636,7 +1636,7 @@
     <value>Réponse inattendue du bootloader {0}.</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>Effacer la recherche</value>
+    <value>Réinitialiser les filtres</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>Supprimer ce dictionnaire</value>
@@ -1702,7 +1702,7 @@
     <value>Aucune carte ne correspond à la recherche.</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>Aucun dictionnaire ne correspond à la recherche.</value>
+    <value>Aucun dictionnaire ne correspond aux filtres.</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Aucun dictionnaire pour l'instant</value>
@@ -1711,7 +1711,7 @@
     <value>{0} ne contient aucune clé valide.</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>Une clé par ligne. Saisissez de l'hex dans la ligne vide à la fin pour ajouter une clé, ou collez-y une liste. Entrée ouvre une ligne, Suppr supprime les lignes sélectionnées.</value>
+    <value>Une clé de 4 à 16 octets par ligne. Saisissez de l’hex dans la ligne vide à la fin pour ajouter une clé, ou collez-y une liste. Taper après le dernier octet d’une clé l’allonge ; Retour arrière et Inser suppriment et insèrent des octets. Entrée ouvre une ligne, Suppr supprime les lignes sélectionnées.</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>Ordre de la liste. En mode « Manuel », faites glisser les dictionnaires pour les ranger.</value>
@@ -3399,9 +3399,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>Type de dictionnaire</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>Un dictionnaire ne peut pas mélanger des mots de passe T55XX de 4 octets et des clés MIFARE Classic de 6 octets.</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>Recherche de mot de passe T55XX</value>
   </data>
@@ -3449,5 +3446,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>ID {0} d’origine : {1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>Longueur de clé (octets)</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>Toutes les longueurs</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>La longueur de clé doit être comprise entre 4 et 16 octets.</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>Ligne {0} : une clé hexadécimale de {1} octets est attendue.</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0} octet|{0} octets</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>Insérer un octet</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>Supprimer les octets</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>tapez pour ajouter un octet</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>La clé {0} fait moins de {1} octets</value>
   </data>
 </root>

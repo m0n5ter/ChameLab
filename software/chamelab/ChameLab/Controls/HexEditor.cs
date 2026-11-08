@@ -114,6 +114,11 @@ public sealed class HexEditor : Control
     private int _perLine = 16;
     private bool _showAscii;
     private double[] _lineY = Array.Empty<double>();
+    // Offset of each line's first cell (one more entry for the end), the row it shows and
+    // whether it starts that row: a line holds part of a row, a whole row or several whole rows.
+    private long[] _lineStart = [0];
+    private int[] _lineRow = Array.Empty<int>();
+    private bool[] _lineFirst = Array.Empty<bool>();
     private double _contentHeight;
 
     // Caret / selection, as byte offsets into the buffer.
@@ -272,12 +277,20 @@ public sealed class HexEditor : Control
     private void OnBufferChanged(object? sender, EventArgs e)
     {
         InvalidateText();
-        if (_buffer is { } buf && _lineY.Length != LineCount(buf))
+        if (_buffer is { } buf && _lineY.Length > 0)
         {
-            // Rows were added or removed: lay the lines out again and keep the caret inside.
             if (_caret >= buf.ViewLength) { _caret = Math.Max(0, buf.ViewLength - 1); _lowNibble = false; }
             if (_anchor >= buf.ViewLength) _anchor = -1;
-            InvalidateMeasure();
+            // Rows were added or removed, or a row got longer or shorter: lay the lines out again
+            // now (the caret is placed by them) and the strips on the next layout if they moved.
+            var lines = _lineY.Length;
+            var height = _contentHeight;
+            LayOutLines(buf);
+            if (_lineY.Length != lines || _contentHeight != height)
+            {
+                _chunksDirty = true;
+                InvalidateMeasure();
+            }
         }
         UpdateStatus();
         InvalidateCaret();
@@ -295,13 +308,74 @@ public sealed class HexEditor : Control
 
     // ================================================================ Layout
 
-    // A line holds part of a row, a whole row or (RowsPerLine) several whole rows.
-    private int LineCount(HexBuffer buf) => (int)((buf.ViewLength + _perLine - 1) / _perLine);
-    private int RowOfLine(int line) => (int)((long)line * _perLine / _buffer!.RowLength);
-    private bool StartsRow(int line) => (long)line * _perLine % _buffer!.RowLength == 0;
+    private int RowOfLine(int line) => _lineRow[line];
+    private bool StartsRow(int line) => _lineFirst[line];
 
-    /// <summary>Bytes of a line that are in the buffer: the last line of packed rows can be shorter.</summary>
-    private int LineBytes(HexBuffer buf, int line) => (int)Math.Min(_perLine, buf.ViewLength - (long)line * _perLine);
+    /// <summary>Cells of a line: the last line of a row (or of packed rows) can be shorter.</summary>
+    private int LineBytes(HexBuffer buf, int line) => (int)(_lineStart[line + 1] - _lineStart[line]);
+
+    /// <summary>
+    /// Splits the rows into lines of up to <see cref="_perLine"/> cells: equally long rows run on
+    /// from line to line (several to a line where allowed), a variable-length row starts a line
+    /// of its own. Then places the lines, leaving room for group separators and headings.
+    /// </summary>
+    private void LayOutLines(HexBuffer buf)
+    {
+        int lines;
+        if (!buf.VariableRowLength)
+        {
+            lines = (int)((buf.ViewLength + _perLine - 1) / _perLine);
+            _lineStart = new long[lines + 1];
+            _lineRow = new int[lines];
+            _lineFirst = new bool[lines];
+            for (var i = 0; i < lines; i++)
+            {
+                var start = (long)i * _perLine;
+                _lineStart[i] = start;
+                _lineRow[i] = (int)(start / buf.RowLength);
+                _lineFirst[i] = start % buf.RowLength == 0;
+            }
+            _lineStart[lines] = buf.ViewLength;
+        }
+        else
+        {
+            var starts = new List<long>();
+            var rows = new List<int>();
+            var firsts = new List<bool>();
+            for (var row = 0; row < buf.ViewRowCount; row++)
+            {
+                var start = buf.RowStart(row);
+                var length = buf.RowViewLength(row);
+                for (var col = 0; col < length; col += _perLine)
+                {
+                    starts.Add(start + col);
+                    rows.Add(row);
+                    firsts.Add(col == 0);
+                }
+            }
+            lines = starts.Count;
+            starts.Add(buf.ViewLength);
+            _lineStart = starts.ToArray();
+            _lineRow = rows.ToArray();
+            _lineFirst = firsts.ToArray();
+        }
+
+        _lineY = new double[lines];
+        double y = 0;
+        for (var i = 0; i < lines; i++)
+        {
+            var row = RowOfLine(i);
+            if (StartsRow(i))
+            {
+                if (row > 0 && buf.StartsGroup(row)) y += SeparatorGap;
+                // A group heading takes a line of its own above the group's first row.
+                if (ShowGroupHeaders && buf.GroupHeader(row) is not null) y += _lineH;
+            }
+            _lineY[i] = y;
+            y += _lineH;
+        }
+        _contentHeight = y;
+    }
 
     /// <summary>Bytes between group gaps: fours where the line splits into fours, else none.</summary>
     private static int GroupSize(int perLine) => perLine % 4 == 0 ? 4 : perLine;
@@ -359,7 +433,8 @@ public sealed class HexEditor : Control
         // fall back to 2, then 1), else the whole row on one line (up to 16 bytes, e.g. a
         // 6-byte key), else halves, quarters…
         var rowLength = _buffer.RowLength;
-        var rowsPerLine = Math.Max(1, _buffer.RowsPerLine);
+        // Variable-length rows each start a line: room for the longest (RowLength).
+        var rowsPerLine = _buffer.VariableRowLength ? 1 : Math.Max(1, _buffer.RowsPerLine);
         var candidates = Enumerable.Range(1, rowsPerLine).Where(k => rowsPerLine % k == 0).Select(k => k * rowLength)
             .Concat([16, 8, 4, 2, 1])
             .Where(n => n <= 16 && (n <= rowLength ? rowLength % n == 0 : n % rowLength == 0 && rowsPerLine % (n / rowLength) == 0))
@@ -374,22 +449,7 @@ public sealed class HexEditor : Control
         _asciiX = _hexX + HexWidth(_perLine) + 2 * _digitW;
         if (!_showAscii && _pane == Pane.Ascii) _pane = Pane.Hex;
 
-        var lines = LineCount(_buffer);
-        _lineY = new double[lines];
-        double y = 0;
-        for (var i = 0; i < lines; i++)
-        {
-            var row = RowOfLine(i);
-            if (StartsRow(i))
-            {
-                if (row > 0 && _buffer.StartsGroup(row)) y += SeparatorGap;
-                // A group heading takes a line of its own above the group's first row.
-                if (ShowGroupHeaders && _buffer.GroupHeader(row) is not null) y += _lineH;
-            }
-            _lineY[i] = y;
-            y += _lineH;
-        }
-        _contentHeight = y;
+        LayOutLines(_buffer);
 
         var width = _showAscii ? _asciiX + _perLine * _digitW : _hexX + HexWidth(_perLine);
         return new Size(Math.Min(width, avail), _contentHeight);
@@ -487,11 +547,25 @@ public sealed class HexEditor : Control
     private double ByteX(int col) => _hexX + col * _byteStride + col / GroupSize(_perLine) * _groupGap;
     private double AsciiX(int col) => _asciiX + col * _digitW;
 
-    private int LineOf(long offset) => (int)(offset / _perLine);
+    private int LineOf(long offset)
+    {
+        var lines = _lineY.Length;
+        if (lines == 0) return 0;
+        var line = Array.BinarySearch(_lineStart, 0, lines, offset);
+        if (line < 0) line = ~line - 1;
+        return Math.Clamp(line, 0, lines - 1);
+    }
+
+    /// <summary>Position of a cell in its line.</summary>
+    private int ColumnInLine(long offset) => (int)(offset - _lineStart[LineOf(offset)]);
+
+    /// <summary>The cell of a line at a column, or the line's last cell when it is shorter.</summary>
+    private long CellOfLine(int line, int col) =>
+        _lineStart[line] + Math.Min(col, LineBytes(_buffer!, line) - 1);
 
     private Rect CellRect(long offset, Pane pane)
     {
-        int line = LineOf(offset), col = (int)(offset % _perLine);
+        int line = LineOf(offset), col = (int)(offset - _lineStart[line]);
         var y = _lineY[line];
         return pane == Pane.Hex
             ? new Rect(ByteX(col) - _byteGap / 2, y, 2 * _digitW + _byteGap, _lineH)
@@ -515,14 +589,16 @@ public sealed class HexEditor : Control
         if (_showAscii && p.X >= _asciiX - _digitW)
         {
             var col = Math.Clamp((int)((p.X - _asciiX) / _digitW), 0, LineBytes(_buffer!, line) - 1);
-            return ((long)line * _perLine + col, false, Pane.Ascii);
+            return (_lineStart[line] + col, false, Pane.Ascii);
         }
 
         var best = 0;
         for (var c = 0; c < LineBytes(_buffer!, line); c++)
             if (p.X >= ByteX(c) - _byteGap / 2) best = c;
         var low = p.X >= ByteX(best) + _digitW;
-        return ((long)line * _perLine + best, low, Pane.Hex);
+        // The cell after a short row's last byte has no nibbles yet: typing starts the byte.
+        var offset = _lineStart[line] + best;
+        return (offset, low && _buffer!.IsRead(offset), Pane.Hex);
     }
 
     // ================================================================ Rendering
@@ -585,15 +661,17 @@ public sealed class HexEditor : Control
 
         for (var col = 0; col < LineBytes(buf, line); col++)
         {
-            var offset = (long)line * _perLine + col;
-            var row = (int)(offset / buf.RowLength);
-            var read = buf.IsRead(row);
+            var offset = _lineStart[line] + col;
+            var row = RowOfLine(line);
+            var read = buf.IsRead(offset);
+            // The cell after a short row's last byte stays blank (an empty row shows dashes there).
+            if (!read && buf.VariableRowLength && buf.IsRead(row)) continue;
             // An unread row shows its template (blank-card defaults) dimmed, or dashes without one.
             var template = read ? null : buf.TemplateAt(offset);
             var b = read ? buf[offset] : template ?? 0;
             var known = !read && buf.IsTemplateKnown(offset);
             var brush = !read && !known ? dim
-                : buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(row, (int)(offset % buf.RowLength)), fg);
+                : buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(buf.RowAt(offset), buf.ColumnAt(offset)), fg);
             Add(read || template is not null ? HexBytes[b] : "--", brush, ByteX(col) + _digitW);
             if (_showAscii)
                 Add(read || template is not null ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);
@@ -664,10 +742,11 @@ public sealed class HexEditor : Control
 
         var panes = _showAscii ? 2 : 1;
         var (selFrom, selTo) = Selection();
-        if (selTo >= selFrom && SelectionBrush is { } selBrush)
+        // Lines laid out again after an edit can be fewer than the strips placed before it.
+        if (selTo >= selFrom && SelectionBrush is { } selBrush && _winTo < _lineY.Length)
         {
-            var from = Math.Max(selFrom, (long)_winFrom * _perLine);
-            var to = Math.Min(Math.Min(selTo, ((long)_winTo + 1) * _perLine - 1), buf.ViewLength - 1);
+            var from = Math.Max(selFrom, _lineStart[_winFrom]);
+            var to = Math.Min(Math.Min(selTo, _lineStart[_winTo + 1] - 1), buf.ViewLength - 1);
             for (var offset = from; offset <= to; offset++)
                 for (var p = 0; p < panes; p++)
                     ctx.FillRectangle(selBrush, CellRect(offset, p == 0 ? Pane.Hex : Pane.Ascii));
@@ -730,10 +809,11 @@ public sealed class HexEditor : Control
             if (_canBatchText) continue;
             for (var col = 0; col < LineBytes(buf, line); col++)
             {
-                var offset = (long)line * _perLine + col;
-                var cellRow = (int)(offset / buf.RowLength);
-                var rowCol = (int)(offset % buf.RowLength);
-                var rowRead = buf.IsRead(cellRow);
+                var offset = _lineStart[line] + col;
+                var cellRow = buf.RowAt(offset);
+                var rowCol = buf.ColumnAt(offset);
+                var rowRead = buf.IsRead(offset);
+                if (!rowRead && buf.VariableRowLength && buf.IsRead(cellRow)) continue;
                 IBrush brush;
                 string hex, ascii;
                 if (!rowRead)
@@ -770,7 +850,7 @@ public sealed class HexEditor : Control
             return;
         var line = LineOf(_caret);
         if (line >= _lineY.Length) return;
-        var col = (int)(_caret % _perLine);
+        var col = (int)(_caret - _lineStart[line]);
         var cx = _pane == Pane.Hex ? ByteX(col) + (_lowNibble ? _digitW : 0) : AsciiX(col);
         ctx.FillRectangle(caret, new Rect(cx - 1, _lineY[line] + 2, 2, _lineH - 4));
     }
@@ -860,10 +940,12 @@ public sealed class HexEditor : Control
 
         // Every field is padded so the line keeps its width as the caret moves.
         const int valueWidth = 16; // "E1  225 11100001"
-        int row = (int)(_caret / buf.RowLength), col = (int)(_caret % buf.RowLength);
+        int row = buf.RowAt(_caret), col = buf.ColumnAt(_caret);
         var labelWidth = buf.RowLabel(buf.ViewRowCount - 1).Length;
         var colWidth = (buf.RowLength - 1).ToString().Length;
         var offsetWidth = Math.Max(3, (buf.ByteOffset + buf.ViewLength - 1).ToString("X").Length);
+        // Variable-length rows: the cell after a row's bytes adds one.
+        var unread = buf.VariableRowLength ? Strings.Hex_TypeToAddByte : Strings.Hex_NotRead;
 
         string value;
         if (HasSelection)
@@ -871,17 +953,17 @@ public sealed class HexEditor : Control
             var (from, to) = Selection();
             value = string.Format(Strings.Hex_Selected, to - from + 1);
         }
-        else if (buf.IsRead(row))
+        else if (buf.IsRead(_caret))
         {
             var b = buf[_caret];
             value = $"{b:X2} {b,4} {Convert.ToString(b, 2).PadLeft(8, '0')}";
         }
         else if (buf.IsTemplateKnown(_caret) && buf.TemplateAt(_caret) is { } k)
             value = $"{k:X2} {k,4} {Convert.ToString(k, 2).PadLeft(8, '0')}";
-        else value = Strings.Hex_NotRead;
+        else value = unread;
 
         StatusText = $"{buf.RowLabel(row).PadLeft(labelWidth)}:{col.ToString().PadLeft(colWidth, '0')}  " +
-                     $"0x{(buf.ByteOffset + _caret).ToString("X" + offsetWidth)}  {value.PadRight(valueWidth, ' ')}";
+                     $"0x{buf.DataOffset(_caret).ToString("X" + offsetWidth)}  {value.PadRight(valueWidth, ' ')}";
         StatusDetail = buf.Describe(row, col) is { Length: > 0 } what ? what : null;
         var title = Strings.Hex_Memory;
         for (var r = row; r >= 0; r--)
@@ -901,11 +983,11 @@ public sealed class HexEditor : Control
                 known.ToString(CultureInfo.InvariantCulture), Convert.ToString(known, 2).PadLeft(8, '0'), null);
             return;
         }
-        SelectionStatus = !HasSelection && buf.IsRead(row)
+        SelectionStatus = !HasSelection && buf.IsRead(_caret)
             ? new(title, detail, position, buf[_caret].ToString("X2"), buf[_caret].ToString(CultureInfo.InvariantCulture),
                 Convert.ToString(buf[_caret], 2).PadLeft(8, '0'), null)
             : new(title, detail, position, null, null, null,
-                HasSelection ? string.Format(Strings.Hex_Selected, Selection().to - Selection().from + 1) : Strings.Hex_NotRead);
+                HasSelection ? string.Format(Strings.Hex_Selected, Selection().to - Selection().from + 1) : unread);
     }
 
     // ================================================================ Input
@@ -1011,6 +1093,14 @@ public sealed class HexEditor : Control
         if (_buffer is not { ViewLength: > 0, IsReadOnly: false } || string.IsNullOrEmpty(e.Text)) return;
         e.Handled = true;
 
+        // A list pasted from an on-screen keyboard's clipboard (or Win+V) comes as typed text:
+        // paste it, so its lines stay keys of their own.
+        if (_pane == Pane.Hex && e.Text.Contains('\n'))
+        {
+            PasteText(e.Text);
+            return;
+        }
+
         if (HasSelection) MoveCaret(Selection().from, false, extend: false);
         foreach (var ch in e.Text)
         {
@@ -1041,12 +1131,15 @@ public sealed class HexEditor : Control
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (_buffer is not { ViewLength: > 0 } || e.Handled) return;
+        if (_buffer is not { ViewLength: > 0 } || _lineY.Length == 0 || e.Handled) return;
 
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         var cmd = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
-        long line = _perLine;
         var last = _buffer.ViewLength - 1;
+        var line = LineOf(_caret);
+        var col = ColumnInLine(_caret);
+        var lastLine = _lineY.Length - 1;
+        var editsBytes = _buffer is { VariableRowLength: true, IsReadOnly: false };
         e.Handled = true;
 
         switch (e.Key)
@@ -1056,19 +1149,17 @@ public sealed class HexEditor : Control
                 break;
             case Key.Left: MoveCaret(_caret - 1, false, shift); break;
             case Key.Right: MoveCaret(_caret + 1, false, shift); break;
-            case Key.Up: MoveCaret(_caret >= line ? _caret - line : _caret, _lowNibble, shift); break;
-            case Key.Down: MoveCaret(_caret + line <= last ? _caret + line : _caret, _lowNibble, shift); break;
-            case Key.PageUp: MoveCaret(Math.Max(_caret % line, _caret - line * PageLines), false, shift); break;
-            case Key.PageDown:
-                var down = _caret + line * PageLines;
-                while (down > last) down -= line;
-                MoveCaret(down, false, shift);
-                break;
+            case Key.Up: MoveCaret(line > 0 ? CellOfLine(line - 1, col) : _caret, _lowNibble, shift); break;
+            case Key.Down: MoveCaret(line < lastLine ? CellOfLine(line + 1, col) : _caret, _lowNibble, shift); break;
+            case Key.PageUp: MoveCaret(CellOfLine(Math.Max(0, line - PageLines), col), false, shift); break;
+            case Key.PageDown: MoveCaret(CellOfLine(Math.Min(lastLine, line + PageLines), col), false, shift); break;
             case Key.Home when cmd: MoveCaret(0, false, shift); break;
             case Key.End when cmd: MoveCaret(last, false, shift); break;
-            case Key.Home: MoveCaret(_caret - _caret % line, false, shift); break;
-            case Key.End: MoveCaret(_caret - _caret % line + line - 1, false, shift); break;
+            case Key.Home: MoveCaret(_lineStart[line], false, shift); break;
+            case Key.End: MoveCaret(_lineStart[line + 1] - 1, false, shift); break;
+            case Key.Back when editsBytes && (HasSelection || !_lowNibble): DeleteBackward(); break;
             case Key.Back: MoveCaret(_lowNibble ? _caret : _caret - 1, false, false); break;
+            case Key.Insert when editsBytes && !cmd && !shift: InsertByte(); break;
             case Key.Enter when _buffer.CanResize && !cmd: InsertRowBelow(); break;
             case Key.Delete when _buffer.CanResize: RemoveRows(); break;
             case Key.Tab when _showAscii && !cmd && !e.KeyModifiers.HasFlag(KeyModifiers.Alt):
@@ -1108,9 +1199,42 @@ public sealed class HexEditor : Control
     private void InsertRowBelow()
     {
         if (_buffer is not { CanResize: true } buf) return;
-        var row = (int)(_caret / buf.RowLength);
+        var row = buf.RowAt(_caret);
         if (row < buf.RowCount - 1) buf.InsertRows(row + 1, 1);
-        GoTo((long)Math.Min(row + 1, buf.ViewRowCount - 1) * buf.RowLength);
+        GoTo(buf.RowStart(Math.Min(row + 1, buf.ViewRowCount - 1)));
+    }
+
+    /// <summary>
+    /// Backspace in variable-length rows: deletes the selected bytes, or the byte before the
+    /// caret in its row (at the start of a row it only moves back).
+    /// </summary>
+    private void DeleteBackward()
+    {
+        if (_buffer is not { VariableRowLength: true, IsReadOnly: false } buf) return;
+        if (HasSelection)
+        {
+            var (from, to) = Selection();
+            _anchor = -1;
+            buf.DeleteBytes(from, to);
+            GoTo(from);
+            return;
+        }
+        if (buf.ColumnAt(_caret) == 0)
+        {
+            MoveCaret(_caret - 1, false, false);
+            return;
+        }
+        var target = _caret - 1;
+        buf.DeleteBytes(target, target);
+        GoTo(target);
+    }
+
+    /// <summary>Insert in variable-length rows: a zero byte at the caret, to type over.</summary>
+    private void InsertByte()
+    {
+        if (_buffer is not { VariableRowLength: true, IsReadOnly: false } buf) return;
+        var at = HasSelection ? Selection().from : _caret;
+        if (buf.InsertBytes(at, 1) > 0) GoTo(at);
     }
 
     /// <summary>Removes the rows the selection touches, or the caret's row (resizable buffers).</summary>
@@ -1118,11 +1242,11 @@ public sealed class HexEditor : Control
     {
         if (_buffer is not { CanResize: true, RowCount: > 0 } buf) return;
         var (from, to) = HasSelection ? Selection() : (_caret, _caret);
-        int first = (int)(from / buf.RowLength), last = Math.Min((int)(to / buf.RowLength), buf.RowCount - 1);
+        int first = buf.RowAt(from), last = Math.Min(buf.RowAt(to), buf.RowCount - 1);
         if (first > last) return;
         _anchor = -1;
         buf.RemoveRows(first, last - first + 1);
-        GoTo((long)Math.Min(first, buf.ViewRowCount - 1) * buf.RowLength);
+        GoTo(buf.RowStart(Math.Min(first, buf.ViewRowCount - 1)));
     }
 
     /// <summary>Copies the selection, or the whole row under the caret.</summary>
@@ -1138,8 +1262,10 @@ public sealed class HexEditor : Control
             if (HasSelection) (from, to) = Selection();
             else
             {
-                from = _caret - _caret % buf.RowLength;
-                to = from + buf.RowLength - 1;
+                var row = buf.RowAt(_caret);
+                from = buf.RowStart(row);
+                to = from + (buf.VariableRowLength ? buf.RowDataLength(row) : buf.RowLength) - 1;
+                if (to < from) return;
             }
 
             string text;
@@ -1147,8 +1273,25 @@ public sealed class HexEditor : Control
             {
                 var sb = new StringBuilder();
                 for (var o = from; o <= to; o++)
+                {
+                    // Variable-length rows: only bytes, not the cells after them.
+                    if (buf.VariableRowLength && !buf.IsRead(o)) continue;
                     sb.Append(buf.IsRead(o) && buf[o] is >= 0x20 and < 0x7F ? (char)buf[o] : '.');
+                }
                 text = sb.ToString();
+            }
+            else if (buf.VariableRowLength)
+            {
+                // A key per line, so a paste gives back the same rows.
+                text = string.Join(Environment.NewLine, Enumerable.Range(buf.RowAt(from), buf.RowAt(to) - buf.RowAt(from) + 1)
+                    .Select(row =>
+                    {
+                        var start = buf.RowStart(row);
+                        return string.Join(' ', Enumerable.Range(0, buf.RowDataLength(row))
+                            .Where(c => start + c >= from && start + c <= to)
+                            .Select(c => buf[start + c].ToString("X2")));
+                    })
+                    .Where(line => line.Length > 0));
             }
             else
             {
@@ -1176,21 +1319,57 @@ public sealed class HexEditor : Control
             string? text;
             try { text = await clipboard.TryGetTextAsync(); }
             catch { return; }
-            if (string.IsNullOrEmpty(text) || _buffer is not { } buf) return;
-
-            byte[] bytes;
-            if (_pane == Pane.Ascii) bytes = Encoding.ASCII.GetBytes(text.Replace("\r", "").Replace("\n", ""));
-            else if (!Hex.TryParse(text, out bytes)) return;
-
-            var start = HasSelection ? Selection().from : _caret;
-            if (HasSelection) bytes = bytes.Take((int)(Selection().to - start + 1)).ToArray();
-            var written = buf.Write(start, bytes);
-            if (written > 0) GoTo(Math.Min(start + written, buf.ViewLength - 1));
+            if (!string.IsNullOrEmpty(text)) PasteText(text);
         }
         catch (Exception)
         {
             // ignore
         }
+    }
+
+    /// <summary>
+    /// Overwrites from the caret (or selection start) with pasted hex / text; also takes a paste
+    /// an on-screen keyboard (or Win+V) delivers as typed text.
+    /// </summary>
+    private void PasteText(string text)
+    {
+        if (_buffer is not { IsReadOnly: false } buf) return;
+        var start = HasSelection ? Selection().from : _caret;
+
+        // Variable-length rows take a key per line: several lines replace rows from the caret's on.
+        var lines = text.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith('#')).ToArray();
+        if (buf.VariableRowLength && _pane == Pane.Hex && lines.Length > 1)
+        {
+            var rows = new List<byte[]>();
+            foreach (var line in lines)
+            {
+                if (!Hex.TryParse(line, out var row)) return;
+                rows.Add(row);
+            }
+            var first = buf.RowAt(start);
+            _anchor = -1;
+            var count = buf.WriteRows(first, rows);
+            if (count > 0) GoTo(buf.RowStart(Math.Min(first + count, buf.ViewRowCount - 1)));
+            return;
+        }
+
+        byte[] bytes;
+        if (_pane == Pane.Ascii) bytes = Encoding.ASCII.GetBytes(text.Replace("\r", "").Replace("\n", ""));
+        else if (!Hex.TryParse(string.Join('\n', lines), out bytes)) return;
+
+        if (buf.VariableRowLength && HasSelection)
+        {
+            // The pasted bytes take the selection's place, so the row can get shorter or longer.
+            var (from, to) = Selection();
+            _anchor = -1;
+            var replaced = buf.ReplaceBytes(from, to, bytes);
+            GoTo(Math.Min(from + replaced, buf.ViewLength - 1));
+            return;
+        }
+
+        if (HasSelection) bytes = bytes.Take((int)(Selection().to - start + 1)).ToArray();
+        var written = buf.Write(start, bytes);
+        if (written > 0) GoTo(Math.Min(start + written, buf.ViewLength - 1));
     }
 
     private void SelectAll()
@@ -1213,6 +1392,9 @@ public sealed class HexEditor : Control
         var redo = Item(Strings.Hex_Redo, "Ctrl+Y", Redo);
         var insert = Item(Strings.Hex_AddRowBelow, "Enter", InsertRowBelow);
         var remove = Item(Strings.Hex_DeleteRows, "Delete", RemoveRows);
+        var insertByte = Item(Strings.Hex_InsertByte, "Insert", InsertByte);
+        var deleteBytes = Item(Strings.Hex_DeleteBytes, "Back", DeleteBackward);
+        var bytesSeparator = new Separator();
         var rowsSeparator = new Separator();
         var paste = Item(Strings.Hex_Paste, "Ctrl+V", Paste);
         var historySeparator = new Separator();
@@ -1222,6 +1404,9 @@ public sealed class HexEditor : Control
             {
                 Item(Strings.Hex_Copy, "Ctrl+C", Copy),
                 paste,
+                bytesSeparator,
+                insertByte,
+                deleteBytes,
                 rowsSeparator,
                 insert,
                 remove,
@@ -1239,6 +1424,9 @@ public sealed class HexEditor : Control
             // Rows come and go only in resizable buffers (key lists), never in card memory.
             var resizable = _buffer?.CanResize == true;
             rowsSeparator.IsVisible = insert.IsVisible = remove.IsVisible = resizable;
+            // Bytes are inserted and deleted only where rows can change length (mixed-length keys).
+            bytesSeparator.IsVisible = insertByte.IsVisible = deleteBytes.IsVisible =
+                _buffer is { VariableRowLength: true, IsReadOnly: false };
             // A read-only view copies and selects only.
             paste.IsVisible = historySeparator.IsVisible = undo.IsVisible = redo.IsVisible = _buffer?.IsReadOnly != true;
         };

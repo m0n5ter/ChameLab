@@ -1636,7 +1636,7 @@
     <value>Unerwartete Bootloader-Antwort {0}.</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>Suche leeren</value>
+    <value>Filter zurücksetzen</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>Dieses Wörterbuch löschen</value>
@@ -1702,7 +1702,7 @@
     <value>Keine Karten passen zur Suche.</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>Keine Wörterbücher passen zur Suche.</value>
+    <value>Keine Wörterbücher entsprechen den Filtern.</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Noch keine Wörterbücher</value>
@@ -1711,7 +1711,7 @@
     <value>{0} enthält keine gültigen Schlüssel.</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>Ein Schlüssel pro Zeile. Geben Sie Hex in die leere Zeile am Ende ein, um einen Schlüssel hinzuzufügen, oder fügen Sie dort eine Liste ein. Enter öffnet eine Zeile, Entf entfernt die gewählten Zeilen.</value>
+    <value>Ein Schlüssel mit 4 bis 16 Bytes pro Zeile. Geben Sie Hex in die leere Zeile am Ende ein, um einen Schlüssel hinzuzufügen, oder fügen Sie dort eine Liste ein. Eingaben nach dem letzten Byte verlängern den Schlüssel, Rücktaste und Einfg löschen und fügen Bytes ein. Enter öffnet eine Zeile, Entf entfernt die gewählten Zeilen.</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>Reihenfolge der Liste. Bei „Manuell“ Wörterbücher zum Anordnen ziehen.</value>
@@ -3399,9 +3399,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>Wörterbuchtyp</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>Ein Wörterbuch darf keine 4-Byte-T55XX-Passwörter und 6-Byte-MIFARE-Classic-Schlüssel mischen.</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>T55XX-Passwortsuche</value>
   </data>
@@ -3449,5 +3446,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>Ursprüngliche {0}-ID: {1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>Schlüssellänge (Bytes)</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>Alle Schlüssellängen</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>Die Schlüssellänge muss zwischen 4 und 16 Bytes liegen.</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>Zeile {0}: Ein Hex-Schlüssel mit {1} Bytes wird erwartet.</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0} Byte|{0} Bytes</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>Byte einfügen</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>Bytes löschen</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>tippen, um ein Byte anzufügen</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>Schlüssel {0} ist kürzer als {1} Bytes</value>
   </data>
 </root>

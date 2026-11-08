@@ -110,7 +110,8 @@ public sealed class DictionaryLibrary
     {
         var seen = new HashSet<string>();
         var keys = new List<byte[]>();
-        foreach (var k in _dicts.Where(d => d.Type == type).SelectMany(d => d.Keys))
+        var length = type == KeyDictionaryType.T55xx ? 4 : 6;
+        foreach (var k in _dicts.SelectMany(d => d.Keys).Where(k => k.Length == length))
             if (seen.Add(Convert.ToHexString(k))) keys.Add(k);
         return keys;
     }

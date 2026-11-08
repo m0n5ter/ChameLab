@@ -15,11 +15,11 @@
   <UserControl.Styles>
     <!-- React to the list pane's own width, including when details use most of the window. -->
     <Style Selector="Grid.dictionary-list TextBox.library-search">
-      <Setter Property="Grid.Column" Value="1" />
+      <Setter Property="Grid.Column" Value="2" />
     </Style>
     <Style Selector="Grid.dictionary-list.narrow TextBox.library-search">
       <Setter Property="Grid.Column" Value="0" />
-      <Setter Property="Grid.ColumnSpan" Value="2" />
+      <Setter Property="Grid.ColumnSpan" Value="3" />
       <Setter Property="Grid.Row" Value="1" />
     </Style>
     <Style Selector="Grid.dictionary-list Button.library-clear">
@@ -82,7 +82,7 @@
             </Button>
             <Separator />
           </StackPanel>
-          <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8"
+          <Grid ColumnDefinitions="Auto,Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8"
                 IsVisible="{Binding !IsEmpty}">
             <ComboBox Grid.Column="0" ItemsSource="{Binding SortModes}" SelectedItem="{Binding Sort}"
                       VerticalAlignment="Center"
@@ -98,10 +98,33 @@
                 <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
               </TextBox.InnerLeftContent>
             </TextBox>
-            <Button Grid.Column="2" Classes="icon library-clear" Command="{Binding ResetFiltersCommand}"
+            <Button Grid.Column="3" Classes="icon library-clear" Command="{Binding ResetFiltersCommand}"
                     VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ClearSearch}">
               <PathIcon Data="{StaticResource Icon.close}" />
             </Button>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding KeyLengthFilters}"
+                      SelectedItem="{Binding KeyLengthFilter}" VerticalAlignment="Center"
+                      AutomationProperties.Name="{x:Static loc:Strings.Dictionaries_KeyLength}"
+                      ToolTip.Tip="{x:Static loc:Strings.Dictionaries_KeyLength}">
+              <ComboBox.Styles>
+                <Style Selector="ComboBoxItem" x:DataType="vm:DictionaryLengthFilter">
+                  <Setter Property="IsEnabled" Value="{Binding !IsSeparator}" />
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+                <Style Selector="ComboBoxItem:disabled">
+                  <Setter Property="MinHeight" Value="0" />
+                  <Setter Property="Padding" Value="0,4" />
+                </Style>
+              </ComboBox.Styles>
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:DictionaryLengthFilter">
+                  <Panel>
+                    <Separator IsVisible="{Binding IsSeparator}" />
+                    <TextBlock Text="{Binding Label}" IsVisible="{Binding !IsSeparator}" />
+                  </Panel>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
           </Grid>
           <Panel c:FillStack.Fill="True" MinHeight="180">
           <!-- Empty library -->
@@ -185,16 +208,6 @@
               <TextBlock Text="{Binding Form?.KeyCountText}" Classes="caption" TextWrapping="Wrap" />
             </StackPanel>
           </Grid>
-
-          <ComboBox ItemsSource="{Binding Form.Types}" SelectedItem="{Binding Form.Type}"
-                    IsEnabled="{Binding Form.CanChangeType}" HorizontalAlignment="Stretch"
-                    AutomationProperties.Name="{x:Static loc:Strings.Dictionaries_Type}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
 
           <c:ActionRow>
             <Button Command="{Binding DuplicateCommand}" IsVisible="{Binding IsOpen}"

@@ -250,8 +250,11 @@ public class T55xxPasswordRecoveryTests
         Assert.Equal(password.ToText(), KeyDictionary.FromText("Reload", password.ToText()).ToText());
         Assert.Equal(KeyDictionaryType.T55xx,
             KeyDictionary.FromJson("{\"keyLength\":8,\"keys\":[[32,32,102,102]]}").Type);
-        Assert.Throws<FormatException>(() => KeyDictionary.FromText("Mixed", "20206666\nFFFFFFFFFFFF"));
-        Assert.Throws<FormatException>(() => KeyDictionary.FromText("Mixed", "FFFFFFFFFFFF\n20206666"));
+        // A mixed list keeps both; recovery takes the keys of its own length from it.
+        var mixed = KeyDictionary.FromText("Mixed", "20206666\nFFFFFFFFFFFF\n12345678");
+        Assert.Equal(KeyDictionaryType.T55xx, mixed.Type);
+        Assert.Equal(2, mixed.KeysOfLength(4).Count);
+        Assert.Single(mixed.KeysOfLength(6));
 
         var store = new MemoryKeyValueStore();
         var library = new DictionaryLibrary(store);
@@ -263,18 +266,12 @@ public class T55xxPasswordRecoveryTests
     }
 
     [Fact]
-    public void EditorUsesFourByteRowsAndDoesNotReinterpretExistingKeys()
+    public void EditorKeepsFourByteKeysAsPasswords()
     {
-        var editor = new DictionaryEditorViewModel(new KeyDictionary { Name = "Test" });
-        Assert.Equal(6, editor.Keys.RowLength);
-        editor.Type = KeyDictionaryType.T55xx;
-        Assert.Equal(4, editor.Keys.RowLength);
-        Assert.True(editor.IsDirty);
+        var editor = new DictionaryEditorViewModel(new KeyDictionary { Name = "Test", Type = KeyDictionaryType.T55xx });
         Assert.Equal(KeyDictionaryType.T55xx, editor.Build().Type);
         var filled = new DictionaryEditorViewModel(KeyDictionary.FromText("Passwords", "20206666"));
-        Assert.Equal(4, filled.Keys.RowLength);
-        Assert.False(filled.CanChangeType);
-        filled.Type = KeyDictionaryType.MifareClassic;
+        Assert.Equal(4, filled.Keys.RowDataLength(0));
         Assert.Equal(KeyDictionaryType.T55xx, filled.Build().Type);
         Assert.Equal("20206666", Convert.ToHexString(Assert.Single(filled.Build().Keys)));
     }

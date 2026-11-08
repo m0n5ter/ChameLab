@@ -1636,7 +1636,7 @@
     <value>Risposta inattesa del bootloader {0}.</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>Cancella ricerca</value>
+    <value>Reimposta filtri</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>Elimina questo dizionario</value>
@@ -1702,7 +1702,7 @@
     <value>Nessuna scheda corrisponde alla ricerca.</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>Nessun dizionario corrisponde alla ricerca.</value>
+    <value>Nessun dizionario corrisponde ai filtri.</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Ancora nessun dizionario</value>
@@ -1711,7 +1711,7 @@
     <value>{0} non contiene chiavi valide.</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>Una chiave per riga. Digita l'esadecimale nella riga vuota in fondo per aggiungere una chiave, oppure incolla lì un elenco. Invio apre una riga, Canc rimuove le righe selezionate.</value>
+    <value>Una chiave da 4 a 16 byte per riga. Digita l’esadecimale nella riga vuota in fondo per aggiungere una chiave, oppure incolla lì un elenco. Digitare dopo l’ultimo byte di una chiave la allunga; Backspace e Ins eliminano e inseriscono byte. Invio apre una riga, Canc rimuove le righe selezionate.</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>Ordine dell'elenco. In Manuale, trascina i dizionari per disporli.</value>
@@ -3399,9 +3399,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>Tipo di dizionario</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>Un dizionario non può contenere insieme password T55XX di 4 byte e chiavi MIFARE Classic di 6 byte.</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>Recupero password T55XX</value>
   </data>
@@ -3449,5 +3446,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>ID {0} originale: {1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>Lunghezza chiave (byte)</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>Tutte le lunghezze</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>La lunghezza della chiave deve essere compresa tra 4 e 16 byte.</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>Riga {0}: è prevista una chiave esadecimale di {1} byte.</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0} byte|{0} byte</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>Inserisci byte</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>Elimina byte</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>digita per aggiungere un byte</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>La chiave {0} è più corta di {1} byte</value>
   </data>
 </root>

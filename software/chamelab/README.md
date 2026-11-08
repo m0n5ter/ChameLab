@@ -78,9 +78,18 @@ responses matched to requests by command id.
 - **Settings** — LED animation, sleep timeout, button functions; apply / save /
   reset.
 
+**Key dictionaries** hold keys of 4 to 16 bytes, and one dictionary can mix
+lengths. The list filters by length (4, 6, 8, 12 or 16 bytes: dictionaries with
+keys of that length) together with the name/key search. In the key editor each row is
+as long as its key: typing after a key's last byte lengthens it, Backspace and Insert
+delete and insert bytes, and pasting several lines adds a key per line. A key shorter
+than 4 bytes can't be saved. Text import keeps every 4- to 16-byte line, and JSON
+backups keep the keys as they are; `keyLength` holds the most common length for the
+Flutter app. MIFARE Classic recovery uses the 6-byte keys of every dictionary, T55XX
+password recovery the 4-byte ones.
+
 **T55XX password recovery** is available in Tools and when writing an LF card.
-Choose 4-byte T55XX dictionaries using the key selector; MIFARE Classic dictionaries
-remain separate. Each candidate is checked by writing a different test ID and reading
+Choose dictionaries with 4-byte keys using the key selector. Each candidate is checked by writing a different test ID and reading
 it back. Tools then restores and verifies the original ID; the card writer writes and
 verifies the requested ID. Both show the matching key, progress and Cancel. An empty
 new-key field uses `20206666`. Cancellation waits for an active probe to be verified

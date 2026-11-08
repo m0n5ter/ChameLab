@@ -1636,7 +1636,7 @@
     <value>예상치 못한 부트로더 응답 {0}.</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>검색 지우기</value>
+    <value>필터 초기화</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>이 사전 삭제</value>
@@ -1702,7 +1702,7 @@
     <value>검색과 일치하는 카드가 없습니다.</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>검색과 일치하는 사전이 없습니다.</value>
+    <value>필터와 일치하는 사전이 없습니다.</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>아직 사전이 없습니다</value>
@@ -1711,7 +1711,7 @@
     <value>{0}에 유효한 키가 없습니다.</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>한 행에 키 하나. 끝의 빈 행에 16진수를 입력하면 키가 추가되며, 목록을 붙여 넣을 수도 있습니다. Enter는 행을 열고, Delete는 선택한 행을 삭제합니다.</value>
+    <value>한 행에 4~16바이트 키 하나. 끝의 빈 행에 16진수를 입력하면 키가 추가되며, 목록을 붙여 넣을 수도 있습니다. 키의 마지막 바이트 뒤에 입력하면 길어지고, Backspace와 Insert로 바이트를 삭제·삽입합니다. Enter는 행을 열고, Delete는 선택한 행을 삭제합니다.</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>목록 순서. ‘수동’에서는 사전을 드래그하여 정렬할 수 있습니다.</value>
@@ -3399,9 +3399,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>사전 유형</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>하나의 사전에 4바이트 T55XX 비밀번호와 6바이트 MIFARE Classic 키를 혼합할 수 없습니다.</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>T55XX 비밀번호 복구</value>
   </data>
@@ -3449,5 +3446,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>원래 {0} ID: {1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>키 길이(바이트)</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>모든 키 길이</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>키 길이는 4~16바이트여야 합니다.</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>{0}행: {1}바이트 16진수 키가 필요합니다.</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0}바이트</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>바이트 삽입</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>바이트 삭제</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>입력하여 바이트 추가</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>키 {0}이(가) {1}바이트보다 짧습니다</value>
   </data>
 </root>

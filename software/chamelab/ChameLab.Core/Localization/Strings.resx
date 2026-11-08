@@ -757,7 +757,7 @@
     <value>Scan again</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>Clear search</value>
+    <value>Clear filters</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>Delete this dictionary</value>
@@ -799,13 +799,13 @@
     <value>No cards match the search.</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>No dictionaries match the search.</value>
+    <value>No dictionaries match the filters.</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>No dictionaries yet</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>One key per row. Type hex into the empty row at the end to add a key, or paste a list there. Enter opens a row, Delete removes the selected rows.</value>
+    <value>One key of 4 to 16 bytes per row. Type hex into the empty row at the end to add a key, or paste a list there. Typing after a key’s last byte lengthens it, Backspace and Insert delete and insert bytes. Enter opens a row, Delete removes the selected rows.</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>Order of the list. In Manual, drag dictionaries to arrange them.</value>
@@ -3402,9 +3402,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>Dictionary type</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>A dictionary cannot mix 4-byte T55XX passwords and 6-byte MIFARE Classic keys.</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>T55XX password recovery</value>
   </data>
@@ -3452,5 +3449,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>Original {0} ID: {1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>Key length (bytes)</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>All key lengths</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>Key length must be between 4 and 16 bytes.</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>Line {0}: expected a {1}-byte hex key.</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0} byte|{0} bytes</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>Insert byte</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>Delete bytes</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>type to add a byte</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>Key {0} is shorter than {1} bytes</value>
   </data>
 </root>

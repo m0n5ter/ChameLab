@@ -40,8 +40,9 @@ public sealed class T55xxKeySelectionViewModel : ViewModelBase
         _subscriptions.Clear();
         Sources.Clear();
         Add("t55xx-built-in", Strings.Common_BuiltInKeys, ChameleonClient.DefaultT55xxOldKeys);
-        foreach (var dict in _library.Dictionaries.Where(d => d.Type == KeyDictionaryType.T55xx))
-            Add(dict.Id, string.IsNullOrWhiteSpace(dict.Name) ? Strings.Common_Untitled : dict.Name, dict.Keys);
+        // T55xx passwords are 4 bytes: those of every dictionary that has some.
+        foreach (var dict in _library.Dictionaries.Where(d => d.HasKeysOfLength(4)))
+            Add(dict.Id, string.IsNullOrWhiteSpace(dict.Name) ? Strings.Common_Untitled : dict.Name, dict.KeysOfLength(4));
         UpdateCount();
     }
 

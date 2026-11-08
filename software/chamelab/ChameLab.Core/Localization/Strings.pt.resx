@@ -1636,7 +1636,7 @@
     <value>Resposta inesperada do bootloader: {0}.</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>Limpar pesquisa</value>
+    <value>Limpar filtros</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>Excluir este dicionário</value>
@@ -1702,7 +1702,7 @@
     <value>Nenhum cartão corresponde à pesquisa.</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>Nenhum dicionário corresponde à pesquisa.</value>
+    <value>Nenhum dicionário corresponde aos filtros.</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Ainda não há dicionários</value>
@@ -1711,7 +1711,7 @@
     <value>{0} não tem chaves válidas.</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>Uma chave por linha. Digite hex na linha vazia do final para adicionar uma chave ou cole uma lista ali. Enter abre uma linha, Delete remove as linhas selecionadas.</value>
+    <value>Uma chave de 4 a 16 bytes por linha. Digite hex na linha vazia do final para adicionar uma chave ou cole uma lista ali. Digitar após o último byte de uma chave a aumenta; Backspace e Insert excluem e inserem bytes. Enter abre uma linha, Delete remove as linhas selecionadas.</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>Ordem da lista. Em Manual, arraste os dicionários para organizá-los.</value>
@@ -3399,9 +3399,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>Tipo de dicionário</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>Um dicionário não pode misturar senhas T55XX de 4 bytes e chaves MIFARE Classic de 6 bytes.</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>Recuperação de senha T55XX</value>
   </data>
@@ -3449,5 +3446,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>ID {0} original: {1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>Comprimento da chave (bytes)</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>Todos os comprimentos</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>O comprimento da chave deve estar entre 4 e 16 bytes.</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>Linha {0}: esperava-se uma chave hexadecimal de {1} bytes.</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0} byte|{0} bytes</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>Inserir byte</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>Excluir bytes</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>digite para adicionar um byte</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>A chave {0} tem menos de {1} bytes</value>
   </data>
 </root>

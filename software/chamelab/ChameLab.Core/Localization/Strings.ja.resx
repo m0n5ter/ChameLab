@@ -1636,7 +1636,7 @@
     <value>ブートローダーから予期しない応答 {0} がありました。</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>検索をクリア</value>
+    <value>フィルターをリセット</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>この辞書を削除</value>
@@ -1702,7 +1702,7 @@
     <value>検索に一致するカードはありません。</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>検索に一致する辞書はありません。</value>
+    <value>フィルターに一致する辞書はありません。</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>辞書はまだありません</value>
@@ -1711,7 +1711,7 @@
     <value>{0} に有効なキーがありません。</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>1 行に 1 つのキー。末尾の空行に 16 進数を入力するとキーを追加でき、一覧を貼り付けることもできます。Enter で行を開き、Delete で選択した行を削除します。</value>
+    <value>1 行に 4〜16 バイトのキーを 1 つ。末尾の空行に 16 進数を入力するとキーを追加でき、一覧を貼り付けることもできます。キーの最後のバイトの後に入力すると長くなり、Backspace と Insert でバイトを削除・挿入できます。Enter で行を開き、Delete で選択した行を削除します。</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>一覧の並び順。「手動」では辞書をドラッグして並べ替えられます。</value>
@@ -3399,9 +3399,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>辞書の種類</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>4 バイトの T55XX パスワードと 6 バイトの MIFARE Classic キーを同じ辞書に混在させることはできません。</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>T55XX パスワード復旧</value>
   </data>
@@ -3449,5 +3446,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>元の {0} ID：{1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>キーの長さ（バイト）</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>すべてのキー長</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>キーの長さは4～16バイトである必要があります。</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>{0}行目：{1}バイトの16進数キーが必要です。</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0} バイト</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>バイトを挿入</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>バイトを削除</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>入力してバイトを追加</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>キー {0} が {1} バイト未満です</value>
   </data>
 </root>

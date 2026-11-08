@@ -23,7 +23,7 @@ public sealed class DictionaryItemViewModel(KeyDictionary dict) : ViewModelBase
 {
     public KeyDictionary Dictionary { get; } = dict;
     public string Name => string.IsNullOrWhiteSpace(Dictionary.Name) ? Strings.Common_NoName : Dictionary.Name;
-    public string CountLabel => $"{Dictionary.Type.Label()} · {Loc.Plural(Strings.Plural_Keys, Dictionary.Count)}";
+    public string CountLabel => Loc.Plural(Strings.Plural_Keys, Dictionary.Count);
     public IBrush ColorBrush => HexBrushConverter.Brush(Dictionary.Color) ?? Brushes.OrangeRed;
 
     /// <summary>The name contains the search, or (two hex digits or more) one of the keys does.</summary>
@@ -38,18 +38,21 @@ public sealed class DictionaryItemViewModel(KeyDictionary dict) : ViewModelBase
 
 /// <summary>
 /// Editable working copy of a dictionary: name, color and keys, edited in a hex editor with one
-/// key (6 bytes for Classic, 4 for T55xx) per row. <see cref="IsDirty"/> tells whether anything differs from what the
-/// editor was opened with.
+/// key per row; keys can differ in length (4–16 bytes). <see cref="IsDirty"/> tells whether
+/// anything differs from what the editor was opened with.
 /// </summary>
 public sealed class DictionaryEditorViewModel : ViewModelBase
 {
-    private KeyDictionaryType _type;
+    // What an empty dictionary is made for (the list's length filter when it was created).
+    private readonly int _keyLength;
 
     private readonly string _id;
     private readonly string _baseline;
     private readonly List<byte[]> _rows;
     // Rows whose key already appears higher up, with the row it repeats.
     private readonly Dictionary<int, int> _repeats = new();
+    // Rows with bytes but fewer than a key has.
+    private readonly SortedSet<int> _short = new();
     private string _name;
     private string _color;
     private int _emptyRows;
@@ -59,7 +62,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
         _id = source.Id;
         _name = source.Name;
         _color = source.Color;
-        _type = source.Type;
+        _keyLength = source.KeyLength;
         _rows = source.Keys.Select(k => (byte[])k.Clone()).ToList();
         Keys = CreateBuffer();
         Analyze();
@@ -68,8 +71,9 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
 
     private HexBuffer CreateBuffer()
     {
-        var buffer = new HexBuffer(_rows, _type == KeyDictionaryType.T55xx ? 4 : 6)
+        var buffer = new HexBuffer(_rows, KeyDictionary.MaxKeyLength)
         {
+            VariableRowLength = true,
             CanResize = true,
             RowLabel = row => (row + 1).ToString(),
             // Repeated keys show in the access-bits color (see the legend).
@@ -80,20 +84,8 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
         return buffer;
     }
 
-    public IReadOnlyList<KeyDictionaryType> Types { get; } = Enum.GetValues<KeyDictionaryType>();
-    public bool CanChangeType => _rows.All(r => r.Length == 0);
-    public KeyDictionaryType Type
-    {
-        get => _type;
-        set
-        {
-            if (_type == value || !CanChangeType) return;
-            this.RaiseAndSetIfChanged(ref _type, value);
-            Keys = CreateBuffer();
-            this.RaisePropertyChanged(nameof(Keys));
-            Touch();
-        }
-    }
+    /// <summary>Key lengths the dictionary list filters by.</summary>
+    public static IReadOnlyList<int> AvailableKeyLengths { get; } = Array.AsReadOnly(new[] { 4, 6, 8, 12, 16 });
 
     public string Name { get => _name; set { this.RaiseAndSetIfChanged(ref _name, value); Touch(); } }
 
@@ -110,10 +102,11 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// The keys, one per row. Typing into the empty row at the end adds a key; Enter opens a row,
-    /// Delete removes rows.
+    /// The keys, one per row, each as long as typed (up to 16 bytes). Typing into the empty row at
+    /// the end adds a key; Enter opens a row, Delete removes rows, Backspace and Insert delete and
+    /// insert bytes.
     /// </summary>
-    public HexBuffer Keys { get; private set; }
+    public HexBuffer Keys { get; }
 
     /// <summary>“12 keys · 2 repeated · 1 empty”.</summary>
     public string KeyCountText
@@ -138,6 +131,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     {
         if (row >= _rows.Count) return Strings.Dictionaries_NewKeyRow;
         if (_rows[row].Length == 0) return string.Format(Strings.Dictionaries_KeyEmpty, row + 1);
+        if (_short.Contains(row)) return string.Format(Strings.Dictionaries_KeyTooShort, row + 1, KeyDictionary.MinKeyLength);
         return _repeats.TryGetValue(row, out var first)
             ? string.Format(Strings.Dictionaries_KeyRepeats, row + 1, first + 1)
             : string.Format(Strings.Dictionaries_KeyN, row + 1);
@@ -146,17 +140,18 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     private void Analyze()
     {
         _repeats.Clear();
+        _short.Clear();
         _emptyRows = 0;
         var seen = new Dictionary<string, int>();
         for (var i = 0; i < _rows.Count; i++)
         {
             if (_rows[i].Length == 0) { _emptyRows++; continue; }
+            if (_rows[i].Length < KeyDictionary.MinKeyLength) _short.Add(i);
             var hex = Convert.ToHexString(_rows[i]);
             if (seen.TryGetValue(hex, out var first)) _repeats[i] = first;
             else seen[hex] = i;
         }
         this.RaisePropertyChanged(nameof(KeyCountText));
-        this.RaisePropertyChanged(nameof(CanChangeType));
     }
 
     private void Touch()
@@ -167,22 +162,24 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     }
 
     private string Fingerprint() =>
-        _type + "|" + _name.Trim() + "|" + CardSave.NormalizeColor(_color) + "|"
+        _name.Trim() + "|" + CardSave.NormalizeColor(_color) + "|"
         + string.Join(",", _rows.Select(r => r.Length == 0 ? "-" : Convert.ToHexString(r)));
 
     /// <summary>
     /// The dictionary as edited (same id; repeats and empty rows dropped); throws with a
-    /// user-facing message when it can't be saved.
+    /// user-facing message when it can't be saved (no name, a key shorter than 4 bytes).
     /// </summary>
     public KeyDictionary Build()
     {
         if (string.IsNullOrWhiteSpace(_name)) throw new FormatException(Strings.Common_EnterName);
+        if (_short.Count > 0)
+            throw new FormatException(string.Format(Strings.Dictionaries_KeyTooShort, _short.Min + 1, KeyDictionary.MinKeyLength));
         return new KeyDictionary
         {
             Id = _id,
             Name = _name.Trim(),
             Color = CardSave.NormalizeColor(_color),
-            Type = _type,
+            KeyLength = _keyLength,
             Keys = _rows.Where((r, i) => r.Length > 0 && !_repeats.ContainsKey(i)).Select(r => (byte[])r.Clone()).ToList(),
         };
     }
@@ -198,7 +195,14 @@ public enum DictionarySort { Manual, Name, NameDesc, Size, SizeAsc }
 public static class KeyDictionaryTypeExtensions
 {
     public static string Label(this KeyDictionaryType type) =>
-        type == KeyDictionaryType.T55xx ? "T55XX" : "MIFARE Classic";
+        type switch { KeyDictionaryType.T55xx => "T55XX", KeyDictionaryType.MifareClassic => "MIFARE Classic", _ => Strings.Dictionaries_KeysHeader };
+}
+
+public sealed record DictionaryLengthFilter(int Length)
+{
+    public bool IsSeparator => Length < 0;
+    public string Label => IsSeparator ? string.Empty : Length == 0
+        ? Strings.Dictionaries_AllKeyLengths : Loc.Plural(Strings.Plural_Bytes, Length);
 }
 
 public static class DictionarySortExtensions
@@ -226,6 +230,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     private DictionaryEditorViewModel? _form;
     private DictionariesPane _pane;
     private string? _filter;
+    private DictionaryLengthFilter _keyLengthFilter = new(0);
     private DictionarySort _sort = LoadSort();
     private bool _rebuilding;
 
@@ -268,8 +273,9 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         DeleteCommand = ReactiveCommand.Create(() => { IsConfirmingDelete = true; }, open);
         CancelDeleteCommand = ReactiveCommand.Create(() => { IsConfirmingDelete = false; });
         ConfirmDeleteCommand = ReactiveCommand.Create(ConfirmDelete);
-        ResetFiltersCommand = ReactiveCommand.Create(() => { Filter = null; },
-            this.WhenAnyValue(x => x.Filter).Select(f => !string.IsNullOrWhiteSpace(f)));
+        ResetFiltersCommand = ReactiveCommand.Create(() => { Filter = null; KeyLengthFilter = KeyLengthFilters[0]; },
+            this.WhenAnyValue(x => x.Filter, x => x.KeyLengthFilter,
+                (text, length) => !string.IsNullOrWhiteSpace(text) || length.Length != 0));
 
         // Library edits made on the UI thread rebuild synchronously so a new dictionary can be selected right away.
         _library.Changed += () =>
@@ -308,6 +314,21 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     }
 
     public ICommand ResetFiltersCommand { get; }
+
+    public IReadOnlyList<DictionaryLengthFilter> KeyLengthFilters { get; } = new[] { 0, -1 }
+        .Concat(DictionaryEditorViewModel.AvailableKeyLengths)
+        .Select(length => new DictionaryLengthFilter(length)).ToArray();
+
+    public DictionaryLengthFilter KeyLengthFilter
+    {
+        get => _keyLengthFilter;
+        set
+        {
+            if (value is null || value.IsSeparator || !KeyLengthFilters.Contains(value) || _keyLengthFilter == value) return;
+            this.RaiseAndSetIfChanged(ref _keyLengthFilter, value);
+            Rebuild();
+        }
+    }
 
     public IReadOnlyList<DictionarySort> SortModes { get; } = Enum.GetValues<DictionarySort>();
 
@@ -369,7 +390,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         {
             var items = _library.Dictionaries
                 .Select(d => new DictionaryItemViewModel(d))
-                .Where(d => d.Matches(_filter));
+                .Where(d => (_keyLengthFilter.Length == 0 || d.Dictionary.HasKeysOfLength(_keyLengthFilter.Length))
+                    && d.Matches(_filter));
             items = _sort switch
             {
                 DictionarySort.Name => items.OrderBy(d => d.Name, NaturalStringComparer.Instance),
@@ -390,6 +412,13 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         {
             // Same dictionary, new list item: keep the editor (and any unsaved edits) as they are.
             _selected = reselect;
+            this.RaisePropertyChanged(nameof(Selected));
+        }
+        else if (selectedId is not null && _form is not null && _pane == DictionariesPane.Dictionary
+            && _library.Dictionaries.Any(d => d.Id == selectedId))
+        {
+            // Filtering the list must not discard the open editor or its unsaved keys.
+            _selected = new DictionaryItemViewModel(_library.Dictionaries.First(d => d.Id == selectedId));
             this.RaisePropertyChanged(nameof(Selected));
         }
         else if (!ReferenceEquals(reselect, _selected))
@@ -522,7 +551,11 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public ICommand CancelDeleteCommand { get; }
     public ICommand ConfirmDeleteCommand { get; }
 
-    private void BeginNew() => OpenNew(new KeyDictionary { Name = Strings.Dictionaries_NewDictionary }, Strings.Dictionaries_NewDictionary);
+    private void BeginNew() => OpenNew(new KeyDictionary
+    {
+        Name = Strings.Dictionaries_NewDictionary,
+        KeyLength = _keyLengthFilter.Length == 0 ? 6 : _keyLengthFilter.Length,
+    }, Strings.Dictionaries_NewDictionary);
 
     private void OpenNew(KeyDictionary dict, string source)
     {
@@ -615,6 +648,9 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
         if (isNew)
         {
+            if (_keyLengthFilter.Length != 0 && !dict.HasKeysOfLength(_keyLengthFilter.Length))
+                KeyLengthFilter = KeyLengthFilters[0];
+            if (!new DictionaryItemViewModel(dict).Matches(_filter)) Filter = null;
             Pane = DictionariesPane.None;
             Form = null;
             SelectById(dict.Id);
@@ -622,6 +658,10 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         }
 
         // Fresh editor so the saved state becomes the new baseline.
+        // The library's Changed callback may still be queued on the UI dispatcher.
+        _selected = Dictionaries.FirstOrDefault(item => ReferenceEquals(item.Dictionary, dict))
+            ?? new DictionaryItemViewModel(dict);
+        this.RaisePropertyChanged(nameof(Selected));
         Form = new DictionaryEditorViewModel(dict);
         return true;
     }

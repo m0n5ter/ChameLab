@@ -754,7 +754,7 @@
     <value>Сканировать снова</value>
   </data>
   <data name="Dictionaries_ClearSearch" xml:space="preserve">
-    <value>Сбросить поиск</value>
+    <value>Сбросить фильтры</value>
   </data>
   <data name="Dictionaries_DeleteThisDictionary" xml:space="preserve">
     <value>Удалить этот словарь</value>
@@ -796,13 +796,13 @@
     <value>Нет карт, подходящих под поиск.</value>
   </data>
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
-    <value>Нет словарей, подходящих под поиск.</value>
+    <value>Нет словарей, соответствующих фильтрам.</value>
   </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Словарей пока нет</value>
   </data>
   <data name="Dictionaries_OneKeyPerRowTypeHex" xml:space="preserve">
-    <value>Один ключ в строке. Чтобы добавить ключ, введите hex в пустую строку в конце или вставьте туда список. Enter открывает строку, Delete удаляет выбранные строки.</value>
+    <value>Один ключ длиной от 4 до 16 байт в строке. Чтобы добавить ключ, введите hex в пустую строку в конце или вставьте туда список. Ввод после последнего байта ключа удлиняет его, Backspace и Insert удаляют и вставляют байты. Enter открывает строку, Delete удаляет выбранные строки.</value>
   </data>
   <data name="Dictionaries_OrderOfTheListInManual" xml:space="preserve">
     <value>Порядок списка. В режиме «Вручную» перетаскивайте словари.</value>
@@ -3399,9 +3399,6 @@
   <data name="Dictionaries_Type" xml:space="preserve">
     <value>Тип словаря</value>
   </data>
-  <data name="Dictionaries_MixedKeyTypes" xml:space="preserve">
-    <value>В одном словаре нельзя смешивать 4-байтовые пароли T55XX и 6-байтовые ключи MIFARE Classic.</value>
-  </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
     <value>Подбор пароля T55XX</value>
   </data>
@@ -3449,5 +3446,32 @@
   </data>
   <data name="Tools_T55xxOriginalId" xml:space="preserve">
     <value>Исходный ID {0}: {1}</value>
+  </data>
+  <data name="Dictionaries_KeyLength" xml:space="preserve">
+    <value>Длина ключа (байт)</value>
+  </data>
+  <data name="Dictionaries_AllKeyLengths" xml:space="preserve">
+    <value>Все длины ключей</value>
+  </data>
+  <data name="Dictionaries_InvalidKeyLength" xml:space="preserve">
+    <value>Длина ключа должна быть от 4 до 16 байт.</value>
+  </data>
+  <data name="Dictionaries_BadKeyLine" xml:space="preserve">
+    <value>Строка {0}: ожидается шестнадцатеричный ключ длиной {1} байт.</value>
+  </data>
+  <data name="Plural_Bytes" xml:space="preserve">
+    <value>{0} байт|{0} байта|{0} байт</value>
+  </data>
+  <data name="Hex_InsertByte" xml:space="preserve">
+    <value>Вставить байт</value>
+  </data>
+  <data name="Hex_DeleteBytes" xml:space="preserve">
+    <value>Удалить байты</value>
+  </data>
+  <data name="Hex_TypeToAddByte" xml:space="preserve">
+    <value>введите, чтобы добавить байт</value>
+  </data>
+  <data name="Dictionaries_KeyTooShort" xml:space="preserve">
+    <value>Ключ {0} короче {1} байт</value>
   </data>
 </root>

@@ -11,6 +11,9 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
  - ChameLab: on a short window the Cards and Dictionaries lists and the dictionary keys scroll under the page title: the list (or the key editor) fills the page while it can, and once the window is too short for it the whole area under the title scrolls
  - ChameLab: long explanatory captions (Tools, the key editor, Add card, Settings, device settings) shrink to one line when the page is short of height, such as a phone in landscape or with the keyboard up; the tooltip shows the whole text
  - ChameLab: when the page is short of height, the gaps between its blocks and the padding above and below their content are smaller
+ - ChameLab: the battery and operating mode cards on the Chameleon page go one per row before they get too narrow for their content
+ - ChameLab: key dictionaries hold keys of 4 to 16 bytes, also of different lengths in one dictionary: in the hex editor each row is as long as its key, typing after the last byte lengthens it, Backspace and Insert delete and insert bytes, and pasting several lines adds a key per line. The list filters by key length; MIFARE Classic recovery takes the 6-byte keys of every dictionary, T55XX recovery the 4-byte ones
+ - ChameLab: pasting into a hex editor from a phone keyboard's clipboard (or with Win+V) no longer crashes the app when the paste adds rows, and a pasted key list keeps one key per line; a paste with `#` comment lines is no longer ignored
 
 ## [v1.4.35][2026-11-05] · firmware v2.3.12-cl
 ### Summary

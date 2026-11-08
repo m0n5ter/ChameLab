@@ -2003,8 +2003,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Add(NewKeySource(KnownCardKeys.Id, KnownCardKeys.Name,
             _classicDump is { } dump ? _dictionaries.KnownKeys.ForUid(dump.Uid) : Array.Empty<byte[]>()));
         DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, Strings.Common_BuiltInKeys, MifareClassic.DefaultKeys));
-        foreach (var d in _dictionaries.Dictionaries.Where(d => d.Type == KeyDictionaryType.MifareClassic))
-            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.Keys));
+        // MIFARE Classic keys are 6 bytes: those of every dictionary that has some.
+        foreach (var d in _dictionaries.Dictionaries.Where(d => d.HasKeysOfLength(6)))
+            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.KeysOfLength(6)));
         WriteRecovery.SetKeySources(DumpKeySources);
         UpdateDumpKeyCount();
     }
