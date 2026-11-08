@@ -24,9 +24,9 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
         if (devices is null) return result;
         foreach (var device in devices.Values)
         {
-            if (device.VendorId != 0x6868) continue;
+            if (!IsChameleon(device)) continue;
             result.Add(new UsbCdcDevice(device.DeviceName, $"Chameleon (USB {device.DeviceId})",
-                device.VendorId, FindPort(device) is not null));
+                device.VendorId, FindPort(device) is not null, device.ProductId));
         }
         return result;
     }
@@ -34,7 +34,7 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
     public async Task<IUsbCdcConnection> OpenAsync(string id, CancellationToken ct)
     {
         var manager = Manager ?? throw new NotSupportedException(Strings.Usb_NoHostMode);
-        if (manager.DeviceList is not { } devices || !devices.TryGetValue(id, out var device) || device.VendorId != 0x6868)
+        if (manager.DeviceList is not { } devices || !devices.TryGetValue(id, out var device) || !IsChameleon(device))
             throw new IOException(Strings.Usb_NoLongerAttached);
         var port = FindPort(device) ?? throw new IOException(Strings.Usb_NoCdc);
         await RequestPermissionAsync(manager, device, ct);
@@ -57,6 +57,11 @@ internal sealed class AndroidUsbCdcHost : IUsbCdcHost
             }
         }, ct);
     }
+
+    /// <summary>The Chameleon's application, or its DFU bootloader (a different USB id) during a firmware update.</summary>
+    private static bool IsChameleon(UsbDevice device) =>
+        device.VendorId == UsbCdcDevice.ChameleonVendorId
+        || (device.VendorId == UsbCdcDevice.BootloaderVendorId && device.ProductId == UsbCdcDevice.BootloaderProductId);
 
     private static async Task RequestPermissionAsync(UsbManager manager, UsbDevice device, CancellationToken ct)
     {

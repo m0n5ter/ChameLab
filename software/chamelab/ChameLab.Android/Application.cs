@@ -18,7 +18,9 @@ namespace ChameLab.Android
 
         protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
         {
-            AppServices.Register(new ITransportScanner[] { new UsbCdcScanner(new AndroidUsbCdcHost()), new BleScanner() }, dfu: new IDfuLocator[] { new BleDfuLocator() },
+            var usb = new AndroidUsbCdcHost();
+            AppServices.Register(new ITransportScanner[] { new UsbCdcScanner(usb), new BleScanner() },
+                dfu: new IDfuLocator[] { new UsbCdcDfuLocator(usb), new BleDfuLocator() },
                 feedback: new AndroidFeedbackPlayer(), hardnested: new ManagedHardnestedEngine());
             return base.CustomizeAppBuilder(builder)
             .WithInterFont()

@@ -4,12 +4,20 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ChameLab.Protocol;
 using ChameLab.Transport;
 using ChameLab.Localization;
 
 namespace ChameLab.Mobile;
 
-internal sealed record UsbCdcDevice(string Id, string Name, int VendorId, bool HasCdcAcm);
+internal sealed record UsbCdcDevice(string Id, string Name, int VendorId, bool HasCdcAcm, int ProductId = 0)
+{
+    public const int ChameleonVendorId = 0x6868;
+    /// <summary>The nRF5 SDK bootloader's USB serial DFU port, which the Chameleon restarts into.</summary>
+    public const int BootloaderVendorId = 0x1915, BootloaderProductId = 0x521F;
+
+    public bool IsBootloader => VendorId == BootloaderVendorId && ProductId == BootloaderProductId;
+}
 
 /// <summary>The native USB boundary. Opening includes permission, claiming interfaces and CDC setup.</summary>
 internal interface IUsbCdcHost
@@ -36,7 +44,7 @@ internal sealed class UsbCdcScanner(IUsbCdcHost host) : ITransportScanner
         ct.ThrowIfCancellationRequested();
         // Match the desktop VID filter, and leave DFU bootloaders and unrelated USB devices out.
         IReadOnlyList<TransportCandidate> devices = host.GetDevices()
-            .Where(d => d is { VendorId: 0x6868, HasCdcAcm: true })
+            .Where(d => d is { VendorId: UsbCdcDevice.ChameleonVendorId, HasCdcAcm: true })
             .OrderBy(d => d.Id, StringComparer.Ordinal)
             .Select(d => new TransportCandidate(Kind, d.Id, d.Name, "USB serial · " + d.Id))
             .ToArray();
@@ -44,6 +52,25 @@ internal sealed class UsbCdcScanner(IUsbCdcHost host) : ITransportScanner
     }
 
     public ITransport Create(TransportCandidate candidate) => new UsbCdcTransport(host, candidate.Id, candidate.DisplayName);
+}
+
+/// <summary>
+/// Finds the Chameleon's DFU bootloader (USB 1915:521F) after it restarts and talks
+/// Secure DFU to it over the bootloader's own CDC port, as on the desktop.
+/// </summary>
+internal sealed class UsbCdcDfuLocator(IUsbCdcHost host) : IDfuLocator
+{
+    public TransportKind Kind => TransportKind.Serial;
+
+    public IDfuTarget Prepare(TransportCandidate? device) => new Target(host);
+
+    private sealed class Target(IUsbCdcHost host) : IDfuTarget
+    {
+        public async Task<IDfuChannel?> TryOpenAsync(CancellationToken ct) =>
+            host.GetDevices().FirstOrDefault(d => d is { IsBootloader: true, HasCdcAcm: true }) is { } bootloader
+                ? await SerialDfuChannel.OpenAsync(new UsbCdcTransport(host, bootloader.Id, bootloader.Name), ct)
+                : null;
+    }
 }
 
 /// <summary>CDC byte stream with bounded native transfers, partial writes and buffered packet reads.</summary>

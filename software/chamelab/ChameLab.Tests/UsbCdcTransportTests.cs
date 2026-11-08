@@ -166,6 +166,26 @@ public class UsbCdcTransportTests
         await battery.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
+    [Fact]
+    public async Task DfuLocatorOpensTheBootloaderPortOnceItAppears()
+    {
+        var host = new Host { Devices = [new("usb1", "Chameleon", 0x6868, true)] };
+        var locator = new UsbCdcDfuLocator(host);
+        Assert.Equal(TransportKind.Serial, locator.Kind);
+        var target = locator.Prepare(new TransportCandidate(TransportKind.Serial, "usb1", "Chameleon", ""));
+        Assert.Null(await target.TryOpenAsync(CancellationToken.None));
+        Assert.Equal(0, host.Opens);
+
+        // After the restart the application is gone and the bootloader enumerates with its own USB id.
+        host.Devices = [new("usb2", "Chameleon", 0x1915, true, 0x521F)];
+        host.Connection.Reads.Enqueue([0x60, SecureDfu.OpPing, 0x01, 0x01, 0xC0]);
+        host.Connection.Reads.Enqueue([0x60, SecureDfu.OpMtu, 0x01, 0x83, 0x00, 0xC0]);
+        await using var channel = await target.TryOpenAsync(CancellationToken.None);
+        Assert.NotNull(channel);
+        Assert.Equal(1, host.Opens);
+        Assert.Equal((0x83 - 1) / 2 - 1, channel.MaxDataSize);
+    }
+
     private sealed class Host : IUsbCdcHost
     {
         public IReadOnlyList<UsbCdcDevice> Devices = [];
