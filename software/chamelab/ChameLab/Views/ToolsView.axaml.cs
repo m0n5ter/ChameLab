@@ -62,6 +62,15 @@ public partial class ToolsView : UserControl
         }
     }
 
+    private async void OnCopyT55xxKey(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ToolsViewModel vm || vm.T55xxFoundKeyText() is not { } text
+            || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        try { await clipboard.SetTextAsync(text); }
+        catch { return; /* clipboard unavailable (browser without permission) */ }
+        vm.NotifyKeysCopied(text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
     private async void OnCopyFrames(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ToolsViewModel vm || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;

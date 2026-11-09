@@ -3480,6 +3480,9 @@
   <data name="Tools_T55xxSetNewKey" xml:space="preserve">
     <value>Set a new key</value>
   </data>
+  <data name="Tools_T55xxCurrentKey" xml:space="preserve">
+    <value>Current key</value>
+  </data>
   <data name="Common_Start" xml:space="preserve">
     <value>Start</value>
   </data>

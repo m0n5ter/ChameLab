@@ -25,6 +25,20 @@
       <Setter Property="Height" Value="16" />
     </Style>
 
+    <!-- The dictionary key count, as a small framed badge on the Key dictionaries button. -->
+    <Style Selector="Border.countbadge">
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container3BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="6,0" />
+      <Setter Property="MinWidth" Value="22" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.countbadge > TextBlock">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
     <!-- Legend swatches under the waveform. -->
     <Style Selector="StackPanel.legend > TextBlock">
       <Setter Property="FontSize" Value="12" />
@@ -234,13 +248,21 @@
           <Border Classes="card">
             <StackPanel Spacing="14">
 
-              <!-- Keys to try: pick the dictionaries; the count rides on the button. -->
-              <Button HorizontalAlignment="Left" IsEnabled="{Binding !IsBusy}"
-                      AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
+              <!-- Keys: the current selection (dictionaries) and an optional new key, labels aligned at the left. -->
+              <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="12"
+                    IsEnabled="{Binding !IsBusy}">
+
+                <!-- Current key: the dictionaries to try; the count rides on the button as a framed badge. -->
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
+                           Text="{x:Static loc:Strings.Tools_T55xxCurrentKey}" />
+                <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding !IsBusy}"
+                        AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <PathIcon Data="{StaticResource Icon.key}" Width="16" Height="16" VerticalAlignment="Center" />
                     <TextBlock Text="{x:Static loc:Strings.Common_KeyDictionaries}" VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding T55xxKeyCountText}" Classes="caption" VerticalAlignment="Center" />
+                    <Border Classes="countbadge">
+                      <TextBlock Text="{Binding T55xxKeyCount}" Classes="caption" />
+                    </Border>
                   </StackPanel>
                   <Button.Flyout>
                     <Flyout Placement="BottomEdgeAlignedLeft">
@@ -261,44 +283,93 @@
                       </StackPanel>
                     </Flyout>
                   </Button.Flyout>
-              </Button>
+                </Button>
 
-              <!-- Optionally set a new key once a match is found: checkbox and input on one line. -->
-              <StackPanel Spacing="6" IsEnabled="{Binding !IsBusy}">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                  <CheckBox IsChecked="{Binding T55xxSetNewKey}" Content="{x:Static loc:Strings.Tools_T55xxSetNewKey}"
-                            VerticalAlignment="Center" />
-                  <!-- Input when checked, the default key otherwise; a fixed height keeps the row from jumping. -->
-                  <Panel MinHeight="32" VerticalAlignment="Center">
-                    <c:HexBox Text="{Binding T55xxNewKey}" ByteLengths="4" PlaceholderText="20 20 66 66"
-                              MinWidth="150" MaxWidth="260" VerticalAlignment="Center"
-                              IsVisible="{Binding T55xxSetNewKey}"
-                              AutomationProperties.Name="{x:Static loc:Strings.Tools_T55xxNewKey}" />
-                    <TextBlock Text="{Binding T55xxDefaultKeyText}" FontFamily="{x:Static c:AppFonts.Mono}"
-                               Classes="caption" VerticalAlignment="Center" IsVisible="{Binding !T55xxSetNewKey}" />
-                  </Panel>
+                <!-- Set a new key: the editor is always shown, disabled until the box is checked, aligned under the button. -->
+                <CheckBox Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
+                          IsChecked="{Binding T55xxSetNewKey}" Content="{x:Static loc:Strings.Tools_T55xxSetNewKey}" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                  <c:HexBox Text="{Binding T55xxNewKey}" ByteLengths="4" HorizontalAlignment="Left"
+                            PlaceholderText="{Binding T55xxDefaultKeyText}" MinWidth="150" MaxWidth="260"
+                            IsEnabled="{Binding T55xxSetNewKey}"
+                            AutomationProperties.Name="{x:Static loc:Strings.Tools_T55xxNewKey}" />
+                  <TextBlock Classes="caption danger" Text="{Binding T55xxNewKeyError}"
+                             IsVisible="{Binding T55xxNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </StackPanel>
-                <TextBlock Classes="caption danger" Text="{Binding T55xxNewKeyError}"
-                           IsVisible="{Binding T55xxNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              </StackPanel>
+              </Grid>
 
-              <!-- Start: disabled until a Chameleon is connected (handled by the command). -->
-              <Button Classes="accent" HorizontalAlignment="Left" Command="{Binding TryT55xxCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.key}" />
-                  <TextBlock Text="{x:Static loc:Strings.Common_Start}" VerticalAlignment="Center" />
-                </StackPanel>
-              </Button>
-
-              <!-- Progress and Cancel while running. -->
-              <StackPanel Spacing="8" IsVisible="{Binding T55xxProgressText, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <ProgressBar Minimum="0" Maximum="100" Value="{Binding T55xxProgress}" />
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                  <TextBlock Text="{Binding T55xxProgressText}" TextWrapping="Wrap" VerticalAlignment="Center" />
-                  <Button Grid.Column="1" Command="{Binding CancelT55xxCommand}" IsVisible="{Binding IsT55xxRunning}"
+              <!-- Start runs the recovery; while it runs it becomes Cancel, with the progress to its right.
+                   Once a key is recovered, Save keys sits beside Start. -->
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                  <!-- Start: disabled until a Chameleon is connected (handled by the command). -->
+                  <Button Classes="accent" Command="{Binding TryT55xxCommand}"
+                          IsVisible="{Binding !IsT55xxRunning}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.key}" />
+                      <TextBlock Text="{x:Static loc:Strings.Common_Start}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                  <!-- Cancel takes the Start spot while running, and answers Esc. -->
+                  <Button Command="{Binding CancelT55xxCommand}"
+                          IsVisible="{Binding IsT55xxRunning}" b:DialogKeys.IsCancel="True"
                           Content="{x:Static loc:Strings.Common_Cancel}" />
-                </Grid>
-              </StackPanel>
+                  <!-- Save the recovered key, the same way the card editor saves its keys. -->
+                  <DropDownButton IsVisible="{Binding CanSaveT55xxKey}"
+                                  ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardsKeys}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.key}" />
+                      <TextBlock Text="{x:Static loc:Strings.Cards_SaveKeys}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <DropDownButton.Flyout>
+                      <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                        <MenuItem Header="{x:Static loc:Strings.Cards_KeysToClipboard}" Click="OnCopyT55xxKey">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.copy}" /></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Classes="keystargets" Header="{x:Static loc:Strings.Cards_KeysToDictionary}"
+                                  IsVisible="{Binding HasT55xxKeysTargets}" ItemsSource="{Binding T55xxKeysTargets}">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.key}" /></MenuItem.Icon>
+                          <MenuItem.Styles>
+                            <Style Selector="MenuItem.keystargets > MenuItem" x:DataType="vm:KeysTargetViewModel">
+                              <Setter Property="Command" Value="{Binding SaveCommand}" />
+                              <Setter Property="Cursor" Value="Hand" />
+                              <Setter Property="Template">
+                                <ControlTemplate>
+                                  <Border Name="PART_Row" Width="260" Margin="4,0" Padding="8,3" CornerRadius="6"
+                                          Background="Transparent" x:DataType="vm:KeysTargetViewModel">
+                                    <c:DictionaryRow Color="{Binding Item.ColorBrush}" Title="{Binding Item.Name}"
+                                                     Count="{Binding Item.Dictionary.Count}" />
+                                  </Border>
+                                </ControlTemplate>
+                              </Setter>
+                            </Style>
+                            <Style Selector="MenuItem.keystargets > MenuItem:pointerover /template/ Border#PART_Row, MenuItem.keystargets > MenuItem:selected /template/ Border#PART_Row">
+                              <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPointerOver}" />
+                            </Style>
+                            <Style Selector="MenuItem.keystargets > MenuItem:pressed /template/ Border#PART_Row">
+                              <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPressed}" />
+                            </Style>
+                          </MenuItem.Styles>
+                        </MenuItem>
+                        <MenuItem Header="{x:Static loc:Strings.Cards_KeysToNewDictionary}"
+                                  Command="{Binding SaveT55xxKeyToNewDictionaryCommand}">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.add}" /></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="{x:Static loc:Strings.Cards_KeysToFile}" Command="{Binding SaveT55xxKeyToFileCommand}"
+                                  IsEnabled="{Binding CanUseFiles}">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.export}" /></MenuItem.Icon>
+                        </MenuItem>
+                      </MenuFlyout>
+                    </DropDownButton.Flyout>
+                  </DropDownButton>
+                </StackPanel>
+                <!-- Progress bar and its label, to the right; gone once nothing runs (after Cancel or success). -->
+                <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center"
+                            IsVisible="{Binding T55xxProgressText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <ProgressBar Minimum="0" Maximum="100" Value="{Binding T55xxProgress}" />
+                  <TextBlock Text="{Binding T55xxProgressText}" Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+              </Grid>
 
               <!-- Result: the UID, the matching key and the new key, as hex. -->
               <StackPanel Spacing="6">
