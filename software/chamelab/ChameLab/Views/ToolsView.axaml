@@ -302,9 +302,14 @@
                    Once a key is recovered, Save keys sits beside Start. -->
               <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                  <!-- Start: disabled until a Chameleon is connected (handled by the command). -->
-                  <Button Classes="accent" Command="{Binding TryT55xxCommand}"
-                          IsVisible="{Binding !IsT55xxRunning}">
+                  <!-- Start: shown only with a Chameleon connected, and not while a run is on. -->
+                  <Button Classes="accent" Command="{Binding TryT55xxCommand}">
+                    <Button.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="!IsT55xxRunning" />
+                        <Binding Path="IsConnected" />
+                      </MultiBinding>
+                    </Button.IsVisible>
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <PathIcon Data="{StaticResource Icon.key}" />
                       <TextBlock Text="{x:Static loc:Strings.Common_Start}" VerticalAlignment="Center" />
