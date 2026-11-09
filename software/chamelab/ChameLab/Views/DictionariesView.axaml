@@ -362,6 +362,8 @@
             <TextBlock Text="{Binding SaveError}" />
           </DockPanel>
           <c:ActionBar>
+            <!-- No message here, but ActionBar takes its first child as one; keep the slot empty. -->
+            <TextBlock IsVisible="False" />
             <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding CancelNewCommand}" />
             <Button Classes="accent" Command="{Binding SaveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">

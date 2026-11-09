@@ -1304,7 +1304,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     /// <summary>Makes it explicit that saving before a dump keeps only the card's identity.</summary>
-    public string AddSaveLabel => NeedsDump ? Strings.Cards_SaveUidOnly : Strings.Slots_SaveCard;
+    public string AddSaveLabel => NeedsDump ? Strings.Cards_SaveUidOnly : Strings.Common_Save;
 
     private void RaiseSaveLabel()
     {

@@ -335,7 +335,7 @@ public class CardDumpContinuationTests
         Assert.False(vm.ShowRecoveryTools);
         Assert.False(vm.ShowDumpNotice);
         Assert.False(vm.ShowDumpHint);
-        Assert.Equal("Save card", vm.AddSaveLabel);
+        Assert.Equal("Save", vm.AddSaveLabel);
         Assert.Equal(16, vm.DumpSectors.Count);
         Assert.All(vm.DumpSectors, s =>
         {
