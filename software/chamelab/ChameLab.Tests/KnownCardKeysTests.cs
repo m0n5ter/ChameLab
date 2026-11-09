@@ -294,6 +294,7 @@ public class KnownCardKeysTests
         var t55xx = Assert.Single(editor.Cards);
         Assert.Same(t55xx, editor.Selected);
         Assert.Equal("T55XX · EM410X", t55xx.TypeText);
+        Assert.Equal("EM", t55xx.ShortTypeText);
         Assert.True(t55xx.HasPassword);
         Assert.Null(t55xx.Form);
         t55xx.Password = "11 22 33";
@@ -306,12 +307,14 @@ public class KnownCardKeysTests
         var classic = Assert.Single(editor.Cards);
         // The type comes from the saved card with this UID until the entry stores one.
         Assert.Equal(TagSpecificType.Mifare1024, classic.SelectedTag.Tag);
+        Assert.Equal("MFC 1K", classic.ShortTypeText);
         Assert.False(classic.IsDirty);
 
         editor.FamilyFilter = editor.FamilyOptions[0];
-        editor.Filter = "NTAG 213";
+        editor.Filter = "NTAG213";
         var ultralight = Assert.Single(editor.Cards);
         ultralight.SelectedTag = ultralight.TagOptions.Single(o => o.Tag == TagSpecificType.Ntag216);
+        Assert.Equal("NTAG216", ultralight.ShortTypeText);
 
         editor.Save();
         var reloaded = new KnownCardKeys(store);

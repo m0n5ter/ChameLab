@@ -45,6 +45,37 @@ public static class KnownCardFamilies
         _ => "T55XX",
     };
 
+    /// <summary>A few letters for a list row: “MFC 1K”, “NTAG215”, “UL EV1”, “EM”; the family's when the type is unknown.</summary>
+    public static string ShortName(this KnownCardFamily family, TagSpecificType? tag) => tag switch
+    {
+        TagSpecificType.MifareMini => "MFC Mini",
+        TagSpecificType.Mifare1024 => "MFC 1K",
+        TagSpecificType.Mifare2048 => "MFC 2K",
+        TagSpecificType.Mifare4096 => "MFC 4K",
+        TagSpecificType.Ntag210 => "NTAG210",
+        TagSpecificType.Ntag212 => "NTAG212",
+        TagSpecificType.Ntag213 => "NTAG213",
+        TagSpecificType.Ntag215 => "NTAG215",
+        TagSpecificType.Ntag216 => "NTAG216",
+        TagSpecificType.Mf0Icu1 => "UL",
+        TagSpecificType.Mf0Icu2 => "UL C",
+        TagSpecificType.Mf0Ul11 or TagSpecificType.Mf0Ul21 => "UL EV1",
+        { } t when t.IsEm410x() => "EM",
+        TagSpecificType.HidProx => "HID",
+        TagSpecificType.IoProx => "ioProx",
+        TagSpecificType.FarpointePyramid => "Pyramid",
+        TagSpecificType.Pac => "PAC",
+        TagSpecificType.Viking => "Viking",
+        TagSpecificType.Jablotron => "Jablotron",
+        TagSpecificType.Idteck => "IDTECK",
+        _ => family switch
+        {
+            KnownCardFamily.MifareClassic => "MFC",
+            KnownCardFamily.Ultralight => "NTAG / UL",
+            _ => "T55XX",
+        },
+    };
+
     /// <summary>The bytes of the family's secret: a 6-byte key or a 4-byte password.</summary>
     public static int SecretLength(this KnownCardFamily family) => family == KnownCardFamily.MifareClassic ? 6 : 4;
 

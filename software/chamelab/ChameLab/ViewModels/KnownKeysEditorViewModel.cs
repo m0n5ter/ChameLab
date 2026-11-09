@@ -81,6 +81,9 @@ public sealed class KnownCardViewModel : ViewModelBase
         _ => SelectedTag.Tag?.DisplayName() ?? Family.DisplayName(),
     };
 
+    /// <summary>The type in a few letters, for the list row (“MFC 1K”, “NTAG215”, “EM”).</summary>
+    public string ShortTypeText => Family.ShortName(SelectedTag.Tag);
+
     public IReadOnlyList<KnownCardTagOption> TagOptions { get; }
 
     public KnownCardTagOption SelectedTag
@@ -92,6 +95,7 @@ public sealed class KnownCardViewModel : ViewModelBase
             if (value is null) return;
             this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(TypeText));
+            this.RaisePropertyChanged(nameof(ShortTypeText));
             this.RaisePropertyChanged(nameof(IsDirty));
         }
     } = null!;
@@ -194,7 +198,8 @@ public sealed class KnownKeysEditorViewModel : ViewModelBase
         var matches = _items.Where(i => _family.Family is not { } family || i.Family == family)
             .Where(i => i.Uid.Contains(uidSearch, StringComparison.OrdinalIgnoreCase)
                 || i.CardNames.Contains(search, StringComparison.OrdinalIgnoreCase)
-                || i.TypeText.Contains(search, StringComparison.OrdinalIgnoreCase)).ToArray();
+                || i.TypeText.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || i.ShortTypeText.Contains(search, StringComparison.OrdinalIgnoreCase)).ToArray();
         Cards.Clear();
         foreach (var item in matches) Cards.Add(item);
         Selected = selected is not null && matches.Contains(selected) ? selected : matches.FirstOrDefault();

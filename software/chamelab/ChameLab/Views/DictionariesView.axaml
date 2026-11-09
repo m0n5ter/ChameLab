@@ -278,8 +278,8 @@
                   <!-- One line: the UID, its type, then the card names sliding along when they don't fit. -->
                   <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
                     <TextBlock Text="{Binding DisplayUid}" FontWeight="Bold" TextWrapping="NoWrap" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Text="{Binding TypeText}" Classes="caption" TextWrapping="NoWrap"
-                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding ShortTypeText}" Classes="caption" TextWrapping="NoWrap"
+                               VerticalAlignment="Center" ToolTip.Tip="{Binding TypeText}" />
                     <c:Marquee Grid.Column="2" IsVisible="{Binding HasCardNames}" ToolTip.Tip="{Binding CardNames}">
                       <TextBlock Text="{Binding CardNamesText}" TextWrapping="NoWrap" />
                     </c:Marquee>
