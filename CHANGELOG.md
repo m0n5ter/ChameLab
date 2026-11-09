@@ -8,6 +8,14 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.4.36][2026-11-09] · firmware v2.3.12-cl
+### Summary
+ - ChameLab: T55XX password change in Tools and in the card editor's T55XX write: a known password or a dictionary attack, then Keep the tag's password, Clear it to the default or Set a new one; the password is remembered for the tag in Known card keys
+ - ChameLab: key dictionaries hold keys of 4 to 16 bytes, also of different lengths in one dictionary, and the card editor's Save keys menu puts a card's known keys into a dictionary or a `.dic` file
+ - ChameLab for Android: firmware update over USB
+
+### Details
  - ChameLab: on a short window the Cards and Dictionaries lists and the dictionary keys scroll under the page title: the list (or the key editor) fills the page while it can, and once the window is too short for it the whole area under the title scrolls
  - ChameLab: long explanatory captions (Tools, the key editor, Add card, Settings, device settings) shrink to one line when the page is short of height, such as a phone in landscape or with the keyboard up; the tooltip shows the whole text
  - ChameLab: when the page is short of height, the gaps between its blocks and the padding above and below their content are smaller
@@ -21,6 +29,12 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
  - ChameLab: the dictionary pickers (keys for a dump, T55XX passwords) show each dictionary on a compact line: the switch on the left (a click anywhere on the row flips it), a square of its color, the name sliding when it is too long and the number of keys in a small frame on the right; the Save keys menu lists the dictionaries the same way
  - ChameLab: menu buttons in the card editor (Export, Save keys) shown as icons only when space is short are padded, so the icon no longer touches the frame
  - ChameLab: Known card keys keep every learned card with its type: MIFARE Classic keys, the NTAG / Ultralight password and now the T55XX password, saved by the ID the tag broadcasts after a T55XX password recovery or write and tried first the next time that tag is written. The editor lists all of them with the type next to the UID, filters by card type (as well as by UID, card name or type in the search), edits a password card's 4-byte password and lets a card learned before types were kept be given one; the stored file is in a new format, older backups still restore, but a backup made now cannot be restored by an older version
+ - ChameLab: the T55XX password panel in Tools is reworked. Current key: Know (a 4-byte password) or Dictionary attack (a Key dictionaries button with the number of keys in a small frame). New key: Keep, Clear (writes the default 20206666) or Set (a password typed below). Keep leaves the tag's password and protection as they were, and an unprotected tag stays unprotected
+ - ChameLab: T55XX in Tools: Start shows only while a Chameleon is connected and turns into Cancel in place (Esc cancels) with the progress beside it; the UID, the matched and the new key show as spaced hex, and a Save keys menu saves the recovered password to the clipboard, a dictionary, a new dictionary or a `.dic` file
+ - ChameLab: writing to a T55xx tag from the card editor has the same password settings as Tools: a known password or a dictionary attack, then Keep, Clear or Set
+ - ChameLab for Android: firmware update over USB (a device connected over USB could not be flashed)
+ - ChameLab for Android: leaving with a double Back closes the app and disconnects the device; from Android 12 the app used to stay in the background with the device connected
+ - ChameLab for Android: after coming back from the background, the room kept for a keyboard that is gone is released
 
 ## [v1.4.35][2026-11-05] · firmware v2.3.12-cl
 ### Summary
