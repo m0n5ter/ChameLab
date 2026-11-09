@@ -3489,4 +3489,37 @@
   <data name="Tools_T55xxNew" xml:space="preserve">
     <value>새 키</value>
   </data>
+  <data name="Cards_SaveKeys" xml:space="preserve">
+    <value>키 저장</value>
+  </data>
+  <data name="Cards_SaveTheCardsKeys" xml:space="preserve">
+    <value>카드 키를 클립보드, 사전 또는 파일에 저장</value>
+  </data>
+  <data name="Cards_KeysToClipboard" xml:space="preserve">
+    <value>클립보드에 복사</value>
+  </data>
+  <data name="Cards_KeysToDictionary" xml:space="preserve">
+    <value>사전에 추가</value>
+  </data>
+  <data name="Cards_KeysToNewDictionary" xml:space="preserve">
+    <value>새 사전</value>
+  </data>
+  <data name="Cards_KeysToFile" xml:space="preserve">
+    <value>파일(.dic)</value>
+  </data>
+  <data name="Cards_ExportKeysTitle" xml:space="preserve">
+    <value>키 저장(.dic)</value>
+  </data>
+  <data name="Cards_KeysCopied" xml:space="preserve">
+    <value>{0} 복사됨.</value>
+  </data>
+  <data name="Cards_KeysAddedTo" xml:space="preserve">
+    <value>“{1}”에 {0} 추가됨.</value>
+  </data>
+  <data name="Cards_KeysAlreadyInDictionary" xml:space="preserve">
+    <value>“{0}”에 이미 이 키가 모두 있습니다.</value>
+  </data>
+  <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
+    <value>사전 “{1}” 생성됨: {0}.</value>
+  </data>
 </root>

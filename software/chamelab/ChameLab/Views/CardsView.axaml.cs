@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using ChameLab.Behaviors;
@@ -69,6 +70,16 @@ public partial class CardsView : UserControl
     {
         if (sender is Control c && c.FindLogicalAncestorOfType<Button>() is { Flyout: { } flyout }) flyout.Hide();
         (DataContext as CardsViewModel)?.DeleteCurrentFolder();
+    }
+
+    // Save keys → clipboard: one hex key per line; the page notice confirms (the menu has closed).
+    private async void OnCopyKeys(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not CardsViewModel vm || vm.CardKeysText() is not { } text
+            || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        try { await clipboard.SetTextAsync(text); }
+        catch { return; /* clipboard unavailable (browser without permission) */ }
+        vm.NotifyKeysCopied(text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
     }
 
     // Picking a swatch (or a folder) closes the flyout it lives in.

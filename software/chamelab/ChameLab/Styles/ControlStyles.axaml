@@ -982,6 +982,27 @@
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
+  <!-- A menu button also draws its chevron: as wide as it needs, padded so the icon keeps off the frame. -->
+  <Style Selector="c|ActionRow > DropDownButton.iconic">
+    <Setter Property="Width" Value="NaN" />
+    <Setter Property="Padding" Value="11,0,8,0" />
+  </Style>
+  <!-- Compact dictionary rows (c:DictionaryRow): the square of a dictionary without a color. -->
+  <Style Selector="Border.dictswatch.neutral">
+    <Setter Property="Background" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+  </Style>
+  <!-- ...and its number of keys, framed. -->
+  <Style Selector="Border.dictcount">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container3BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="6,1" />
+    <Setter Property="MinWidth" Value="28" />
+  </Style>
+  <Style Selector="Border.dictcount > TextBlock">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+  </Style>
   <!-- Save / discard bar under the details. -->
   <Style Selector="Border.savebar">
     <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />

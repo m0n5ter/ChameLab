@@ -579,6 +579,36 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
         }
     }
 
+    /// <summary>
+    /// The card's keys as the memory holds them, without repeats: MIFARE Classic keys A and B
+    /// sector by sector (unknown ones left out), or the Ultralight EV1 / NTAG password while
+    /// protection is on and it is set.
+    /// </summary>
+    public IReadOnlyList<byte[]> Keys()
+    {
+        var keys = new List<byte[]>();
+        var seen = new HashSet<string>();
+        void Add(byte[] key)
+        {
+            if (seen.Add(Convert.ToHexString(key))) keys.Add(key);
+        }
+
+        if (_tag.IsMifareClassic())
+        {
+            var blocks = Math.Min(_data.Count, _tag.MifareClassicBlocks());
+            for (var s = 0; blocks > 0 && s <= MifareClassic.SectorOfBlock(blocks - 1); s++)
+            {
+                var t = MifareClassic.SectorTrailerBlock(s);
+                if (t >= blocks || _data[t].Length != 16) continue;
+                if (!IsKeyUnknown(s, keyA: true)) Add(_data[t][..6]);
+                if (!IsKeyUnknown(s, keyA: false)) Add(_data[t][10..]);
+            }
+        }
+        else if (Protection is { } p && p.IsEnabled(_tag) && p.Pwd.Any(b => b != 0))
+            Add(p.Pwd.ToArray());
+        return keys;
+    }
+
     // Ultralight colors reuse the MIFARE Classic ones: UID = manufacturer, lock bytes = access
     // bits, configuration = key A, PWD / PACK (Ultralight C: 3DES key) = key B.
     private static HexCellKind UltralightCellKind(TagSpecificType tag, int page, int col)

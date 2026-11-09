@@ -3489,4 +3489,37 @@
   <data name="Tools_T55xxNew" xml:space="preserve">
     <value>Nova</value>
   </data>
+  <data name="Cards_SaveKeys" xml:space="preserve">
+    <value>Salvar chaves</value>
+  </data>
+  <data name="Cards_SaveTheCardsKeys" xml:space="preserve">
+    <value>Salvar as chaves do cartão: na área de transferência, em um dicionário ou em um arquivo</value>
+  </data>
+  <data name="Cards_KeysToClipboard" xml:space="preserve">
+    <value>Copiar para a área de transferência</value>
+  </data>
+  <data name="Cards_KeysToDictionary" xml:space="preserve">
+    <value>Adicionar a um dicionário</value>
+  </data>
+  <data name="Cards_KeysToNewDictionary" xml:space="preserve">
+    <value>Novo dicionário</value>
+  </data>
+  <data name="Cards_KeysToFile" xml:space="preserve">
+    <value>Arquivo (.dic)</value>
+  </data>
+  <data name="Cards_ExportKeysTitle" xml:space="preserve">
+    <value>Salvar chaves (.dic)</value>
+  </data>
+  <data name="Cards_KeysCopied" xml:space="preserve">
+    <value>Copiado: {0}.</value>
+  </data>
+  <data name="Cards_KeysAddedTo" xml:space="preserve">
+    <value>Adicionado a “{1}”: {0}.</value>
+  </data>
+  <data name="Cards_KeysAlreadyInDictionary" xml:space="preserve">
+    <value>“{0}” já contém todas essas chaves.</value>
+  </data>
+  <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
+    <value>Dicionário “{1}” criado: {0}.</value>
+  </data>
 </root>

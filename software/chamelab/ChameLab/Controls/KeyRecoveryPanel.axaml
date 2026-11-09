@@ -74,12 +74,8 @@
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
                             <StackPanel>
-                              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16" Margin="0,2">
-                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="1" Text="{Binding CountText}" Classes="caption" VerticalAlignment="Center" />
-                                <ToggleSwitch Grid.Column="2" VerticalAlignment="Center" OnContent="" OffContent=""
-                                              IsChecked="{Binding IsSelected}" />
-                              </Grid>
+                              <c:DictionaryToggle Margin="0,2" IsChecked="{Binding IsSelected}" Color="{Binding ColorBrush}"
+                                                    Title="{Binding Name}" Count="{Binding KeyCount}" />
                               <Separator Margin="0,8,0,4" IsVisible="{Binding IsKnownCardKeys}" />
                             </StackPanel>
                           </DataTemplate>

@@ -3489,4 +3489,37 @@
   <data name="Tools_T55xxNew" xml:space="preserve">
     <value>新密钥</value>
   </data>
+  <data name="Cards_SaveKeys" xml:space="preserve">
+    <value>保存密钥</value>
+  </data>
+  <data name="Cards_SaveTheCardsKeys" xml:space="preserve">
+    <value>将卡片的密钥保存到剪贴板、字典或文件</value>
+  </data>
+  <data name="Cards_KeysToClipboard" xml:space="preserve">
+    <value>复制到剪贴板</value>
+  </data>
+  <data name="Cards_KeysToDictionary" xml:space="preserve">
+    <value>添加到字典</value>
+  </data>
+  <data name="Cards_KeysToNewDictionary" xml:space="preserve">
+    <value>新建字典</value>
+  </data>
+  <data name="Cards_KeysToFile" xml:space="preserve">
+    <value>文件（.dic）</value>
+  </data>
+  <data name="Cards_ExportKeysTitle" xml:space="preserve">
+    <value>保存密钥（.dic）</value>
+  </data>
+  <data name="Cards_KeysCopied" xml:space="preserve">
+    <value>已复制 {0}。</value>
+  </data>
+  <data name="Cards_KeysAddedTo" xml:space="preserve">
+    <value>已将 {0} 添加到“{1}”。</value>
+  </data>
+  <data name="Cards_KeysAlreadyInDictionary" xml:space="preserve">
+    <value>“{0}”已包含所有这些密钥。</value>
+  </data>
+  <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
+    <value>已创建字典“{1}”：{0}。</value>
+  </data>
 </root>

@@ -3492,4 +3492,37 @@
   <data name="Tools_T55xxNew" xml:space="preserve">
     <value>New</value>
   </data>
+  <data name="Cards_SaveKeys" xml:space="preserve">
+    <value>Save keys</value>
+  </data>
+  <data name="Cards_SaveTheCardsKeys" xml:space="preserve">
+    <value>Save the card's keys: to the clipboard, a dictionary or a file</value>
+  </data>
+  <data name="Cards_KeysToClipboard" xml:space="preserve">
+    <value>Copy to clipboard</value>
+  </data>
+  <data name="Cards_KeysToDictionary" xml:space="preserve">
+    <value>Add to dictionary</value>
+  </data>
+  <data name="Cards_KeysToNewDictionary" xml:space="preserve">
+    <value>New dictionary</value>
+  </data>
+  <data name="Cards_KeysToFile" xml:space="preserve">
+    <value>File (.dic)</value>
+  </data>
+  <data name="Cards_ExportKeysTitle" xml:space="preserve">
+    <value>Save keys (.dic)</value>
+  </data>
+  <data name="Cards_KeysCopied" xml:space="preserve">
+    <value>Copied {0}.</value>
+  </data>
+  <data name="Cards_KeysAddedTo" xml:space="preserve">
+    <value>Added {0} to “{1}”.</value>
+  </data>
+  <data name="Cards_KeysAlreadyInDictionary" xml:space="preserve">
+    <value>“{0}” already has all these keys.</value>
+  </data>
+  <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
+    <value>Created the dictionary “{1}” with {0}.</value>
+  </data>
 </root>

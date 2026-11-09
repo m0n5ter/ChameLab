@@ -51,6 +51,12 @@ public sealed record CardTypeOption(TagSpecificType? Tag)
 public enum CardAction { None, Slots, Write, Delete }
 
 /// <summary>
+/// A saved dictionary in the Save keys menu, shown like its row in the dictionary list: choosing
+/// it adds the open card's keys to it.
+/// </summary>
+public sealed record KeysTargetViewModel(DictionaryItemViewModel Item, ICommand SaveCommand);
+
+/// <summary>
 /// Card library in one place: the list of saved cards, adding a card (scan
 /// HF/LF with a full MIFARE Classic or Ultralight / NTAG dump, import from a file, or manual entry)
 /// and an editor for a saved card with duplicate / export / emulate-in-slot /
@@ -201,6 +207,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         ExportCommand = ReactiveCommand.CreateFromTask(ExportAsync, actionable);
         ExportBinCommand = ReactiveCommand.CreateFromTask(() => ExportDumpAsync(bin: true), actionable);
         ExportEmlCommand = ReactiveCommand.CreateFromTask(() => ExportDumpAsync(bin: false), actionable);
+        SaveKeysToNewDictionaryCommand = ReactiveCommand.Create(SaveKeysToNewDictionary, actionable);
+        SaveKeysToFileCommand = ReactiveCommand.CreateFromTask(SaveKeysToFileAsync, actionable);
         AssignCommand = ReactiveCommand.Create(() => Toggle(CardAction.Slots), actionableOnline);
         WriteCommand = ReactiveCommand.Create(() => Toggle(CardAction.Write),
             actionableOnline.CombineLatest(this.WhenAnyValue(x => x.CanWriteSelected), (ok, can) => ok && can));
@@ -251,12 +259,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         _dictionaries.Changed += () =>
         {
-            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess()) RebuildKeySources();
-            else Avalonia.Threading.Dispatcher.UIThread.Post(RebuildKeySources);
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess()) { RebuildKeySources(); RebuildKeysTargets(); }
+            else Avalonia.Threading.Dispatcher.UIThread.Post(() => { RebuildKeySources(); RebuildKeysTargets(); });
         };
 
         Rebuild();
         RebuildKeySources();
+        RebuildKeysTargets();
         if (_library.LoadError is { } err) ReportError(err);
     }
 
@@ -2005,14 +2014,14 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, Strings.Common_BuiltInKeys, MifareClassic.DefaultKeys));
         // MIFARE Classic keys are 6 bytes: those of every dictionary that has some.
         foreach (var d in _dictionaries.Dictionaries.Where(d => d.HasKeysOfLength(6)))
-            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.KeysOfLength(6)));
+            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.KeysOfLength(6), d.Color));
         WriteRecovery.SetKeySources(DumpKeySources);
         UpdateDumpKeyCount();
     }
 
-    private DumpKeySourceViewModel NewKeySource(string id, string name, IReadOnlyList<byte[]> keys)
+    private DumpKeySourceViewModel NewKeySource(string id, string name, IReadOnlyList<byte[]> keys, string? color = null)
     {
-        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id));
+        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color);
         source.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(on =>
         {
             if (!DumpKeySources.Contains(source)) return;
@@ -2678,6 +2687,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(SelectedCardFolder));
         this.RaisePropertyChanged(nameof(CardFolderLabel));
         this.RaisePropertyChanged(nameof(CanExportDump));
+        this.RaisePropertyChanged(nameof(CanSaveKeys));
         this.RaisePropertyChanged(nameof(CanWriteSelected));
         this.RaisePropertyChanged(nameof(IsMifareWrite));
         this.RaisePropertyChanged(nameof(IsGen2Write));
@@ -2755,6 +2765,96 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             ? await StorageService.SaveAsync(Strings.Cards_ExportBinTitle, $"{safe}.bin", dump.ToBin(), "bin")
             : await StorageService.SaveAsync(Strings.Cards_ExportEmlTitle, $"{safe}.eml",
                 System.Text.Encoding.UTF8.GetBytes(dump.ToEml()), "eml");
+        if (name is not null) Notify(string.Format(Strings.Common_SavedFile, name));
+    });
+
+    // ---- Save keys -------------------------------------------------------
+
+    /// <summary>The open card's keys (see <see cref="CardEditorViewModel.Keys"/>); empty when none is open.</summary>
+    private IReadOnlyList<byte[]> ActionKeys() =>
+        _pane is CardsPane.Card or CardsPane.Add && _form is { } form ? form.Keys() : Array.Empty<byte[]>();
+
+    /// <summary>The open card has keys to save.</summary>
+    public bool CanSaveKeys => ActionKeys().Count > 0;
+
+    /// <summary>The saved dictionaries, each a choice of where to add the card's keys.</summary>
+    public ObservableCollection<KeysTargetViewModel> KeysTargets { get; } = new();
+
+    public bool HasKeysTargets => KeysTargets.Count > 0;
+
+    public ICommand SaveKeysToNewDictionaryCommand { get; }
+    public ICommand SaveKeysToFileCommand { get; }
+
+    private static string KeysText(IEnumerable<byte[]> keys) =>
+        string.Concat(keys.Select(k => Convert.ToHexString(k) + "\n"));
+
+    /// <summary>The open card's keys, one hex key per line, for the clipboard; null when it has none.</summary>
+    public string? CardKeysText() => ActionKeys() is { Count: > 0 } keys ? KeysText(keys) : null;
+
+    /// <summary>Confirms that the view put <paramref name="count"/> keys on the clipboard.</summary>
+    public void NotifyKeysCopied(int count) => Notify(string.Format(Strings.Cards_KeysCopied, Loc.Plural(Strings.Plural_Keys, count)));
+
+    private string DictionaryName(KeyDictionary dict) =>
+        string.IsNullOrWhiteSpace(dict.Name) ? Strings.Common_Untitled : dict.Name;
+
+    private void RebuildKeysTargets()
+    {
+        KeysTargets.Clear();
+        foreach (var d in _dictionaries.Dictionaries)
+        {
+            var dict = d;
+            KeysTargets.Add(new KeysTargetViewModel(new DictionaryItemViewModel(dict), ReactiveCommand.Create(() => AddKeysTo(dict))));
+        }
+        this.RaisePropertyChanged(nameof(HasKeysTargets));
+    }
+
+    private void AddKeysTo(KeyDictionary dict)
+    {
+        var keys = ActionKeys();
+        if (keys.Count == 0) return;
+        var have = dict.Keys.Select(Convert.ToHexString).ToHashSet();
+        var added = keys.Where(k => have.Add(Convert.ToHexString(k))).ToList();
+        if (added.Count == 0)
+        {
+            Notify(string.Format(Strings.Cards_KeysAlreadyInDictionary, DictionaryName(dict)));
+            return;
+        }
+        try
+        {
+            dict.Keys.AddRange(added);
+            _dictionaries.Update(dict);
+        }
+        catch (Exception ex) { ReportError(ex.Message); return; }
+        Notify(string.Format(Strings.Cards_KeysAddedTo, Loc.Plural(Strings.Plural_Keys, added.Count), DictionaryName(dict)));
+    }
+
+    private void SaveKeysToNewDictionary()
+    {
+        var keys = ActionKeys();
+        if (keys.Count == 0 || _form is not { } form) return;
+        var name = FreeDictionaryName(string.IsNullOrWhiteSpace(form.Name) ? Strings.Common_Untitled : form.Name.Trim());
+        var dict = new KeyDictionary { Name = name, Color = form.Color, Keys = keys.Select(k => k.ToArray()).ToList() };
+        try { _dictionaries.Add(dict); }
+        catch (Exception ex) { ReportError(ex.Message); return; }
+        Notify(string.Format(Strings.Cards_KeysSavedToNewDictionary, Loc.Plural(Strings.Plural_Keys, keys.Count), name));
+    }
+
+    /// <summary>The name, or with " (2)", " (3)"… after it when a dictionary already has it.</summary>
+    private string FreeDictionaryName(string name)
+    {
+        var taken = _dictionaries.Dictionaries.Select(d => d.Name.Trim())
+            .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+        var free = name;
+        for (var n = 2; taken.Contains(free); n++) free = $"{name} ({n})";
+        return free;
+    }
+
+    private Task SaveKeysToFileAsync() => RunAsync(async () =>
+    {
+        var keys = ActionKeys();
+        if (keys.Count == 0 || _form is not { } form) return;
+        var data = System.Text.Encoding.UTF8.GetBytes(KeysText(keys));
+        var name = await StorageService.SaveAsync(Strings.Cards_ExportKeysTitle, $"{SafeFileName(form.Name)}.dic", data, "dic");
         if (name is not null) Notify(string.Format(Strings.Common_SavedFile, name));
     });
 

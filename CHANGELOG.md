@@ -17,6 +17,9 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
  - ChameLab: the hex editor shades every other row (a row wrapped over two lines counts as one); a key that fills whole lines no longer trails an empty line for its next byte, which appears once the caret moves past the last byte; the current row is highlighted only while the editor has focus
  - ChameLab: scrolling no longer judders while an app update is available: the pulsing update icon in the top bar used to redraw the whole window at the display's rate (120 times a second on some phones); it now steps 10 times a second
  - ChameLab: a scrolling long name (a card in a slot, the active slot) no longer keeps the app redrawing while it rests at either end or is scrolled out of view
+ - ChameLab: a Save keys menu in the card editor puts the card's known keys (MIFARE Classic keys A and B without the unknown ones, the Ultralight EV1 / NTAG password) on the clipboard, into one of the dictionaries, into a new dictionary named after the card or into a `.dic` file, one hex key per line; a dictionary only gets the keys it does not have yet
+ - ChameLab: the dictionary pickers (keys for a dump, T55XX passwords) show each dictionary on a compact line: the switch on the left (a click anywhere on the row flips it), a square of its color, the name sliding when it is too long and the number of keys in a small frame on the right; the Save keys menu lists the dictionaries the same way
+ - ChameLab: menu buttons in the card editor (Export, Save keys) shown as icons only when space is short are padded, so the icon no longer touches the frame
 
 ## [v1.4.35][2026-11-05] · firmware v2.3.12-cl
 ### Summary

@@ -3489,4 +3489,37 @@
   <data name="Tools_T55xxNew" xml:space="preserve">
     <value>Новый</value>
   </data>
+  <data name="Cards_SaveKeys" xml:space="preserve">
+    <value>Сохранить ключи</value>
+  </data>
+  <data name="Cards_SaveTheCardsKeys" xml:space="preserve">
+    <value>Сохранить ключи карты: в буфер обмена, словарь или файл</value>
+  </data>
+  <data name="Cards_KeysToClipboard" xml:space="preserve">
+    <value>Копировать в буфер обмена</value>
+  </data>
+  <data name="Cards_KeysToDictionary" xml:space="preserve">
+    <value>Добавить в словарь</value>
+  </data>
+  <data name="Cards_KeysToNewDictionary" xml:space="preserve">
+    <value>Новый словарь</value>
+  </data>
+  <data name="Cards_KeysToFile" xml:space="preserve">
+    <value>Файл (.dic)</value>
+  </data>
+  <data name="Cards_ExportKeysTitle" xml:space="preserve">
+    <value>Сохранить ключи (.dic)</value>
+  </data>
+  <data name="Cards_KeysCopied" xml:space="preserve">
+    <value>Скопировано: {0}.</value>
+  </data>
+  <data name="Cards_KeysAddedTo" xml:space="preserve">
+    <value>Добавлено в «{1}»: {0}.</value>
+  </data>
+  <data name="Cards_KeysAlreadyInDictionary" xml:space="preserve">
+    <value>Все эти ключи уже есть в «{0}».</value>
+  </data>
+  <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
+    <value>Создан словарь «{1}»: {0}.</value>
+  </data>
 </root>
