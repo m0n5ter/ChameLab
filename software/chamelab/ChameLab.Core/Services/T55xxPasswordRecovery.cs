@@ -10,7 +10,8 @@ using ChameLab.Protocol;
 
 namespace ChameLab.Services;
 
-public sealed record T55xxPasswordResult(byte[]? Key, byte[] NewKey);
+/// <summary>The matched key (null for an open tag), the password the tag has now, and the card it now broadcasts.</summary>
+public sealed record T55xxPasswordResult(byte[]? Key, byte[] NewKey, LfScanResult Card);
 
 /// <summary>
 /// Proves write access by writing a different EM410x ID and reading it back. Probes do not
@@ -25,17 +26,21 @@ public static class T55xxPasswordRecovery
 
     public static Task<T55xxPasswordResult?> RecoverAsync(ChameleonClient client, IEnumerable<byte[]> passwords,
         byte[]? newKey = null, Action<int, int>? progress = null, Action<LfScanResult>? originalRead = null,
-        Action<byte[]?>? keyFound = null, CancellationToken ct = default) =>
-        RunAsync(client, null, passwords, newKey, progress, originalRead, keyFound, ct);
+        Action<byte[]?>? keyFound = null, Func<LfScanResult, byte[]?>? knownPassword = null,
+        CancellationToken ct = default) =>
+        RunAsync(client, null, passwords, newKey, progress, originalRead, keyFound, knownPassword, ct);
 
     public static Task<T55xxPasswordResult?> WriteAsync(ChameleonClient client, TagSpecificType type, byte[] id,
         IEnumerable<byte[]> passwords, byte[]? newKey = null, Action<int, int>? progress = null,
-        Action<byte[]?>? keyFound = null, CancellationToken ct = default) =>
-        RunAsync(client, new(type, (byte[])id.Clone()), passwords, newKey, progress, null, keyFound, ct);
+        Action<LfScanResult>? originalRead = null, Action<byte[]?>? keyFound = null,
+        Func<LfScanResult, byte[]?>? knownPassword = null, CancellationToken ct = default) =>
+        RunAsync(client, new(type, (byte[])id.Clone()), passwords, newKey, progress, originalRead, keyFound,
+            knownPassword, ct);
 
     private static async Task<T55xxPasswordResult?> RunAsync(ChameleonClient client, LfScanResult? requested,
         IEnumerable<byte[]> passwords, byte[]? newKey, Action<int, int>? progress,
-        Action<LfScanResult>? originalRead, Action<byte[]?>? keyFound, CancellationToken ct)
+        Action<LfScanResult>? originalRead, Action<byte[]?>? keyFound, Func<LfScanResult, byte[]?>? knownPassword,
+        CancellationToken ct)
     {
         var target = (byte[])(newKey ?? ChameleonClient.DefaultT55xxKey).Clone();
         var keys = passwords.Select(k => (byte[])k.Clone()).ToArray();
@@ -66,6 +71,12 @@ public static class T55xxPasswordRecovery
             {
                 ValidateCard(original);
                 originalRead?.Invoke(original);
+                // The password this tag was last given goes first, then the chosen keys.
+                if (knownPassword?.Invoke(original) is { Length: 4 } known)
+                {
+                    keys = keys.Prepend((byte[])known.Clone()).DistinctBy(Convert.ToHexString).ToArray();
+                    progress?.Invoke(0, keys.Length);
+                }
             }
             var final = requested ?? original!;
             // Different from both IDs: ignored writes cannot pass when cloning the same ID.
@@ -73,13 +84,13 @@ public static class T55xxPasswordRecovery
             while (SameId(original, probeId) || SameId(final, probeId)) probeId[4]++;
 
             // Open writes identify unprotected tags without claiming a dictionary key matched.
-            if (await AttemptAsync(null)) return new(null, target);
+            if (await AttemptAsync(null)) return new(null, target, final);
             if (original is null) throw new InvalidOperationException(Strings.Tools_T55xxReadOriginalFailed);
             for (var i = 0; i < keys.Length; i++)
             {
                 var matched = await AttemptAsync(keys[i]);
                 progress?.Invoke(i + 1, keys.Length);
-                if (matched) return new(keys[i], target);
+                if (matched) return new(keys[i], target, final);
             }
             ct.ThrowIfCancellationRequested();
             return null;

@@ -119,7 +119,7 @@
       <Setter Property="VerticalAlignment" Value="Stretch" />
     </Style>
     <Style Selector="Border.segmented.filter RadioButton.segment /template/ Border#PART_Bg">
-      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="Padding" Value="9,0" />
     </Style>
     <!-- The card being dragged into place. -->
     <Style Selector="ListBox.cards ListBoxItem.dragging">
@@ -166,7 +166,7 @@
         b:SplitLayout.DetailWidth="460,600" b:SplitLayout.ListMinWidth="400">
 
     <!-- ==================== Card list ==================== -->
-    <!-- Locked while a new card is open: save it or cancel to get back to the list. -->
+    <!-- Always usable (leaving unsaved work asks first), except while a write to a tag runs. -->
     <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,*"
           IsEnabled="{Binding !ListLocked}">
       <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
@@ -822,25 +822,27 @@
                 <Panel IsVisible="{Binding IsT55xxWrite}" IsEnabled="{Binding !IsBusy}">
                   <c:T55xxPasswordSettingsPanel DataContext="{Binding WriteT55xxSettings}" />
                 </Panel>
-                <!-- Keep cancellation and the key count beside the bar, as in Tools / T55xx. -->
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14" IsVisible="{Binding IsT55xxWriting}">
-                  <Button Classes="danger" Command="{Binding CancelWriteCommand}" VerticalAlignment="Center"
-                          b:DialogKeys.IsCancel="True" ToolTip.Tip="{Binding CancelWriteTip}"
-                          AutomationProperties.Name="{x:Static loc:Strings.Common_Cancel}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <PathIcon Data="{StaticResource Icon.close}" />
-                      <TextBlock Text="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Center" />
-                    </StackPanel>
-                  </Button>
-                  <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding WriteT55xxProgress}" />
-                    <TextBlock Text="{Binding WriteProgressText}" Classes="caption" TextWrapping="Wrap" />
-                  </StackPanel>
-                </Grid>
-                <Panel IsVisible="{Binding IsT55xxWrite}">
-                  <SelectableTextBlock Text="{Binding WriteT55xxFoundKey}" TextWrapping="Wrap" FontWeight="SemiBold"
-                                       IsVisible="{Binding WriteT55xxFoundKey, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                </Panel>
+                <!-- T55xx result, as in Tools / T55xx: the UID, the matching key and the new key, as hex. -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsT55xxWrite}">
+                  <Grid ColumnDefinitions="72,*" ColumnSpacing="8"
+                        IsVisible="{Binding WriteT55xxUid, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Text="{x:Static loc:Strings.Tools_T55xxUid}" Classes="caption" VerticalAlignment="Center" />
+                    <SelectableTextBlock Grid.Column="1" Text="{Binding WriteT55xxUid}" FontFamily="{x:Static c:AppFonts.Mono}" TextWrapping="Wrap" />
+                  </Grid>
+                  <Grid ColumnDefinitions="72,*" ColumnSpacing="8"
+                        IsVisible="{Binding WriteT55xxFoundKey, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Text="{x:Static loc:Strings.Tools_T55xxFound}" Classes="caption" VerticalAlignment="Center" />
+                    <SelectableTextBlock Grid.Column="1" Text="{Binding WriteT55xxFoundKey}" FontFamily="{x:Static c:AppFonts.Mono}"
+                                         FontWeight="SemiBold" TextWrapping="Wrap" />
+                  </Grid>
+                  <Grid ColumnDefinitions="72,*" ColumnSpacing="8"
+                        IsVisible="{Binding WriteT55xxSetKey, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Text="{x:Static loc:Strings.Tools_T55xxNew}" Classes="caption" VerticalAlignment="Center" />
+                    <SelectableTextBlock Grid.Column="1" Text="{Binding WriteT55xxSetKey}" FontFamily="{x:Static c:AppFonts.Mono}"
+                                         FontWeight="SemiBold" TextWrapping="Wrap"
+                                         Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineSuccess}" />
+                  </Grid>
+                </StackPanel>
 
                 <!-- EM4305 only needs the optional current password for LOGIN. -->
                 <StackPanel Spacing="4" IsVisible="{Binding IsEm4305Write}">
@@ -896,16 +898,79 @@
                   </WrapPanel>
                 </StackPanel>
 
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding !IsT55xxWriting}">
+                <!-- A T55xx write takes the button row's place: the bar with the key count, Cancel on the right. -->
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14" IsVisible="{Binding IsT55xxWriting}">
+                  <StackPanel Spacing="4" VerticalAlignment="Center">
+                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding WriteT55xxProgress}" />
+                    <TextBlock Text="{Binding WriteProgressText}" Classes="caption" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="danger" Command="{Binding CancelWriteCommand}" VerticalAlignment="Center"
+                          b:DialogKeys.IsCancel="True" ToolTip.Tip="{Binding CancelWriteTip}"
+                          AutomationProperties.Name="{x:Static loc:Strings.Common_Cancel}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.close}" />
+                      <TextBlock Text="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding !IsT55xxWriting}">
                   <TextBlock Classes="caption" Text="{Binding WriteProgressText}"
                              VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                              IsVisible="{Binding IsWriting}" />
+                  <!-- A T55xx password recovered by the write can be saved, as in Tools / T55xx. -->
+                  <DropDownButton Grid.Column="1" IsVisible="{Binding CanSaveWriteT55xxKey}"
+                                  ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardsKeys}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.key}" />
+                      <TextBlock Text="{x:Static loc:Strings.Cards_SaveKeys}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <DropDownButton.Flyout>
+                      <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuItem Header="{x:Static loc:Strings.Cards_KeysToClipboard}" Click="OnCopyWriteT55xxKey">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.copy}" /></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Classes="keystargets" Header="{x:Static loc:Strings.Cards_KeysToDictionary}"
+                                  IsVisible="{Binding HasWriteT55xxKeysTargets}" ItemsSource="{Binding WriteT55xxKeysTargets}">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.key}" /></MenuItem.Icon>
+                          <MenuItem.Styles>
+                            <Style Selector="MenuItem.keystargets > MenuItem" x:DataType="vm:KeysTargetViewModel">
+                              <Setter Property="Command" Value="{Binding SaveCommand}" />
+                              <Setter Property="Cursor" Value="Hand" />
+                              <Setter Property="Template">
+                                <ControlTemplate>
+                                  <Border Name="PART_Row" Width="260" Margin="4,0" Padding="8,3" CornerRadius="6"
+                                          Background="Transparent" x:DataType="vm:KeysTargetViewModel">
+                                    <c:DictionaryRow Color="{Binding Item.ColorBrush}" Title="{Binding Item.Name}"
+                                                     Count="{Binding Item.Dictionary.Count}" />
+                                  </Border>
+                                </ControlTemplate>
+                              </Setter>
+                            </Style>
+                            <Style Selector="MenuItem.keystargets > MenuItem:pointerover /template/ Border#PART_Row, MenuItem.keystargets > MenuItem:selected /template/ Border#PART_Row">
+                              <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPointerOver}" />
+                            </Style>
+                            <Style Selector="MenuItem.keystargets > MenuItem:pressed /template/ Border#PART_Row">
+                              <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPressed}" />
+                            </Style>
+                          </MenuItem.Styles>
+                        </MenuItem>
+                        <MenuItem Header="{x:Static loc:Strings.Cards_KeysToNewDictionary}"
+                                  Command="{Binding SaveWriteT55xxKeyToNewDictionaryCommand}">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.add}" /></MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="{x:Static loc:Strings.Cards_KeysToFile}" Command="{Binding SaveWriteT55xxKeyToFileCommand}"
+                                  IsEnabled="{Binding CanUseFiles}">
+                          <MenuItem.Icon><PathIcon Data="{StaticResource Icon.export}" /></MenuItem.Icon>
+                        </MenuItem>
+                      </MenuFlyout>
+                    </DropDownButton.Flyout>
+                  </DropDownButton>
                   <!-- While a write runs, Cancel stops it and the writer stays open to show the result;
                        otherwise the button is Close. -->
-                  <Button Grid.Column="1" Content="{Binding CancelWriteLabel}" Command="{Binding CancelWriteCommand}"
+                  <Button Grid.Column="2" Content="{Binding CancelWriteLabel}" Command="{Binding CancelWriteCommand}"
                           Classes.danger="{Binding IsWriting}"
                           ToolTip.Tip="{Binding CancelWriteTip}" />
-                  <Button Grid.Column="2" Classes="brandblue" Command="{Binding WriteNowCommand}"
+                  <Button Grid.Column="3" Classes="brandblue" Command="{Binding WriteNowCommand}"
                           IsVisible="{Binding !IsWriteSuccessful}"
                           IsEnabled="{Binding IsConnected}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
@@ -913,7 +978,7 @@
                       <TextBlock Text="{x:Static loc:Strings.Cards_Write}" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>
-                  <Button Grid.Column="2" Classes="brandblue" Command="{Binding WriteAnotherCommand}"
+                  <Button Grid.Column="3" Classes="brandblue" Command="{Binding WriteAnotherCommand}"
                           IsVisible="{Binding IsWriteSuccessful}"
                           ToolTip.Tip="{x:Static loc:Strings.Cards_WriteTheSameCardToAnother}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
@@ -1416,7 +1481,7 @@
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="lightbox" Classes.on="{Binding IsAsking}" CornerRadius="12" />
 
       <!-- ===================== Save bar (stays in view) ===================== -->
-      <!-- Adding: offered as soon as there is a new card; Discard drops it and unlocks the list. -->
+      <!-- Adding: offered as soon as there is a new card; Discard drops it and goes back to picking a source. -->
       <Border Grid.Row="2" Classes="savebar">
         <Border.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">

@@ -487,12 +487,16 @@
     <Setter Property="Padding" Value="2" />
   </Style>
   <Style Selector="Border.segmented.compact RadioButton.segment /template/ Border#PART_Bg">
-    <Setter Property="Padding" Value="10,5" />
+    <Setter Property="Padding" Value="9,4" />
   </Style>
+  <!-- Soft outline: the checked segment gets a soft accent fill framed by an accent outline. Every
+       segment carries the 1px frame (transparent until checked) and the padding gives it back, so
+       checking never resizes anything. -->
   <Style Selector="RadioButton.segment">
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Name="PART_Bg" Background="Transparent" CornerRadius="7" Padding="12,8">
+        <Border Name="PART_Bg" Background="Transparent" CornerRadius="7" Padding="11,7"
+                BorderThickness="1" BorderBrush="Transparent">
           <!-- Keep the button theme's disabled fill off the label; PART_Bg owns the segment fill. -->
           <ContentPresenter Content="{TemplateBinding Content}" Background="Transparent"
                             Foreground="{TemplateBinding Foreground}"
@@ -511,10 +515,11 @@
     <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
   </Style>
   <Style Selector="RadioButton.segment:checked">
-    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
   </Style>
   <Style Selector="RadioButton.segment:checked /template/ Border#PART_Bg">
-    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
   </Style>
   <!-- Unavailable segments get dim text and a neutral pill instead of a faded accent, which read as a
        murky dark block against the container. -->
@@ -524,6 +529,7 @@
   </Style>
   <Style Selector="RadioButton.segment:checked:disabled /template/ Border#PART_Bg">
     <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBorderBrushOutlineDisabled}" />
   </Style>
   <Style Selector="RadioButton.segment PathIcon">
     <Setter Property="Width" Value="16" />
@@ -1053,7 +1059,7 @@
     <Setter Property="VerticalAlignment" Value="Stretch" />
   </Style>
   <Style Selector="Border.segmented.filter RadioButton.segment /template/ Border#PART_Bg">
-    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="Padding" Value="9,0" />
   </Style>
 
   <!-- ==================== Page messages ==================== -->

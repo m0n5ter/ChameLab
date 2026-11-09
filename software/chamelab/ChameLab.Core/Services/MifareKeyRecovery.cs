@@ -57,7 +57,7 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             reusable.TryAdd(value, key);
             successes[value] = successes.GetValueOrDefault(value) + 1;
             progress?.Report(new KeyRecoveryProgress(Strings.Recovery_FoundKey, s, kt, KeyMark.Found, key));
-            knownKeys?.Remember(dump.Uid, [key]);
+            knownKeys?.Remember(dump.Uid, [key], MifareClassic.ToSlotTagType(dump.Type));
         }
         async Task<bool> TryKnownKeysAsync(int s, MfKeyType kt)
         {

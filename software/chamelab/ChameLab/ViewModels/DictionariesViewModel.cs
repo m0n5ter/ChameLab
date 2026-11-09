@@ -295,10 +295,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public KnownKeysEditorViewModel KnownEditor { get; }
     public string KnownKeysCountText => string.Format(Strings.Dictionaries_KnownKeysCount, Loc.Plural(Strings.Plural_UidsKeys, _library.KnownKeys.CardCount),
             Loc.Plural(Strings.Plural_Keys, _library.KnownKeys.KeyCount))
-        + (_library.KnownKeys.PasswordCount > 0 ? Loc.Plural(Strings.Plural_NtagPasswords, _library.KnownKeys.PasswordCount) : "");
-    public string KnownKeysText => _library.KnownKeys.KeyCount == 0
-        ? Strings.Dictionaries_KnownKeysEmpty
-        : _library.KnownKeys.DisplayText;
+        + (_library.KnownKeys.PasswordCount > 0 ? Loc.Plural(Strings.Plural_NtagPasswords, _library.KnownKeys.PasswordCount) : "")
+        + (_library.KnownKeys.T55xxPasswordCount > 0 ? Loc.Plural(Strings.Plural_T55xxPasswords, _library.KnownKeys.T55xxPasswordCount) : "");
     public bool IsKnownKeys => _pane == DictionariesPane.KnownKeys;
     public bool IsEditorPane => HasPane && !IsKnownKeys;
 
@@ -383,7 +381,6 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     private void Rebuild()
     {
         this.RaisePropertyChanged(nameof(KnownKeysCountText));
-        this.RaisePropertyChanged(nameof(KnownKeysText));
         var selectedId = _selected?.Dictionary.Id;
         _rebuilding = true;
         try
@@ -521,7 +518,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     /// <summary>The right-hand pane is in use; on phones it replaces the list.</summary>
     public bool HasPane => _pane != DictionariesPane.None;
 
-    /// <summary>A new (or imported) dictionary is open; the list is locked until it is saved or discarded.</summary>
+    /// <summary>A new (or imported) dictionary is open; leaving it asks to save or discard it.</summary>
     public bool IsNew => _pane == DictionariesPane.New;
 
     public bool IsOpen => _pane == DictionariesPane.Dictionary;

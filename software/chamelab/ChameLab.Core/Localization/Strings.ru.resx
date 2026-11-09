@@ -769,7 +769,7 @@
     <value>Название словаря</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>Редактировать известные ключи, сгруппированные по UID карты</value>
+    <value>Редактировать ключи и пароли, запомненные для каждой карты</value>
   </data>
   <data name="Dictionaries_ForgetCard" xml:space="preserve">
     <value>Забыть карту</value>
@@ -1915,7 +1915,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>Здесь появятся ключи, найденные при чтении карт или восстановлении, сгруппированные по UID.</value>
+    <value>Здесь появятся ключи и пароли, найденные при чтении, записи или восстановлении карт, по одной записи на карту.</value>
   </data>
   <data name="Dictionaries_NewKeyRow" xml:space="preserve">
     <value>Новый ключ: введите или вставьте</value>
@@ -2503,7 +2503,7 @@
     <value>Неверный ключ карты.</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>Неверный пароль NTAG.</value>
+    <value>Неверный пароль карты.</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>Неверный раздел паролей NTAG.</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>Создан словарь «{1}»: {0}.</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>Все типы</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>Неизвестен</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>Фильтр по типу карты</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} пароль T55XX| · {0} пароля T55XX| · {0} паролей T55XX</value>
   </data>
 </root>

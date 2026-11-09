@@ -3,29 +3,82 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using ChameLab.Localization;
+using ChameLab.Models;
+using ChameLab.Protocol;
 
 namespace ChameLab.Services;
 
+/// <summary>The kind of secret a known card holds: MIFARE Classic sector keys, or one password.</summary>
+public enum KnownCardFamily { MifareClassic, Ultralight, T55xx }
+
 /// <summary>
-/// Automatically learned keys, isolated from editable dictionaries and indexed by full UID: MIFARE Classic
-/// keys grouped by UID at the root, and the last known Ultralight / NTAG password per UID in its own section.
+/// One learned card. <see cref="Tag"/> is the exact type when it was known (for a T55xx, the format it
+/// broadcasts); MIFARE Classic cards hold <see cref="Keys"/>, the others one <see cref="Password"/>.
+/// </summary>
+public sealed record KnownCard(KnownCardFamily Family, string Uid, TagSpecificType? Tag,
+    IReadOnlyList<byte[]> Keys, byte[]? Password)
+{
+    public KnownCardId Id => new(Family, Uid);
+}
+
+public readonly record struct KnownCardId(KnownCardFamily Family, string Uid);
+
+public static class KnownCardFamilies
+{
+    public static readonly KnownCardFamily[] All = Enum.GetValues<KnownCardFamily>();
+
+    /// <summary>The family a tag type belongs to; null for types with no learned secret.</summary>
+    public static KnownCardFamily? Of(TagSpecificType tag) =>
+        tag.IsMifareClassic() ? KnownCardFamily.MifareClassic
+        : tag.IsUltralight() ? KnownCardFamily.Ultralight
+        : tag.SenseType() == TagSenseType.Lf ? KnownCardFamily.T55xx
+        : null;
+
+    /// <summary>The tag types a card of this family can be, in display order.</summary>
+    public static IReadOnlyList<TagSpecificType> Tags(this KnownCardFamily family) =>
+        TagTypeExtensions.All().Where(t => Of(t) == family).ToArray();
+
+    public static string DisplayName(this KnownCardFamily family) => family switch
+    {
+        KnownCardFamily.MifareClassic => "MIFARE Classic",
+        KnownCardFamily.Ultralight => "NTAG / Ultralight",
+        _ => "T55XX",
+    };
+
+    /// <summary>The bytes of the family's secret: a 6-byte key or a 4-byte password.</summary>
+    public static int SecretLength(this KnownCardFamily family) => family == KnownCardFamily.MifareClassic ? 6 : 4;
+
+    internal static string JsonName(this KnownCardFamily family) => family switch
+    {
+        KnownCardFamily.MifareClassic => "mifareClassic",
+        KnownCardFamily.Ultralight => "ultralight",
+        _ => "t55xx",
+    };
+}
+
+/// <summary>
+/// Automatically learned keys, isolated from editable dictionaries and indexed by card: MIFARE Classic
+/// keys, the last known Ultralight / NTAG password, and the last known T55xx password (by the ID the tag
+/// broadcasts), each with the card's type when it was known.
 /// </summary>
 public sealed class KnownCardKeys
 {
     public const string Id = "known-card-keys";
     public static string Name => Strings.Dictionaries_KnownCardKeys;
-    /// <summary>Root entry holding the NTAG / Ultralight EV1 passwords; never a hex UID, so it can't clash with one.</summary>
-    public const string PasswordsSection = "ntagPasswords";
+    /// <summary>Version-1 root entry holding the NTAG / Ultralight EV1 passwords.</summary>
+    public const string LegacyPasswordsSection = "ntagPasswords";
+    private const int FormatVersion = 2;
     private readonly IKeyValueStore _store;
-    private Dictionary<string, List<string>> _cards = new(StringComparer.Ordinal);
-    private Dictionary<string, string> _passwords = new(StringComparer.Ordinal);
+    private Dictionary<KnownCardId, Entry> _cards = new();
+
+    private sealed record Entry(TagSpecificType? Tag, List<string> Keys, string? Password);
 
     public KnownCardKeys(IKeyValueStore store)
     {
         _store = store;
         try
         {
-            if (store.Read(Id) is { } json) (_cards, _passwords) = Parse(JsonNode.Parse(json));
+            if (store.Read(Id) is { } json) _cards = Parse(JsonNode.Parse(json));
         }
         catch (Exception ex) { LoadError = string.Format(Strings.Library_KnownKeysLoadError, ex.Message); }
     }
@@ -33,125 +86,236 @@ public sealed class KnownCardKeys
     public string? LoadError { get; }
     public event Action? Changed;
     public int CardCount => _cards.Count;
-    public int KeyCount => _cards.Values.Sum(keys => keys.Count);
-    public int PasswordCount => _passwords.Count;
-    public IReadOnlyList<string> Uids => _cards.Keys.OrderBy(uid => uid, StringComparer.Ordinal).ToArray();
+    public int KeyCount => _cards.Values.Sum(e => e.Keys.Count);
+    public int PasswordCount => CountPasswords(KnownCardFamily.Ultralight);
+    public int T55xxPasswordCount => CountPasswords(KnownCardFamily.T55xx);
+    private int CountPasswords(KnownCardFamily family) =>
+        _cards.Count(c => c.Key.Family == family && c.Value.Password is not null);
 
-    /// <summary>Commit edited UID groups together, leaving unrelated learned keys intact.</summary>
-    public void ApplyEdits(IReadOnlyDictionary<string, IReadOnlyList<byte[]>?> edits)
+    /// <summary>Every card, by family and then UID.</summary>
+    public IReadOnlyList<KnownCard> Cards => _cards
+        .OrderBy(c => c.Key.Family).ThenBy(c => c.Key.Uid, StringComparer.Ordinal)
+        .Select(c => ToCard(c.Key, c.Value)).ToArray();
+
+    public IReadOnlyList<byte[]> ForUid(byte[] uid) =>
+        _cards.TryGetValue(new(KnownCardFamily.MifareClassic, Convert.ToHexString(uid)), out var entry)
+            ? entry.Keys.Select(Convert.FromHexString).ToArray() : Array.Empty<byte[]>();
+
+    /// <summary>The 4-byte PWD the NTAG / Ultralight with this UID last accepted or was given; null when unknown.</summary>
+    public byte[]? PasswordForUid(byte[] uid) => PasswordFor(KnownCardFamily.Ultralight, uid);
+
+    /// <summary>The password the T55xx broadcasting this ID was last given; null when unknown.</summary>
+    public byte[]? T55xxPasswordForId(byte[] id) => PasswordFor(KnownCardFamily.T55xx, id);
+
+    private byte[]? PasswordFor(KnownCardFamily family, byte[] uid) =>
+        _cards.TryGetValue(new(family, Convert.ToHexString(uid)), out var entry) && entry.Password is { } pwd
+            ? Convert.FromHexString(pwd) : null;
+
+    /// <summary>Commit edited cards together, leaving unrelated learned keys intact.</summary>
+    public void ApplyEdits(IEnumerable<KnownCard> changed, IEnumerable<KnownCardId> removed)
     {
         if (LoadError is not null) throw new InvalidOperationException(LoadError);
-        var next = _cards.ToDictionary(c => c.Key, c => new List<string>(c.Value), StringComparer.Ordinal);
-        foreach (var (uid, keys) in edits)
+        var next = Copy();
+        foreach (var id in removed) next.Remove(Normalize(id));
+        foreach (var card in changed)
         {
-            var normalized = Convert.ToHexString(Convert.FromHexString(uid));
-            if (normalized.Length == 0) throw new FormatException(Strings.Keys_InvalidUid);
-            if (keys is null) { next.Remove(normalized); continue; }
-            if (keys.Any(k => k.Length != 6)) throw new FormatException(Strings.Keys_KeyLength);
-            next[normalized] = keys.Select(k => Convert.ToHexString(k)).Distinct().ToList();
+            var id = Normalize(card.Id);
+            var tag = ValidTag(id.Family, card.Tag);
+            if (id.Family == KnownCardFamily.MifareClassic)
+            {
+                if (card.Keys.Any(k => k.Length != 6)) throw new FormatException(Strings.Keys_KeyLength);
+                next[id] = new(tag, card.Keys.Select(Convert.ToHexString).Distinct().ToList(), null);
+            }
+            else
+            {
+                if (card.Password is not { Length: 4 } pwd) throw new FormatException(Strings.Common_Password4Bytes);
+                next[id] = new(tag, new(), Convert.ToHexString(pwd));
+            }
         }
-        Save(next, _passwords);
+        Save(next);
     }
-    public IReadOnlyList<byte[]> ForUid(byte[] uid) =>
-        _cards.TryGetValue(Convert.ToHexString(uid), out var keys)
-            ? keys.Select(Convert.FromHexString).ToArray() : Array.Empty<byte[]>();
 
-    /// <summary>The 4-byte PWD the card with this UID last accepted or was given; null when unknown.</summary>
-    public byte[]? PasswordForUid(byte[] uid) =>
-        _passwords.TryGetValue(Convert.ToHexString(uid), out var pwd) ? Convert.FromHexString(pwd) : null;
+    private static KnownCardId Normalize(KnownCardId id)
+    {
+        var uid = Convert.ToHexString(Convert.FromHexString(id.Uid));
+        if (uid.Length == 0) throw new FormatException(Strings.Keys_InvalidUid);
+        return id with { Uid = uid };
+    }
 
-    public string DisplayText => string.Join("\n\n", _cards.OrderBy(c => c.Key)
-        .Select(c => $"UID {c.Key}\n" + string.Join("\n", c.Value)));
-
-    public JsonObject ToJson() => ToJson(_cards, _passwords);
+    public JsonObject ToJson() => ToJson(_cards);
 
     public void Merge(JsonNode node)
     {
         // Validate the entire backup before adding any keys.
-        var (cards, passwords) = Parse(node);
-        foreach (var (uid, keys) in cards)
-            Remember(Convert.FromHexString(uid), keys.Select(Convert.FromHexString));
-        // A password already known here is newer than the backup's.
-        foreach (var (uid, pwd) in passwords)
-            if (!_passwords.ContainsKey(uid)) RememberPassword(Convert.FromHexString(uid), Convert.FromHexString(pwd));
+        var incoming = Parse(node);
+        var next = Copy();
+        foreach (var (id, entry) in incoming)
+        {
+            if (!next.TryGetValue(id, out var local)) { next[id] = entry; continue; }
+            var keys = new List<string>(local.Keys);
+            foreach (var key in entry.Keys) if (!keys.Contains(key)) keys.Add(key);
+            // A password already known here is newer than the backup's.
+            next[id] = new(local.Tag ?? entry.Tag, keys, local.Password ?? entry.Password);
+        }
+        if (Same(next)) return;
+        if (LoadError is not null) throw new InvalidOperationException(LoadError);
+        Save(next);
     }
 
-    public void Remember(byte[] uid, IEnumerable<byte[]> keys)
+    public void Remember(byte[] uid, IEnumerable<byte[]> keys, TagSpecificType? tag = null)
     {
         if (uid.Length == 0) return;
-        var hex = Convert.ToHexString(uid);
-        var next = _cards.ToDictionary(c => c.Key, c => new List<string>(c.Value), StringComparer.Ordinal);
-        var values = next.TryGetValue(hex, out var previous) ? previous : new List<string>();
+        var id = new KnownCardId(KnownCardFamily.MifareClassic, Convert.ToHexString(uid));
+        _cards.TryGetValue(id, out var old);
+        var values = old is null ? new List<string>() : new List<string>(old.Keys);
         var seen = values.ToHashSet(StringComparer.Ordinal);
         foreach (var key in keys)
             if (key.Length == 6 && seen.Add(Convert.ToHexString(key))) values.Add(Convert.ToHexString(key));
-        if (values.Count == 0 || (_cards.TryGetValue(hex, out var old) && old.Count == values.Count)) return;
-        if (LoadError is not null) throw new InvalidOperationException(LoadError);
-        next[hex] = values;
-        Save(next, _passwords);
+        if (values.Count == 0) return;
+        Put(id, new(ValidTag(id.Family, tag) ?? old?.Tag, values, null));
     }
 
-    /// <summary>Adds or replaces the card's password: a card has one PWD at a time.</summary>
-    public void RememberPassword(byte[] uid, byte[] pwd)
+    /// <summary>Every key of the dump, with the card's MIFARE Classic type.</summary>
+    public void Remember(MifareDump dump) =>
+        Remember(dump.Uid, dump.KeyA.Concat(dump.KeyB).OfType<byte[]>(), MifareClassic.ToSlotTagType(dump.Type));
+
+    /// <summary>Adds or replaces the NTAG / Ultralight password: a card has one PWD at a time.</summary>
+    public void RememberPassword(byte[] uid, byte[] pwd, TagSpecificType? tag = null) =>
+        PutPassword(KnownCardFamily.Ultralight, uid, pwd, tag);
+
+    /// <summary>Adds or replaces the password of the T55xx now broadcasting this ID.</summary>
+    public void RememberT55xxPassword(byte[] id, byte[] pwd, TagSpecificType? tag = null) =>
+        PutPassword(KnownCardFamily.T55xx, id, pwd, tag);
+
+    private void PutPassword(KnownCardFamily family, byte[] uid, byte[] pwd, TagSpecificType? tag)
     {
         if (uid.Length == 0 || pwd.Length != 4) return;
-        var hex = Convert.ToHexString(uid);
-        var value = Convert.ToHexString(pwd);
-        if (_passwords.TryGetValue(hex, out var old) && old == value) return;
-        if (LoadError is not null) throw new InvalidOperationException(LoadError);
-        var next = new Dictionary<string, string>(_passwords, StringComparer.Ordinal) { [hex] = value };
-        Save(_cards, next);
+        var id = new KnownCardId(family, Convert.ToHexString(uid));
+        _cards.TryGetValue(id, out var old);
+        Put(id, new(ValidTag(family, tag) ?? old?.Tag, new(), Convert.ToHexString(pwd)));
     }
 
-    private void Save(Dictionary<string, List<string>> cards, Dictionary<string, string> passwords)
+    private void Put(KnownCardId id, Entry entry)
     {
-        _store.Write(Id, ToJson(cards, passwords).ToJsonString());
+        if (_cards.TryGetValue(id, out var old) && SameEntry(old, entry)) return;
+        if (LoadError is not null) throw new InvalidOperationException(LoadError);
+        var next = Copy();
+        next[id] = entry;
+        Save(next);
+    }
+
+    private Dictionary<KnownCardId, Entry> Copy() =>
+        _cards.ToDictionary(c => c.Key, c => c.Value with { Keys = new List<string>(c.Value.Keys) });
+
+    private bool Same(Dictionary<KnownCardId, Entry> next) =>
+        next.Count == _cards.Count && next.All(c => _cards.TryGetValue(c.Key, out var e) && SameEntry(e, c.Value));
+
+    private static bool SameEntry(Entry a, Entry b) =>
+        a.Tag == b.Tag && a.Password == b.Password && a.Keys.SequenceEqual(b.Keys);
+
+    private static TagSpecificType? ValidTag(KnownCardFamily family, TagSpecificType? tag) =>
+        tag is { } t && KnownCardFamilies.Of(t) == family ? t : null;
+
+    private static KnownCard ToCard(KnownCardId id, Entry entry) =>
+        new(id.Family, id.Uid, entry.Tag, entry.Keys.Select(Convert.FromHexString).ToArray(),
+            entry.Password is { } pwd ? Convert.FromHexString(pwd) : null);
+
+    private void Save(Dictionary<KnownCardId, Entry> cards)
+    {
+        _store.Write(Id, ToJson(cards).ToJsonString());
         _cards = cards;
-        _passwords = passwords;
         Changed?.Invoke();
     }
 
-    private static JsonObject ToJson(Dictionary<string, List<string>> cards, Dictionary<string, string> passwords)
+    private static JsonObject ToJson(Dictionary<KnownCardId, Entry> cards)
     {
-        var json = new JsonObject(cards.Select(c => new KeyValuePair<string, JsonNode?>(c.Key,
-            new JsonArray(c.Value.Select(k => (JsonNode?)JsonValue.Create(k)).ToArray()))));
-        if (passwords.Count > 0)
-            json[PasswordsSection] = new JsonObject(passwords.Select(p =>
-                new KeyValuePair<string, JsonNode?>(p.Key, JsonValue.Create(p.Value))));
-        return json;
+        var list = new JsonArray();
+        foreach (var (id, entry) in cards.OrderBy(c => c.Key.Family).ThenBy(c => c.Key.Uid, StringComparer.Ordinal))
+        {
+            var card = new JsonObject { ["family"] = id.Family.JsonName(), ["uid"] = id.Uid };
+            if (entry.Tag is { } tag) card["tag"] = tag.ToString();
+            if (id.Family == KnownCardFamily.MifareClassic)
+                card["keys"] = new JsonArray(entry.Keys.Select(k => (JsonNode?)JsonValue.Create(k)).ToArray());
+            else card["password"] = entry.Password;
+            list.Add(card);
+        }
+        return new JsonObject { ["version"] = FormatVersion, ["cards"] = list };
     }
 
-    private static (Dictionary<string, List<string>>, Dictionary<string, string>) Parse(JsonNode? node)
+    private static Dictionary<KnownCardId, Entry> Parse(JsonNode? node)
     {
-        if (node is not JsonObject cards) throw new FormatException(Strings.Keys_ExpectedGrouped);
-        var result = new Dictionary<string, List<string>>(StringComparer.Ordinal);
-        var passwords = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var (uid, value) in cards)
+        if (node is not JsonObject root) throw new FormatException(Strings.Keys_ExpectedGrouped);
+        return root.ContainsKey("version") ? ParseCards(root) : ParseLegacy(root);
+    }
+
+    private static Dictionary<KnownCardId, Entry> ParseCards(JsonObject root)
+    {
+        if (root["version"]?.GetValue<int>() is not FormatVersion || root["cards"] is not JsonArray cards)
+            throw new FormatException(Strings.Keys_ExpectedGrouped);
+        var result = new Dictionary<KnownCardId, Entry>();
+        foreach (var node in cards)
         {
-            if (uid == PasswordsSection)
+            if (node is not JsonObject card) throw new FormatException(Strings.Keys_InvalidUidGroup);
+            var familyName = card["family"]?.GetValue<string>();
+            var family = KnownCardFamilies.All.Cast<KnownCardFamily?>().FirstOrDefault(f => f!.Value.JsonName() == familyName)
+                ?? throw new FormatException(Strings.Keys_InvalidUidGroup);
+            var uid = ParseUid(card["uid"]?.GetValue<string>());
+            // An unknown type name (from a newer version) only loses the type, not the card.
+            var tag = Enum.TryParse<TagSpecificType>(card["tag"]?.GetValue<string>(), out var t) ? ValidTag(family, t) : null;
+            var id = new KnownCardId(family, uid);
+            if (family == KnownCardFamily.MifareClassic)
+            {
+                if (card["keys"] is not JsonArray keys) throw new FormatException(Strings.Keys_InvalidUidGroup);
+                AddKeys(result, id, tag, keys);
+            }
+            else result[id] = new(tag, new(), ParsePassword(card["password"]?.GetValue<string>()));
+        }
+        return result;
+    }
+
+    private static Dictionary<KnownCardId, Entry> ParseLegacy(JsonObject root)
+    {
+        var result = new Dictionary<KnownCardId, Entry>();
+        foreach (var (uid, value) in root)
+        {
+            if (uid == LegacyPasswordsSection)
             {
                 if (value is not JsonObject section) throw new FormatException(Strings.Keys_InvalidPasswordSection);
                 foreach (var (cardUid, pwd) in section)
-                {
-                    var normalized = Convert.ToHexString(Convert.FromHexString(cardUid));
-                    var bytes = Convert.FromHexString(pwd?.GetValue<string>() ?? "");
-                    if (normalized.Length == 0 || bytes.Length != 4) throw new FormatException(Strings.Keys_InvalidPassword);
-                    passwords[normalized] = Convert.ToHexString(bytes);
-                }
+                    result[new(KnownCardFamily.Ultralight, ParseUid(cardUid))] =
+                        new(null, new(), ParsePassword(pwd?.GetValue<string>()));
                 continue;
             }
-            var normalizedUid = Convert.ToHexString(Convert.FromHexString(uid));
-            if (normalizedUid.Length == 0 || value is not JsonArray keys) throw new FormatException(Strings.Keys_InvalidUidGroup);
-            var values = new List<string>();
-            foreach (var key in keys)
-            {
-                var bytes = Convert.FromHexString(key?.GetValue<string>() ?? "");
-                if (bytes.Length != 6) throw new FormatException(Strings.Keys_InvalidKey);
-                values.Add(Convert.ToHexString(bytes));
-            }
-            if (!result.TryGetValue(normalizedUid, out var existing)) result[normalizedUid] = existing = new();
-            foreach (var key in values) if (!existing.Contains(key)) existing.Add(key);
+            if (value is not JsonArray keys) throw new FormatException(Strings.Keys_InvalidUidGroup);
+            AddKeys(result, new(KnownCardFamily.MifareClassic, ParseUid(uid)), null, keys);
         }
-        return (result, passwords);
+        return result;
+    }
+
+    private static void AddKeys(Dictionary<KnownCardId, Entry> result, KnownCardId id, TagSpecificType? tag, JsonArray keys)
+    {
+        var values = new List<string>();
+        foreach (var key in keys)
+        {
+            var bytes = Convert.FromHexString(key?.GetValue<string>() ?? "");
+            if (bytes.Length != 6) throw new FormatException(Strings.Keys_InvalidKey);
+            values.Add(Convert.ToHexString(bytes));
+        }
+        if (!result.TryGetValue(id, out var existing)) result[id] = existing = new(tag, new(), null);
+        foreach (var key in values) if (!existing.Keys.Contains(key)) existing.Keys.Add(key);
+    }
+
+    private static string ParseUid(string? uid)
+    {
+        var normalized = Convert.ToHexString(Convert.FromHexString(uid ?? ""));
+        if (normalized.Length == 0) throw new FormatException(Strings.Keys_InvalidUidGroup);
+        return normalized;
+    }
+
+    private static string ParsePassword(string? pwd)
+    {
+        var bytes = Convert.FromHexString(pwd ?? "");
+        if (bytes.Length != 4) throw new FormatException(Strings.Keys_InvalidPassword);
+        return Convert.ToHexString(bytes);
     }
 }

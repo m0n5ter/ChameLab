@@ -327,7 +327,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
                 try
                 {
                     if (Target is { } target)
-                        _dictionaries.KnownKeys.Remember(target.Uid, target.KeyA.Concat(target.KeyB).OfType<byte[]>());
+                        _dictionaries.KnownKeys.Remember(target);
                 }
                 finally
                 {

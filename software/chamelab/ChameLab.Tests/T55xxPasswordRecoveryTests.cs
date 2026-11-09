@@ -138,6 +138,24 @@ public class T55xxPasswordRecoveryTests
     }
 
     [Fact]
+    public async Task KnownPasswordForTheReadIdIsTriedFirst()
+    {
+        var transport = new PasswordTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        byte[]? askedFor = null;
+        var progress = new List<(int, int)>();
+        var result = await T55xxPasswordRecovery.RecoverAsync(new(connection),
+            [Hex.Parse("00000000"), Hex.Parse("FFFFFFFF")], progress: (done, total) => progress.Add((done, total)),
+            knownPassword: card => { askedFor = card.Id; return Hex.Parse("12345678"); });
+        Assert.Equal(PasswordTransport.OriginalId, askedFor);
+        Assert.Equal(Hex.Parse("12345678"), result!.Key);
+        Assert.Equal(PasswordTransport.OriginalId, result.Card.Id);
+        Assert.Equal((1, 3), progress.Last());
+        Assert.DoesNotContain(transport.Attempts, r => r.Data[6..10].SequenceEqual(Hex.Parse("FFFFFFFF")));
+    }
+
+    [Fact]
     public async Task NoMatchDoesNotChangeIdOrPassword()
     {
         var transport = new PasswordTransport();

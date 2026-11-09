@@ -1651,7 +1651,7 @@
     <value>사전 이름</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>카드 UID별로 묶인 알려진 키 편집</value>
+    <value>카드별로 기억한 키와 비밀번호 편집</value>
   </data>
   <data name="Dictionaries_ExportTitle" xml:space="preserve">
     <value>사전 내보내기(.dic)</value>
@@ -1690,7 +1690,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>카드를 읽거나 복구하면서 찾은 키가 UID별로 묶여 여기에 표시됩니다.</value>
+    <value>카드를 읽거나 쓰거나 복구하면서 찾은 키와 비밀번호가 카드별로 여기에 표시됩니다.</value>
   </data>
   <data name="Dictionaries_NewDictionary" xml:space="preserve">
     <value>새 사전</value>
@@ -1960,7 +1960,7 @@
     <value>유효하지 않은 카드 키입니다.</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>유효하지 않은 NTAG 비밀번호입니다.</value>
+    <value>유효하지 않은 카드 비밀번호입니다.</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>유효하지 않은 NTAG 비밀번호 섹션입니다.</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>사전 “{1}” 생성됨: {0}.</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>모든 유형</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>알 수 없음</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>카드 유형으로 필터</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>비밀번호</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · T55XX 비밀번호 {0}개</value>
   </data>
 </root>

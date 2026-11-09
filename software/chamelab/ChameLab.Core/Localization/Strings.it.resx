@@ -1651,7 +1651,7 @@
     <value>Nome del dizionario</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>Modifica le chiavi note raggruppate per UID della scheda</value>
+    <value>Modifica le chiavi e le password apprese per ogni scheda</value>
   </data>
   <data name="Dictionaries_ExportTitle" xml:space="preserve">
     <value>Esporta dizionario (.dic)</value>
@@ -1690,7 +1690,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>Le chiavi trovate leggendo le schede o eseguendo il recupero compariranno qui, raggruppate per UID.</value>
+    <value>Le chiavi e le password trovate leggendo, scrivendo o recuperando le schede compariranno qui, una voce per scheda.</value>
   </data>
   <data name="Dictionaries_NewDictionary" xml:space="preserve">
     <value>Nuovo dizionario</value>
@@ -1960,7 +1960,7 @@
     <value>Chiave della scheda non valida.</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>Password NTAG non valida.</value>
+    <value>Password della scheda non valida.</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>Sezione delle password NTAG non valida.</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>Creato il dizionario «{1}»: {0}.</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>Tutti i tipi</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>Sconosciuto</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>Filtra per tipo di scheda</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} password T55XX| · {0} password T55XX</value>
   </data>
 </root>

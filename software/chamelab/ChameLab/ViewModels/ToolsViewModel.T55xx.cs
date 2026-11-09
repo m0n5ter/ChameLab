@@ -202,7 +202,12 @@ public sealed partial class ToolsViewModel
                         _t55xxFoundKeyBytes = key;
                         T55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected : Hex.Spaced(key);
                         this.RaisePropertyChanged(nameof(CanSaveT55xxKey));
-                    }), cts.Token);
+                    }), original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id), cts.Token);
+                if (result is not null)
+                {
+                    try { _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type); }
+                    catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSavePassword, ex.Message)); }
+                }
                 Dispatcher.UIThread.Post(() =>
                 {
                     T55xxResult = result is null ? Strings.Tools_T55xxNoMatch : Strings.Tools_T55xxComplete;

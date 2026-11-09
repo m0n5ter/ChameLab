@@ -47,7 +47,7 @@ public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKey
                 var keys = await CaptureAsync(card, progress, ct);
                 ct.ThrowIfCancellationRequested();
                 // Detection logs contain only the last four UID bytes. Save against the full card UID.
-                knownKeys.Remember(card.Uid, keys);
+                knownKeys.Remember(card.Uid, keys, card.Tag);
                 await client.SetMf1DetectionEnableAsync(false, ct);
                 await client.SetDeviceModeAsync(DeviceMode.Reader, ct);
                 var keyText = string.Join(" · ", keys.Select(Hex.Spaced));

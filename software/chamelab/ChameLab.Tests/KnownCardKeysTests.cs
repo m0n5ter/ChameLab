@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ChameLab.Models;
+using ChameLab.Protocol;
 using ChameLab.Services;
 using ChameLab.ViewModels;
 using Xunit;
@@ -35,27 +36,74 @@ public class KnownCardKeysTests
     }
 
     [Fact]
-    public void NtagPasswordsPersistInTheirOwnSectionAndAreReplaced()
+    public void PasswordsAreKeptPerFamilyAndReplaced()
     {
         var store = new MemoryKeyValueStore();
         var known = new KnownCardKeys(store);
         var ntag = Convert.FromHexString("04112233445566");
-        known.Remember(Uid, [Key]);
-        known.RememberPassword(ntag, [1, 2, 3, 4]);
+        known.Remember(Uid, [Key], TagSpecificType.Mifare1024);
+        known.RememberPassword(ntag, [1, 2, 3, 4], TagSpecificType.Ntag215);
         known.RememberPassword(ntag, [5, 6, 7, 8]);
         known.RememberPassword(Uid, new byte[6]);
-        known.ApplyEdits(new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IReadOnlyList<byte[]>?>
-            { ["01020304"] = [new byte[6]] });
+        // The same hex as a MIFARE UID, but a T55xx ID: a card of its own.
+        known.RememberT55xxPassword(Uid, [9, 9, 9, 9], TagSpecificType.Em410x);
         known.Remember([9, 9, 9, 9], [Key]);
 
         var reloaded = new KnownCardKeys(store);
         Assert.Null(reloaded.LoadError);
         Assert.Equal(new byte[] { 5, 6, 7, 8 }, reloaded.PasswordForUid(ntag));
         Assert.Null(reloaded.PasswordForUid(Uid));
+        Assert.Equal(new byte[] { 9, 9, 9, 9 }, reloaded.T55xxPasswordForId(Uid));
+        Assert.Equal(Key, Assert.Single(reloaded.ForUid(Uid)));
         Assert.Equal(1, reloaded.PasswordCount);
-        Assert.Equal(2, reloaded.CardCount);
-        Assert.DoesNotContain(KnownCardKeys.PasswordsSection, reloaded.Uids);
-        Assert.Contains("\"ntagPasswords\":{\"04112233445566\":\"05060708\"}", store.Read(KnownCardKeys.Id));
+        Assert.Equal(1, reloaded.T55xxPasswordCount);
+        Assert.Equal(4, reloaded.CardCount);
+        // A later remember without a type keeps the one already known.
+        Assert.Equal(TagSpecificType.Ntag215, reloaded.Cards.Single(c => c.Family == KnownCardFamily.Ultralight).Tag);
+        Assert.Equal(TagSpecificType.Mifare1024, reloaded.Cards.First(c => c.Family == KnownCardFamily.MifareClassic).Tag);
+        Assert.Equal(TagSpecificType.Em410x, reloaded.Cards.Single(c => c.Family == KnownCardFamily.T55xx).Tag);
+    }
+
+    [Fact]
+    public void LegacyFileIsReadAndRewrittenWithTypes()
+    {
+        var store = new MemoryKeyValueStore();
+        store.Write(KnownCardKeys.Id,
+            """{"01020304":["AABBCCDDEEFF"],"ntagPasswords":{"04112233445566":"01020304"}}""");
+        var known = new KnownCardKeys(store);
+        Assert.Null(known.LoadError);
+        Assert.Equal(Key, Assert.Single(known.ForUid(Uid)));
+        Assert.Equal(new byte[] { 1, 2, 3, 4 }, known.PasswordForUid(Convert.FromHexString("04112233445566")));
+        Assert.All(known.Cards, c => Assert.Null(c.Tag));
+
+        known.Remember(Uid, [Key], TagSpecificType.Mifare4096);
+        Assert.Contains("\"version\":2", store.Read(KnownCardKeys.Id));
+        var reloaded = new KnownCardKeys(store);
+        Assert.Equal(TagSpecificType.Mifare4096, reloaded.Cards.Single(c => c.Family == KnownCardFamily.MifareClassic).Tag);
+        Assert.Equal(1, reloaded.PasswordCount);
+    }
+
+    [Fact]
+    public void TypesFromAnotherFamilyAreNotStored()
+    {
+        var known = new KnownCardKeys(new MemoryKeyValueStore());
+        known.Remember(Uid, [Key], TagSpecificType.Ntag215);
+        known.RememberT55xxPassword(Uid, [1, 2, 3, 4], TagSpecificType.Mifare1024);
+        Assert.All(known.Cards, c => Assert.Null(c.Tag));
+    }
+
+    [Fact]
+    public void BackupAddsT55xxPasswordsAndMissingTypes()
+    {
+        var source = new KnownCardKeys(new MemoryKeyValueStore());
+        source.RememberT55xxPassword([1, 2, 3, 4, 5], [1, 2, 3, 4], TagSpecificType.Em410x);
+        source.Remember(Uid, [Key], TagSpecificType.Mifare1024);
+        var target = new KnownCardKeys(new MemoryKeyValueStore());
+        target.Remember(Uid, [new byte[6]]);
+        target.Merge(source.ToJson());
+        Assert.Equal(new byte[] { 1, 2, 3, 4 }, target.T55xxPasswordForId([1, 2, 3, 4, 5]));
+        Assert.Equal(2, target.ForUid(Uid).Count);
+        Assert.Equal(TagSpecificType.Mifare1024, target.Cards.Single(c => c.Family == KnownCardFamily.MifareClassic).Tag);
     }
 
     [Fact]
@@ -172,15 +220,15 @@ public class KnownCardKeysTests
         Assert.Contains("Office copy", first.CardNames);
         Assert.True(first.HasCardNames);
         editor.Filter = "oFFice cOpy";
-        Assert.Same(first, Assert.Single(editor.Uids));
+        Assert.Same(first, Assert.Single(editor.Cards));
         editor.Filter = "05 06";
-        Assert.False(Assert.Single(editor.Uids).HasCardNames);
+        Assert.False(Assert.Single(editor.Cards).HasCardNames);
         editor.Filter = null;
         var replacement = Convert.FromHexString("112233445566");
-        first.Form.Keys.Write(0, replacement);
+        first.Form!.Keys.Write(0, replacement);
         editor.Filter = "05 06";
-        Assert.Single(editor.Uids);
-        editor.DeleteUidCommand.Execute(null);
+        Assert.Single(editor.Cards);
+        editor.DeleteCardCommand.Execute(null);
         Assert.Equal(2, known.CardCount);
         Assert.Equal(Key, Assert.Single(known.ForUid(Uid)));
         editor.Filter = null;
@@ -203,11 +251,11 @@ public class KnownCardKeysTests
         var known = new KnownCardKeys(new MemoryKeyValueStore());
         known.Remember(Uid, [Key]);
         var editor = new KnownKeysEditorViewModel(known, new CardLibrary(new MemoryKeyValueStore()));
-        editor.Selected!.Form.Keys.Write(0, new byte[6]);
-        editor.DeleteUidCommand.Execute(null);
+        editor.Selected!.Form!.Keys.Write(0, new byte[6]);
+        editor.DeleteCardCommand.Execute(null);
         editor.Reset();
         Assert.False(editor.IsDirty);
-        Assert.Equal(Key, Assert.Single(editor.Selected!.Form.Build().Keys));
+        Assert.Equal(Key, Assert.Single(editor.Selected!.Form!.Build().Keys));
     }
 
     [Fact]
@@ -217,14 +265,60 @@ public class KnownCardKeysTests
         var known = new KnownCardKeys(store);
         known.Remember(Uid, [Key]);
         var editor = new KnownKeysEditorViewModel(known, new CardLibrary(store));
-        editor.DeleteUidCommand.Execute(null);
+        editor.DeleteCardCommand.Execute(null);
         store.Fail = true;
         Assert.Throws<IOException>(editor.Save);
         Assert.True(editor.IsDirty);
         Assert.Single(known.ForUid(Uid));
         store.Fail = false;
         editor.Save();
-        Assert.Empty(new KnownCardKeys(store).Uids);
+        Assert.Empty(new KnownCardKeys(store).Cards);
+    }
+
+    [Fact]
+    public void EditorFiltersByTypeAndEditsPasswords()
+    {
+        var store = new MemoryKeyValueStore();
+        var known = new KnownCardKeys(store);
+        var ntag = Convert.FromHexString("04112233445566");
+        known.Remember(Uid, [Key]);
+        known.RememberPassword(ntag, [1, 2, 3, 4], TagSpecificType.Ntag213);
+        known.RememberT55xxPassword([1, 2, 3, 4, 5], [5, 6, 7, 8], TagSpecificType.Em410x);
+        var cards = new CardLibrary(store);
+        cards.Add(new CardSave { Name = "Office", Uid = Uid, Tag = TagSpecificType.Mifare1024 });
+        var editor = new KnownKeysEditorViewModel(known, cards);
+        Assert.Equal(3, editor.Cards.Count);
+        Assert.False(editor.IsDirty);
+
+        editor.FamilyFilter = editor.FamilyOptions.Single(o => o.Family == KnownCardFamily.T55xx);
+        var t55xx = Assert.Single(editor.Cards);
+        Assert.Same(t55xx, editor.Selected);
+        Assert.Equal("T55XX · EM410X", t55xx.TypeText);
+        Assert.True(t55xx.HasPassword);
+        Assert.Null(t55xx.Form);
+        t55xx.Password = "11 22 33";
+        Assert.NotNull(t55xx.PasswordError);
+        Assert.Throws<FormatException>(editor.Save);
+        t55xx.Password = "11 22 33 44";
+        Assert.True(editor.IsDirty);
+
+        editor.FamilyFilter = editor.FamilyOptions.Single(o => o.Family == KnownCardFamily.MifareClassic);
+        var classic = Assert.Single(editor.Cards);
+        // The type comes from the saved card with this UID until the entry stores one.
+        Assert.Equal(TagSpecificType.Mifare1024, classic.SelectedTag.Tag);
+        Assert.False(classic.IsDirty);
+
+        editor.FamilyFilter = editor.FamilyOptions[0];
+        editor.Filter = "NTAG 213";
+        var ultralight = Assert.Single(editor.Cards);
+        ultralight.SelectedTag = ultralight.TagOptions.Single(o => o.Tag == TagSpecificType.Ntag216);
+
+        editor.Save();
+        var reloaded = new KnownCardKeys(store);
+        Assert.Equal(new byte[] { 0x11, 0x22, 0x33, 0x44 }, reloaded.T55xxPasswordForId([1, 2, 3, 4, 5]));
+        Assert.Equal(TagSpecificType.Ntag216, reloaded.Cards.Single(c => c.Family == KnownCardFamily.Ultralight).Tag);
+        Assert.Equal(TagSpecificType.Mifare1024, reloaded.Cards.Single(c => c.Family == KnownCardFamily.MifareClassic).Tag);
+        Assert.Equal(new byte[] { 1, 2, 3, 4 }, reloaded.PasswordForUid(ntag));
     }
 
     private sealed class FailingStore : IKeyValueStore

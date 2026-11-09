@@ -57,7 +57,7 @@
       <Setter Property="Padding" Value="2" />
     </Style>
     <Style Selector="Border.segmented.compact RadioButton.segment /template/ Border#PART_Bg">
-      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="Padding" Value="9,4" />
     </Style>
     <Style Selector="Border.segmented.compact RadioButton.segment PathIcon">
       <Setter Property="Width" Value="14" />

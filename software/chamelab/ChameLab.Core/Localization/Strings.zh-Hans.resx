@@ -1651,7 +1651,7 @@
     <value>字典名称</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>编辑按卡片 UID 分组的已知密钥</value>
+    <value>编辑为每张卡片记住的密钥和密码</value>
   </data>
   <data name="Dictionaries_ExportTitle" xml:space="preserve">
     <value>导出字典（.dic）</value>
@@ -1690,7 +1690,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>读取卡片或运行恢复时找到的密钥将按 UID 分组显示在这里。</value>
+    <value>读取、写入或恢复卡片时找到的密钥和密码将显示在这里，每张卡片一条。</value>
   </data>
   <data name="Dictionaries_NewDictionary" xml:space="preserve">
     <value>新建字典</value>
@@ -1960,7 +1960,7 @@
     <value>卡片密钥无效。</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>NTAG 密码无效。</value>
+    <value>卡片密码无效。</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>NTAG 密码部分无效。</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>已创建字典“{1}”：{0}。</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>所有类型</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>按卡片类型筛选</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} 个 T55XX 密码</value>
   </data>
 </root>

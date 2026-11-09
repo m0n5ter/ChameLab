@@ -210,6 +210,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         ExportEmlCommand = ReactiveCommand.CreateFromTask(() => ExportDumpAsync(bin: false), actionable);
         SaveKeysToNewDictionaryCommand = ReactiveCommand.Create(SaveKeysToNewDictionary, actionable);
         SaveKeysToFileCommand = ReactiveCommand.CreateFromTask(SaveKeysToFileAsync, actionable);
+        SaveWriteT55xxKeyToNewDictionaryCommand = ReactiveCommand.Create(SaveWriteT55xxKeyToNewDictionary);
+        SaveWriteT55xxKeyToFileCommand = ReactiveCommand.CreateFromTask(SaveWriteT55xxKeyToFileAsync);
         AssignCommand = ReactiveCommand.Create(() => Toggle(CardAction.Slots), actionableOnline);
         WriteCommand = ReactiveCommand.Create(() => Toggle(CardAction.Write),
             actionableOnline.CombineLatest(this.WhenAnyValue(x => x.CanWriteSelected), (ok, can) => ok && can));
@@ -612,8 +614,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool IsPickingSource => _pane == CardsPane.Add && _form is null;
 
     /// <summary>
-    /// Adding, and the new card is open in the editor. The list is locked until
-    /// the card is saved or the add is canceled.
+    /// Adding, and the new card is open in the editor. Leaving it (another card, close)
+    /// asks to save or discard it first.
     /// </summary>
     public bool IsEditingNew => _pane == CardsPane.Add && _form is not null;
 
@@ -1854,7 +1856,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             }
             var result = await WithMissFeedback(client.DumpUltralightAsync(key, progress, cts.Token, pageProgress,
                 _dictionaries.KnownKeys.PasswordForUid));
-            if (result.Pwd is { } accepted) RememberCardPassword(result.Card.Uid, accepted);
+            if (result.Pwd is { } accepted) RememberCardPassword(result.Card.Uid, accepted, result.Card.Tag);
             // Pages an earlier read got stay read.
             var kept = new List<int>();
             if (previous is not null && previous.Tag == result.Card.Tag)
@@ -1979,13 +1981,19 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private void RememberCardKeys(MifareDump dump)
     {
-        try { _dictionaries.KnownKeys.Remember(dump.Uid, dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()); }
+        try { _dictionaries.KnownKeys.Remember(dump); }
         catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSaveKnownKeys, ex.Message)); }
     }
 
-    private void RememberCardPassword(byte[] uid, byte[] pwd)
+    private void RememberCardPassword(byte[] uid, byte[] pwd, TagSpecificType? tag = null)
     {
-        try { _dictionaries.KnownKeys.RememberPassword(uid, pwd); }
+        try { _dictionaries.KnownKeys.RememberPassword(uid, pwd, tag); }
+        catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSavePassword, ex.Message)); }
+    }
+
+    private void RememberT55xxPassword(T55xxPasswordResult result)
+    {
+        try { _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type); }
         catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSavePassword, ex.Message)); }
     }
 
@@ -2291,7 +2299,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaisePropertyChanged(nameof(IsWriteOpen));
             this.RaisePropertyChanged(nameof(IsConfirmingDelete));
             this.RaisePropertyChanged(nameof(IsAsking));
-            this.RaisePropertyChanged(nameof(ListLocked));
             this.RaisePropertyChanged(nameof(ShowEditor));
             this.RaisePropertyChanged(nameof(ShowMemoryEditor));
         }
@@ -2301,8 +2308,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool IsWriteOpen => _action == CardAction.Write;
     public bool IsConfirmingDelete => _action == CardAction.Delete;
 
-    /// <summary>The list and the editor are locked while the writer view is open (as when adding a card).</summary>
-    public bool ListLocked => IsEditingNew || IsWriteOpen;
+    /// <summary>
+    /// The list stays usable (leaving unsaved work asks first), except while a write runs:
+    /// picking another card would stop it halfway through the tag.
+    /// </summary>
+    public bool ListLocked => IsWriting;
 
     /// <summary>The card editor is shown unless the writer view has taken over the pane.</summary>
     public bool ShowEditor => _form is not null && !IsWriteOpen;
@@ -2348,7 +2358,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (_action == CardAction.Write)
         {
             WriteT55xxKeys.Refresh();
-            WriteT55xxFoundKey = null;
+            ClearWriteT55xxResult();
             WriteBlockStates = Array.Empty<MifareBlockState>();
             ResetWriteRecovery();
             // A clone of a protected card gets its settings rewritten; otherwise the target keeps its own.
@@ -2365,6 +2375,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             this.RaiseAndSetIfChanged(ref _writeProgressText, value);
             this.RaisePropertyChanged(nameof(IsWriting));
+            this.RaisePropertyChanged(nameof(ListLocked));
             this.RaisePropertyChanged(nameof(IsT55xxWriting));
             this.RaisePropertyChanged(nameof(WriteKeyHint));
             this.RaisePropertyChanged(nameof(CancelWriteLabel));
@@ -2567,7 +2578,28 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool WriteLfSettingsReady => !IsT55xxWrite ||
         WriteT55xxSettings.ReadyToStart && WriteT55xxSettings.NewKeyError is null;
     public double WriteT55xxProgress { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+
+    /// <summary>The target tag's UID before the write, as hex.</summary>
+    public string? WriteT55xxUid { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+
+    /// <summary>The target's matching password, as hex (or a note when it had none).</summary>
     public string? WriteT55xxFoundKey { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+
+    /// <summary>The password the written tag now has, as hex (shown green).</summary>
+    public string? WriteT55xxSetKey { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+
+    /// <summary>The recovered password, as bytes; null when the target had none or nothing was found.</summary>
+    private byte[]? _writeT55xxFoundKeyBytes;
+
+    private void ClearWriteT55xxResult()
+    {
+        WriteT55xxUid = null;
+        WriteT55xxFoundKey = null;
+        WriteT55xxSetKey = null;
+        _writeT55xxFoundKeyBytes = null;
+        this.RaisePropertyChanged(nameof(CanSaveWriteT55xxKey));
+    }
+
     private Task _writeTask = Task.CompletedTask;
 
     public string WriteLfPasswordTip => IsEm4305Write ? Strings.Cards_Em4305PasswordTip : Strings.Cards_Password4BytesOfAnAlready;
@@ -2786,17 +2818,21 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void RebuildKeysTargets()
     {
         KeysTargets.Clear();
+        WriteT55xxKeysTargets.Clear();
         foreach (var d in _dictionaries.Dictionaries)
         {
             var dict = d;
-            KeysTargets.Add(new KeysTargetViewModel(new DictionaryItemViewModel(dict), ReactiveCommand.Create(() => AddKeysTo(dict))));
+            KeysTargets.Add(new KeysTargetViewModel(new DictionaryItemViewModel(dict),
+                ReactiveCommand.Create(() => AddKeysTo(dict, ActionKeys()))));
+            WriteT55xxKeysTargets.Add(new KeysTargetViewModel(new DictionaryItemViewModel(dict),
+                ReactiveCommand.Create(() => AddKeysTo(dict, WriteT55xxActionKeys()))));
         }
         this.RaisePropertyChanged(nameof(HasKeysTargets));
+        this.RaisePropertyChanged(nameof(HasWriteT55xxKeysTargets));
     }
 
-    private void AddKeysTo(KeyDictionary dict)
+    private void AddKeysTo(KeyDictionary dict, IReadOnlyList<byte[]> keys)
     {
-        var keys = ActionKeys();
         if (keys.Count == 0) return;
         var have = dict.Keys.Select(Convert.ToHexString).ToHashSet();
         var added = keys.Where(k => have.Add(Convert.ToHexString(k))).ToList();
@@ -2841,6 +2877,45 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (keys.Count == 0 || _form is not { } form) return;
         var data = System.Text.Encoding.UTF8.GetBytes(KeysText(keys));
         var name = await StorageService.SaveAsync(Strings.Cards_ExportKeysTitle, $"{SafeFileName(form.Name)}.dic", data, "dic");
+        if (name is not null) Notify(string.Format(Strings.Common_SavedFile, name));
+    });
+
+    // ---- Save the password recovered while writing a T55xx (as Tools / T55xx does) ----
+
+    /// <summary>The saved dictionaries, each a choice of where to add the recovered password.</summary>
+    public ObservableCollection<KeysTargetViewModel> WriteT55xxKeysTargets { get; } = new();
+
+    public bool HasWriteT55xxKeysTargets => WriteT55xxKeysTargets.Count > 0;
+
+    /// <summary>A recovered password is available to save.</summary>
+    public bool CanSaveWriteT55xxKey => _writeT55xxFoundKeyBytes is not null;
+
+    public ICommand SaveWriteT55xxKeyToNewDictionaryCommand { get; }
+    public ICommand SaveWriteT55xxKeyToFileCommand { get; }
+
+    private IReadOnlyList<byte[]> WriteT55xxActionKeys() =>
+        _writeT55xxFoundKeyBytes is { } k ? new[] { k } : Array.Empty<byte[]>();
+
+    /// <summary>The recovered password, as a hex line for the clipboard; null when there is none.</summary>
+    public string? WriteT55xxFoundKeyText() => WriteT55xxActionKeys() is { Count: > 0 } keys ? KeysText(keys) : null;
+
+    private void SaveWriteT55xxKeyToNewDictionary()
+    {
+        var keys = WriteT55xxActionKeys();
+        if (keys.Count == 0) return;
+        var name = FreeDictionaryName(Strings.Tools_T55xxPassword);
+        var dict = new KeyDictionary { Name = name, Keys = keys.Select(k => k.ToArray()).ToList() };
+        try { _dictionaries.Add(dict); }
+        catch (Exception ex) { ReportError(ex.Message); return; }
+        Notify(string.Format(Strings.Cards_KeysSavedToNewDictionary, Loc.Plural(Strings.Plural_Keys, keys.Count), name));
+    }
+
+    private Task SaveWriteT55xxKeyToFileAsync() => RunAsync(async () =>
+    {
+        var keys = WriteT55xxActionKeys();
+        if (keys.Count == 0) return;
+        var data = System.Text.Encoding.UTF8.GetBytes(KeysText(keys));
+        var name = await StorageService.SaveAsync(Strings.Cards_ExportKeysTitle, "t55xx-key.dic", data, "dic");
         if (name is not null) Notify(string.Format(Strings.Common_SavedFile, name));
     });
 
@@ -2937,7 +3012,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 WriteRecovery.PrepareWrite(card.Tag, session.Source, IncludeWriteBlock0, resume);
             if (IsT55xxWrite)
             {
-                WriteT55xxFoundKey = null;
+                ClearWriteT55xxResult();
                 WriteT55xxProgress = 0;
             }
             WriteProgressText = resume ? Strings.Common_CheckingTargetUid : Strings.Common_Starting;
@@ -2964,16 +3039,23 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                         WriteT55xxProgress = total == 0 ? 0 : 100.0 * done / total;
                         if (!cts.IsCancellationRequested)
                             WriteProgressText = string.Format(Strings.Tools_T55xxProgress, done, total);
+                    }), original => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        if (version == _writeVersion) WriteT55xxUid = Hex.Spaced(original.Id);
                     }), key => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
-                        if (version == _writeVersion)
-                            WriteT55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected :
-                                string.Format(Strings.Tools_T55xxFoundKey, Convert.ToHexString(key));
-                    }), cts.Token);
+                        if (version != _writeVersion) return;
+                        _writeT55xxFoundKeyBytes = key;
+                        WriteT55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected : Hex.Spaced(key);
+                        this.RaisePropertyChanged(nameof(CanSaveWriteT55xxKey));
+                    }), original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id), cts.Token);
                 if (result is null) throw new InvalidOperationException(Strings.Tools_T55xxNoMatch);
+                RememberT55xxPassword(result);
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    if (version == _writeVersion) WriteT55xxProgress = 100;
+                    if (version != _writeVersion) return;
+                    WriteT55xxProgress = 100;
+                    WriteT55xxSetKey = Hex.Spaced(newKey);
                 });
                 succeeded = true;
                 Notify(string.Format(Strings.Cards_WroteT55xx, card.Name));
@@ -2986,7 +3068,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 var pwd = Hex.TryParse(WritePassword, out var k) && k.Length > 0 ? k : null;
                 var protection = RewriteProtection ? WriteProtection?.Settings : null;
                 failed = await client.WriteUltralightUserPagesAsync(card, pwd, progress, cts.Token, blockProgress, protection,
-                    _dictionaries.KnownKeys.PasswordForUid, RememberCardPassword);
+                    _dictionaries.KnownKeys.PasswordForUid, (uid, pwd) => RememberCardPassword(uid, pwd, card.Tag));
             }
             else if (session is not null)
             {

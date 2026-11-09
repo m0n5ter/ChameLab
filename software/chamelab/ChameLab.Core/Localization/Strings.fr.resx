@@ -1651,7 +1651,7 @@
     <value>Nom du dictionnaire</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>Modifier les clés connues regroupées par UID de carte</value>
+    <value>Modifier les clés et mots de passe appris pour chaque carte</value>
   </data>
   <data name="Dictionaries_ExportTitle" xml:space="preserve">
     <value>Exporter le dictionnaire (.dic)</value>
@@ -1690,7 +1690,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>Les clés trouvées en lisant des cartes ou lors d'une récupération apparaîtront ici, regroupées par UID.</value>
+    <value>Les clés et mots de passe trouvés en lisant, écrivant ou récupérant des cartes apparaîtront ici, une entrée par carte.</value>
   </data>
   <data name="Dictionaries_NewDictionary" xml:space="preserve">
     <value>Nouveau dictionnaire</value>
@@ -1960,7 +1960,7 @@
     <value>Clé de carte invalide.</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>Mot de passe NTAG invalide.</value>
+    <value>Mot de passe de carte invalide.</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>Section de mots de passe NTAG invalide.</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>Dictionnaire « {1} » créé : {0}.</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>Tous les types</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>Inconnu</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>Filtrer par type de carte</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} mot de passe T55XX| · {0} mots de passe T55XX</value>
   </data>
 </root>

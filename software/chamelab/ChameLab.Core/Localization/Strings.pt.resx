@@ -1651,7 +1651,7 @@
     <value>Nome do dicionário</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>Editar as chaves conhecidas agrupadas por UID do cartão</value>
+    <value>Editar as chaves e senhas aprendidas para cada cartão</value>
   </data>
   <data name="Dictionaries_ExportTitle" xml:space="preserve">
     <value>Exportar dicionário (.dic)</value>
@@ -1690,7 +1690,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>As chaves encontradas ao ler cartões ou executar a recuperação aparecerão aqui, agrupadas por UID.</value>
+    <value>As chaves e senhas encontradas ao ler, gravar ou recuperar cartões aparecerão aqui, uma entrada por cartão.</value>
   </data>
   <data name="Dictionaries_NewDictionary" xml:space="preserve">
     <value>Novo dicionário</value>
@@ -1960,7 +1960,7 @@
     <value>Chave de cartão inválida.</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>Senha NTAG inválida.</value>
+    <value>Senha do cartão inválida.</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>Seção de senhas NTAG inválida.</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>Dicionário “{1}” criado: {0}.</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>Todos os tipos</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>Desconhecido</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>Filtrar por tipo de cartão</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>Senha</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} senha T55XX| · {0} senhas T55XX</value>
   </data>
 </root>

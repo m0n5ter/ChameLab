@@ -772,7 +772,7 @@
     <value>Dictionary name</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>Edit known keys grouped by card UID</value>
+    <value>Edit the keys and passwords learned for each card</value>
   </data>
   <data name="Dictionaries_ForgetCard" xml:space="preserve">
     <value>Forget card</value>
@@ -1918,7 +1918,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>Keys found while reading cards or running recovery will appear here, grouped by UID.</value>
+    <value>Keys and passwords found while reading, writing or recovering cards will appear here, one entry per card.</value>
   </data>
   <data name="Dictionaries_NewKeyRow" xml:space="preserve">
     <value>New key: type or paste to add</value>
@@ -2506,7 +2506,7 @@
     <value>Invalid card key.</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>Invalid NTAG password.</value>
+    <value>Invalid card password.</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>Invalid NTAG password section.</value>
@@ -3542,5 +3542,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>Created the dictionary “{1}” with {0}.</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>All types</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>Filter by card type</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} T55XX password| · {0} T55XX passwords</value>
   </data>
 </root>

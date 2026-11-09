@@ -1651,7 +1651,7 @@
     <value>辞書名</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>カード UID ごとにまとめた既知のキーを編集</value>
+    <value>カードごとに記憶したキーとパスワードを編集</value>
   </data>
   <data name="Dictionaries_ExportTitle" xml:space="preserve">
     <value>辞書をエクスポート（.dic）</value>
@@ -1690,7 +1690,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>カードの読み取りや復元で見つかったキーが、UID ごとにここに表示されます。</value>
+    <value>カードの読み取り・書き込み・復元で見つかったキーとパスワードが、カードごとにここに表示されます。</value>
   </data>
   <data name="Dictionaries_NewDictionary" xml:space="preserve">
     <value>新しい辞書</value>
@@ -1960,7 +1960,7 @@
     <value>無効なカードキーです。</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>無効な NTAG パスワードです。</value>
+    <value>無効なカードのパスワードです。</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>無効な NTAG パスワードセクションです。</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>辞書「{1}」を作成しました（{0}）。</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>すべての種類</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>カードの種類で絞り込み</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} 個の T55XX パスワード</value>
   </data>
 </root>

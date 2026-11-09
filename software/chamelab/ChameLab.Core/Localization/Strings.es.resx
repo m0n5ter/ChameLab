@@ -1651,7 +1651,7 @@
     <value>Nombre del diccionario</value>
   </data>
   <data name="Dictionaries_EditKnownKeysGroupedByCard" xml:space="preserve">
-    <value>Editar las claves conocidas agrupadas por UID de tarjeta</value>
+    <value>Editar las claves y contraseñas aprendidas para cada tarjeta</value>
   </data>
   <data name="Dictionaries_ExportTitle" xml:space="preserve">
     <value>Exportar diccionario (.dic)</value>
@@ -1690,7 +1690,7 @@
     <value>{0} · {1}</value>
   </data>
   <data name="Dictionaries_KnownKeysEmpty" xml:space="preserve">
-    <value>Aquí aparecerán, agrupadas por UID, las claves encontradas al leer tarjetas o durante la recuperación.</value>
+    <value>Aquí aparecerán las claves y contraseñas encontradas al leer, escribir o recuperar tarjetas, una entrada por tarjeta.</value>
   </data>
   <data name="Dictionaries_NewDictionary" xml:space="preserve">
     <value>Nuevo diccionario</value>
@@ -1960,7 +1960,7 @@
     <value>Clave de tarjeta no válida.</value>
   </data>
   <data name="Keys_InvalidPassword" xml:space="preserve">
-    <value>Contraseña NTAG no válida.</value>
+    <value>Contraseña de tarjeta no válida.</value>
   </data>
   <data name="Keys_InvalidPasswordSection" xml:space="preserve">
     <value>Sección de contraseñas NTAG no válida.</value>
@@ -3539,5 +3539,23 @@
   </data>
   <data name="Cards_KeysSavedToNewDictionary" xml:space="preserve">
     <value>Diccionario «{1}» creado: {0}.</value>
+  </data>
+  <data name="Dictionaries_AllCardTypes" xml:space="preserve">
+    <value>Todos los tipos</value>
+  </data>
+  <data name="Dictionaries_CardTypeUnknown" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
+  <data name="Dictionaries_FilterByCardType" xml:space="preserve">
+    <value>Filtrar por tipo de tarjeta</value>
+  </data>
+  <data name="Dictionaries_CardType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Dictionaries_KnownPassword" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Plural_T55xxPasswords" xml:space="preserve">
+    <value> · {0} contraseña T55XX| · {0} contraseñas T55XX</value>
   </data>
 </root>

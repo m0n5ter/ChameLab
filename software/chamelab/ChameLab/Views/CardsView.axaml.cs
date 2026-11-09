@@ -82,6 +82,16 @@ public partial class CardsView : UserControl
         vm.NotifyKeysCopied(text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
     }
 
+    // The T55xx password recovered while writing → clipboard, the same way.
+    private async void OnCopyWriteT55xxKey(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not CardsViewModel vm || vm.WriteT55xxFoundKeyText() is not { } text
+            || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        try { await clipboard.SetTextAsync(text); }
+        catch { return; /* clipboard unavailable (browser without permission) */ }
+        vm.NotifyKeysCopied(1);
+    }
+
     // Picking a swatch (or a folder) closes the flyout it lives in.
     private void OnFlyoutPickTapped(object? sender, TappedEventArgs e)
     {

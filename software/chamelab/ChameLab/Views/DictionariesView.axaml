@@ -35,10 +35,9 @@
         b:SplitLayout.DetailWidth="380,420">
 
     <!-- ==================== Dictionary list ==================== -->
-    <!-- Locked while a new dictionary is open: save it or discard it to get back to the list. -->
+    <!-- Always usable: leaving a new or edited dictionary asks to save or discard it first. -->
     <Grid Grid.Column="0" Classes="listpane panestack dictionary-list" RowDefinitions="Auto,*"
-          SizeChanged="OnListPaneSizeChanged"
-          IsEnabled="{Binding !IsNew}">
+          SizeChanged="OnListPaneSizeChanged">
       <!-- Measure the title first; give actions the remaining finite width so they collapse by priority. -->
       <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="12">
         <StackPanel Grid.Column="0" Spacing="2">
@@ -248,25 +247,40 @@
             </Button>
             <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.Dictionaries_KnownCardKeys}" Classes="h1" VerticalAlignment="Center" />
           </Grid>
-          <TextBox Grid.Row="1" Text="{Binding KnownEditor.Filter}" PlaceholderText="{x:Static loc:Strings.Dictionaries_SearchByUIDOrCardName}">
-            <TextBox.InnerLeftContent>
-              <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
-            </TextBox.InnerLeftContent>
-          </TextBox>
+          <!-- Search, then the card type: the filter keeps its natural width beside the search. -->
+          <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Text="{Binding KnownEditor.Filter}" PlaceholderText="{x:Static loc:Strings.Dictionaries_SearchByUIDOrCardName}">
+              <TextBox.InnerLeftContent>
+                <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
+              </TextBox.InnerLeftContent>
+            </TextBox>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding KnownEditor.FamilyOptions}"
+                      SelectedItem="{Binding KnownEditor.FamilyFilter}" VerticalAlignment="Stretch"
+                      ToolTip.Tip="{x:Static loc:Strings.Dictionaries_FilterByCardType}"
+                      AutomationProperties.Name="{x:Static loc:Strings.Dictionaries_FilterByCardType}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:KnownCardFamilyOption">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
           <ScrollViewer Grid.Row="2" Name="KnownScroll" Classes="reservebar" VerticalScrollBarVisibility="Auto"
                         HorizontalScrollBarVisibility="Disabled">
           <c:BalancedSplit MinHeight="{Binding #KnownScroll.Bounds.Height}">
           <!-- MinHeight: three rows, kept in step with the theme's row height by the code-behind. -->
           <Grid Name="KnownCards" MinHeight="104">
-            <ListBox Name="KnownList" ItemsSource="{Binding KnownEditor.Uids}" SelectedItem="{Binding KnownEditor.Selected}"
+            <ListBox Name="KnownList" ItemsSource="{Binding KnownEditor.Cards}" SelectedItem="{Binding KnownEditor.Selected}"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
               <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:KnownUidViewModel">
-                  <!-- One line: the UID, then the card names sliding along when they don't fit. -->
-                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
-                    <TextBlock Text="{Binding DisplayUid}" FontWeight="Bold" TextWrapping="NoWrap" />
-                    <c:Marquee Grid.Column="1" IsVisible="{Binding HasCardNames}" ToolTip.Tip="{Binding CardNames}">
+                <DataTemplate x:DataType="vm:KnownCardViewModel">
+                  <!-- One line: the UID, its type, then the card names sliding along when they don't fit. -->
+                  <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="6">
+                    <TextBlock Text="{Binding DisplayUid}" FontWeight="Bold" TextWrapping="NoWrap" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding TypeText}" Classes="caption" TextWrapping="NoWrap"
+                               VerticalAlignment="Center" />
+                    <c:Marquee Grid.Column="2" IsVisible="{Binding HasCardNames}" ToolTip.Tip="{Binding CardNames}">
                       <TextBlock Text="{Binding CardNamesText}" TextWrapping="NoWrap" />
                     </c:Marquee>
                   </Grid>
@@ -274,24 +288,52 @@
               </ListBox.ItemTemplate>
             </ListBox>
             <TextBlock Text="{x:Static loc:Strings.Dictionaries_NoCardsMatchTheSearch}" Classes="caption" Margin="8"
-                       IsVisible="{Binding KnownEditor.NoMatches}" />
+                       TextWrapping="Wrap" IsVisible="{Binding KnownEditor.NoMatches}" />
+            <TextBlock Text="{x:Static loc:Strings.Dictionaries_KnownKeysEmpty}" Classes="caption" Margin="8"
+                       TextWrapping="Wrap" IsVisible="{Binding KnownEditor.HasNoCards}" />
           </Grid>
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12"
-                IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <StackPanel Spacing="10"
+                      IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
               <StackPanel Spacing="2" VerticalAlignment="Center">
                 <TextBlock Text="{Binding KnownEditor.Selected?.DisplayUid}" FontWeight="Bold" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding KnownEditor.Selected?.KnownKeyCountText}" Classes="caption" />
+                <TextBlock Text="{Binding KnownEditor.Selected?.SummaryText}" Classes="caption" />
               </StackPanel>
-              <Button Grid.Column="1" Classes="danger" Command="{Binding KnownEditor.DeleteUidCommand}"
+              <Button Grid.Column="1" Classes="danger" Command="{Binding KnownEditor.DeleteCardCommand}"
                       HorizontalAlignment="Right" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.delete}" />
                   <TextBlock Text="{x:Static loc:Strings.Dictionaries_ForgetCard}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
-          </Grid>
+            </Grid>
+            <!-- The stored type; cards learned before types were kept can be given one here. -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+              <TextBlock Text="{x:Static loc:Strings.Dictionaries_CardType}" VerticalAlignment="Center" />
+              <ComboBox Grid.Column="1" ItemsSource="{Binding KnownEditor.Selected?.TagOptions}"
+                        SelectedItem="{Binding KnownEditor.Selected?.SelectedTag}" HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="{x:Static loc:Strings.Dictionaries_CardType}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:KnownCardTagOption">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+            <!-- NTAG / T55XX: one 4-byte password instead of a list of keys. -->
+            <StackPanel Spacing="4" IsVisible="{Binding KnownEditor.Selected?.HasPassword, FallbackValue=False}">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <TextBlock Text="{x:Static loc:Strings.Dictionaries_KnownPassword}" VerticalAlignment="Center" />
+                <c:HexBox Grid.Column="1" Text="{Binding KnownEditor.Selected?.Password}" ByteLengths="4"
+                          PlaceholderText="00 00 00 00"
+                          AutomationProperties.Name="{x:Static loc:Strings.Dictionaries_KnownPassword}" />
+              </Grid>
+              <TextBlock Classes="caption danger" TextWrapping="Wrap" Text="{Binding KnownEditor.Selected?.PasswordError}"
+                         IsVisible="{Binding KnownEditor.Selected?.PasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            </StackPanel>
+          </StackPanel>
           <Border Name="KnownKeysBox" Classes="inset" Padding="8,6" MinHeight="80"
-                  IsVisible="{Binding KnownEditor.Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  IsVisible="{Binding KnownEditor.Selected?.IsClassic, FallbackValue=False}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
               <c:HexEditor Name="KnownKeysEditor" Buffer="{Binding KnownEditor.Selected?.Form.Keys}" />
             </ScrollViewer>
