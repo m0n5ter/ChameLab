@@ -268,7 +268,7 @@ public sealed class KnownCardKeys
             if (id.Family == KnownCardFamily.MifareClassic)
                 card["keys"] = new JsonArray(entry.Keys.Select(k => (JsonNode?)JsonValue.Create(k)).ToArray());
             else card["password"] = entry.Password;
-            list.Add(card);
+            list.Add((JsonNode)card); // the generic Add<T> isn't trim-safe
         }
         return new JsonObject { ["version"] = FormatVersion, ["cards"] = list };
     }
