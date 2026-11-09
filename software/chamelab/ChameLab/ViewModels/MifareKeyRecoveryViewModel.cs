@@ -462,7 +462,11 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         if (_cts?.IsCancellationRequested == true) return;
         _progress = p.Phase == MifareKeyPhase.Searching ? Strings.Common_CheckingDictKeys
             : p.Phase == MifareKeyPhase.Found ? Strings.Common_DictKeyFound : Strings.Common_DictKeyNotFound;
-        _detail = string.Format(Strings.Recovery_SectorKeyProgress, p.Sector, (p.KeyType == MfKeyType.A ? "A" : "B"), p.Tried, p.Total);
+        var current = p.Phase == MifareKeyPhase.Searching ? Math.Min(p.Tried + 1, p.Total) : p.Tried;
+        _detail = p.IsBatch
+            ? string.Format(Strings.Cards_CheckingKey, current, p.Total)
+            : string.Format(Strings.Cards_SectorBlockKeyDetail, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector),
+                p.KeyType == MfKeyType.A ? "A" : "B", $"{current}/{p.Total}");
         _tried = p.Tried;
         _total = p.Total;
         Refresh();

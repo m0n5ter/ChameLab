@@ -763,7 +763,7 @@
     <value>扇区 {0} · 块 {1} · 密钥 {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>扇区 {0} · 块 {1} · 密钥 {2} · {3}</value>
+    <value>扇区 {0} - 块 {1} - 密钥 {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} 尾块 · {1}</value>

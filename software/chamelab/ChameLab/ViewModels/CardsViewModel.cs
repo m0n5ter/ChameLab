@@ -760,7 +760,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             MifareKeyPhase.Found => string.Format(Strings.Cards_FoundAfterChecks, p.Tried),
             MifareKeyPhase.NotFound => string.Format(Strings.Cards_NotFoundChecked, p.Tried, p.Total),
-            _ => string.Format(Strings.Cards_CheckingKey, Math.Min(p.Tried + 1, p.Total), p.Total),
+            _ => $"{Math.Min(p.Tried + 1, p.Total)}/{p.Total}",
         };
         DumpProgressText = p.Phase switch
         {
@@ -768,7 +768,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             MifareKeyPhase.NotFound => Strings.Common_DictKeyNotFound,
             _ => Strings.Common_CheckingDictKeys,
         };
-        DumpProgressDetail = string.Format(Strings.Cards_SectorBlockKeyDetail, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector), key, detail);
+        DumpProgressDetail = p.IsBatch
+            ? string.Format(Strings.Cards_CheckingKey, Math.Min(p.Tried + 1, p.Total), p.Total)
+            : string.Format(Strings.Cards_SectorBlockKeyDetail, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector), key, detail);
         IsDumpProgressSuccess = p.Phase == MifareKeyPhase.Found;
         IsDumpProgressError = p.Phase == MifareKeyPhase.NotFound;
         SetDumpKeyProgress(p.Tried, p.Total);

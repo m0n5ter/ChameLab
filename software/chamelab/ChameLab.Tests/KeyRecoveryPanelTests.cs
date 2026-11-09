@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
@@ -11,6 +13,35 @@ namespace ChameLab.Tests;
 [Collection(AppSettingsCollection.Name)]
 public class KeyRecoveryPanelTests
 {
+    [Theory]
+    [InlineData(true, "Проверка ключа 3/10")]
+    [InlineData(false, "Сектор 39 - блок 255 - ключ A - 3/10")]
+    public void KeySearchDetailDistinguishesBatchFromSectorProgress(bool batch, string expected)
+    {
+        var previousCulture = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("ru");
+        try
+        {
+            var store = new MemoryKeyValueStore();
+            var cards = new CardLibrary(store);
+            var card = new CardSave { Name = "Source", Tag = TagSpecificType.Mifare4096, Uid = [1, 2, 3, 4], Sak = 0x18, Atqa = [2, 0] };
+            cards.Add(card);
+            var vm = new CardsViewModel(new DeviceService([]), cards, new DictionaryLibrary(store));
+            vm.OpenCard(card.Id);
+            var progress = new MifareKeyProgress(39, MfKeyType.A, MifareKeyPhase.Searching, 2, 10, null) { IsBatch = batch };
+
+            typeof(CardsViewModel).GetMethod("OnDumpKey", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(vm, [progress]);
+            Assert.Equal(expected, vm.DumpProgressDetail);
+            Assert.Equal(KeyCellState.Searching, vm.DumpSectors[39].KeyAState);
+
+            vm.WriteRecovery.PreviewWrite(card.Tag);
+            vm.WriteRecovery.ApplyKey(progress);
+            Assert.Equal(expected, vm.WriteRecovery.DumpProgressDetail);
+            Assert.Equal(KeyCellState.Searching, vm.WriteRecovery.DumpSectors[39].KeyAState);
+        }
+        finally { CultureInfo.CurrentUICulture = previousCulture; }
+    }
+
     [Fact]
     public void DictionaryChangesMergeAcrossWindowsAndPreserveUnavailableDictionaries()
     {

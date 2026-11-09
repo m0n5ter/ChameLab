@@ -1306,7 +1306,7 @@
     <value>CFG0 · AUTH0 (первая защищённая страница)</value>
   </data>
   <data name="Cards_CheckingKey" xml:space="preserve">
-    <value>проверка ключа {0}/{1}</value>
+    <value>Проверка ключа {0}/{1}</value>
   </data>
   <data name="Cards_CloseMfkey32Result" xml:space="preserve">
     <value>Закрыть результат mfkey32</value>
@@ -1588,7 +1588,7 @@
     <value>Сектор {0} · блок {1} · ключ {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>Сектор {0} · блок {1} · ключ {2} · {3}</value>
+    <value>Сектор {0} - блок {1} - ключ {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} · трейлер · {1}</value>

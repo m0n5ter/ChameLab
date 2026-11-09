@@ -763,7 +763,7 @@
     <value>섹터 {0} · 블록 {1} · 키 {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>섹터 {0} · 블록 {1} · 키 {2} · {3}</value>
+    <value>섹터 {0} - 블록 {1} - 키 {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} 트레일러 · {1}</value>

@@ -1309,7 +1309,7 @@
     <value>CFG0 · AUTH0 (first protected page)</value>
   </data>
   <data name="Cards_CheckingKey" xml:space="preserve">
-    <value>checking key {0}/{1}</value>
+    <value>Checking key {0}/{1}</value>
   </data>
   <data name="Cards_CloseMfkey32Result" xml:space="preserve">
     <value>Close the mfkey32 result</value>
@@ -1591,7 +1591,7 @@
     <value>Sector {0} · block {1} · key {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>Sector {0} · block {1} · key {2} · {3}</value>
+    <value>Sector {0} - block {1} - key {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} trailer · {1}</value>

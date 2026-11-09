@@ -199,7 +199,7 @@
     <value>CFG0 · AUTH0 (première page protégée)</value>
   </data>
   <data name="Cards_CheckingKey" xml:space="preserve">
-    <value>vérification de la clé {0}/{1}</value>
+    <value>Vérification de la clé {0}/{1}</value>
   </data>
   <data name="Cards_ClearSearchAndFilters" xml:space="preserve">
     <value>Effacer la recherche et les filtres</value>
@@ -763,7 +763,7 @@
     <value>Secteur {0} · bloc {1} · clé {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>Secteur {0} · bloc {1} · clé {2} · {3}</value>
+    <value>Secteur {0} - bloc {1} - clé {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} · trailer · {1}</value>

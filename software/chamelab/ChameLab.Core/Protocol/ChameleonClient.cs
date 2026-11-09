@@ -545,6 +545,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// at most this many keys in one command.</summary>
     public const int BatchKeyCheckMaxKeys = 83;
 
+    // Bound RF work as well as payload size. A rejected authentication takes about 60 ms on
+    // hardware: 83 keys x 80 pairs can occupy the device for nearly seven minutes.
+    private const int BatchKeyCheckMaxAttempts = 64;
+    private const int BatchKeyCheckChunkTimeoutMs = 30_000;
+
     /// <summary>Whether the connected firmware advertises the batch key check command.</summary>
     public async Task<bool> SupportsBatchKeyCheckAsync(CancellationToken ct = default) =>
         (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Mf1CheckKeysOfSectors);
@@ -558,14 +563,10 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// the pairs that were opened to the key that opened them — it may include a key B the trailer
     /// revealed even when only A was asked for. Keys are sent in chunks (fewer over BLE); after each
     /// chunk <paramref name="keysChecked"/> reports how many of <paramref name="keys"/> have been tried.
-    /// Partial results from a card that left the field mid-scan are kept. Throws
+    /// Partial results are delivered through onFound even if the card leaves or the call is canceled.
+    /// Card loss interrupts the scan; an unfinished chunk is never reported as fully checked. Throws
     /// <see cref="NotSupportedException"/> on firmware without the command.
     /// </summary>
-    /// <summary>A single batch command waits at most this long for the firmware to work through one
-    /// chunk; past it the command is treated as timed out and the caller can fall back. Generous for
-    /// the slowest realistic chunk (83 keys over every sector) yet bounded, so a stall cannot hang.</summary>
-    private const int BatchKeyCheckChunkTimeoutMs = 120_000;
-
     public async Task<IReadOnlyDictionary<(int Sector, MfKeyType Type), byte[]>> CheckMifareKeysOfSectorsAsync(
         IReadOnlyCollection<(int Sector, MfKeyType Type)> wanted,
         IReadOnlyList<byte[]> keys,
@@ -587,9 +588,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         // type (A = 0, B = 1), MSB first within byte index/8. A set request bit means "skip this pair".
         static int BitOf((int Sector, MfKeyType Type) p) => p.Sector * 2 + (p.Type == MfKeyType.A ? 0 : 1);
 
-        var chunkSize = conn.Transport.Kind == TransportKind.Ble ? 32 : BatchKeyCheckMaxKeys;
+        var maxChunkSize = conn.Transport.Kind == TransportKind.Ble ? 32 : BatchKeyCheckMaxKeys;
+        var returnedPairs = pairs.Concat(pairs.Where(p => p.Type == MfKeyType.A)
+            .Select(p => (p.Sector, Type: MfKeyType.B))).Distinct().ToArray();
         var checkedKeys = 0;
-        foreach (var chunk in dictionary.Chunk(chunkSize))
+        while (checkedKeys < dictionary.Length)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -606,19 +609,23 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             }
             if (pending == 0) break;
 
+            var chunkSize = Math.Min(maxChunkSize, Math.Max(1, BatchKeyCheckMaxAttempts / pending));
+            var chunk = dictionary.Skip(checkedKeys).Take(chunkSize).ToArray();
             var payload = new byte[10 + chunk.Length * 6];
             mask.CopyTo(payload, 0);
             for (var i = 0; i < chunk.Length; i++) chunk[i].CopyTo(payload, 10 + i * 6);
 
-            var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload,
-                timeoutMs: BatchKeyCheckChunkTimeoutMs, ct: ct);
+            // The firmware cannot cancel a command. Drain its reply before allowing another
+            // command to start, and save any found keys before honoring cancellation.
             ct.ThrowIfCancellationRequested();
+            var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload,
+                timeoutMs: BatchKeyCheckChunkTimeoutMs);
 
             // The card leaving the field (HfTagNo) still returns the keys found before it went.
             if (frame.Data.Length != 490 || frame.Status is not (Status.HfTagOk or Status.HfTagNo))
                 throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
 
-            foreach (var pair in pairs)
+            foreach (var pair in returnedPairs)
             {
                 if (result.ContainsKey(pair)) continue;
                 var bit = BitOf(pair);
@@ -628,11 +635,14 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 onFound?.Invoke(pair, key); // report as the chunk finds it, not only at the end
             }
 
+            ct.ThrowIfCancellationRequested();
+            // HfTagNo aborts the firmware loop midway, so this chunk was not fully checked.
+            // Keep the found keys, but do not report an exhausted dictionary to the caller.
+            if (frame.Status == Status.HfTagNo)
+                throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
+
             checkedKeys += chunk.Length;
             keysChecked?.Report(checkedKeys);
-
-            // Nothing more to try against a card that is no longer there.
-            if (frame.Status == Status.HfTagNo) break;
         }
 
         return result;
@@ -1167,8 +1177,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// written into the dump and reported through <paramref name="keyProgress"/>, so the per-sector
     /// search that follows only works on what the batch could not open. With
     /// <paramref name="onlyMissingData"/> it skips sectors whose blocks are already all present.
-    /// Does nothing on firmware without the command; a transient failure is swallowed so the
-    /// per-sector search can still run, but cancellation propagates.
+    /// Does nothing on firmware without the command. Rejected commands allow a per-sector fallback;
+    /// cancellation, card loss, timeouts and disconnections propagate with found keys preserved.
     /// </summary>
     /// <returns>true once the firmware has checked the whole dictionary against every requested pair
     /// (so the caller must not run the per-sector dictionary search again — that would double the work
@@ -1193,7 +1203,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         }
         if (wanted.Count == 0) return true;
 
-        var keys = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Concat(keyDict)
+        var keys = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Concat(keyDict).Where(k => k.Length == 6)
             .DistinctBy(Convert.ToHexString).ToArray();
         if (keys.Length == 0) return true;
 
@@ -1203,11 +1213,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         void Searching(int done)
         {
             foreach (var (sector, type) in remaining)
-                keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Searching, done, keys.Length, null));
+                keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Searching, done, keys.Length, null) { IsBatch = true });
         }
         void Found((int Sector, MfKeyType Type) pair, byte[] key)
         {
             var (sector, type) = pair;
+            if (type == MfKeyType.A ? dump.KeyA[sector] is not null : dump.KeyB[sector] is not null) return;
             if (type == MfKeyType.A) dump.KeyA[sector] ??= key;
             else dump.KeyB[sector] ??= key;
             remaining.Remove(pair);
@@ -1221,7 +1232,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 keysChecked: new DelegateProgress<int>(Searching), onFound: Found, ct: ct);
             return true;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (ex is NotSupportedException ||
+            ex is ChameleonException { Status: not Status.HfTagNo })
         {
             // Batch failed partway: keep what it found, let the per-sector search retry the dictionary.
             return false;
