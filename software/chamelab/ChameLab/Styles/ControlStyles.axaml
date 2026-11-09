@@ -468,6 +468,14 @@
     <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
   </Style>
 
+  <!-- A FormColumns alternative that is not shown: it keeps counting toward the column width, but
+       cannot be seen, clicked or focused. -->
+  <Style Selector=":is(Control).unshown">
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="IsHitTestVisible" Value="False" />
+    <Setter Property="IsEnabled" Value="False" />
+  </Style>
+
   <!-- Segmented two-way switch built from radio buttons. -->
   <Style Selector="Border.segmented">
     <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />

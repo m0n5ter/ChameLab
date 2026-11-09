@@ -3400,7 +3400,7 @@
     <value>Tipo de dicionário</value>
   </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
-    <value>Recuperação de senha T55XX</value>
+    <value>Alterar senha T55XX</value>
   </data>
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>Testar senhas de dicionários</value>
@@ -3475,7 +3475,25 @@
     <value>A chave {0} tem menos de {1} bytes</value>
   </data>
   <data name="Tools_T55xxSetNewKey" xml:space="preserve">
-    <value>Definir uma nova chave</value>
+    <value>Definir</value>
+  </data>
+  <data name="Tools_T55xxCurrentKey" xml:space="preserve">
+    <value>Chave atual</value>
+  </data>
+  <data name="Tools_T55xxKnowKey" xml:space="preserve">
+    <value>Eu sei</value>
+  </data>
+  <data name="Tools_T55xxDictionaryAttack" xml:space="preserve">
+    <value>Ataque de dicionário</value>
+  </data>
+  <data name="Tools_T55xxKnownKey" xml:space="preserve">
+    <value>Senha conhecida</value>
+  </data>
+  <data name="Tools_T55xxNewKeyTitle" xml:space="preserve">
+    <value>Nova chave</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyWillBeSet" xml:space="preserve">
+    <value>A chave padrão {0} será definida.</value>
   </data>
   <data name="Common_Start" xml:space="preserve">
     <value>Iniciar</value>

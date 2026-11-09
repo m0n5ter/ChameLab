@@ -3400,7 +3400,7 @@
     <value>字典类型</value>
   </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
-    <value>T55XX 密码恢复</value>
+    <value>更改 T55XX 密码</value>
   </data>
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>尝试字典中的密码</value>
@@ -3475,7 +3475,25 @@
     <value>密钥 {0} 短于 {1} 字节</value>
   </data>
   <data name="Tools_T55xxSetNewKey" xml:space="preserve">
-    <value>设置新密钥</value>
+    <value>设置</value>
+  </data>
+  <data name="Tools_T55xxCurrentKey" xml:space="preserve">
+    <value>当前密钥</value>
+  </data>
+  <data name="Tools_T55xxKnowKey" xml:space="preserve">
+    <value>已知</value>
+  </data>
+  <data name="Tools_T55xxDictionaryAttack" xml:space="preserve">
+    <value>字典攻击</value>
+  </data>
+  <data name="Tools_T55xxKnownKey" xml:space="preserve">
+    <value>已知密码</value>
+  </data>
+  <data name="Tools_T55xxNewKeyTitle" xml:space="preserve">
+    <value>新密钥</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyWillBeSet" xml:space="preserve">
+    <value>将设置默认密钥 {0}。</value>
   </data>
   <data name="Common_Start" xml:space="preserve">
     <value>开始</value>

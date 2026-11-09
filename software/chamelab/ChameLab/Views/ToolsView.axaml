@@ -128,7 +128,8 @@
             </StackPanel>
           </Grid>
         </Button>
-        <Button Classes="tile source" Command="{Binding OpenT55xxCommand}">
+        <!-- T55xx recovery needs a device, so the tile shows only with one connected. -->
+        <Button Classes="tile source" Command="{Binding OpenT55xxCommand}" IsVisible="{Binding IsConnected}">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Border Classes="iconwell amber" VerticalAlignment="Center">
               <PathIcon Data="{StaticResource Icon.key}" />
@@ -248,55 +249,108 @@
           <Border Classes="card">
             <StackPanel Spacing="14">
 
-              <!-- Keys: the current selection (dictionaries) and an optional new key, labels aligned at the left. -->
-              <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="14" RowSpacing="12"
-                    IsEnabled="{Binding !IsBusy}">
+              <!-- Keys: the current password (known or found by dictionary) and an optional new one.
+                   Labels on the left and the inputs on the right when the pane is wide enough, all in one
+                   column otherwise. The switches, the editors and the dictionaries button all take the width
+                   of the widest of them; notes and errors are Free and just wrap. -->
+              <c:FormColumns ColumnSpacing="14" RowSpacing="10" LabelSpacing="6" IsEnabled="{Binding !IsBusy}">
 
-                <!-- Current key: the dictionaries to try; the count rides on the button as a framed badge. -->
-                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
+                <!-- Current key and the mode switch. -->
+                <TextBlock Classes="caption" VerticalAlignment="Center"
                            Text="{x:Static loc:Strings.Tools_T55xxCurrentKey}" />
-                <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" IsEnabled="{Binding !IsBusy}"
-                        AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <PathIcon Data="{StaticResource Icon.key}" Width="16" Height="16" VerticalAlignment="Center" />
-                    <TextBlock Text="{x:Static loc:Strings.Common_KeyDictionaries}" VerticalAlignment="Center" />
-                    <Border Classes="countbadge">
-                      <TextBlock Text="{Binding T55xxKeyCount}" Classes="caption" />
-                    </Border>
-                  </StackPanel>
-                  <Button.Flyout>
-                    <Flyout Placement="BottomEdgeAlignedLeft">
-                      <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12" IsEnabled="{Binding !IsBusy}">
-                        <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline" />
-                        <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
-                          <ItemsControl ItemsSource="{Binding T55xxKeySources}">
-                            <ItemsControl.ItemTemplate>
-                              <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
-                                <c:DictionaryToggle Margin="0,2" IsChecked="{Binding IsSelected}" Color="{Binding ColorBrush}"
-                                                      Title="{Binding Name}" Count="{Binding KeyCount}" />
-                              </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                          </ItemsControl>
-                        </ScrollViewer>
-                        <Separator />
-                        <TextBlock Text="{Binding T55xxKeyCountText}" FontWeight="SemiBold" />
-                      </StackPanel>
-                    </Flyout>
-                  </Button.Flyout>
-                </Button>
+                <!-- Segments size to their labels and share any extra width the column gives them. -->
+                <Border Classes="segmented compact">
+                  <c:SpreadStack>
+                    <RadioButton Classes="segment" GroupName="t55xxmode" IsChecked="{Binding T55xxKnowKey}"
+                                 Content="{x:Static loc:Strings.Tools_T55xxKnowKey}" />
+                    <RadioButton Classes="segment" GroupName="t55xxmode" IsChecked="{Binding T55xxUseDictionary}"
+                                 Content="{x:Static loc:Strings.Tools_T55xxDictionaryAttack}" />
+                  </c:SpreadStack>
+                </Border>
 
-                <!-- Set a new key: the editor is always shown, disabled until the box is checked, aligned under the button. -->
-                <CheckBox Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
-                          IsChecked="{Binding T55xxSetNewKey}" Content="{x:Static loc:Strings.Tools_T55xxSetNewKey}" />
-                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                  <c:HexBox Text="{Binding T55xxNewKey}" ByteLengths="4" HorizontalAlignment="Left"
-                            PlaceholderText="{Binding T55xxDefaultKeyText}" MinWidth="150" MaxWidth="260"
-                            IsEnabled="{Binding T55xxSetNewKey}"
+                <!-- The input for the chosen mode. Both alternatives are rows of their own, one Shown at a
+                     time, and the hidden one still counts toward the column width, so switching never resizes
+                     the column; equal heights keep it from nudging the layout. -->
+                <!-- Known password: a 4-byte editor. -->
+                <Panel />
+                <Panel Height="40" VerticalAlignment="Center" c:FormColumns.Shown="{Binding T55xxKnowKey}">
+                  <c:HexBox Text="{Binding T55xxKnownKey}" ByteLengths="4"
+                            VerticalAlignment="Top" PlaceholderText="20 20 66 66"
+                            AutomationProperties.Name="{x:Static loc:Strings.Tools_T55xxKnownKey}" />
+                </Panel>
+                <!-- Dictionary attack: pick the dictionaries; the count rides on the button as a framed badge. -->
+                <Panel />
+                <Panel Height="40" VerticalAlignment="Center" c:FormColumns.Shown="{Binding T55xxUseDictionary}">
+                  <Button VerticalAlignment="Top" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                          IsEnabled="{Binding !IsBusy}"
+                          AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <PathIcon Data="{StaticResource Icon.key}" Width="16" Height="16" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Static loc:Strings.Common_KeyDictionaries}" VerticalAlignment="Center" />
+                      <Border Classes="countbadge">
+                        <TextBlock Text="{Binding T55xxKeyCount}" Classes="caption" />
+                      </Border>
+                    </StackPanel>
+                    <Button.Flyout>
+                      <Flyout Placement="BottomEdgeAlignedLeft">
+                        <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12" IsEnabled="{Binding !IsBusy}">
+                          <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline" />
+                          <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding T55xxKeySources}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
+                                  <c:DictionaryToggle Margin="0,2" IsChecked="{Binding IsSelected}" Color="{Binding ColorBrush}"
+                                                        Title="{Binding Name}" Count="{Binding KeyCount}" />
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </ScrollViewer>
+                          <Separator />
+                          <TextBlock Text="{Binding T55xxKeyCountText}" FontWeight="SemiBold" />
+                        </StackPanel>
+                      </Flyout>
+                    </Button.Flyout>
+                  </Button>
+                </Panel>
+                <!-- The negative top margin pulls each error up to sit close under its input. -->
+                <Panel />
+                <TextBlock Classes="caption danger" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                           Text="{Binding T55xxKnownKeyError}"
+                           IsVisible="{Binding T55xxKnownKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                <!-- New key: Clear writes the default key, Set takes the one typed below. Only Set is bound
+                     two-way: picking Clear unchecks it through the group, which clears the flag. -->
+                <TextBlock Classes="caption" VerticalAlignment="Center"
+                           Text="{x:Static loc:Strings.Tools_T55xxNewKeyTitle}" />
+                <Border Classes="segmented compact">
+                  <c:SpreadStack>
+                    <RadioButton Classes="segment" GroupName="t55xxnewkey" IsChecked="{Binding !T55xxSetNewKey, Mode=OneWay}"
+                                 Content="{x:Static loc:Strings.Common_Clear}" />
+                    <RadioButton Classes="segment" GroupName="t55xxnewkey" IsChecked="{Binding T55xxSetNewKey}"
+                                 Content="{x:Static loc:Strings.Tools_T55xxSetNewKey}" />
+                  </c:SpreadStack>
+                </Border>
+
+                <!-- Under the choice: the editor for Set, or what Clear will write. Each takes a row of its
+                     own (only one shows), both 40 high so switching does not nudge the layout. The editor
+                     counts toward the column width even while hidden; the note is Free, so it wraps to the
+                     pane instead of the column. -->
+                <Panel />
+                <Panel Height="40" VerticalAlignment="Center" c:FormColumns.Shown="{Binding T55xxSetNewKey}">
+                  <c:HexBox Text="{Binding T55xxNewKey}" ByteLengths="4"
+                            VerticalAlignment="Top" PlaceholderText="{Binding T55xxDefaultKeyText}"
                             AutomationProperties.Name="{x:Static loc:Strings.Tools_T55xxNewKey}" />
-                  <TextBlock Classes="caption danger" Text="{Binding T55xxNewKeyError}"
-                             IsVisible="{Binding T55xxNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                </StackPanel>
-              </Grid>
+                </Panel>
+                <Panel />
+                <Border MinHeight="40" c:FormColumns.Free="True" IsVisible="{Binding !T55xxSetNewKey}">
+                  <TextBlock Classes="caption hint" VerticalAlignment="Top" TextWrapping="Wrap"
+                             Text="{Binding T55xxDefaultKeyText, StringFormat={x:Static loc:Strings.Tools_T55xxDefaultKeyWillBeSet}}" />
+                </Border>
+                <Panel />
+                <TextBlock Classes="caption danger" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                           Text="{Binding T55xxNewKeyError}"
+                           IsVisible="{Binding T55xxNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              </c:FormColumns>
 
               <!-- Start runs the recovery; while it runs it becomes Cancel, with the progress to its right.
                    Once a key is recovered, Save keys sits beside Start. -->
@@ -315,10 +369,15 @@
                       <TextBlock Text="{x:Static loc:Strings.Common_Start}" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>
-                  <!-- Cancel takes the Start spot while running, and answers Esc. -->
-                  <Button Command="{Binding CancelT55xxCommand}"
+                  <!-- Stop takes the Start spot while running, and answers Esc; styled like the dump's Stop. -->
+                  <Button Classes="danger" Command="{Binding CancelT55xxCommand}"
                           IsVisible="{Binding IsT55xxRunning}" b:DialogKeys.IsCancel="True"
-                          Content="{x:Static loc:Strings.Common_Cancel}" />
+                          AutomationProperties.Name="{x:Static loc:Strings.Common_Stop}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.close}" />
+                      <TextBlock Text="{x:Static loc:Strings.Common_Stop}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
                   <!-- Save the recovered key, the same way the card editor saves its keys. -->
                   <DropDownButton IsVisible="{Binding CanSaveT55xxKey}"
                                   ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardsKeys}">
@@ -377,7 +436,7 @@
               </Grid>
 
               <!-- Result: the UID, the matching key and the new key, as hex. -->
-              <StackPanel Spacing="6">
+              <StackPanel Spacing="6" Margin="30,0,0,0">
                 <Grid ColumnDefinitions="72,*" ColumnSpacing="8"
                       IsVisible="{Binding T55xxUid, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <TextBlock Text="{x:Static loc:Strings.Tools_T55xxUid}" Classes="caption" VerticalAlignment="Center" />

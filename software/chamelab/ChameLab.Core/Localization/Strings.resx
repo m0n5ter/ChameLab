@@ -3403,7 +3403,7 @@
     <value>Dictionary type</value>
   </data>
   <data name="Tools_T55xxPassword" xml:space="preserve">
-    <value>T55XX password recovery</value>
+    <value>Change T55XX password</value>
   </data>
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>Try passwords from dictionaries</value>
@@ -3478,10 +3478,25 @@
     <value>Key {0} is shorter than {1} bytes</value>
   </data>
   <data name="Tools_T55xxSetNewKey" xml:space="preserve">
-    <value>Set a new key</value>
+    <value>Set</value>
+  </data>
+  <data name="Tools_T55xxNewKeyTitle" xml:space="preserve">
+    <value>New key</value>
+  </data>
+  <data name="Tools_T55xxDefaultKeyWillBeSet" xml:space="preserve">
+    <value>The default key {0} will be set.</value>
   </data>
   <data name="Tools_T55xxCurrentKey" xml:space="preserve">
     <value>Current key</value>
+  </data>
+  <data name="Tools_T55xxKnowKey" xml:space="preserve">
+    <value>I know it</value>
+  </data>
+  <data name="Tools_T55xxDictionaryAttack" xml:space="preserve">
+    <value>Dictionary attack</value>
+  </data>
+  <data name="Tools_T55xxKnownKey" xml:space="preserve">
+    <value>Known password</value>
   </data>
   <data name="Common_Start" xml:space="preserve">
     <value>Start</value>

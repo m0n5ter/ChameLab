@@ -33,13 +33,14 @@ public sealed partial class ToolsViewModel
         {
             this.RaisePropertyChanged(nameof(T55xxKeyCount));
             this.RaisePropertyChanged(nameof(T55xxKeyCountText));
+            this.RaisePropertyChanged(nameof(T55xxReadyToStart));
         });
         OpenT55xxCommand = ReactiveCommand.Create(() => { Tool = SniffTool.T55xx; }, idle);
         TryT55xxCommand = ReactiveCommand.CreateFromTask(StartT55xxAsync,
             this.WhenAnyValue(x => x.IsBusy, x => x.IsConnected, x => x.IsT55xxSupported,
-                x => x.T55xxKeyCount, x => x.IsT55xxRunning, x => x.T55xxNewKeyError,
-                (busy, connected, supported, count, running, keyError) =>
-                    !busy && !running && connected && supported != false && count > 0 && keyError is null));
+                x => x.IsT55xxRunning, x => x.T55xxNewKeyError, x => x.T55xxReadyToStart,
+                (busy, connected, supported, running, keyError, ready) =>
+                    !busy && !running && connected && supported != false && ready && keyError is null));
         CancelT55xxCommand = ReactiveCommand.Create(() => _t55xxCts?.Cancel(),
             this.WhenAnyValue(x => x.IsT55xxRunning));
         SaveT55xxKeyToNewDictionaryCommand = ReactiveCommand.Create(SaveT55xxKeyToNewDictionary);
@@ -70,6 +71,46 @@ public sealed partial class ToolsViewModel
     }
     public bool IsT55xxUnsupported => IsT55xxSupported == false;
     public bool IsT55xxRunning { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+
+    /// <summary>True when the user already knows the password; false to try a dictionary.</summary>
+    public bool T55xxKnowKey
+    {
+        get;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(T55xxUseDictionary));
+            this.RaisePropertyChanged(nameof(T55xxKnownKeyError));
+            this.RaisePropertyChanged(nameof(T55xxReadyToStart));
+        }
+    }
+
+    /// <summary>The inverse of <see cref="T55xxKnowKey"/>, for the dictionary-attack radio button.</summary>
+    public bool T55xxUseDictionary
+    {
+        get => !T55xxKnowKey;
+        set => T55xxKnowKey = !value;
+    }
+
+    /// <summary>The password the user says they know, as hex (used instead of a dictionary).</summary>
+    public string T55xxKnownKey
+    {
+        get;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(T55xxKnownKeyError));
+            this.RaisePropertyChanged(nameof(T55xxReadyToStart));
+        }
+    } = "";
+
+    // The known password is only required, and only validated, in "I know the password" mode.
+    public string? T55xxKnownKeyError => !T55xxKnowKey || ValidT55xxKey(T55xxKnownKey) ? null : Strings.Common_Password4Bytes;
+
+    /// <summary>Whether Start has what it needs: a 4-byte known key, or at least one dictionary key.</summary>
+    public bool T55xxReadyToStart => T55xxKnowKey
+        ? Hex.TryParse(T55xxKnownKey, out var key) && key.Length == 4
+        : T55xxKeyCount > 0;
 
     /// <summary>The user wants to set a new key after a match; otherwise the default is used.</summary>
     public bool T55xxSetNewKey
@@ -208,7 +249,9 @@ public sealed partial class ToolsViewModel
         _t55xxRun = RunAsync(async () =>
         {
             var client = _device.Client ?? throw new InvalidOperationException(Strings.Common_ConnectFirst);
-            var keys = SelectedT55xxKeys();
+            // Either the one password the user knows, or every key from the chosen dictionaries.
+            if (T55xxKnowKey && !ValidT55xxKey(T55xxKnownKey)) throw new FormatException(Strings.Common_Password4Bytes);
+            var keys = T55xxKnowKey ? new[] { Hex.Parse(T55xxKnownKey) } : SelectedT55xxKeys();
             // A new key is only taken when the user chose to set one; otherwise the default is used.
             var custom = T55xxSetNewKey && !string.IsNullOrWhiteSpace(T55xxNewKey);
             if (custom && !ValidT55xxKey(T55xxNewKey)) throw new FormatException(Strings.Common_Password4Bytes);
