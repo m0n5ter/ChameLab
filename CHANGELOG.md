@@ -14,6 +14,7 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
  - ChameLab: the battery and operating mode cards on the Chameleon page go one per row before they get too narrow for their content
  - ChameLab: key dictionaries hold keys of 4 to 16 bytes, also of different lengths in one dictionary: in the hex editor each row is as long as its key, typing after the last byte lengthens it, Backspace and Insert delete and insert bytes, and pasting several lines adds a key per line. The list filters by key length; MIFARE Classic recovery takes the 6-byte keys of every dictionary, T55XX recovery the 4-byte ones
  - ChameLab: pasting into a hex editor from a phone keyboard's clipboard (or with Win+V) no longer crashes the app when the paste adds rows, and a pasted key list keeps one key per line; a paste with `#` comment lines is no longer ignored
+ - ChameLab: the hex editor shades every other row (a row wrapped over two lines counts as one); a key that fills whole lines no longer trails an empty line for its next byte, which appears once the caret moves past the last byte; the current row is highlighted only while the editor has focus
 
 ## [v1.4.35][2026-11-05] · firmware v2.3.12-cl
 ### Summary

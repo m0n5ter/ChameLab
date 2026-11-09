@@ -1229,6 +1229,8 @@
     <Setter Property="SelectionBrush" Value="{DynamicResource BrandBlueSoftBrush}" />
     <Setter Property="ActiveRowBrush" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
     <Setter Property="SeparatorBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <!-- Neutral gray at low alpha: a touch darker in the light theme, lighter in the dark one. -->
+    <Setter Property="StripeBrush" Value="#18808080" />
   </Style>
 
   <Style Selector="WrapPanel.hexlegend">

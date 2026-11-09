@@ -69,6 +69,8 @@ public sealed class HexEditor : Control
         AvaloniaProperty.Register<HexEditor, IBrush?>(nameof(ActiveRowBrush));
     public static readonly StyledProperty<IBrush?> SeparatorBrushProperty =
         AvaloniaProperty.Register<HexEditor, IBrush?>(nameof(SeparatorBrush));
+    public static readonly StyledProperty<IBrush?> StripeBrushProperty =
+        AvaloniaProperty.Register<HexEditor, IBrush?>(nameof(StripeBrush));
 
     public static readonly DirectProperty<HexEditor, string?> StatusTextProperty =
         AvaloniaProperty.RegisterDirect<HexEditor, string?>(nameof(StatusText), o => o.StatusText);
@@ -118,6 +120,8 @@ public sealed class HexEditor : Control
     // whether it starts that row: a line holds part of a row, a whole row or several whole rows.
     private long[] _lineStart = [0];
     private int[] _lineRow = Array.Empty<int>();
+    // Lines under the faint band of every other record (row, or rows packed on a line).
+    private bool[] _lineStriped = Array.Empty<bool>();
     private bool[] _lineFirst = Array.Empty<bool>();
     private double _contentHeight;
 
@@ -143,7 +147,7 @@ public sealed class HexEditor : Control
         AffectsRender<HexEditor>(ShowGroupHeadersProperty);
         AffectsRender<HexEditor>(ForegroundProperty, LabelBrushProperty, DimBrushProperty, ChangedBrushProperty,
             ManufacturerBrushProperty, KeyABrushProperty, AccessBitsBrushProperty, KeyBBrushProperty, CaretBrushProperty,
-            CaretCellBrushProperty, SelectionBrushProperty, ActiveRowBrushProperty, SeparatorBrushProperty);
+            CaretCellBrushProperty, SelectionBrushProperty, ActiveRowBrushProperty, SeparatorBrushProperty, StripeBrushProperty);
         TextInputMethodClientRequestedEvent.AddClassHandler<HexEditor>((editor, e) =>
         {
             if (editor.Buffer is { IsReadOnly: false }) e.Client = editor._ime;
@@ -221,6 +225,8 @@ public sealed class HexEditor : Control
     public IBrush? SelectionBrush { get => GetValue(SelectionBrushProperty); set => SetValue(SelectionBrushProperty, value); }
     public IBrush? ActiveRowBrush { get => GetValue(ActiveRowBrushProperty); set => SetValue(ActiveRowBrushProperty, value); }
     public IBrush? SeparatorBrush { get => GetValue(SeparatorBrushProperty); set => SetValue(SeparatorBrushProperty, value); }
+    /// <summary>Faint band behind every other line (translucent, over the active-row highlight).</summary>
+    public IBrush? StripeBrush { get => GetValue(StripeBrushProperty); set => SetValue(StripeBrushProperty, value); }
 
     /// <summary>
     /// Caret position and the byte under it, padded to a constant width for a
@@ -283,14 +289,7 @@ public sealed class HexEditor : Control
             if (_anchor >= buf.ViewLength) _anchor = -1;
             // Rows were added or removed, or a row got longer or shorter: lay the lines out again
             // now (the caret is placed by them) and the strips on the next layout if they moved.
-            var lines = _lineY.Length;
-            var height = _contentHeight;
-            LayOutLines(buf);
-            if (_lineY.Length != lines || _contentHeight != height)
-            {
-                _chunksDirty = true;
-                InvalidateMeasure();
-            }
+            RelayOutLines(buf);
         }
         UpdateStatus();
         InvalidateCaret();
@@ -311,8 +310,46 @@ public sealed class HexEditor : Control
     private int RowOfLine(int line) => _lineRow[line];
     private bool StartsRow(int line) => _lineFirst[line];
 
-    /// <summary>Cells of a line: the last line of a row (or of packed rows) can be shorter.</summary>
-    private int LineBytes(HexBuffer buf, int line) => (int)(_lineStart[line + 1] - _lineStart[line]);
+    /// <summary>
+    /// Cells of a line: the last line of a row (or of packed rows) can be shorter. A hidden tail
+    /// cell (see <see cref="IsHiddenTail"/>) is counted to the line before but never shown there.
+    /// </summary>
+    private int LineBytes(HexBuffer buf, int line) => (int)Math.Min(_lineStart[line + 1] - _lineStart[line], _perLine);
+
+    /// <summary>
+    /// A line that would hold only the cell for adding a byte after a row's bytes (a row filling
+    /// whole lines, e.g. 8 bytes at 8 a line): left out unless the caret is on that cell, so full
+    /// rows don't each trail an empty line. The cell then belongs to the line before, past its end.
+    /// </summary>
+    private bool IsHiddenTail(HexBuffer buf, int row, int col, long offset) =>
+        col > 0 && buf.RowViewLength(row) - col == 1 && buf.RowDataLength(row) == col && offset != _caret;
+
+    /// <summary>Whether a cell is a row's tail cell that takes a line only while the caret is on it.</summary>
+    private bool TailOnOwnLine(long offset)
+    {
+        if (_buffer is not { VariableRowLength: true } buf || offset < 0 || offset >= buf.ViewLength) return false;
+        int row = buf.RowAt(offset), col = buf.ColumnAt(offset);
+        return col % _perLine == 0 && IsHiddenTail(buf, row, col, -1);
+    }
+
+    /// <summary>Whether a cell sits on a line of its own (not a hidden tail past a line's end).</summary>
+    private bool IsCellShown(long offset) => offset - _lineStart[LineOf(offset)] < _perLine;
+
+    /// <summary>
+    /// Lays the lines out again after the bytes or the caret changed them (rows added, removed,
+    /// longer or shorter, or a tail cell shown or hidden), and the strips if they moved.
+    /// </summary>
+    private void RelayOutLines(HexBuffer buf)
+    {
+        var lines = _lineY.Length;
+        var height = _contentHeight;
+        LayOutLines(buf);
+        if (_lineY.Length != lines || _contentHeight != height)
+        {
+            _chunksDirty = true;
+            InvalidateMeasure();
+        }
+    }
 
     /// <summary>
     /// Splits the rows into lines of up to <see cref="_perLine"/> cells: equally long rows run on
@@ -348,6 +385,7 @@ public sealed class HexEditor : Control
                 var length = buf.RowViewLength(row);
                 for (var col = 0; col < length; col += _perLine)
                 {
+                    if (IsHiddenTail(buf, row, col, start + col)) continue;
                     starts.Add(start + col);
                     rows.Add(row);
                     firsts.Add(col == 0);
@@ -361,10 +399,15 @@ public sealed class HexEditor : Control
         }
 
         _lineY = new double[lines];
+        _lineStriped = new bool[lines];
         double y = 0;
+        var records = 0;
         for (var i = 0; i < lines; i++)
         {
             var row = RowOfLine(i);
+            // A row wrapped over several lines is one record and one band; packed rows share a line's.
+            if (StartsRow(i)) records++;
+            _lineStriped[i] = records % 2 == 1;
             if (StartsRow(i))
             {
                 if (row > 0 && buf.StartsGroup(row)) y += SeparatorGap;
@@ -737,7 +780,8 @@ public sealed class HexEditor : Control
 
         var caretLine = LineOf(_caret);
         var caretShown = caretLine >= _winFrom && caretLine <= _winTo;
-        if (caretShown && ActiveRowBrush is { } activeRow)
+        // Only while focused: an idle caret on the first row reads as a stripe of its own.
+        if (caretShown && IsKeyboardFocusWithin && ActiveRowBrush is { } activeRow)
             ctx.FillRectangle(activeRow, new Rect(0, _lineY[caretLine], Bounds.Width, _lineH), 4);
 
         var panes = _showAscii ? 2 : 1;
@@ -748,7 +792,8 @@ public sealed class HexEditor : Control
             var from = Math.Max(selFrom, _lineStart[_winFrom]);
             var to = Math.Min(Math.Min(selTo, _lineStart[_winTo + 1] - 1), buf.ViewLength - 1);
             for (var offset = from; offset <= to; offset++)
-                for (var p = 0; p < panes; p++)
+                if (IsCellShown(offset))
+                    for (var p = 0; p < panes; p++)
                     ctx.FillRectangle(selBrush, CellRect(offset, p == 0 ? Pane.Hex : Pane.Ascii));
         }
 
@@ -776,10 +821,19 @@ public sealed class HexEditor : Control
         // The runs' own bounds leave out the glyph offsets; the strip's area is its content.
         ctx.FillRectangle(Brushes.Transparent, new Rect(0, top, width, _lineY[last] + _lineH - top));
         if (_canBatchText) BeginGlyphs();
+        var stripe = StripeBrush;
         for (var line = first; line <= last; line++)
         {
             var y = _lineY[line];
             var row = RowOfLine(line);
+            // Every other record gets a faint band, so the eye keeps to it across the grid; a
+            // wrapped row's band runs on over its lines, rounded only at its top and bottom.
+            if (stripe is not null && _lineStriped[line])
+            {
+                var upper = StartsRow(line) ? 4 : 0;
+                var lower = line + 1 >= _lineY.Length || StartsRow(line + 1) ? 4 : 0;
+                ctx.DrawRectangle(stripe, null, new RoundedRect(new Rect(0, y, width, _lineH), upper, upper, lower, lower));
+            }
             var firstOfRow = StartsRow(line);
 
             var header = firstOfRow && ShowGroupHeaders ? buf.GroupHeader(row) : null;
@@ -919,8 +973,15 @@ public sealed class HexEditor : Control
         if (_buffer is not { ViewLength: > 0 }) return;
         if (extend) { if (_anchor < 0) _anchor = _caret; }
         else _anchor = -1;
+        var old = _caret;
         _caret = Math.Clamp(offset, 0, _buffer.ViewLength - 1);
         _lowNibble = low && !extend;
+        // A row's tail cell gets a line of its own while the caret is on it (typing past a full line).
+        if (old != _caret && _lineY.Length > 0 && (TailOnOwnLine(old) || TailOnOwnLine(_caret)))
+        {
+            RelayOutLines(_buffer);
+            InvalidateText();
+        }
         RestartBlink();
         UpdateStatus();
         InvalidateCaret();
@@ -997,7 +1058,7 @@ public sealed class HexEditor : Control
         base.OnGotFocus(e);
         _pointerFocus = e.NavigationMethod == NavigationMethod.Pointer;
         RestartBlink();
-        _caretLayer.InvalidateVisual();
+        InvalidateCaret();
     }
 
     protected override void OnLostFocus(FocusChangedEventArgs e)
@@ -1005,7 +1066,7 @@ public sealed class HexEditor : Control
         base.OnLostFocus(e);
         _pointerFocus = false;
         _blink.Stop();
-        _caretLayer.InvalidateVisual();
+        InvalidateCaret();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
