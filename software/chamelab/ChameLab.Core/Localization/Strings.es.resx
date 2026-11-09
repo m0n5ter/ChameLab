@@ -1494,6 +1494,9 @@
   <data name="Device_CouldNotCollectNested" xml:space="preserve">
     <value>No se pudieron recopilar los nonces nested.</value>
   </data>
+  <data name="Device_NoBatchKeyCheck" xml:space="preserve">
+    <value>Este firmware no admite la comprobación de claves por lotes.</value>
+  </data>
   <data name="Device_Disconnected" xml:space="preserve">
     <value>El Chameleon se desconectó.</value>
   </data>

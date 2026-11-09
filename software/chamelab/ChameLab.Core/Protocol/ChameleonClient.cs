@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ChameLab.Models;
 using ChameLab.Services;
 using ChameLab.Localization;
+using ChameLab.Transport;
 
 namespace ChameLab.Protocol;
 
@@ -540,6 +541,95 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         return found;
     }
 
+    /// <summary>The firmware's batch key check (<see cref="Command.Mf1CheckKeysOfSectors"/>) takes
+    /// at most this many keys in one command.</summary>
+    public const int BatchKeyCheckMaxKeys = 83;
+
+    /// <summary>Whether the connected firmware advertises the batch key check command.</summary>
+    public async Task<bool> SupportsBatchKeyCheckAsync(CancellationToken ct = default) =>
+        (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.Mf1CheckKeysOfSectors);
+
+    /// <summary>
+    /// Checks a dictionary against several sectors in one firmware pass
+    /// (<see cref="Command.Mf1CheckKeysOfSectors"/>): the device tries every key on each requested
+    /// (sector, key type) and, when key A opens a sector, lifts key B straight from the trailer.
+    /// Far fewer host round-trips than one authentication per key, which matters most over BLE.
+    /// <paramref name="wanted"/> lists the pairs still missing a key (sectors 0..39); the result maps
+    /// the pairs that were opened to the key that opened them — it may include a key B the trailer
+    /// revealed even when only A was asked for. Keys are sent in chunks (fewer over BLE); after each
+    /// chunk <paramref name="keysChecked"/> reports how many of <paramref name="keys"/> have been tried.
+    /// Partial results from a card that left the field mid-scan are kept. Throws
+    /// <see cref="NotSupportedException"/> on firmware without the command.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<(int Sector, MfKeyType Type), byte[]>> CheckMifareKeysOfSectorsAsync(
+        IReadOnlyCollection<(int Sector, MfKeyType Type)> wanted,
+        IReadOnlyList<byte[]> keys,
+        IProgress<int>? keysChecked = null,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(wanted);
+        ArgumentNullException.ThrowIfNull(keys);
+        if (!await SupportsBatchKeyCheckAsync(ct))
+            throw new NotSupportedException(Strings.Device_NoBatchKeyCheck);
+
+        var result = new Dictionary<(int, MfKeyType), byte[]>();
+        var dictionary = keys.Where(k => k.Length == 6).DistinctBy(Convert.ToHexString).ToArray();
+        var pairs = wanted.Where(w => w.Sector is >= 0 and < 40).Distinct().ToArray();
+        if (dictionary.Length == 0 || pairs.Length == 0) return result;
+
+        // Bit layout the firmware uses for both the request mask and the found mask: sector * 2 + key
+        // type (A = 0, B = 1), MSB first within byte index/8. A set request bit means "skip this pair".
+        static int BitOf((int Sector, MfKeyType Type) p) => p.Sector * 2 + (p.Type == MfKeyType.A ? 0 : 1);
+
+        var chunkSize = conn.Transport.Kind == TransportKind.Ble ? 32 : BatchKeyCheckMaxKeys;
+        var checkedKeys = 0;
+        foreach (var chunk in dictionary.Chunk(chunkSize))
+        {
+            ct.ThrowIfCancellationRequested();
+
+            // Skip everything, then re-enable only the pairs still missing a key.
+            var mask = new byte[10];
+            Array.Fill(mask, (byte)0xFF);
+            var pending = 0;
+            foreach (var pair in pairs)
+            {
+                if (result.ContainsKey(pair)) continue;
+                var bit = BitOf(pair);
+                mask[bit / 8] &= (byte)~(0x80 >> (bit % 8));
+                pending++;
+            }
+            if (pending == 0) break;
+
+            var payload = new byte[10 + chunk.Length * 6];
+            mask.CopyTo(payload, 0);
+            for (var i = 0; i < chunk.Length; i++) chunk[i].CopyTo(payload, 10 + i * 6);
+
+            var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload,
+                timeoutMs: 1000 + (pending + 1) * chunk.Length * 100, ct: ct);
+            ct.ThrowIfCancellationRequested();
+
+            // The card leaving the field (HfTagNo) still returns the keys found before it went.
+            if (frame.Data.Length != 490 || frame.Status is not (Status.HfTagOk or Status.HfTagNo))
+                throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
+
+            foreach (var pair in pairs)
+            {
+                if (result.ContainsKey(pair)) continue;
+                var bit = BitOf(pair);
+                if ((frame.Data[bit / 8] & (0x80 >> (bit % 8))) == 0) continue;
+                result[pair] = frame.Data[(10 + 6 * bit)..(16 + 6 * bit)];
+            }
+
+            checkedKeys += chunk.Length;
+            keysChecked?.Report(checkedKeys);
+
+            // Nothing more to try against a card that is no longer there.
+            if (frame.Status == Status.HfTagNo) break;
+        }
+
+        return result;
+    }
+
     private async Task<ChameleonFrame> AcquireNestedAsync(
         int block, MfKeyType keyType, byte[] key, int targetBlock, MfKeyType targetKeyType,
         bool isStatic, CancellationToken ct)
@@ -971,6 +1061,12 @@ public sealed class ChameleonClient(ChameleonConnection conn)
 
         try
         {
+            // One firmware batch pass fills most keys up front; the per-sector loop below then only
+            // searches the few it missed and reads the blocks. Keeps what it found if the card leaves.
+            await TryBatchRecoverKeysAsync(dump, keyDict, onlyMissingData: true, keyProgress, ct);
+            foundA = dump.KeyA.OfType<byte[]>().ToList();
+            foundB = dump.KeyB.OfType<byte[]>().ToList();
+
             for (var s = 0; s < sectors; s++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -1035,6 +1131,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var tags = await Hf14aScanAsync(ct);
         if (tags.Count != 1 || !target.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Device_TargetChanged);
+        // Fill what the firmware batch pass can before falling back to the per-sector search.
+        await TryBatchRecoverKeysAsync(target, keyDict, onlyMissingData: false, keyProgress, ct);
         var knownA = target.KeyA.OfType<byte[]>().ToList();
         var knownB = target.KeyB.OfType<byte[]>().ToList();
         for (var s = 0; s < target.SectorCount; s++)
@@ -1045,6 +1143,49 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             if (target.KeyA[s] is { } a && !knownA.Any(k => k.AsSpan().SequenceEqual(a))) knownA.Add(a);
             target.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, knownB, knownA, keyProgress, ct);
             if (target.KeyB[s] is { } b && !knownB.Any(k => k.AsSpan().SequenceEqual(b))) knownB.Add(b);
+        }
+    }
+
+    /// <summary>
+    /// One firmware batch pass (<see cref="CheckMifareKeysOfSectorsAsync"/>) over every sector key
+    /// still missing from <paramref name="dump"/>, when the firmware supports it. Found keys are
+    /// written into the dump and reported through <paramref name="keyProgress"/>, so the per-sector
+    /// search that follows only works on what the batch could not open. With
+    /// <paramref name="onlyMissingData"/> it skips sectors whose blocks are already all present.
+    /// Does nothing on firmware without the command; a transient failure is swallowed so the
+    /// per-sector search can still run, but cancellation propagates.
+    /// </summary>
+    private async Task TryBatchRecoverKeysAsync(
+        MifareDump dump, IReadOnlyList<byte[]> keyDict, bool onlyMissingData,
+        IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
+    {
+        if (!await SupportsBatchKeyCheckAsync(ct)) return;
+
+        var wanted = new List<(int Sector, MfKeyType Type)>();
+        for (var s = 0; s < dump.SectorCount; s++)
+        {
+            if (onlyMissingData && Enumerable
+                    .Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s))
+                    .All(b => dump.GetBlock(b) is { Length: 16 }))
+                continue;
+            if (dump.KeyA[s] is null) wanted.Add((s, MfKeyType.A));
+            if (dump.KeyB[s] is null) wanted.Add((s, MfKeyType.B));
+        }
+        if (wanted.Count == 0) return;
+
+        var keys = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Concat(keyDict)
+            .DistinctBy(Convert.ToHexString).ToArray();
+        if (keys.Length == 0) return;
+
+        IReadOnlyDictionary<(int Sector, MfKeyType Type), byte[]> found;
+        try { found = await CheckMifareKeysOfSectorsAsync(wanted, keys, ct: ct); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { return; }
+
+        foreach (var ((sector, type), key) in found)
+        {
+            if (type == MfKeyType.A) dump.KeyA[sector] ??= key;
+            else dump.KeyB[sector] ??= key;
+            keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Found, 0, 0, key));
         }
     }
 

@@ -2820,6 +2820,9 @@
   <data name="Device_CouldNotCollectNested" xml:space="preserve">
     <value>Не удалось собрать nonce для nested.</value>
   </data>
+  <data name="Device_NoBatchKeyCheck" xml:space="preserve">
+    <value>Эта прошивка не поддерживает пакетную проверку ключей.</value>
+  </data>
   <data name="Device_Disconnected" xml:space="preserve">
     <value>Chameleon отключён.</value>
   </data>

@@ -1494,6 +1494,9 @@
   <data name="Device_CouldNotCollectNested" xml:space="preserve">
     <value>nested nonce를 수집할 수 없습니다.</value>
   </data>
+  <data name="Device_NoBatchKeyCheck" xml:space="preserve">
+    <value>이 펌웨어는 키 일괄 확인을 지원하지 않습니다.</value>
+  </data>
   <data name="Device_Disconnected" xml:space="preserve">
     <value>Chameleon 연결이 끊어졌습니다.</value>
   </data>

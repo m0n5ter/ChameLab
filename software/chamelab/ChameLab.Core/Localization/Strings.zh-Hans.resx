@@ -1494,6 +1494,9 @@
   <data name="Device_CouldNotCollectNested" xml:space="preserve">
     <value>无法收集 nested nonce。</value>
   </data>
+  <data name="Device_NoBatchKeyCheck" xml:space="preserve">
+    <value>此固件不支持批量校验密钥。</value>
+  </data>
   <data name="Device_Disconnected" xml:space="preserve">
     <value>Chameleon 已断开连接。</value>
   </data>
