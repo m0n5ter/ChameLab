@@ -10,8 +10,8 @@ using ChameLab.Protocol;
 
 namespace ChameLab.Services;
 
-/// <summary>The matched key (null for an open tag), the password the tag has now, and the card it now broadcasts.</summary>
-public sealed record T55xxPasswordResult(byte[]? Key, byte[] NewKey, LfScanResult Card);
+/// <summary>The matched key, the final password (null when unprotected), and the card it now broadcasts.</summary>
+public sealed record T55xxPasswordResult(byte[]? Key, byte[]? NewKey, LfScanResult Card);
 
 /// <summary>
 /// Proves write access by writing a different EM410x ID and reading it back. Probes do not
@@ -27,20 +27,20 @@ public static class T55xxPasswordRecovery
     public static Task<T55xxPasswordResult?> RecoverAsync(ChameleonClient client, IEnumerable<byte[]> passwords,
         byte[]? newKey = null, Action<int, int>? progress = null, Action<LfScanResult>? originalRead = null,
         Action<byte[]?>? keyFound = null, Func<LfScanResult, byte[]?>? knownPassword = null,
-        CancellationToken ct = default) =>
-        RunAsync(client, null, passwords, newKey, progress, originalRead, keyFound, knownPassword, ct);
+        CancellationToken ct = default, bool keepPassword = false) =>
+        RunAsync(client, null, passwords, newKey, progress, originalRead, keyFound, knownPassword, ct, keepPassword);
 
     public static Task<T55xxPasswordResult?> WriteAsync(ChameleonClient client, TagSpecificType type, byte[] id,
         IEnumerable<byte[]> passwords, byte[]? newKey = null, Action<int, int>? progress = null,
         Action<LfScanResult>? originalRead = null, Action<byte[]?>? keyFound = null,
-        Func<LfScanResult, byte[]?>? knownPassword = null, CancellationToken ct = default) =>
+        Func<LfScanResult, byte[]?>? knownPassword = null, CancellationToken ct = default, bool keepPassword = false) =>
         RunAsync(client, new(type, (byte[])id.Clone()), passwords, newKey, progress, originalRead, keyFound,
-            knownPassword, ct);
+            knownPassword, ct, keepPassword);
 
     private static async Task<T55xxPasswordResult?> RunAsync(ChameleonClient client, LfScanResult? requested,
         IEnumerable<byte[]> passwords, byte[]? newKey, Action<int, int>? progress,
         Action<LfScanResult>? originalRead, Action<byte[]?>? keyFound, Func<LfScanResult, byte[]?>? knownPassword,
-        CancellationToken ct)
+        CancellationToken ct, bool keepPassword)
     {
         var target = (byte[])(newKey ?? ChameleonClient.DefaultT55xxKey).Clone();
         var keys = passwords.Select(k => (byte[])k.Clone()).ToArray();
@@ -84,13 +84,13 @@ public static class T55xxPasswordRecovery
             while (SameId(original, probeId) || SameId(final, probeId)) probeId[4]++;
 
             // Open writes identify unprotected tags without claiming a dictionary key matched.
-            if (await AttemptAsync(null)) return new(null, target, final);
+            if (await AttemptAsync(null)) return new(null, keepPassword ? null : target, final);
             if (original is null) throw new InvalidOperationException(Strings.Tools_T55xxReadOriginalFailed);
             for (var i = 0; i < keys.Length; i++)
             {
                 var matched = await AttemptAsync(keys[i]);
                 progress?.Invoke(i + 1, keys.Length);
-                if (matched) return new(keys[i], target, final);
+                if (matched) return new(keys[i], keepPassword ? keys[i] : target, final);
             }
             ct.ThrowIfCancellationRequested();
             return null;
@@ -98,6 +98,7 @@ public static class T55xxPasswordRecovery
             async Task<bool> AttemptAsync(byte[]? candidate)
             {
                 ct.ThrowIfCancellationRequested();
+                var finalPassword = keepPassword ? candidate : target;
                 var finalStarted = false;
                 var restored = false;
                 try
@@ -129,7 +130,8 @@ public static class T55xxPasswordRecovery
                     }
                     finalStarted = true;
                     // Firmware write payloads require at least one old-key slot, even for an open tag.
-                    await client.WriteLfToT55xxAsync(final.Type, final.Id, target, candidate is null ? [target] : [candidate]);
+                    await WriteCardAsync(final, finalPassword ?? target, candidate is null ? [target] : [candidate],
+                        keepPassword && candidate is null);
                     restored = true;
                     // Without a readable original, finish the requested card instead of leaving
                     // an initially blank tag broadcasting our temporary probe ID.
@@ -145,7 +147,7 @@ public static class T55xxPasswordRecovery
                             if (!finalStarted && await OriginalIntactAsync()) restored = true;
                             else
                             {
-                                await RestoreAsync(finalStarted ? target : candidate ?? target,
+                                await RestoreAsync(finalStarted ? finalPassword ?? target : candidate ?? target,
                                     candidate is null ? [target] : [target, candidate]);
                                 restored = true;
                             }
@@ -154,7 +156,8 @@ public static class T55xxPasswordRecovery
                         {
                             throw new InvalidOperationException(string.Format(Strings.Tools_T55xxRestoreFailed,
                                 original.Type.DisplayName(), Convert.ToHexString(original.Id),
-                                candidate is null ? "—" : Convert.ToHexString(candidate), Convert.ToHexString(target),
+                                candidate is null ? "—" : Convert.ToHexString(candidate),
+                                finalPassword is null ? "—" : Convert.ToHexString(finalPassword),
                                 restoreError.Message), error);
                         }
                     }
@@ -172,7 +175,30 @@ public static class T55xxPasswordRecovery
                 }
 
                 Task RestoreAsync(byte[] password, byte[][] oldKeys) =>
-                    client.WriteLfToT55xxAsync(original!.Type, original.Id, password, oldKeys);
+                    WriteCardAsync(original!, password, oldKeys, keepPassword && candidate is null);
+            }
+
+            async Task WriteCardAsync(LfScanResult card, byte[] password, byte[][] oldKeys, bool unprotected)
+            {
+                // The protocol writers enable password protection. Restore the open configuration
+                // before returning when Keep was selected for an unprotected tag.
+                await client.WriteLfToT55xxAsync(card.Type, card.Id, password, oldKeys);
+                if (!unprotected) return;
+                var config = card.Type switch
+                {
+                    TagSpecificType.Em410xElectra => 0x00148080u,
+                    _ when card.Type.IsEm410x() => 0x00148040u,
+                    TagSpecificType.HidProx => 0x00107060u,
+                    TagSpecificType.IoProx => 0x00147040u,
+                    TagSpecificType.Viking => 0x00088040u,
+                    TagSpecificType.Pac => 0x00080080u,
+                    TagSpecificType.Jablotron => 0x00158040u,
+                    _ => throw new NotSupportedException(string.Format(Strings.Device_CannotWriteT55xx, card.Type.DisplayName())),
+                };
+                await client.WriteT55xxBlockAsync(0, config, password);
+                var readBack = await ReadAsync(client, card.Type);
+                if (readBack is null || !readBack.Id.AsSpan().SequenceEqual(card.Id))
+                    throw new InvalidOperationException(Strings.Device_T55xxDifferentId);
             }
         }
         catch (Exception error)

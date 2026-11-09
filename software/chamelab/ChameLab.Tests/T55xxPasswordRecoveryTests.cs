@@ -17,6 +17,72 @@ namespace ChameLab.Tests;
 public class T55xxPasswordRecoveryTests
 {
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task KeepPasswordPreservesProtectionForRecoveryAndWriting(bool normalWrite, bool protectedTag)
+    {
+        var transport = new PasswordTransport { Protected = protectedTag };
+        var password = (byte[])transport.Password.Clone();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var desired = normalWrite ? Hex.Parse("AABBCCDDEE") : PasswordTransport.OriginalId;
+        var result = normalWrite
+            ? await T55xxPasswordRecovery.WriteAsync(new(connection), TagSpecificType.Em410x, desired,
+                [Hex.Parse("FFFFFFFF"), password], keepPassword: true)
+            : await T55xxPasswordRecovery.RecoverAsync(new(connection),
+                [Hex.Parse("FFFFFFFF"), password], keepPassword: true);
+        Assert.NotNull(result);
+        Assert.Equal(desired, transport.ReadId());
+        Assert.Equal(protectedTag, transport.Protected);
+        Assert.Equal(protectedTag ? password : null, result.NewKey);
+        Assert.Equal(protectedTag ? password : null, result.Key);
+        if (protectedTag) Assert.Equal(password, transport.Password);
+        Assert.Equal(DeviceMode.Tag, transport.Mode);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task KeepPasswordRestoresOriginalOnCancellation(bool protectedTag)
+    {
+        var transport = new PasswordTransport { Protected = protectedTag };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        using var cts = new CancellationTokenSource();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            T55xxPasswordRecovery.WriteAsync(new(connection), TagSpecificType.Em410x, Hex.Parse("AABBCCDDEE"),
+                [Hex.Parse("12345678")], keyFound: _ => cts.Cancel(), ct: cts.Token, keepPassword: true));
+        Assert.Equal(PasswordTransport.OriginalId, transport.ReadId());
+        Assert.Equal(protectedTag, transport.Protected);
+        if (protectedTag) Assert.Equal("12345678", Convert.ToHexString(transport.Password));
+        Assert.Equal(DeviceMode.Tag, transport.Mode);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task KeepPasswordPreservesNonEmProtocol(bool normalWrite, bool protectedTag)
+    {
+        var transport = new PasswordTransport { InitialType = TagSpecificType.Viking, Protected = protectedTag };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var desired = normalWrite ? Hex.Parse("AABBCCDD") : transport.ReadId();
+        var result = normalWrite
+            ? await T55xxPasswordRecovery.WriteAsync(new(connection), TagSpecificType.Viking, desired!,
+                [Hex.Parse("12345678")], keepPassword: true)
+            : await T55xxPasswordRecovery.RecoverAsync(new(connection), [Hex.Parse("12345678")], keepPassword: true);
+        Assert.NotNull(result);
+        Assert.Equal(TagSpecificType.Viking, transport.CurrentType);
+        Assert.Equal(desired, transport.ReadId());
+        Assert.Equal(protectedTag, transport.Protected);
+        Assert.Equal(protectedTag ? Hex.Parse("12345678") : null, result.NewKey);
+    }
+
+    [Theory]
     [InlineData(null, "20206666")]
     [InlineData("AABBCCDD", "AABBCCDD")]
     public async Task RecoveryVerifiesProbeRestoresOriginalIdAndReportsActualKey(string? target, string expected)
@@ -359,6 +425,20 @@ public class T55xxPasswordRecoveryTests
         Assert.Null(settings.NewKeyError);
         settings.SetNewKey = true;
         Assert.NotNull(settings.NewKeyError);
+        settings.KeepKey = true;
+        Assert.True(settings.KeepKey);
+        Assert.False(settings.ClearKey);
+        Assert.False(settings.SetNewKey);
+        Assert.Null(settings.NewKeyError);
+        settings.SetNewKey = false;
+        Assert.True(settings.KeepKey);
+        settings.ClearKey = true;
+        Assert.True(settings.ClearKey);
+        Assert.False(settings.KeepKey);
+        Assert.Null(settings.NewKeyError);
+        settings.SetNewKey = true;
+        Assert.False(settings.ClearKey);
+        Assert.NotNull(settings.NewKeyError);
     }
 
     [Fact]
@@ -474,7 +554,8 @@ public class T55xxPasswordRecoveryTests
                             if (r.Data[0] == 0)
                             {
                                 Protected = (_blocks[0] & 0x10) != 0;
-                                CurrentType = TagSpecificType.Em410x64;
+                                CurrentType = (_blocks[0] & ~0x10u) == 0x00088040u
+                                    ? TagSpecificType.Viking : TagSpecificType.Em410x64;
                             }
                         }
                         break;

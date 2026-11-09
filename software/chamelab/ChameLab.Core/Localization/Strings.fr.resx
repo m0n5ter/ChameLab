@@ -3474,6 +3474,12 @@
   <data name="Dictionaries_KeyTooShort" xml:space="preserve">
     <value>La clé {0} fait moins de {1} octets</value>
   </data>
+  <data name="Tools_T55xxKeepKey" xml:space="preserve">
+    <value>Conserver</value>
+  </data>
+  <data name="Tools_T55xxKeepKeyHint" xml:space="preserve">
+    <value>Le mot de passe actuel et le mode de protection seront conservés.</value>
+  </data>
   <data name="Tools_T55xxSetNewKey" xml:space="preserve">
     <value>Définir</value>
   </data>

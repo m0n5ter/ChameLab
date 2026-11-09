@@ -65,15 +65,38 @@ public sealed class T55xxPasswordSettingsViewModel : ViewModelBase
         ? Hex.TryParse(KnownKey, out var key) && key.Length == 4
         : KeyCount > 0;
 
-    /// <summary>The user wants to set a new key after a match; otherwise the default is used.</summary>
+    private enum NewKeyMode { Clear, Set, Keep }
+    private NewKeyMode _newKeyMode;
+
+    private void SelectNewKeyMode(NewKeyMode mode)
+    {
+        if (_newKeyMode == mode) return;
+        _newKeyMode = mode;
+        this.RaisePropertyChanged(nameof(ClearKey));
+        this.RaisePropertyChanged(nameof(SetNewKey));
+        this.RaisePropertyChanged(nameof(KeepKey));
+        this.RaisePropertyChanged(nameof(NewKeyError));
+    }
+
+    public bool ClearKey
+    {
+        get => _newKeyMode == NewKeyMode.Clear;
+        set { if (value) SelectNewKeyMode(NewKeyMode.Clear); }
+    }
+
+    /// <summary>Keep the matched password, or leave an unprotected tag unprotected.</summary>
+    public bool KeepKey
+    {
+        get => _newKeyMode == NewKeyMode.Keep;
+        set { if (value) SelectNewKeyMode(NewKeyMode.Keep); }
+    }
+
+    /// <summary>The user wants to set a new key after a match.</summary>
     public bool SetNewKey
     {
-        get;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(NewKeyError));
-        }
+        get => _newKeyMode == NewKeyMode.Set;
+        set => SelectNewKeyMode(value ? NewKeyMode.Set :
+            SetNewKey ? NewKeyMode.Clear : _newKeyMode);
     }
 
     public string NewKey

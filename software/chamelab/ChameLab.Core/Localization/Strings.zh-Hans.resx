@@ -3474,6 +3474,12 @@
   <data name="Dictionaries_KeyTooShort" xml:space="preserve">
     <value>密钥 {0} 短于 {1} 字节</value>
   </data>
+  <data name="Tools_T55xxKeepKey" xml:space="preserve">
+    <value>保留</value>
+  </data>
+  <data name="Tools_T55xxKeepKeyHint" xml:space="preserve">
+    <value>保留当前密码和保护模式。</value>
+  </data>
   <data name="Tools_T55xxSetNewKey" xml:space="preserve">
     <value>设置</value>
   </data>

@@ -3474,6 +3474,12 @@
   <data name="Dictionaries_KeyTooShort" xml:space="preserve">
     <value>Ключ {0} короче {1} байт</value>
   </data>
+  <data name="Tools_T55xxKeepKey" xml:space="preserve">
+    <value>Оставить</value>
+  </data>
+  <data name="Tools_T55xxKeepKeyHint" xml:space="preserve">
+    <value>Текущий пароль и режим защиты будут сохранены.</value>
+  </data>
   <data name="Tools_T55xxSetNewKey" xml:space="preserve">
     <value>Установить</value>
   </data>

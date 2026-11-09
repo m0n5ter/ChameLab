@@ -174,9 +174,10 @@ public sealed partial class ToolsViewModel
             // Either the one password the user knows, or every key from the chosen dictionaries.
             if (T55xxSettings.KnowKey && !T55xxSettings.ReadyToStart) throw new FormatException(Strings.Common_Password4Bytes);
             var keys = T55xxSettings.BuildOldKeys();
-            // A new key is only taken when the user chose to set one; otherwise the default is used.
+            // Keep uses the matched password; Clear and an empty Set use the default.
             if (T55xxSettings.NewKeyError is not null) throw new FormatException(T55xxSettings.NewKeyError);
             var target = T55xxSettings.BuildNewKey();
+            var keepPassword = T55xxSettings.KeepKey;
             using var cts = new CancellationTokenSource();
             _t55xxCts = cts;
             IsT55xxRunning = true;
@@ -202,8 +203,8 @@ public sealed partial class ToolsViewModel
                         _t55xxFoundKeyBytes = key;
                         T55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected : Hex.Spaced(key);
                         this.RaisePropertyChanged(nameof(CanSaveT55xxKey));
-                    }), original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id), cts.Token);
-                if (result is not null)
+                    }), original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id), cts.Token, keepPassword);
+                if (result?.NewKey is not null)
                 {
                     try { _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type); }
                     catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSavePassword, ex.Message)); }
@@ -213,7 +214,7 @@ public sealed partial class ToolsViewModel
                     T55xxResult = result is null ? Strings.Tools_T55xxNoMatch : Strings.Tools_T55xxComplete;
                     if (result is not null)
                     {
-                        T55xxSetKey = Hex.Spaced(target);
+                        T55xxSetKey = keepPassword ? null : Hex.Spaced(target);
                         T55xxProgress = 100;
                     }
                 });
