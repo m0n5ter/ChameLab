@@ -819,59 +819,39 @@
                   </Border>
                 </Grid>
 
-                <!-- T55xx: current password (to unlock a locked tag) and the new password it's locked with.
-                     EM4305: only the current password, sent with LOGIN when the tag is write-protected. -->
-                <StackPanel Spacing="4" IsVisible="{Binding IsLfWrite}">
-                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="6">
-                    <TextBlock Grid.Row="0" Text="{x:Static loc:Strings.Cards_CurrentPassword}" Classes="caption" VerticalAlignment="Center" />
-                    <c:HexBox Grid.Row="0" Grid.Column="1" Text="{Binding WriteLfPassword}" ByteLengths="4"
+                <Panel IsVisible="{Binding IsT55xxWrite}" IsEnabled="{Binding !IsBusy}">
+                  <c:T55xxPasswordSettingsPanel DataContext="{Binding WriteT55xxSettings}" />
+                </Panel>
+                <!-- Keep cancellation and the key count beside the bar, as in Tools / T55xx. -->
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14" IsVisible="{Binding IsT55xxWriting}">
+                  <Button Classes="danger" Command="{Binding CancelWriteCommand}" VerticalAlignment="Center"
+                          b:DialogKeys.IsCancel="True" ToolTip.Tip="{Binding CancelWriteTip}"
+                          AutomationProperties.Name="{x:Static loc:Strings.Common_Cancel}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.close}" />
+                      <TextBlock Text="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                  <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding WriteT55xxProgress}" />
+                    <TextBlock Text="{Binding WriteProgressText}" Classes="caption" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Grid>
+                <Panel IsVisible="{Binding IsT55xxWrite}">
+                  <SelectableTextBlock Text="{Binding WriteT55xxFoundKey}" TextWrapping="Wrap" FontWeight="SemiBold"
+                                       IsVisible="{Binding WriteT55xxFoundKey, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </Panel>
+
+                <!-- EM4305 only needs the optional current password for LOGIN. -->
+                <StackPanel Spacing="4" IsVisible="{Binding IsEm4305Write}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <TextBlock Text="{x:Static loc:Strings.Cards_CurrentPassword}" Classes="caption" VerticalAlignment="Center" />
+                    <c:HexBox Grid.Column="1" Text="{Binding WriteLfPassword}" ByteLengths="4"
                               IsEnabled="{Binding !IsBusy}" PlaceholderText="{x:Static loc:Strings.Cards_Optional}"
                               ToolTip.Tip="{Binding WriteLfPasswordTip}" />
-                    <TextBlock Grid.Row="1" Text="{x:Static loc:Strings.Cards_NewPassword}" Classes="caption" VerticalAlignment="Center"
-                               IsVisible="{Binding IsT55xxWrite}" />
-                    <c:HexBox Grid.Row="1" Grid.Column="1" Text="{Binding WriteLfNewKey}" ByteLengths="4"
-                              IsEnabled="{Binding !IsBusy}" PlaceholderText="20206666"
-                              IsVisible="{Binding IsT55xxWrite}"
-                              ToolTip.Tip="{x:Static loc:Strings.Tools_T55xxDefaultKeyHint}" />
                   </Grid>
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteLfPasswordError}"
-                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
+                  <TextBlock Classes="caption danger" TextWrapping="Wrap" Text="{Binding WriteLfPasswordError}"
                              IsVisible="{Binding WriteLfPasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding WriteLfNewKeyError}"
-                             Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
-                             IsVisible="{Binding WriteLfNewKeyError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  <StackPanel Spacing="6" IsVisible="{Binding IsT55xxWrite}">
-                    <Button HorizontalAlignment="Left" IsEnabled="{Binding !IsBusy}"
-                            ToolTip.Tip="{x:Static loc:Strings.Tools_T55xxDictionaryHint}">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <PathIcon Data="{StaticResource Icon.key}" />
-                        <TextBlock Text="{x:Static loc:Strings.Common_KeyDictionaries}" />
-                        <TextBlock Text="{Binding WriteT55xxKeys.CountText}" Classes="caption" VerticalAlignment="Center" />
-                      </StackPanel>
-                      <Button.Flyout>
-                        <Flyout Placement="BottomEdgeAlignedLeft">
-                          <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12" IsEnabled="{Binding !IsBusy}">
-                            <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline" />
-                            <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
-                              <ItemsControl ItemsSource="{Binding WriteT55xxKeys.Sources}">
-                                <ItemsControl.ItemTemplate>
-                                  <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
-                                    <c:DictionaryToggle Margin="0,2" IsChecked="{Binding IsSelected}" Color="{Binding ColorBrush}"
-                                                          Title="{Binding Name}" Count="{Binding KeyCount}" />
-                                  </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                            </ScrollViewer>
-                            <Separator />
-                            <TextBlock Text="{Binding WriteT55xxKeys.CountText}" FontWeight="SemiBold" />
-                          </StackPanel>
-                        </Flyout>
-                      </Button.Flyout>
-                    </Button>
-                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding WriteT55xxProgress}" IsVisible="{Binding IsWriting}" />
-                    <SelectableTextBlock Text="{Binding WriteT55xxFoundKey}" TextWrapping="Wrap" FontWeight="SemiBold"
-                                         IsVisible="{Binding WriteT55xxFoundKey, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                  </StackPanel>
                 </StackPanel>
 
                 <Border Classes="inset">
@@ -916,7 +896,7 @@
                   </WrapPanel>
                 </StackPanel>
 
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding !IsT55xxWriting}">
                   <TextBlock Classes="caption" Text="{Binding WriteProgressText}"
                              VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                              IsVisible="{Binding IsWriting}" />

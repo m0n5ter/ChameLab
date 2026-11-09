@@ -112,7 +112,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private string? _dumpPassword;
     private string? _writePassword;
     private string? _writeLfPassword;
-    private string? _writeLfNewKey;
     private bool _hasDump;
     // The card being added is entered by hand: there is no physical card to read or recover keys from.
     private bool _isManual;
@@ -136,7 +135,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _device = device;
         _library = library;
         _dictionaries = dictionaries;
-        WriteT55xxKeys = new(dictionaries);
+        WriteT55xxSettings = new(dictionaries);
+        WriteT55xxSettings.WhenAnyValue(x => x.ReadyToStart, x => x.NewKeyError)
+            .Subscribe(_ => this.RaisePropertyChanged(nameof(WriteLfSettingsReady)));
         _isConnected = device.State == ConnectionState.Connected;
         WriteRecovery = new MifareKeyRecoveryViewModel(() => _device.Client, _dictionaries,
             () => _slotInfos, SourceWriteKeys, work => RunAsync(work), cancelWrite: CancelWrite,
@@ -224,9 +225,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         RefreshSlotsCommand = ReactiveCommand.CreateFromTask(RefreshSlotsAsync, connected);
         WriteNowCommand = ReactiveCommand.CreateFromTask(WriteAsync,
             this.WhenAnyValue(x => x.IsConnected, x => x.WritePasswordError, x => x.WriteLfPasswordError,
-                x => x.WriteLfNewKeyError, x => x.IsBusy, x => x.HasRequiredWriteKeys, x => x.IsWriteSuccessful,
-                (online, ulError, lfError, lfNewError, busy, keysReady, succeeded) =>
-                    online && !busy && !succeeded && keysReady && ulError is null && lfError is null && lfNewError is null));
+                x => x.WriteLfSettingsReady, x => x.IsBusy, x => x.HasRequiredWriteKeys, x => x.IsWriteSuccessful,
+                (online, ulError, lfError, lfReady, busy, keysReady, succeeded) =>
+                    online && !busy && !succeeded && keysReady && ulError is null && lfError is null && lfReady));
         WriteAnotherCommand = ReactiveCommand.CreateFromTask(WriteAnotherAsync,
             this.WhenAnyValue(x => x.IsConnected, x => x.IsBusy, x => x.IsWriteSuccessful,
                 (online, busy, succeeded) => online && !busy && succeeded));
@@ -2364,6 +2365,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             this.RaiseAndSetIfChanged(ref _writeProgressText, value);
             this.RaisePropertyChanged(nameof(IsWriting));
+            this.RaisePropertyChanged(nameof(IsT55xxWriting));
             this.RaisePropertyChanged(nameof(WriteKeyHint));
             this.RaisePropertyChanged(nameof(CancelWriteLabel));
             this.RaisePropertyChanged(nameof(CancelWriteTip));
@@ -2371,6 +2373,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     public bool IsWriting => _writeProgressText is not null;
+    public bool IsT55xxWriting => IsT55xxWrite && IsWriting;
 
     public string CancelWriteLabel => IsWriting ? Strings.Common_Cancel : Strings.Common_Close;
 
@@ -2559,7 +2562,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>A T55xx is written, so its new-password option applies.</summary>
     public bool IsT55xxWrite => IsLfWrite && !IsEm4305Write;
 
-    public T55xxKeySelectionViewModel WriteT55xxKeys { get; }
+    public T55xxPasswordSettingsViewModel WriteT55xxSettings { get; }
+    public T55xxKeySelectionViewModel WriteT55xxKeys => WriteT55xxSettings.Keys;
+    public bool WriteLfSettingsReady => !IsT55xxWrite ||
+        WriteT55xxSettings.ReadyToStart && WriteT55xxSettings.NewKeyError is null;
     public double WriteT55xxProgress { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
     public string? WriteT55xxFoundKey { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
     private Task _writeTask = Task.CompletedTask;
@@ -2572,15 +2578,16 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(CanWriteEm4305));
         this.RaisePropertyChanged(nameof(IsEm4305Write));
         this.RaisePropertyChanged(nameof(IsT55xxWrite));
+        this.RaisePropertyChanged(nameof(IsT55xxWriting));
         this.RaisePropertyChanged(nameof(WriteLfPasswordTip));
-        this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
+        this.RaisePropertyChanged(nameof(WriteLfPasswordError));
+        this.RaisePropertyChanged(nameof(WriteLfSettingsReady));
         this.RaisePropertyChanged(nameof(WriteKind));
         this.RaisePropertyChanged(nameof(WriteInstructions));
     }
 
     /// <summary>
-    /// Optional 4-byte password of an already-locked T55xx tag, tried before the firmware's
-    /// defaults to unlock it. Left empty for a blank tag.
+    /// Optional 4-byte login password of a write-protected EM4305 tag.
     /// </summary>
     public string? WriteLfPassword
     {
@@ -2594,29 +2601,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     /// <summary>Why <see cref="WriteLfPassword"/> can't be used; null when it is empty or valid.</summary>
     public string? WriteLfPasswordError =>
-        !IsLfWrite || string.IsNullOrWhiteSpace(_writeLfPassword) ? null
+        !IsEm4305Write || string.IsNullOrWhiteSpace(_writeLfPassword) ? null
         : !Hex.TryParse(_writeLfPassword, out var key) ? Strings.Common_NotHex
-        : key.Length == 4 ? null
-        : Strings.Common_Password4Bytes;
-
-    /// <summary>
-    /// Optional 4-byte password the T55xx tag is locked with after the write (the firmware always
-    /// sets the PWD bit). Empty uses the firmware default (0x20206666).
-    /// </summary>
-    public string? WriteLfNewKey
-    {
-        get => _writeLfNewKey;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _writeLfNewKey, value);
-            this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
-        }
-    }
-
-    /// <summary>Why <see cref="WriteLfNewKey"/> can't be used; null when it is empty or valid.</summary>
-    public string? WriteLfNewKeyError =>
-        !IsT55xxWrite || string.IsNullOrWhiteSpace(_writeLfNewKey) ? null
-        : !Hex.TryParse(_writeLfNewKey, out var key) ? Strings.Common_NotHex
         : key.Length == 4 ? null
         : Strings.Common_Password4Bytes;
 
@@ -2700,7 +2686,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(WritePasswordError));
         this.RaisePropertyChanged(nameof(CanWriteProtection));
         this.RaisePropertyChanged(nameof(WriteLfPasswordError));
-        this.RaisePropertyChanged(nameof(WriteLfNewKeyError));
+        this.RaisePropertyChanged(nameof(WriteLfSettingsReady));
         this.RaisePropertyChanged(nameof(WriteKind));
         this.RaisePropertyChanged(nameof(WriteInstructions));
         this.RaisePropertyChanged(nameof(WriteWarning));
@@ -2949,6 +2935,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (!resume) WriteBlockStates = Array.Empty<MifareBlockState>();
             if (session is not null)
                 WriteRecovery.PrepareWrite(card.Tag, session.Source, IncludeWriteBlock0, resume);
+            if (IsT55xxWrite)
+            {
+                WriteT55xxFoundKey = null;
+                WriteT55xxProgress = 0;
+            }
             WriteProgressText = resume ? Strings.Common_CheckingTargetUid : Strings.Common_Starting;
             this.RaisePropertyChanged(nameof(CanChangeWriteOptions));
         });
@@ -2964,10 +2955,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     Notify(string.Format(Strings.Cards_WroteEm4305, card.Name));
                     return;
                 }
-                var oldKeys = hasCurrent ? new[] { lfKey }.Concat(WriteT55xxKeys.BuildKeys()) : WriteT55xxKeys.BuildKeys();
-                var newKey = Hex.TryParse(WriteLfNewKey, out var nk) && nk.Length == 4 ? nk : null;
-                WriteT55xxFoundKey = null;
-                WriteT55xxProgress = 0;
+                var oldKeys = WriteT55xxSettings.BuildOldKeys();
+                var newKey = WriteT55xxSettings.BuildNewKey();
                 var result = await T55xxPasswordRecovery.WriteAsync(client, card.Tag, card.Uid, oldKeys, newKey,
                     (done, total) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
@@ -2982,7 +2971,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                                 string.Format(Strings.Tools_T55xxFoundKey, Convert.ToHexString(key));
                     }), cts.Token);
                 if (result is null) throw new InvalidOperationException(Strings.Tools_T55xxNoMatch);
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => WriteT55xxProgress = 100);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (version == _writeVersion) WriteT55xxProgress = 100;
+                });
                 succeeded = true;
                 Notify(string.Format(Strings.Cards_WroteT55xx, card.Name));
                 return;

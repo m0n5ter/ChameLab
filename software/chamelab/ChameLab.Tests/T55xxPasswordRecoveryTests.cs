@@ -297,16 +297,90 @@ public class T55xxPasswordRecoveryTests
             Assert.False(new ToolsViewModel(new DeviceService([]), library)
                 .T55xxKeySources.Single(s => s.Id == passwords.Id).IsSelected);
             // A bad key is only flagged once the user chose to set one.
-            tools.T55xxNewKey = "bad";
-            Assert.Null(tools.T55xxNewKeyError);
-            tools.T55xxSetNewKey = true;
-            Assert.NotNull(tools.T55xxNewKeyError);
-            tools.T55xxNewKey = "";
-            Assert.Null(tools.T55xxNewKeyError);
-            tools.T55xxNewKey = "AA BB CC DD";
-            Assert.Null(tools.T55xxNewKeyError);
+            tools.T55xxSettings.NewKey = "bad";
+            Assert.Null(tools.T55xxSettings.NewKeyError);
+            tools.T55xxSettings.SetNewKey = true;
+            Assert.NotNull(tools.T55xxSettings.NewKeyError);
+            tools.T55xxSettings.NewKey = "";
+            Assert.Null(tools.T55xxSettings.NewKeyError);
+            tools.T55xxSettings.NewKey = "AA BB CC DD";
+            Assert.Null(tools.T55xxSettings.NewKeyError);
         }
         finally { AppSettings.Set("dumpUncheckedDictionaries", original); }
+    }
+
+    [Fact]
+    public void PasswordModesChooseOnlyTheActiveKeys()
+    {
+        var settings = new T55xxPasswordSettingsViewModel(new DictionaryLibrary(new MemoryKeyValueStore()));
+        settings.KnownKey = "12 34 56 78";
+        settings.KnowKey = true;
+        Assert.True(settings.ReadyToStart);
+        Assert.Equal("12345678", Convert.ToHexString(Assert.Single(settings.BuildOldKeys())));
+
+        var selected = settings.Keys.Sources.Select(source => source.IsSelected).ToArray();
+        try
+        {
+            foreach (var source in settings.Keys.Sources) source.IsSelected = false;
+            Assert.True(settings.ReadyToStart);
+            settings.UseDictionary = true;
+            Assert.False(settings.ReadyToStart);
+            Assert.Empty(settings.BuildOldKeys());
+        }
+        finally
+        {
+            for (var i = 0; i < selected.Length; i++) settings.Keys.Sources[i].IsSelected = selected[i];
+        }
+
+        settings.NewKey = "AA BB CC DD";
+        settings.SetNewKey = true;
+        Assert.Equal("AABBCCDD", Convert.ToHexString(settings.BuildNewKey()));
+        settings.SetNewKey = false;
+        Assert.Equal("20206666", Convert.ToHexString(settings.BuildNewKey()));
+        settings.NewKey = "bad";
+        Assert.Null(settings.NewKeyError);
+        settings.SetNewKey = true;
+        Assert.NotNull(settings.NewKeyError);
+    }
+
+    [Fact]
+    public void LfWriterValidatesOnlyTheSelectedChipAndPasswordMode()
+    {
+        var store = new MemoryKeyValueStore();
+        var library = new CardLibrary(store);
+        var card = new CardSave { Name = "LF", Tag = TagSpecificType.Em410x, Uid = [1, 2, 3, 4, 5] };
+        library.Add(card);
+        var vm = new CardsViewModel(new DeviceService([]), library, new DictionaryLibrary(store));
+        vm.OpenCard(card.Id);
+        typeof(CardsViewModel).GetProperty(nameof(CardsViewModel.IsConnected))!.SetValue(vm, true);
+        vm.WriteCommand.Execute(null);
+        Assert.True(vm.IsT55xxWrite);
+
+        var settings = vm.WriteT55xxSettings;
+        settings.KnowKey = true;
+        settings.KnownKey = "12345678";
+        Assert.True(vm.WriteNowCommand.CanExecute(null));
+        settings.KnownKey = "bad";
+        Assert.False(vm.WriteNowCommand.CanExecute(null));
+        settings.KnownKey = "";
+        Assert.False(vm.WriteNowCommand.CanExecute(null));
+        settings.KnownKey = "12345678";
+        settings.NewKey = "bad";
+        settings.SetNewKey = true;
+        Assert.False(vm.WriteNowCommand.CanExecute(null));
+        settings.SetNewKey = false;
+        Assert.True(vm.WriteNowCommand.CanExecute(null));
+
+        settings.KnownKey = "bad";
+        settings.SetNewKey = true;
+        vm.WriteToEm4305 = true;
+        Assert.True(vm.WriteNowCommand.CanExecute(null));
+        vm.WriteLfPassword = "bad";
+        Assert.False(vm.WriteNowCommand.CanExecute(null));
+        vm.WriteToT55xx = true;
+        settings.KnownKey = "12345678";
+        settings.SetNewKey = false;
+        Assert.True(vm.WriteNowCommand.CanExecute(null));
     }
 
     private sealed class PasswordTransport : ITransport

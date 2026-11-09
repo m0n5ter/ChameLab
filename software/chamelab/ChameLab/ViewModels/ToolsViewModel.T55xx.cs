@@ -17,7 +17,7 @@ namespace ChameLab.ViewModels;
 
 public sealed partial class ToolsViewModel
 {
-    public T55xxKeySelectionViewModel T55xxKeys { get; private set; } = null!;
+    public T55xxKeySelectionViewModel T55xxKeys => T55xxSettings.Keys;
     private DictionaryLibrary _dictionaries = null!;
     private CancellationTokenSource? _t55xxCts;
     private Task _t55xxRun = Task.CompletedTask;
@@ -28,19 +28,14 @@ public sealed partial class ToolsViewModel
     private void InitT55xx(DictionaryLibrary dictionaries, IObservable<bool> idle)
     {
         _dictionaries = dictionaries;
-        T55xxKeys = new(dictionaries);
-        T55xxKeys.WhenAnyValue(x => x.Count).Subscribe(_ =>
-        {
-            this.RaisePropertyChanged(nameof(T55xxKeyCount));
-            this.RaisePropertyChanged(nameof(T55xxKeyCountText));
-            this.RaisePropertyChanged(nameof(T55xxReadyToStart));
-        });
+        T55xxSettings = new(dictionaries);
         OpenT55xxCommand = ReactiveCommand.Create(() => { Tool = SniffTool.T55xx; }, idle);
         TryT55xxCommand = ReactiveCommand.CreateFromTask(StartT55xxAsync,
             this.WhenAnyValue(x => x.IsBusy, x => x.IsConnected, x => x.IsT55xxSupported,
-                x => x.IsT55xxRunning, x => x.T55xxNewKeyError, x => x.T55xxReadyToStart,
-                (busy, connected, supported, running, keyError, ready) =>
-                    !busy && !running && connected && supported != false && ready && keyError is null));
+                x => x.IsT55xxRunning,
+                (busy, connected, supported, running) => !busy && !running && connected && supported != false)
+                .CombineLatest(T55xxSettings.WhenAnyValue(x => x.ReadyToStart, x => x.NewKeyError,
+                    (ready, error) => ready && error is null), (available, ready) => available && ready));
         CancelT55xxCommand = ReactiveCommand.Create(() => _t55xxCts?.Cancel(),
             this.WhenAnyValue(x => x.IsT55xxRunning));
         SaveT55xxKeyToNewDictionaryCommand = ReactiveCommand.Create(SaveT55xxKeyToNewDictionary);
@@ -72,78 +67,7 @@ public sealed partial class ToolsViewModel
     public bool IsT55xxUnsupported => IsT55xxSupported == false;
     public bool IsT55xxRunning { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
 
-    /// <summary>True when the user already knows the password; false to try a dictionary.</summary>
-    public bool T55xxKnowKey
-    {
-        get;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(T55xxUseDictionary));
-            this.RaisePropertyChanged(nameof(T55xxKnownKeyError));
-            this.RaisePropertyChanged(nameof(T55xxReadyToStart));
-        }
-    }
-
-    /// <summary>The inverse of <see cref="T55xxKnowKey"/>, for the dictionary-attack radio button.</summary>
-    public bool T55xxUseDictionary
-    {
-        get => !T55xxKnowKey;
-        set => T55xxKnowKey = !value;
-    }
-
-    /// <summary>The password the user says they know, as hex (used instead of a dictionary).</summary>
-    public string T55xxKnownKey
-    {
-        get;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(T55xxKnownKeyError));
-            this.RaisePropertyChanged(nameof(T55xxReadyToStart));
-        }
-    } = "";
-
-    // The known password is only required, and only validated, in "I know the password" mode.
-    public string? T55xxKnownKeyError => !T55xxKnowKey || ValidT55xxKey(T55xxKnownKey) ? null : Strings.Common_Password4Bytes;
-
-    /// <summary>Whether Start has what it needs: a 4-byte known key, or at least one dictionary key.</summary>
-    public bool T55xxReadyToStart => T55xxKnowKey
-        ? Hex.TryParse(T55xxKnownKey, out var key) && key.Length == 4
-        : T55xxKeyCount > 0;
-
-    /// <summary>The user wants to set a new key after a match; otherwise the default is used.</summary>
-    public bool T55xxSetNewKey
-    {
-        get;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(T55xxNewKeyError));
-        }
-    }
-
-    public string T55xxNewKey
-    {
-        get;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(T55xxNewKeyError));
-        }
-    } = "";
-
-    /// <summary>The default key used when the user doesn't set one, as hex (shown in place of the input).</summary>
-    public string T55xxDefaultKeyText { get; } = Hex.Spaced(ChameleonClient.DefaultT55xxKey);
-
-    // The key is only required, and only validated, when the user chose to set one.
-    public string? T55xxNewKeyError => !T55xxSetNewKey || ValidT55xxKey(T55xxNewKey) ? null : Strings.Common_Password4Bytes;
-    private static bool ValidT55xxKey(string? text) => string.IsNullOrWhiteSpace(text) ||
-        Hex.TryParse(text, out var key) && key.Length == 4;
-
-    public int T55xxKeyCount => T55xxKeys.Count;
-    public string T55xxKeyCountText => T55xxKeyCount == 0 ? Strings.Cards_NoKeysSelected :
-        Loc.Plural(Strings.Plural_UniqueKeys, T55xxKeyCount);
+    public T55xxPasswordSettingsViewModel T55xxSettings { get; private set; } = null!;
     public double T55xxProgress { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
     public string? T55xxProgressText { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
     public string? T55xxResult { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
@@ -241,8 +165,6 @@ public sealed partial class ToolsViewModel
 
     private void RebuildT55xxKeySources() => T55xxKeys.Refresh();
 
-    private IReadOnlyList<byte[]> SelectedT55xxKeys() => T55xxKeys.BuildKeys();
-
     private Task StartT55xxAsync()
     {
         if (IsBusy || IsT55xxRunning) return Task.CompletedTask;
@@ -250,12 +172,11 @@ public sealed partial class ToolsViewModel
         {
             var client = _device.Client ?? throw new InvalidOperationException(Strings.Common_ConnectFirst);
             // Either the one password the user knows, or every key from the chosen dictionaries.
-            if (T55xxKnowKey && !ValidT55xxKey(T55xxKnownKey)) throw new FormatException(Strings.Common_Password4Bytes);
-            var keys = T55xxKnowKey ? new[] { Hex.Parse(T55xxKnownKey) } : SelectedT55xxKeys();
+            if (T55xxSettings.KnowKey && !T55xxSettings.ReadyToStart) throw new FormatException(Strings.Common_Password4Bytes);
+            var keys = T55xxSettings.BuildOldKeys();
             // A new key is only taken when the user chose to set one; otherwise the default is used.
-            var custom = T55xxSetNewKey && !string.IsNullOrWhiteSpace(T55xxNewKey);
-            if (custom && !ValidT55xxKey(T55xxNewKey)) throw new FormatException(Strings.Common_Password4Bytes);
-            var target = custom ? Hex.Parse(T55xxNewKey) : ChameleonClient.DefaultT55xxKey;
+            if (T55xxSettings.NewKeyError is not null) throw new FormatException(T55xxSettings.NewKeyError);
+            var target = T55xxSettings.BuildNewKey();
             using var cts = new CancellationTokenSource();
             _t55xxCts = cts;
             IsT55xxRunning = true;
