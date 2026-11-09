@@ -798,6 +798,26 @@ public class MifareWorkflowTests
     }
 
     [Fact]
+    public async Task BatchKeyCheck_DoesNotRepeatTheDictionaryPerKeyAfterTheBatch()
+    {
+        var target = new MifareDump(MifareClassicType.Classic1K, [1, 2, 3, 4]);
+        var transport = BatchTransport((_, _) => null); // the batch opens nothing
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+
+        await new ChameleonClient(connection).FindMifareKeysAsync(target, DistinctKeys(50));
+
+        // The batch already tried the whole dictionary; re-running it key by key is what made a big
+        // dictionary look like it hung, so the per-sector search must send no authentications here.
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
+        Assert.All(Enumerable.Range(0, target.SectorCount), s =>
+        {
+            Assert.Null(target.KeyA[s]);
+            Assert.Null(target.KeyB[s]);
+        });
+    }
+
+    [Fact]
     public async Task BatchKeyCheck_UnsupportedFirmwareFallsBackToPerKeySearch()
     {
         var target = new MifareDump(MifareClassicType.Classic1K, [1, 2, 3, 4]);

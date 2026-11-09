@@ -561,10 +561,16 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// Partial results from a card that left the field mid-scan are kept. Throws
     /// <see cref="NotSupportedException"/> on firmware without the command.
     /// </summary>
+    /// <summary>A single batch command waits at most this long for the firmware to work through one
+    /// chunk; past it the command is treated as timed out and the caller can fall back. Generous for
+    /// the slowest realistic chunk (83 keys over every sector) yet bounded, so a stall cannot hang.</summary>
+    private const int BatchKeyCheckChunkTimeoutMs = 120_000;
+
     public async Task<IReadOnlyDictionary<(int Sector, MfKeyType Type), byte[]>> CheckMifareKeysOfSectorsAsync(
         IReadOnlyCollection<(int Sector, MfKeyType Type)> wanted,
         IReadOnlyList<byte[]> keys,
         IProgress<int>? keysChecked = null,
+        Action<(int Sector, MfKeyType Type), byte[]>? onFound = null,
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(wanted);
@@ -605,7 +611,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             for (var i = 0; i < chunk.Length; i++) chunk[i].CopyTo(payload, 10 + i * 6);
 
             var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload,
-                timeoutMs: 1000 + (pending + 1) * chunk.Length * 100, ct: ct);
+                timeoutMs: BatchKeyCheckChunkTimeoutMs, ct: ct);
             ct.ThrowIfCancellationRequested();
 
             // The card leaving the field (HfTagNo) still returns the keys found before it went.
@@ -617,7 +623,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 if (result.ContainsKey(pair)) continue;
                 var bit = BitOf(pair);
                 if ((frame.Data[bit / 8] & (0x80 >> (bit % 8))) == 0) continue;
-                result[pair] = frame.Data[(10 + 6 * bit)..(16 + 6 * bit)];
+                var key = frame.Data[(10 + 6 * bit)..(16 + 6 * bit)];
+                result[pair] = key;
+                onFound?.Invoke(pair, key); // report as the chunk finds it, not only at the end
             }
 
             checkedKeys += chunk.Length;
@@ -1063,7 +1071,11 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         {
             // One firmware batch pass fills most keys up front; the per-sector loop below then only
             // searches the few it missed and reads the blocks. Keeps what it found if the card leaves.
-            await TryBatchRecoverKeysAsync(dump, keyDict, onlyMissingData: true, keyProgress, ct);
+            // When the batch ran it already tried the whole dictionary, so the per-sector loop must not
+            // repeat it (that doubled the time on a big dictionary) — it only tries the keys that opened
+            // other sectors and reads blocks.
+            var batched = await TryBatchRecoverKeysAsync(dump, keyDict, onlyMissingData: true, keyProgress, ct);
+            var searchDict = batched ? Array.Empty<byte[]>() : keyDict;
             foundA = dump.KeyA.OfType<byte[]>().ToList();
             foundB = dump.KeyB.OfType<byte[]>().ToList();
 
@@ -1083,9 +1095,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 // Both keys are searched independently: a sector may hand out data under
                 // key A, key B or both, and the trailer only yields the key used to read it.
                 // Key A joins the known keys before key B is searched, so the same sector's B tries it first.
-                dump.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, foundA, foundB, keyProgress, ct);
+                dump.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, searchDict, foundA, foundB, keyProgress, ct);
                 if (dump.KeyA[s] is { } ka && !foundA.Any(k => k.AsSpan().SequenceEqual(ka))) foundA.Add(ka);
-                dump.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, foundB, foundA, keyProgress, ct);
+                dump.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, searchDict, foundB, foundA, keyProgress, ct);
                 if (dump.KeyB[s] is { } kb && !foundB.Any(k => k.AsSpan().SequenceEqual(kb))) foundB.Add(kb);
 
                 if (dump.KeyA[s] is null && dump.KeyB[s] is null)
@@ -1131,17 +1143,20 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         var tags = await Hf14aScanAsync(ct);
         if (tags.Count != 1 || !target.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Device_TargetChanged);
-        // Fill what the firmware batch pass can before falling back to the per-sector search.
-        await TryBatchRecoverKeysAsync(target, keyDict, onlyMissingData: false, keyProgress, ct);
+        // Fill what the firmware batch pass can before falling back to the per-sector search. When it
+        // ran it already tried the whole dictionary, so the per-sector loop only retries the keys that
+        // opened other sectors — repeating the dictionary would double the time for nothing.
+        var batched = await TryBatchRecoverKeysAsync(target, keyDict, onlyMissingData: false, keyProgress, ct);
+        var searchDict = batched ? Array.Empty<byte[]>() : keyDict;
         var knownA = target.KeyA.OfType<byte[]>().ToList();
         var knownB = target.KeyB.OfType<byte[]>().ToList();
         for (var s = 0; s < target.SectorCount; s++)
         {
             ct.ThrowIfCancellationRequested();
             var first = MifareClassic.SectorFirstBlock(s);
-            target.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, keyDict, knownA, knownB, keyProgress, ct);
+            target.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, searchDict, knownA, knownB, keyProgress, ct);
             if (target.KeyA[s] is { } a && !knownA.Any(k => k.AsSpan().SequenceEqual(a))) knownA.Add(a);
-            target.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, keyDict, knownB, knownA, keyProgress, ct);
+            target.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, searchDict, knownB, knownA, keyProgress, ct);
             if (target.KeyB[s] is { } b && !knownB.Any(k => k.AsSpan().SequenceEqual(b))) knownB.Add(b);
         }
     }
@@ -1155,11 +1170,16 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// Does nothing on firmware without the command; a transient failure is swallowed so the
     /// per-sector search can still run, but cancellation propagates.
     /// </summary>
-    private async Task TryBatchRecoverKeysAsync(
+    /// <returns>true once the firmware has checked the whole dictionary against every requested pair
+    /// (so the caller must not run the per-sector dictionary search again — that would double the work
+    /// and the time, which is what made a big dictionary look like it hung). false means no batch ran:
+    /// the firmware lacks the command, or the batch failed, so the per-sector search still owns the
+    /// dictionary.</returns>
+    private async Task<bool> TryBatchRecoverKeysAsync(
         MifareDump dump, IReadOnlyList<byte[]> keyDict, bool onlyMissingData,
         IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
     {
-        if (!await SupportsBatchKeyCheckAsync(ct)) return;
+        if (!await SupportsBatchKeyCheckAsync(ct)) return false;
 
         var wanted = new List<(int Sector, MfKeyType Type)>();
         for (var s = 0; s < dump.SectorCount; s++)
@@ -1171,22 +1191,46 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             if (dump.KeyA[s] is null) wanted.Add((s, MfKeyType.A));
             if (dump.KeyB[s] is null) wanted.Add((s, MfKeyType.B));
         }
-        if (wanted.Count == 0) return;
+        if (wanted.Count == 0) return true;
 
         var keys = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Concat(keyDict)
             .DistinctBy(Convert.ToHexString).ToArray();
-        if (keys.Length == 0) return;
+        if (keys.Length == 0) return true;
 
-        IReadOnlyDictionary<(int Sector, MfKeyType Type), byte[]> found;
-        try { found = await CheckMifareKeysOfSectorsAsync(wanted, keys, ct: ct); }
-        catch (Exception ex) when (ex is not OperationCanceledException) { return; }
-
-        foreach (var ((sector, type), key) in found)
+        // Show every target cell as "checking" at once, then advance its bar as each chunk returns,
+        // so a dictionary that opens nothing still looks alive instead of a frozen spinner.
+        var remaining = new HashSet<(int Sector, MfKeyType Type)>(wanted);
+        void Searching(int done)
         {
+            foreach (var (sector, type) in remaining)
+                keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Searching, done, keys.Length, null));
+        }
+        void Found((int Sector, MfKeyType Type) pair, byte[] key)
+        {
+            var (sector, type) = pair;
             if (type == MfKeyType.A) dump.KeyA[sector] ??= key;
             else dump.KeyB[sector] ??= key;
+            remaining.Remove(pair);
             keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Found, 0, 0, key));
         }
+
+        Searching(0);
+        try
+        {
+            await CheckMifareKeysOfSectorsAsync(wanted, keys,
+                keysChecked: new DelegateProgress<int>(Searching), onFound: Found, ct: ct);
+            return true;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Batch failed partway: keep what it found, let the per-sector search retry the dictionary.
+            return false;
+        }
+    }
+
+    private sealed class DelegateProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
     }
 
     /// <summary>
