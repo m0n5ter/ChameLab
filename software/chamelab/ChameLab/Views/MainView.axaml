@@ -41,7 +41,7 @@
                            Foreground="{actipro:ThemeResource DefaultForegroundBrush}" />
                 <PathIcon Data="{StaticResource Icon.upload}" Width="12" Height="12"
                           VerticalAlignment="Center" IsVisible="{Binding AppUpdate.IsUpdateAvailable}"
-                          Classes.pulse="{Binding AppUpdate.IsUpdateAvailable}"
+                          b:Pulse.IsActive="{Binding AppUpdate.IsUpdateAvailable}"
                           Foreground="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
               </StackPanel>
               <TextBlock Text="{Binding Settings.AppVersion}" Classes="caption" FontSize="11"

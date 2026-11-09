@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Threading;
 
 namespace ChameLab.Controls;
 
@@ -9,6 +10,12 @@ namespace ChameLab.Controls;
 /// Shows its child on one line; when the child is wider than the space, slides it to the end and back,
 /// pausing at each end. A child that fits stays still.
 /// </summary>
+/// <remarks>
+/// Frames are requested only while the child slides: the pauses wait on a timer, and a marquee
+/// scrolled out of view finishes its slide and waits at that end until it comes back. Every frame
+/// redraws the whole window, so a marquee asking for frames while still kept the app rendering at
+/// the display's rate (120 Hz on some phones) for nothing.
+/// </remarks>
 public class Marquee : Decorator
 {
     private const double Speed = 30; // px per second
@@ -16,12 +23,21 @@ public class Marquee : Decorator
 
     private readonly TranslateTransform _shift = new();
     private double _overflow;
-    private TimeSpan? _start;
     private bool _running;
+    private bool _forward;
+    private bool _inView = true;
+    private bool _waitingForView;
+    private TimeSpan? _slideStart;
+    private IDisposable? _pauseTimer;
 
     public Marquee()
     {
         ClipToBounds = true;
+        EffectiveViewportChanged += (_, e) =>
+        {
+            _inView = e.EffectiveViewport.Width > 0 && e.EffectiveViewport.Height > 0;
+            if (_inView && _waitingForView) BeginSlide();
+        };
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -37,7 +53,12 @@ public class Marquee : Decorator
         if (!Equals(child.RenderTransform, _shift)) child.RenderTransform = _shift;
         child.Arrange(new Rect(0, 0, Math.Max(finalSize.Width, child.DesiredSize.Width), finalSize.Height));
         _overflow = child.DesiredSize.Width - finalSize.Width;
-        if (_overflow > 0.5) Start();
+        if (_overflow > 0.5)
+        {
+            // Resting past a new, shorter end would cut the text off.
+            if (-_shift.X > _overflow) _shift.X = -_overflow;
+            Start();
+        }
         else Stop();
         return finalSize;
     }
@@ -52,29 +73,54 @@ public class Marquee : Decorator
     {
         if (_running) return;
         _running = true;
-        _start = null;
-        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(Tick);
+        _forward = true;
+        _shift.X = 0;
+        Rest();
     }
 
     private void Stop()
     {
         _running = false;
+        _waitingForView = false;
+        _slideStart = null;
+        _pauseTimer?.Dispose();
+        _pauseTimer = null;
         _shift.X = 0;
+    }
+
+    /// <summary>Holds still at an end, without asking for frames, then slides on.</summary>
+    private void Rest()
+    {
+        _pauseTimer?.Dispose();
+        _pauseTimer = DispatcherTimer.RunOnce(BeginSlide, Pause);
+    }
+
+    private void BeginSlide()
+    {
+        _pauseTimer = null;
+        _waitingForView = false;
+        if (!_running) return;
+        // Hidden: rest until the next arrange brings it back.
+        if (!IsEffectivelyVisible) { Stop(); return; }
+        if (!_inView) { _waitingForView = true; return; }
+        _slideStart = null;
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(Tick);
     }
 
     private void Tick(TimeSpan now)
     {
-        // Hidden: rest until the next arrange brings it back.
-        if (!_running || !IsEffectivelyVisible) { Stop(); return; }
-        _start ??= now;
-        var travel = _overflow / Speed;
-        var pause = Pause.TotalSeconds;
-        var t = (now - _start.Value).TotalSeconds % (2 * (pause + travel));
-        var x = t < pause ? 0
-            : t < pause + travel ? (t - pause) * Speed
-            : t < 2 * pause + travel ? _overflow
-            : _overflow - (t - 2 * pause - travel) * Speed;
-        _shift.X = -Math.Clamp(x, 0, _overflow);
+        if (!_running) return;
+        if (!IsEffectivelyVisible) { Stop(); return; }
+        _slideStart ??= now;
+        var travelled = (now - _slideStart.Value).TotalSeconds * Speed;
+        if (travelled >= _overflow)
+        {
+            _shift.X = _forward ? -_overflow : 0;
+            _forward = !_forward;
+            Rest();
+            return;
+        }
+        _shift.X = _forward ? -travelled : travelled - _overflow;
         TopLevel.GetTopLevel(this)?.RequestAnimationFrame(Tick);
     }
 }
