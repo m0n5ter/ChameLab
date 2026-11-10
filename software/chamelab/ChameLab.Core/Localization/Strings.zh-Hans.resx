@@ -763,7 +763,7 @@
     <value>扇区 {0} · 块 {1} · 密钥 {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>扇区 {0} · 块 {1} · 密钥 {2} · {3}</value>
+    <value>扇区 {0} - 块 {1} - 密钥 {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} 尾块 · {1}</value>
@@ -1499,6 +1499,9 @@
   </data>
   <data name="Device_CouldNotCollectNested" xml:space="preserve">
     <value>无法收集 nested nonce。</value>
+  </data>
+  <data name="Device_NoBatchKeyCheck" xml:space="preserve">
+    <value>此固件不支持批量校验密钥。</value>
   </data>
   <data name="Device_Disconnected" xml:space="preserve">
     <value>Chameleon 已断开连接。</value>
@@ -3575,5 +3578,38 @@
   </data>
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · {0} 个 T55XX 密码</value>
+  </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>密钥搜索设置</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>搜索方式</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>逐个密钥检查</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>在所有扇区批量检查</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>在单个扇区批量检查</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>起始扇区</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>第一个扇区</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>所选扇区</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>扇区顺序</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>按顺序</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>随机</value>
   </data>
 </root>

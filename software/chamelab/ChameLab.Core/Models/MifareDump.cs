@@ -24,7 +24,7 @@ public static class MifareClassic
     public static MifareClassicType FromSak(byte sak) => sak switch
     {
         0x09 => MifareClassicType.Mini,
-        0x18 => MifareClassicType.Classic4K,
+        0x18 or 0x38 => MifareClassicType.Classic4K,
         0x19 => MifareClassicType.Classic2K,
         _ => MifareClassicType.Classic1K, // 0x08/0x88/0x28 and unknown → treat as 1K
     };
@@ -163,7 +163,11 @@ public enum MifareKeyPhase { Searching, Found, NotFound }
 /// <see cref="Total"/> keys attempted, and the recovered key once <see cref="Phase"/> is Found.
 /// </summary>
 public readonly record struct MifareKeyProgress(
-    int Sector, MfKeyType KeyType, MifareKeyPhase Phase, int Tried, int Total, byte[]? Key);
+    int Sector, MfKeyType KeyType, MifareKeyPhase Phase, int Tried, int Total, byte[]? Key)
+{
+    /// <summary>The counter covers a firmware batch across sectors, rather than this sector alone.</summary>
+    public bool IsBatch { get; init; }
+}
 
 /// <summary>
 /// An in-memory MIFARE Classic dump: block data plus the keys recovered for

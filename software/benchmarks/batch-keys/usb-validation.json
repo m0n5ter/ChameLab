@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "endpoint": "COM8",
+    "utc": "2026-11-10T16:15:04.1055838+00:00",
+    "framework": ".NET 10.0.14",
+    "firmware": "v2.3.13-cl-dirty",
+    "ble_address": "CEBA62C56798",
+    "sak": 56,
+    "sectors": 40,
+    "ble_att_payload_bytes": null,
+    "os": "Microsoft Windows 10.0.26100",
+    "default_key_works_sector0A": false
+  },
+  "rows": [
+    {
+      "case": "miss-fullcard-1key",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 4.8439531,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 1,
+      "miss_attempts": 80,
+      "commands": 82,
+      "tx_bytes": 1461,
+      "rx_bytes": 843,
+      "auth_commands": 80,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 1,
+        "MfErrAuth": 80
+      }
+    },
+    {
+      "case": "miss-fullcard-1key",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 4.8401035,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 1,
+      "miss_attempts": 80,
+      "commands": 3,
+      "tx_bytes": 47,
+      "rx_bytes": 543,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        1
+      ],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 2
+      }
+    }
+  ]
+}

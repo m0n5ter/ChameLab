@@ -1,0 +1,194 @@
+{
+  "metadata": {
+    "endpoint": "COM8",
+    "utc": "2026-11-10T16:03:46.6071788+00:00",
+    "framework": ".NET 10.0.14",
+    "firmware": "v2.3.13-cl-dirty",
+    "ble_address": "CEBA62C56798",
+    "sak": 56,
+    "sectors": 40,
+    "default_key_works_sector0A": false
+  },
+  "rows": [
+    {
+      "case": "miss-1sector-16keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 1.9213904,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 1.9204629,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 1.9206399,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 1.9198312,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 1.9210279,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 1.9217288,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 30.7464961,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 30.7466078,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 30.7457319,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 30.7445319,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 30.7458648,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 30.7465873,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 76.9568991,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 76.9070288,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 76.9061554,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 76.9045801,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 76.8974958,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 76.9064907,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280
+    }
+  ]
+}

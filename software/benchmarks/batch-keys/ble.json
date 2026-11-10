@@ -1,0 +1,569 @@
+{
+  "metadata": {
+    "endpoint": "Android BLE CE:BA:62:C5:67:98",
+    "utc": "2026-11-10T16:15:17.0641346+00:00",
+    "framework": ".NET 10.0.13",
+    "firmware": "v2.3.13-cl-dirty",
+    "ble_address": "CEBA62C56798",
+    "sak": 56,
+    "sectors": 40,
+    "default_key_works_sector0A": false
+  },
+  "rows": [
+    {
+      "case": "miss-onepair-32keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 2.9978209,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 2.0992988,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 212,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        32
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 2.1375612,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 212,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        32
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 4.6457897,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 4.5926577,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 2.0639483,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 212,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        32
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 4.6070689,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 2.1123526,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 116,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        16
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 2.1026332,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 116,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        16
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 4.637505,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 4.6242058,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-1sector-16keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 2.1060308,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 16,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 116,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        16
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 74.1776886,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512,
+      "commands": 512,
+      "tx_bytes": 9216,
+      "rx_bytes": 5120,
+      "auth_commands": 512,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 512
+      }
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 32.1004144,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512,
+      "commands": 8,
+      "tx_bytes": 256,
+      "rx_bytes": 4000,
+      "auth_commands": 0,
+      "batch_commands": 8,
+      "batch_sizes": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "statuses": {
+        "HfTagOk": 8
+      }
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 32.1262125,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512,
+      "commands": 8,
+      "tx_bytes": 256,
+      "rx_bytes": 4000,
+      "auth_commands": 0,
+      "batch_commands": 8,
+      "batch_sizes": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "statuses": {
+        "HfTagOk": 8
+      }
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 73.9056621,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512,
+      "commands": 512,
+      "tx_bytes": 9216,
+      "rx_bytes": 5120,
+      "auth_commands": 512,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 512
+      }
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 73.6950525,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512,
+      "commands": 512,
+      "tx_bytes": 9216,
+      "rx_bytes": 5120,
+      "auth_commands": 512,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 512
+      }
+    },
+    {
+      "case": "miss-16sectors-16keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 32.0432485,
+      "found": 0,
+      "sectors": 16,
+      "dictionary_keys": 16,
+      "miss_attempts": 512,
+      "commands": 8,
+      "tx_bytes": 256,
+      "rx_bytes": 4000,
+      "auth_commands": 0,
+      "batch_commands": 8,
+      "batch_sizes": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "statuses": {
+        "HfTagOk": 8
+      }
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 184.3025679,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280,
+      "commands": 1282,
+      "tx_bytes": 23061,
+      "rx_bytes": 12843,
+      "auth_commands": 1280,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 1,
+        "MfErrAuth": 1280
+      }
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 80.0025685,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280,
+      "commands": 18,
+      "tx_bytes": 437,
+      "rx_bytes": 8043,
+      "auth_commands": 0,
+      "batch_commands": 16,
+      "batch_sizes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 17
+      }
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 80.0829762,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280,
+      "commands": 18,
+      "tx_bytes": 437,
+      "rx_bytes": 8043,
+      "auth_commands": 0,
+      "batch_commands": 16,
+      "batch_sizes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 17
+      }
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 183.5694627,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280,
+      "commands": 1282,
+      "tx_bytes": 23061,
+      "rx_bytes": 12843,
+      "auth_commands": 1280,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 1,
+        "MfErrAuth": 1280
+      }
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 182.8731803,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280,
+      "commands": 1282,
+      "tx_bytes": 23061,
+      "rx_bytes": 12843,
+      "auth_commands": 1280,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 1,
+        "MfErrAuth": 1280
+      }
+    },
+    {
+      "case": "miss-fullcard-16keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 80.0398414,
+      "found": 0,
+      "sectors": 40,
+      "dictionary_keys": 16,
+      "miss_attempts": 1280,
+      "commands": 18,
+      "tx_bytes": 437,
+      "rx_bytes": 8043,
+      "auth_commands": 0,
+      "batch_commands": 16,
+      "batch_sizes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "statuses": {
+        "Success": 1,
+        "HfTagOk": 17
+      }
+    }
+  ]
+}

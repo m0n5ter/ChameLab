@@ -1312,7 +1312,7 @@
     <value>CFG0 · AUTH0 (первая защищённая страница)</value>
   </data>
   <data name="Cards_CheckingKey" xml:space="preserve">
-    <value>проверка ключа {0}/{1}</value>
+    <value>Проверка ключа {0}/{1}</value>
   </data>
   <data name="Cards_CloseMfkey32Result" xml:space="preserve">
     <value>Закрыть результат mfkey32</value>
@@ -1594,7 +1594,7 @@
     <value>Сектор {0} · блок {1} · ключ {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>Сектор {0} · блок {1} · ключ {2} · {3}</value>
+    <value>Сектор {0} - блок {1} - ключ {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} · трейлер · {1}</value>
@@ -2826,6 +2826,9 @@
   <data name="Device_CouldNotCollectNested" xml:space="preserve">
     <value>Не удалось собрать nonce для nested.</value>
   </data>
+  <data name="Device_NoBatchKeyCheck" xml:space="preserve">
+    <value>Эта прошивка не поддерживает пакетную проверку ключей.</value>
+  </data>
   <data name="Device_Disconnected" xml:space="preserve">
     <value>Chameleon отключён.</value>
   </data>
@@ -3575,5 +3578,38 @@
   </data>
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · {0} пароль T55XX| · {0} пароля T55XX| · {0} паролей T55XX</value>
+  </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>Настройки перебора</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>Способ перебора</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>По одному ключу</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>Пачками по всем секторам</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>Пачками в одном секторе</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>Начальный сектор</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>Первый сектор</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>Выделенный сектор</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>Порядок секторов</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>По порядку</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>В случайном порядке</value>
   </data>
 </root>

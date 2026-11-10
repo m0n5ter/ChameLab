@@ -199,7 +199,7 @@
     <value>CFG0 · AUTH0 (première page protégée)</value>
   </data>
   <data name="Cards_CheckingKey" xml:space="preserve">
-    <value>vérification de la clé {0}/{1}</value>
+    <value>Vérification de la clé {0}/{1}</value>
   </data>
   <data name="Cards_ClearSearchAndFilters" xml:space="preserve">
     <value>Effacer la recherche et les filtres</value>
@@ -763,7 +763,7 @@
     <value>Secteur {0} · bloc {1} · clé {2}</value>
   </data>
   <data name="Cards_SectorBlockKeyDetail" xml:space="preserve">
-    <value>Secteur {0} · bloc {1} · clé {2} · {3}</value>
+    <value>Secteur {0} - bloc {1} - clé {2} - {3}</value>
   </data>
   <data name="Cards_SectorTrailer" xml:space="preserve">
     <value>{0} · trailer · {1}</value>
@@ -1499,6 +1499,9 @@
   </data>
   <data name="Device_CouldNotCollectNested" xml:space="preserve">
     <value>Impossible de collecter les nonces nested.</value>
+  </data>
+  <data name="Device_NoBatchKeyCheck" xml:space="preserve">
+    <value>Ce micrologiciel ne prend pas en charge la vérification des clés par lots.</value>
   </data>
   <data name="Device_Disconnected" xml:space="preserve">
     <value>Le Chameleon a été déconnecté.</value>
@@ -3575,5 +3578,38 @@
   </data>
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · {0} mot de passe T55XX| · {0} mots de passe T55XX</value>
+  </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>Options de recherche de clés</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>Méthode de recherche</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>Une clé à la fois</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>Lots sur tous les secteurs</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>Lots dans un secteur</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>Secteur de départ</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>Premier secteur</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>Secteur sélectionné</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>Ordre des secteurs</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>Séquentiel</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>Aléatoire</value>
   </data>
 </root>

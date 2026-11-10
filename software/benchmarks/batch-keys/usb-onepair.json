@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "endpoint": "COM8",
+    "utc": "2026-11-10T16:14:50.6719744+00:00",
+    "framework": ".NET 10.0.14",
+    "firmware": "v2.3.13-cl-dirty",
+    "ble_address": "CEBA62C56798",
+    "sak": 56,
+    "sectors": 40,
+    "ble_att_payload_bytes": null,
+    "os": "Microsoft Windows 10.0.26100",
+    "default_key_works_sector0A": false
+  },
+  "rows": [
+    {
+      "case": "miss-onepair-32keys",
+      "batch": false,
+      "repetition": 0,
+      "seconds": 1.9212863,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": true,
+      "repetition": 0,
+      "seconds": 1.9232278,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 212,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        32
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": true,
+      "repetition": 1,
+      "seconds": 1.920415,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 212,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        32
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": false,
+      "repetition": 1,
+      "seconds": 1.9190681,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": false,
+      "repetition": 2,
+      "seconds": 1.9207197,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 32,
+      "tx_bytes": 576,
+      "rx_bytes": 320,
+      "auth_commands": 32,
+      "batch_commands": 0,
+      "batch_sizes": [],
+      "statuses": {
+        "MfErrAuth": 32
+      }
+    },
+    {
+      "case": "miss-onepair-32keys",
+      "batch": true,
+      "repetition": 2,
+      "seconds": 1.9218834,
+      "found": 0,
+      "sectors": 1,
+      "dictionary_keys": 32,
+      "miss_attempts": 32,
+      "commands": 1,
+      "tx_bytes": 212,
+      "rx_bytes": 500,
+      "auth_commands": 0,
+      "batch_commands": 1,
+      "batch_sizes": [
+        32
+      ],
+      "statuses": {
+        "HfTagOk": 1
+      }
+    }
+  ]
+}
