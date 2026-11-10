@@ -1,0 +1,13 @@
+{
+  "date_moscow": "2026-11-10",
+  "model": "2407FPN8EG",
+  "manufacturer": "Xiaomi",
+  "android_version": "16",
+  "abi": "arm64-v8a",
+  "transport": "Plugin.BLE 3.3.0-beta.2, Mobile/BleTransport.cs",
+  "negotiated_mtu": 247,
+  "steady_connection_interval_ms": 47.5,
+  "apk_configuration": "Debug, same process and transport for baseline and batch",
+  "app_head": "0ab7345a8085c330d0d588ba07899c994cb43ff0",
+  "baseline": "existing per-sector fallback, command 2012 hidden only in client capabilities cache"
+}

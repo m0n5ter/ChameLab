@@ -1,0 +1,15 @@
+{
+  "metadata": {
+    "endpoint": "COM8",
+    "utc": "2026-11-10T16:34:52.9147097+00:00",
+    "framework": ".NET 10.0.14",
+    "initial_mode": "Reader",
+    "firmware": "v2.3.13-cl-dirty",
+    "ble_address": "CEBA62C56798",
+    "sak": 56,
+    "sectors": 40,
+    "ble_att_payload_bytes": null,
+    "os": "Microsoft Windows 10.0.26100"
+  },
+  "rows": []
+}

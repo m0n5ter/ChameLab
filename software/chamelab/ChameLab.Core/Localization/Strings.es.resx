@@ -3567,4 +3567,37 @@
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · {0} contraseña T55XX| · {0} contraseñas T55XX</value>
   </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>Opciones de búsqueda de claves</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>Método de búsqueda</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>Una clave cada vez</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>Lotes en todos los sectores</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>Lotes en un sector</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>Sector inicial</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>Primer sector</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>Sector seleccionado</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>Orden de sectores</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>Secuencial</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>Aleatorio</value>
+  </data>
 </root>

@@ -1684,7 +1684,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             {
                 DumpProgressText = Strings.Common_CheckingDictKeys;
                 var progress = new PostedProgress<MifareKeyProgress>(IfKept<MifareKeyProgress>(cts, OnDumpKey));
-                await client.FindMifareKeysAsync(complete, keys, progress, cts.Token);
+                await client.FindMifareKeysAsync(complete, keys, progress, cts.Token,
+                    KeySearchSettings.CreateOptions(RecoverySelectedSector));
+                // The explicit search already exhausted the dictionary; continue reading with its results.
+                keys = Array.Empty<byte[]>();
             }
             await MifareDumpBodyAsync(client, keys, DumpFormType(), cts, finish: false);
         }
@@ -1785,7 +1788,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             // A stop keeps the partial dump: the call returns what was read, so a canceled dump
             // is handled the same as a completed one and can still be saved.
             var dump = read
-                ? await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress, keyProgress, type, _classicDump))
+                ? await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress, keyProgress, type, _classicDump,
+                    KeySearchSettings.CreateOptions(RecoverySelectedSector)))
                 : _classicDump!;
             learnedDump = dump;
             dump.FillRecoveredKeys();

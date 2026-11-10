@@ -3570,4 +3570,37 @@
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · {0} T55XX password| · {0} T55XX passwords</value>
   </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>Key search options</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>Search method</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>One key at a time</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>Batches across all sectors</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>Batches in one sector</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>Start sector</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>First sector</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>Selected sector</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>Sector order</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>Sequential</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>Random</value>
+  </data>
 </root>

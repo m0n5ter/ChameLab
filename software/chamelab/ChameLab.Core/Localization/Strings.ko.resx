@@ -3567,4 +3567,37 @@
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · T55XX 비밀번호 {0}개</value>
   </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>키 검색 설정</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>검색 방법</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>키를 하나씩 확인</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>모든 섹터에서 일괄 확인</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>한 섹터에서 일괄 확인</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>시작 섹터</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>첫 번째 섹터</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>선택한 섹터</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>섹터 순서</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>순서대로</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>무작위</value>
+  </data>
 </root>

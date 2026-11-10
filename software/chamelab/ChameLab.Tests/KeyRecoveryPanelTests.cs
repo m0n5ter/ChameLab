@@ -13,6 +13,42 @@ namespace ChameLab.Tests;
 [Collection(AppSettingsCollection.Name)]
 public class KeyRecoveryPanelTests
 {
+    [Fact]
+    public void KeySearchPreferencesPersistAllChoicesAndShareAcrossReadAndWritePanels()
+    {
+        var original = AppSettings.Get(MifareKeySearchSettingsViewModel.SettingsKey);
+        try
+        {
+            AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, null);
+            var settings = new MifareKeySearchSettingsViewModel { OneSector = true, FromSelected = true, Random = true };
+            settings.OneSector = false; // Radio unchecking must not reset a selection.
+            var reloaded = new MifareKeySearchSettingsViewModel();
+            Assert.Equal(new MifareKeySearchOptions(MifareKeySearchMethod.OneSector,
+                MifareKeySearchStart.Selected, MifareKeySearchOrder.Random, 7), reloaded.CreateOptions(7));
+            var saved = System.Text.Json.Nodes.JsonNode.Parse(AppServices.Store.Read("settings")!)!;
+            Assert.Equal("OneSector", saved[MifareKeySearchSettingsViewModel.SettingsKey]!["method"]!.GetValue<string>());
+            Assert.Equal("Selected", saved[MifareKeySearchSettingsViewModel.SettingsKey]!["start"]!.GetValue<string>());
+            Assert.Equal("Random", saved[MifareKeySearchSettingsViewModel.SettingsKey]!["sectorOrder"]!.GetValue<string>());
+            var store = new MemoryKeyValueStore();
+            var cards = new CardsViewModel(new DeviceService([]), new CardLibrary(store), new DictionaryLibrary(store));
+            Assert.Same(cards.KeySearchSettings, cards.WriteRecovery.KeySearchSettings);
+        }
+        finally { AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, original); }
+    }
+
+    [Fact]
+    public void KeySearchPreferencesRecoverDefaultsFromInvalidSavedValues()
+    {
+        var original = AppSettings.Get(MifareKeySearchSettingsViewModel.SettingsKey);
+        try
+        {
+            AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey,
+                System.Text.Json.Nodes.JsonNode.Parse("{\"method\":\"99\",\"start\":true,\"sectorOrder\":\"invalid\"}"));
+            Assert.Equal(new MifareKeySearchOptions(), new MifareKeySearchSettingsViewModel().CreateOptions(0));
+        }
+        finally { AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, original); }
+    }
+
     [Theory]
     [InlineData(true, "Проверка ключа 3/10")]
     [InlineData(false, "Сектор 39 - блок 255 - ключ A - 3/10")]

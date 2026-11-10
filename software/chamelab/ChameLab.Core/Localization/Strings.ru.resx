@@ -3567,4 +3567,37 @@
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · {0} пароль T55XX| · {0} пароля T55XX| · {0} паролей T55XX</value>
   </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>Настройки перебора</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>Способ перебора</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>По одному ключу</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>Пачками по всем секторам</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>Пачками в одном секторе</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>Начальный сектор</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>Первый сектор</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>Выделенный сектор</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>Порядок секторов</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>По порядку</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>В случайном порядке</value>
+  </data>
 </root>

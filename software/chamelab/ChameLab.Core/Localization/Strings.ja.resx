@@ -3567,4 +3567,37 @@
   <data name="Plural_T55xxPasswords" xml:space="preserve">
     <value> · {0} 個の T55XX パスワード</value>
   </data>
+  <data name="KeySearch_Options" xml:space="preserve">
+    <value>鍵検索の設定</value>
+  </data>
+  <data name="KeySearch_Method" xml:space="preserve">
+    <value>検索方法</value>
+  </data>
+  <data name="KeySearch_SingleKey" xml:space="preserve">
+    <value>鍵を1つずつ確認</value>
+  </data>
+  <data name="KeySearch_AllSectors" xml:space="preserve">
+    <value>全セクターで一括確認</value>
+  </data>
+  <data name="KeySearch_OneSector" xml:space="preserve">
+    <value>1セクターで一括確認</value>
+  </data>
+  <data name="KeySearch_Start" xml:space="preserve">
+    <value>開始セクター</value>
+  </data>
+  <data name="KeySearch_Beginning" xml:space="preserve">
+    <value>最初のセクター</value>
+  </data>
+  <data name="KeySearch_Selected" xml:space="preserve">
+    <value>選択したセクター</value>
+  </data>
+  <data name="KeySearch_Order" xml:space="preserve">
+    <value>セクターの順序</value>
+  </data>
+  <data name="KeySearch_Sequential" xml:space="preserve">
+    <value>順番に確認</value>
+  </data>
+  <data name="KeySearch_Random" xml:space="preserve">
+    <value>ランダム</value>
+  </data>
 </root>

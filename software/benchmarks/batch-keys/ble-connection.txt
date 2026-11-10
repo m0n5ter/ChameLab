@@ -1,0 +1,6 @@
+--------- beginning of main
+11-10 19:34:32.246 15676 15676 D BluetoothGatt: setCharacteristicNotification() - uuid: 6e400003-b5a3-f393-e0a9-e50e24dcca9e enable: false
+11-10 19:34:32.352 15676 15676 D BluetoothGatt: cancelOpen() - device: XX:XX:XX:XX:67:98
+11-10 19:34:32.368 15676 15710 D BluetoothGatt: onClientConnectionState() - status=0 clientIf=9 connected=false device=XX:XX:XX:XX:67:98
+11-10 19:34:32.368 15676 15710 D BluetoothGatt: unregisterApp() - mClientIf=9
+11-10 19:34:32.372 15676 15710 D BluetoothGatt: close()

@@ -116,6 +116,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public bool ShowHardnested => _prng == MifareClassicPrngType.Hard && HasKnownKeys && HasUnknownKeys;
     public string? HardnestedWarning => _hardnested.UnavailableReason;
     public string TryKeysLabel => Strings.Common_TryKeys;
+    public MifareKeySearchSettingsViewModel KeySearchSettings => MifareKeySearchSettingsViewModel.Shared;
     public string TryKeysTip => Strings.Recovery_TryKeysTip;
     public string RecoverySectorHint => ShowWriteProgress
         ? Strings.Recovery_HoverWritten : Strings.Recovery_HoverKeys;
@@ -398,7 +399,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     {
         var target = await EnsureTargetAsync(client, ct);
         var keys = _sourceKeys().Concat(BuildKeyDictionary()).DistinctBy(Convert.ToHexString).ToArray();
-        await client.FindMifareKeysAsync(target, keys, KeyProgress(), ct);
+        await client.FindMifareKeysAsync(target, keys, KeyProgress(), ct,
+            KeySearchSettings.CreateOptions(RecoverySelectedSector));
         if (_prng is null && !ct.IsCancellationRequested) await ProbeCurrentAsync(client, ct, allowChange: false);
         Refresh();
     }
@@ -442,7 +444,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
             Refresh();
         }));
         await new Mfkey32Wizard(client, _dictionaries.KnownKeys).RunAsync(_targetCard(target),
-            progress, keys => client.FindMifareKeysAsync(target, keys, KeyProgress(), ct), ct);
+            progress, keys => client.FindMifareKeysAsync(target, keys, KeyProgress(), ct,
+                KeySearchSettings.CreateOptions(RecoverySelectedSector)), ct);
     }
 
     private IProgress<MifareKeyProgress> KeyProgress()

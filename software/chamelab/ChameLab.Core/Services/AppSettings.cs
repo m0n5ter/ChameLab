@@ -29,7 +29,7 @@ public static class AppSettings
     public static void Set(string name, JsonNode? value) => Update(name, _ => value);
 
     /// <summary>Reads, changes and saves a preference without losing concurrent changes.</summary>
-    internal static void Update(string name, Func<JsonNode?, JsonNode?> update)
+    public static void Update(string name, Func<JsonNode?, JsonNode?> update)
     {
         lock (Sync)
         {

@@ -12,6 +12,7 @@ namespace ChameLab.ViewModels;
 
 public sealed partial class CardsViewModel
 {
+    public MifareKeySearchSettingsViewModel KeySearchSettings => MifareKeySearchSettingsViewModel.Shared;
     private MifareWriteSession? _writeSession;
     private int _writeVersion;
     // The current write session's target started with the factory key in every sector.

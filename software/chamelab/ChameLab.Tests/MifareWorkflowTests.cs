@@ -12,7 +12,7 @@ using Xunit;
 
 namespace ChameLab.Tests;
 
-public class MifareWorkflowTests
+public partial class MifareWorkflowTests
 {
     private static readonly byte[] Key = Convert.FromHexString("FFFFFFFFFFFF");
 
@@ -781,26 +781,26 @@ public class MifareWorkflowTests
     }
 
     [Fact]
-    public async Task BatchKeyCheck_SplitsDictionaryIntoChunksOfAtMost83()
+    public async Task BatchKeyCheck_SplitsUsbDictionaryIntoEightKeyChunks()
     {
         var dict = DistinctKeys(85);
-        var winner = dict[^1]; // only in the second chunk
-        var transport = BatchTransport((_, _) => winner);
+        var winner = dict[^1]; // only in the last chunk
+        var transport = BatchTransport((_, _) => winner, TransportKind.Serial);
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
 
         var found = await new ChameleonClient(connection)
             .CheckMifareKeysOfSectorsAsync([(39, MfKeyType.B)], dict);
 
-        Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors));
+        Assert.Equal(11, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors));
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
         Assert.Equal(winner, found[(39, MfKeyType.B)]);
         Assert.All(transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors),
-            r => Assert.InRange((r.Data.Length - 10) / 6, 1, 83));
+            r => Assert.InRange((r.Data.Length - 10) / 6, 1, 8));
     }
 
     [Fact]
-    public async Task BatchKeyCheck_UsesSmallerChunksOverBle()
+    public async Task BatchKeyCheck_Uses32KeyChunksOverBle()
     {
         var dict = DistinctKeys(40);
         var winner = dict[^1]; // only in the second BLE chunk (32 + 8)
@@ -816,7 +816,7 @@ public class MifareWorkflowTests
     }
 
     [Fact]
-    public async Task BatchKeyCheck_BoundsRfWorkAndGrowsChunksAsPairsAreFound()
+    public async Task BatchKeyCheck_KeepsChunkSizeAsPairsAreFound()
     {
         var target = new MifareDump(MifareClassicType.Classic4K, [1, 2, 3, 4]);
         var dict = DistinctKeys(85);
@@ -827,15 +827,8 @@ public class MifareWorkflowTests
         await new ChameleonClient(connection).FindMifareKeysAsync(target, dict);
 
         var batches = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors).ToArray();
-        // The initial pass spans 80 pairs, then only one pair needs the remaining dictionary.
-        Assert.Equal(3, batches.Length);
-        Assert.Equal(16, batches[0].Data.Length);
-        Assert.True(batches[1].Data.Length > batches[0].Data.Length);
-        Assert.All(batches, batch =>
-        {
-            var pending = batch.Data.Take(10).Sum(b => 8 - System.Numerics.BitOperations.PopCount(b));
-            Assert.InRange(pending * ((batch.Data.Length - 10) / 6), 1, 80);
-        });
+        // Eight keys per batch both for the initial 80 pairs and the last remaining pair.
+        Assert.Equal(Enumerable.Repeat(8, 10).Append(5), batches.Select(batch => (batch.Data.Length - 10) / 6));
         Assert.Equal(dict[^1], target.KeyB[39]);
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
     }

@@ -16,7 +16,7 @@ namespace ChameLab.Protocol;
 /// Typed, high-level command API over a <see cref="ChameleonConnection"/>.
 /// Each method mirrors a reference-client call and returns decoded results.
 /// </summary>
-public sealed class ChameleonClient(ChameleonConnection conn)
+public sealed partial class ChameleonClient(ChameleonConnection conn)
 {
     public ChameleonConnection Connection => conn;
 
@@ -545,9 +545,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// at most this many keys in one command.</summary>
     public const int BatchKeyCheckMaxKeys = 83;
 
-    // Bound RF work as well as payload size. A rejected authentication takes about 60 ms on
-    // hardware: 83 keys x 80 pairs can occupy the device for nearly seven minutes.
-    private const int BatchKeyCheckMaxAttempts = 64;
+    private int BatchKeyCheckChunkSize => conn.Transport.Kind == TransportKind.Ble ? 32 : 8;
     private const int BatchKeyCheckChunkTimeoutMs = 30_000;
 
     /// <summary>Whether the connected firmware advertises the batch key check command.</summary>
@@ -561,7 +559,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// Far fewer host round-trips than one authentication per key, which matters most over BLE.
     /// <paramref name="wanted"/> lists the pairs still missing a key (sectors 0..39); the result maps
     /// the pairs that were opened to the key that opened them — it may include a key B the trailer
-    /// revealed even when only A was asked for. Keys are sent in chunks (fewer over BLE); after each
+    /// revealed even when only A was asked for. Chunks contain up to 8 keys over USB or 32 over BLE; after each
     /// chunk <paramref name="keysChecked"/> reports how many of <paramref name="keys"/> have been tried.
     /// Partial results are delivered through onFound even if the card leaves or the call is canceled.
     /// Card loss interrupts the scan; an unfinished chunk is never reported as fully checked. Throws
@@ -588,7 +586,6 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         // type (A = 0, B = 1), MSB first within byte index/8. A set request bit means "skip this pair".
         static int BitOf((int Sector, MfKeyType Type) p) => p.Sector * 2 + (p.Type == MfKeyType.A ? 0 : 1);
 
-        var maxChunkSize = conn.Transport.Kind == TransportKind.Ble ? 32 : BatchKeyCheckMaxKeys;
         var returnedPairs = pairs.Concat(pairs.Where(p => p.Type == MfKeyType.A)
             .Select(p => (p.Sector, Type: MfKeyType.B))).Distinct().ToArray();
         var checkedKeys = 0;
@@ -609,8 +606,7 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             }
             if (pending == 0) break;
 
-            var chunkSize = Math.Min(maxChunkSize, Math.Max(1, BatchKeyCheckMaxAttempts / pending));
-            var chunk = dictionary.Skip(checkedKeys).Take(chunkSize).ToArray();
+            var chunk = dictionary.Skip(checkedKeys).Take(BatchKeyCheckChunkSize).ToArray();
             var payload = new byte[10 + chunk.Length * 6];
             mask.CopyTo(payload, 0);
             for (var i = 0; i < chunk.Length; i++) chunk[i].CopyTo(payload, 10 + i * 6);
@@ -618,8 +614,10 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             // The firmware cannot cancel a command. Drain its reply before allowing another
             // command to start, and save any found keys before honoring cancellation.
             ct.ThrowIfCancellationRequested();
-            var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload,
-                timeoutMs: BatchKeyCheckChunkTimeoutMs);
+            // A full 4K pass can try 80 pairs per candidate. Allow fixed-size batches to
+            // finish even when every authentication fails (about 60 ms per RF attempt).
+            var timeout = Math.Max(BatchKeyCheckChunkTimeoutMs, 1000 + pending * chunk.Length * 100);
+            var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload, timeoutMs: timeout);
 
             // The card leaving the field (HfTagNo) still returns the keys found before it went.
             if (frame.Data.Length != 490 || frame.Status is not (Status.HfTagOk or Status.HfTagNo))
@@ -1057,7 +1055,8 @@ public sealed class ChameleonClient(ChameleonConnection conn)
         IProgress<MifareBlockProgress>? blocks = null,
         IProgress<MifareKeyProgress>? keyProgress = null,
         MifareClassicType? type = null,
-        MifareDump? existing = null)
+        MifareDump? existing = null,
+        MifareKeySearchOptions? keySearch = null)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
@@ -1084,7 +1083,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
             // When the batch ran it already tried the whole dictionary, so the per-sector loop must not
             // repeat it (that doubled the time on a big dictionary) — it only tries the keys that opened
             // other sectors and reads blocks.
-            var batched = await TryBatchRecoverKeysAsync(dump, keyDict, onlyMissingData: true, keyProgress, ct);
+            if (keySearch is not null)
+                await SearchConfiguredMifareKeysAsync(dump, keyDict, keySearch, onlyMissingData: true, keyProgress, ct);
+            var batched = keySearch is not null || await TryBatchRecoverKeysAsync(dump, keyDict, onlyMissingData: true, keyProgress, ct);
             var searchDict = batched ? Array.Empty<byte[]>() : keyDict;
             foundA = dump.KeyA.OfType<byte[]>().ToList();
             foundB = dump.KeyB.OfType<byte[]>().ToList();
@@ -1105,9 +1106,9 @@ public sealed class ChameleonClient(ChameleonConnection conn)
                 // Both keys are searched independently: a sector may hand out data under
                 // key A, key B or both, and the trailer only yields the key used to read it.
                 // Key A joins the known keys before key B is searched, so the same sector's B tries it first.
-                dump.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, searchDict, foundA, foundB, keyProgress, ct);
+                if (keySearch is null) dump.KeyA[s] ??= await FindSectorKeyAsync(first, MfKeyType.A, s, searchDict, foundA, foundB, keyProgress, ct);
                 if (dump.KeyA[s] is { } ka && !foundA.Any(k => k.AsSpan().SequenceEqual(ka))) foundA.Add(ka);
-                dump.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, searchDict, foundB, foundA, keyProgress, ct);
+                if (keySearch is null) dump.KeyB[s] ??= await FindSectorKeyAsync(first, MfKeyType.B, s, searchDict, foundB, foundA, keyProgress, ct);
                 if (dump.KeyB[s] is { } kb && !foundB.Any(k => k.AsSpan().SequenceEqual(kb))) foundB.Add(kb);
 
                 if (dump.KeyA[s] is null && dump.KeyB[s] is null)
@@ -1147,12 +1148,18 @@ public sealed class ChameleonClient(ChameleonConnection conn)
     /// <summary>Searches keys without reading or modifying card memory. The target UID is checked
     /// before using any keys retained from an earlier recovery operation.</summary>
     public async Task FindMifareKeysAsync(MifareDump target, IReadOnlyList<byte[]> keyDict,
-        IProgress<MifareKeyProgress>? keyProgress = null, CancellationToken ct = default)
+        IProgress<MifareKeyProgress>? keyProgress = null, CancellationToken ct = default,
+        MifareKeySearchOptions? options = null)
     {
         await SetDeviceModeAsync(DeviceMode.Reader, ct);
         var tags = await Hf14aScanAsync(ct);
         if (tags.Count != 1 || !target.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Device_TargetChanged);
+        if (options is not null)
+        {
+            await SearchConfiguredMifareKeysAsync(target, keyDict, options, onlyMissingData: false, keyProgress, ct);
+            return;
+        }
         // Fill what the firmware batch pass can before falling back to the per-sector search. When it
         // ran it already tried the whole dictionary, so the per-sector loop only retries the keys that
         // opened other sectors — repeating the dictionary would double the time for nothing.
