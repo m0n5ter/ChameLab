@@ -205,11 +205,31 @@ jobs:
               -o "publish/$rid"
             cp publish/"$rid"/*-Signed.apk "chamelab-$rid.apk"
           done
+      - name: Publish the Google Play bundle
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          # One .aab with every ABI; Play splits it per device. Signed with the same key as the
+          # APKs (the upload key), so it is not a release asset, only a workflow artifact.
+          dotnet publish software/chamelab/ChameLab.Android/ChameLab.Android.csproj \
+            -c Release -f net10.0-android \
+            -p:AndroidPackageFormat=aab \
+            -p:Version=${{ needs.version.outputs.version }} \
+            -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }} \
+            -p:ApplicationVersion=${{ needs.version.outputs.code }} \
+            ${{ steps.signing.outputs.args }} \
+            -o publish/aab
+          cp publish/aab/*-Signed.aab chamelab-google-play.aab
       - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:
           name: release-artifacts-gui-android
           path: chamelab-android-*.apk
+      - name: Upload the Google Play bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: google-play-bundle
+          path: chamelab-google-play.aab
 
   build_ios:
     name: Build GUI (iOS, ${{ matrix.rid }})

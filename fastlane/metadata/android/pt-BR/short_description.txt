@@ -1,0 +1,1 @@
+Slots, dumps, recuperação de chaves e sniff para ChameleonUltra e Lite

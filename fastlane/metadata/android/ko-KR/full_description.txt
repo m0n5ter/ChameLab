@@ -1,0 +1,18 @@
+ChameLab은 RFID 에뮬레이터 ChameleonUltra와 ChameleonLite를 위한 무료 오픈 소스 앱입니다. Bluetooth 또는 USB OTG로 연결해 장치의 모든 기능을 휴대폰에서 다룰 수 있습니다.
+
+• 슬롯: 8개 슬롯을 카드 이름과 LED 색상과 함께 한눈에. 드래그로 순서 변경, 탭으로 활성화, HF와 LF를 따로 편집.
+• 여러 LF 카드: LF 슬롯 하나에 모든 종류의 LF 카드를 최대 8장 넣고, 리더에 댈 때마다 다음 카드를 제시합니다. ChameLab 펌웨어가 필요하며 앱이 설치해 줍니다.
+• 읽기와 덤프: ISO 14443-A 및 125 kHz 스캔, 키 사전을 이용한 MIFARE Classic Mini, 1K, 4K 덤프, 16진 편집기, 한 번의 탭으로 에뮬레이션.
+• 카드 라이브러리: 검색과 색상 태그. Proxmark3, Flipper .nfc / .rfid, MCT, ChameleonUltraGUI, .bin, .eml 가져오기.
+• 키 복구: Darkside, Nested, Static nested, Hardnested, mfkey32를 휴대폰에서 계산.
+• 스니핑: 리더와 에뮬레이션 중인 카드의 통신을 기록하고 MIFARE Classic 키를 복구. 125 kHz 신호를 파형으로 캡처.
+• 쓰기: T55xx 및 EM4305 태그, Gen1a 및 Gen2 매직 카드.
+• Bluetooth 또는 USB를 통한 장치 설정과 펌웨어 업데이트.
+• 오래 걸리는 모든 작업을 중지할 수 있습니다.
+
+계정, 광고, 추적이 없습니다. 영어, 독일어, 스페인어, 프랑스어, 이탈리아어, 포르투갈어, 러시아어, 중국어, 일본어, 한국어 지원.
+
+ChameleonUltra 또는 ChameleonLite 장치가 필요합니다. 본인 소유이거나 테스트 권한이 있는 카드와 시스템에만 사용하세요.
+
+ChameLab은 GNU GPL v3 자유 소프트웨어입니다: https://github.com/m0n5ter/ChameLab
+RfidResearchGroup과 관련이 없습니다.

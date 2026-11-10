@@ -1,0 +1,18 @@
+ChameLab 是一款面向 RFID 模拟器 ChameleonUltra 和 ChameleonLite 的免费开源应用。通过蓝牙或 USB OTG 连接，在手机上使用设备的全部功能。
+
+• 卡槽：一览全部八个卡槽，显示每张卡的名称和 LED 颜色。拖动排序，点按激活，分别编辑 HF 和 LF。
+• 多张 LF 卡：一个 LF 卡槽可容纳最多八张任意类型的 LF 卡，每次靠近读卡器时出示下一张。需要 ChameLab 固件，应用会为你安装。
+• 读取与转储：ISO 14443-A 和 125 kHz 扫描，使用你的密钥字典转储 MIFARE Classic Mini、1K 和 4K，十六进制编辑器，一键模拟。
+• 卡片库：搜索和颜色标签。导入 Proxmark3、Flipper .nfc / .rfid、MCT、ChameleonUltraGUI、.bin 和 .eml 文件。
+• 密钥恢复：Darkside、Nested、Static nested、Hardnested 和 mfkey32，在手机上计算。
+• 嗅探：记录读卡器与模拟卡之间的通信并恢复 MIFARE Classic 密钥；将 125 kHz 信号捕获为波形。
+• 写入：T55xx 和 EM4305 标签，Gen1a 和 Gen2 魔术卡。
+• 通过蓝牙或 USB 进行设备设置和固件更新。
+• 所有耗时操作都可以停止。
+
+无需账户，无广告，无跟踪。支持英语、德语、西班牙语、法语、意大利语、葡萄牙语、俄语、中文、日语和韩语。
+
+需要 ChameleonUltra 或 ChameleonLite 设备。请仅用于你拥有或获准测试的卡片和系统。
+
+ChameLab 是基于 GNU GPL v3 的自由软件：https://github.com/m0n5ter/ChameLab
+与 RfidResearchGroup 无关。

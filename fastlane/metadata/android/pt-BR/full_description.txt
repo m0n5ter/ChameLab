@@ -1,0 +1,18 @@
+ChameLab é um app gratuito e de código aberto para os emuladores RFID ChameleonUltra e ChameleonLite. Conecte por Bluetooth ou USB OTG e controle pelo celular tudo o que o seu dispositivo faz.
+
+• Slots: os oito slots de uma vez, com o nome de cada cartão e a cor do LED. Arraste para reordenar, toque para ativar, edite HF e LF separadamente.
+• Vários cartões LF: um slot LF guarda até oito cartões LF de qualquer tipo e apresenta o próximo a cada aproximação de um leitor. Requer o firmware ChameLab, que o app instala para você.
+• Leitura e dump: leituras ISO 14443-A e 125 kHz, dumps de MIFARE Classic Mini, 1K e 4K com seus dicionários de chaves, editor hexadecimal e emulação com um toque.
+• Biblioteca de cartões: busca e etiquetas coloridas. Importa Proxmark3, Flipper .nfc / .rfid, MCT, ChameleonUltraGUI, .bin e .eml.
+• Recuperação de chaves: Darkside, Nested, Static nested, Hardnested e mfkey32, calculados no celular.
+• Sniff: grave a conversa entre um leitor e o cartão emulado e recupere chaves MIFARE Classic; capture o sinal de 125 kHz como forma de onda.
+• Gravação: tags T55xx e EM4305, cartões mágicos Gen1a e Gen2.
+• Configurações do dispositivo e atualizações de firmware por Bluetooth ou USB.
+• Qualquer operação longa pode ser interrompida.
+
+Sem contas, sem anúncios, sem rastreamento. Disponível em inglês, alemão, espanhol, francês, italiano, português, russo, chinês, japonês e coreano.
+
+Requer um dispositivo ChameleonUltra ou ChameleonLite. Use apenas com cartões e sistemas que sejam seus ou que você tenha autorização para testar.
+
+ChameLab é software livre sob a GNU GPL v3: https://github.com/m0n5ter/ChameLab
+Não é afiliado à RfidResearchGroup.

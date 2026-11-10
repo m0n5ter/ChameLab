@@ -59,7 +59,14 @@ public static partial class AppUpdateService
     /// A local build (0.0.0-local) or one from an untagged repo (0.0.0-dev.N) has nothing to compare.
     /// </summary>
     public static bool IsSupported =>
-        !OperatingSystem.IsBrowser() && TryParse(CurrentVersion, out var current, out _) && current > new Version(0, 0, 0);
+        !OperatingSystem.IsBrowser() && !UpdatedByStore
+        && TryParse(CurrentVersion, out var current, out _) && current > new Version(0, 0, 0);
+
+    /// <summary>
+    /// Set by the platform head when an app store installed the app and keeps it up to date
+    /// (Google Play): store policies forbid pointing users to updates from elsewhere.
+    /// </summary>
+    public static bool UpdatedByStore { get; set; }
 
     /// <summary>The saved channel; a development build follows the dev channel until told otherwise.</summary>
     public static UpdateChannel Channel

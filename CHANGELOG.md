@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: a copy installed from Google Play no longer checks GitHub for app updates, Google Play updates it; the CI also builds the Google Play bundle (.aab)
 
 ## [v1.4.37][2026-11-10] · firmware v2.3.13-cl
 ### Summary

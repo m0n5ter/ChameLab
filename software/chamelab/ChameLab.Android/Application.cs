@@ -18,6 +18,7 @@ namespace ChameLab.Android
 
         protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
         {
+            AppUpdateService.UpdatedByStore = InstallerPackage() == "com.android.vending";
             var usb = new AndroidUsbCdcHost();
             AppServices.Register(new ITransportScanner[] { new UsbCdcScanner(usb), new BleScanner() },
                 dfu: new IDfuLocator[] { new UsbCdcDfuLocator(usb), new BleDfuLocator() },
@@ -25,6 +26,24 @@ namespace ChameLab.Android
             return base.CustomizeAppBuilder(builder)
             .WithInterFont()
             .UseReactiveUI(_ => { });
+        }
+
+        /// <summary>The package that installed the app: com.android.vending for Google Play, null for an APK installed by hand.</summary>
+        private string? InstallerPackage()
+        {
+            try
+            {
+                var packageName = PackageName!;
+                return System.OperatingSystem.IsAndroidVersionAtLeast(30)
+                    ? PackageManager!.GetInstallSourceInfo(packageName).InstallingPackageName
+#pragma warning disable CA1422 // the only way before Android 11
+                    : PackageManager!.GetInstallerPackageName(packageName);
+#pragma warning restore CA1422
+            }
+            catch (System.Exception)
+            {
+                return null;
+            }
         }
     }
 }
