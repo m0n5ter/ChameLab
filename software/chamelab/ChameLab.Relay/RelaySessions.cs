@@ -98,6 +98,7 @@ internal sealed class RelaySessions(RelayOptions options, ILogger<RelaySessions>
 
         var ct = ctx.RequestAborted;
         var code = RelayCode.Normalize(ctx.Request.RouteValues["code"] as string);
+        var name = PeerName(ctx.Request.Query["name"]);
         using var ws = await ctx.WebSockets.AcceptWebSocketAsync();
         if (code is null || !_sessions.TryGetValue(code, out var session))
         {
@@ -113,7 +114,7 @@ internal sealed class RelaySessions(RelayOptions options, ILogger<RelaySessions>
         try
         {
             await session.SendToPeerAsync(ws, Message("joined"), ct);
-            await session.TrySendToHostAsync(Message("peer-joined"));
+            await session.TrySendToHostAsync(PeerJoined(name));
             await session.PumpPeerAsync(ws, ct);
         }
         catch (Exception ex) when (ex is WebSocketException or OperationCanceledException)
@@ -131,6 +132,28 @@ internal sealed class RelaySessions(RelayOptions options, ILogger<RelaySessions>
         using var timeout = new CancellationTokenSource(CloseTimeout);
         try { await ws.CloseAsync(WebSocketCloseStatus.PolicyViolation, reason, timeout.Token); }
         catch (Exception ex) when (ex is WebSocketException or OperationCanceledException) { /* already gone */ }
+    }
+
+    /// <summary>The connecting side's name as it introduced itself (user@computer): one line, at most 64 characters.</summary>
+    internal static string? PeerName(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var clean = new string(text.Where(c => !char.IsControl(c)).ToArray()).Trim();
+        return clean.Length == 0 ? null : clean.Length > 64 ? clean[..64] : clean;
+    }
+
+    /// <summary><c>{"type":"peer-joined","name":"…"}</c>; the name comes from the client, so it is escaped.</summary>
+    private static string PeerJoined(string? name)
+    {
+        var buffer = new System.Buffers.ArrayBufferWriter<byte>();
+        using (var json = new System.Text.Json.Utf8JsonWriter(buffer))
+        {
+            json.WriteStartObject();
+            json.WriteString("type", "peer-joined");
+            if (name is not null) json.WriteString("name", name);
+            json.WriteEndObject();
+        }
+        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
     /// <summary>A control message; the values come from fixed alphabets, so nothing needs escaping.</summary>

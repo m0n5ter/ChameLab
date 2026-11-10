@@ -116,13 +116,24 @@ public sealed class ConnectViewModel : PageViewModelBase
     /// </summary>
     public bool CanJoinShared => !OperatingSystem.IsBrowser();
 
+    /// <summary>The join tile, hidden like the other tiles while this app shares its own device.</summary>
+    public bool ShowJoinShared => CanJoinShared && !IsSharing;
+
+    /// <summary>The Share tile; while sharing, the sharing card takes its place.</summary>
+    public bool ShowShareTile => CanShare && !IsSharing;
+
     /// <summary>Sharing needs a device on this computer; only the desktop app offers it.</summary>
     public bool CanShare => !OperatingSystem.IsBrowser() && !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS();
 
     public bool IsSharing
     {
         get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(ShowJoinShared));
+            this.RaisePropertyChanged(nameof(ShowShareTile));
+        }
     }
 
     /// <summary>The code to pass on, once the relay has handed it out.</summary>
@@ -131,6 +142,27 @@ public sealed class ConnectViewModel : PageViewModelBase
         get;
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
+
+    /// <summary>The Chameleon being shared, shown on the sharing card.</summary>
+    public TransportCandidate? SharedDevice
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    /// <summary>What the other side sent to the device, e.g. "12.4 KB".</summary>
+    public string TrafficToDevice
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = FormatBytes(0);
+
+    /// <summary>What the device sent back.</summary>
+    public string TrafficFromDevice
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = FormatBytes(0);
 
     public bool IsPeerConnected
     {
@@ -157,6 +189,7 @@ public sealed class ConnectViewModel : PageViewModelBase
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
 
     private DispatcherTimer? _pollTimer;
+    private DispatcherTimer? _trafficTimer;
     private bool _autoScanning;
 
     /// <summary>
@@ -296,14 +329,42 @@ public sealed class ConnectViewModel : PageViewModelBase
         var state = _sharing.State;
         IsSharing = state != SharingState.Idle;
         ShareCode = _sharing.Code;
+        if (_sharing.Candidate is { } shared) SharedDevice = shared;
+        UpdateTraffic();
+        if (IsSharing && _trafficTimer is null)
+        {
+            _trafficTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _trafficTimer.Tick += (_, _) => UpdateTraffic();
+            _trafficTimer.Start();
+        }
+        else if (!IsSharing && _trafficTimer is not null)
+        {
+            _trafficTimer.Stop();
+            _trafficTimer = null;
+        }
         IsPeerConnected = state == SharingState.PeerConnected;
         ShareStatus = state switch
         {
             SharingState.Starting => Strings.Share_Starting,
             SharingState.WaitingForPeer => Strings.Share_Waiting,
-            SharingState.PeerConnected => Strings.Share_PeerConnected,
+            SharingState.PeerConnected => _sharing.PeerName is { } peer
+                ? string.Format(Strings.Share_PeerConnectedName, peer)
+                : Strings.Share_PeerConnected,
             _ => null,
         };
         if (state == SharingState.Idle && _sharing.Error is { } error) ReportError(error);
     }
+
+    private void UpdateTraffic()
+    {
+        TrafficToDevice = FormatBytes(_sharing.BytesToDevice);
+        TrafficFromDevice = FormatBytes(_sharing.BytesFromDevice);
+    }
+
+    private static string FormatBytes(long bytes) => bytes switch
+    {
+        < 1024 => Loc.Plural(Strings.Plural_Bytes, (int)bytes),
+        < 1024 * 1024 => string.Format(Strings.Common_SizeKilobytes, (bytes / 1024.0).ToString("0.0")),
+        _ => string.Format(Strings.Common_SizeMegabytes, (bytes / (1024.0 * 1024)).ToString("0.0")),
+    };
 }

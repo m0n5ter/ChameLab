@@ -3699,4 +3699,19 @@
   <data name="Tools_FrameTimingHint" xml:space="preserve">
     <value>キャプチャ開始からの時間。Δ は前のフレーム終了後の待ち時間です。</value>
   </data>
+  <data name="Share_TrafficToDevice" xml:space="preserve">
+    <value>デバイスへ送信</value>
+  </data>
+  <data name="Share_TrafficFromDevice" xml:space="preserve">
+    <value>デバイスから受信</value>
+  </data>
+  <data name="Common_SizeKilobytes" xml:space="preserve">
+    <value>{0} KB</value>
+  </data>
+  <data name="Common_SizeMegabytes" xml:space="preserve">
+    <value>{0} MB</value>
+  </data>
+  <data name="Share_PeerConnectedName" xml:space="preserve">
+    <value>{0} が接続してデバイスを使用しています。</value>
+  </data>
 </root>

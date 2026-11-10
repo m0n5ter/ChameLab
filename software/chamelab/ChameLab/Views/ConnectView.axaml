@@ -17,6 +17,7 @@
 
       <!-- Hero: device above the title, or beside it on short windows. -->
       <Grid x:Name="Hero" Grid.Row="0" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto"
+            IsVisible="{Binding !IsSharing}"
             HorizontalAlignment="Center" Margin="0,8,0,4">
         <Image x:Name="HeroImage" Grid.ColumnSpan="2" Source="/Assets/chameleon-ultra.png" Height="120"
                HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -34,8 +35,8 @@
         </StackPanel>
       </Grid>
 
-      <!-- Detected devices -->
-      <Border Grid.Row="1" Classes="card">
+      <!-- Detected devices. While a device is shared, only the share tile stays. -->
+      <Border Grid.Row="1" Classes="card" IsVisible="{Binding !IsSharing}">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="14">
           <!-- Laid out like a setting: on a narrow card the title takes the full width and the hint
                shares the next line with the button. No icon (hidden placeholder). -->
@@ -105,7 +106,7 @@
               </StackPanel>
             </Button>
 
-            <Button Classes="accent" Height="56" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+            <Button Classes="accent" Height="56" HorizontalAlignment="Center" Padding="24,0"
                     Command="{Binding ConnectCommand}">
               <StackPanel Orientation="Horizontal" Spacing="10">
                 <PathIcon Data="{StaticResource Icon.link}" Width="24" Height="24" />
@@ -117,7 +118,7 @@
       </Border>
 
       <!-- Manual TCP endpoint, tucked away as an advanced option. -->
-      <Expander Grid.Row="2" HorizontalAlignment="Stretch" CornerRadius="14">
+      <Expander Grid.Row="2" HorizontalAlignment="Stretch" CornerRadius="14" IsVisible="{Binding !IsSharing}">
         <Expander.Header>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <PathIcon Data="{StaticResource Icon.tcp}" Width="16" Height="16" />
@@ -141,7 +142,7 @@
       </Expander>
 
       <!-- A device someone shares over the internet, joined with the code they pass on. -->
-      <Expander Grid.Row="3" HorizontalAlignment="Stretch" CornerRadius="14" IsVisible="{Binding CanJoinShared}">
+      <Expander Grid.Row="3" HorizontalAlignment="Stretch" CornerRadius="14" IsVisible="{Binding ShowJoinShared}">
         <Expander.Header>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <PathIcon Data="{StaticResource Icon.remote}" Width="16" Height="16" />
@@ -163,7 +164,7 @@
       </Expander>
 
       <!-- Sharing the selected device of this computer (desktop only). -->
-      <Expander Grid.Row="4" HorizontalAlignment="Stretch" CornerRadius="14" IsVisible="{Binding CanShare}">
+      <Expander Grid.Row="4" HorizontalAlignment="Stretch" CornerRadius="14" IsVisible="{Binding ShowShareTile}">
         <Expander.Header>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <PathIcon Data="{StaticResource Icon.remote}" Width="16" Height="16" />
@@ -173,36 +174,78 @@
         <StackPanel Spacing="10">
           <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Share_Hint}" />
           <TextBlock Classes="caption" TextWrapping="Wrap" FontWeight="SemiBold" Text="{x:Static loc:Strings.Share_Warning}" />
-          <Button Classes="soft accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                  Command="{Binding ShareCommand}" IsVisible="{Binding !IsSharing}">
+          <Button Classes="soft accent" HorizontalAlignment="Center" Command="{Binding ShareCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.share}" />
               <TextBlock Text="{x:Static loc:Strings.Share_Start}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Border Classes="inset" Padding="14" IsVisible="{Binding IsSharing}" b:BringIntoViewOnShow.IsEnabled="True">
-            <StackPanel Spacing="10">
-              <StackPanel Spacing="4" IsVisible="{Binding ShareCode, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <TextBlock Text="{x:Static loc:Strings.Share_CodeLabel}" Classes="overline" HorizontalAlignment="Center" />
-                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                  <SelectableTextBlock Text="{Binding ShareCode}" Classes="mono" FontSize="28" FontWeight="SemiBold"
-                                       VerticalAlignment="Center" />
-                  <Button Classes="icon small" VerticalAlignment="Center" b:CopyToClipboard.Text="{Binding ShareCode}">
-                    <PathIcon Data="{StaticResource Icon.copy}" />
-                  </Button>
-                </StackPanel>
-              </StackPanel>
-              <TextBlock Text="{Binding ShareStatus}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
-              <Button Classes="soft danger" HorizontalAlignment="Center" Command="{Binding StopSharingCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.close}" />
-                  <TextBlock Text="{x:Static loc:Strings.Share_Stop}" VerticalAlignment="Center" />
-                </StackPanel>
-              </Button>
-            </StackPanel>
-          </Border>
         </StackPanel>
       </Expander>
+
+      <!-- While sharing, the only tile: the shared Chameleon, the code to pass on, who is connected,
+           the traffic so far, and Stop sharing. -->
+      <Border Grid.Row="4" Classes="card" IsVisible="{Binding IsSharing}">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <PathIcon Data="{StaticResource Icon.remote}" Width="16" Height="16" />
+            <TextBlock Text="{x:Static loc:Strings.Share_Title}" Classes="h2" VerticalAlignment="Center" />
+          </StackPanel>
+
+          <Border Classes="inset" Padding="12" DataContext="{Binding SharedDevice}">
+            <Grid ColumnDefinitions="Auto,*" x:DataType="t:TransportCandidate">
+              <Panel Grid.Column="0" Width="36" Height="44" Margin="0,0,12,0">
+                <Image Source="/Assets/chameleon-ultra.png" Height="42"
+                       RenderOptions.BitmapInterpolationMode="HighQuality" />
+                <Border Classes="iconwell" Width="20" Height="20" CornerRadius="10" Padding="0"
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-6,-2">
+                  <PathIcon Width="11" Height="11"
+                            Data="{Binding Kind, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                </Border>
+              </Panel>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <StackPanel Spacing="4" IsVisible="{Binding ShareCode, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Text="{x:Static loc:Strings.Share_CodeLabel}" Classes="overline" HorizontalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+              <SelectableTextBlock Text="{Binding ShareCode}" Classes="mono" FontSize="28" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+              <Button Classes="icon small" VerticalAlignment="Center" b:CopyToClipboard.Text="{Binding ShareCode}">
+                <PathIcon Data="{StaticResource Icon.copy}" />
+              </Button>
+            </StackPanel>
+          </StackPanel>
+          <TextBlock Text="{Binding ShareStatus}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Border Grid.Column="0" Classes="inset">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{x:Static loc:Strings.Share_TrafficToDevice}" Classes="overline" />
+                <TextBlock Text="{Binding TrafficToDevice}" Classes="value mono" />
+              </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Classes="inset">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{x:Static loc:Strings.Share_TrafficFromDevice}" Classes="overline" />
+                <TextBlock Text="{Binding TrafficFromDevice}" Classes="value mono" />
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <Button Classes="soft danger" HorizontalAlignment="Center" Command="{Binding StopSharingCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.close}" />
+              <TextBlock Text="{x:Static loc:Strings.Share_Stop}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Border>
   </Grid>
   </ScrollViewer>
 </UserControl>

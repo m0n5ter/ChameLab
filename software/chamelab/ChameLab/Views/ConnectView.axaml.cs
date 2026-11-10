@@ -38,7 +38,8 @@ public partial class ConnectView : UserControl
     private void Fit()
     {
         var viewport = Scroller.Bounds.Height;
-        if (viewport <= 0) return;
+        // While sharing the hero and the device list are hidden: nothing to fit.
+        if (viewport <= 0 || !Hero.IsVisible) return;
 
         var rest = Page.DesiredSize.Height - DeviceList.DesiredSize.Height;
         var space = viewport - rest;

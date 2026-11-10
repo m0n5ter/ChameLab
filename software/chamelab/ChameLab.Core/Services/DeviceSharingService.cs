@@ -33,11 +33,16 @@ public sealed class DeviceSharingService(DeviceService device)
 
     private CancellationTokenSource? _stop;
     private Task? _run;
+    private long _bytesToDevice;
+    private long _bytesFromDevice;
 
     public SharingState State { get; private set; }
 
     /// <summary>The code to give to whoever should connect, e.g. TR1-ABCD-1234.</summary>
     public string? Code { get; private set; }
+
+    /// <summary>Who is connected, as their app introduced itself (user@computer); null when unknown or nobody.</summary>
+    public string? PeerName { get; private set; }
 
     /// <summary>The relay holding the share: the one with the lowest round trip.</summary>
     public RelayServer? Server { get; private set; }
@@ -47,6 +52,12 @@ public sealed class DeviceSharingService(DeviceService device)
 
     /// <summary>Why the last share ended by itself (device unplugged, relay gone); null after Stop.</summary>
     public string? Error { get; private set; }
+
+    /// <summary>Bytes the connecting side sent to the device during this share.</summary>
+    public long BytesToDevice => Interlocked.Read(ref _bytesToDevice);
+
+    /// <summary>Bytes the device sent back during this share (to the relay, whether anyone was connected or not).</summary>
+    public long BytesFromDevice => Interlocked.Read(ref _bytesFromDevice);
 
     /// <summary>Raised on any thread whenever <see cref="State"/>, <see cref="Code"/> or <see cref="Error"/> changes.</summary>
     public event Action? Changed;
@@ -60,6 +71,8 @@ public sealed class DeviceSharingService(DeviceService device)
 
         Error = null;
         Candidate = candidate;
+        Interlocked.Exchange(ref _bytesToDevice, 0);
+        Interlocked.Exchange(ref _bytesFromDevice, 0);
         SetState(SharingState.Starting);
 
         // The share needs the port to itself.
@@ -152,6 +165,7 @@ public sealed class DeviceSharingService(DeviceService device)
         _stop = null;
         _run = null;
         Code = null;
+        PeerName = null;
         Server = null;
         Candidate = null;
         Error = error;
@@ -159,7 +173,7 @@ public sealed class DeviceSharingService(DeviceService device)
     }
 
     /// <summary>Device → relay. Throws an <see cref="IOException"/> saying which side failed.</summary>
-    private static async Task PumpDeviceAsync(ITransport transport, ClientWebSocket ws, SemaphoreSlim sendLock,
+    private async Task PumpDeviceAsync(ITransport transport, ClientWebSocket ws, SemaphoreSlim sendLock,
         CancellationToken ct)
     {
         var buffer = new byte[4096];
@@ -174,6 +188,7 @@ public sealed class DeviceSharingService(DeviceService device)
             if (n <= 0) continue;
 
             await sendLock.WaitAsync(ct);
+            Interlocked.Add(ref _bytesFromDevice, n);
             try { await ws.SendAsync(buffer.AsMemory(0, n), WebSocketMessageType.Binary, true, CancellationToken.None); }
             catch (Exception ex) when (ex is WebSocketException or ObjectDisposedException)
             {
@@ -201,13 +216,21 @@ public sealed class DeviceSharingService(DeviceService device)
                 case WebSocketMessageType.Close:
                     throw new IOException(Strings.Relay_Closed);
                 case WebSocketMessageType.Text:
-                    switch (RelayEndpoint.MessageType(buffer.AsSpan(0, r.Count)))
+                    var message = buffer.AsSpan(0, r.Count);
+                    switch (RelayEndpoint.MessageType(message))
                     {
-                        case "peer-joined": SetState(SharingState.PeerConnected); break;
-                        case "peer-left": SetState(SharingState.WaitingForPeer); break;
+                        case "peer-joined":
+                            PeerName = RelayEndpoint.Property(message, "name");
+                            SetState(SharingState.PeerConnected);
+                            break;
+                        case "peer-left":
+                            PeerName = null;
+                            SetState(SharingState.WaitingForPeer);
+                            break;
                     }
                     break;
                 case WebSocketMessageType.Binary when r.Count > 0:
+                    Interlocked.Add(ref _bytesToDevice, r.Count);
                     try { await transport.WriteAsync(buffer.AsMemory(0, r.Count), ct); }
                     catch (Exception ex) when (!ct.IsCancellationRequested)
                     {

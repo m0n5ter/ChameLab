@@ -118,7 +118,7 @@ public sealed class RelayTests
         await using var peer = new WebSocketTransport(relay.Server, code);
 
         await peer.ConnectAsync(TestRelay.Timeout());
-        Assert.Equal((WebSocketMessageType.Text, """{"type":"peer-joined"}"""), await TestRelay.ReceiveAsync(host));
+        await AssertPeerJoinedAsync(host);
 
         await peer.WriteAsync(new byte[] { 1, 2, 3 }, TestRelay.Timeout());
         Assert.Equal((WebSocketMessageType.Binary, "010203"), await TestRelay.ReceiveAsync(host));
@@ -127,6 +127,30 @@ public sealed class RelayTests
         var buffer = new byte[16];
         var n = await peer.ReadAsync(buffer, TestRelay.Timeout());
         Assert.Equal("0405", Convert.ToHexString(buffer, 0, n));
+    }
+
+    /// <summary>The sharing side hears who joined: this machine's user@computer.</summary>
+    private static async Task AssertPeerJoinedAsync(WebSocket host)
+    {
+        var (type, text) = await TestRelay.ReceiveAsync(host);
+        Assert.Equal(WebSocketMessageType.Text, type);
+        var json = Encoding.UTF8.GetBytes(text);
+        Assert.Equal("peer-joined", RelayEndpoint.MessageType(json));
+        Assert.Equal(RelayEndpoint.ClientName, RelayEndpoint.Property(json, "name"));
+    }
+
+    [Theory]
+    [InlineData("alice@PC", "alice@PC")]
+    [InlineData("  bob\u0007@LAPTOP\t ", "bob@LAPTOP")]
+    [InlineData("   ", null)]
+    [InlineData(null, null)]
+    public void PeerName_IsOneShortLine(string? sent, string? shown) =>
+        Assert.Equal(shown, RelaySessions.PeerName(sent));
+
+    [Fact]
+    public void PeerName_IsCut()
+    {
+        Assert.Equal(64, RelaySessions.PeerName(new string('x', 200))!.Length);
     }
 
     [Fact]
@@ -167,7 +191,7 @@ public sealed class RelayTests
 
         await using var second = new WebSocketTransport(relay.Server, code);
         await second.ConnectAsync(TestRelay.Timeout());
-        Assert.Equal((WebSocketMessageType.Text, """{"type":"peer-joined"}"""), await TestRelay.ReceiveAsync(host));
+        await AssertPeerJoinedAsync(host);
     }
 
     [Fact]
@@ -296,10 +320,14 @@ public sealed class DeviceSharingServiceTests
         await using var conn = new ChameleonConnection(new WebSocketTransport(relay.Server, code!.Value));
         await conn.OpenAsync(TestRelay.Timeout());
         await WaitForAsync(() => sharing.State == SharingState.PeerConnected);
+        Assert.Equal(RelayEndpoint.ClientName, sharing.PeerName);
 
         var reply = await conn.SendAsync(Command.GetAppVersion, [7], ct: TestRelay.Timeout());
         Assert.Equal(Command.GetAppVersion, reply.Command);
         Assert.Equal(new byte[] { 7 }, reply.Data);
+        // One 11-byte frame each way (10 bytes of framing, 1 of data).
+        Assert.Equal(11, sharing.BytesToDevice);
+        Assert.Equal(11, sharing.BytesFromDevice);
 
         var dropped = new TaskCompletionSource();
         conn.Disconnected += _ => dropped.TrySetResult();

@@ -3699,4 +3699,19 @@
   <data name="Tools_FrameTimingHint" xml:space="preserve">
     <value>캡처 시작 후 경과 시간입니다. Δ는 이전 프레임이 끝난 후의 간격입니다.</value>
   </data>
+  <data name="Share_TrafficToDevice" xml:space="preserve">
+    <value>기기로 보냄</value>
+  </data>
+  <data name="Share_TrafficFromDevice" xml:space="preserve">
+    <value>기기에서 받음</value>
+  </data>
+  <data name="Common_SizeKilobytes" xml:space="preserve">
+    <value>{0} KB</value>
+  </data>
+  <data name="Common_SizeMegabytes" xml:space="preserve">
+    <value>{0} MB</value>
+  </data>
+  <data name="Share_PeerConnectedName" xml:space="preserve">
+    <value>{0}님이 연결되어 기기를 사용 중입니다.</value>
+  </data>
 </root>

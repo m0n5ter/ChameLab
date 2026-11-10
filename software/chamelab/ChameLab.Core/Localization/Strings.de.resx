@@ -3699,4 +3699,19 @@
   <data name="Tools_FrameTimingHint" xml:space="preserve">
     <value>Zeit seit Aufzeichnungsbeginn; Δ ist die Pause seit dem Ende des vorherigen Frames.</value>
   </data>
+  <data name="Share_TrafficToDevice" xml:space="preserve">
+    <value>An das Gerät gesendet</value>
+  </data>
+  <data name="Share_TrafficFromDevice" xml:space="preserve">
+    <value>Vom Gerät empfangen</value>
+  </data>
+  <data name="Common_SizeKilobytes" xml:space="preserve">
+    <value>{0} KB</value>
+  </data>
+  <data name="Common_SizeMegabytes" xml:space="preserve">
+    <value>{0} MB</value>
+  </data>
+  <data name="Share_PeerConnectedName" xml:space="preserve">
+    <value>{0} ist verbunden und nutzt das Gerät.</value>
+  </data>
 </root>

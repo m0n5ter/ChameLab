@@ -36,7 +36,7 @@ public sealed class WebSocketTransport(RelayServer relay, ShareCode code) : ITra
         _ws = ws;
         try
         {
-            await ws.ConnectAsync(RelayEndpoint.Join(relay.Url, code.Code), ct);
+            await ws.ConnectAsync(RelayEndpoint.Join(relay.Url, code.Code, RelayEndpoint.ClientName), ct);
         }
         catch (Exception ex) when (ex is WebSocketException or HttpRequestException)
         {

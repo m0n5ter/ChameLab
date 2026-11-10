@@ -164,8 +164,24 @@ public static class RelayEndpoint
 
     public static Uri Share(Uri relay) => new($"{relay.AbsoluteUri.TrimEnd('/')}/share");
 
-    public static Uri Join(Uri relay, string code) =>
-        new($"{relay.AbsoluteUri.TrimEnd('/')}/join/{Uri.EscapeDataString(code)}");
+    /// <summary>The join URL; <paramref name="name"/> introduces this side to the one sharing the device.</summary>
+    public static Uri Join(Uri relay, string code, string? name = null) =>
+        new($"{relay.AbsoluteUri.TrimEnd('/')}/join/{Uri.EscapeDataString(code)}"
+            + (string.IsNullOrEmpty(name) ? "" : $"?name={Uri.EscapeDataString(name)}"));
+
+    /// <summary>
+    /// How this side introduces itself when it joins a shared device: user@computer from the OS.
+    /// Phones have no meaningful user or host name, so they send none.
+    /// </summary>
+    public static string? ClientName
+    {
+        get
+        {
+            if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS() || OperatingSystem.IsBrowser()) return null;
+            try { return $"{Environment.UserName}@{Environment.MachineName}"; }
+            catch { return null; }
+        }
+    }
 
     /// <summary>The <c>type</c> of a relay control message, or null when it isn't one.</summary>
     public static string? MessageType(ReadOnlySpan<byte> json) => Property(json, "type");
