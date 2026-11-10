@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
+             xmlns:vm="using:ChameLab.ViewModels"
+             xmlns:c="using:ChameLab.Controls"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             x:Class="ChameLab.Controls.DictionarySelector"
+             x:Name="Root">
+  <UserControl.Styles>
+    <!-- Lightweight text buttons for the All/None shortcuts. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="2,0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="TextBlock.TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
+    <!-- Header: the title on the left, the All/None shortcuts on the right. -->
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline"
+                 VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <Button Classes="link" Click="OnAll" Content="{x:Static loc:Strings.Common_All}" />
+        <Button Classes="link" Click="OnNone" Content="{x:Static loc:Strings.Common_None}" />
+      </StackPanel>
+    </Grid>
+    <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl ItemsSource="{Binding #Root.ItemsSource}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
+            <StackPanel>
+              <c:DictionaryToggle Margin="0,2" IsChecked="{Binding IsSelected}" Color="{Binding ColorBrush}"
+                                    Title="{Binding Name}" Count="{Binding KeyCount}" />
+              <Separator Margin="0,8,0,4" IsVisible="{Binding SeparatorAfter}" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+    <Separator Margin="0,2" />
+    <TextBlock Text="{Binding #Root.CountText}" FontWeight="SemiBold" />
+  </StackPanel>
+</UserControl>

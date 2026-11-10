@@ -68,22 +68,7 @@
                 <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
                 <Button.Flyout>
                   <Flyout Placement="BottomEdgeAlignedLeft">
-                    <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
-                      <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline" />
-                      <ItemsControl ItemsSource="{Binding DumpKeySources}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
-                            <StackPanel>
-                              <c:DictionaryToggle Margin="0,2" IsChecked="{Binding IsSelected}" Color="{Binding ColorBrush}"
-                                                    Title="{Binding Name}" Count="{Binding KeyCount}" />
-                              <Separator Margin="0,8,0,4" IsVisible="{Binding IsKnownCardKeys}" />
-                            </StackPanel>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                      <Separator Margin="0,2" />
-                      <TextBlock Text="{Binding DumpKeyCountText}" FontWeight="SemiBold" />
-                    </StackPanel>
+                    <c:DictionarySelector ItemsSource="{Binding DumpKeySources}" CountText="{Binding DumpKeyCountText}" />
                   </Flyout>
                 </Button.Flyout>
               </Button>

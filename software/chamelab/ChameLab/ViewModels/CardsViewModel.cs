@@ -2031,7 +2031,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Clear();
         DumpKeySources.Add(NewKeySource(KnownCardKeys.Id, KnownCardKeys.Name,
             _classicDump is { } dump ? _dictionaries.KnownKeys.ForUid(dump.Uid) : Array.Empty<byte[]>()));
-        DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, Strings.Common_BuiltInKeys, MifareClassic.DefaultKeys));
+        DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, Strings.Common_BuiltInKeys, MifareClassic.DefaultKeys, separatorAfter: true));
         // MIFARE Classic keys are 6 bytes: those of every dictionary that has some.
         foreach (var d in _dictionaries.Dictionaries.Where(d => d.HasKeysOfLength(6)))
             DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.KeysOfLength(6), d.Color));
@@ -2039,9 +2039,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         UpdateDumpKeyCount();
     }
 
-    private DumpKeySourceViewModel NewKeySource(string id, string name, IReadOnlyList<byte[]> keys, string? color = null)
+    private DumpKeySourceViewModel NewKeySource(string id, string name, IReadOnlyList<byte[]> keys, string? color = null,
+        bool separatorAfter = false)
     {
-        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color);
+        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color, separatorAfter);
         source.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(on =>
         {
             if (!DumpKeySources.Contains(source)) return;
@@ -3044,6 +3045,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 var oldKeys = WriteT55xxSettings.BuildOldKeys();
                 var newKey = WriteT55xxSettings.BuildNewKey();
                 var keepPassword = WriteT55xxSettings.KeepKey;
+                // The target tag's own learned password rides along only while the known keys are chosen.
+                var useKnownKeys = !WriteT55xxSettings.KnowKey && WriteT55xxSettings.Keys.IncludeKnownCardKeys;
                 var result = await T55xxPasswordRecovery.WriteAsync(client, card.Tag, card.Uid, oldKeys, newKey,
                     (done, total) => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {
@@ -3060,7 +3063,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                         _writeT55xxFoundKeyBytes = key;
                         WriteT55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected : Hex.Spaced(key);
                         this.RaisePropertyChanged(nameof(CanSaveWriteT55xxKey));
-                    }), original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id), cts.Token, keepPassword);
+                    }), useKnownKeys ? original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id) : null,
+                    cts.Token, keepPassword);
                 if (result is null) throw new InvalidOperationException(Strings.Tools_T55xxNoMatch);
                 RememberT55xxPassword(result);
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>

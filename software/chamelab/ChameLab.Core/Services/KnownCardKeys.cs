@@ -138,6 +138,11 @@ public sealed class KnownCardKeys
     /// <summary>The password the T55xx broadcasting this ID was last given; null when unknown.</summary>
     public byte[]? T55xxPasswordForId(byte[] id) => PasswordFor(KnownCardFamily.T55xx, id);
 
+    /// <summary>Every learned T55xx password, de-duplicated, for a dictionary pass.</summary>
+    public IReadOnlyList<byte[]> AllT55xxPasswords() => _cards
+        .Where(c => c.Key.Family == KnownCardFamily.T55xx && c.Value.Password is not null)
+        .Select(c => Convert.FromHexString(c.Value.Password!)).DistinctBy(Convert.ToHexString).ToArray();
+
     private byte[]? PasswordFor(KnownCardFamily family, byte[] uid) =>
         _cards.TryGetValue(new(family, Convert.ToHexString(uid)), out var entry) && entry.Password is { } pwd
             ? Convert.FromHexString(pwd) : null;

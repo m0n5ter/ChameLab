@@ -333,14 +333,15 @@
                       IsVisible="{Binding T55xxFoundKey, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <TextBlock Text="{x:Static loc:Strings.Tools_T55xxFound}" Classes="caption" VerticalAlignment="Center" />
                   <SelectableTextBlock Grid.Column="1" Text="{Binding T55xxFoundKey}" FontFamily="{x:Static c:AppFonts.Mono}"
-                                       FontWeight="SemiBold" TextWrapping="Wrap" />
+                                       FontWeight="SemiBold" TextWrapping="Wrap"
+                                       Classes.danger="{Binding T55xxNoMatch}" Classes.success="{Binding !T55xxNoMatch}" />
                 </Grid>
                 <Grid ColumnDefinitions="72,*" ColumnSpacing="8"
                       IsVisible="{Binding T55xxSetKey, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <TextBlock Text="{x:Static loc:Strings.Tools_T55xxNew}" Classes="caption" VerticalAlignment="Center" />
                   <SelectableTextBlock Grid.Column="1" Text="{Binding T55xxSetKey}" FontFamily="{x:Static c:AppFonts.Mono}"
                                        FontWeight="SemiBold" TextWrapping="Wrap"
-                                       Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineSuccess}" />
+                                       Classes.danger="{Binding T55xxNoMatch}" Classes.success="{Binding !T55xxNoMatch}" />
                 </Grid>
                 <SelectableTextBlock Text="{Binding T55xxResult}" TextWrapping="Wrap" Margin="0,2,0,0"
                                      IsVisible="{Binding T55xxResult, Converter={x:Static ObjectConverters.IsNotNull}}" />

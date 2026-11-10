@@ -34,21 +34,26 @@ public sealed class T55xxKeySelectionViewModel : ViewModelBase
     public IReadOnlyList<byte[]> BuildKeys() => Sources.Where(s => s.IsSelected)
         .SelectMany(s => s.Keys).DistinctBy(Convert.ToHexString).ToArray();
 
+    /// <summary>Whether the learned card passwords are in play (also prepends the scanned tag's own).</summary>
+    public bool IncludeKnownCardKeys => Sources.Any(s => s.IsKnownCardKeys && s.IsSelected);
+
     public void Refresh()
     {
         foreach (var subscription in _subscriptions) subscription.Dispose();
         _subscriptions.Clear();
         Sources.Clear();
-        Add("t55xx-built-in", Strings.Common_BuiltInKeys, ChameleonClient.DefaultT55xxOldKeys);
+        // The learned card passwords first, then the built-in keys, then the user's dictionaries (as for MIFARE).
+        Add(KnownCardKeys.Id, KnownCardKeys.Name, _library.KnownKeys.AllT55xxPasswords());
+        Add("t55xx-built-in", Strings.Common_BuiltInKeys, ChameleonClient.DefaultT55xxOldKeys, separatorAfter: true);
         // T55xx passwords are 4 bytes: those of every dictionary that has some.
         foreach (var dict in _library.Dictionaries.Where(d => d.HasKeysOfLength(4)))
             Add(dict.Id, string.IsNullOrWhiteSpace(dict.Name) ? Strings.Common_Untitled : dict.Name, dict.KeysOfLength(4), dict.Color);
         UpdateCount();
     }
 
-    private void Add(string id, string name, IReadOnlyList<byte[]> keys, string? color = null)
+    private void Add(string id, string name, IReadOnlyList<byte[]> keys, string? color = null, bool separatorAfter = false)
     {
-        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color);
+        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color, separatorAfter);
         Sources.Add(source);
         _subscriptions.Add(source.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(selected =>
         {

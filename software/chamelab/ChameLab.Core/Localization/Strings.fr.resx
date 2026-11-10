@@ -1212,6 +1212,12 @@
   <data name="Common_CheckingTargetUid" xml:space="preserve">
     <value>Vérification de l'UID cible…</value>
   </data>
+  <data name="Common_All" xml:space="preserve">
+    <value>Tous</value>
+  </data>
+  <data name="Common_None" xml:space="preserve">
+    <value>Aucun</value>
+  </data>
   <data name="Common_Clear" xml:space="preserve">
     <value>Effacer</value>
   </data>
@@ -3431,6 +3437,12 @@
   </data>
   <data name="Tools_T55xxUnprotected" xml:space="preserve">
     <value>Le badge n’est pas protégé par mot de passe.</value>
+  </data>
+  <data name="Tools_T55xxNotFound" xml:space="preserve">
+    <value>Introuvable</value>
+  </data>
+  <data name="Tools_T55xxNotSet" xml:space="preserve">
+    <value>Non définie</value>
   </data>
   <data name="Tools_T55xxNoMatch" xml:space="preserve">
     <value>Aucune clé correspondante dans les dictionnaires sélectionnés.</value>

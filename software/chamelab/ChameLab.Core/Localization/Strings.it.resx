@@ -1212,6 +1212,12 @@
   <data name="Common_CheckingTargetUid" xml:space="preserve">
     <value>Verifica dell'UID di destinazione…</value>
   </data>
+  <data name="Common_All" xml:space="preserve">
+    <value>Tutti</value>
+  </data>
+  <data name="Common_None" xml:space="preserve">
+    <value>Nessuno</value>
+  </data>
   <data name="Common_Clear" xml:space="preserve">
     <value>Cancella</value>
   </data>
@@ -3431,6 +3437,12 @@
   </data>
   <data name="Tools_T55xxUnprotected" xml:space="preserve">
     <value>Il tag non è protetto da password.</value>
+  </data>
+  <data name="Tools_T55xxNotFound" xml:space="preserve">
+    <value>Non trovata</value>
+  </data>
+  <data name="Tools_T55xxNotSet" xml:space="preserve">
+    <value>Non impostata</value>
   </data>
   <data name="Tools_T55xxNoMatch" xml:space="preserve">
     <value>Nessuna chiave valida nei dizionari selezionati.</value>

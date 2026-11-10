@@ -651,8 +651,14 @@
   <data name="Common_CheckGitHubForANewerRelease" xml:space="preserve">
     <value>Check GitHub for a newer release</value>
   </data>
+  <data name="Common_All" xml:space="preserve">
+    <value>All</value>
+  </data>
   <data name="Common_Clear" xml:space="preserve">
     <value>Clear</value>
+  </data>
+  <data name="Common_None" xml:space="preserve">
+    <value>None</value>
   </data>
   <data name="Common_Close" xml:space="preserve">
     <value>Close</value>
@@ -3437,6 +3443,12 @@
   </data>
   <data name="Tools_T55xxNoMatch" xml:space="preserve">
     <value>No matching key in the selected dictionaries.</value>
+  </data>
+  <data name="Tools_T55xxNotFound" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="Tools_T55xxNotSet" xml:space="preserve">
+    <value>Not set</value>
   </data>
   <data name="Tools_T55xxReadOriginalFailed" xml:space="preserve">
     <value>Could not read a supported LF ID. Keep the tag on the reader.</value>

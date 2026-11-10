@@ -1212,6 +1212,12 @@
   <data name="Common_CheckingTargetUid" xml:space="preserve">
     <value>Comprobando el UID de destino…</value>
   </data>
+  <data name="Common_All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Common_None" xml:space="preserve">
+    <value>Ninguno</value>
+  </data>
   <data name="Common_Clear" xml:space="preserve">
     <value>Borrar</value>
   </data>
@@ -3431,6 +3437,12 @@
   </data>
   <data name="Tools_T55xxUnprotected" xml:space="preserve">
     <value>La etiqueta no está protegida por contraseña.</value>
+  </data>
+  <data name="Tools_T55xxNotFound" xml:space="preserve">
+    <value>No encontrada</value>
+  </data>
+  <data name="Tools_T55xxNotSet" xml:space="preserve">
+    <value>Sin establecer</value>
   </data>
   <data name="Tools_T55xxNoMatch" xml:space="preserve">
     <value>No se encontró una clave válida en los diccionarios seleccionados.</value>

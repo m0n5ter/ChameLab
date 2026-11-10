@@ -8,7 +8,7 @@ namespace ChameLab.ViewModels;
 
 /// <summary>One key list offered before a dump (the built-in keys or a saved dictionary), with a check box.</summary>
 public sealed class DumpKeySourceViewModel(string id, string name, IReadOnlyList<byte[]> keys, bool isSelected,
-    string? color = null)
+    string? color = null, bool separatorAfter = false)
     : ReactiveObject
 {
     /// <summary>Dictionary id, or <see cref="BuiltInId"/> for the built-in keys; keeps the choice across rebuilds.</summary>
@@ -16,6 +16,9 @@ public sealed class DumpKeySourceViewModel(string id, string name, IReadOnlyList
 
     public string Name { get; } = name;
     public bool IsKnownCardKeys => Id == Services.KnownCardKeys.Id;
+
+    /// <summary>Draw a divider after this row, separating the special sources from the user's dictionaries.</summary>
+    public bool SeparatorAfter { get; } = separatorAfter;
     public IReadOnlyList<byte[]> Keys { get; } = keys;
     public int KeyCount => Keys.Count;
     public string CountText => Loc.Plural(Strings.Plural_Keys, Keys.Count);

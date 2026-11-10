@@ -72,6 +72,9 @@ public sealed partial class ToolsViewModel
     public string? T55xxProgressText { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
     public string? T55xxResult { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
 
+    /// <summary>No key matched: the Found and New rows read "Not found" / "Not set" in danger.</summary>
+    public bool T55xxNoMatch { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+
     /// <summary>The tag's original UID, as hex.</summary>
     public string? T55xxUid { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
 
@@ -174,6 +177,8 @@ public sealed partial class ToolsViewModel
             // Either the one password the user knows, or every key from the chosen dictionaries.
             if (T55xxSettings.KnowKey && !T55xxSettings.ReadyToStart) throw new FormatException(Strings.Common_Password4Bytes);
             var keys = T55xxSettings.BuildOldKeys();
+            // The scanned tag's own learned password rides along only while the known keys are chosen.
+            var useKnownKeys = !T55xxSettings.KnowKey && T55xxSettings.Keys.IncludeKnownCardKeys;
             // Keep uses the matched password; Clear and an empty Set use the default.
             if (T55xxSettings.NewKeyError is not null) throw new FormatException(T55xxSettings.NewKeyError);
             var target = T55xxSettings.BuildNewKey();
@@ -187,6 +192,7 @@ public sealed partial class ToolsViewModel
             this.RaisePropertyChanged(nameof(CanSaveT55xxKey));
             T55xxUid = null;
             T55xxSetKey = null;
+            T55xxNoMatch = false;
             T55xxProgress = 0;
             T55xxProgressText = string.Format(Strings.Tools_T55xxProgress, 0, keys.Count);
             try
@@ -203,7 +209,8 @@ public sealed partial class ToolsViewModel
                         _t55xxFoundKeyBytes = key;
                         T55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected : Hex.Spaced(key);
                         this.RaisePropertyChanged(nameof(CanSaveT55xxKey));
-                    }), original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id), cts.Token, keepPassword);
+                    }), useKnownKeys ? original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id) : null,
+                    cts.Token, keepPassword);
                 if (result?.NewKey is not null)
                 {
                     try { _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type); }
@@ -211,9 +218,16 @@ public sealed partial class ToolsViewModel
                 }
                 Dispatcher.UIThread.Post(() =>
                 {
-                    T55xxResult = result is null ? Strings.Tools_T55xxNoMatch : Strings.Tools_T55xxComplete;
-                    if (result is not null)
+                    if (result is null)
                     {
+                        // No key matched: spell it out on the Found/New rows in danger, not as a sentence.
+                        T55xxNoMatch = true;
+                        T55xxFoundKey = Strings.Tools_T55xxNotFound;
+                        T55xxSetKey = Strings.Tools_T55xxNotSet;
+                    }
+                    else
+                    {
+                        T55xxResult = Strings.Tools_T55xxComplete;
                         T55xxSetKey = keepPassword ? null : Hex.Spaced(target);
                         T55xxProgress = 100;
                     }

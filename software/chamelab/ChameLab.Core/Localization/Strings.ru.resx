@@ -648,6 +648,12 @@
   <data name="Common_CheckGitHubForANewerRelease" xml:space="preserve">
     <value>Проверить новый релиз на GitHub</value>
   </data>
+  <data name="Common_All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Common_None" xml:space="preserve">
+    <value>Ничего</value>
+  </data>
   <data name="Common_Clear" xml:space="preserve">
     <value>Очистить</value>
   </data>
@@ -3431,6 +3437,12 @@
   </data>
   <data name="Tools_T55xxUnprotected" xml:space="preserve">
     <value>Метка не защищена паролем.</value>
+  </data>
+  <data name="Tools_T55xxNotFound" xml:space="preserve">
+    <value>Не найден</value>
+  </data>
+  <data name="Tools_T55xxNotSet" xml:space="preserve">
+    <value>Не установлен</value>
   </data>
   <data name="Tools_T55xxNoMatch" xml:space="preserve">
     <value>В выбранных словарях подходящий ключ не найден.</value>
