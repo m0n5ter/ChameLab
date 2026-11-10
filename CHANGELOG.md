@@ -9,11 +9,7 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
- - ChameLab: Load and Save in HF sniffing no longer change Capture to Listening; the label changes only during a capture
-
- - ChameLab: HF sniffing shows each frame's time from capture start and the pause after the previous frame. Firmware v2.3.15-cl records frame boundaries with a hardware timer; Proxmark3 `.trace` files retain timing on load and save, and older firmware still works without measured times
-
-## [v1.5.40][2026-11-11] · firmware v2.3.14-cl
+## [v1.5.40][2026-11-11] · firmware v2.3.15-cl
 ### Summary
  - ChameLab: Share this device lets someone use your Chameleon from another computer over the internet: they connect with a code such as RU1-ABCD-1234
  - ChameLab: faster key recovery: Darkside up to 20 times, static encrypted nested about 3 times, nested about 1.4 times
@@ -24,6 +20,8 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
  - ChameLab: Static encrypted nested first checks known and factory keys, so default-key cards finish without cryptanalytic recovery; a second capture checks that encrypted nonces are static before calculating candidates, avoiding a long fruitless search on ordinary backdoored cards
  - ChameLab: nested, static encrypted nested and Darkside recovery share the first Crypto1 candidates, run independent groups in parallel and check Darkside prefixes in batches: on a desktop Darkside is 7 to 21 times faster, static encrypted nested 3 to 3.7 times, nested 1.4 to 1.5 times
  - ChameLab: the Connect buttons have a new icon, the big Connect button no longer stretches across the card, and single-line text boxes keep their text vertically centered
+ - ChameLab: Load and Save in HF sniffing no longer change Capture to Listening; the label changes only during a capture
+ - ChameLab: HF sniffing shows each frame's time from capture start and the pause after the previous frame. Firmware v2.3.15-cl records frame boundaries with a hardware timer; Proxmark3 `.trace` files retain timing on load and save, and older firmware still works without measured times
 
 ## [v1.4.39][2026-11-10] · firmware v2.3.14-cl
 ### Summary
