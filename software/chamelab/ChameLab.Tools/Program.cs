@@ -15,8 +15,10 @@ internal static class Program
             {
                 case ["generate-hardnested"]: HardnestedTools.Generate(Root(), false); break;
                 case ["generate-hardnested", "--check"]: HardnestedTools.Generate(Root(), true); break;
+                case ["generate-hardnested-partial-sums"]: HardnestedTools.GeneratePartialSums(Root()); break;
                 case ["import-hardnested-tables", var upstream]: HardnestedTools.ImportTables(Root(), upstream); break;
                 case ["prepare-hardnested-reference", var upstream]: await HardnestedTools.PrepareReference(upstream); break;
+                case ["prepare-hardnested-gui", var checkout, var adapter]: await BenchmarkTools.PrepareGuiReference(checkout, adapter); break;
                 case ["compare-hardnested", .. var rest]: await BenchmarkTools.Compare(rest); break;
                 case ["reference-vectors", .. var rest]: await BenchmarkTools.ReferenceVectors(rest); break;
                 case ["benchmark", var name, .. var rest]: await BenchmarkTools.Managed(name, rest); break;
@@ -28,7 +30,7 @@ internal static class Program
                 case ["zip", var source, var destination]: Archive(source, destination); break;
                 case ["name-release-files", var folder, var appVersion, var firmwareVersion]: NameReleaseFiles(folder, appVersion, firmwareVersion); break;
                 case ["--help"] or []:
-                    Console.WriteLine("ChameLab development tools\n  generate-hardnested [--check]\n  import-hardnested-tables PROXMARK3_CHECKOUT\n  prepare-hardnested-reference DISPOSABLE_PROXMARK3_CHECKOUT\n  compare-hardnested MANAGED NATIVE OUTPUT [REPETITIONS] [--cases FILE] [--only CASE...]\n  reference-vectors --generator EXE --nested EXE --staticnested EXE --mfkey32v2 EXE [--output JSON]\n  benchmark nested|static-encrypted [ITERATIONS WARMUPS]\n  read-mfc4k --help\n  pr-review MODE\n  zip SOURCE_DIRECTORY OUTPUT.zip\n  name-release-files DIRECTORY APP_VERSION FIRMWARE_VERSION");
+                    Console.WriteLine("ChameLab development tools\n  generate-hardnested [--check]\n  generate-hardnested-partial-sums\n  prepare-hardnested-gui CHECKOUT OUTPUT_ADAPTER\n  import-hardnested-tables PROXMARK3_CHECKOUT\n  prepare-hardnested-reference DISPOSABLE_PROXMARK3_CHECKOUT\n  compare-hardnested MANAGED NATIVE OUTPUT [REPETITIONS] [--cases FILE] [--gui-root CHECKOUT] [--only CASE...]\n  reference-vectors --generator EXE --nested EXE --staticnested EXE --mfkey32v2 EXE [--output JSON]\n  benchmark nested|static-encrypted [ITERATIONS WARMUPS]\n  read-mfc4k --help\n  pr-review MODE\n  zip SOURCE_DIRECTORY OUTPUT.zip\n  name-release-files DIRECTORY APP_VERSION FIRMWARE_VERSION");
                     break;
                 default: throw new ArgumentException("Unknown command. Run with --help.");
             }

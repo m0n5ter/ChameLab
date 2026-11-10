@@ -13,6 +13,15 @@ namespace ChameLab.Tests.Crypto;
 public class ManagedHardnestedTests
 {
     [Fact]
+    public void PackedPartialSums_MatchEveryGeneratedEntry()
+    {
+        var expected = HardnestedTables.BuildPartialSums();
+        var actual = HardnestedTables.Shared.Value.PartialSums;
+        Assert.True(expected[0].AsSpan().SequenceEqual(actual[0]));
+        Assert.True(expected[1].AsSpan().SequenceEqual(actual[1]));
+    }
+
+    [Fact]
     public void PartialSums_MatchUpstreamEnumeration()
     {
         var actual = HardnestedTables.Shared.Value.PartialSums;

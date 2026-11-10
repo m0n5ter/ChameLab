@@ -2,6 +2,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 
 namespace ChameLab.Crypto.Hardnested;
 
@@ -11,9 +14,11 @@ internal sealed class HardnestedTables
     internal static readonly Lazy<HardnestedTables> Shared = new(() => new());
     internal readonly record struct Table(int Half, int Flip, int Count, ushort[] Pages);
     internal readonly uint[] Words;
+    internal readonly int FullPage = -1;
     internal readonly Table[][] Tables;
     internal readonly byte[][] PartialSums;
 
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private HardnestedTables()
     {
         using var stream = typeof(HardnestedTables).Assembly.GetManifestResourceStream("ChameLab.Hardnested.Tables")
@@ -23,27 +28,43 @@ internal sealed class HardnestedTables
         int pages = reader.ReadInt32(), tables = reader.ReadInt32();
         if (pages is < 1 or > 65535 || tables != 241) throw new InvalidDataException("Invalid hardnested table sizes.");
         Words = new uint[pages * 64];
-        for (int i = 0; i < Words.Length; i++) Words[i] = reader.ReadUInt32();
+        stream.ReadExactly(MemoryMarshal.AsBytes(Words.AsSpan()));
+        if (!BitConverter.IsLittleEndian) for (int i = 0; i < Words.Length; i++) Words[i] = BinaryPrimitives.ReverseEndianness(Words[i]);
+        for (int page = 0; page < pages; page++)
+            if (Words.AsSpan(page * 64, 64).IndexOfAnyExcept(uint.MaxValue) < 0) { FullPage = page; break; }
+        if (FullPage < 0 || Words.AsSpan(0, 64).IndexOfAnyExcept(0u) >= 0)
+            throw new InvalidDataException("Missing hardnested identity pages.");
         var all = new Table[tables];
         for (int t = 0; t < tables; t++)
         {
             int half = reader.ReadUInt16(), flip = reader.ReadUInt16(), count = reader.ReadInt32();
             if (half > 1 || flip >= 1024 || count is < 0 or > (1 << 24)) throw new InvalidDataException();
             var indices = new ushort[8192];
+            stream.ReadExactly(MemoryMarshal.AsBytes(indices.AsSpan()));
             for (int i = 0; i < indices.Length; i++)
             {
-                indices[i] = reader.ReadUInt16();
+                if (!BitConverter.IsLittleEndian) indices[i] = BinaryPrimitives.ReverseEndianness(indices[i]);
                 if (indices[i] >= pages) throw new InvalidDataException();
             }
             all[t] = new(half, flip, count, indices);
         }
         Tables = [all.Where(t => t.Half == 0).OrderBy(t => t.Count).ToArray(),
                   all.Where(t => t.Half == 1).OrderBy(t => t.Count).ToArray()];
-        PartialSums = BuildPartialSums();
+        using var partialStream = typeof(HardnestedTables).Assembly.GetManifestResourceStream("ChameLab.Hardnested.PartialSums")
+            ?? throw new InvalidOperationException("The managed partial sums are missing.");
+        var packed = new byte[1 << 20];
+        partialStream.ReadExactly(packed);
+        PartialSums = [new byte[packed.Length], new byte[packed.Length]];
+        for (int i = 0; i < packed.Length; i++)
+        {
+            PartialSums[0][i] = (byte)(packed[i] & 15);
+            PartialSums[1][i] = (byte)(packed[i] >> 4);
+        }
     }
 
     // The upstream 16-path enumeration is a depth-four binary tree. Evaluate
     // its shared subtrees once, rather than evaluating 80 filters per state.
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     internal static byte[][] BuildPartialSums()
     {
         const int size = 1 << 20;

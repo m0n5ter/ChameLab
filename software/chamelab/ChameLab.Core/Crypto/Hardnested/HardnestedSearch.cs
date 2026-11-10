@@ -1,7 +1,6 @@
 // Derived from Proxmark3, GPL-3.0-or-later. See NOTICE.md.
 using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -69,7 +68,7 @@ internal sealed class HardnestedSearch
     }
 
     internal ulong? Run(uint[][][] candidates, int sum0, IProgress<string>? progress,
-        Func<int, uint[], uint[]>? refine = null, bool scalar = false)
+        Func<int, uint[], int, int, uint[]>? refine = null, bool scalar = false, double[]? prior = null)
     {
         int observed = 0;
         // Sum(a8) uses all distinct second bytes, supplied separately by Run below.
@@ -101,9 +100,9 @@ internal sealed class HardnestedSearch
                             work.Add((odd, even));
                         }
                 }
-            if (count != 0) guesses.Add((sum8, likelihood, work));
+            if (count != 0) guesses.Add((sum8, likelihood * (prior is null ? 1 : prior[Array.IndexOf(HardnestedTables.Sums, sum8)]), work));
         }
-        var cache = new ConcurrentDictionary<uint[], uint[]>();
+        var cache = new Dictionary<(int Half, uint[] States), uint[]>();
         var parallel = new ParallelOptions { CancellationToken = Cancellation,
             MaxDegreeOfParallelism = Math.Max(1, Math.Min(Environment.ProcessorCount, 16)) };
         foreach (var guess in guesses.OrderByDescending(g => g.Score))
@@ -113,13 +112,34 @@ internal sealed class HardnestedSearch
             // Cross-byte matching is expensive. Refine only classes used by the
             // current guess, retaining them for later guesses, as upstream does.
             var needed = guess.Work.SelectMany(w => new[] { (Half: 1, States: w.Odd), (Half: 0, States: w.Even) })
-                .Distinct().Where(w => !cache.ContainsKey(w.States)).ToArray();
-            void Refine((int Half, uint[] States) item) => cache[item.States] = refine?.Invoke(item.Half, item.States) ?? item.States;
-            if (OperatingSystem.IsBrowser()) { foreach (var item in needed) Refine(item); }
-            else Parallel.ForEach(needed, parallel, Refine);
+                .Distinct().Where(w => !cache.ContainsKey(w)).ToArray();
+            if (refine is null)
+                foreach (var item in needed) cache[item] = item.States;
+            else if (OperatingSystem.IsBrowser() || needed.Sum(w => w.States.Length) < 1024)
+                foreach (var item in needed) cache[item] = refine(item.Half, item.States, 0, item.States.Length);
+            else
+            {
+                // A sum class can contain millions of states. Flatten its ranges
+                // into the same bounded worker budget as the rest of matching.
+                const int blockSize = 4096;
+                var blocks = needed.ToDictionary(w => w, w => new uint[(w.States.Length + blockSize - 1) / blockSize][]);
+                var matching = needed.SelectMany(w => Enumerable.Range(0, blocks[w].Length)
+                    .Select(i => (Item: w, Part: i, Start: i * blockSize, End: Math.Min(w.States.Length, (i + 1) * blockSize))));
+                Parallel.ForEach(matching, parallel, job =>
+                    blocks[job.Item][job.Part] = refine(job.Item.Half, job.Item.States, job.Start, job.End));
+                foreach (var item in needed)
+                {
+                    var parts = blocks[item];
+                    if (parts.Length == 1) { cache[item] = parts[0]; continue; }
+                    var merged = new uint[parts.Sum(p => p.Length)];
+                    int offset = 0;
+                    foreach (var part in parts) { part.CopyTo(merged, offset); offset += part.Length; }
+                    cache[item] = merged;
+                }
+            }
             progress?.Report($"Searching hardnested candidates: Sum(a8) = {guess.Sum}…");
             // Bounded odd-state buckets distribute even a single large sum class.
-            var jobs = guess.Work.Select(w => (Odd: cache[w.Odd], Even: cache[w.Even]))
+            var jobs = guess.Work.Select(w => (Odd: cache[(1, w.Odd)], Even: cache[(0, w.Even)]))
                 .Where(w => w.Odd.Length != 0 && w.Even.Length != 0)
                 .SelectMany(w => Enumerable.Range(0, (w.Odd.Length + 31) / 32)
                 .Select(i => (w.Odd, w.Even, Start: i * 32, End: Math.Min(w.Odd.Length, (i + 1) * 32))));
@@ -141,14 +161,19 @@ internal sealed class HardnestedSearch
 
     internal static double Hypergeometric(int populationOnes, int drawn, int observed)
     {
-        if (observed > populationOnes || drawn - observed > 256 - populationOnes) return 0;
+        if (populationOnes is < 0 or > 256 || drawn is < 0 or > 256 || observed < 0 || observed > drawn ||
+            observed > populationOnes || drawn - observed > 256 - populationOnes) return 0;
         return Math.Exp(LogChoose(populationOnes, observed) + LogChoose(256 - populationOnes, drawn - observed) - LogChoose(256, drawn));
     }
 
-    private static double LogChoose(int n, int k)
+    private static readonly double[] LogFactorials = BuildLogFactorials();
+
+    private static double[] BuildLogFactorials()
     {
-        double result = 0;
-        for (int i = 1; i <= Math.Min(k, n - k); i++) result += Math.Log(n - i + 1) - Math.Log(i);
-        return result;
+        var values = new double[257];
+        for (int i = 2; i < values.Length; i++) values[i] = values[i - 1] + Math.Log(i);
+        return values;
     }
+
+    private static double LogChoose(int n, int k) => LogFactorials[n] - LogFactorials[k] - LogFactorials[n - k];
 }

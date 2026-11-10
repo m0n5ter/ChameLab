@@ -2,6 +2,11 @@
 
 Results and short methodology: [BASELINE.md](BASELINE.md).
 
+Pre-optimization GUI comparison: [ChameleonUltraGUI 1.4](GUI-1.4.md)
+(10 datasets, 60 verified recoveries; measured 2026-11-10).
+
+Latest optimized implementation: [GUI-1.4-OPTIMIZED.md](GUI-1.4-OPTIMIZED.md).
+
 The console harness calls the app's actual `ManagedHardnestedEngine`, with no
 native solver dependency. It creates a deterministic capture (the same xorshift
 generator as the C reference fixture), recovers without supplying the target
@@ -47,9 +52,8 @@ and requires all 256 first-byte values in every capture.
 
 Captures are generated before timing. Each solver reads the same nonce/parity
 records from its supported format. Three fresh-process runs per solver/case run
-sequentially, alternating solver order. `/usr/bin/time` measures total wall time
-and peak RSS, including input, startup, tables and the native startup benchmark.
-Report medians; check every recovered key and exit code. File caches are not
+sequentially, alternating solver order. `Stopwatch` measures monotonic total wall time; `/usr/bin/time` measures peak RSS, including input, startup, tables and the native startup benchmark.
+Report medians; check every recovered key and exit code. Older stored baselines used GNU time wall time; new runs also retain that value as `gnu_seconds`. File caches are not
 flushed. Keep other builds/benchmarks idle. Logs, capture SHA-256 hashes and raw
 measurements are saved in the output directory; [RESULTS.json](RESULTS.json)
 contains the published measurements.
@@ -61,6 +65,27 @@ and tables reside on the Linux filesystem. Shared managed assembly SHA-256:
 `4ec1630974a8d75ebf50654ea562b6c5c9800e4dbd751ae6339b93fb3c62e962`.
 These measure end-to-end recovery on synthetic data on this host; they do not
 establish kernel throughput or speed on every capture/platform.
+
+## ChameleonUltraGUI
+
+Use the source checkout pinned in the comparison report. The C# tool builds the
+unmodified Release library and writes a small C adapter outside the checkout.
+The adapter checks both native success status and expected key, including zero.
+Run under Linux/WSL from this repository, with GCC and CMake installed:
+
+```sh
+dotnet run --project software/chamelab/ChameLab.Tools -- prepare-hardnested-gui \
+  /path/to/ChameleonUltraGUI /path/out/gui-reference
+dotnet run --project software/chamelab/ChameLab.Tools -- compare-hardnested \
+  /path/to/managed/HardnestedBench /path/out/gui-reference /path/to/results 3 \
+  --gui-root /path/to/ChameleonUltraGUI
+```
+
+This adds the upstream capture and filtering fixtures to the eight synthetic
+sets. `--only` also accepts `gui-capture` and `gui-filtering`. All inputs are
+prepared before timing; native GUI input bytes and headers remain unchanged.
+The driver warms only its own process machinery before timing fresh solver
+processes. No expected key enters either solver.
 
 ## Browser worker
 

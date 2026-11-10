@@ -82,22 +82,81 @@ internal static class BenchmarkTools
         Console.WriteLine($"Wrote {vectors.Length} independent C reference vectors: {output}");
     }
 
+    public static async Task PrepareGuiReference(string checkout, string adapter)
+    {
+        if (!OperatingSystem.IsLinux()) throw new PlatformNotSupportedException("Build the GUI reference under Linux/WSL.");
+        var src = Path.Combine(Path.GetFullPath(checkout), "chameleonultragui/src");
+        adapter = Path.GetFullPath(adapter);
+        Directory.CreateDirectory(Path.GetDirectoryName(adapter)!);
+        var build = adapter + ".build";
+        RequireSuccess(await Run("cmake", ["-S", src, "-B", build, "-DCMAKE_BUILD_TYPE=Release"]));
+        RequireSuccess(await Run("cmake", ["--build", build, "-j8"]));
+        var source = """
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <inttypes.h>
+        #include "hardnested.h"
+        int main(int argc, char **argv) {
+            if (argc != 3) return 2;
+            FILE *f = fopen(argv[1], "rb");
+            if (!f) return 3;
+            fseek(f, 0, SEEK_END); long size = ftell(f); rewind(f);
+            if (size < 6 || size > UINT32_MAX) return 4;
+            char *data = malloc((size_t)size);
+            if (!data || fread(data, 1, (size_t)size, f) != (size_t)size) return 5;
+            fclose(f);
+            uint64_t key = 0, expected = strtoull(argv[2], NULL, 16);
+            int status = mfnestedhard(0, 0, NULL, 0, 0, NULL, false, false, false, &key, data, (uint32_t)size);
+            free(data);
+            printf("RESULT key=%012" PRIX64 " status=%d\n", key, status);
+            return status != 1 || key != expected;
+        }
+
+
+        """;
+        await File.WriteAllTextAsync(adapter + ".c", source + "\n");
+        RequireSuccess(await Run("gcc", ["-O3", "-Wall", "-Werror", "-I", src, adapter + ".c", "-L", build,
+            "-Xlinker", "-rpath", "-Xlinker", build, "-lrecovery", "-o", adapter]));
+        Console.WriteLine("Built unmodified GUI library and reference adapter: " + adapter);
+    }
+
     public static async Task Compare(string[] args)
     {
-        if (args.Length < 3) throw new ArgumentException("Expected MANAGED NATIVE OUTPUT [REPETITIONS] [--cases FILE] [--only CASE...].");
+        if (args.Length < 3) throw new ArgumentException("Expected MANAGED NATIVE OUTPUT [REPETITIONS] [--cases FILE] [--gui-root CHECKOUT] [--only CASE...].");
         if (!File.Exists("/usr/bin/time")) throw new PlatformNotSupportedException("Native comparison requires Linux /usr/bin/time, as in the published baseline.");
         var managed = Path.GetFullPath(args[0]); var native = Path.GetFullPath(args[1]); var output = Path.GetFullPath(args[2]);
-        var repetitions = 3; var casesPath = Path.Combine(Program.Root(), "software/benchmarks/hardnested/CASES.json"); var only = new List<string>();
+        var repetitions = 3; var casesPath = Path.Combine(Program.Root(), "software/benchmarks/hardnested/CASES.json"); var only = new List<string>(); string? guiRoot = null;
         var n = 3;
         if (n < args.Length && !args[n].StartsWith('-')) repetitions = int.Parse(args[n++]);
         while (n < args.Length)
         {
             if (args[n] == "--cases" && ++n < args.Length) casesPath = args[n++];
+            else if (args[n] == "--gui-root" && ++n < args.Length) guiRoot = Path.GetFullPath(args[n++]);
             else if (args[n] == "--only") { n++; while (n < args.Length && !args[n].StartsWith('-')) only.Add(args[n++]); }
             else throw new ArgumentException("Unknown or incomplete comparison option.");
         }
         if (repetitions < 1) throw new ArgumentException("Repetitions must be positive.");
         var cases = JsonNode.Parse(await File.ReadAllTextAsync(casesPath))!.AsArray().Select(v => v!.AsObject()).ToArray();
+        var imported = new Dictionary<string, byte[]>();
+        if (guiRoot is not null)
+        {
+            var test = Path.Combine(guiRoot, "chameleonultragui/test");
+            var match = Regex.Matches(await File.ReadAllTextAsync(Path.Combine(test, "recovery_test.dart")), "'([0-9a-f]+)'")
+                .MaxBy(m => m.Groups[1].Value.Length) ?? throw new InvalidDataException("Missing GUI capture.");
+            imported["gui-capture"] = Convert.FromHexString(match.Groups[1].Value);
+            imported["gui-filtering"] = await File.ReadAllBytesAsync(Path.Combine(test, "native/fixtures/hardnested-filtering.bin"));
+            foreach (var (id, bytes) in imported)
+            {
+                if (bytes.Length < 15 || (bytes.Length - 6) % 9 != 0) throw new InvalidDataException("Invalid GUI capture: " + id);
+                var c = new JsonObject { ["id"] = id, ["samples"] = (bytes.Length - 6) / 9 * 2,
+                    ["uid"] = BinaryPrimitives.ReadUInt32BigEndian(bytes).ToString("X8"),
+                    ["key"] = id == "gui-capture" ? "FBF225DC5D58" : "405044544951" };
+                if (!cases.Any(v => v["id"]!.GetValue<string>() == id)) cases = [.. cases, c];
+            }
+            // Finish the short controls before the long brute-force cases.
+            cases = cases.OrderBy(c => c["id"]!.GetValue<string>().StartsWith("ones-", StringComparison.Ordinal) ? 1 : 0).ToArray();
+        }
+        string nativeLabel = guiRoot is null ? "native" : "gui";
         if (only.Except(cases.Select(c => c["id"]!.GetValue<string>())).Any()) throw new ArgumentException("Unknown case ID.");
         if (only.Count > 0) cases = cases.Where(c => only.Contains(c["id"]!.GetValue<string>())).ToArray();
         Directory.CreateDirectory(output); var fixtures = new JsonArray(); var rows = new List<JsonObject>();
@@ -108,7 +167,19 @@ internal static class BenchmarkTools
             var count = c["samples"]!.GetValue<int>(); var uid = c["uid"]!.GetValue<string>();
             if (count <= 0 || count % 2 != 0) throw new InvalidDataException("Expected positive paired sample count.");
             var capture = Path.Combine(output, id + ".txt"); var binary = Path.ChangeExtension(capture, ".bin");
-            RequireSuccess(await Run(managed, [count.ToString(), c["key"]!.GetValue<string>(), capture, uid, c["seed"]!.GetValue<string>(), "--generate-only"], 60));
+            if (imported.TryGetValue(id, out var input))
+            {
+                if (BinaryPrimitives.ReadUInt32BigEndian(input) != uint.Parse(uid, NumberStyles.HexNumber))
+                    throw new InvalidDataException("GUI capture UID mismatch: " + id);
+                var text = new List<string>();
+                for (int offset = 6; offset < input.Length; offset += 9)
+                {
+                    text.Add(FormattableString.Invariant($"{BinaryPrimitives.ReadUInt32BigEndian(input.AsSpan(offset))}|{input[offset + 8] >> 4}"));
+                    text.Add(FormattableString.Invariant($"{BinaryPrimitives.ReadUInt32BigEndian(input.AsSpan(offset + 4))}|{input[offset + 8] & 15}"));
+                }
+                await File.WriteAllLinesAsync(capture, text);
+            }
+            else RequireSuccess(await Run(managed, [count.ToString(), c["key"]!.GetValue<string>(), capture, uid, c["seed"]!.GetValue<string>(), "--generate-only"], 60));
             var lines = await File.ReadAllLinesAsync(capture);
             var samples = lines.Select(l => l.Split('|')).Select(p => (Nonce: uint.Parse(p[0], CultureInfo.InvariantCulture), Parity: byte.Parse(p[1], CultureInfo.InvariantCulture))).ToArray();
             if (samples.Length != count || samples.Select(s => s.Nonce >> 24).Distinct().Count() != 256 || samples.Any(s => s.Parity > 15)) throw new InvalidDataException("Incomplete capture: " + id);
@@ -125,30 +196,39 @@ internal static class BenchmarkTools
                 BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(offset + 4), samples[i + 1].Nonce);
                 bytes[offset + 8] = (byte)(samples[i].Parity * 16 + samples[i + 1].Parity);
             }
+            if (input is not null) bytes = input; // Preserve the upstream block/type header too.
             await File.WriteAllBytesAsync(binary, bytes);
             var fixture = c.DeepClone().AsObject(); fixture["capture_sha256"] = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(); fixtures.Add(fixture);
         }
         await File.WriteAllTextAsync(Path.Combine(output, "captures.json"), fixtures.ToJsonString(JsonOptions) + "\n");
+        RequireSuccess(await Run("/usr/bin/true", [])); // Warm the parent process machinery outside timing.
         for (var c = 0; c < cases.Length; c++)
         {
             var v = cases[c]; var id = v["id"]!.GetValue<string>(); var key = v["key"]!.GetValue<string>();
             for (var iteration = 0; iteration < repetitions; iteration++)
             {
-                var engines = (c + iteration) % 2 == 0 ? new[] { "managed", "native" } : ["native", "managed"];
+                var engines = (c + iteration) % 2 == 0 ? new[] { "managed", nativeLabel } : [nativeLabel, "managed"];
                 for (var order = 0; order < engines.Length; order++)
                 {
                     var engine = engines[order]; var name = $"{id}-{iteration}-{engine}";
                     var command = engine == "managed"
                         ? new[] { managed, "--capture", Path.Combine(output, id + ".txt"), v["uid"]!.GetValue<string>(), key }
+                        : guiRoot is not null ? [native, Path.Combine(output, id + ".bin"), key]
                         : [native, "-c", $"hf mf hardnested -r -f \"{Path.Combine(output, id + ".bin").Replace("\"", "\\\"")}\""];
+                    var wall = Stopwatch.StartNew();
                     var result = await Run("/usr/bin/time", ["-f", "BENCH elapsed=%e peak_kib=%M", .. command]);
+                    wall.Stop();
                     await File.WriteAllTextAsync(Path.Combine(output, name + ".log"), result.Output);
                     RequireSuccess(result);
-                    if (!Regex.IsMatch(result.Output, (engine == "managed" ? "Key=" : @"Key found:\s*") + Regex.Escape(key) + @"\b", RegexOptions.IgnoreCase)) throw new InvalidDataException("Failed recovery: " + name);
-                    var match = Regex.Match(result.Output, @"BENCH elapsed=([\d.]+) peak_kib=(\d+)");
+                    if (!Regex.IsMatch(result.Output, (engine == "managed" ? "Key=" : guiRoot is not null ? "RESULT key=" : @"Key found:\s*") + Regex.Escape(key) + @"\b", RegexOptions.IgnoreCase)) throw new InvalidDataException("Failed recovery: " + name);
+                    if (engine != "managed" && guiRoot is not null &&
+                        !Regex.IsMatch(result.Output, @"Key found:\s*" + Regex.Escape(key) + @"\b", RegexOptions.IgnoreCase))
+                        throw new InvalidDataException("GUI did not explicitly report key recovery: " + name);
+                    var match = Regex.Match(result.Output, @"BENCH elapsed=(-?[\d.]+) peak_kib=(\d+)");
                     if (!match.Success) throw new InvalidDataException("Missing measurements: " + name);
                     var row = v.DeepClone().AsObject(); row["engine"] = engine; row["iteration"] = iteration; row["order"] = order;
-                    row["seconds"] = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture); row["peak_mib"] = int.Parse(match.Groups[2].Value) / 1024d;
+                    row["seconds"] = wall.Elapsed.TotalSeconds; row["gnu_seconds"] = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+                    row["capture_sha256"] = fixtures[c]!["capture_sha256"]!.DeepClone(); row["peak_mib"] = int.Parse(match.Groups[2].Value) / 1024d;
                     rows.Add(row); Console.WriteLine(row.ToJsonString());
                     await File.WriteAllTextAsync(Path.Combine(output, "results.json"), JsonSerializer.Serialize(rows, JsonOptions) + "\n");
                 }
@@ -162,7 +242,7 @@ internal static class BenchmarkTools
                 var values = rows.Where(r => r["id"]!.GetValue<string>() == id && r["engine"]!.GetValue<string>() == engine).Select(r => r["seconds"]!.GetValue<double>()).Order().ToArray();
                 return values.Length % 2 == 0 ? (values[values.Length / 2 - 1] + values[values.Length / 2]) / 2 : values[values.Length / 2];
             }
-            Console.WriteLine($"{id}: managed={Median("managed"):F3}s native={Median("native"):F3}s speedup={Median("native") / Median("managed"):F2}");
+            Console.WriteLine($"{id}: managed={Median("managed"):F3}s {nativeLabel}={Median(nativeLabel):F3}s speedup={Median(nativeLabel) / Median("managed"):F2}");
         }
     }
 }

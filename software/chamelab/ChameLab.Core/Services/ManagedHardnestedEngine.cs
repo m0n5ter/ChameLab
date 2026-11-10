@@ -35,6 +35,6 @@ public sealed class ManagedHardnestedEngine : IHardnestedEngine
         progress?.Report($"Hardnested candidates: {System.Linq.Enumerable.Sum(candidates[1], c => c.Length):N0} odd, " +
             $"{System.Linq.Enumerable.Sum(candidates[0], c => c.Length):N0} even states…");
         var search = new HardnestedSearch(reduction.Capture, first, reduction.Nonces[first], ct);
-        return search.Run(candidates, reduction.Sum0, progress, (half, states) => reduction.Refine(first, half, states, ct));
+        return search.Run(candidates, reduction.Sum0, progress, (half, states, start, end) => reduction.Refine(first, half, states, ct, start, end), prior: reduction.SumWeights);
     }
 }

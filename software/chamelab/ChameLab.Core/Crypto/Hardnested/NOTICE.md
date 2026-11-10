@@ -40,18 +40,21 @@ THE SOFTWARE.
 - Uses the upstream first/second-byte bitflip constraints, partial sums,
   cross-byte state invariants, encrypted-feedback cipher, and bitsliced filter
   circuits. All 19 sum guesses remain eligible when consistent with observations.
-- Evaluates partial sums by sharing binary-tree subproblems, instead of repeating
-  the same filter calls for every path. Two 1 MiB arrays replace sum bitmaps.
+- Generates partial sums by sharing binary-tree subproblems, instead of repeating
+  the same filter calls for every path. A 1 MiB packed resource decodes into two
+  1 MiB arrays at startup; it replaces the original sum bitmaps.
 - `tables.bin` contains the same 241 effective (half, bitflip) tables selected by upstream's
   0.9901 threshold. It shares equal 256-byte pages; it requires no decompressor,
   native library, download, runtime code generation, or temporary file.
   `tables.manifest.json` records hashes for all 351 original LZ4 files, decoded
   files, and the packed resource. Integer storage is explicitly little endian.
-- Sparse active-word reduction, shared immutable result pages and early common
-  high-bit elimination avoid the upstream 1 GiB of per-byte state bitmaps.
+- Batched SIMD page reduction, independent worker domains, shared immutable
+  result pages and early common high-bit elimination avoid the upstream 1 GiB
+  of per-byte state bitmaps. Scalar page operations remain available.
 - Candidate lists are partitioned once by both partial sums. Cross-byte matching
-  is lazy and cached per partition; sum guesses are ordered by hypergeometric
-  likelihood. Parallel matching and search use bounded work units.
+  is lazy and cached per partition; sum guesses use hypergeometric likelihood
+  and a prior derived from the surviving state domain. Expected search cost
+  selects the first byte. Parallel matching and search use bounded work units.
 - `Vector<ulong>` supplies portable SIMD, with a separate scalar `ulong` circuit
   when SIMD is unavailable. Both are generated from `tools/hardnested/core.cs.txt`.
   A surviving state is rolled back and checked against **every** original sample.
@@ -70,3 +73,16 @@ Neither tool is needed to build or run the application.
 
 See `software/benchmarks/hardnested` for repeatable performance comparisons and
 `ChameLab.Tests/Crypto/ManagedHardnestedTests.cs` for regression coverage.
+
+The 2026-11 optimization also takes inspiration from ChameleonUltraGUI 1.4,
+commit `dfd9f1e9b5a748c3f8eab9b21663af1ca926db33` (GPL): independent reduction
+domains, shared immutable pages and batched page intersections. The managed
+implementation merges the domains before candidate generation; tests compare
+every effective bitmap word against the original sequential algorithm.
+
+`partial-sums.bin` stores both deterministic partial sums as two nibbles per
+byte (1 MiB). Regenerate with `generate-hardnested-partial-sums`; the ordinary
+`generate-hardnested --check` verifies it too. SHA-256:
+`ba9893dffba029dd4fa014fe152d4ca7fa8ada2ed59b5c05f7ac3fe5e7dec0a6`.
+Tests compare every decoded entry with the original tree enumeration. Sum
+priors and expected search cost now select the first byte and guess order.

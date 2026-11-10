@@ -9,11 +9,27 @@ namespace ChameLab.Tools;
 
 internal static class HardnestedTools
 {
+    public static void GeneratePartialSums(string root, bool check = false)
+    {
+        var sums = ChameLab.Crypto.Hardnested.HardnestedTables.BuildPartialSums();
+        var packed = new byte[sums[0].Length];
+        for (int i = 0; i < packed.Length; i++) packed[i] = (byte)(sums[0][i] | (sums[1][i] << 4));
+        var path = Path.Combine(Destination(root), "partial-sums.bin");
+        if (check)
+        {
+            if (!File.ReadAllBytes(path).AsSpan().SequenceEqual(packed))
+                throw new InvalidDataException("The packed partial sums need regeneration.");
+        }
+        else File.WriteAllBytes(path, packed);
+        Console.WriteLine($"{path}: {Convert.ToHexString(SHA256.HashData(packed))}");
+    }
+
     private const string Commit = "1b71dfbbd4c156c34c02cfdd9140470d97d1336c";
     private static string Destination(string root) => Path.Combine(root, "software/chamelab/ChameLab.Core/Crypto/Hardnested");
 
     public static void Generate(string root, bool check)
     {
+        GeneratePartialSums(root, check);
         var template = File.ReadAllText(Path.Combine(root, "software/chamelab/tools/hardnested/core.cs.txt")).Replace("\r\n", "\n");
         foreach (var values in new[]
         {

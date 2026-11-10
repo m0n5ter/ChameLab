@@ -16,6 +16,8 @@
       <PublicClass>true</PublicClass>
     </EmbeddedResource>
     <EmbeddedResource Include="Crypto/Hardnested/tables.bin" LogicalName="ChameLab.Hardnested.Tables" />
+    <EmbeddedResource Include="Crypto/Hardnested/partial-sums.bin" LogicalName="ChameLab.Hardnested.PartialSums" />
     <InternalsVisibleTo Include="ChameLab.Tests" />
+    <InternalsVisibleTo Include="ChameLab.Tools" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,11 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+### Summary
+ - ChameLab: faster hardnested key recovery
+
+### Details
+ - ChameLab: fully managed, portable hardnested optimizations with parallel page reduction and candidate filtering, cached partial sums and improved guess ordering; [comparison with ChameleonUltraGUI 1.4](software/benchmarks/hardnested/GUI-1.4-OPTIMIZED.md)
 
 ## [v1.4.36][2026-11-09] · firmware v2.3.12-cl
 ### Summary
