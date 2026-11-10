@@ -234,6 +234,39 @@ public class T55xxPasswordRecoveryTests
         Assert.Equal(DeviceMode.Tag, transport.Mode);
     }
 
+    [Theory]
+    [InlineData(2, 1)]
+    [InlineData(3, 1)]
+    [InlineData(8, 1)]
+    [InlineData(2, 4)]
+    public async Task MissingReadsDuringWrongKeysDoNotAbortDictionary(int candidate, int missedReads)
+    {
+        // With the old redundant original-ID check, these reads fell on that check
+        // (or spanned all probe reads and the first original-ID check).
+        var firstMiss = 2 * candidate + 3;
+        var transport = new PasswordTransport
+        {
+            MissingScans = Enumerable.Range(firstMiss, missedReads).ToHashSet()
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var keys = Enumerable.Range(0, 126)
+            .Select(i => new byte[] { 0, 0, 0, (byte)i }).ToArray();
+        var progress = new List<(int, int)>();
+        var found = false;
+        var result = await T55xxPasswordRecovery.RecoverAsync(new(connection), keys,
+            progress: (done, total) => progress.Add((done, total)), keyFound: _ => found = true);
+
+        Assert.Null(result);
+        Assert.False(found);
+        Assert.Equal((126, 126), progress.Last());
+        Assert.Equal(PasswordTransport.OriginalId, transport.ReadId());
+        Assert.Equal("12345678", Convert.ToHexString(transport.Password));
+        Assert.True(transport.Protected);
+        Assert.Equal(DeviceMode.Tag, transport.Mode);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Em410xWriteToT55xx);
+    }
+
     [Fact]
     public async Task SameTargetIdAndNewPasswordCannotFalselyConfirmWrongDictionaryKey()
     {
@@ -488,6 +521,7 @@ public class T55xxPasswordRecoveryTests
         private readonly uint[] _blocks = new uint[8];
         private byte[]? _heldReply;
         private int _protectedWrites;
+        private int _scans;
         private byte[] _vikingId = Hex.Parse("10203040");
         public TagSpecificType CurrentType { get; private set; } = TagSpecificType.Em410x64;
         public TagSpecificType InitialType { init => CurrentType = value; }
@@ -501,6 +535,7 @@ public class T55xxPasswordRecoveryTests
         public bool Blank { init { if (value) Array.Clear(_blocks); } }
         public bool Missing { get; init; }
         public int MissProbeReads { get; set; }
+        public HashSet<int> MissingScans { get; init; } = [];
         public bool RejectFinalWrites { get; init; }
         public bool FailSecondProtectedBlock { get; init; }
         public DeviceMode Mode { get; private set; } = DeviceMode.Tag;
@@ -523,7 +558,7 @@ public class T55xxPasswordRecoveryTests
                     case Command.ChangeDeviceMode: Mode = (DeviceMode)r.Data[0]; break;
                     case Command.Em410xScan:
                         var id = CurrentType.IsEm410x() ? ReadId() : null;
-                        if (Missing || id is null || (!id.SequenceEqual(OriginalId) && MissProbeReads-- > 0))
+                        if (MissingScans.Contains(++_scans) || Missing || id is null || (!id.SequenceEqual(OriginalId) && MissProbeReads-- > 0))
                             status = Status.LfTagNoFound;
                         else
                         {

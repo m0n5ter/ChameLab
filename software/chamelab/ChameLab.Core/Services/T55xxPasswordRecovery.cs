@@ -105,16 +105,23 @@ public static class T55xxPasswordRecovery
                 {
                     await WriteProbeAsync(client, probeId, candidate);
                     LfScanResult? read = null;
+                    var originalVerified = false;
                     for (var retry = 0; retry < 3; retry++)
                     {
                         read = await ReadAsync(client, TagSpecificType.Em410x);
                         if (SameId(read, probeId)) break;
-                        if (original is not null && read is not null && read.Id.AsSpan().SequenceEqual(original.Id)) break;
+                        if (original is not null && original.Type.IsEm410x() && SameId(read, original.Id))
+                        {
+                            originalVerified = true;
+                            break;
+                        }
                     }
                     if (!SameId(read, probeId))
                     {
                         if (original is null) return false;
-                        if (await OriginalIntactAsync())
+                        // A read of the original ID already proves the write was ignored.
+                        // A redundant scan can miss the tag and falsely abort a wrong key.
+                        if (originalVerified || await OriginalIntactAsync())
                         {
                             ct.ThrowIfCancellationRequested();
                             return false;
@@ -168,8 +175,14 @@ public static class T55xxPasswordRecovery
                 {
                     try
                     {
-                        var current = await ReadAsync(client, original!.Type);
-                        return current is not null && current.Id.AsSpan().SequenceEqual(original.Id);
+                        // Use the same tolerance for missing reads as probe verification.
+                        // Never advance to another key without observing the original ID.
+                        for (var retry = 0; retry < 3; retry++)
+                        {
+                            var current = await ReadAsync(client, original!.Type);
+                            if (current is not null && current.Id.AsSpan().SequenceEqual(original.Id)) return true;
+                        }
+                        return false;
                     }
                     catch { return false; } // A failed check must not skip the restoration attempt.
                 }
