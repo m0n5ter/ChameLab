@@ -8,6 +8,14 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.4.38][2026-11-10] · firmware v2.3.14-cl
+### Summary
+ - Firmware: T55XX writes no longer fail or corrupt the tag when the commands come slowly, such as over Bluetooth
+ - ChameLab for Android: a copy installed from Google Play is updated by Google Play
+
+### Details
+ - Firmware: a T55XX block write powers the tag up for 10 ms instead of 1 ms before the first command, since the field is off between writes and a tag left long enough (over Bluetooth or a slow USB host) discharged and missed the command
  - ChameLab: a copy installed from Google Play no longer checks GitHub for app updates, Google Play updates it; the CI also builds the Google Play bundle (.aab)
 
 ## [v1.4.37][2026-11-10] · firmware v2.3.13-cl
