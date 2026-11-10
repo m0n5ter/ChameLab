@@ -464,6 +464,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         SetSlotUpdate(null);
         if (value is not null)
         {
+            // Leaving the add pane drops the scan (and stops a dump still in flight).
+            if (_pane == CardsPane.Add) ResetAddState();
             // Once saved, a card entered by hand is read and recovered like any other.
             _isManual = false;
             Form = new CardEditorViewModel(value.Card, restrictType: true);
@@ -486,7 +488,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private bool HasUnsavedWork => _pane switch
     {
         CardsPane.Card => _form?.IsDirty == true,
-        CardsPane.Add => _form is not null,
+        CardsPane.Add => IsNewCardUnsaved,
         _ => false,
     };
 
@@ -619,10 +621,17 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// </summary>
     public bool IsEditingNew => _pane == CardsPane.Add && _form is not null;
 
+    /// <summary>
+    /// The new card is not in the library yet: the save bar is offered and leaving asks first.
+    /// A scan matching a saved card has nothing to lose, so neither happens.
+    /// </summary>
+    public bool IsNewCardUnsaved => IsEditingNew && !HasScanMatches;
+
     private void RaiseAddStage()
     {
         this.RaisePropertyChanged(nameof(IsPickingSource));
         this.RaisePropertyChanged(nameof(IsEditingNew));
+        this.RaisePropertyChanged(nameof(IsNewCardUnsaved));
         this.RaisePropertyChanged(nameof(ShowCardHeader));
     }
 
@@ -1526,6 +1535,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                                && c.Uid.AsSpan().SequenceEqual(scanned.Uid))).Take(1))
                 ScanMatches.Add(new CardItemViewModel(card));
         this.RaisePropertyChanged(nameof(HasScanMatches));
+        this.RaisePropertyChanged(nameof(IsNewCardUnsaved));
         this.RaisePropertyChanged(nameof(ScanMatchText));
     }
 
@@ -1554,12 +1564,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     /// <summary>
-    /// Opens the saved copy of the scanned card. The scan is dropped, unless its memory was
-    /// dumped: then the usual “save before leaving?” question comes first.
+    /// Opens the saved copy of the scanned card. The scan is dropped, unless it is unsaved work
+    /// (no longer matching after a dump): then the usual “save before leaving?” question comes first.
     /// </summary>
     private void OpenScanMatch(CardItemViewModel match)
     {
-        if (!_hasDump)
+        if (!HasUnsavedWork)
         {
             ResetAddState();
             Form = null;

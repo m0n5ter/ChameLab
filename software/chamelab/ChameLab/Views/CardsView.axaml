@@ -1481,11 +1481,11 @@
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="lightbox" Classes.on="{Binding IsAsking}" CornerRadius="12" />
 
       <!-- ===================== Save bar (stays in view) ===================== -->
-      <!-- Adding: offered as soon as there is a new card; Discard drops it and goes back to picking a source. -->
+      <!-- Adding: offered as soon as there is a new card (not one already saved); Discard drops it and goes back to picking a source. -->
       <Border Grid.Row="2" Classes="savebar">
         <Border.IsVisible>
           <MultiBinding Converter="{x:Static BoolConverters.And}">
-            <Binding Path="IsEditingNew" />
+            <Binding Path="IsNewCardUnsaved" />
             <Binding Path="!IsConfirmingLeave" />
           </MultiBinding>
         </Border.IsVisible>
