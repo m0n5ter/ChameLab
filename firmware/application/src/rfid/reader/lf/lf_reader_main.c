@@ -278,7 +278,10 @@ uint8_t lf_t55xx_write_block(uint8_t block, uint32_t word, uint32_t passwd, bool
     uint32_t *pwd_ptr = use_passwd ? &passwd : NULL;
 
     start_lf_125khz_radio();
-    bsp_delay_ms(1);  // Delay for a while after starting the field
+    // Each raw block write starts with the field off. BLE (or a slow USB host)
+    // leaves enough time between commands for the tag to discharge; 1 ms is
+    // insufficient to power it up reliably before the first command gap.
+    bsp_delay_ms(10);
 
     t55xx_send_cmd(opcode, pwd_ptr, 0, &word, block);
     t55xx_send_cmd(T5577_OPCODE_RESET, NULL, 0, NULL, 0);
