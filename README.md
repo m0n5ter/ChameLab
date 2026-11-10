@@ -42,8 +42,7 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
 - **Device settings** — LED animation, button actions, long-press threshold, sleep
   timeout, BLE pairing, factory reset and firmware updates over USB or Bluetooth.
 - **Stop anything** — every long operation (dumps, key recovery attacks, writing magic
-  cards, sniffing) has a Stop button and leaves the device in a usable state. In
-  ChameleonUltraGUI many of them can only be waited out.
+  cards, sniffing) has a Stop button and leaves the device in a usable state.
 
 Key recovery includes Darkside, Nested, Static nested and mfkey32, plus the
 fully managed C# Hardnested solver on desktop, Android, iOS and the web. Hardnested
@@ -138,6 +137,15 @@ release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSI
 | [`firmware`](firmware) | Application and bootloader firmware for nRF52840 |
 | [`hardware`](hardware) | Schematics and PCB files for Ultra and Lite |
 | [`website`](website) | The download page and the web app host |
+
+## Related projects
+
+- [ChameleonUltra](https://github.com/RfidResearchGroup/ChameleonUltra) — the official firmware,
+  Python CLI and hardware from RfidResearchGroup, which ChameLab builds on.
+- [ChameleonUltraGUI](https://github.com/GameTec-live/ChameleonUltraGUI) — a Flutter app for
+  ChameleonUltra and ChameleonLite; ChameLab imports its saved cards.
+- [Proxmark3 (Iceman)](https://github.com/RfidResearchGroup/proxmark3) — the RFID research tool;
+  ChameLab imports its dumps and reads and writes its traces.
 
 ## License
 
