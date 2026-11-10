@@ -5,6 +5,7 @@
              xmlns:t="using:ChameLab.Transport"
              xmlns:conv="using:ChameLab.Converters"
              xmlns:c="using:ChameLab.Controls"
+             xmlns:b="using:ChameLab.Behaviors"
              x:Class="ChameLab.Views.ConnectView"
              x:DataType="vm:ConnectViewModel">
 
@@ -12,7 +13,7 @@
        then the hero shrinks and puts the device beside the title (code-behind); only after that
        does the page scroll. -->
   <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
-  <Grid x:Name="Page" Classes="page" MaxWidth="540" VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto">
+  <Grid x:Name="Page" Classes="page" MaxWidth="540" VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
       <!-- Hero: device above the title, or beside it on short windows. -->
       <Grid x:Name="Hero" Grid.Row="0" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto"
@@ -129,8 +130,77 @@
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <TextBox Grid.Column="0" Text="{Binding ManualEndpoint}" PlaceholderText="host:port"
                      Classes="mono" />
-            <Button Grid.Column="1" Content="{x:Static loc:Strings.Connect_Connect}" Command="{Binding ConnectManualCommand}" />
+            <Button Grid.Column="1" Classes="soft accent" Command="{Binding ConnectManualCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.link}" />
+                <TextBlock Text="{x:Static loc:Strings.Connect_Connect}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
           </Grid>
+        </StackPanel>
+      </Expander>
+
+      <!-- A device someone shares over the internet, joined with the code they pass on. -->
+      <Expander Grid.Row="3" HorizontalAlignment="Stretch" CornerRadius="14" IsVisible="{Binding CanJoinShared}">
+        <Expander.Header>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <PathIcon Data="{StaticResource Icon.remote}" Width="16" Height="16" />
+            <TextBlock Text="{x:Static loc:Strings.Connect_SharedDevice}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </StackPanel>
+        </Expander.Header>
+        <StackPanel Spacing="10">
+          <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Connect_SharedDeviceHint}" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Grid.Column="0" Text="{Binding SharedCode}" PlaceholderText="TR1-ABCD-1234" Classes="mono" />
+            <Button Grid.Column="1" Classes="soft accent" Command="{Binding ConnectSharedCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.link}" />
+                <TextBlock Text="{x:Static loc:Strings.Connect_Connect}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </Grid>
+        </StackPanel>
+      </Expander>
+
+      <!-- Sharing the selected device of this computer (desktop only). -->
+      <Expander Grid.Row="4" HorizontalAlignment="Stretch" CornerRadius="14" IsVisible="{Binding CanShare}">
+        <Expander.Header>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <PathIcon Data="{StaticResource Icon.remote}" Width="16" Height="16" />
+            <TextBlock Text="{x:Static loc:Strings.Share_Title}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </StackPanel>
+        </Expander.Header>
+        <StackPanel Spacing="10">
+          <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Share_Hint}" />
+          <TextBlock Classes="caption" TextWrapping="Wrap" FontWeight="SemiBold" Text="{x:Static loc:Strings.Share_Warning}" />
+          <Button Classes="soft accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                  Command="{Binding ShareCommand}" IsVisible="{Binding !IsSharing}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.share}" />
+              <TextBlock Text="{x:Static loc:Strings.Share_Start}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Border Classes="inset" Padding="14" IsVisible="{Binding IsSharing}" b:BringIntoViewOnShow.IsEnabled="True">
+            <StackPanel Spacing="10">
+              <StackPanel Spacing="4" IsVisible="{Binding ShareCode, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="{x:Static loc:Strings.Share_CodeLabel}" Classes="overline" HorizontalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                  <SelectableTextBlock Text="{Binding ShareCode}" Classes="mono" FontSize="28" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                  <Button Classes="icon small" VerticalAlignment="Center" b:CopyToClipboard.Text="{Binding ShareCode}">
+                    <PathIcon Data="{StaticResource Icon.copy}" />
+                  </Button>
+                </StackPanel>
+              </StackPanel>
+              <TextBlock Text="{Binding ShareStatus}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+              <Button Classes="soft danger" HorizontalAlignment="Center" Command="{Binding StopSharingCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.close}" />
+                  <TextBlock Text="{x:Static loc:Strings.Share_Stop}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </Expander>
   </Grid>

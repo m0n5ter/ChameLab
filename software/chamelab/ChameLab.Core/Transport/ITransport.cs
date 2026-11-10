@@ -10,6 +10,8 @@ public enum TransportKind
     Serial,
     Ble,
     Tcp,
+    /// <summary>A device someone shares over the internet, reached through the relay.</summary>
+    Remote,
 }
 
 /// <summary>

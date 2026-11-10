@@ -19,6 +19,9 @@
     </Project>
     <Project Path="ChameLab/ChameLab.csproj" />
   </Folder>
+  <Folder Name="/Server/">
+    <Project Path="ChameLab.Relay/ChameLab.Relay.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path="Directory.Build.props" />
   </Folder>

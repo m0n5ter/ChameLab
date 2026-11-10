@@ -3615,4 +3615,79 @@
   <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
     <value>カードの暗号化nonceが取得ごとに変化します。Static encrypted nestedではこれらの鍵を復元できません。NestedまたはHardnestedを使用してください。</value>
   </data>
+  <data name="Relay_DisplayName" xml:space="preserve">
+    <value>共有デバイス {0}</value>
+  </data>
+  <data name="Relay_Network" xml:space="preserve">
+    <value>共有デバイス（インターネット）</value>
+  </data>
+  <data name="Relay_InvalidCode" xml:space="preserve">
+    <value>このコードで共有されているデバイスはありません。コードを確認するか、新しいコードを依頼してください。</value>
+  </data>
+  <data name="Relay_Busy" xml:space="preserve">
+    <value>この共有デバイスには既に別のユーザーが接続しています。</value>
+  </data>
+  <data name="Relay_HostLeft" xml:space="preserve">
+    <value>共有デバイスが利用できなくなりました。相手側で共有が停止されました。</value>
+  </data>
+  <data name="Relay_Closed" xml:space="preserve">
+    <value>リレーサーバーとの接続が切れました。</value>
+  </data>
+  <data name="Relay_Unreachable" xml:space="preserve">
+    <value>リレーサーバー {0} に接続できません。</value>
+  </data>
+  <data name="Relay_UnexpectedReply" xml:space="preserve">
+    <value>リレーサーバーから予期しない応答がありました。</value>
+  </data>
+  <data name="Relay_InvalidCodeFormat" xml:space="preserve">
+    <value>コードは TR1-ABCD-1234 の形式です（サーバー名と 8 文字の英数字）。</value>
+  </data>
+  <data name="Share_AlreadySharing" xml:space="preserve">
+    <value>既にデバイスを共有しています。</value>
+  </data>
+  <data name="Share_NotLocal" xml:space="preserve">
+    <value>共有できるのはこのコンピューターに接続されたデバイスだけです。</value>
+  </data>
+  <data name="Share_DeviceLost" xml:space="preserve">
+    <value>共有中のデバイスがこのコンピューターから切断されました。</value>
+  </data>
+  <data name="Connect_SharedDevice" xml:space="preserve">
+    <value>共有デバイスに接続</value>
+  </data>
+  <data name="Connect_SharedDeviceHint" xml:space="preserve">
+    <value>Chameleon を共有している人の ChameLab に表示されているコードを入力してください。</value>
+  </data>
+  <data name="Share_Title" xml:space="preserve">
+    <value>このデバイスを共有</value>
+  </data>
+  <data name="Share_Hint" xml:space="preserve">
+    <value>選択した Chameleon を、別のコンピューターからインターネット経由で使えるようにします。相手はここに表示されるコードで接続します。</value>
+  </data>
+  <data name="Share_Warning" xml:space="preserve">
+    <value>コードを知っている人は、共有を停止するまでデバイスを完全に操作できます。</value>
+  </data>
+  <data name="Share_Start" xml:space="preserve">
+    <value>共有</value>
+  </data>
+  <data name="Share_Stop" xml:space="preserve">
+    <value>共有を停止</value>
+  </data>
+  <data name="Share_Starting" xml:space="preserve">
+    <value>開始しています…</value>
+  </data>
+  <data name="Share_Waiting" xml:space="preserve">
+    <value>接続を待っています…</value>
+  </data>
+  <data name="Share_PeerConnected" xml:space="preserve">
+    <value>接続中のユーザーがデバイスを使用しています。</value>
+  </data>
+  <data name="Share_CodeLabel" xml:space="preserve">
+    <value>共有コード</value>
+  </data>
+  <data name="Relay_UnknownRegion" xml:space="preserve">
+    <value>コードは {0} で始まっていますが、その名前のリレーサーバーはありません。</value>
+  </data>
+  <data name="Relay_NoServers" xml:space="preserve">
+    <value>どのリレーサーバーにも接続できません。インターネット接続を確認してください。</value>
+  </data>
 </root>

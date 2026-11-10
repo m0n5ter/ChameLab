@@ -25,7 +25,7 @@ public sealed class MainViewModel : ViewModelBase
         _device = device;
 
         Firmware = new FirmwareUpdateViewModel(device, firmware);
-        _connect = new ConnectViewModel(device);
+        _connect = new ConnectViewModel(device, AppServices.Sharing);
         Chameleon = new ChameleonViewModel(device, cards, Firmware);
         Slots = new SlotsViewModel(device, cards);
         Cards = new CardsViewModel(device, cards, dictionaries);

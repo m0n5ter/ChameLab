@@ -3615,4 +3615,79 @@
   <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
     <value>卡片的加密 nonce 在每次采集时都会变化。Static encrypted nested 无法恢复这些密钥。请尝试 Nested 或 Hardnested。</value>
   </data>
+  <data name="Relay_DisplayName" xml:space="preserve">
+    <value>共享设备 {0}</value>
+  </data>
+  <data name="Relay_Network" xml:space="preserve">
+    <value>共享设备（互联网）</value>
+  </data>
+  <data name="Relay_InvalidCode" xml:space="preserve">
+    <value>没有设备使用此代码共享。请检查代码或索取新代码。</value>
+  </data>
+  <data name="Relay_Busy" xml:space="preserve">
+    <value>已有其他人连接到此共享设备。</value>
+  </data>
+  <data name="Relay_HostLeft" xml:space="preserve">
+    <value>共享设备已不可用：对方已停止共享。</value>
+  </data>
+  <data name="Relay_Closed" xml:space="preserve">
+    <value>与中继服务器的连接已断开。</value>
+  </data>
+  <data name="Relay_Unreachable" xml:space="preserve">
+    <value>无法连接到中继服务器 {0}。</value>
+  </data>
+  <data name="Relay_UnexpectedReply" xml:space="preserve">
+    <value>中继服务器返回了意外的响应。</value>
+  </data>
+  <data name="Relay_InvalidCodeFormat" xml:space="preserve">
+    <value>代码格式为 TR1-ABCD-1234：服务器名，后跟 8 个字母和数字。</value>
+  </data>
+  <data name="Share_AlreadySharing" xml:space="preserve">
+    <value>已在共享一台设备。</value>
+  </data>
+  <data name="Share_NotLocal" xml:space="preserve">
+    <value>只能共享连接到这台电脑的设备。</value>
+  </data>
+  <data name="Share_DeviceLost" xml:space="preserve">
+    <value>共享的设备已从这台电脑断开。</value>
+  </data>
+  <data name="Connect_SharedDevice" xml:space="preserve">
+    <value>连接到共享设备</value>
+  </data>
+  <data name="Connect_SharedDeviceHint" xml:space="preserve">
+    <value>输入共享 Chameleon 的人在 ChameLab 中看到的代码。</value>
+  </data>
+  <data name="Share_Title" xml:space="preserve">
+    <value>共享此设备</value>
+  </data>
+  <data name="Share_Hint" xml:space="preserve">
+    <value>让他人通过互联网从另一台电脑使用所选的 Chameleon。对方使用此处显示的代码进行连接。</value>
+  </data>
+  <data name="Share_Warning" xml:space="preserve">
+    <value>拥有代码的人在你停止共享之前可以完全控制设备。</value>
+  </data>
+  <data name="Share_Start" xml:space="preserve">
+    <value>共享</value>
+  </data>
+  <data name="Share_Stop" xml:space="preserve">
+    <value>停止共享</value>
+  </data>
+  <data name="Share_Starting" xml:space="preserve">
+    <value>正在启动…</value>
+  </data>
+  <data name="Share_Waiting" xml:space="preserve">
+    <value>正在等待连接…</value>
+  </data>
+  <data name="Share_PeerConnected" xml:space="preserve">
+    <value>有人已连接并正在使用设备。</value>
+  </data>
+  <data name="Share_CodeLabel" xml:space="preserve">
+    <value>共享代码</value>
+  </data>
+  <data name="Relay_UnknownRegion" xml:space="preserve">
+    <value>代码以 {0} 开头，但没有该名称的中继服务器。</value>
+  </data>
+  <data name="Relay_NoServers" xml:space="preserve">
+    <value>无法连接任何中继服务器。请检查网络连接。</value>
+  </data>
 </root>

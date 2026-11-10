@@ -3615,4 +3615,79 @@
   <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
     <value>Os nonces criptografados do cartão mudam entre as capturas. Static encrypted nested não pode recuperar estas chaves. Tente Nested ou Hardnested.</value>
   </data>
+  <data name="Relay_DisplayName" xml:space="preserve">
+    <value>Dispositivo compartilhado {0}</value>
+  </data>
+  <data name="Relay_Network" xml:space="preserve">
+    <value>Dispositivo compartilhado (internet)</value>
+  </data>
+  <data name="Relay_InvalidCode" xml:space="preserve">
+    <value>Nenhum dispositivo está compartilhado com este código. Confira o código ou peça um novo.</value>
+  </data>
+  <data name="Relay_Busy" xml:space="preserve">
+    <value>Outra pessoa já está conectada a este dispositivo compartilhado.</value>
+  </data>
+  <data name="Relay_HostLeft" xml:space="preserve">
+    <value>O dispositivo compartilhado não está mais disponível: o compartilhamento foi encerrado do outro lado.</value>
+  </data>
+  <data name="Relay_Closed" xml:space="preserve">
+    <value>A conexão com o servidor de retransmissão foi perdida.</value>
+  </data>
+  <data name="Relay_Unreachable" xml:space="preserve">
+    <value>Não foi possível acessar o servidor de retransmissão {0}.</value>
+  </data>
+  <data name="Relay_UnexpectedReply" xml:space="preserve">
+    <value>O servidor de retransmissão enviou uma resposta inesperada.</value>
+  </data>
+  <data name="Relay_InvalidCodeFormat" xml:space="preserve">
+    <value>Um código tem o formato TR1-ABCD-1234: o servidor e depois 8 letras e dígitos.</value>
+  </data>
+  <data name="Share_AlreadySharing" xml:space="preserve">
+    <value>Um dispositivo já está sendo compartilhado.</value>
+  </data>
+  <data name="Share_NotLocal" xml:space="preserve">
+    <value>Só é possível compartilhar um dispositivo conectado a este computador.</value>
+  </data>
+  <data name="Share_DeviceLost" xml:space="preserve">
+    <value>O dispositivo compartilhado foi desconectado deste computador.</value>
+  </data>
+  <data name="Connect_SharedDevice" xml:space="preserve">
+    <value>Conectar a um dispositivo compartilhado</value>
+  </data>
+  <data name="Connect_SharedDeviceHint" xml:space="preserve">
+    <value>Digite o código que aparece no ChameLab da pessoa que está compartilhando o Chameleon.</value>
+  </data>
+  <data name="Share_Title" xml:space="preserve">
+    <value>Compartilhar este dispositivo</value>
+  </data>
+  <data name="Share_Hint" xml:space="preserve">
+    <value>Permita que alguém use o Chameleon selecionado em outro computador pela internet. A pessoa se conecta com o código mostrado aqui.</value>
+  </data>
+  <data name="Share_Warning" xml:space="preserve">
+    <value>Quem tiver o código terá controle total do dispositivo até você parar de compartilhar.</value>
+  </data>
+  <data name="Share_Start" xml:space="preserve">
+    <value>Compartilhar</value>
+  </data>
+  <data name="Share_Stop" xml:space="preserve">
+    <value>Parar de compartilhar</value>
+  </data>
+  <data name="Share_Starting" xml:space="preserve">
+    <value>Iniciando…</value>
+  </data>
+  <data name="Share_Waiting" xml:space="preserve">
+    <value>Aguardando alguém se conectar…</value>
+  </data>
+  <data name="Share_PeerConnected" xml:space="preserve">
+    <value>Alguém está conectado e usando o dispositivo.</value>
+  </data>
+  <data name="Share_CodeLabel" xml:space="preserve">
+    <value>Código para compartilhar</value>
+  </data>
+  <data name="Relay_UnknownRegion" xml:space="preserve">
+    <value>O código começa com {0}, mas não há servidor de retransmissão com esse nome.</value>
+  </data>
+  <data name="Relay_NoServers" xml:space="preserve">
+    <value>Nenhum servidor de retransmissão está acessível. Verifique a conexão com a internet.</value>
+  </data>
 </root>

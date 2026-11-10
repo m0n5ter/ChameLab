@@ -1,0 +1,25 @@
+[Unit]
+Description=ChameLab device-sharing relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/opt/chamelab-relay/ChameLab.Relay
+# TLS with the self-signed certificate ChameLab pins (made by deploy.sh). The key reaches the
+# service as a credential, so the dynamic user can read it while the file stays root-only.
+LoadCredential=relay.crt:/etc/chamelab-relay/relay.crt
+LoadCredential=relay.key:/etc/chamelab-relay/relay.key
+Environment=ASPNETCORE_URLS=https://+:7443
+Environment=Kestrel__Certificates__Default__Path=%d/relay.crt
+Environment=Kestrel__Certificates__Default__KeyPath=%d/relay.key
+Restart=always
+RestartSec=5
+DynamicUser=yes
+MemoryMax=64M
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

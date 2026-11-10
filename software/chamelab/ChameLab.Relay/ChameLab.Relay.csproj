@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Pairs a ChameLab that shares its device with the one that connects to it by code and
+       relays raw bytes between them. Published as a small Native AOT binary for a Linux VPS
+       (see deploy/README.md). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <!-- AOT analyzers on every build; the native compile itself happens only when publishing on
+         Linux (build.sh passes PublishAot=true), so ordinary builds don't pull the ILCompiler. -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <!-- A handful of connections: the workstation GC keeps the footprint small. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChameLab.Tests" />
+  </ItemGroup>
+
+</Project>

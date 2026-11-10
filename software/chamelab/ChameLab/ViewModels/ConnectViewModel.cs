@@ -16,17 +16,30 @@ namespace ChameLab.ViewModels;
 public sealed class ConnectViewModel : PageViewModelBase
 {
     private readonly DeviceService _device;
+    private readonly DeviceSharingService _sharing;
 
-    public ConnectViewModel(DeviceService device) : base(() => Strings.Connect_Connect, "link")
+    public ConnectViewModel(DeviceService device, DeviceSharingService sharing) : base(() => Strings.Connect_Connect, "link")
     {
         _device = device;
+        _sharing = sharing;
+        _sharing.Changed += () => Dispatcher.UIThread.Post(OnSharingChanged);
 
+        // While a device is shared, the share holds its port: nothing connects locally then.
         ScanCommand = ReactiveCommand.CreateFromTask(ScanAsync);
         PickCommand = ReactiveCommand.CreateFromTask(PickAsync);
         ConnectCommand = ReactiveCommand.CreateFromTask(ConnectAsync,
-            this.WhenAnyValue(x => x.Selected).Select(s => s is not null));
+            this.WhenAnyValue(x => x.Selected, x => x.IsSharing, (s, sharing) => s is not null && !sharing));
         ConnectManualCommand = ReactiveCommand.CreateFromTask(ConnectManualAsync,
-            this.WhenAnyValue(x => x.ManualEndpoint).Select(e => !string.IsNullOrWhiteSpace(e)));
+            this.WhenAnyValue(x => x.ManualEndpoint, x => x.IsSharing,
+                (e, sharing) => !string.IsNullOrWhiteSpace(e) && !sharing));
+        ConnectSharedCommand = ReactiveCommand.CreateFromTask(ConnectSharedAsync,
+            this.WhenAnyValue(x => x.SharedCode, x => x.IsSharing,
+                (code, sharing) => !string.IsNullOrWhiteSpace(code) && !sharing));
+        ShareCommand = ReactiveCommand.CreateFromTask(ShareAsync,
+            this.WhenAnyValue(x => x.Selected, x => x.IsSharing,
+                (s, sharing) => s is { Kind: not TransportKind.Remote } && !sharing));
+        StopSharingCommand = ReactiveCommand.CreateFromTask(StopSharingAsync,
+            this.WhenAnyValue(x => x.IsSharing));
     }
 
     public ObservableCollection<TransportCandidate> Candidates { get; } = new();
@@ -89,6 +102,51 @@ public sealed class ConnectViewModel : PageViewModelBase
         get;
         set => this.RaiseAndSetIfChanged(ref field, value);
     } = "127.0.0.1:4321";
+
+    /// <summary>The code someone gave to connect to the device they share.</summary>
+    public string SharedCode
+    {
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = "";
+
+    /// <summary>
+    /// Relays use self-signed certificates that the app pins; a web page can't, so the browser
+    /// build can't reach them.
+    /// </summary>
+    public bool CanJoinShared => !OperatingSystem.IsBrowser();
+
+    /// <summary>Sharing needs a device on this computer; only the desktop app offers it.</summary>
+    public bool CanShare => !OperatingSystem.IsBrowser() && !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS();
+
+    public bool IsSharing
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    /// <summary>The code to pass on, once the relay has handed it out.</summary>
+    public string? ShareCode
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    public bool IsPeerConnected
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    public string? ShareStatus
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    public ICommand ConnectSharedCommand { get; }
+    public ICommand ShareCommand { get; }
+    public ICommand StopSharingCommand { get; }
 
     public ICommand ScanCommand { get; }
     public ICommand PickCommand { get; }
@@ -218,4 +276,34 @@ public sealed class ConnectViewModel : PageViewModelBase
         var candidate = TcpScanner.Candidate(ManualEndpoint);
         await _device.ConnectAsync(candidate);
     });
+
+    private Task ConnectSharedAsync() => RunAsync(async () =>
+    {
+        var candidate = RelayScanner.Candidate(SharedCode);
+        await _device.ConnectAsync(candidate);
+    });
+
+    private Task ShareAsync() => RunAsync(async () =>
+    {
+        if (Selected is null) { ReportError(Strings.Connect_SelectFirst); return; }
+        await _sharing.StartAsync(Selected);
+    });
+
+    private Task StopSharingAsync() => RunAsync(() => _sharing.StopAsync());
+
+    private void OnSharingChanged()
+    {
+        var state = _sharing.State;
+        IsSharing = state != SharingState.Idle;
+        ShareCode = _sharing.Code;
+        IsPeerConnected = state == SharingState.PeerConnected;
+        ShareStatus = state switch
+        {
+            SharingState.Starting => Strings.Share_Starting,
+            SharingState.WaitingForPeer => Strings.Share_Waiting,
+            SharingState.PeerConnected => Strings.Share_PeerConnected,
+            _ => null,
+        };
+        if (state == SharingState.Idle && _sharing.Error is { } error) ReportError(error);
+    }
 }

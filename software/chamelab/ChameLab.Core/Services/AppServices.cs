@@ -8,7 +8,7 @@ namespace ChameLab.Services;
 /// <summary>
 /// Minimal composition root. Each platform head registers its transport
 /// scanners (serial on desktop, BLE on mobile) before the Avalonia app starts;
-/// the TCP scanner is always available as a cross-platform fallback.
+/// the TCP scanner and the relay (shared devices) are always available.
 /// </summary>
 public static class AppServices
 {
@@ -28,6 +28,9 @@ public static class AppServices
     public static CardLibrary Cards => field ??= new CardLibrary(Store);
 
     public static DictionaryLibrary Dictionaries => field ??= new DictionaryLibrary(Store);
+
+    /// <summary>Sharing a local device over the internet through the relay.</summary>
+    public static DeviceSharingService Sharing => field ??= new DeviceSharingService(Device);
 
     public static FirmwareUpdateService Firmware => field ??= new FirmwareUpdateService(Device, _dfu);
 
@@ -53,7 +56,7 @@ public static class AppServices
 
     private static DeviceService Build(IEnumerable<ITransportScanner> platformScanners)
     {
-        var scanners = new List<ITransportScanner>(platformScanners) { new TcpScanner() };
+        var scanners = new List<ITransportScanner>(platformScanners) { new TcpScanner(), new RelayScanner() };
         return new DeviceService(scanners);
     }
 }

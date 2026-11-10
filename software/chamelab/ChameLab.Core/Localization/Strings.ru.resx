@@ -3615,4 +3615,79 @@
   <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
     <value>Зашифрованные nonce карты меняются между сборами. Static encrypted nested не сможет восстановить эти ключи. Используйте Nested или Hardnested.</value>
   </data>
+  <data name="Relay_DisplayName" xml:space="preserve">
+    <value>Общее устройство {0}</value>
+  </data>
+  <data name="Relay_Network" xml:space="preserve">
+    <value>Общее устройство (интернет)</value>
+  </data>
+  <data name="Relay_InvalidCode" xml:space="preserve">
+    <value>С этим кодом никто не делится устройством. Проверьте код или попросите новый.</value>
+  </data>
+  <data name="Relay_Busy" xml:space="preserve">
+    <value>К этому устройству уже подключён кто-то другой.</value>
+  </data>
+  <data name="Relay_HostLeft" xml:space="preserve">
+    <value>Общее устройство недоступно: на другой стороне доступ закрыли.</value>
+  </data>
+  <data name="Relay_Closed" xml:space="preserve">
+    <value>Связь с relay-сервером потеряна.</value>
+  </data>
+  <data name="Relay_Unreachable" xml:space="preserve">
+    <value>Не удаётся связаться с relay-сервером {0}.</value>
+  </data>
+  <data name="Relay_UnexpectedReply" xml:space="preserve">
+    <value>Relay-сервер прислал неожиданный ответ.</value>
+  </data>
+  <data name="Relay_InvalidCodeFormat" xml:space="preserve">
+    <value>Код выглядит так: TR1-ABCD-1234 — сервер, затем 8 букв и цифр.</value>
+  </data>
+  <data name="Share_AlreadySharing" xml:space="preserve">
+    <value>Устройство уже открыто для доступа.</value>
+  </data>
+  <data name="Share_NotLocal" xml:space="preserve">
+    <value>Поделиться можно только устройством, подключённым к этому компьютеру.</value>
+  </data>
+  <data name="Share_DeviceLost" xml:space="preserve">
+    <value>Общее устройство отключилось от этого компьютера.</value>
+  </data>
+  <data name="Connect_SharedDevice" xml:space="preserve">
+    <value>Подключиться к общему устройству</value>
+  </data>
+  <data name="Connect_SharedDeviceHint" xml:space="preserve">
+    <value>Введите код, который видит в ChameLab человек, открывший доступ к своему хамелеону.</value>
+  </data>
+  <data name="Share_Title" xml:space="preserve">
+    <value>Поделиться устройством</value>
+  </data>
+  <data name="Share_Hint" xml:space="preserve">
+    <value>Позвольте кому-то пользоваться выбранным хамелеоном с другого компьютера через интернет. Подключаются по коду, показанному здесь.</value>
+  </data>
+  <data name="Share_Warning" xml:space="preserve">
+    <value>Тот, у кого есть код, получает полный контроль над устройством, пока вы не закроете доступ.</value>
+  </data>
+  <data name="Share_Start" xml:space="preserve">
+    <value>Поделиться</value>
+  </data>
+  <data name="Share_Stop" xml:space="preserve">
+    <value>Закрыть доступ</value>
+  </data>
+  <data name="Share_Starting" xml:space="preserve">
+    <value>Запуск…</value>
+  </data>
+  <data name="Share_Waiting" xml:space="preserve">
+    <value>Ждём подключения…</value>
+  </data>
+  <data name="Share_PeerConnected" xml:space="preserve">
+    <value>Кто-то подключился и работает с устройством.</value>
+  </data>
+  <data name="Share_CodeLabel" xml:space="preserve">
+    <value>Код для подключения</value>
+  </data>
+  <data name="Relay_UnknownRegion" xml:space="preserve">
+    <value>Код начинается с {0}, но relay-сервера с таким именем нет.</value>
+  </data>
+  <data name="Relay_NoServers" xml:space="preserve">
+    <value>Ни один relay-сервер не отвечает. Проверьте подключение к интернету.</value>
+  </data>
 </root>

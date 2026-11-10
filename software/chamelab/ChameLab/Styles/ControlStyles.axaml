@@ -3,6 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui">
 
+  <!-- Single-line inputs keep their text in the middle when a row stretches them (e.g. beside a
+       40 px button). -->
+  <Style Selector="TextBox[AcceptsReturn=False]">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="NumericUpDown">
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
   <Style Selector="ComboBox">
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
@@ -307,6 +315,38 @@
     <Setter Property="BorderBrush" Value="{DynamicResource BrandBlueBrush}" />
     <Setter Property="Foreground" Value="White" />
   </Style>
+  <!-- Soft (Share, Connect to a shared device, Stop sharing): a tinted fill with colored text,
+       deeper on hover. Declared after the solid .accent and quiet .danger above, so it wins. -->
+  <Style Selector="Button.soft.accent">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Button.soft.accent:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccentPointerOver}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+  </Style>
+  <Style Selector="Button.soft.accent:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccentPressed}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+  </Style>
+  <Style Selector="Button.soft.danger">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftDanger}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Button.soft.danger:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftDangerPointerOver}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftDanger}" />
+  </Style>
+  <Style Selector="Button.soft.danger:pressed /template/ ContentPresenter">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftDangerPressed}" />
+    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftDanger}" />
+  </Style>
+  <Style Selector="Button.soft:disabled /template/ ContentPresenter">
+    <Setter Property="Opacity" Value="0.5" />
+  </Style>
+
   <Style Selector="Button.danger.solid">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}" />
     <Setter Property="Foreground" Value="White" />
