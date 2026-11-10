@@ -1,5 +1,9 @@
 # Nested: C vs C#
 
+For the current GUI 1.4/main comparison and the additional Recovery32
+optimizations of 2026-11-10, see [recovery](../recovery/README.md).
+The recorded measurements below predate those changes.
+
 Run on Windows x64 with .NET 10 SDK and Visual Studio C++ build tools:
 
 ```powershell

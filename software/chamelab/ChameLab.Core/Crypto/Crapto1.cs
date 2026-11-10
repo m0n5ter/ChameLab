@@ -2,6 +2,9 @@ using ChameLab.Crypto.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Buffers;
 
 namespace ChameLab.Crypto;
 
@@ -26,6 +29,42 @@ public static class Crapto1
     /// </summary>
     private static readonly Lazy<byte[]> RecoveryFilters =
         new(CreateRecoveryFilterTable, isThreadSafe: true);
+
+    internal static byte[] RecoveryFilterTable => RecoveryFilters.Value;
+
+    // The first five filter bits contain no input/feedback contribution.
+    // Cache their 32 immutable candidate lists lazily (64 MiB maximum shared
+    // across all workers). The ordered public producer keeps its original path.
+    private static readonly Lazy<uint[]>[] RecoverySeeds = CreateRecoverySeeds();
+
+    private static Lazy<uint[]>[] CreateRecoverySeeds()
+    {
+        var result = new Lazy<uint[]>[32];
+        for (var i = 0; i < result.Length; i++)
+        {
+            var prefix = i;
+            result[i] = new Lazy<uint[]>(() => BuildRecoverySeed(prefix));
+        }
+        return result;
+    }
+
+    internal static uint[] GetRecoverySeed(int prefix) => RecoverySeeds[prefix].Value;
+
+    private static uint[] BuildRecoverySeed(int prefix)
+    {
+        using var buffer = new PooledBuffer<uint>(System.Buffers.ArrayPool<uint>.Shared,
+            Crypto1RecoveryWorkspace.Recovery32BufferLength);
+        var values = buffer.Array;
+        var end = 0;
+        values[0] = 0; // Preserve the managed producer's characterized sentinel.
+        var filters = RecoveryFilters.Value;
+        for (var i = 1 << 20; i >= 0; i--)
+            if (filters[i & FilterTableMask] == (prefix & 1)) values[++end] = (uint)i;
+        buffer.MarkUsed(end + 1);
+        for (var bit = 1; bit < 5; bit++)
+            ExtendTableSimple(buffer, 0, ref end, (uint)((prefix >> bit) & 1), filters);
+        return buffer.Array.AsSpan(0, end + 1).ToArray();
+    }
 
     /// <summary>
     /// Looks up the Crypto1 filter bit for a recovery candidate.
@@ -318,7 +357,10 @@ public static class Crapto1
         Func<Crypto1State, bool> emit,
         uint @in,
         byte[] filters,
-        uint[]? scratch)
+        uint[]? scratch,
+        bool parallelFirstRound = false,
+        Func<Crypto1State, bool>[]? parallelSinks = null,
+        CancellationToken ct = default)
     {
         if (rem == -1)
         {
@@ -343,7 +385,14 @@ public static class Crapto1
             return true;
         }
 
-        for (var i = 0; i < 4 && rem-- != 0; i++)
+        if (parallelFirstRound)
+        {
+            ExtendFirstRoundParallel(odd, oddStart, ref oddEnd, ref oks,
+                even, evenStart, ref evenEnd, ref eks, ref @in, filters);
+            if (oddEnd < oddStart || evenEnd < evenStart) return true;
+            rem -= 4;
+        }
+        else for (var i = 0; i < 4 && rem-- != 0; i++)
         {
             oks >>= 1;
             eks >>= 1;
@@ -371,7 +420,8 @@ public static class Crapto1
                 return true;
         }
 
-        if (scratch != null && scratch.Length >= oddEnd - oddStart + 1 &&
+        if (scratch != null && Math.Max(oddEnd - oddStart, evenEnd - evenStart) >= 255 &&
+            scratch.Length >= oddEnd - oddStart + 1 &&
             scratch.Length >= evenEnd - evenStart + 1)
         {
             // Recovery only needs matching contribution bytes, not a full sort.
@@ -380,6 +430,9 @@ public static class Crapto1
             Span<int> evenGroups = stackalloc int[257];
             GroupRecoveryRange(odd.Array, oddStart, oddEnd, scratch, oddGroups);
             GroupRecoveryRange(even.Array, evenStart, evenEnd, scratch, evenGroups);
+            if (parallelSinks is { Length: > 1 })
+                return RecoverGroupsParallel(odd.Array, even.Array, oddGroups, evenGroups,
+                    oks, eks, rem, @in, filters, parallelSinks, ct);
             for (var group = 255; group >= 0; group--)
             {
                 if (oddGroups[group] == oddGroups[group + 1] ||
@@ -452,6 +505,82 @@ public static class Crapto1
             }
         }
         return true;
+    }
+
+    // Keep task closures outside the recursive routine: small groups must not
+    // allocate a closure for a parallel path they never take.
+    private static void ExtendFirstRoundParallel(PooledBuffer<uint> odd, int oddStart,
+        ref int oddEnd, ref uint oks, PooledBuffer<uint> even, int evenStart,
+        ref int evenEnd, ref uint eks, ref uint input, byte[] filters)
+    {
+        var oEnd = oddEnd; var eEnd = evenEnd;
+        var oStream = oks; var eStream = eks; var contribution = input;
+        Parallel.Invoke(
+            () =>
+            {
+                for (var i = 0; i < 4; i++)
+                    ExtendTable(odd, oddStart, ref oEnd, (oStream >>= 1) & 1,
+                        Crypto1.LF_POLY_EVEN << 1 | 1, Crypto1.LF_POLY_ODD << 1, 0, filters);
+            },
+            () =>
+            {
+                for (var i = 0; i < 4; i++)
+                    ExtendTable(even, evenStart, ref eEnd, (eStream >>= 1) & 1,
+                        Crypto1.LF_POLY_ODD, Crypto1.LF_POLY_EVEN << 1 | 1, (contribution >>= 2) & 3, filters);
+            });
+        oddEnd = oEnd; evenEnd = eEnd;
+        oks = oStream; eks = eStream; input = contribution;
+    }
+
+    private static bool RecoverGroupsParallel(uint[] odd, uint[] even, ReadOnlySpan<int> oddGroups,
+        ReadOnlySpan<int> evenGroups, uint oks, uint eks, int rem, uint input, byte[] filters,
+        Func<Crypto1State, bool>[] sinks, CancellationToken ct)
+    {
+        var ranges = new List<(int OStart, int OCount, int EStart, int ECount)>();
+        for (var group = 255; group >= 0; group--)
+        {
+            if (oddGroups[group] == oddGroups[group + 1] || evenGroups[group] == evenGroups[group + 1]) continue;
+            var oEnd = oddGroups[group + 1] - 1; var eEnd = evenGroups[group + 1] - 1;
+            var oPositive = PartitionZeroContributions(odd, oddGroups[group], oEnd);
+            var ePositive = PartitionZeroContributions(even, evenGroups[group], eEnd);
+            var oZeroEnd = oPositive - 1; var eZeroEnd = ePositive - 1;
+            if (oPositive <= oEnd || ePositive <= eEnd)
+            {
+                var os = oPositive <= oEnd ? oPositive : oZeroEnd--;
+                var es = ePositive <= eEnd ? ePositive : eZeroEnd--;
+                ranges.Add((os, oEnd - os + 1, es, eEnd - es + 1));
+            }
+            while (oZeroEnd >= oddGroups[group] && eZeroEnd >= evenGroups[group])
+                ranges.Add((oZeroEnd--, 1, eZeroEnd--, 1));
+        }
+        if (ranges.Count == 0) return true;
+        var capacity = 1;
+        foreach (var range in ranges)
+            while (capacity < Math.Max(range.OCount, range.ECount)) capacity = checked(capacity * 2);
+        var next = -1; var stopped = 0;
+        Parallel.For(0, Math.Min(sinks.Length, ranges.Count), new ParallelOptions
+        { MaxDegreeOfParallelism = sinks.Length, CancellationToken = ct }, worker =>
+        {
+            using var o = new PooledBuffer<uint>(ArrayPool<uint>.Shared, capacity);
+            using var e = new PooledBuffer<uint>(ArrayPool<uint>.Shared, capacity);
+            var scratch = ArrayPool<uint>.Shared.Rent(capacity);
+            try
+            {
+                int index;
+                while (Volatile.Read(ref stopped) == 0 && (index = Interlocked.Increment(ref next)) < ranges.Count)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var range = ranges[index];
+                    odd.AsSpan(range.OStart, range.OCount).CopyTo(o.Array);
+                    even.AsSpan(range.EStart, range.ECount).CopyTo(e.Array);
+                    o.MarkUsed(range.OCount); e.MarkUsed(range.ECount);
+                    if (!Recover(o, 0, range.OCount - 1, oks, e, 0, range.ECount - 1, eks,
+                            rem, sinks[worker], input, filters, scratch)) Interlocked.Exchange(ref stopped, 1);
+                }
+            }
+            finally { Array.Clear(scratch); ArrayPool<uint>.Shared.Return(scratch); }
+        });
+        return stopped == 0;
     }
 
     /// <summary>Moves zero low-bit contributions ahead of the positive range.</summary>
@@ -632,7 +761,10 @@ public static class Crapto1
         uint @in,
         Crypto1RecoveryWorkspace workspace,
         Func<Crypto1State, bool> emit,
-        uint[]? scratch = null)
+        uint[]? scratch = null,
+        bool parallel = false,
+        Func<Crypto1State, bool>[]? parallelSinks = null,
+        CancellationToken ct = default)
     {
         var oks = 0u;
         var eks = 0u;
@@ -654,21 +786,46 @@ public static class Crapto1
         var evenEnd = 0;
         var filters = RecoveryFilters.Value;
 
-        for (var i = 1u << 20; (int)i >= 0; --i)
+        if (scratch != null)
         {
-            var filter = filters[(int)(i & FilterTableMask)];
-            if (filter == (oks & 1))
-                oddValues[++oddEnd] = i;
-            if (filter == (eks & 1))
-                evenValues[++evenEnd] = i;
+            void SeedOdd()
+            {
+                var seed = GetRecoverySeed((int)(oks & 31));
+                odd.EnsureCapacity(seed.Length);
+                seed.CopyTo(odd.Array, 0);
+                oddEnd = seed.Length - 1;
+                odd.MarkUsed(seed.Length);
+            }
+            void SeedEven()
+            {
+                var seed = GetRecoverySeed((int)(eks & 31));
+                even.EnsureCapacity(seed.Length);
+                seed.CopyTo(even.Array, 0);
+                evenEnd = seed.Length - 1;
+                even.MarkUsed(seed.Length);
+            }
+            if (parallel && !OperatingSystem.IsBrowser() && Environment.ProcessorCount > 1)
+                Parallel.Invoke(SeedOdd, SeedEven);
+            else { SeedOdd(); SeedEven(); }
+            oks >>= 4;
+            eks >>= 4;
         }
-        odd.MarkUsed(oddEnd + 1);
-        even.MarkUsed(evenEnd + 1);
-
-        for (var i = 0; i < 4; i++)
+        else
         {
-            ExtendTableSimple(odd, 0, ref oddEnd, (oks >>= 1) & 1, filters);
-            ExtendTableSimple(even, 0, ref evenEnd, (eks >>= 1) & 1, filters);
+            for (var i = 1u << 20; (int)i >= 0; --i)
+            {
+                var filter = filters[(int)(i & FilterTableMask)];
+                if (filter == (oks & 1)) oddValues[++oddEnd] = i;
+                if (filter == (eks & 1)) evenValues[++evenEnd] = i;
+            }
+            odd.MarkUsed(oddEnd + 1);
+            even.MarkUsed(evenEnd + 1);
+
+            for (var i = 0; i < 4; i++)
+            {
+                ExtendTableSimple(odd, 0, ref oddEnd, (oks >>= 1) & 1, filters);
+                ExtendTableSimple(even, 0, ref evenEnd, (eks >>= 1) & 1, filters);
+            }
         }
 
         @in = (@in >> 16 & 0xff) | (@in << 16) | (@in & 0xff00);
@@ -683,7 +840,9 @@ public static class Crapto1
             eks,
             11,
             emit,
-            @in << 1, filters, scratch);
+            @in << 1, filters, scratch,
+            parallel && !OperatingSystem.IsBrowser() && Environment.ProcessorCount > 1,
+            OperatingSystem.IsBrowser() ? null : parallelSinks, ct);
     }
 
     /// <summary>

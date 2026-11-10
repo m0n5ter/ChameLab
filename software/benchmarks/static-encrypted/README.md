@@ -1,5 +1,10 @@
 # Static encrypted nested performance
 
+The solver was optimized again on 2026-11-10. See the current
+[three-attack GUI comparison](../recovery/README.md). The recorded table below
+describes the previous version. Current recovery uses up to eight workers;
+the runner now counts allocations across all threads.
+
 Run with the .NET 10 SDK (no card or native compiler required):
 
 ```powershell
@@ -15,8 +20,7 @@ Each case receives two warmups and seven measured calls in Release. Execution
 order alternates between baseline and optimized calls. Tiered compilation and
 ReadyToRun are disabled. Timings include recovery/filtering, allocations and
 buffer cleanup; startup, build, validation and printing are excluded. No forced
-GC is used. Allocation counts cover the current thread, which executes both
-solvers synchronously.
+GC is used. Allocation counts cover all managed threads.
 
 Every invocation must match the baseline's complete candidate set. Recovery
 validation sorts candidates outside the measured region; filtering must preserve

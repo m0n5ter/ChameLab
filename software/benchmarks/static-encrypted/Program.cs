@@ -65,11 +65,11 @@ void Measure(string name, string operation, Func<IReadOnlyList<ulong>> baseline,
     for (var j = 0; j < 2; j++)
     {
         var mode = (j + round + warmups) % 2;
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = GC.GetTotalAllocatedBytes(precise: true);
         var started = Stopwatch.GetTimestamp();
         var result = modes[mode]();
         var elapsed = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        var allocated = GC.GetTotalAllocatedBytes(precise: true) - before;
         var actual = sort ? result.Order().ToArray() : result.ToArray();
         if (!actual.SequenceEqual(expected)) throw new Exception($"{name} {names[mode]}: candidate mismatch");
         if (round < 0) continue;

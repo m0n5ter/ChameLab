@@ -18,6 +18,20 @@ public static class StaticEncryptedNestedRecovery
         var parityStream = (nonce.Parity & 1) ^ Crypto1.OddParity8((byte)nonce.NtEnc) ^
             Crypto1.OddParity8((byte)nonce.Nt);
         var inputContribution = NestedKeyTransform.GetInputContribution(input);
+        var workers = OperatingSystem.IsBrowser() ? 1 : Math.Min(8, Environment.ProcessorCount);
+        var batches = new HashSet<ulong>[workers];
+        var sinks = new Func<Crypto1State, bool>[workers];
+        for (var worker = 0; worker < workers; worker++)
+        {
+            var batch = batches[worker] = worker == 0 ? keys : new HashSet<ulong>();
+            sinks[worker] = state =>
+            {
+                ct.ThrowIfCancellationRequested();
+                if (state is not { Odd: 0, Even: 0 } && Crypto1.Filter(state.Odd) == parityStream)
+                    batch.Add(NestedKeyTransform.GetKey(state, inputContribution));
+                return true;
+            };
+        }
         using var workspace = new Crypto1RecoveryWorkspace();
         var scratch = ArrayPool<uint>.Shared.Rent(Crypto1RecoveryWorkspace.Recovery32BufferLength);
         workspace.Enter();
@@ -25,13 +39,8 @@ public static class StaticEncryptedNestedRecovery
         {
             // Consume states directly; contribution grouping avoids comparison sorting.
             // The first filter bit after nT encrypts its last parity bit: no clocking is needed.
-            Crapto1.Recover32Core(nonce.Nt ^ nonce.NtEnc, input, workspace, state =>
-            {
-                ct.ThrowIfCancellationRequested();
-                if (state is not { Odd: 0, Even: 0 } && Crypto1.Filter(state.Odd) == parityStream)
-                    keys.Add(NestedKeyTransform.GetKey(state, inputContribution));
-                return true;
-            }, scratch);
+            Crapto1.Recover32Core(nonce.Nt ^ nonce.NtEnc, input, workspace, sinks[0], scratch,
+                parallel: workers > 1, parallelSinks: workers > 1 ? sinks : null, ct: ct);
         }
         finally
         {
@@ -40,6 +49,7 @@ public static class StaticEncryptedNestedRecovery
             ArrayPool<uint>.Shared.Return(scratch);
         }
         ct.ThrowIfCancellationRequested();
+        for (var worker = 1; worker < workers; worker++) keys.UnionWith(batches[worker]);
         return new List<ulong>(keys);
     }
 
@@ -47,6 +57,17 @@ public static class StaticEncryptedNestedRecovery
     private static readonly ushort[] Previous8 = BuildPrevious8();
     private static readonly byte[] A = [0, 8, 9, 4, 6, 11, 1, 15, 12, 5, 2, 13, 10, 14, 3, 7];
     private static readonly byte[] B = [0, 13, 1, 14, 4, 10, 15, 7, 5, 3, 8, 6, 9, 2, 12, 11];
+    private static readonly byte[] MixEven = BuildKeyMix(false);
+    private static readonly byte[] MixOdd = BuildKeyMix(true);
+
+    private static byte[] BuildKeyMix(bool odd)
+    {
+        var result = new byte[256];
+        for (var value = 0; value < result.Length; value++)
+            result[value] = (byte)(odd ? B[value & 15] | (A[value >> 4] << 4)
+                : A[value & 15] | (B[value >> 4] << 4));
+        return result;
+    }
 
     public static ushort Seed(uint nt, ulong key) => SeedFromNonce(RollbackNonce(nt), key);
 
@@ -59,12 +80,12 @@ public static class StaticEncryptedNestedRecovery
 
     private static ushort SeedFromNonce(ushort value, ulong key)
     {
-        for (var i = 0; i < 6; i++)
+        for (var i = 0; i < 3; i++)
         {
-            var lo = (int)((key >> (8 * i)) & 15);
-            var hi = (int)((key >> (8 * i + 4)) & 15);
-            value ^= (ushort)((i % 2 == 0 ? A[lo] : B[lo]) | ((i % 2 == 0 ? B[hi] : A[hi]) << 4));
-            value = Previous8[value];
+            value = Previous8[value ^ MixEven[(byte)key]];
+            key >>= 8;
+            value = Previous8[value ^ MixOdd[(byte)key]];
+            key >>= 8;
         }
         return value;
     }
@@ -76,6 +97,18 @@ public static class StaticEncryptedNestedRecovery
         ct.ThrowIfCancellationRequested();
         if (nt == otherNt) return keys;
         if (keys.Count == 0 || otherKeys.Count == 0) return Array.Empty<ulong>();
+        if (otherKeys.Count == 1)
+        {
+            var seed = Seed(otherNt, otherKeys[0]);
+            var initial = RollbackNonce(nt);
+            var filtered = new List<ulong>();
+            foreach (var key in keys)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (SeedFromNonce(initial, key) == seed) filtered.Add(key);
+            }
+            return filtered;
+        }
         var seeds = new bool[1 << 16];
         var otherNonce = RollbackNonce(otherNt);
         foreach (var key in otherKeys)
