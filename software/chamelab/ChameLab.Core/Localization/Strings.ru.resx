@@ -3612,4 +3612,7 @@
   <data name="KeySearch_Random" xml:space="preserve">
     <value>В случайном порядке</value>
   </data>
+  <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
+    <value>Зашифрованные nonce карты меняются между сборами. Static encrypted nested не сможет восстановить эти ключи. Используйте Nested или Hardnested.</value>
+  </data>
 </root>

@@ -166,13 +166,53 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         if (!capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
             !capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
             throw new NotSupportedException(Strings.Recovery_NoStaticEncFirmware);
+
+        bool Known(int sector, MfKeyType type) =>
+            (type == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is not null;
+        async Task<byte[]?> Check(int sector, MfKeyType type, IReadOnlyList<ulong> candidates, string status)
+        {
+            for (var i = 0; i < candidates.Count; i += 64)
+            {
+                ct.ThrowIfCancellationRequested();
+                progress?.Report(new KeyRecoveryProgress(status, sector, type, KeyMark.Checking,
+                    Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + 64, candidates.Count), candidates.Count)));
+                var batch = candidates.Skip(i).Take(64).Select(KeyBytes).ToArray();
+                var hit = await client.CheckMifareKeysOnBlockAsync(MifareClassic.SectorTrailerBlock(sector), type, batch, ct);
+                if (hit is not null) return hit;
+            }
+            return null;
+        }
+
+        // SEN is also selectable on ordinary backdoored cards. Do not start an expensive
+        // cryptanalytic search when a retained key or a factory key already opens them.
+        var preferred = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
+            .Concat(knownKeys?.ForUid(dump.Uid) ?? Array.Empty<byte[]>())
+            .Concat(MifareClassic.DefaultKeys).Select(KeyValue).Distinct().ToArray();
+        for (var s = 0; s < dump.SectorCount; s++)
+            foreach (var type in new[] { MfKeyType.B, MfKeyType.A })
+            {
+                ct.ThrowIfCancellationRequested();
+                if (Known(s, type)) continue;
+                var hit = await Check(s, type, preferred, Strings.Recovery_CheckingPrevious);
+                if (hit is not null) store(s, type, hit);
+            }
+        if (Enumerable.Range(0, dump.SectorCount).All(s => Known(s, MfKeyType.A) && Known(s, MfKeyType.B)))
+        {
+            ct.ThrowIfCancellationRequested();
+            progress?.Report(new KeyRecoveryProgress(Strings.Recovery_Finished));
+            return;
+        }
+
         (uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)? capture = null;
+        byte[]? acceptedBackdoor = null;
         foreach (var backdoor in new[] { "A396EFA4E24F", "A31667A8CEC1", "518B3354E760" })
         {
             progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CollectingStaticEnc, Detail: string.Format(Strings.Recovery_BackdoorKey, backdoor)));
             try
             {
-                capture = await client.GetStaticEncryptedNestedNoncesAsync(Convert.FromHexString(backdoor), dump.SectorCount, ct);
+                var key = Convert.FromHexString(backdoor);
+                capture = await client.GetStaticEncryptedNestedNoncesAsync(key, dump.SectorCount, ct);
+                acceptedBackdoor = key;
                 break;
             }
             catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth) { }
@@ -182,6 +222,19 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Recovery_CardRemoved);
+
+        // Accepting a backdoor key does not establish the static-encrypted variant.
+        // With changing nonces, the backdoor plaintext and the target ciphertext belong
+        // to different authentications: even the real key is absent from the candidates.
+        progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CollectingStaticEnc));
+        var confirmation = await client.GetStaticEncryptedNestedNoncesAsync(acceptedBackdoor!, dump.SectorCount, ct);
+        tags = await client.Hf14aScanAsync(ct);
+        if (confirmation.Uid != data.Uid || tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
+            throw new InvalidOperationException(Strings.Recovery_CardRemoved);
+        for (var s = 0; s < dump.SectorCount; s++)
+            if ((!Known(s, MfKeyType.A) && data.Sectors[s].A != confirmation.Sectors[s].A) ||
+                (!Known(s, MfKeyType.B) && data.Sectors[s].B != confirmation.Sectors[s].B))
+                throw new InvalidOperationException(Strings.Recovery_StaticEncNotStatic);
 
         for (var s = 0; s < dump.SectorCount; s++)
         {
@@ -206,22 +259,10 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                 var otherKeys = type == MfKeyType.A ? bKeys : aKeys;
                 var filtered = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.FilterStaticEncrypted)
                     { Nonces = [nonce, other], Keys = keys.ToArray(), OtherKeys = otherKeys.ToArray() }, ct);
-                async Task<byte[]?> Check(IReadOnlyList<ulong> candidates)
-                {
-                    for (var i = 0; i < candidates.Count; i += 64)
-                    {
-                        ct.ThrowIfCancellationRequested();
-                        progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CheckStaticEnc, s, type,
-                            KeyMark.Checking, Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + 64, candidates.Count), candidates.Count)));
-                        var batch = candidates.Skip(i).Take(64).Select(KeyBytes).ToArray();
-                        var hit = await client.CheckMifareKeysOnBlockAsync(MifareClassic.SectorTrailerBlock(s), type, batch, ct);
-                        if (hit is not null) return hit;
-                    }
-                    return null;
-                }
-                var hit = await Check(filtered);
+                var hit = await Check(s, type, filtered, Strings.Recovery_CheckStaticEnc);
                 // Other backdoored chips need not share the RF08S A/B seed relationship.
-                if (hit is null && filtered.Count != keys.Count) hit = await Check(keys.Except(filtered).ToArray());
+                if (hit is null && filtered.Count != keys.Count)
+                    hit = await Check(s, type, keys.Except(filtered).ToArray(), Strings.Recovery_CheckStaticEnc);
                 if (hit is not null)
                 {
                     store(s, type, hit);

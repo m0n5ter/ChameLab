@@ -3612,4 +3612,7 @@
   <data name="KeySearch_Random" xml:space="preserve">
     <value>Aleatorio</value>
   </data>
+  <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
+    <value>Los nonces cifrados de la tarjeta cambian entre capturas. Static encrypted nested no puede recuperar estas claves. Pruebe Nested o Hardnested.</value>
+  </data>
 </root>

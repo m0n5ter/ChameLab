@@ -159,9 +159,16 @@ are retried and are not remembered as wrong keys.
 
 Choose **Static encrypted nested** in the card or target-card recovery panel
 for FM11RF08S and compatible backdoored MIFARE Classic cards. A known sector
-key is not required. ChameLab tries backdoor keys `A396EFA4E24F`, `A31667A8CEC1`
+key is not required. ChameLab first checks retained keys, keys saved for the same
+UID and the small built-in factory-key list against missing A/B keys in batches.
+If they open the card, no nonce collection or calculation is needed. Otherwise,
+ChameLab tries backdoor keys `A396EFA4E24F`, `A31667A8CEC1`
 and `518B3354E760`, collects the static encrypted nonces, calculates candidates
-locally, and checks them on the card in batches. RF08S seed filtering prioritizes
+locally, and checks them on the card in batches. Before calculating candidates,
+a second capture must confirm that every unknown key's nonce, ciphertext and
+parity are stable. Accepting a backdoor key alone does not establish support for
+SEN: ordinary backdoored cards with changing nonces stop with an explanation
+instead of checking thousands of impossible candidates. RF08S seed filtering prioritizes
 candidate pairs; remaining candidates are tried if that filter does not find a
 key. This managed solver works on every platform and requires firmware commands
 2014 and 2015. Keep the card on the reader throughout recovery. Stop preserves

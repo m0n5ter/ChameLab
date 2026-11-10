@@ -3612,4 +3612,7 @@
   <data name="KeySearch_Random" xml:space="preserve">
     <value>随机</value>
   </data>
+  <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
+    <value>卡片的加密 nonce 在每次采集时都会变化。Static encrypted nested 无法恢复这些密钥。请尝试 Nested 或 Hardnested。</value>
+  </data>
 </root>

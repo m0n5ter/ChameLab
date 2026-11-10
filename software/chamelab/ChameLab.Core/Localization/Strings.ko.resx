@@ -3612,4 +3612,7 @@
   <data name="KeySearch_Random" xml:space="preserve">
     <value>무작위</value>
   </data>
+  <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
+    <value>카드의 암호화된 nonce가 수집할 때마다 변경됩니다. Static encrypted nested로는 이 키를 복구할 수 없습니다. Nested 또는 Hardnested를 사용하세요.</value>
+  </data>
 </root>

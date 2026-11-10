@@ -3612,4 +3612,7 @@
   <data name="KeySearch_Random" xml:space="preserve">
     <value>ランダム</value>
   </data>
+  <data name="Recovery_StaticEncNotStatic" xml:space="preserve">
+    <value>カードの暗号化nonceが取得ごとに変化します。Static encrypted nestedではこれらの鍵を復元できません。NestedまたはHardnestedを使用してください。</value>
+  </data>
 </root>

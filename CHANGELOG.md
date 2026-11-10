@@ -9,6 +9,8 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+ - ChameLab: Static encrypted nested first checks known and factory keys, so default-key cards finish without cryptanalytic recovery; a second capture checks that encrypted nonces are static before calculating candidates, avoiding a long fruitless search on ordinary backdoored cards
+
 ## [v1.4.39][2026-11-10] · firmware v2.3.14-cl
 ### Summary
  - ChameLab: much faster MIFARE Classic dictionary key recovery: the firmware checks keys in batches instead of one authentication per key, most noticeably on a phone over Bluetooth
