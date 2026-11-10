@@ -196,13 +196,12 @@ static void field_generator_rainbow_loop(void) {
 /**@brief Button Matrix Events
  */
 static void button_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
-    device_mode_t mode = get_device_mode();
-    // Allow button operations in both tag and reader mode
-    if (mode == DEVICE_MODE_TAG || mode == DEVICE_MODE_READER) {
-        static nrf_drv_gpiote_pin_t pin_static;                                  // Use static internal variables to store the GPIO where the current event occurred
-        pin_static = pin;                                                        // Cache the button that currently triggers the event into an internal variable
-        app_timer_start(m_button_check_timer, APP_TIMER_TICKS(50), &pin_static); // Start timer anti-shake
-    }
+    // Accept edges in every mode, including DEVICE_MODE_NONE during the boot animation:
+    // dropping them there lost a press made right after a button wake-up.
+    // The resulting flags are handled by the main loop once tag mode is entered.
+    static nrf_drv_gpiote_pin_t pin_static;                                  // Use static internal variables to store the GPIO where the current event occurred
+    pin_static = pin;                                                        // Cache the button that currently triggers the event into an internal variable
+    app_timer_start(m_button_check_timer, APP_TIMER_TICKS(50), &pin_static); // Start timer anti-shake
 }
 
 /** @brief Button anti-shake timer
