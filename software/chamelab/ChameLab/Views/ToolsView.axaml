@@ -168,7 +168,7 @@
                   c:ActionRow.Priority="2" ToolTip.Tip="{x:Static loc:Strings.Tools_ListenToTheReaderNow}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.sniff}" />
-              <TextBlock Text="{Binding IsBusy, Converter={x:Static vm:ToolsViewModel.CaptureLabel}}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding IsHfCapturing, Converter={x:Static vm:ToolsViewModel.CaptureLabel}}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
           <Button Command="{Binding HfLoadCommand}" IsEnabled="{Binding CanUseFiles}" c:ActionRow.Priority="1"
@@ -454,10 +454,14 @@
                       <TextBlock Classes="caption" Text="{Binding Index}" VerticalAlignment="Top" Margin="0,1,0,0" />
                       <TextBlock Grid.Column="1" Classes="dir" Classes.card="{Binding !Frame.IsReader}" VerticalAlignment="Top"
                                  Text="{Binding Frame.IsReader, Converter={x:Static vm:ToolsViewModel.DirectionLabel}}" />
-                      <c:InlineStack Grid.Column="2" Spacing="14">
-                        <TextBlock Classes="mono" FontSize="12" Text="{Binding Frame.Hex}" TextWrapping="Wrap" />
-                        <TextBlock Classes="caption" Text="{Binding Label}" TextWrapping="Wrap" VerticalAlignment="Top" />
-                      </c:InlineStack>
+                      <StackPanel Grid.Column="2" Spacing="2">
+                        <TextBlock Classes="caption mono" Text="{Binding TimingText}" IsVisible="{Binding HasTiming}"
+                                   ToolTip.Tip="{x:Static loc:Strings.Tools_FrameTimingHint}" TextWrapping="Wrap" />
+                        <c:InlineStack Spacing="14">
+                          <TextBlock Classes="mono" FontSize="12" Text="{Binding Frame.Hex}" TextWrapping="Wrap" />
+                          <TextBlock Classes="caption" Text="{Binding Label}" TextWrapping="Wrap" VerticalAlignment="Top" />
+                        </c:InlineStack>
+                      </StackPanel>
                     </Grid>
                   </DataTemplate>
                 </ListBox.ItemTemplate>

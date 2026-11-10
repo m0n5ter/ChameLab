@@ -1,6 +1,8 @@
 #include <hal/nrf_nfct.h>
 #include <nrfx_nfct.h>
 #include <nrf_gpio.h>
+#include <nrfx_timer.h>
+#include <nrfx_ppi.h>
 
 #define NRF_LOG_MODULE_NAME nfc
 #include "nrf_log.h"
@@ -74,6 +76,80 @@ void nfc_tag_14a_clear_sniff_cb(void) {
 
 /* TX sniff: captures card→reader frames at TX_FRAMESTART */
 static nfc_tag_14a_tx_sniff_cb_t m_tx_sniff_cb = NULL;
+
+/* TIMER3 is free; TIMER4 belongs to the NFCT driver's field workarounds.
+ * PPI captures the actual NFCT events, independent
+ * of interrupt latency or the time spent answering a reader. At 16 MHz the
+ * 32-bit counter covers the full 30-second capture without wrapping. */
+static const nrfx_timer_t m_sniff_timer = NRFX_TIMER_INSTANCE(3);
+static nrf_ppi_channel_t m_sniff_ppi[4];
+static uint8_t m_sniff_ppi_count;
+static bool m_sniff_timer_initialized;
+static nfc_tag_14a_timed_sniff_cb_t m_timed_sniff_cb;
+
+static void sniff_timer_handler(nrf_timer_event_t event, void *context) {
+    /* Capture only: no compare interrupts are enabled. */
+    (void)event;
+    (void)context;
+}
+
+void nfc_tag_14a_stop_timed_sniff(void) {
+    m_timed_sniff_cb = NULL;
+    while (m_sniff_ppi_count > 0) {
+        nrfx_ppi_channel_free(m_sniff_ppi[--m_sniff_ppi_count]);
+    }
+    if (m_sniff_timer_initialized) {
+        nrfx_timer_uninit(&m_sniff_timer);
+        m_sniff_timer_initialized = false;
+    }
+}
+
+bool nfc_tag_14a_start_timed_sniff(nfc_tag_14a_timed_sniff_cb_t cb) {
+    if (m_sniff_timer_initialized) return false;
+    nrfx_timer_config_t config = NRFX_TIMER_DEFAULT_CONFIG;
+    config.frequency = NRF_TIMER_FREQ_16MHz;
+    config.bit_width = NRF_TIMER_BIT_WIDTH_32;
+    if (nrfx_timer_init(&m_sniff_timer, &config, sniff_timer_handler) != NRFX_SUCCESS) return false;
+    m_sniff_timer_initialized = true;
+    const nrf_nfct_event_t events[] = {
+        NRF_NFCT_EVENT_RXFRAMESTART, NRF_NFCT_EVENT_RXFRAMEEND,
+        NRF_NFCT_EVENT_TXFRAMESTART, NRF_NFCT_EVENT_TXFRAMEEND
+    };
+    for (uint8_t i = 0; i < 4; i++) {
+        nrf_timer_cc_write(m_sniff_timer.p_reg, (nrf_timer_cc_channel_t)i, UINT32_MAX);
+        if (nrfx_ppi_channel_alloc(&m_sniff_ppi[i]) != NRFX_SUCCESS) {
+            nfc_tag_14a_stop_timed_sniff();
+            return false;
+        }
+        m_sniff_ppi_count++;
+        if (nrfx_ppi_channel_assign(m_sniff_ppi[i], nrf_nfct_event_address_get(events[i]),
+                nrfx_timer_task_address_get(&m_sniff_timer,
+                    (nrf_timer_task_t)(NRF_TIMER_TASK_CAPTURE0 + i * sizeof(uint32_t)))) != NRFX_SUCCESS) {
+            nfc_tag_14a_stop_timed_sniff();
+            return false;
+        }
+    }
+    nrfx_timer_clear(&m_sniff_timer);
+    nrfx_timer_enable(&m_sniff_timer);
+    for (uint8_t i = 0; i < 4; i++) {
+        if (nrfx_ppi_channel_enable(m_sniff_ppi[i]) != NRFX_SUCCESS) {
+            nfc_tag_14a_stop_timed_sniff();
+            return false;
+        }
+    }
+    m_timed_sniff_cb = cb;
+    return true;
+}
+
+static void timed_sniff_frame(const uint8_t *data, uint16_t bits, bool is_tx) {
+    if (m_timed_sniff_cb == NULL) return;
+    uint8_t first = is_tx ? 2 : 0;
+    uint32_t start = nrf_timer_cc_read(m_sniff_timer.p_reg, (nrf_timer_cc_channel_t)first);
+    uint32_t end = nrf_timer_cc_read(m_sniff_timer.p_reg, (nrf_timer_cc_channel_t)(first + 1));
+    /* Ignore a partial frame already in flight when capture was enabled. */
+    if (start == UINT32_MAX || end == UINT32_MAX || end < start) return;
+    m_timed_sniff_cb(data, bits, is_tx, start, end - start);
+}
 
 void nfc_tag_14a_set_tx_sniff_cb(nfc_tag_14a_tx_sniff_cb_t cb) {
     m_tx_sniff_cb = cb;
@@ -371,6 +447,7 @@ void nfc_tag_14a_data_process(uint8_t *p_data) {
     if (m_sniff_cb != NULL) {
         m_sniff_cb(p_data, szDataBits);
     }
+    timed_sniff_frame(p_data, szDataBits, false);
     // Manually draw frame, separate data and strange school inspection
 #if !NFC_TAG_14A_RX_PARITY_AUTO_DEL_ENABLE
     if (szDataBits >= 9) {
@@ -713,6 +790,10 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
         }
         case NRFX_NFCT_EVT_TX_FRAMEEND: {
             // NRF_LOG_INFO("TX end.\n");
+            uint32_t bits = NRF_NFCT->TXD.AMOUNT;
+            if (bits > 0 && bits <= MAX_NFC_TX_BUFFER_SIZE * 8) {
+                timed_sniff_frame(m_nfc_tx_buffer, (uint16_t)bits, true);
+            }
             // After the transmission is over, you need to be able to receive it
             NRFX_NFCT_RX_BYTES
             break;

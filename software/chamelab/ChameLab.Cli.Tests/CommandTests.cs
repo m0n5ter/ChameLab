@@ -74,6 +74,26 @@ public class CommandTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HfSniffRequestsTimingAndAcceptsLegacyFirmware(bool strictLegacy)
+    {
+        using var output = new StringWriter();
+        await using var cli = new CliSession(output, TextWriter.Null);
+        var device = new ScriptedTransport(r => ScriptedTransport.Reply(r,
+            r.Command == Command.Hf14aSniff ? [0, 7, 0x26] : [],
+            strictLegacy && r.Command == Command.Hf14aSniff && r.Data.Length == 3 ? Status.ParErr : Status.Success));
+        await cli.AttachAsync(device);
+        Assert.Equal(0, await cli.ExecuteAsync("hf 14a sniff --timeout 3000"));
+        var requests = device.Requests.Where(r => r.Command == Command.Hf14aSniff).ToArray();
+        Assert.Equal(strictLegacy ? 2 : 1, requests.Length);
+        Assert.Equal(new byte[] { 0x0B, 0xB8, 1 }, requests[0].Data);
+        if (strictLegacy) Assert.Equal(new byte[] { 0x0B, 0xB8 }, requests[1].Data);
+        Assert.Contains("REQA", output.ToString());
+        Assert.DoesNotContain("Δ", output.ToString());
+    }
+
+    [Theory]
     [InlineData(false, 1)]
     [InlineData(true, 130)]
     public async Task ReaderModeRestoredAfterFailureOrCancellation(bool cancel, int exitCode)

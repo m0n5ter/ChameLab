@@ -2708,20 +2708,39 @@ static data_frame_tx_t *cmd_processor_hf14a_auth_trace(uint16_t cmd, uint16_t st
 
 static uint8_t  m_sniff_buf[HF_SNIFF_BUF_SIZE];
 static uint16_t m_sniff_buf_len = 0;
-static bool     m_sniff_active  = false;
+static volatile bool m_sniff_active = false;
 static uint16_t m_sniff_cb_count = 0;   /* debug: total callback invocations */
+static bool     m_sniff_timed = false;
+
+static void hf14a_sniff_u32(uint32_t value) {
+    m_sniff_buf[m_sniff_buf_len++] = (uint8_t)(value >> 24);
+    m_sniff_buf[m_sniff_buf_len++] = (uint8_t)(value >> 16);
+    m_sniff_buf[m_sniff_buf_len++] = (uint8_t)(value >> 8);
+    m_sniff_buf[m_sniff_buf_len++] = (uint8_t)value;
+}
 
 /* Encode one frame into m_sniff_buf.
  * Format: [szBits_be16][data...]
  * Bit 15 of szBits: 0 = reader→card (RX), 1 = card→reader (TX).
  * Real szBits always < 512 so bit15 is always free in genuine frames.
- * Old parsers (bit15=0 for all frames) still work correctly. */
-static void hf14a_sniff_store(const uint8_t *data, uint16_t szBits, bool is_tx) {
+ * Timed v1 adds start/duration (be32 timer ticks) after the header, and uses
+ * bit 14 to say that parity bits are present in the stored data. */
+static void hf14a_sniff_store(const uint8_t *data, uint16_t szBits, bool is_tx,
+                               uint32_t start, uint32_t duration) {
     uint16_t szBytes = (szBits + 7) / 8;
-    if (m_sniff_buf_len + 2 + szBytes > HF_SNIFF_BUF_SIZE) return;
+    if (m_sniff_buf_len + (m_sniff_timed ? 10 : 2) + szBytes > HF_SNIFF_BUF_SIZE) return;
     uint16_t hdr = szBits | (is_tx ? 0x8000u : 0x0000u);
+    if (m_sniff_timed && szBits >= 9 &&
+        ((!is_tx && !NFC_TAG_14A_RX_PARITY_AUTO_DEL_ENABLE) ||
+         (is_tx && !(NRF_NFCT->TXD.FRAMECONFIG & NFCT_TXD_FRAMECONFIG_PARITY_Msk)))) {
+        hdr |= 0x4000u;
+    }
     m_sniff_buf[m_sniff_buf_len++] = (hdr >> 8) & 0xFF;
     m_sniff_buf[m_sniff_buf_len++] =  hdr        & 0xFF;
+    if (m_sniff_timed) {
+        hf14a_sniff_u32(start);
+        hf14a_sniff_u32(duration);
+    }
     memcpy(&m_sniff_buf[m_sniff_buf_len], data, szBytes);
     m_sniff_buf_len += szBytes;
 }
@@ -2729,12 +2748,17 @@ static void hf14a_sniff_store(const uint8_t *data, uint16_t szBits, bool is_tx) 
 static void hf14a_sniff_frame_cb(const uint8_t *data, uint16_t szBits) {
     m_sniff_cb_count++;   /* count even if buffer full or inactive */
     if (!m_sniff_active) return;
-    hf14a_sniff_store(data, szBits, false);  /* reader→card */
+    hf14a_sniff_store(data, szBits, false, 0, 0);  /* reader→card */
 }
 
 static void hf14a_sniff_tx_frame_cb(const uint8_t *data, uint16_t szBits) {
     if (!m_sniff_active) return;
-    hf14a_sniff_store(data, szBits, true);   /* card→reader */
+    hf14a_sniff_store(data, szBits, true, 0, 0);   /* card→reader */
+}
+
+static void hf14a_sniff_timed_frame_cb(const uint8_t *data, uint16_t szBits,
+                                      bool is_tx, uint32_t start, uint32_t duration) {
+    if (m_sniff_active) hf14a_sniff_store(data, szBits, is_tx, start, duration);
 }
 
 static data_frame_tx_t *cmd_processor_hf14a_sniff(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
@@ -2763,11 +2787,24 @@ static data_frame_tx_t *cmd_processor_hf14a_sniff(uint16_t cmd, uint16_t status,
      * with a slot active before running this command. */
     m_sniff_buf_len = 0;
     m_sniff_cb_count = 0;
-    m_sniff_active  = true;
+    m_sniff_timed = false;
+    /* A third request byte opts into v1 timing. Two-byte requests retain the
+     * original wire format; older firmware simply ignores the extra byte.
+     * A zero bit count cannot begin a legacy frame, so the prefix is unambiguous. */
+    if (length >= 3 && data[2] == 1) {
+        const uint8_t prefix[] = {0, 0, 'H', 'F', 1};
+        memcpy(m_sniff_buf, prefix, sizeof(prefix));
+        m_sniff_buf_len = sizeof(prefix);
+        m_sniff_timed = nfc_tag_14a_start_timed_sniff(hf14a_sniff_timed_frame_cb);
+        if (!m_sniff_timed) m_sniff_buf_len = 0;
+    }
+    m_sniff_active = true;
     /* passive mode intentionally disabled: CU acts as the card so it must
      * respond normally to the reader (ATQA/UID/SAK). TX sniff captures responses. */
-    nfc_tag_14a_set_sniff_cb(hf14a_sniff_frame_cb);
-    nfc_tag_14a_set_tx_sniff_cb(hf14a_sniff_tx_frame_cb);
+    if (!m_sniff_timed) {
+        nfc_tag_14a_set_sniff_cb(hf14a_sniff_frame_cb);
+        nfc_tag_14a_set_tx_sniff_cb(hf14a_sniff_tx_frame_cb);
+    }
 
     /* Wait for duration, yielding each ms so USB stack stays alive.
      * Feed watchdog every iteration — WDT timeout is 5000ms and the
@@ -2781,12 +2818,13 @@ static data_frame_tx_t *cmd_processor_hf14a_sniff(uint16_t cmd, uint16_t status,
 
     /* Remove callback and restore normal sense state */
     m_sniff_active = false;
+    nfc_tag_14a_stop_timed_sniff();
     /* (passive mode was not enabled, nothing to restore) */
     nfc_tag_14a_clear_sniff_cb();
     nfc_tag_14a_clear_tx_sniff_cb();
     tag_emulation_sense_run();  /* restore slot-based sense state */
 
-    if (m_sniff_buf_len == 0) {
+    if (m_sniff_buf_len == (m_sniff_timed ? 5 : 0)) {
         return data_frame_make(cmd, STATUS_HF_TAG_NO, 0, NULL);
     }
     return data_frame_make(cmd, STATUS_SUCCESS, m_sniff_buf_len, m_sniff_buf);

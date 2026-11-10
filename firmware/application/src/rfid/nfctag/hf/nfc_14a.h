@@ -100,6 +100,13 @@ typedef void (*nfc_tag_14a_tx_sniff_cb_t)(const uint8_t *data, uint16_t szBits);
 void nfc_tag_14a_set_tx_sniff_cb(nfc_tag_14a_tx_sniff_cb_t cb);
 void nfc_tag_14a_clear_tx_sniff_cb(void);
 
+/* Hardware timestamps in 16 MHz timer ticks, relative to capture start.
+ * Unlike the legacy TX hook, this reports a frame only after it has ended. */
+typedef void (*nfc_tag_14a_timed_sniff_cb_t)(const uint8_t *data, uint16_t szBits,
+                                           bool is_tx, uint32_t start, uint32_t duration);
+bool nfc_tag_14a_start_timed_sniff(nfc_tag_14a_timed_sniff_cb_t cb);
+void nfc_tag_14a_stop_timed_sniff(void);
+
 /* Passive sniff mode: when true, suppresses all CU anticollision responses
  * (ATQA, UID, SAK) so the CU does not collide with real cards in the field.
  * Enable before starting a sniff session, disable on completion. */

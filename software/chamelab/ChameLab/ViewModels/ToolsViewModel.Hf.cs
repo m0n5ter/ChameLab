@@ -22,13 +22,16 @@ public sealed partial class ToolsViewModel
 {
     private IReadOnlyList<HfFrame> _hfFrames = [];
     private HfSniffSummary? _hfSummary;
+    private ObservableAsPropertyHelper<bool>? _hfCapturing;
 
     private void InitHf(IObservable<bool> idle)
     {
         var canCapture = this.WhenAnyValue(x => x.IsBusy, x => x.IsHfSupported,
             (busy, supported) => !busy && supported != false);
         var hasCapture = this.WhenAnyValue(x => x.IsBusy, x => x.HfHasCapture, (busy, has) => !busy && has);
-        HfCaptureCommand = ReactiveCommand.CreateFromTask(HfCaptureAsync, canCapture);
+        var capture = ReactiveCommand.CreateFromTask(HfCaptureAsync, canCapture);
+        HfCaptureCommand = capture;
+        _hfCapturing = capture.IsExecuting.ToProperty(this, x => x.IsHfCapturing);
         HfLoadCommand = ReactiveCommand.CreateFromTask(HfLoadAsync, idle);
         HfSaveCommand = ReactiveCommand.CreateFromTask(HfSaveAsync, hasCapture);
     }
@@ -36,6 +39,9 @@ public sealed partial class ToolsViewModel
     public ICommand HfCaptureCommand { get; private set; } = null!;
     public ICommand HfLoadCommand { get; private set; } = null!;
     public ICommand HfSaveCommand { get; private set; } = null!;
+
+    /// <summary>Only the capture command is listening; file operations also make the page busy.</summary>
+    public bool IsHfCapturing => _hfCapturing?.Value == true;
 
     /// <summary>Whether the firmware has <c>HF14A_SNIFF</c>; null until asked (or without a device).</summary>
     public bool? IsHfSupported
@@ -184,7 +190,8 @@ public sealed partial class ToolsViewModel
     /// <summary>Frames as text, one a line, for the clipboard.</summary>
     public static string FramesText(IEnumerable<HfAnnotatedFrame> frames) => string.Join('\n', frames
         .OrderBy(a => a.Index)
-        .Select(a => $"{a.Index,4}  {(a.Frame.IsReader ? "Reader" : "  Card")}  {a.Frame.Hex}  {a.Label}"));
+        .Select(a => $"{a.Index,4}  {(a.Frame.IsReader ? "Reader" : "  Card")}  " +
+            (a.HasTiming ? a.TimingText + "  " : "") + $"{a.Frame.Hex}  {a.Label}"));
 
     // ---- Key recovery --------------------------------------------------
 
@@ -205,7 +212,7 @@ public sealed partial class ToolsViewModel
         new Avalonia.Data.Converters.FuncValueConverter<bool, string>(reader => reader ? Strings.Chameleon_Reader : Strings.Common_Card);
 
     public static readonly Avalonia.Data.Converters.IValueConverter CaptureLabel =
-        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(busy => busy ? Strings.Tools_Listening : Strings.Tools_Capture);
+        new Avalonia.Data.Converters.FuncValueConverter<bool, string>(capturing => capturing ? Strings.Tools_Listening : Strings.Tools_Capture);
 }
 
 /// <summary>One sniffed authentication group (card, block, key type) and the key recovered from it.</summary>

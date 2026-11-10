@@ -9,6 +9,10 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+ - ChameLab: Load and Save in HF sniffing no longer change Capture to Listening; the label changes only during a capture
+
+ - ChameLab: HF sniffing shows each frame's time from capture start and the pause after the previous frame. Firmware v2.3.15-cl records frame boundaries with a hardware timer; Proxmark3 `.trace` files retain timing on load and save, and older firmware still works without measured times
+
 ## [v1.5.40][2026-11-11] · firmware v2.3.14-cl
 ### Summary
  - ChameLab: Share this device lets someone use your Chameleon from another computer over the internet: they connect with a code such as RU1-ABCD-1234

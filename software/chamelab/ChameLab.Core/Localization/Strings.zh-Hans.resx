@@ -3690,4 +3690,13 @@
   <data name="Relay_NoServers" xml:space="preserve">
     <value>无法连接任何中继服务器。请检查网络连接。</value>
   </data>
+  <data name="Tools_FrameTime" xml:space="preserve">
+    <value>+{0:F3} ms</value>
+  </data>
+  <data name="Tools_FrameGap" xml:space="preserve">
+    <value>Δ {0:F1} µs</value>
+  </data>
+  <data name="Tools_FrameTimingHint" xml:space="preserve">
+    <value>从捕获开始计算的时间；Δ 为上一帧结束后的间隔。</value>
+  </data>
 </root>

@@ -16,6 +16,12 @@ public enum HfDirection { Reader, Card }
 /// </summary>
 public sealed record HfFrame(HfDirection Direction, int Bits, byte[] Data)
 {
+    /// <summary>Start in 13.56 MHz carrier periods, as in Proxmark3; null for legacy captures.</summary>
+    public uint? Timestamp { get; init; }
+    /// <summary>Duration in carrier periods; clamped to Proxmark3's 16-bit limit only on export.</summary>
+    public uint? Duration { get; init; }
+    /// <summary>Preserve original parity when a trace is loaded and saved, including encrypted parity.</summary>
+    public byte[]? Parity { get; init; }
     public bool IsReader => Direction == HfDirection.Reader;
     public bool IsShort => Bits is > 0 and < 8;
     public string Hex => Convert.ToHexString(Data);
@@ -26,7 +32,16 @@ public sealed record HfFrame(HfDirection Direction, int Bits, byte[] Data)
 }
 
 /// <summary>A frame with what it means: the command or answer, or that it is encrypted.</summary>
-public sealed record HfAnnotatedFrame(int Index, HfFrame Frame, string Label, bool IsEncrypted);
+public sealed record HfAnnotatedFrame(int Index, HfFrame Frame, string Label, bool IsEncrypted)
+{
+    /// <summary>Pause from the previous frame's end to this frame's start, in carrier periods.</summary>
+    public long? Gap { get; init; }
+    public bool HasTiming => Frame.Timestamp.HasValue;
+    public string TimingText => Frame.Timestamp is { } start
+        ? string.Format(Strings.Tools_FrameTime, start / 13560.0) +
+          (Gap is { } gap ? " · " + string.Format(Strings.Tools_FrameGap, gap / 13.56) : "")
+        : "";
+}
 
 /// <summary>
 /// One MIFARE Classic authentication seen in full: the card nonce, the reader's encrypted nonce and answer,
@@ -63,24 +78,36 @@ public static class HfSniff
     public static List<HfFrame> ParseChameleon(ReadOnlySpan<byte> buffer, bool includesParity = true)
     {
         var frames = new List<HfFrame>();
-        var o = 0;
-        while (o + 2 <= buffer.Length)
+        ReadOnlySpan<byte> timedPrefix = [0, 0, (byte)'H', (byte)'F', 1];
+        var timed = buffer.StartsWith(timedPrefix);
+        var o = timed ? timedPrefix.Length : 0;
+        var headerLength = timed ? 10 : 2;
+        while (o + headerLength <= buffer.Length)
         {
             var header = BinaryPrimitives.ReadUInt16BigEndian(buffer[o..]);
-            o += 2;
-            var rawBits = header & 0x7FFF;
+            uint? timestamp = timed ? TimerTicksToCarrier(BinaryPrimitives.ReadUInt32BigEndian(buffer[(o + 2)..])) : null;
+            uint? duration = timed ? TimerTicksToCarrier(BinaryPrimitives.ReadUInt32BigEndian(buffer[(o + 6)..])) : null;
+            o += headerLength;
+            var rawBits = header & (timed ? 0x3FFF : 0x7FFF);
             if (rawBits == 0) break;
             var rawBytes = (rawBits + 7) / 8;
             if (o + rawBytes > buffer.Length) break;
             var raw = buffer.Slice(o, rawBytes);
             o += rawBytes;
             var direction = (header & 0x8000) != 0 ? HfDirection.Card : HfDirection.Reader;
-            frames.Add(includesParity && rawBits >= 9 && rawBits % 9 == 0
+            var stripParity = includesParity && (!timed || (header & 0x4000) != 0) && rawBits >= 9 && rawBits % 9 == 0;
+            var frame = stripParity
                 ? new HfFrame(direction, rawBits / 9 * 8, StripParity(raw, rawBits / 9))
-                : new HfFrame(direction, rawBits, raw.ToArray()));
+                : new HfFrame(direction, rawBits, raw.ToArray());
+            frames.Add(frame with { Timestamp = timestamp, Duration = duration,
+                Parity = stripParity ? ExtractParity(raw, rawBits / 9) : null });
         }
         return frames;
     }
+
+    // Hardware capture uses 16 MHz; Proxmark3's ISO14443-A trace uses 13.56 MHz.
+    // Integer rounding avoids accumulating drift over long pauses.
+    private static uint TimerTicksToCarrier(uint ticks) => (uint)(((ulong)ticks * 339 + 200) / 400);
 
     /// <summary>Takes the data bits out of a frame sent with a parity bit after each byte.</summary>
     private static byte[] StripParity(ReadOnlySpan<byte> raw, int count)
@@ -93,6 +120,17 @@ public static class HfSniff
             if ((raw[at / 8] >> (at % 8) & 1) != 0) data[i] |= (byte)(1 << bit);
         }
         return data;
+    }
+
+    private static byte[] ExtractParity(ReadOnlySpan<byte> raw, int count)
+    {
+        var parity = new byte[(count + 7) / 8];
+        for (var i = 0; i < count; i++)
+        {
+            var bit = i * 9 + 8;
+            parity[i / 8] |= (byte)(((raw[bit / 8] >> (bit % 8)) & 1) << (7 - i % 8));
+        }
+        return parity;
     }
 
     // ---- Proxmark3 trace -------------------------------------------------
@@ -114,14 +152,18 @@ public static class HfSniff
             if (o + 8 + length + parityLength > trace.Length) break;
             var data = trace.Slice(o + 8, length).ToArray();
             var parity = trace[o + 8 + length];
+            var timestamp = BinaryPrimitives.ReadUInt32LittleEndian(trace[o..]);
+            var duration = BinaryPrimitives.ReadUInt16LittleEndian(trace[(o + 4)..]);
+            var parityBytes = trace.Slice(o + 8 + length, parityLength).ToArray();
             o += 8 + length + parityLength;
             var bits = length == 1 && parity is >= 1 and <= 7 ? parity : length * 8;
-            frames.Add(new HfFrame((field & 0x8000) != 0 ? HfDirection.Card : HfDirection.Reader, bits, data));
+            frames.Add(new HfFrame((field & 0x8000) != 0 ? HfDirection.Card : HfDirection.Reader, bits, data)
+                { Timestamp = timestamp, Duration = duration, Parity = parityBytes });
         }
         return frames;
     }
 
-    /// <summary>Writes frames as a Proxmark3 trace with computed parity and timestamps spaced by frame length.</summary>
+    /// <summary>Writes standard Proxmark3 records, preserving captured timing and parity. Legacy captures use estimated timing.</summary>
     public static byte[] BuildTrace(IEnumerable<HfFrame> frames)
     {
         using var ms = new MemoryStream();
@@ -130,19 +172,20 @@ public static class HfSniff
         foreach (var f in frames)
         {
             var length = f.Data.Length;
-            var duration = (ushort)Math.Min((length * 9 + 1) * 128, 0xFFFF);
+            var duration = (ushort)Math.Min(f.Duration ?? (uint)((length * 9 + 1) * 128), ushort.MaxValue);
+            timestamp = f.Timestamp ?? timestamp;
             BinaryPrimitives.WriteUInt32LittleEndian(header, timestamp);
             BinaryPrimitives.WriteUInt16LittleEndian(header[4..], duration);
             BinaryPrimitives.WriteUInt16LittleEndian(header[6..], (ushort)(length & 0x7FFF | (f.IsReader ? 0 : 0x8000)));
             ms.Write(header);
             ms.Write(f.Data);
-            var parity = new byte[length == 0 ? 1 : (length - 1) / 8 + 1];
-            if (f.IsShort) parity[0] = (byte)f.Bits;
-            else
+            var parity = f.Parity ?? new byte[length == 0 ? 1 : (length - 1) / 8 + 1];
+            if (f.Parity is null && f.IsShort) parity[0] = (byte)f.Bits;
+            else if (f.Parity is null)
                 for (var i = 0; i < length; i++)
                     if (OddParityBit(f.Data[i]) != 0) parity[i >> 3] |= (byte)(1 << (7 - (i & 7)));
             ms.Write(parity);
-            timestamp += duration;
+            timestamp = unchecked(timestamp + duration);
         }
         return ms.ToArray();
     }
@@ -201,7 +244,10 @@ public static class HfSniff
                 }
             }
             if (f.IsReader) command = f;
-            result.Add(new HfAnnotatedFrame(i, f, label, isEncrypted));
+            long? gap = i > 0 && f.Timestamp is { } start &&
+                frames[i - 1] is { Timestamp: { } previous, Duration: { } duration }
+                ? (long)unchecked(start - previous) - duration : null;
+            result.Add(new HfAnnotatedFrame(i, f, label, isEncrypted) { Gap = gap });
         }
         return result;
     }

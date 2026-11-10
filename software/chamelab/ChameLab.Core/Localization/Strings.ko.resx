@@ -3690,4 +3690,13 @@
   <data name="Relay_NoServers" xml:space="preserve">
     <value>어떤 릴레이 서버에도 연결할 수 없습니다. 인터넷 연결을 확인하세요.</value>
   </data>
+  <data name="Tools_FrameTime" xml:space="preserve">
+    <value>+{0:F3} ms</value>
+  </data>
+  <data name="Tools_FrameGap" xml:space="preserve">
+    <value>Δ {0:F1} µs</value>
+  </data>
+  <data name="Tools_FrameTimingHint" xml:space="preserve">
+    <value>캡처 시작 후 경과 시간입니다. Δ는 이전 프레임이 끝난 후의 간격입니다.</value>
+  </data>
 </root>

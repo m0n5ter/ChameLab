@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using ChameLab.Models;
@@ -159,6 +160,104 @@ public class HfSniffTests
             Assert.Equal(frames[i].Bits, back[i].Bits);
             Assert.Equal(frames[i].Data, back[i].Data);
         }
+    }
+
+    private static byte[] TimedFrame(byte[] legacy, uint start, uint duration)
+    {
+        var frame = new byte[legacy.Length + 8];
+        legacy.AsSpan(0, 2).CopyTo(frame);
+        BinaryPrimitives.WriteUInt32BigEndian(frame.AsSpan(2), start);
+        BinaryPrimitives.WriteUInt32BigEndian(frame.AsSpan(6), duration);
+        legacy.AsSpan(2).CopyTo(frame.AsSpan(10));
+        return frame;
+    }
+
+    [Fact]
+    public void HardwareTimingKeepsInitialWaitAndRealPausesInProxmarkUnits()
+    {
+        byte[] buffer = [0, 0, (byte)'H', (byte)'F', 1,
+            .. TimedFrame(ShortFrame(0x26).ToArray(), 16_000_000, 16_000),
+            .. TimedFrame(CardFrame(0x04, 0x00).ToArray(), 16_032_000, 32_000)];
+        var frames = HfSniff.ParseChameleon(buffer);
+        Assert.Equal(2, frames.Count);
+        Assert.Equal(13_560_000u, frames[0].Timestamp);
+        Assert.Equal((ushort)13_560, frames[0].Duration);
+        Assert.Equal(13_587_120u, frames[1].Timestamp);
+        Assert.Equal((ushort)27_120, frames[1].Duration);
+        Assert.Equal("0400", frames[1].Hex);
+        var annotated = HfSniff.Annotate(frames);
+        Assert.Null(annotated[0].Gap);
+        Assert.Equal(13_560L, annotated[1].Gap);
+        Assert.All(annotated, f => Assert.True(f.HasTiming));
+        var back = HfSniff.ParseTrace(HfSniff.BuildTrace(frames));
+        Assert.Equal(frames.Select(f => (f.Timestamp, f.Duration)), back.Select(f => (f.Timestamp, f.Duration)));
+    }
+
+    [Fact]
+    public void LegacyCaptureDoesNotClaimMeasuredTiming()
+    {
+        var frames = HfSniff.ParseChameleon(ShortFrame(0x26).Concat(CardFrame(4, 0)).ToArray());
+        Assert.All(frames, f => { Assert.Null(f.Timestamp); Assert.Null(f.Duration); });
+        Assert.All(HfSniff.Annotate(frames), f => { Assert.False(f.HasTiming); Assert.Empty(f.TimingText); });
+    }
+
+    [Fact]
+    public void TimedCaptureHandlesThirtySecondsAndProxmarkDurationLimit()
+    {
+        byte[] buffer = [0, 0, (byte)'H', (byte)'F', 1,
+            .. TimedFrame(ShortFrame(0x26).ToArray(), 480_000_000, 160_000)];
+        var frame = Assert.Single(HfSniff.ParseChameleon(buffer));
+        Assert.Equal(406_800_000u, frame.Timestamp);
+        Assert.Equal(135_600u, frame.Duration);
+        Assert.Equal((uint)ushort.MaxValue, Assert.Single(HfSniff.ParseTrace(HfSniff.BuildTrace([frame]))).Duration);
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(9)]
+    [InlineData(14)]
+    [InlineData(15)]
+    public void TruncatedTimedFrameIsNotPresentedAsComplete(int length)
+    {
+        byte[] buffer = [0, 0, (byte)'H', (byte)'F', 1,
+            .. TimedFrame(ShortFrame(0x26).ToArray(), 16_000, 1_000)];
+        Assert.Empty(HfSniff.ParseChameleon(buffer.AsSpan(0, length)));
+    }
+
+    [Fact]
+    public void ImportedProxmarkTimingAndEncryptedParityRoundTripUnchanged()
+    {
+        // Independent Proxmark record: nonzero LE start, duration, tag flag,
+        // four data bytes and intentionally noncomputed parity.
+        byte[] trace = [0x78, 0x56, 0x34, 0x12, 0x34, 0x12, 4, 0x80, 0x11, 0x22, 0x33, 0x44, 0xA0];
+        var frame = Assert.Single(HfSniff.ParseTrace(trace));
+        Assert.Equal(0x12345678u, frame.Timestamp);
+        Assert.Equal((ushort)0x1234, frame.Duration);
+        Assert.Equal(trace, HfSniff.BuildTrace([frame]));
+    }
+
+    [Fact]
+    public void TimedFormatDistinguishesPlainNineByteAnswerFromInterleavedParity()
+    {
+        byte[] data = [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99];
+        var reader = ReaderFrame(data).ToArray();
+        reader[0] |= 0x40;
+        byte[] buffer = [0, 0, (byte)'H', (byte)'F', 1,
+            .. TimedFrame(reader, 1_000, 2_000), .. TimedFrame(CardFrame(data).ToArray(), 4_000, 2_000)];
+        var frames = HfSniff.ParseChameleon(buffer);
+        Assert.Equal(2, frames.Count);
+        Assert.All(frames, f => { Assert.Equal(72, f.Bits); Assert.Equal(data, f.Data); });
+        Assert.NotNull(frames[0].Parity);
+        Assert.Equal(data, HfSniff.ParseTrace(HfSniff.BuildTrace(frames))[1].Data);
+    }
+
+    [Fact]
+    public void FrameGapHandlesTimestampWrap()
+    {
+        HfFrame[] frames = [
+            new(HfDirection.Reader, 7, [0x26]) { Timestamp = uint.MaxValue - 100, Duration = 50 },
+            new(HfDirection.Card, 16, [4, 0]) { Timestamp = 99, Duration = 80 }];
+        Assert.Equal(150L, HfSniff.Annotate(frames)[1].Gap);
     }
 
     [Fact]

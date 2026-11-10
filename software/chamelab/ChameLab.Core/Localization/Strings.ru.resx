@@ -3690,4 +3690,13 @@
   <data name="Relay_NoServers" xml:space="preserve">
     <value>Ни один relay-сервер не отвечает. Проверьте подключение к интернету.</value>
   </data>
+  <data name="Tools_FrameTime" xml:space="preserve">
+    <value>+{0:F3} мс</value>
+  </data>
+  <data name="Tools_FrameGap" xml:space="preserve">
+    <value>Δ {0:F1} мкс</value>
+  </data>
+  <data name="Tools_FrameTimingHint" xml:space="preserve">
+    <value>Время от начала захвата; Δ — пауза после окончания предыдущего кадра.</value>
+  </data>
 </root>

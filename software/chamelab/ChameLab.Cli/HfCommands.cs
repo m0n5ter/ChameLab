@@ -51,7 +51,8 @@ public sealed partial class CliSession
     private void PrintHf(byte[] buffer, bool includesParity = true, ulong? knownKey = null)
     {
         var frames = HfSniff.ParseChameleon(buffer, includesParity);
-        foreach (var f in HfSniff.Annotate(frames)) Print($"{f.Index,4} {f.Frame.Direction,-6} {f.Frame.Hex,-40} {f.Label}");
+        foreach (var f in HfSniff.Annotate(frames))
+            Print($"{f.Index,4} {f.Frame.Direction,-6} " + (f.HasTiming ? f.TimingText + "  " : "") + $"{f.Frame.Hex,-40} {f.Label}");
         if (knownKey is { } key)
         {
             foreach (var auth in HfSniff.AuthExchanges(frames))
