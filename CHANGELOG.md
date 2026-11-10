@@ -8,7 +8,18 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
- - ChameLab: recovering MIFARE Classic keys by a dictionary checks the whole dictionary in one firmware pass per batch (up to 83 keys, fewer over Bluetooth) instead of one authentication per key, much faster — most on a phone over Bluetooth; when a batch opens a sector with key A, the firmware reads key B straight from the sector trailer. Firmware without the batch command still checks key by key
+
+## [v1.4.39][2026-11-10] · firmware v2.3.14-cl
+### Summary
+ - ChameLab: much faster MIFARE Classic dictionary key recovery: the firmware checks keys in batches instead of one authentication per key, most noticeably on a phone over Bluetooth
+ - ChameLab: Try keys has key search options: search method, start sector and sector order
+ - ChameLab: T55XX password recovery by dictionary no longer stops early when a read misses the tag
+
+### Details
+ - ChameLab: recovering MIFARE Classic keys by a dictionary checks the dictionary in batches with one firmware command each (8 keys over USB, 32 over Bluetooth) instead of one authentication per key, much faster, most on a phone over Bluetooth; when a batch opens a sector with key A, the firmware reads key B straight from the sector trailer. The dictionary is checked once: after the batch pass, the per-sector search only retries keys that opened other sectors. Found keys and progress show while a batch runs, and a failed batch falls back to checking key by key. Firmware without the batch command still checks key by key
+ - ChameLab: a settings button next to Try keys opens the key search options, remembered between runs: Search method (One key at a time, Batches across all sectors, Batches in one sector), Start sector (First sector or the selected one) and Sector order (Sequential or Random)
+ - ChameLab: T55XX password recovery by a dictionary no longer aborts on a wrong key when a read misses the tag: a read of the original ID already proves the write was ignored, and the check that the tag is intact retries up to three reads
+ - ChameLab: in the T55XX password settings the Keep hint lines up with the Clear hint
 
 ## [v1.4.38][2026-11-10] · firmware v2.3.14-cl
 ### Summary
