@@ -8,11 +8,20 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.4.37][2026-11-10] · firmware v2.3.13-cl
 ### Summary
  - ChameLab: faster hardnested key recovery
+ - ChameLab: Known card keys in the T55XX dictionary picker, and All/None shortcuts in the dictionary pickers
+ - Firmware: a button press made during the wake-up animation is no longer lost
 
 ### Details
  - ChameLab: fully managed, portable hardnested optimizations with parallel page reduction and candidate filtering, cached partial sums and improved guess ordering; [comparison with ChameleonUltraGUI 1.4](software/benchmarks/hardnested/GUI-1.4-OPTIMIZED.md)
+ - ChameLab: the T55XX password dictionaries (Tools and the card editor's T55XX write) offer Known card keys, the passwords learned for every tag, selectable like any dictionary; the scanned tag's own learned password is tried first only while Known card keys are checked. Both pickers list Known card keys, the built-in keys, a divider, then the dictionaries
+ - ChameLab: the dictionary pickers (MIFARE key recovery and T55XX passwords) have All and None shortcuts next to the header
+ - ChameLab: when no T55XX password matches, the Found and New rows read Not found and Not set in red instead of a sentence; on success both show in green
+ - ChameLab: in Cards, a scanned card that is already saved no longer offers Save/Discard and no longer asks before switching to another card
+ - Firmware: a second button press within about a second of a button wake-up is no longer lost while the power-on animation plays
 
 ## [v1.4.36][2026-11-09] · firmware v2.3.12-cl
 ### Summary
