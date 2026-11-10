@@ -9,7 +9,17 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.5.40][2026-11-11] · firmware v2.3.14-cl
+### Summary
+ - ChameLab: Share this device lets someone use your Chameleon from another computer over the internet: they connect with a code such as RU1-ABCD-1234
+ - ChameLab: faster key recovery: Darkside up to 20 times, static encrypted nested about 3 times, nested about 1.4 times
+ - ChameLab: static encrypted nested reads default-key cards without cryptanalysis and no longer runs a long fruitless search on ordinary backdoored cards
+
+### Details
+ - ChameLab: Share this device on the Connect page (desktop app) shares the selected Chameleon through the fastest of five relay servers (Turkey, Bulgaria, Germany, Russia, USA) and shows a code such as RU1-ABCD-1234. Connect to a shared device with that code, on another computer or an Android phone, works with the Chameleon as if it were plugged in. One person at a time; they can leave and connect again with the same code, and Stop sharing ends it. Connections to the relays are encrypted, with each server's certificate built into the app; the browser version can't connect to shared devices
  - ChameLab: Static encrypted nested first checks known and factory keys, so default-key cards finish without cryptanalytic recovery; a second capture checks that encrypted nonces are static before calculating candidates, avoiding a long fruitless search on ordinary backdoored cards
+ - ChameLab: nested, static encrypted nested and Darkside recovery share the first Crypto1 candidates, run independent groups in parallel and check Darkside prefixes in batches: on a desktop Darkside is 7 to 21 times faster, static encrypted nested 3 to 3.7 times, nested 1.4 to 1.5 times
+ - ChameLab: the Connect buttons have a new icon, and single-line text boxes keep their text vertically centered
 
 ## [v1.4.39][2026-11-10] · firmware v2.3.14-cl
 ### Summary
