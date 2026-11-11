@@ -42,6 +42,15 @@
       <DockPanel IsVisible="{Binding ShowDumpActions}" VerticalAlignment="Center">
         <c:ActionRow DockPanel.Dock="Left" Classes="attackactions" Spacing="6"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsBusy}">
+          <Button Classes="responsive accent theme-outline" c:ActionRow.Priority="4"
+                  Command="{Binding AutoRecoveryCommand}" IsVisible="{Binding ShowAutoRecovery}"
+                  ToolTip.Tip="{x:Static loc:Strings.AutoRecovery_Tip}"
+                  AutomationProperties.Name="{x:Static loc:Strings.AutoRecovery_Label}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <c:AttackIcon Label="A" />
+              <TextBlock Classes="action-label" Text="{x:Static loc:Strings.AutoRecovery_Label}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
           <Grid Height="40" c:ActionRow.Priority="3">
             <Grid.Styles>
               <Style Selector="Button.dump-main">

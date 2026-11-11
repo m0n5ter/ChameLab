@@ -3723,4 +3723,25 @@
   <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
     <value>Загрузчик не был выбран вовремя. Если мигают светодиоды 4 и 5, устройство ждёт в загрузчике: нажмите «Повторить» и выберите его.</value>
   </data>
+  <data name="AutoRecovery_Label" xml:space="preserve">
+    <value>Авто</value>
+  </data>
+  <data name="AutoRecovery_Tip" xml:space="preserve">
+    <value>Проверять каждый найденный ключ на остальных секторах, затем автоматически выбирать способ восстановления неизвестных ключей. Используются выбранные словари.</value>
+  </data>
+  <data name="AutoRecovery_Choosing" xml:space="preserve">
+    <value>Авто: выбор следующего шага…</value>
+  </data>
+  <data name="AutoRecovery_Reusing" xml:space="preserve">
+    <value>Авто: проверка найденных ключей на остальных секторах…</value>
+  </data>
+  <data name="AutoRecovery_NextMethod" xml:space="preserve">
+    <value>Следующий способ: {0}</value>
+  </data>
+  <data name="AutoRecovery_Incomplete" xml:space="preserve">
+    <value>Автовосстановление завершено. Неизвестных ключей: {0}. Найденные ключи сохранены.</value>
+  </data>
+  <data name="AutoRecovery_TryReader" xml:space="preserve">
+    <value>Попробуйте дополнительные словари или mfkey32 с исходным считывателем, затем запустите «Авто» снова.</value>
+  </data>
 </root>

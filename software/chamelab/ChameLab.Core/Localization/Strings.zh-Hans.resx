@@ -3723,4 +3723,11 @@
   <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
     <value>未能及时选择引导程序。如果 LED 4 和 5 在闪烁，设备正在引导程序中等待：点击“重试”并选择它。</value>
   </data>
+  <data name="AutoRecovery_Label" xml:space="preserve"><value>自动</value></data>
+  <data name="AutoRecovery_Tip" xml:space="preserve"><value>先在其余扇区检查每个已恢复的密钥，再自动选择未知密钥的恢复方法。使用选定的密钥字典。</value></data>
+  <data name="AutoRecovery_Choosing" xml:space="preserve"><value>自动：正在选择下一步…</value></data>
+  <data name="AutoRecovery_Reusing" xml:space="preserve"><value>自动：正在其余扇区检查已恢复的密钥…</value></data>
+  <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>下一种方法：{0}</value></data>
+  <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>自动恢复已结束，仍有 {0} 个未知密钥。已恢复的密钥已保存。</value></data>
+  <data name="AutoRecovery_TryReader" xml:space="preserve"><value>请尝试其他字典，或使用原始读卡器运行 mfkey32，然后再次运行自动恢复。</value></data>
 </root>

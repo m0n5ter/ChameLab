@@ -1,0 +1,216 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using ChameLab.Localization;
+using ChameLab.Models;
+using ChameLab.Protocol;
+
+namespace ChameLab.Services;
+
+public sealed record MifareAutoRecoveryResult(int MissingKeys, string? Message)
+{
+    public bool Complete => MissingKeys == 0;
+}
+
+public sealed partial class MifareKeyRecovery
+{
+    /// <summary>Spread recovered keys first, then choose an applicable recovery family.
+    /// Only the supplied dictionary is searched. Every confirmed key is retained immediately.</summary>
+    public async Task<MifareAutoRecoveryResult> RecoverAutomaticallyAsync(
+        MifareDump dump, IReadOnlyList<byte[]> dictionary,
+        IProgress<KeyRecoveryProgress>? progress = null, CancellationToken ct = default,
+        MifareKeySearchOptions? options = null)
+    {
+        var search = (options ?? new()) with { StopAfterFirstKey = false };
+        var keys = dictionary.Where(k => k.Length == 6).DistinctBy(Convert.ToHexString).ToArray();
+        var rejected = new HashSet<(int Block, MfKeyType Type, ulong Key)>();
+        bool HasSeed() => FirstKnownKey(dump) is not null;
+        int Missing() => dump.KeyA.Concat(dump.KeyB).Count(k => k is null);
+        void Store(int sector, MfKeyType type, byte[] key)
+        {
+            (type == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] = key;
+            knownKeys?.Remember(dump.Uid, [key], MifareClassic.ToSlotTagType(dump.Type));
+            progress?.Report(new(Strings.Recovery_FoundKey, sector, type, KeyMark.Found, key));
+        }
+        var dictionaryProgress = new AutoDictionaryProgress(p =>
+        {
+            if (p.Phase == MifareKeyPhase.Found && p.Key is { } key)
+                knownKeys?.Remember(dump.Uid, [key], MifareClassic.ToSlotTagType(dump.Type));
+            progress?.Report(new(p.Phase == MifareKeyPhase.Found ? Strings.Common_DictKeyFound
+                    : Strings.Common_CheckingDictKeys, p.Sector, p.KeyType,
+                p.Phase == MifareKeyPhase.Found ? KeyMark.Found
+                    : p.Phase == MifareKeyPhase.Searching ? KeyMark.Checking : KeyMark.None, p.Key,
+                string.Format(Strings.Common_KeysTriedOf, p.Tried, p.Total))
+                { Tried = p.Tried, Total = p.Total });
+        });
+        Task Search(IReadOnlyList<byte[]> candidates, bool seedOnly) =>
+            candidates.Count == 0 ? Task.CompletedTask : client.FindMifareKeysAsync(dump, candidates, dictionaryProgress, ct,
+                search with { StopAfterFirstKey = seedOnly });
+        Task Spread() => SpreadKeysAsync(dump, Store, progress, rejected, ct);
+        void Choosing(string method) => progress?.Report(new(Strings.AutoRecovery_Choosing,
+            Detail: string.Format(Strings.AutoRecovery_NextMethod, method)));
+        MifareAutoRecoveryResult Finish(string? reason = null)
+        {
+            ct.ThrowIfCancellationRequested();
+            var missing = Missing();
+            var message = missing == 0 ? null : string.Format(Strings.AutoRecovery_Incomplete, missing)
+                + " " + (reason ?? Strings.AutoRecovery_TryReader);
+            progress?.Report(new(missing == 0 ? Strings.Recovery_Finished : message!));
+            return new(missing, message);
+        }
+
+        await client.SetDeviceModeAsync(DeviceMode.Reader, ct);
+        var tags = await client.Hf14aScanAsync(ct);
+        if (tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
+            throw new InvalidOperationException(Strings.Recovery_CardChanged);
+        if (Missing() == 0) return Finish();
+        await Spread();
+        if (Missing() == 0) return Finish();
+        progress?.Report(new(Strings.Common_CheckingRecoveryMethods));
+        var prng = await client.DetectNtLevelAsync(ct);
+        progress?.Report(new(Strings.Common_CheckingRecoveryMethods) { Prng = prng });
+        var capabilities = await client.GetCapabilitiesAsync(ct);
+        var seededMethod = prng switch
+        {
+            MifareClassicPrngType.Weak => MifareRecoveryMethod.Nested,
+            MifareClassicPrngType.Static => MifareRecoveryMethod.StaticNested,
+            MifareClassicPrngType.Hard => MifareRecoveryMethod.Hardnested,
+            _ => (MifareRecoveryMethod?)null,
+        };
+        // Old firmware may not return a capability list, but the original Nested commands
+        // predate that API. New recovery commands always require explicit advertisement.
+        bool SupportsLegacy(Command command) => capabilities.Count == 0 || capabilities.Contains((ushort)command);
+        var canAttack = seededMethod switch
+        {
+            MifareRecoveryMethod.Nested => SupportsLegacy(Command.Mf1NestedAcquire) && SupportsLegacy(Command.Mf1DetectNtDist),
+            MifareRecoveryMethod.StaticNested => SupportsLegacy(Command.Mf1StaticNestedAcquire),
+            MifareRecoveryMethod.Hardnested => _hardnested.UnavailableReason is null &&
+                capabilities.Contains((ushort)Command.Mf1HardnestedAcquire),
+            _ => false,
+        };
+
+        // An existing seed already unlocks Nested/Static nested. Hardnested is expensive:
+        // give a small dictionary prefix and the static-encrypted backdoor a chance first.
+        var quickCount = 0;
+        if (!HasSeed() || prng == MifareClassicPrngType.Hard)
+        {
+            Choosing(Strings.Common_TryKeys);
+            quickCount = Math.Min(8, keys.Length);
+            await Search(keys.Take(quickCount).ToArray(), seedOnly: !HasSeed() && canAttack);
+            // A slow dictionary hit can still be shared by the entire card. Before
+            // considering SEN or Hardnested, check that key across the remaining sectors.
+            await Spread();
+            if (Missing() == 0) return Finish();
+        }
+
+        var backdoorTried = false;
+        async Task TryBackdoor()
+        {
+            if (backdoorTried || !capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
+                !capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock)) return;
+            backdoorTried = true;
+            Choosing("Static encrypted nested");
+            await StaticEncryptedNestedAsync(dump, Store, progress, ct, automatic: true,
+                stopAfterFirstKey: canAttack && prng != MifareClassicPrngType.Hard, afterKeyFound: Spread);
+        }
+        if (!HasSeed() || prng == MifareClassicPrngType.Hard) await TryBackdoor();
+        if (Missing() == 0) return Finish();
+
+        if (!HasSeed() && prng == MifareClassicPrngType.Weak &&
+            capabilities.Contains((ushort)Command.Mf1DarksideAcquire))
+        {
+            Choosing("Darkside");
+            try { await TryDarksideAsync(dump, ReadUid(dump.Uid), Store, progress, ct); }
+            catch (ChameleonException ex) when (ex.Status != Status.HfTagNo)
+            {
+                progress?.Report(new(Strings.Recovery_NonceFailed));
+            }
+            await Spread();
+            if (Missing() == 0) return Finish();
+        }
+
+        // A seed discovered by any preceding stage changes the plan immediately.
+        // If no applicable seeded attack exists, exhaust the selected dictionary normally.
+        if (!HasSeed() || !canAttack)
+        {
+            Choosing(Strings.Common_TryKeys);
+            await Search(keys.Skip(quickCount).ToArray(), seedOnly: canAttack);
+            await Spread();
+            if (Missing() == 0) return Finish();
+        }
+        if (HasSeed() && canAttack)
+        {
+            Choosing(seededMethod switch
+            {
+                MifareRecoveryMethod.StaticNested => "Static nested",
+                MifareRecoveryMethod.Hardnested => "Hardnested",
+                _ => "Nested",
+            });
+            await RecoverCoreAsync(dump, seededMethod!.Value, progress, ct, spreadKeys: true, rejected);
+            if (Missing() == 0) return Finish();
+            // An attack can fail on individual keys. Retain those already found and try
+            // the alternative family and dictionary only on unresolved A/B pairs.
+            await TryBackdoor();
+            if (Missing() == 0) return Finish();
+            await Search(keys, seedOnly: false);
+        }
+
+        return Finish(prng == MifareClassicPrngType.Hard && HasSeed() && !canAttack
+            ? _hardnested.UnavailableReason ?? Strings.Recovery_NoHardnestedFirmware : null);
+    }
+
+    private async Task SpreadKeysAsync(MifareDump dump, Action<int, MfKeyType, byte[]> store,
+        IProgress<KeyRecoveryProgress>? progress, HashSet<(int Block, MfKeyType Type, ulong Key)> rejected,
+        CancellationToken ct)
+    {
+        bool Known(int sector, MfKeyType type) =>
+            (type == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is not null;
+        var checkedThisPass = new HashSet<ulong>();
+        var batch = await client.SupportsBatchKeyCheckAsync(ct);
+        while (true)
+        {
+            ct.ThrowIfCancellationRequested();
+            // A successful A authentication can disclose a new trailer B; spread that too.
+            var key = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
+                .FirstOrDefault(k => !checkedThisPass.Contains(KeyValue(k)));
+            if (key is null) return;
+            var value = KeyValue(key);
+            checkedThisPass.Add(value);
+            var pending = Enumerable.Range(0, dump.SectorCount)
+                .SelectMany(s => new[] { (Sector: s, Type: MfKeyType.A), (Sector: s, Type: MfKeyType.B) })
+                .Where(p => !Known(p.Sector, p.Type) &&
+                    !rejected.Contains((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, value))).ToArray();
+            if (pending.Length == 0) continue;
+            foreach (var p in pending)
+                progress?.Report(new(Strings.AutoRecovery_Reusing, p.Sector, p.Type, KeyMark.Checking));
+            if (batch)
+            {
+                try
+                {
+                    await client.CheckMifareKeysOfSectorsAsync(pending, [key], onFound: (p, found) =>
+                    {
+                        if (!Known(p.Sector, p.Type)) store(p.Sector, p.Type, found);
+                    }, ct: ct);
+                    foreach (var p in pending.Where(p => !Known(p.Sector, p.Type)))
+                        rejected.Add((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, value));
+                    continue;
+                }
+                catch (NotSupportedException) { batch = false; }
+                catch (ChameleonException ex) when (ex.Status != Status.HfTagNo) { batch = false; }
+            }
+            foreach (var p in pending)
+            {
+                if (Known(p.Sector, p.Type)) continue;
+                if (await TryAuthAsync(MifareClassic.SectorTrailerBlock(p.Sector), p.Type, key, ct, rejected))
+                    store(p.Sector, p.Type, key);
+            }
+        }
+    }
+
+    private sealed class AutoDictionaryProgress(Action<MifareKeyProgress> report) : IProgress<MifareKeyProgress>
+    {
+        public void Report(MifareKeyProgress value) => report(value);
+    }
+}

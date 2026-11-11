@@ -562,6 +562,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     /// revealed even when only A was asked for. Chunks contain up to 8 keys over USB or 32 over BLE; after each
     /// chunk <paramref name="keysChecked"/> reports how many of <paramref name="keys"/> have been tried.
     /// Partial results are delivered through onFound even if the card leaves or the call is canceled.
+    /// With stopAfterFirstKey, all keys from the successful reply are retained before returning;
+    /// no further dictionary chunk is sent.
     /// Card loss interrupts the scan; an unfinished chunk is never reported as fully checked. Throws
     /// <see cref="NotSupportedException"/> on firmware without the command.
     /// </summary>
@@ -570,7 +572,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         IReadOnlyList<byte[]> keys,
         IProgress<int>? keysChecked = null,
         Action<(int Sector, MfKeyType Type), byte[]>? onFound = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default, bool stopAfterFirstKey = false)
     {
         ArgumentNullException.ThrowIfNull(wanted);
         ArgumentNullException.ThrowIfNull(keys);
@@ -641,6 +643,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
 
             checkedKeys += chunk.Length;
             keysChecked?.Report(checkedKeys);
+            if (stopAfterFirstKey && result.Count > 0) break;
         }
 
         return result;

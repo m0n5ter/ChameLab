@@ -12,6 +12,9 @@ public sealed partial class ChameleonClient
     private async Task SearchConfiguredMifareKeysAsync(MifareDump dump, IReadOnlyList<byte[]> keyDict,
         MifareKeySearchOptions options, bool onlyMissingData, IProgress<MifareKeyProgress>? progress, CancellationToken ct)
     {
+        bool SeedFound() => options.StopAfterFirstKey && dump.KeyA.Concat(dump.KeyB).Any(k => k is not null);
+        ct.ThrowIfCancellationRequested();
+        if (SeedFound()) return;
         var dictionary = keyDict.Where(k => k.Length == 6).DistinctBy(Convert.ToHexString).ToArray();
         var sectors = options.GetSectorOrder(dump.SectorCount).Where(s => !onlyMissingData || !Enumerable
             .Range(MifareClassic.SectorFirstBlock(s), MifareClassic.BlocksInSector(s))
@@ -40,6 +43,7 @@ public sealed partial class ChameleonClient
                 foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
                 {
                     ct.ThrowIfCancellationRequested();
+                    if (SeedFound()) return;
                     if (Known((s, type)) is not null) continue;
                     var own = (type == MfKeyType.A ? dump.KeyA : dump.KeyB).OfType<byte[]>().ToArray();
                     var other = (type == MfKeyType.A ? dump.KeyB : dump.KeyA).OfType<byte[]>().ToArray();
@@ -76,7 +80,9 @@ public sealed partial class ChameleonClient
             foreach (var run in Runs(Pending()))
             {
                 ct.ThrowIfCancellationRequested();
-                await CheckMifareKeysOfSectorsAsync(run.Where(p => Known(p) is null).ToArray(), keys, onFound: Found, ct: ct);
+                if (SeedFound()) return;
+                await CheckMifareKeysOfSectorsAsync(run.Where(p => Known(p) is null).ToArray(), keys,
+                    onFound: Found, ct: ct, stopAfterFirstKey: options.StopAfterFirstKey);
             }
             foreach (var key in keys) reused.Add(Convert.ToHexString(key));
         }
@@ -84,7 +90,7 @@ public sealed partial class ChameleonClient
         {
             // A newly discovered A or trailer B gets priority over the rest of the dictionary.
             // Trying each distinct key only once also prevents repeated work on sectors it misses.
-            while (Pending().Length > 0)
+            while (Pending().Length > 0 && !SeedFound())
             {
                 var key = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
                     .FirstOrDefault(k => !reused.Contains(Convert.ToHexString(k)));
@@ -104,6 +110,7 @@ public sealed partial class ChameleonClient
                     foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
                     {
                         ct.ThrowIfCancellationRequested();
+                        if (SeedFound()) return;
                         if (Known((s, type)) is not null) continue;
                         var candidates = dictionary.Where(k => !reused.Contains(Convert.ToHexString(k))).ToArray();
                         progress?.Report(new(s, type, MifareKeyPhase.Searching, 0, candidates.Length, null));
@@ -112,7 +119,8 @@ public sealed partial class ChameleonClient
                             {
                                 if (Known((s, type)) is null)
                                     progress?.Report(new(s, type, MifareKeyPhase.Searching, done, candidates.Length, null));
-                            }), onFound: Found, ct: ct);
+                            }), onFound: Found, ct: ct, stopAfterFirstKey: options.StopAfterFirstKey);
+                        if (SeedFound()) return;
                         if (Known((s, type)) is null)
                             progress?.Report(new(s, type, MifareKeyPhase.NotFound, candidates.Length, candidates.Length, null));
                         await ReuseFoundKeys();
@@ -126,6 +134,7 @@ public sealed partial class ChameleonClient
                     ct.ThrowIfCancellationRequested();
                     var chunk = dictionary.Skip(done).Take(BatchKeyCheckChunkSize).ToArray();
                     await BatchInOrder(chunk.Where(k => !reused.Contains(Convert.ToHexString(k))).ToArray());
+                    if (SeedFound()) return;
                     done += chunk.Length;
                     await ReuseFoundKeys();
                     Searching(done, batch: true);

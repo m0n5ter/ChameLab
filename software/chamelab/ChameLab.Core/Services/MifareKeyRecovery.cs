@@ -18,19 +18,29 @@ public enum KeyMark { None, Checking, Found }
 
 /// <summary>A live recovery update: a status line and, when it concerns one key, which sector/key changed.</summary>
 public sealed record KeyRecoveryProgress(
-    string Status, int Sector = -1, MfKeyType KeyType = MfKeyType.A, KeyMark Mark = KeyMark.None, byte[]? Key = null, string? Detail = null);
+    string Status, int Sector = -1, MfKeyType KeyType = MfKeyType.A, KeyMark Mark = KeyMark.None, byte[]? Key = null, string? Detail = null)
+{
+    public int Tried { get; init; }
+    public int Total { get; init; }
+    public MifareClassicPrngType? Prng { get; init; }
+}
 
 /// <summary>Runs one selected recovery method, preserving keys already found in the shared dump.</summary>
-public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null,
+public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine? hardnested = null,
     KnownCardKeys? knownKeys = null, IKeyRecoveryEngine? keyRecovery = null, TimeProvider? timeProvider = null)
 {
     private readonly IHardnestedEngine _hardnested = hardnested ?? new UnavailableHardnestedEngine();
     private readonly IKeyRecoveryEngine _keyRecovery = keyRecovery ?? AppServices.KeyRecovery;
     private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
-    public async Task RecoverAsync(
+    public Task RecoverAsync(
         MifareDump dump, MifareRecoveryMethod method,
-        IProgress<KeyRecoveryProgress>? progress = null, CancellationToken ct = default)
+        IProgress<KeyRecoveryProgress>? progress = null, CancellationToken ct = default) =>
+        RecoverCoreAsync(dump, method, progress, ct, spreadKeys: false, new());
+
+    private async Task RecoverCoreAsync(MifareDump dump, MifareRecoveryMethod method,
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, bool spreadKeys,
+        HashSet<(int Block, MfKeyType Type, ulong Key)> rejected)
     {
         if (method == MifareRecoveryMethod.Hardnested && _hardnested.UnavailableReason is { } unavailable)
             throw new NotSupportedException(unavailable);
@@ -44,7 +54,6 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         var reusable = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
             .DistinctBy(KeyValue).ToDictionary(KeyValue);
         var successes = new Dictionary<ulong, int>();
-        var rejected = new HashSet<(int Block, MfKeyType Type, ulong Key)>();
         var timing = method == MifareRecoveryMethod.Nested ? new NestedRecoveryTiming() : null;
 
         bool Known(int s, MfKeyType kt) => (kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[s] is not null;
@@ -79,6 +88,11 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             Mark(s, kt, KeyMark.None, Strings.Recovery_NoKnownConfirmed);
             return false;
         }
+        async Task SpreadKnownKeysAsync()
+        {
+            if (!spreadKeys) return;
+            await SpreadKeysAsync(dump, Store, progress, rejected, ct);
+        }
 
         if (method == MifareRecoveryMethod.Darkside)
         {
@@ -103,6 +117,7 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         if (isHardnested && !(await client.GetCapabilitiesAsync(ct)).Contains((ushort)Command.Mf1HardnestedAcquire))
             throw new NotSupportedException(Strings.Recovery_NoHardnestedFirmware);
 
+        await SpreadKnownKeysAsync();
         for (var s = 0; s < dump.SectorCount; s++)
             foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
             {
@@ -145,6 +160,7 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                 // A fast attack is only the preferred first path. Preserve reuse
                 // as a fallback, with rejected combinations filtered as usual.
                 if (!knownFirst && !Known(s, kt)) await TryKnownKeysAsync(s, kt);
+                await SpreadKnownKeysAsync();
             }
         // A later sector may reveal a key for an earlier failed attack. Only untested
         // combinations (and inconclusive RF failures) need another authentication.
@@ -160,7 +176,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
     // ---- attack helpers ---------------------------------------------------
 
     private async Task StaticEncryptedNestedAsync(MifareDump dump, Action<int, MfKeyType, byte[]> store,
-        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, bool automatic = false,
+        bool stopAfterFirstKey = false, Func<Task>? afterKeyFound = null)
     {
         var capabilities = await client.GetCapabilitiesAsync(ct);
         if (!capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
@@ -188,7 +205,7 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         var preferred = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
             .Concat(knownKeys?.ForUid(dump.Uid) ?? Array.Empty<byte[]>())
             .Concat(MifareClassic.DefaultKeys).Select(KeyValue).Distinct().ToArray();
-        for (var s = 0; s < dump.SectorCount; s++)
+        for (var s = 0; !automatic && s < dump.SectorCount; s++)
             foreach (var type in new[] { MfKeyType.B, MfKeyType.A })
             {
                 ct.ThrowIfCancellationRequested();
@@ -218,7 +235,10 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
             catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth) { }
         }
         if (capture is not { } data)
+        {
+            if (automatic) return;
             throw new InvalidOperationException(Strings.Recovery_NoBackdoorAccepted);
+        }
         var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Recovery_CardRemoved);
@@ -234,7 +254,10 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
         for (var s = 0; s < dump.SectorCount; s++)
             if ((!Known(s, MfKeyType.A) && data.Sectors[s].A != confirmation.Sectors[s].A) ||
                 (!Known(s, MfKeyType.B) && data.Sectors[s].B != confirmation.Sectors[s].B))
+            {
+                if (automatic) return;
                 throw new InvalidOperationException(Strings.Recovery_StaticEncNotStatic);
+            }
 
         for (var s = 0; s < dump.SectorCount; s++)
         {
@@ -266,6 +289,8 @@ public sealed class MifareKeyRecovery(ChameleonClient client, IHardnestedEngine?
                 if (hit is not null)
                 {
                     store(s, type, hit);
+                    if (afterKeyFound is not null) await afterKeyFound();
+                    if (stopAfterFirstKey) return;
                     if (type == MfKeyType.B) bKeys = new[] { KeyValue(hit) };
                     else aKeys = new[] { KeyValue(hit) };
                 }

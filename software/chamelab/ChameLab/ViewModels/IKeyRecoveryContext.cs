@@ -13,6 +13,8 @@ public interface IKeyRecoveryContext
     bool ShowWriteProgress { get; }
     ICommand CancelDumpCommand { get; }
     ICommand CheckRecoveryCommand { get; }
+    ICommand AutoRecoveryCommand { get; }
+    bool ShowAutoRecovery { get; }
     ICommand DarksideCommand { get; }
     ICommand DumpCommand { get; }
     string? DumpKeyCountText { get; }

@@ -3726,4 +3726,25 @@
   <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
     <value>The bootloader was not selected in time. If LEDs 4 and 5 blink, the device waits in its bootloader: click Retry and select it.</value>
   </data>
+  <data name="AutoRecovery_Label" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="AutoRecovery_Tip" xml:space="preserve">
+    <value>Check each recovered key across remaining sectors, then automatically choose a recovery method for unknown keys. Uses the selected key dictionaries.</value>
+  </data>
+  <data name="AutoRecovery_Choosing" xml:space="preserve">
+    <value>Auto: choosing the next step…</value>
+  </data>
+  <data name="AutoRecovery_Reusing" xml:space="preserve">
+    <value>Auto: checking recovered keys across remaining sectors…</value>
+  </data>
+  <data name="AutoRecovery_NextMethod" xml:space="preserve">
+    <value>Next: {0}</value>
+  </data>
+  <data name="AutoRecovery_Incomplete" xml:space="preserve">
+    <value>Auto recovery stopped with {0} keys still unknown. Recovered keys have been kept.</value>
+  </data>
+  <data name="AutoRecovery_TryReader" xml:space="preserve">
+    <value>Try additional dictionaries or use mfkey32 with the original reader, then run Auto again.</value>
+  </data>
 </root>

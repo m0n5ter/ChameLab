@@ -84,8 +84,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private MifareDump? _classicDump;
     private MifareClassicPrngType? _cardPrng;
     private bool _darksideAvailable;
+    private string? _autoRecoveryNotice;
 
     public bool ShowDarkside => _classicDump is not null && _darksideAvailable && HasUnknownKeys;
+    public bool ShowAutoRecovery => _classicDump is not null && !IsUltralightDump;
     public bool ShowNested => _cardPrng == MifareClassicPrngType.Weak && HasKnownKeys && HasUnknownKeys;
     public bool ShowStaticNested => _cardPrng == MifareClassicPrngType.Static && HasKnownKeys && HasUnknownKeys;
     public bool ShowStaticEncryptedNested => _classicDump is not null && _cardPrng is not null && HasUnknownKeys;
@@ -98,6 +100,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void UpdateRecoveryMethods()
     {
         this.RaisePropertyChanged(nameof(ShowCheckRecovery));
+        this.RaisePropertyChanged(nameof(ShowAutoRecovery));
         this.RaisePropertyChanged(nameof(ShowMfkey32));
         this.RaisePropertyChanged(nameof(ShowDarkside));
         this.RaisePropertyChanged(nameof(ShowNested));
@@ -178,6 +181,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                     can && online && !busy && (ultralight ? pwdError is null : keys > 0)));
         var recoveryIdle = this.WhenAnyValue(x => x.CanDump, x => x.IsConnected, x => x.IsBusy,
             (can, online, busy) => can && online && !busy);
+        AutoRecoveryCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(null),
+            recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowAutoRecovery), (idle, show) => idle && show));
         DarksideCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Darkside),
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowDarkside), (idle, show) => idle && show));
         NestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Nested),
@@ -662,6 +667,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         get;
         private set
         {
+            if (field is null && value is not null) _autoRecoveryNotice = null;
             this.RaiseAndSetIfChanged(ref field, value);
             DumpProgressDetail = null;
             RaiseDumpToolbar();
@@ -1165,6 +1171,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public ICommand ScanLfCommand { get; }
     public ICommand DumpCommand { get; }
     public ICommand CheckRecoveryCommand { get; }
+    public ICommand AutoRecoveryCommand { get; }
     public ICommand DarksideCommand { get; }
     public ICommand NestedCommand { get; }
     public ICommand StaticNestedCommand { get; }
@@ -1291,7 +1298,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public bool IsDumpRunning => DumpProgressText is not null;
     public bool ShowDumpActions => CanDump && !_isManual && !IsDumpRunning && NeedsRecovery;
-    public bool ShowDumpNotice => ShowDumpActions && !IsConnected;
+    public bool ShowDumpNotice => !IsDumpRunning && (_autoRecoveryNotice is not null || ShowDumpActions && !IsConnected);
 
     /// <summary>The Ultralight password goes with the Read button: gone once every page is read.</summary>
     public bool ShowDumpPassword => IsUltralightDump && ShowDumpActions;
@@ -1304,7 +1311,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private bool HasMissingKeys => _classicDump is { } d && Enumerable.Range(0, d.SectorCount)
         .Any(s => (d.KeyAUnknown[s] && d.KeyA[s] is null) || (d.KeyBUnknown[s] && d.KeyB[s] is null));
-    public string DumpNotice => Strings.Cards_DumpNotice;
+    public string DumpNotice => _autoRecoveryNotice ?? Strings.Cards_DumpNotice;
 
     private void RaiseDumpToolbar()
     {
@@ -1382,6 +1389,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             try { cts.Cancel(); } catch (ObjectDisposedException) { }
         }
         _classicDump = null;
+        _autoRecoveryNotice = null;
         Prng = null;
         IsDumpComplete = false;
         _cardPrng = null;
@@ -1710,7 +1718,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
     });
 
-    private Task RecoverKeysAsync(MifareRecoveryMethod method) => RunAsync(async () =>
+    private Task RecoverKeysAsync(MifareRecoveryMethod? method) => RunAsync(async () =>
     {
         var client = _device.Client;
         if (client is null || _classicDump is not { } dump) return;
@@ -1721,11 +1729,23 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             var recovery = new MifareKeyRecovery(client, AppServices.Hardnested, _dictionaries.KnownKeys);
             var progress = new PostedProgress<KeyRecoveryProgress>(IfKept<KeyRecoveryProgress>(cts, OnRecoverProgress));
-            try { await recovery.RecoverAsync(dump, method, progress, cts.Token); }
+            MifareAutoRecoveryResult? result = null;
+            try
+            {
+                if (method is { } selected) await recovery.RecoverAsync(dump, selected, progress, cts.Token);
+                else result = await recovery.RecoverAutomaticallyAsync(dump, BuildKeyDictionary(), progress, cts.Token,
+                    KeySearchSettings.CreateOptions(RecoverySelectedSector));
+            }
             catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
             if (ReferenceEquals(_discardedDump, cts)) return;
             // Read missing blocks with the keys we now know; another dictionary pass is explicit via Dump.
             await MifareDumpBodyAsync(client, Array.Empty<byte[]>(), dump.Type, cts, read: !cts.IsCancellationRequested);
+            if (!cts.IsCancellationRequested && result?.Message is { } message)
+                Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, () =>
+                {
+                    _autoRecoveryNotice = message;
+                    RaiseDumpToolbar();
+                }));
         }
         finally
         {
@@ -1752,20 +1772,27 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Maps a recovery tick onto the dump's per-sector key grid and status line.</summary>
     private void OnRecoverProgress(KeyRecoveryProgress p)
     {
+        if (p.Prng is { } prng)
+        {
+            _cardPrng = prng;
+            Prng = prng.Label();
+            UpdateRecoveryMethods();
+        }
         DumpProgressText = p.Status;
+        DumpProgressDetail = p.Detail;
+        SetDumpKeyProgress(p.Tried, p.Total);
+        IsDumpProgressSuccess = p.Mark == KeyMark.Found;
+        IsDumpProgressError = p.Sector >= 0 && p.Mark == KeyMark.None;
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
         DumpProgressDetail = string.Format(Strings.Cards_SectorBlockKey, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector), (p.KeyType == MfKeyType.A ? "A" : "B"));
         if (p.Detail is { } detail) DumpProgressDetail += $" · {detail}";
-        IsDumpProgressSuccess = p.Mark == KeyMark.Found;
-        IsDumpProgressError = p.Mark == KeyMark.None;
         var phase = p.Mark switch
         {
             KeyMark.Found => MifareKeyPhase.Found,
             KeyMark.Checking => MifareKeyPhase.Searching,
             _ => MifareKeyPhase.NotFound,
         };
-        DumpSectors[p.Sector].ApplyKey(new MifareKeyProgress(p.Sector, p.KeyType, phase, 0, 0, p.Key));
-        SetDumpKeyProgress(0, 0);
+        DumpSectors[p.Sector].ApplyKey(new MifareKeyProgress(p.Sector, p.KeyType, phase, p.Tried, p.Total, p.Key));
         UpdateRecoveryMethods();
     }
 

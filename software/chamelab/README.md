@@ -143,6 +143,24 @@ The Android USB transport supports normal device commands, scans and card dumps.
 Firmware updates on Android currently use BLE; USB bootloader flashing is not
 implemented in the Android build. iOS continues to use BLE and TCP.
 
+## Automatic key recovery
+
+**Auto** is available in the read and target-card recovery panels. Every known or newly
+recovered key is first checked against all remaining sector A/B keys, using firmware
+batches when available. A key that took minutes to find may open the rest of the card
+without another dictionary search or attack. Confirmed failures are not repeated during
+the attack phase, and newly disclosed trailer keys are reused too.
+
+For keys still missing, Auto chooses Nested for weak PRNG, Static nested for static
+PRNG, or Hardnested for hardened PRNG when the firmware and local solver support it.
+Without a seed it tries a small prefix of the selected dictionaries, supported static
+encrypted backdoors and Darkside, then continues the dictionary only until a seed is
+found. Static encrypted captures must be stable before calculation starts. Failed
+attacks leave unresolved keys available for dictionary fallback. These priorities are
+heuristics, not a guaranteed shortest-time search. If reader interaction is needed,
+Auto explains how to continue with mfkey32; it does not start a reader capture itself.
+Stop preserves confirmed keys and partial reads.
+
 ## Reusing recovered keys
 
 Nested, static nested, and hardnested first try the current card's known unique

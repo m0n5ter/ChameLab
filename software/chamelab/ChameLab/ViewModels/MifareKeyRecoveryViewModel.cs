@@ -33,6 +33,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     private bool _online, _busy;
     private int _version;
     private string? _progress, _detail, _foundKey;
+    private string? _autoNotice;
     private int _tried, _total;
     private int? _captured;
     private bool _mfkey32;
@@ -62,6 +63,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         var idle = this.WhenAnyValue(x => x.CanOperate);
         DumpCommand = ReactiveCommand.CreateFromTask(() => StartAsync(SearchAsync), idle);
         CheckRecoveryCommand = ReactiveCommand.CreateFromTask(() => StartAsync(ProbeAsync), idle);
+        AutoRecoveryCommand = ReactiveCommand.CreateFromTask(() => StartAsync((client, ct) => RecoverAsync(client, null, ct)), idle);
         DarksideCommand = Attack(MifareRecoveryMethod.Darkside, this.WhenAnyValue(x => x.ShowDarkside));
         NestedCommand = Attack(MifareRecoveryMethod.Nested, this.WhenAnyValue(x => x.ShowNested));
         StaticNestedCommand = Attack(MifareRecoveryMethod.StaticNested, this.WhenAnyValue(x => x.ShowStaticNested));
@@ -79,6 +81,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
 
     public ICommand DumpCommand { get; }
     public ICommand CheckRecoveryCommand { get; }
+    public ICommand AutoRecoveryCommand { get; }
+    public bool ShowAutoRecovery => true;
     public ICommand DarksideCommand { get; }
     public ICommand NestedCommand { get; }
     public ICommand StaticNestedCommand { get; }
@@ -143,10 +147,11 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public bool ShowMfkey32FoundKey => _foundKey is not null && _detail is null;
     public string Mfkey32CaptureText => string.Format(Strings.Cards_CapturedAuths, _captured);
     public bool ShowMfkey32CaptureCount => _captured is not null && _foundKey is null && _detail is null;
-    public string? DumpNotice => Target is null ? Strings.Recovery_PlaceTarget
+    public string? DumpNotice => _autoNotice ?? (Target is null ? Strings.Recovery_PlaceTarget
+        : string.Format(Strings.Recovery_TargetUid, Target.UidHex));
+    public bool ShowDumpNotice => _autoNotice is not null && !IsDumpRunning;
+    public string? RecoveryIdentity => !_usesKeys ? null : Target is null ? Strings.Recovery_PlaceTarget
         : string.Format(Strings.Recovery_TargetUid, Target.UidHex);
-    public bool ShowDumpNotice => false;
-    public string? RecoveryIdentity => _usesKeys ? DumpNotice : null;
     public bool ShowMfkey32 => false;
     public bool CanRunMfkey32 => ShowMfkey32 && CanOperate && Target is not null && Mfkey32Slot is not null;
     private SlotInfo? Mfkey32Slot => Target is { } target
@@ -214,6 +219,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         _hasWriteSession = false;
         DumpSectors.Clear();
         _progress = _detail = _foundKey = null;
+        _autoNotice = null;
         _tried = _total = 0;
         SetKeySources(DumpKeySources.Where(s => !s.IsKnownCardKeys));
         Refresh();
@@ -319,6 +325,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
             if (_client() is not { } client) return;
             using var cts = new CancellationTokenSource();
             _cts = cts;
+            _autoNotice = null;
             _progress = Strings.Common_StartingRecovery;
             Refresh();
             try { await operation(client, cts.Token); }
@@ -405,27 +412,37 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         Refresh();
     }
 
-    private async Task RecoverAsync(ChameleonClient client, MifareRecoveryMethod method, CancellationToken ct)
+    private async Task RecoverAsync(ChameleonClient client, MifareRecoveryMethod? method, CancellationToken ct)
     {
         var target = await EnsureTargetAsync(client, ct);
         var version = _version;
         var progress = new CallbackProgress<KeyRecoveryProgress>(p => Dispatcher.UIThread.Post(() =>
         {
             if (version != _version) return;
+            if (p.Prng is { } prng) _prng = prng;
             _progress = p.Status;
             _detail = p.Sector < 0 ? p.Detail
                 : string.Format(Strings.Recovery_SectorKeyDetail, p.Sector, (p.KeyType == MfKeyType.A ? "A" : "B"), p.Detail);
-            _tried = _total = 0;
+            _tried = p.Tried;
+            _total = p.Total;
             if (p.Sector >= 0 && p.Sector < DumpSectors.Count)
                 DumpSectors[p.Sector].ApplyKey(new MifareKeyProgress(p.Sector, p.KeyType, p.Mark switch
                 {
                     KeyMark.Found => MifareKeyPhase.Found,
                     KeyMark.Checking => MifareKeyPhase.Searching,
                     _ => MifareKeyPhase.NotFound,
-                }, 0, 0, p.Key));
+                }, p.Tried, p.Total, p.Key));
             Refresh();
         }));
-        await new MifareKeyRecovery(client, _hardnested, _dictionaries.KnownKeys).RecoverAsync(target, method, progress, ct);
+        var recovery = new MifareKeyRecovery(client, _hardnested, _dictionaries.KnownKeys);
+        if (method is { } selected) await recovery.RecoverAsync(target, selected, progress, ct);
+        else
+        {
+            var keys = _sourceKeys().Concat(BuildKeyDictionary()).DistinctBy(Convert.ToHexString).ToArray();
+            var result = await recovery.RecoverAutomaticallyAsync(target, keys, progress, ct,
+                KeySearchSettings.CreateOptions(RecoverySelectedSector));
+            if (version == _version) _autoNotice = result.Message;
+        }
         Refresh();
     }
 

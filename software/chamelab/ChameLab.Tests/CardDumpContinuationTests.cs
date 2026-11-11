@@ -38,6 +38,7 @@ public class CardDumpContinuationTests
         Assert.True(vm.CanDump);
         Assert.True(vm.ShowDumpActions);
         Assert.True(vm.ShowCheckRecovery);
+        Assert.True(vm.ShowAutoRecovery);
         Assert.False(vm.ShowDarkside);
         Assert.False(vm.ShowNested);
         Assert.False(vm.ShowStaticNested);

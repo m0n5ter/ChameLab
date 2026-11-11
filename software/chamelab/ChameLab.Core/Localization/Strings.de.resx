@@ -3723,4 +3723,11 @@
   <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
     <value>Der Bootloader wurde nicht rechtzeitig ausgewählt. Wenn die LEDs 4 und 5 blinken, wartet das Gerät im Bootloader: Klicken Sie auf „Wiederholen“ und wählen Sie ihn aus.</value>
   </data>
+  <data name="AutoRecovery_Label" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoRecovery_Tip" xml:space="preserve"><value>Jeden gefundenen Schlüssel an den übrigen Sektoren prüfen und dann automatisch eine Methode für unbekannte Schlüssel wählen. Verwendet die ausgewählten Schlüsselwörterbücher.</value></data>
+  <data name="AutoRecovery_Choosing" xml:space="preserve"><value>Auto: Nächsten Schritt auswählen…</value></data>
+  <data name="AutoRecovery_Reusing" xml:space="preserve"><value>Auto: Gefundene Schlüssel an den übrigen Sektoren prüfen…</value></data>
+  <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>Als Nächstes: {0}</value></data>
+  <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>Automatische Wiederherstellung beendet. Noch unbekannte Schlüssel: {0}. Gefundene Schlüssel wurden gespeichert.</value></data>
+  <data name="AutoRecovery_TryReader" xml:space="preserve"><value>Weitere Wörterbücher oder mfkey32 mit dem ursprünglichen Lesegerät versuchen, dann Auto erneut starten.</value></data>
 </root>

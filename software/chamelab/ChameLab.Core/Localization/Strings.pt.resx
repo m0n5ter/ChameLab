@@ -3723,4 +3723,11 @@
   <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
     <value>O bootloader não foi selecionado a tempo. Se os LEDs 4 e 5 piscarem, o dispositivo aguarda no bootloader: clique em Tentar novamente e selecione-o.</value>
   </data>
+  <data name="AutoRecovery_Label" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoRecovery_Tip" xml:space="preserve"><value>Testar cada chave recuperada nos setores restantes e escolher automaticamente um método para as chaves desconhecidas. Usa os dicionários selecionados.</value></data>
+  <data name="AutoRecovery_Choosing" xml:space="preserve"><value>Auto: escolhendo a próxima etapa…</value></data>
+  <data name="AutoRecovery_Reusing" xml:space="preserve"><value>Auto: verificando as chaves recuperadas nos setores restantes…</value></data>
+  <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>Próximo: {0}</value></data>
+  <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>A recuperação automática terminou com {0} chaves desconhecidas. As chaves recuperadas foram mantidas.</value></data>
+  <data name="AutoRecovery_TryReader" xml:space="preserve"><value>Tente outros dicionários ou mfkey32 com o leitor original e execute Auto novamente.</value></data>
 </root>

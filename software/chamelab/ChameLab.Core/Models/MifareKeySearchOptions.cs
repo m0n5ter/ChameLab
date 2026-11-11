@@ -14,6 +14,9 @@ public sealed record MifareKeySearchOptions(
     MifareKeySearchOrder Order = MifareKeySearchOrder.Sequential,
     int SelectedSector = 0)
 {
+    /// <summary>Return after the first successful authentication, once the current firmware reply is drained.</summary>
+    public bool StopAfterFirstKey { get; init; }
+
     public int[] GetSectorOrder(int sectorCount)
     {
         if (sectorCount <= 0) return [];

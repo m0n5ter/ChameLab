@@ -3723,4 +3723,11 @@
   <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
     <value>時間内にブートローダーが選択されませんでした。LED 4 と 5 が点滅している場合、デバイスはブートローダーで待機しています。「再試行」をクリックして選択してください。</value>
   </data>
+  <data name="AutoRecovery_Label" xml:space="preserve"><value>自動</value></data>
+  <data name="AutoRecovery_Tip" xml:space="preserve"><value>復元した各キーを残りのセクターで確認してから、不明なキーの復元方法を自動で選択します。選択したキー辞書を使用します。</value></data>
+  <data name="AutoRecovery_Choosing" xml:space="preserve"><value>自動：次の手順を選択中…</value></data>
+  <data name="AutoRecovery_Reusing" xml:space="preserve"><value>自動：復元したキーを残りのセクターで確認中…</value></data>
+  <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>次の方法：{0}</value></data>
+  <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>自動復元を終了しました。不明なキーは残り {0} 個です。復元したキーは保存されています。</value></data>
+  <data name="AutoRecovery_TryReader" xml:space="preserve"><value>別の辞書、または元のリーダーで mfkey32 を試してから、自動復元を再実行してください。</value></data>
 </root>
