@@ -715,3 +715,4 @@ firmware/application/compile_commands.json
 software/src/target_arch_detect.c
 /dumps
 /.claude
+/software/chamelab/ChameLab.Relay/Properties/launchSettings.json
