@@ -132,6 +132,17 @@ public sealed class HexEditor : Control
     private Pane _pane = Pane.Hex;
     private bool _dragging;
     private bool _pointerFocus, _movingCaret;
+    // Touch selection, as on phones: a long press selects the byte under the finger (dragging on
+    // extends it); handles at both ends adjust it and a bar above it offers the commands.
+    private readonly TouchSelectionLayer _touchLayer;
+    private bool _touchSelect, _touchBarShown;
+    // A finger is down (not yet a scroll), the press became a long press, a drag after it extends.
+    private bool _touchDown, _touchHeld, _touchExtending;
+    private IPointer? _touchPointer;
+    private Point _touchPressPoint;
+    // A handle being dragged: which one, and where on it the finger took it.
+    private bool _handleIsStart;
+    private Vector _handleGrab;
     private HexBuffer? _buffer;
     private readonly DispatcherTimer _blink;
     private bool _caretOn = true;
@@ -161,6 +172,11 @@ public sealed class HexEditor : Control
         _ime = new InputClient(this);
         _caretLayer = new CaretLayer(this);
         VisualChildren.Add(_caretLayer);
+        // Above the strips and the caret (z-index), and a logical child so its buttons get styled.
+        _touchLayer = new TouchSelectionLayer(this) { ZIndex = 1 };
+        VisualChildren.Insert(0, _touchLayer);
+        LogicalChildren.Add(_touchLayer);
+        SetValue(IsHoldingEnabledProperty, true);
         _blink = new DispatcherTimer { Interval = CaretBlink };
         _blink.Tick += (_, _) => { _caretOn = !_caretOn; _caretLayer.InvalidateVisual(); };
         Cursor = new Cursor(StandardCursorType.Ibeam);
@@ -191,10 +207,20 @@ public sealed class HexEditor : Control
                 InvalidateArrange();
                 InvalidateVisual();
             }
+            // Keep the selection bar on screen as the page scrolls.
+            if (_touchLayer.Bar.IsVisible) _touchLayer.InvalidateArrange();
         };
         TextInputOptions.SetShowSuggestions(this, false);
         TextInputOptions.SetAutoCapitalization(this, false);
         TextInputOptions.SetMultiline(this, false);
+        // A long press selects (with handles and a bar) instead of opening the menu. Added before
+        // the menu, which opens on this event unless it is handled.
+        AddHandler(ContextRequestedEvent, (_, e) =>
+        {
+            if (!_touchDown) return;
+            e.Handled = true;
+            BeginTouchSelection();
+        });
         ContextMenu = BuildContextMenu();
     }
 
@@ -256,6 +282,8 @@ public sealed class HexEditor : Control
             _caret = 0;
             _lowNibble = false;
             _anchor = -1;
+            _touchSelect = false;
+            UpdateTouchUi();
             UpdateStatus();
         }
         else if (change.Property == FontFamilyProperty || change.Property == FontSizeProperty ||
@@ -293,6 +321,7 @@ public sealed class HexEditor : Control
         }
         UpdateStatus();
         InvalidateCaret();
+        UpdateTouchUi();
     }
 
     /// <summary>Puts the caret on a byte (and shows it), e.g. at a row just added.</summary>
@@ -500,6 +529,8 @@ public sealed class HexEditor : Control
 
     protected override Size ArrangeOverride(Size finalSize)
     {
+        _touchLayer.Measure(finalSize);
+        _touchLayer.Arrange(new Rect(finalSize));
         if (finalSize != _arrangedSize) _chunksDirty = true;
         if (!_chunksDirty) return finalSize;
         _arrangedSize = finalSize;
@@ -625,11 +656,11 @@ public sealed class HexEditor : Control
     }
 
     /// <summary>Byte (and nibble / pane) under a point, clamped to the buffer.</summary>
-    private (long offset, bool low, Pane pane) HitTest(Point p)
+    private (long offset, bool low, Pane pane) HitTest(Point p, Pane? pane = null)
     {
         var line = LineAt(p.Y);
 
-        if (_showAscii && p.X >= _asciiX - _digitW)
+        if (pane == Pane.Ascii || (pane is null && _showAscii && p.X >= _asciiX - _digitW))
         {
             var col = Math.Clamp((int)((p.X - _asciiX) / _digitW), 0, LineBytes(_buffer!, line) - 1);
             return (_lineStart[line] + col, false, Pane.Ascii);
@@ -966,13 +997,18 @@ public sealed class HexEditor : Control
     private (long from, long to) Selection() =>
         _anchor < 0 ? (-1, -2) : (Math.Min(_anchor, _caret), Math.Max(_anchor, _caret));
 
-    private bool HasSelection => _anchor >= 0 && _anchor != _caret;
+    // A touch selection can be a single byte; a mouse one is a range.
+    private bool HasSelection => _anchor >= 0 && (_anchor != _caret || _touchSelect);
 
     private void MoveCaret(long offset, bool low, bool extend)
     {
         if (_buffer is not { ViewLength: > 0 }) return;
         if (extend) { if (_anchor < 0) _anchor = _caret; }
-        else _anchor = -1;
+        else
+        {
+            _anchor = -1;
+            _touchSelect = false;
+        }
         var old = _caret;
         _caret = Math.Clamp(offset, 0, _buffer.ViewLength - 1);
         _lowNibble = low && !extend;
@@ -985,6 +1021,7 @@ public sealed class HexEditor : Control
         RestartBlink();
         UpdateStatus();
         InvalidateCaret();
+        UpdateTouchUi();
         if (_lineY.Length == 0) return;
         _movingCaret = true;
         try { this.BringIntoView(CaretViewRect()); }
@@ -1089,8 +1126,13 @@ public sealed class HexEditor : Control
         if (_buffer is null || _lineY.Length == 0) return;
         var point = e.GetCurrentPoint(this);
 
-        // Touch: place the caret on release so the page can still be scrolled by dragging.
-        if (e.Pointer.Type == PointerType.Touch) return;
+        // Touch: place the caret on release so the page can still be scrolled by dragging;
+        // holding still selects (see BeginTouchSelection).
+        if (e.Pointer.Type == PointerType.Touch)
+        {
+            (_touchDown, _touchHeld, _touchPointer, _touchPressPoint) = (true, false, e.Pointer, point.Position);
+            return;
+        }
         if (!point.Properties.IsLeftButtonPressed)
         {
             // Right click inside the selection keeps it for the context menu.
@@ -1111,12 +1153,33 @@ public sealed class HexEditor : Control
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
         base.OnPointerCaptureLost(e);
-        _pointerFocus = _dragging = false;
+        // A scroll takes the finger over: no long press any more.
+        _pointerFocus = _dragging = _touchDown = _touchExtending = false;
+    }
+
+    protected override void OnHolding(HoldingRoutedEventArgs e)
+    {
+        if (e.HoldingState == HoldingState.Started && e.PointerType == PointerType.Touch && _touchDown)
+        {
+            e.Handled = true;
+            BeginTouchSelection();
+            return;
+        }
+        base.OnHolding(e);
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
+        if (_touchExtending && _buffer is not null && _lineY.Length > 0)
+        {
+            // Dragging on after a long press extends the selection instead of scrolling.
+            e.PreventGestureRecognition();
+            e.Handled = true;
+            var touchHit = HitTest(e.GetPosition(this), _pane);
+            if (touchHit.offset != _caret) MoveCaret(touchHit.offset, false, extend: true);
+            return;
+        }
         if (!_dragging || _buffer is null) return;
         var hit = HitTest(e.GetPosition(this));
         if (hit.offset != _caret || _anchor < 0) MoveCaret(hit.offset, false, extend: true);
@@ -1126,6 +1189,29 @@ public sealed class HexEditor : Control
     {
         base.OnPointerReleased(e);
         _pointerFocus = false;
+        var held = _touchHeld;
+        if (e.Pointer.Type == PointerType.Touch) _touchDown = _touchHeld = _touchExtending = false;
+        if (held)
+        {
+            // The long press is over: the selection stays, with its bar.
+            e.Handled = true;
+            e.Pointer.Capture(null);
+            _touchBarShown = true;
+            UpdateTouchUi();
+            return;
+        }
+        if (_touchSelect && e.Pointer.Type == PointerType.Touch && _lineY.Length > 0)
+        {
+            // A tap on the selection shows or hides its bar; elsewhere it places the caret as usual.
+            var (from, to) = Selection();
+            var tap = HitTest(e.GetPosition(this), _pane);
+            if (tap.offset >= from && tap.offset <= to)
+            {
+                _touchBarShown = !_touchBarShown;
+                UpdateTouchUi();
+                return;
+            }
+        }
         if (_dragging)
         {
             _dragging = false;
@@ -1492,6 +1578,250 @@ public sealed class HexEditor : Control
             paste.IsVisible = historySeparator.IsVisible = undo.IsVisible = redo.IsVisible = _buffer?.IsReadOnly != true;
         };
         return menu;
+    }
+
+    // ================================================================ Touch selection
+
+    /// <summary>
+    /// A long press: selects the byte under the finger, with handles and (once lifted) the bar.
+    /// Leaves focus alone, so the on-screen keyboard doesn't pop up just to copy.
+    /// </summary>
+    private void BeginTouchSelection()
+    {
+        if (_touchHeld || _buffer is not { ViewLength: > 0 } || _lineY.Length == 0) return;
+        _touchHeld = _touchExtending = true;
+        PlaceCaret(HitTest(_touchPressPoint), extend: false);
+        _anchor = _caret;
+        _touchSelect = true;
+        _touchBarShown = false;
+        // Moves of this finger now extend the selection (see OnPointerMoved), not scroll.
+        _touchPointer?.Capture(this);
+        UpdateStatus();
+        InvalidateCaret();
+        UpdateTouchUi();
+    }
+
+    private void EndTouchSelection()
+    {
+        if (!_touchSelect) return;
+        _touchSelect = false;
+        _anchor = -1;
+        UpdateStatus();
+        InvalidateCaret();
+        UpdateTouchUi();
+    }
+
+    /// <summary>Shows or hides the handles and the bar, and places them on the next layout.</summary>
+    private void UpdateTouchUi()
+    {
+        var show = _touchSelect && HasSelection && _lineY.Length > 0;
+        _touchLayer.Start.IsVisible = _touchLayer.End.IsVisible = show;
+        _touchLayer.Bar.IsVisible = show && _touchBarShown;
+        _touchLayer.Paste.IsVisible = _buffer?.IsReadOnly == false;
+        if (!show) return;
+        _touchLayer.Start.InvalidateVisual();
+        _touchLayer.End.InvalidateVisual();
+        _touchLayer.InvalidateArrange();
+    }
+
+    /// <summary>The point a handle's tip marks: the bottom corner of the selection's first or last cell.</summary>
+    private Point HandleTip(bool start)
+    {
+        var (from, to) = Selection();
+        return start ? CellRect(from, _pane).BottomLeft : CellRect(to, _pane).BottomRight;
+    }
+
+    private void ArrangeTouchUi(Size size)
+    {
+        if (!_touchLayer.Start.IsVisible || _lineY.Length == 0 || _buffer is not { ViewLength: > 0 }) return;
+        var start = HandleTip(true);
+        var end = HandleTip(false);
+        _touchLayer.Start.Arrange(new Rect(start - _touchLayer.Start.Tip, _touchLayer.Start.DesiredSize));
+        _touchLayer.End.Arrange(new Rect(end - _touchLayer.End.Tip, _touchLayer.End.DesiredSize));
+        if (!_touchLayer.Bar.IsVisible) return;
+
+        // Above the selection, else under its end handle, else at the top of the screen;
+        // within what is on screen of the editor.
+        const double gap = 8;
+        var bar = _touchLayer.Bar.DesiredSize;
+        var view = _viewport.Width > 0 ? _viewport.Intersect(new Rect(size)) : new Rect(size);
+        var top = start.Y - _lineH - gap - bar.Height;
+        var below = end.Y + _touchLayer.End.DesiredSize.Height + gap;
+        var y = top >= view.Top ? top
+            : below + bar.Height <= view.Bottom ? below
+            : view.Top + gap;
+        var sameLine = LineOf(Selection().from) == LineOf(Selection().to);
+        var center = sameLine ? (start.X + end.X) / 2 : view.Center.X;
+        var x = Math.Max(view.Left, Math.Min(center - bar.Width / 2, view.Right - bar.Width));
+        _touchLayer.Bar.Arrange(new Rect(new Point(x, y), bar));
+    }
+
+    private void BeginHandleDrag(bool start, Point p)
+    {
+        var (from, to) = Selection();
+        // The dragged end becomes the caret, the other end the anchor.
+        _anchor = start ? to : from;
+        _caret = start ? from : to;
+        _handleIsStart = start;
+        _handleGrab = p - HandleTip(start);
+        _touchBarShown = false;
+        UpdateTouchUi();
+    }
+
+    private void DragHandle(Point p)
+    {
+        if (_buffer is null || _lineY.Length == 0) return;
+        // The cell just inside the tip: a start handle's tip is at a cell's left, an end handle's at its right.
+        var tip = p - _handleGrab;
+        var inside = new Point(tip.X + (_handleIsStart ? 1 : -1) * _digitW / 2, tip.Y - _lineH / 2);
+        var hit = HitTest(inside, _pane);
+        if (hit.offset != _caret) MoveCaret(hit.offset, false, extend: true);
+    }
+
+    private void EndHandleDrag()
+    {
+        if (!_touchSelect || _touchBarShown) return;
+        _touchBarShown = true;
+        UpdateTouchUi();
+    }
+
+    /// <summary>The handles and the command bar of a touch selection, over the editor's text.</summary>
+    private sealed class TouchSelectionLayer : Panel
+    {
+        private readonly HexEditor _owner;
+
+        public TouchSelectionLayer(HexEditor owner)
+        {
+            _owner = owner;
+            Start = new SelectionHandle(owner, start: true) { IsVisible = false };
+            End = new SelectionHandle(owner, start: false) { IsVisible = false };
+
+            Button Command(string text, Action action)
+            {
+                // Not focusable: tapping one must not take focus (and the keyboard) from the editor.
+                var button = new Button { Content = text, Focusable = false };
+                button.Classes.Add("theme-subtle");
+                button.Click += (_, _) => action();
+                return button;
+            }
+
+            Paste = Command(Strings.Hex_Paste, () =>
+            {
+                // The paste replaces the selection once the clipboard is read, and ends it.
+                _owner._touchBarShown = false;
+                _owner.UpdateTouchUi();
+                _owner.Paste();
+            });
+            Bar = new Border
+            {
+                IsVisible = false,
+                Child = new StackPanel
+                {
+                    Orientation = Avalonia.Layout.Orientation.Horizontal,
+                    Children =
+                    {
+                        Command(Strings.Hex_Copy, () =>
+                        {
+                            _owner.Copy();
+                            _owner.EndTouchSelection();
+                        }),
+                        Paste,
+                        Command(Strings.Hex_SelectAll, () =>
+                        {
+                            _owner.SelectAll();
+                            _owner._touchBarShown = true;
+                            _owner.UpdateTouchUi();
+                        }),
+                    },
+                },
+            };
+            Bar.Classes.Add("hextouchbar");
+            Children.Add(Start);
+            Children.Add(End);
+            Children.Add(Bar);
+        }
+
+        public SelectionHandle Start { get; }
+        public SelectionHandle End { get; }
+        public Border Bar { get; }
+        public Button Paste { get; }
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            foreach (var child in Children) child.Measure(Size.Infinity);
+            return default;
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            _owner.ArrangeTouchUi(finalSize);
+            return finalSize;
+        }
+    }
+
+    /// <summary>
+    /// A drop-shaped handle under one end of a touch selection, pointing at it with its square
+    /// corner; dragging it moves that end. Its touch area is larger than the drop.
+    /// </summary>
+    private sealed class SelectionHandle : Control
+    {
+        private const double Radius = 11, BoxWidth = 44, BoxHeight = 40;
+        private readonly HexEditor _owner;
+        private readonly bool _start;
+
+        public SelectionHandle(HexEditor owner, bool start)
+        {
+            _owner = owner;
+            _start = start;
+            // The tip at the drop's square corner: right of a start handle's drop, left of an end one's.
+            Tip = new Vector(start ? BoxWidth - 14 : 14, 0);
+        }
+
+        /// <summary>Where on the handle its tip is.</summary>
+        public Vector Tip { get; }
+
+        protected override Size MeasureOverride(Size availableSize) => new(BoxWidth, BoxHeight);
+
+        public override void Render(DrawingContext context)
+        {
+            context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
+            if (_owner.CaretBrush is not { } brush) return;
+            var center = new Point(Tip.X + (_start ? -Radius : Radius), Radius);
+            context.DrawEllipse(brush, null, center, Radius, Radius);
+            context.FillRectangle(brush, new Rect(Math.Min(Tip.X, center.X), 0, Radius, Radius));
+        }
+
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            base.OnPointerPressed(e);
+            e.Handled = true;
+            e.PreventGestureRecognition();
+            e.Pointer.Capture(this);
+            _owner.BeginHandleDrag(_start, e.GetPosition(_owner));
+        }
+
+        protected override void OnPointerMoved(PointerEventArgs e)
+        {
+            base.OnPointerMoved(e);
+            if (e.Pointer.Captured != this) return;
+            e.Handled = true;
+            e.PreventGestureRecognition();
+            _owner.DragHandle(e.GetPosition(_owner));
+        }
+
+        protected override void OnPointerReleased(PointerReleasedEventArgs e)
+        {
+            base.OnPointerReleased(e);
+            if (e.Pointer.Captured != this) return;
+            e.Handled = true;
+            e.Pointer.Capture(null);
+        }
+
+        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+        {
+            base.OnPointerCaptureLost(e);
+            _owner.EndHandleDrag();
+        }
     }
 
     /// <summary>
