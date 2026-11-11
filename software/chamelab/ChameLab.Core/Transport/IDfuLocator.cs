@@ -26,3 +26,15 @@ public interface IDfuTarget
     /// <summary>Opens the bootloader, or returns null while it hasn't shown up yet.</summary>
     Task<IDfuChannel?> TryOpenAsync(CancellationToken ct);
 }
+
+/// <summary>
+/// A bootloader the app reaches only once the user picks it, as in a browser: a page may open
+/// a new USB or Bluetooth device only after it was chosen in the browser's own device chooser.
+/// The bootloader is a different device from the application, so it needs a pick of its own
+/// (once, where the browser remembers the permission).
+/// </summary>
+public interface IDfuPickTarget : IDfuTarget
+{
+    /// <summary>Opens the browser's chooser for the bootloader; must run in response to a click.</summary>
+    Task PickAsync(CancellationToken ct);
+}

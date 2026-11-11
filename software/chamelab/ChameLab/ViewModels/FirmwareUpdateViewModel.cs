@@ -53,6 +53,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
         RetryCommand = ReactiveCommand.CreateFromTask(InstallAsync);
         CloseCommand = ReactiveCommand.Create(Close);
         OpenReleaseCommand = ReactiveCommand.CreateFromTask(OpenReleaseAsync);
+        PickBootloaderCommand = ReactiveCommand.CreateFromTask(PickBootloaderAsync);
     }
 
     public ICommand CheckCommand { get; }
@@ -62,8 +63,19 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     public ICommand RetryCommand { get; }
     public ICommand CloseCommand { get; }
     public ICommand OpenReleaseCommand { get; }
+    public ICommand PickBootloaderCommand { get; }
 
-    /// <summary>Installing needs the bootloader over USB serial (desktop) or BLE (phones).</summary>
+    /// <summary>
+    /// While waiting for a bootloader the browser lets the app reach only once the user picks it
+    /// in the browser's chooser (the first update; the browser remembers the permission).
+    /// </summary>
+    public bool CanPickBootloader
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    /// <summary>Installing needs the bootloader over USB serial (desktop, Web Serial) or BLE (phones, Web Bluetooth).</summary>
     public bool CanInstall => _service.CanInstall(_device.Candidate?.Kind);
 
     public FirmwareCheckState CheckState
@@ -279,8 +291,15 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
                 switch (p.Step)
                 {
                     case FirmwareUpdateStep.Restarting: SetStep(Strings.Firmware_Restarting); break;
-                    case FirmwareUpdateStep.WaitingForBootloader: SetStep(Strings.Firmware_WaitingBootloader); break;
-                    case FirmwareUpdateStep.Flashing: SetStep(string.Format(Strings.Firmware_Flashing, p.Fraction), p.Fraction); break;
+                    case FirmwareUpdateStep.WaitingForBootloader:
+                        CanPickBootloader = _target is IDfuPickTarget;
+                        SetStep(!CanPickBootloader ? Strings.Firmware_WaitingBootloader
+                            : _overBle ? Strings.Firmware_PickBootloaderBle : Strings.Firmware_PickBootloaderUsb);
+                        break;
+                    case FirmwareUpdateStep.Flashing:
+                        CanPickBootloader = false;
+                        SetStep(string.Format(Strings.Firmware_Flashing, p.Fraction), p.Fraction);
+                        break;
                     case FirmwareUpdateStep.Reconnecting: SetStep(Strings.Firmware_WaitingRestart); break;
                 }
             }));
@@ -295,10 +314,19 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            CanPickBootloader = false;
             InstallTitle = Strings.Firmware_Failed;
             Error = ex.Message;
             Dialog = FirmwareDialog.Failed;
         }
+    }
+
+    private async Task PickBootloaderAsync()
+    {
+        if (_target is not IDfuPickTarget target) return;
+        // The install keeps polling: the bootloader is opened as soon as it is picked.
+        try { await target.PickAsync(default); }
+        catch { /* the chooser was dismissed or failed; the button stays for another try */ }
     }
 
     private void SetTransport()

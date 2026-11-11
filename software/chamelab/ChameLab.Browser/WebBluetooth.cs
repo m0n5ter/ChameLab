@@ -47,6 +47,33 @@ internal static partial class WebBluetoothInterop
 
     [JSImport("close", "ble")]
     public static partial Task Close(string id);
+
+    /// <summary>One "id&lt;TAB&gt;name" line per DFU bootloader the page may use without a prompt.</summary>
+    [JSImport("listKnownBootloaders", "ble")]
+    public static partial Task<string> ListKnownBootloaders();
+
+    /// <summary>"id&lt;TAB&gt;name" of the picked bootloader, or "" if the chooser was dismissed.</summary>
+    [JSImport("requestBootloader", "ble")]
+    public static partial Task<string> RequestBootloader();
+
+    [JSImport("dfuOpen", "ble")]
+    public static partial Task DfuOpen(string id, int timeoutMs);
+
+    [JSImport("dfuIsOpen", "ble")]
+    public static partial bool DfuIsOpen(string id);
+
+    [JSImport("dfuWriteControl", "ble")]
+    public static partial Task DfuWriteControl(string id, string base64);
+
+    [JSImport("dfuWritePacket", "ble")]
+    public static partial Task DfuWritePacket(string id, string base64);
+
+    /// <summary>The next control point response, or "" if none came within <paramref name="ms"/>.</summary>
+    [JSImport("dfuReceive", "ble")]
+    public static partial Task<string> DfuReceive(string id, int ms);
+
+    [JSImport("dfuClose", "ble")]
+    public static partial Task DfuClose(string id);
 }
 
 /// <summary>

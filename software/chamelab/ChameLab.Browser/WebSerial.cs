@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Transport;
@@ -30,17 +31,38 @@ internal static partial class WebSerialInterop
     [JSImport("listGranted", "serial")]
     public static partial Task<string> ListGranted();
 
+    /// <summary>Opens the chooser for ports with these USB ids (<paramref name="productId"/> &lt; 0: any product).</summary>
     [JSImport("requestPort", "serial")]
-    public static partial Task<int> RequestPort();
+    public static partial Task<int> RequestPort(int vendorId, int productId);
 
     [JSImport("portInfo", "serial")]
     public static partial string PortInfo(int index);
+
+    /// <summary>Whether the port is a USB device with these ids (<paramref name="productId"/> &lt; 0: any product).</summary>
+    public static bool HasUsbId(int index, int vendorId, int productId = -1)
+    {
+        try
+        {
+            using var info = JsonDocument.Parse(PortInfo(index));
+            var root = info.RootElement;
+            return root.TryGetProperty("usbVendorId", out var vid) && vid.GetInt32() == vendorId
+                && (productId < 0 || root.TryGetProperty("usbProductId", out var pid) && pid.GetInt32() == productId);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
 
     [JSImport("open", "serial")]
     public static partial Task Open(int index, int baud);
 
     [JSImport("readBase64", "serial")]
     public static partial Task<string> ReadBase64(int index);
+
+    /// <summary>The next chunk, or "" after <paramref name="ms"/>; throws once the port is gone.</summary>
+    [JSImport("readBase64Within", "serial")]
+    public static partial Task<string> ReadBase64Within(int index, int ms);
 
     [JSImport("writeBase64", "serial")]
     public static partial Task WriteBase64(int index, string base64);
@@ -119,6 +141,8 @@ public sealed class WebSerialScanner : ITransportScanner
     // Listing granted ports is cheap and needs no prompt, so it can be polled.
     public AutoScan AutoScan => AutoScan.Poll;
 
+    private const int ChameleonVendorId = 0x6868;
+
     public Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default) =>
         ScanAsync(AutoScan.Never, ct);
 
@@ -133,7 +157,7 @@ public sealed class WebSerialScanner : ITransportScanner
         {
             // No Chameleon among the granted ports (none granted yet, or only other
             // devices): prompt the chooser. A canceled dialog simply yields no device.
-            await WebSerialInterop.RequestPort();
+            await WebSerialInterop.RequestPort(ChameleonVendorId, -1);
             list = await ListChameleonsAsync();
         }
         return list;
@@ -146,8 +170,7 @@ public sealed class WebSerialScanner : ITransportScanner
         foreach (var part in indices.Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
             var i = int.Parse(part);
-            var info = WebSerialInterop.PortInfo(i);
-            if (!info.Contains("26728")) continue; // USB VID 0x6868 = Chameleon
+            if (!WebSerialInterop.HasUsbId(i, ChameleonVendorId)) continue;
             list.Add(new TransportCandidate(
                 TransportKind.Serial,
                 part,

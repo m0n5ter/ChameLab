@@ -3714,4 +3714,16 @@
   <data name="Share_PeerConnectedName" xml:space="preserve">
     <value>{0} подключился и работает с устройством.</value>
   </data>
+  <data name="Main_SelectBootloader" xml:space="preserve">
+    <value>Выбрать загрузчик</value>
+  </data>
+  <data name="Firmware_PickBootloaderUsb" xml:space="preserve">
+    <value>Ожидание загрузчика… В первый раз браузеру нужно ваше разрешение: нажмите «Выбрать загрузчик» и выберите DFU-порт Chameleon в списке.</value>
+  </data>
+  <data name="Firmware_PickBootloaderBle" xml:space="preserve">
+    <value>Ожидание загрузчика… В первый раз браузеру нужно ваше разрешение: нажмите «Выбрать загрузчик» и выберите в списке устройство CU-… (CL-… для Lite).</value>
+  </data>
+  <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
+    <value>Загрузчик не был выбран вовремя. Если мигают светодиоды 4 и 5, устройство ждёт в загрузчике: нажмите «Повторить» и выберите его.</value>
+  </data>
 </root>

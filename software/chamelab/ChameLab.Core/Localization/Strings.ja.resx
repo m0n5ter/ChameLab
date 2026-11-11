@@ -3714,4 +3714,16 @@
   <data name="Share_PeerConnectedName" xml:space="preserve">
     <value>{0} が接続してデバイスを使用しています。</value>
   </data>
+  <data name="Main_SelectBootloader" xml:space="preserve">
+    <value>ブートローダーを選択</value>
+  </data>
+  <data name="Firmware_PickBootloaderUsb" xml:space="preserve">
+    <value>ブートローダーを待っています… 初回はブラウザーに許可が必要です。「ブートローダーを選択」をクリックし、一覧から Chameleon の DFU ポートを選んでください。</value>
+  </data>
+  <data name="Firmware_PickBootloaderBle" xml:space="preserve">
+    <value>ブートローダーを待っています… 初回はブラウザーに許可が必要です。「ブートローダーを選択」をクリックし、一覧から CU-…(Lite の場合は CL-…)という名前のデバイスを選んでください。</value>
+  </data>
+  <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
+    <value>時間内にブートローダーが選択されませんでした。LED 4 と 5 が点滅している場合、デバイスはブートローダーで待機しています。「再試行」をクリックして選択してください。</value>
+  </data>
 </root>

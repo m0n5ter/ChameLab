@@ -35,6 +35,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
     public const string Repository = "m0n5ter/ChameLab";
 
     private static readonly TimeSpan BootloaderTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan PickTimeout = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan ReconnectTimeout = TimeSpan.FromSeconds(40);
 
     private static readonly HttpClient Http = CreateHttp();
@@ -137,8 +138,10 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
         }
 
         progress.Report(new(FirmwareUpdateStep.WaitingForBootloader));
-        var channel = await PollAsync(() => target.TryOpenAsync(ct), BootloaderTimeout, ct,
-            Strings.Firmware_NoBootloader);
+        // Picking the bootloader in a browser's chooser takes the user a while.
+        var picked = target is IDfuPickTarget;
+        var channel = await PollAsync(() => target.TryOpenAsync(ct), picked ? PickTimeout : BootloaderTimeout, ct,
+            picked ? Strings.Firmware_BootloaderNotPicked : Strings.Firmware_NoBootloader);
 
         progress.Report(new(FirmwareUpdateStep.Flashing));
         await using (channel)

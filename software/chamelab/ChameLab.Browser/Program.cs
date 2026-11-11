@@ -18,7 +18,10 @@ internal sealed partial class Program
         var bluetooth = WebBluetoothInterop.IsAvailable();
         var scanners = new List<ITransportScanner> { new WebSerialScanner() };
         if (bluetooth) scanners.Add(new WebBluetoothScanner());
-        AppServices.Register(scanners, new LocalStorageStore(), feedback: new WebFeedbackPlayer(),
+        // Firmware reaches the bootloader over the same APIs, once the user picks it in the chooser.
+        var dfu = new List<IDfuLocator> { new WebSerialDfuLocator() };
+        if (bluetooth) dfu.Add(new WebBluetoothDfuLocator());
+        AppServices.Register(scanners, new LocalStorageStore(), dfu: dfu, feedback: new WebFeedbackPlayer(),
             hardnested: new WebHardnestedEngine(), keyRecovery: new WebKeyRecoveryEngine());
 
         return BuildAvaloniaApp()

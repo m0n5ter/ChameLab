@@ -21,13 +21,14 @@ export async function listGranted() {
     return granted.map(p => ports.indexOf(p)).join(",");
 }
 
-// Prompt the user to pick a port. Must be called from a user gesture.
-// Returns the port index, or -1 if cancelled / unsupported.
-export async function requestPort() {
+// Prompt the user to pick a port with the given USB ids (productId < 0: any product),
+// so the chooser offers only Chameleons (VID 0x6868) or their bootloader (1915:521F).
+// Must be called from a user gesture. Returns the port index, or -1 if cancelled / unsupported.
+export async function requestPort(vendorId, productId) {
     if (!isSupported()) return -1;
     try {
-        // Only offer Chameleons (USB VID 0x6868) in the chooser.
-        const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x6868 }] });
+        const filter = productId >= 0 ? { usbVendorId: vendorId, usbProductId: productId } : { usbVendorId: vendorId };
+        const port = await navigator.serial.requestPort({ filters: [filter] });
         const existing = ports.indexOf(port);
         if (existing >= 0) return existing;
         ports.push(port);
@@ -57,6 +58,34 @@ export async function readBase64(index) {
     if (!p || !p._reader) return "";
     const { value, done } = await p._reader.read();
     if (done || !value || value.length === 0) return "";
+    return toBase64(value);
+}
+
+// Like readBase64, but gives up after ms with "" (the read stays pending for the next
+// call, so nothing is lost), and throws once the port is gone or its stream ended.
+// The DFU bootloader resets without closing anything, so a plain read could wait forever.
+export async function readBase64Within(index, ms) {
+    const p = ports[index];
+    if (!p || !p._reader) throw new Error("Serial port closed.");
+    p._pendingRead ??= p._reader.read();
+    let timer;
+    const timeout = new Promise(resolve => { timer = setTimeout(() => resolve(null), ms); });
+    let result;
+    try {
+        result = await Promise.race([p._pendingRead, timeout]);
+    } catch (e) {
+        p._pendingRead = null;
+        throw e;
+    } finally {
+        clearTimeout(timer);
+    }
+    if (result === null) return "";
+    p._pendingRead = null;
+    if (result.done) throw new Error("Serial port closed.");
+    return result.value ? toBase64(result.value) : "";
+}
+
+function toBase64(value) {
     let binary = "";
     const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
@@ -82,4 +111,5 @@ export async function close(index) {
     try { await p.close(); } catch (e) { }
     p._reader = null;
     p._writer = null;
+    p._pendingRead = null;
 }

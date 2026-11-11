@@ -3714,4 +3714,16 @@
   <data name="Share_PeerConnectedName" xml:space="preserve">
     <value>{0} 已连接并正在使用设备。</value>
   </data>
+  <data name="Main_SelectBootloader" xml:space="preserve">
+    <value>选择引导程序</value>
+  </data>
+  <data name="Firmware_PickBootloaderUsb" xml:space="preserve">
+    <value>正在等待引导程序… 首次需要浏览器获得你的许可：点击“选择引导程序”，然后在列表中选择 Chameleon 的 DFU 端口。</value>
+  </data>
+  <data name="Firmware_PickBootloaderBle" xml:space="preserve">
+    <value>正在等待引导程序… 首次需要浏览器获得你的许可：点击“选择引导程序”，然后在列表中选择名为 CU-…（Lite 为 CL-…）的设备。</value>
+  </data>
+  <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
+    <value>未能及时选择引导程序。如果 LED 4 和 5 在闪烁，设备正在引导程序中等待：点击“重试”并选择它。</value>
+  </data>
 </root>

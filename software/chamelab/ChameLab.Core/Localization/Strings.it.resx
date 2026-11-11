@@ -3714,4 +3714,16 @@
   <data name="Share_PeerConnectedName" xml:space="preserve">
     <value>{0} è connesso e sta usando il dispositivo.</value>
   </data>
+  <data name="Main_SelectBootloader" xml:space="preserve">
+    <value>Seleziona bootloader</value>
+  </data>
+  <data name="Firmware_PickBootloaderUsb" xml:space="preserve">
+    <value>In attesa del bootloader… La prima volta il browser ha bisogno del tuo permesso: fai clic su Seleziona bootloader e scegli la porta DFU del Chameleon nell'elenco.</value>
+  </data>
+  <data name="Firmware_PickBootloaderBle" xml:space="preserve">
+    <value>In attesa del bootloader… La prima volta il browser ha bisogno del tuo permesso: fai clic su Seleziona bootloader e scegli il dispositivo CU-… (CL-… per un Lite) nell'elenco.</value>
+  </data>
+  <data name="Firmware_BootloaderNotPicked" xml:space="preserve">
+    <value>Il bootloader non è stato selezionato in tempo. Se i LED 4 e 5 lampeggiano, il dispositivo attende nel bootloader: fai clic su Riprova e selezionalo.</value>
+  </data>
 </root>

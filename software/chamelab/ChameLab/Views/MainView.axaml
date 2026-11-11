@@ -331,6 +331,8 @@
             <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}"
                          IsIndeterminate="{Binding !ProgressKnown}" />
             <TextBlock Classes="caption" Text="{Binding KeepConnectedHint}" />
+            <Button Classes="accent" HorizontalAlignment="Right" Content="{x:Static loc:Strings.Main_SelectBootloader}"
+                    Command="{Binding PickBootloaderCommand}" IsVisible="{Binding CanPickBootloader}" />
           </StackPanel>
 
           <!-- Done -->
