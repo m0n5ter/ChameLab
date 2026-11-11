@@ -1881,9 +1881,6 @@
   <data name="Hex_FromIdentity" xml:space="preserve">
     <value>来自卡片标识，块未读取</value>
   </data>
-  <data name="Hex_HalfByte" xml:space="preserve">
-    <value>半字节</value>
-  </data>
   <data name="Hex_Memory" xml:space="preserve">
     <value>存储内容</value>
   </data>

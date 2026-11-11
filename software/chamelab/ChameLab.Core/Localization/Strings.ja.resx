@@ -1881,9 +1881,6 @@
   <data name="Hex_FromIdentity" xml:space="preserve">
     <value>カードの識別情報から。ブロックは未読</value>
   </data>
-  <data name="Hex_HalfByte" xml:space="preserve">
-    <value>½ バイト</value>
-  </data>
   <data name="Hex_Memory" xml:space="preserve">
     <value>メモリ</value>
   </data>

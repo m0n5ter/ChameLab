@@ -1881,9 +1881,6 @@
   <data name="Hex_FromIdentity" xml:space="preserve">
     <value>카드 식별 정보에서 가져옴, 블록은 읽지 않음</value>
   </data>
-  <data name="Hex_HalfByte" xml:space="preserve">
-    <value>½바이트</value>
-  </data>
   <data name="Hex_Memory" xml:space="preserve">
     <value>메모리</value>
   </data>

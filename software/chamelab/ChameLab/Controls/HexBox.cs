@@ -32,7 +32,9 @@ public class HexBox : TextBox
     public static readonly DirectProperty<HexBox, int> ByteCountProperty =
         AvaloniaProperty.RegisterDirect<HexBox, int>(nameof(ByteCount), o => o.ByteCount);
 
-    private readonly TextBlock _counter = new() { VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+    // Byte count chip; the UI font, not the box's mono one, keeps it narrow.
+    private readonly TextBlock _counter = new() { FontFamily = FontFamily.Default };
+    private readonly HexCountChip _counterChip;
     private int[] _lengths = Array.Empty<int>();
     private bool _normalizing;
     private int? _caretHold;
@@ -42,8 +44,8 @@ public class HexBox : TextBox
     {
         Classes.Add("hex");
         Classes.Add("mono");
-        _counter.Classes.Add("hexcount");
-        InnerRightContent = _counter;
+        _counterChip = new HexCountChip { Child = _counter, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+        InnerRightContent = _counterChip;
         TextInputOptions.SetShowSuggestions(this, false);
         TextInputOptions.SetAutoCapitalization(this, false);
         TextInputOptions.SetUppercase(this, true);
@@ -247,9 +249,9 @@ public class HexBox : TextBox
         PseudoClasses.Set(":invalid", odd || badLength);
 
         _counter.Text = digits == 0
-            ? (_lengths.Length > 0 ? string.Join("/", _lengths) + " B" : string.Empty)
-            : odd ? Strings.Hex_HalfByte : $"{digits / 2} B";
-        _counter.IsVisible = _counter.Text.Length > 0;
-        ToolTip.SetTip(_counter, _lengths.Length > 0 ? string.Format(Strings.Hex_ExpectedBytes, string.Join(", ", _lengths)) : null);
+            ? (_lengths.Length > 0 ? string.Join("/", _lengths) : string.Empty)
+            : odd ? (digits / 2 > 0 ? $"{digits / 2}½" : "½") : $"{digits / 2}";
+        _counterChip.IsVisible = _counter.Text.Length > 0;
+        ToolTip.SetTip(_counterChip, _lengths.Length > 0 ? string.Format(Strings.Hex_ExpectedBytes, string.Join(", ", _lengths)) : null);
     }
 }

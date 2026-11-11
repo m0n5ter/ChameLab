@@ -1276,15 +1276,27 @@
   </Style>
   <!-- ==================== Hex editing ==================== -->
 
+  <!-- Cascadia's digits sit ~1.5px above the middle of its line box (Inter's capitals are
+       centered); move the text a pixel down, keeping the box height. -->
   <Style Selector="TextBox.hex">
     <Setter Property="FontFamily" Value="{x:Static c:AppFonts.Mono}" />
+    <Setter Property="Padding" Value="9,6,9,4" />
   </Style>
-  <Style Selector="TextBox.hex TextBlock.hexcount">
+  <Style Selector="TextBox.hex c|HexCountChip">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container3BorderBrush}" />
+    <Setter Property="Padding" Value="6,0,0,0" />
+    <Setter Property="Margin" Value="6,0,0,0" />
+  </Style>
+  <Style Selector="TextBox.hex c|HexCountChip > TextBlock">
     <Setter Property="Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
     <Setter Property="FontSize" Value="11" />
-    <Setter Property="Margin" Value="6,0,10,0" />
   </Style>
-  <Style Selector="TextBox.hex:invalid TextBlock.hexcount">
+  <Style Selector="TextBox.hex:invalid c|HexCountChip">
+    <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
+  </Style>
+  <Style Selector="TextBox.hex:invalid c|HexCountChip > TextBlock">
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}" />
   </Style>
   <Style Selector="TextBox.hex:invalid:not(:focus-within)">
@@ -1309,6 +1321,21 @@
     <Setter Property="SeparatorBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
     <!-- Neutral gray at low alpha: a touch darker in the light theme, lighter in the dark one. -->
     <Setter Property="StripeBrush" Value="#18808080" />
+  </Style>
+
+  <!-- Copy / Paste / Select all over a touch selection in the hex editor. -->
+  <Style Selector="c|HexEditor Border.hextouchbar">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="BoxShadow" Value="0 4 14 -2 #60000000" />
+  </Style>
+  <Style Selector="c|HexEditor Border.hextouchbar Button">
+    <Setter Property="FontFamily" Value="{x:Static FontFamily.Default}" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="Padding" Value="12,8" />
   </Style>
 
   <Style Selector="WrapPanel.hexlegend">

@@ -1881,9 +1881,6 @@
   <data name="Hex_FromIdentity" xml:space="preserve">
     <value>d'après l'identité de la carte, bloc non lu</value>
   </data>
-  <data name="Hex_HalfByte" xml:space="preserve">
-    <value>½ octet</value>
-  </data>
   <data name="Hex_Memory" xml:space="preserve">
     <value>Mémoire</value>
   </data>

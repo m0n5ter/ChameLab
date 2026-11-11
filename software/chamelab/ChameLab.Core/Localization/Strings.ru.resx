@@ -2478,9 +2478,6 @@
   <data name="Hex_ExpectedBytes" xml:space="preserve">
     <value>Ожидается байт: {0}</value>
   </data>
-  <data name="Hex_HalfByte" xml:space="preserve">
-    <value>½ байта</value>
-  </data>
   <data name="Hex_Memory" xml:space="preserve">
     <value>Память</value>
   </data>

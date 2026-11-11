@@ -1881,9 +1881,6 @@
   <data name="Hex_FromIdentity" xml:space="preserve">
     <value>dall'identità della scheda, blocco non letto</value>
   </data>
-  <data name="Hex_HalfByte" xml:space="preserve">
-    <value>½ byte</value>
-  </data>
   <data name="Hex_Memory" xml:space="preserve">
     <value>Memoria</value>
   </data>

@@ -2481,9 +2481,6 @@
   <data name="Hex_ExpectedBytes" xml:space="preserve">
     <value>Expected {0} bytes</value>
   </data>
-  <data name="Hex_HalfByte" xml:space="preserve">
-    <value>½ byte</value>
-  </data>
   <data name="Hex_Memory" xml:space="preserve">
     <value>Memory</value>
   </data>
