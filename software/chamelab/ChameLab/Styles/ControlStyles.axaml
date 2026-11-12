@@ -263,22 +263,22 @@
   </Style>
 
   <!-- Primary / accent action; theme-outline keeps Actipro's outline accent look. -->
-  <Style Selector="Button.accent:not(.theme-outline)">
+  <Style Selector="Button.accent:not(.theme-outline):not(.theme-soft)">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="16,9" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
-  <Style Selector="Button.accent:pointerover:not(.theme-outline) /template/ ContentPresenter">
+  <Style Selector="Button.accent:pointerover:not(.theme-outline):not(.theme-soft) /template/ ContentPresenter">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccentPointerOver}" />
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
   </Style>
-  <Style Selector="Button.accent:pressed:not(.theme-outline) /template/ ContentPresenter">
+  <Style Selector="Button.accent:pressed:not(.theme-outline):not(.theme-soft) /template/ ContentPresenter">
     <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccentPressed}" />
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
   </Style>
-  <Style Selector="Button.accent:disabled:not(.theme-outline) /template/ ContentPresenter">
+  <Style Selector="Button.accent:disabled:not(.theme-outline):not(.theme-soft) /template/ ContentPresenter">
     <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSolidAccent}" />
     <Setter Property="Opacity" Value="0.5" />
   </Style>

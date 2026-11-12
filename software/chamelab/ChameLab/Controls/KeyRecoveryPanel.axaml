@@ -95,7 +95,7 @@
               </Flyout>
             </Button.Flyout>
           </Button>
-          <Button Classes="responsive success" c:ActionRow.Priority="4"
+          <Button Classes="responsive accent theme-soft" c:ActionRow.Priority="4"
                   Command="{Binding AutoRecoveryCommand}" IsVisible="{Binding ShowAutoRecovery}"
                   ToolTip.Tip="{x:Static loc:Strings.AutoRecovery_Tip}"
                   AutomationProperties.Name="{x:Static loc:Strings.AutoRecovery_Label}">
