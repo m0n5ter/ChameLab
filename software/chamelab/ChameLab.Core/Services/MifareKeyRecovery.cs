@@ -197,8 +197,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
     // ---- attack helpers ---------------------------------------------------
 
     private async Task StaticEncryptedNestedAsync(MifareDump dump, Action<int, MfKeyType, byte[]> store,
-        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, bool automatic = false,
-        Func<Task>? afterKeyFound = null)
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
     {
         var capabilities = await client.GetCapabilitiesAsync(ct);
         if (!capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
@@ -221,19 +220,6 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
             return null;
         }
 
-        // SEN is also selectable on ordinary backdoored cards. Do not start an expensive
-        // cryptanalytic search when a retained key or a factory key already opens them.
-        var preferred = dump.KeyA.Concat(dump.KeyB).OfType<byte[]>()
-            .Concat(knownKeys?.ForUid(dump.Uid) ?? Array.Empty<byte[]>())
-            .Concat(MifareClassic.DefaultKeys).Select(KeyValue).Distinct().ToArray();
-        for (var s = 0; !automatic && s < dump.SectorCount; s++)
-            foreach (var type in new[] { MfKeyType.B, MfKeyType.A })
-            {
-                ct.ThrowIfCancellationRequested();
-                if (Known(s, type)) continue;
-                var hit = await Check(s, type, preferred, Strings.Recovery_CheckingPrevious);
-                if (hit is not null) store(s, type, hit);
-            }
         if (Enumerable.Range(0, dump.SectorCount).All(s => Known(s, MfKeyType.A) && Known(s, MfKeyType.B)))
         {
             ct.ThrowIfCancellationRequested();
@@ -256,10 +242,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
             catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth) { }
         }
         if (capture is not { } data)
-        {
-            if (automatic) return;
             throw new InvalidOperationException(Strings.Recovery_NoBackdoorAccepted);
-        }
         var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Recovery_CardRemoved);
@@ -275,10 +258,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
         for (var s = 0; s < dump.SectorCount; s++)
             if ((!Known(s, MfKeyType.A) && data.Sectors[s].A != confirmation.Sectors[s].A) ||
                 (!Known(s, MfKeyType.B) && data.Sectors[s].B != confirmation.Sectors[s].B))
-            {
-                if (automatic) return;
                 throw new InvalidOperationException(Strings.Recovery_StaticEncNotStatic);
-            }
 
         for (var s = 0; s < dump.SectorCount; s++)
         {
@@ -310,7 +290,6 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 if (hit is not null)
                 {
                     store(s, type, hit);
-                    if (afterKeyFound is not null) await afterKeyFound();
                     if (type == MfKeyType.B) bKeys = new[] { KeyValue(hit) };
                     else aKeys = new[] { KeyValue(hit) };
                 }

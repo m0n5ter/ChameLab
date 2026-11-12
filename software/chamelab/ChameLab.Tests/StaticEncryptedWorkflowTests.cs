@@ -14,41 +14,48 @@ namespace ChameLab.Tests;
 public partial class MifareWorkflowTests
 {
     [Fact]
-    public async Task StaticEncrypted_FactoryKeysFinishWithoutCollectingOrCalculatingNonces()
+    public async Task StaticEncrypted_RejectsBackdoorsWithoutTryingSavedFactoryOrRetainedKeys()
     {
         var dump = new MifareDump(MifareClassicType.Classic1K, [1, 2, 3, 4]);
+        dump.KeyA[0] = Key;
         var known = new KnownCardKeys(new MemoryKeyValueStore());
+        known.Remember(dump.Uid, [Convert.FromHexString("112233445566")]);
         var engine = new StaticEncryptedTestEngine();
         var transport = new CardTransport { Response = r => r.Command switch
         {
             Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
+            Command.Mf1EncNestedAcquire => (Status.MfErrAuth, Array.Empty<byte>()),
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(Key).ToArray()),
             _ => null,
         }};
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
-        await new MifareKeyRecovery(new ChameleonClient(connection), knownKeys: known, keyRecovery: engine)
-            .RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested);
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            new MifareKeyRecovery(new ChameleonClient(connection), knownKeys: known, keyRecovery: engine)
+                .RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested));
 
-        Assert.All(dump.KeyA.Concat(dump.KeyB), key => Assert.Equal(Key, key));
-        Assert.Equal(Key, Assert.Single(known.ForUid(dump.Uid)));
-        Assert.Equal(32, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOnBlock));
-        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1EncNestedAcquire);
+        Assert.Equal(Strings.Recovery_NoBackdoorAccepted, error.Message);
+        Assert.Equal(Key, dump.KeyA[0]);
+        Assert.All(dump.KeyA.Skip(1).Concat(dump.KeyB), key => Assert.Null(key));
+        Assert.Equal(4, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1CheckKeysOnBlock
+            or Command.Mf1CheckKeysOfSectors or Command.Mf1AuthOneKeyBlock);
         Assert.Equal(0, engine.Calls);
     }
 
     [Fact]
-    public async Task StaticEncrypted_TriesSavedKeysBeforeDefaultsAndKeepsThemWhenCanceled()
+    public async Task StaticEncrypted_OnlyChecksCalculatedCandidatesAndKeepsThemWhenCanceled()
     {
         var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
         var known = new KnownCardKeys(new MemoryKeyValueStore());
-        var saved = Convert.FromHexString("112233445566");
+        var saved = Convert.FromHexString("665544332211");
         known.Remember(dump.Uid, [saved]);
         var engine = new StaticEncryptedTestEngine();
         using var stop = new CancellationTokenSource();
         var transport = new CardTransport { Response = r => r.Command switch
         {
             Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(r.Data[3..9]).ToArray()),
             _ => null,
         }};
@@ -59,11 +66,14 @@ public partial class MifareWorkflowTests
             new MifareKeyRecovery(new ChameleonClient(connection), knownKeys: known, keyRecovery: engine)
                 .RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested, progress, stop.Token));
 
-        Assert.Equal(saved, dump.KeyB[0]);
+        var recovered = Convert.FromHexString("112233445566");
+        Assert.Equal(recovered, dump.KeyB[0]);
         Assert.All(dump.KeyA, key => Assert.Null(key));
         var check = Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
-        Assert.Equal(saved, check.Data[3..9]);
-        Assert.Equal(0, engine.Calls);
+        Assert.Equal(recovered, check.Data[3..9]);
+        Assert.Equal(3, engine.Calls); // Recover A and B, then filter the B candidates.
+        Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
+        Assert.Contains(known.ForUid(dump.Uid), key => key.SequenceEqual(recovered));
     }
 
     [Theory]
@@ -99,7 +109,7 @@ public partial class MifareWorkflowTests
         Assert.Equal(2, captures);
         Assert.Equal(0, engine.Calls);
         Assert.Null(dump.KeyB[4]);
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
     }
 
     [Theory]
@@ -133,7 +143,7 @@ public partial class MifareWorkflowTests
         Assert.Equal(Convert.FromHexString("112233445566"), dump.KeyB[4]);
         Assert.All(dump.KeyA, key => Assert.Equal(Key, key));
         Assert.Equal(2, engine.Calls); // One recovery and one filter, which rejects all candidates.
-        Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOnBlock));
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
     }
 
     [Theory]
@@ -177,8 +187,8 @@ public partial class MifareWorkflowTests
         public int Calls { get; private set; }
         public Task<IReadOnlyList<ulong>> RecoverAsync(KeyRecoveryRequest request, CancellationToken ct)
         {
-            Calls++;
             ct.ThrowIfCancellationRequested();
+            Calls++;
             IReadOnlyList<ulong> keys = request.Operation switch
             {
                 KeyRecoveryOperation.StaticEncryptedNested => new[] { 0x112233445566UL },

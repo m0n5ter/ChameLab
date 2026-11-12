@@ -191,9 +191,9 @@ are retried and are not remembered as wrong keys.
 
 Choose **Static encrypted nested** in the card or target-card recovery panel
 for FM11RF08S and compatible backdoored MIFARE Classic cards. A known sector
-key is not required. ChameLab first checks retained keys, keys saved for the same
-UID and the small built-in factory-key list against missing A/B keys in batches.
-If they open the card, no nonce collection or calculation is needed. Otherwise,
+key is not required. This manual method starts with SEN collection and does not
+search saved UID keys or factory-key dictionaries. Keys already confirmed in the
+current dump are retained, and only missing keys are recovered.
 ChameLab tries backdoor keys `A396EFA4E24F`, `A31667A8CEC1`,
 `518B3354E760` and `73B9836CF168`, collects the static encrypted nonces, calculates candidates
 locally, and checks them on the card in batches. Before calculating candidates,

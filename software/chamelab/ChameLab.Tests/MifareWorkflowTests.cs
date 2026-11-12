@@ -1664,8 +1664,7 @@ public partial class MifareWorkflowTests
         Assert.All(dump.KeyA, key => Assert.Equal(Key, key));
         Assert.Equal(2, captures);
         var checks = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOnBlock).ToArray();
-        Assert.Equal(2, checks.Length); // Known/default keys, then calculated candidates.
-        var request = checks[1];
+        var request = Assert.Single(checks); // Only calculated SEN candidates.
         Assert.Equal(19, request.Data[0]);
         Assert.Equal((byte)MfKeyType.B, request.Data[1]);
         Assert.InRange(request.Data[2], (byte)1, (byte)64);
@@ -1706,7 +1705,7 @@ public partial class MifareWorkflowTests
         Assert.NotNull(dump.KeyB[0]);
         Assert.All(dump.KeyA, key => Assert.Null(key));
         Assert.Equal(2, captures);
-        Assert.Equal(11, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOnBlock));
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
     }
 
     [Fact]
@@ -1727,7 +1726,7 @@ public partial class MifareWorkflowTests
         await connection.OpenAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(() => new MifareKeyRecovery(new ChameleonClient(connection))
             .RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested));
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock); // Preflight only.
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1EncNestedAcquire);
     }
 
