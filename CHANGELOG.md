@@ -8,9 +8,23 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
- - ChameLab: the MIFARE Classic recovery toolbar shows Key dictionaries, Options, a green Auto and Try keys as separate buttons, followed by the attacks
+
+## [v1.5.41][2026-11-12] · firmware v2.3.16-cl
+### Summary
+ - ChameLab: Auto recovers the keys of a MIFARE Classic card on its own: it tries every found key on the rest of the card and picks the attack that fits the card
+ - Firmware: static encrypted nonces can be collected with a known ordinary sector key when no backdoor key works
+ - ChameLab: the browser version installs firmware over Web Serial and Web Bluetooth
+
+### Details
+ - ChameLab: Auto in the MIFARE Classic recovery panels (read and target card) recovers the missing keys on its own. Every known or newly found key is first checked on all remaining sectors, A and B, in firmware batches, and readable B keys in sector trailers are reused, so a key that took minutes to find can open the rest of the card. With Known card keys selected, the keys saved for the card's UID are tried at their saved sectors first. Then Auto checks the static encrypted backdoors and, for the keys still missing, picks Nested, Static nested or Hardnested by the card's PRNG, or Darkside and the selected dictionaries while no key is known yet; a failed attack leaves its keys to the next method, and Stop keeps the found keys and the partial read. When only a capture at the original reader can help, Auto says how to continue with mfkey32
+ - ChameLab: static encrypted nested checks the selected dictionaries against the captured nonces on the computer and sends only matching candidates to the card; it also tries the backdoor key `73B9836CF168`
+ - ChameLab: the manual Static encrypted nested no longer searches saved and factory keys first: it starts with nonce collection and keeps the keys already in the dump
+ - ChameLab: the MIFARE Classic recovery toolbar shows Key dictionaries, Options, Auto and Try keys as separate buttons, followed by the attacks
  - ChameLab: scanning a MIFARE Classic card automatically checks its recovery methods; the separate Check recovery methods button is removed
  - ChameLab: the browser version installs firmware over Web Serial and Web Bluetooth. The first time, the browser asks to pick the Chameleon's bootloader in its device list (Select bootloader in the update dialog); later updates over USB find it on their own
+ - ChameLab: in the hex editor on a touch screen, a long press selects a byte and dragging extends the selection; handles at both ends adjust it, and a bar above it offers Copy, Paste and Select all without opening the keyboard
+ - ChameLab: the byte count at the right of a hex field is a compact number on a shaded area, and hex digits sit in the middle of the field
+ - Firmware: a new command (2023) collects static encrypted nonces with a known ordinary sector key when no backdoor key works; a readable all-zero B key in a sector trailer is accepted, and a radio error during a key check is reported instead of being taken for a wrong key
 
 ## [v1.5.40][2026-11-11] · firmware v2.3.15-cl
 ### Summary
