@@ -383,19 +383,9 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         _progress = Strings.Common_CheckingRecoveryMethods;
         Refresh();
         var recoverySession = MifareRecoverySession.For(Target!, client);
-        var prng = recoverySession.Prng ?? await client.DetectNtLevelAsync(ct);
-        recoverySession.Prng = prng;
-        var darkside = false;
-        if (prng != MifareClassicPrngType.Static)
-        {
-            try
-            {
-                if (!recoverySession.Darkside.TryGetValue((3, MfKeyType.B), out var result))
-                    recoverySession.Darkside[(3, MfKeyType.B)] = result = await client.CheckDarksideAsync(ct);
-                darkside = result == DarksideResult.Vulnerable;
-            }
-            catch (ChameleonException) { }
-        }
+        var profile = await MifareRecoveryProfile.ReadAsync(client, recoverySession, ct);
+        var prng = profile.Prng;
+        var darkside = profile.CanTryDarkside;
         ct.ThrowIfCancellationRequested();
         if (version != _version) return;
         _prng = prng;

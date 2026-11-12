@@ -112,7 +112,9 @@ public sealed partial class MifareKeyRecovery
             capabilities.Contains((ushort)Command.Mf1DarksideAcquire))
         {
             Choosing("Darkside");
-            try { await TryDarksideAsync(dump, ReadUid(dump.Uid), Store, progress, ct, session); }
+            // Darkside is a seed attempt, not a slow vulnerability scan of every
+            // sector. If this target does not work, continue to the selected keys.
+            try { await TryDarksideAsync(dump, ReadUid(dump.Uid), Store, progress, ct, session, seedOnly: true); }
             catch (ChameleonException ex) when (ex.Status != Status.HfTagNo)
             {
                 progress?.Report(new(Strings.Recovery_NonceFailed));

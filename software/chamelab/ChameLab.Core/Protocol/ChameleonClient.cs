@@ -771,7 +771,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
 
     public async Task<DarksideResult> CheckDarksideAsync(CancellationToken ct = default, int block = 3, MfKeyType keyType = MfKeyType.B)
     {
-        var f = await conn.SendAsync(Command.Mf1DarksideAcquire, [(byte)keyType, (byte)block, 1, 2], timeoutMs: 60000, ct: ct);
+        var f = await CollectDarksideAsync([(byte)keyType, (byte)block, 1, 2], ct);
         if (f.Status != Status.HfTagOk || f.Data.Length == 0) return DarksideResult.Fixed;
         var status = f.Data[0];
         return status <= 4 ? (DarksideResult)status : DarksideResult.Fixed;
@@ -786,7 +786,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         int targetBlock, MfKeyType targetKeyType, bool firstRecover, int syncMax, CancellationToken ct = default)
     {
         var data = new byte[] { targetKeyType.ToWire(), (byte)targetBlock, (byte)(firstRecover ? 1 : 0), (byte)syncMax };
-        var f = await conn.SendAsync(Command.Mf1DarksideAcquire, data, timeoutMs: 60000, ct: ct);
+        var f = await CollectDarksideAsync(data, ct);
         if (f.Status != Status.HfTagOk || f.Data.Length != 33 || f.Data[0] != 0)
             throw new ChameleonException(Strings.Device_NotDarkside, f.Status);
 
@@ -798,6 +798,17 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         var nr = BinaryPrimitives.ReadUInt32BigEndian(d.Slice(24, 4));
         var ar = BinaryPrimitives.ReadUInt32BigEndian(d.Slice(28, 4));
         return (uid, new DarksideItem(nt1, ks1, par, nr, ar));
+    }
+
+    private async Task<ChameleonFrame> CollectDarksideAsync(byte[] data, CancellationToken ct)
+    {
+        // The firmware cannot cancel a parity sweep. Keep its reply attached to
+        // this request before allowing another command (including another Darkside).
+        // Firmware 2.3.18 bounds the sweep at 90s; allow RF/relay overhead here.
+        ct.ThrowIfCancellationRequested();
+        var frame = await conn.SendAsync(Command.Mf1DarksideAcquire, data, timeoutMs: 120000);
+        ct.ThrowIfCancellationRequested();
+        return frame;
     }
 
     // ---- Ultralight / NTAG emulator settings --------------------------

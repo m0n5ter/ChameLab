@@ -42,6 +42,14 @@ def main():
                         str(firmware / "tests/test_mifare_recovery.c"),
                         str(src / "mf1_crapto1.c"), str(src / "parity.c"), "-o", str(binary)], check=True)
         subprocess.run([str(binary)], check=True)
+        (temp / "darkside_under_test.c").write_text("\n\n".join(function(toolbox, s) for s in [
+            "static bool darkside_expired(", "static uint8_t darkside_select_nonces(",
+            "uint8_t darkside_recover_key("]))
+        darkside = temp / "test-darkside"
+        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-O2",
+                        f"-I{temp}", f"-I{src}", f"-I{src / 'reader/hf'}",
+                        str(firmware / "tests/test_darkside.c"), "-o", str(darkside)], check=True)
+        subprocess.run([str(darkside)], check=True)
 
 
 if __name__ == "__main__":

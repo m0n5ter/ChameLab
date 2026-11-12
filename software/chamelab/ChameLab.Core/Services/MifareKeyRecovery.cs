@@ -247,7 +247,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
 
     private async Task TryDarksideAsync(
         MifareDump dump, uint authUid, Action<int, MfKeyType, byte[]> store,
-        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, MifareRecoverySession? session = null)
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, MifareRecoverySession? session = null, bool seedOnly = false)
     {
         for (var sector = 0; sector < dump.SectorCount; sector++)
             foreach (var kt in new[] { MfKeyType.B, MfKeyType.A })
@@ -264,6 +264,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 if (vulnerability != DarksideResult.Vulnerable)
                 {
                     progress?.Report(new KeyRecoveryProgress(Strings.Recovery_NotDarksideVulnerable, sector, kt));
+                    if (seedOnly) return;
                     continue;
                 }
                 progress?.Report(new KeyRecoveryProgress(Strings.Recovery_RunningDarkside, sector, kt, KeyMark.Checking));
@@ -283,6 +284,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                     if (hit is { } key) { store(sector, kt, key); return; }
                 }
                 progress?.Report(new KeyRecoveryProgress(Strings.Recovery_KeyNotRecovered, sector, kt));
+                if (seedOnly) return;
             }
     }
 

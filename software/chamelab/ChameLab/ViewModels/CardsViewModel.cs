@@ -1477,19 +1477,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (tags.Count == 0 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Cards_PlaceSelectedCard);
         var recoverySession = MifareRecoverySession.For(dump, client);
-        var prng = recoverySession.Prng ?? await client.DetectNtLevelAsync(ct);
-        recoverySession.Prng = prng;
-        var darkside = false;
-        if (prng != MifareClassicPrngType.Static)
-        {
-            try
-            {
-                if (!recoverySession.Darkside.TryGetValue((3, MfKeyType.B), out var result))
-                    recoverySession.Darkside[(3, MfKeyType.B)] = result = await client.CheckDarksideAsync(ct);
-                darkside = result == DarksideResult.Vulnerable;
-            }
-            catch (ChameleonException) { }
-        }
+        var profile = await MifareRecoveryProfile.ReadAsync(client, recoverySession, ct);
+        var prng = profile.Prng;
+        var darkside = profile.CanTryDarkside;
         for (var sector = 0; sector < dump.SectorCount; sector++)
         {
             var trailer = dump.GetBlock(MifareClassic.SectorTrailerBlock(sector));

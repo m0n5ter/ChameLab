@@ -13,6 +13,7 @@
 #include "hw_connect.h"
 #include "nrf_gpio.h"
 #include "rgb_marquee.h"
+#include "app_timer.h"
 
 // The default delay of the antenna reset
 static uint32_t g_ant_reset_delay = 100;
@@ -259,7 +260,14 @@ int authex(struct Crypto1State *pcs, uint32_t uid, uint8_t blockNo, uint8_t keyT
 * As a result, the CPU cannot complete the replay attack within the same time.
 * There is basically no solution in this situation. It is recommended to close the non -critical interruption and task scheduling outside this code
 */
-static uint8_t darkside_select_nonces(picc_14a_tag_t *tag, uint8_t block, uint8_t keytype, uint32_t *nt, mf1_darkside_status_t *darkside_status) {
+static bool darkside_expired(uint32_t started) {
+    // A complete parity sweep can take longer than the host's former 60s limit.
+    // Bound resynchronization retries as well, and return before its 120s deadline.
+    return app_timer_cnt_diff_compute(app_timer_cnt_get(), started) >= APP_TIMER_TICKS(90000);
+}
+
+static uint8_t darkside_select_nonces(picc_14a_tag_t *tag, uint8_t block, uint8_t keytype, uint32_t *nt,
+    mf1_darkside_status_t *darkside_status, uint32_t started) {
 #define NT_COUNT 15
     uint8_t tag_auth[4]         = { keytype, block, 0x00, 0x00 };
     uint8_t tag_resp[4]         = { 0x00 };
@@ -272,6 +280,10 @@ static uint8_t darkside_select_nonces(picc_14a_tag_t *tag, uint8_t block, uint8_
 
     //Random number collection
     for (i = 0; i < NT_COUNT; i++) {
+        if (darkside_expired(started)) {
+            *darkside_status = DARKSIDE_CANT_FIX_NT;
+            return STATUS_HF_TAG_OK;
+        }
         bsp_wdt_feed();
         while (NRF_LOG_PROCESS());
         //When the antenna is reset, we must make sure
@@ -341,6 +353,7 @@ static uint8_t darkside_select_nonces(picc_14a_tag_t *tag, uint8_t block, uint8_
 uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
                              uint8_t firstRecover, uint8_t ntSyncMax, DarksideCore_t *dc,
                              mf1_darkside_status_t *darkside_status) {
+    uint32_t started = app_timer_cnt_get();
 
     // Card information for fixed use
     static uint32_t uid_ori                 = 0;
@@ -370,7 +383,7 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
     uint8_t par                             = 0x00;  // This variable is responsible for increasing the puppet school inspection, and the reply of the collision card
     uint8_t status                          = 0x00;  // This variable is responsible for saving card communication status
     uint16_t len                            = 0x00;  // This variable is responsible for saving the data of the card in the communication process to respond to the length of the card
-    uint8_t nt_diff                         = 0x00;  // This variable is critical, don't initialize it, because the following is used directly
+    uint8_t nt_diff                         = 0x00;  // Start every collection at the first of eight NACKs.
     bool led_toggle                         = false;
 
     // We need to confirm the use of a certain card first
@@ -400,7 +413,7 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
         uid_ori = get_u32_tag_uid(p_tag_info);
 
         // Then you need to fix a random number that may appear
-        status = darkside_select_nonces(p_tag_info, targetBlk, targetTyp, &nt_ori, darkside_status);
+        status = darkside_select_nonces(p_tag_info, targetBlk, targetTyp, &nt_ori, darkside_status, started);
         if ((status != STATUS_HF_TAG_OK) || (*darkside_status != DARKSIDE_OK)) {
             //The fixed random number failed, and the next step cannot be performed
             return status;
@@ -419,6 +432,10 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
     }
     // Always collect different NACK under a large cycle
     do {
+        if (darkside_expired(started)) {
+            *darkside_status = DARKSIDE_CANT_FIX_NT;
+            return STATUS_HF_TAG_OK;
+        }
         bsp_wdt_feed();
         while (NRF_LOG_PROCESS());
         // update LEDs
@@ -535,7 +552,8 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
                 par = ((par + 1) & 0x1F) | par_low;
                 if (par == par_low) {    // tried all 32 possible parities without success. Got some NACK but not all 8...
                     NRF_LOG_INFO("Card sent only %i/8 NACK.", nt_diff);
-                    return DARKSIDE_NO_NAK_SENT;
+                    *darkside_status = DARKSIDE_NO_NAK_SENT;
+                    return STATUS_HF_TAG_OK;
                 }
             }
         }

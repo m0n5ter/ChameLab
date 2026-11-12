@@ -47,6 +47,23 @@ Rescanning or reconnecting clears transient evidence. The persistent UID databas
 keeps confirmed keys and their positions through an optional `sectors` field in
 the existing version-2 JSON format. Older backups without that field still work.
 
+## Passive inspection and Darkside
+
+Scanning and the read/write recovery panels inspect PRNG and reuse cached results;
+they do not execute Darkside to decide which buttons to offer. The firmware's
+Darkside check is a full parity sweep, not a quick capability query. A weak PRNG
+offers Darkside as an attempt until a cached result rules it out. The attack itself
+confirms vulnerability when selected or when Auto needs a seed after SEN.
+Auto limits this seed attempt to one target instead of probing every sector.
+
+Darkside captures drain their reply before honoring Stop, keeping a cancelled
+request's late response out of the next collection. The host waits up to 120s:
+a valid full sweep, or confirming the absence of NACK, can exceed the former 60s
+timeout. Firmware 2.3.18-cl bounds the whole collection (including resync attempts)
+at 90s and returns a protocol result. Partial NACK collection reports its Darkside
+status separately from the transport status. Synthetic firmware tests cover a
+successful 74-second sweep, resync limits, partial NACK and RTC rollover.
+
 ## Normal-key SEN collection (2023)
 
 Firmware 2.3.16-cl advertises `DATA_CMD_MF1_ENC_NESTED_WITH_KEY` (2023) on reader

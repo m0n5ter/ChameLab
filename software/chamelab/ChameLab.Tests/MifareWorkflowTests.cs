@@ -1363,6 +1363,25 @@ public partial class MifareWorkflowTests
         Assert.Equal(DarksideResult.Fixed, await new ChameleonClient(connection).CheckDarksideAsync());
     }
 
+    [Theory]
+    [InlineData(MifareClassicPrngType.Weak, true)]
+    [InlineData(MifareClassicPrngType.Static, false)]
+    [InlineData(MifareClassicPrngType.Hard, false)]
+    public async Task PassiveRecoveryProfileNeverStartsAnAttackAndReusesPrng(MifareClassicPrngType prng, bool darkside)
+    {
+        var transport = new CardTransport { Prng = prng };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        var session = new MifareRecoverySession();
+        Assert.Equal(new MifareRecoveryProfile(prng, darkside), await MifareRecoveryProfile.ReadAsync(client, session));
+        Assert.Equal(new MifareRecoveryProfile(prng, darkside), await MifareRecoveryProfile.ReadAsync(client, session));
+        Assert.Equal(Command.Mf1DetectPrng, Assert.Single(transport.Requests).Command);
+        session.Darkside[(3, MfKeyType.B)] = DarksideResult.NotSendingNack;
+        Assert.False((await MifareRecoveryProfile.ReadAsync(client, session)).CanTryDarkside);
+        Assert.Single(transport.Requests);
+    }
+
     [Fact]
     public async Task DarksideAcquisition_RejectsErrorStatusEvenWhenPayloadLooksValid()
     {
@@ -1372,6 +1391,44 @@ public partial class MifareWorkflowTests
 
         await Assert.ThrowsAsync<ChameleonException>(() => new ChameleonClient(connection)
             .GetDarksideAsync(3, MfKeyType.B, true, 15));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Darkside_StopDrainsItsReplyAndNextCollectionGetsFreshEvidence(bool probe)
+    {
+        using var stop = new CancellationTokenSource();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var first = true;
+        var captures = 0;
+        var transport = new CardTransport { Response = _ =>
+        {
+            var payload = new byte[33];
+            payload[4] = (byte)++captures; // Distinguish the cancelled reply from the next UID.
+            return (Status.HfTagOk, payload);
+        }};
+        transport.BeforeReadReply = async _ =>
+        {
+            if (!first) return;
+            first = false;
+            entered.SetResult();
+            await release.Task;
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        Task request = probe ? client.CheckDarksideAsync(stop.Token)
+            : client.GetDarksideAsync(3, MfKeyType.B, true, 15, stop.Token);
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        stop.Cancel();
+        Assert.False(request.IsCompleted);
+        release.SetResult();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => request);
+        var next = await client.GetDarksideAsync(3, MfKeyType.B, true, 15);
+        Assert.Equal(2u, next.Uid);
+        Assert.Equal(2, transport.Requests.Count);
     }
 
     [Fact]

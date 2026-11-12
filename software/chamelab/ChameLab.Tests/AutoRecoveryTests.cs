@@ -245,6 +245,26 @@ public partial class MifareWorkflowTests
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1NestedAcquire);
     }
 
+    [Theory]
+    [InlineData(DarksideResult.CantFixNt)]
+    [InlineData(DarksideResult.NotSendingNack)]
+    public async Task Auto_DarksideRejectionDoesNotRepeatSlowProbeAcrossEverySector(DarksideResult rejection)
+    {
+        var transport = AutoTransport(MifareClassicPrngType.Weak, (_, _) => Key);
+        var reply = transport.Response!;
+        transport.Response = r => r.Command switch
+        {
+            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DC07D407D507D6")),
+            Command.Mf1DarksideAcquire => (Status.HfTagOk, new[] { (byte)rejection }),
+            _ => reply(r),
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        Assert.True((await new MifareKeyRecovery(new ChameleonClient(connection)).RecoverAutomaticallyAsync(dump, [Key])).Complete);
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1DarksideAcquire);
+    }
+
     [Fact]
     public async Task Auto_StaticEncryptedGlobalReuseCanCompleteWithoutIndividualChecks()
     {
