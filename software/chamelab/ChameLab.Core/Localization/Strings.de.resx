@@ -81,6 +81,9 @@
   <data name="Button_PrevSlot" xml:space="preserve">
     <value>Vorherigen Slot wählen</value>
   </data>
+  <data name="Cards_GenerateRandomUid" xml:space="preserve">
+    <value>Zufällige UID erzeugen</value>
+  </data>
   <data name="Cards_125KHzCardsOnly" xml:space="preserve">
     <value>Nur 125-kHz-Karten</value>
   </data>

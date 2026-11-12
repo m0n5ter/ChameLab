@@ -70,6 +70,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
         RebuildRows();
         _baseline = Fingerprint();
         ClearSectorCommand = ReactiveCommand.Create(() => SelectedMemory?.ClearRows(0, SelectedMemory.RowCount));
+        GenerateUidCommand = ReactiveCommand.Create(GenerateUid);
     }
 
     public string Id => _source.Id;
@@ -124,6 +125,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
         this.RaisePropertyChanged(nameof(UidLabel));
         this.RaisePropertyChanged(nameof(UidHint));
         this.RaisePropertyChanged(nameof(UidLengths));
+        this.RaisePropertyChanged(nameof(CanGenerateUid));
         this.RaisePropertyChanged(nameof(IsMifareClassic));
         this.RaisePropertyChanged(nameof(IsUltralight));
         this.RaisePropertyChanged(nameof(HasUltralightConfig));
@@ -279,6 +281,19 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
             RaisePyramidFields();
             Touch();
         }
+    }
+
+    /// <summary>A random UID / ID can be made for the type (see <see cref="RandomUid.Supports"/>).</summary>
+    public bool CanGenerateUid => RandomUid.Supports(_tag);
+
+    /// <summary>Fills the UID / ID with a random one valid for the type; an HF UID keeps its length.</summary>
+    public ICommand GenerateUidCommand { get; }
+
+    private void GenerateUid()
+    {
+        if (!CanGenerateUid) return;
+        var length = Hex.TryParse(_uid, out var current) ? current.Length : 0;
+        Uid = Hex.Spaced(RandomUid.Generate(_tag, length));
     }
 
     /// <summary>Farpointe / Pyramid: the ID can be built from a facility code and card number.</summary>

@@ -27,6 +27,9 @@
     <value>Menus, labels and messages.</value>
     <comment>Settings: language row description</comment>
   </data>
+  <data name="Cards_GenerateRandomUid" xml:space="preserve">
+    <value>Generate a random UID</value>
+  </data>
   <data name="Cards_125KHzCardsOnly" xml:space="preserve">
     <value>125 kHz cards only</value>
   </data>

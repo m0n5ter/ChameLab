@@ -81,6 +81,9 @@
   <data name="Button_PrevSlot" xml:space="preserve">
     <value>选择上一个卡槽</value>
   </data>
+  <data name="Cards_GenerateRandomUid" xml:space="preserve">
+    <value>生成随机 UID</value>
+  </data>
   <data name="Cards_125KHzCardsOnly" xml:space="preserve">
     <value>仅 125 kHz 卡</value>
   </data>

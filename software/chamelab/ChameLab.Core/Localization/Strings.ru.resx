@@ -24,6 +24,9 @@
   <data name="Settings_LanguageCaption" xml:space="preserve">
     <value>Меню, надписи и сообщения.</value>
   </data>
+  <data name="Cards_GenerateRandomUid" xml:space="preserve">
+    <value>Сгенерировать случайный UID</value>
+  </data>
   <data name="Cards_125KHzCardsOnly" xml:space="preserve">
     <value>Только карты 125 кГц</value>
   </data>
