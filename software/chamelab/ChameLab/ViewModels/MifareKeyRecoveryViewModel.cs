@@ -382,11 +382,18 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         await EnsureTargetAsync(client, ct, allowChange);
         _progress = Strings.Common_CheckingRecoveryMethods;
         Refresh();
-        var prng = await client.DetectNtLevelAsync(ct);
+        var recoverySession = MifareRecoverySession.For(Target!, client);
+        var prng = recoverySession.Prng ?? await client.DetectNtLevelAsync(ct);
+        recoverySession.Prng = prng;
         var darkside = false;
         if (prng != MifareClassicPrngType.Static)
         {
-            try { darkside = await client.CheckDarksideAsync(ct) == DarksideResult.Vulnerable; }
+            try
+            {
+                if (!recoverySession.Darkside.TryGetValue((3, MfKeyType.B), out var result))
+                    recoverySession.Darkside[(3, MfKeyType.B)] = result = await client.CheckDarksideAsync(ct);
+                darkside = result == DarksideResult.Vulnerable;
+            }
             catch (ChameleonException) { }
         }
         ct.ThrowIfCancellationRequested();
@@ -434,7 +441,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         {
             var keys = _sourceKeys().Concat(BuildKeyDictionary()).DistinctBy(Convert.ToHexString).ToArray();
             var result = await recovery.RecoverAutomaticallyAsync(target, keys, progress, ct,
-                KeySearchSettings.CreateOptions(RecoverySelectedSector));
+                KeySearchSettings.CreateOptions(RecoverySelectedSector),
+                useKnownUidKeys: DumpKeySources.Any(s => s.IsKnownCardKeys && s.IsSelected));
             if (version == _version) _autoNotice = result.Message;
         }
         Refresh();

@@ -40,7 +40,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
 
     private async Task RecoverCoreAsync(MifareDump dump, MifareRecoveryMethod method,
         IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, bool spreadKeys,
-        HashSet<(int Block, MfKeyType Type, ulong Key)> rejected)
+        MifareKeyRejections rejected, MifareRecoverySession? session = null)
     {
         if (method == MifareRecoveryMethod.Hardnested && _hardnested.UnavailableReason is { } unavailable)
             throw new NotSupportedException(unavailable);
@@ -66,7 +66,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
             reusable.TryAdd(value, key);
             successes[value] = successes.GetValueOrDefault(value) + 1;
             progress?.Report(new KeyRecoveryProgress(Strings.Recovery_FoundKey, s, kt, KeyMark.Found, key));
-            knownKeys?.Remember(dump.Uid, [key], MifareClassic.ToSlotTagType(dump.Type));
+            knownKeys?.RememberPosition(dump.Uid, s, kt, key, MifareClassic.ToSlotTagType(dump.Type));
         }
         async Task<bool> TryKnownKeysAsync(int s, MfKeyType kt)
         {
@@ -79,7 +79,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CheckingPrevious, s, kt,
                     KeyMark.Checking, Detail: string.Format(Strings.Recovery_KnownKeyProgress, i + 1, keys.Length)));
                 var started = timing is null ? 0 : _timeProvider.GetTimestamp();
-                var confirmed = await TryAuthAsync(block, kt, keys[i].Value, ct, rejected);
+                var confirmed = await TryAuthAsync(block, kt, keys[i].Value, ct, rejected, session);
                 timing?.RecordKeyAttempt(_timeProvider.GetElapsedTime(started));
                 if (!confirmed) continue;
                 Store(s, kt, keys[i].Value);
@@ -91,7 +91,9 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
         async Task SpreadKnownKeysAsync()
         {
             if (!spreadKeys) return;
-            await SpreadKeysAsync(dump, Store, progress, rejected, ct);
+            if (session is not null) await ReadableKeysBAsync(dump, Store, session, ct);
+            await SpreadKeysAsync(dump, Store, progress, rejected, ct, session);
+            if (session is not null) await ReadableKeysBAsync(dump, Store, session, ct);
         }
 
         if (method == MifareRecoveryMethod.Darkside)
@@ -106,11 +108,13 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
             return;
         }
 
-        var prng = await client.DetectNtLevelAsync(ct);
+        var prng = session?.Prng ?? await client.DetectNtLevelAsync(ct);
+        if (session is not null) session.Prng = prng;
         var isStatic = method == MifareRecoveryMethod.StaticNested;
         var isHardnested = method == MifareRecoveryMethod.Hardnested;
         if (prng != (isHardnested ? MifareClassicPrngType.Hard :
-                isStatic ? MifareClassicPrngType.Static : MifareClassicPrngType.Weak))
+                isStatic ? MifareClassicPrngType.Static : MifareClassicPrngType.Weak) &&
+            !(isHardnested && session?.NestedUnreliable == true && prng == MifareClassicPrngType.Weak))
             throw new InvalidOperationException(Strings.Recovery_PrngUnsupported);
         if (FirstKnownKey(dump) is null)
             throw new InvalidOperationException(Strings.Recovery_NeedOneKey);
@@ -124,6 +128,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 ct.ThrowIfCancellationRequested();
                 if (Known(s, kt)) continue;
                 var target = MifareClassic.SectorTrailerBlock(s);
+                if (session?.Refused.Contains((target, kt)) == true) continue;
                 var untestedKeys = reusable.Count(k => !rejected.Contains((target, kt, k.Key)));
                 var knownFirst = timing?.ShouldCheckKnownKeys(untestedKeys) ?? true;
                 if (knownFirst && await TryKnownKeysAsync(s, kt)) continue;
@@ -136,31 +141,47 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 Mark(s, kt, KeyMark.Checking,
                     isHardnested ? Strings.Recovery_CollectingHardnested :
                     isStatic ? Strings.Recovery_CollectingStaticNested : Strings.Recovery_CollectingNested);
-                try
+                var attempts = session is not null && method == MifareRecoveryMethod.Nested ? 2 : 1;
+                for (var attempt = 0; attempt < attempts; attempt++)
                 {
-                    var started = timing is null ? 0 : _timeProvider.GetTimestamp();
-                    var candidates = isHardnested
-                        ? await HardnestedSectorAsync(dump.Uid, authUid, seed, target, kt, progress, ct)
-                        : isStatic
-                        ? await StaticNestedSectorAsync(seed, target, kt, progress, ct)
-                        : await NestedSectorAsync(seed, target, kt, progress, ct);
-                    Mark(s, kt, KeyMark.Checking, string.Format(Strings.Recovery_CheckingCandidatesN, candidates.Count));
-                    var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct, rejected: rejected);
-                    if (hit is { } key)
+                    try
                     {
-                        timing?.RecordRecovery(_timeProvider.GetElapsedTime(started));
-                        Store(s, kt, key);
+                        var started = timing is null ? 0 : _timeProvider.GetTimestamp();
+                        var candidates = isHardnested
+                            ? await HardnestedSectorAsync(dump.Uid, authUid, seed, target, kt, progress, ct)
+                            : isStatic
+                            ? await StaticNestedSectorAsync(seed, target, kt, progress, ct)
+                            : await NestedSectorAsync(seed, target, kt, progress, ct, session);
+                        Mark(s, kt, KeyMark.Checking, string.Format(Strings.Recovery_CheckingCandidatesN, candidates.Count));
+                        var hit = await FirstWorkingKeyAsync(target, kt, candidates, progress, ct, rejected: rejected, session: session);
+                        if (hit is { } key)
+                        {
+                            timing?.RecordRecovery(_timeProvider.GetElapsedTime(started));
+                            Store(s, kt, key);
+                            break;
+                        }
+                        Mark(s, kt, KeyMark.None, Strings.Recovery_KeyNotRecovered);
                     }
-                    else Mark(s, kt, KeyMark.None, Strings.Recovery_KeyNotRecovered);
-                }
-                catch (ChameleonException)
-                {
-                    Mark(s, kt, KeyMark.None, Strings.Recovery_NonceFailed);
+                    catch (ChameleonException ex)
+                    {
+                        if (session is not null && ex.Status == Status.HfTagNo) throw;
+                        Mark(s, kt, KeyMark.None, Strings.Recovery_NonceFailed);
+                        if (session is not null && ex.Status == Status.MfErrAuth)
+                        { session.Refused.Add((target, kt)); break; }
+                    }
+                    if (session is not null && method == MifareRecoveryMethod.Nested)
+                    {
+                        session.Distances.Clear();
+                        if (attempt == attempts - 1) session.NestedUnreliable = true;
+                    }
                 }
                 // A fast attack is only the preferred first path. Preserve reuse
                 // as a fallback, with rejected combinations filtered as usual.
                 if (!knownFirst && !Known(s, kt)) await TryKnownKeysAsync(s, kt);
                 await SpreadKnownKeysAsync();
+                // Two inconclusive Nested attempts are enough to reconsider the
+                // family, rather than repeat the same failure across the whole card.
+                if (method == MifareRecoveryMethod.Nested && session?.NestedUnreliable == true) return;
             }
         // A later sector may reveal a key for an earlier failed attack. Only untested
         // combinations (and inconclusive RF failures) need another authentication.
@@ -222,7 +243,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
 
         (uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)? capture = null;
         byte[]? acceptedBackdoor = null;
-        foreach (var backdoor in new[] { "A396EFA4E24F", "A31667A8CEC1", "518B3354E760" })
+        foreach (var backdoor in SenBackdoorKeys)
         {
             progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CollectingStaticEnc, Detail: string.Format(Strings.Recovery_BackdoorKey, backdoor)));
             try
@@ -329,7 +350,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
 
     private async Task TryDarksideAsync(
         MifareDump dump, uint authUid, Action<int, MfKeyType, byte[]> store,
-        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, MifareRecoverySession? session = null)
     {
         for (var sector = 0; sector < dump.SectorCount; sector++)
             foreach (var kt in new[] { MfKeyType.B, MfKeyType.A })
@@ -337,7 +358,13 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 if ((kt == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is not null) continue;
                 var target = MifareClassic.SectorTrailerBlock(sector);
                 progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CheckingDarkside, sector, kt, KeyMark.Checking));
-                if (await client.CheckDarksideAsync(ct, target, kt) != DarksideResult.Vulnerable)
+                var vulnerability = session?.Darkside.GetValueOrDefault((target, kt));
+                if (session is null || !session.Darkside.ContainsKey((target, kt)))
+                {
+                    vulnerability = await client.CheckDarksideAsync(ct, target, kt);
+                    if (session is not null) session.Darkside[(target, kt)] = vulnerability.Value;
+                }
+                if (vulnerability != DarksideResult.Vulnerable)
                 {
                     progress?.Report(new KeyRecoveryProgress(Strings.Recovery_NotDarksideVulnerable, sector, kt));
                     continue;
@@ -364,11 +391,18 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
 
     private async Task<IReadOnlyList<ulong>> NestedSectorAsync(
         (int Block, MfKeyType Type, byte[] Key) seed, int target, MfKeyType targetKeyType,
-        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct)
+        IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, MifareRecoverySession? session = null)
     {
         var updates = new RecoveryProgress(progress, MifareClassic.SectorOfBlock(target), targetKeyType);
         updates.Report(Strings.Recovery_MeasuringDistance);
-        var dist = await client.GetNtDistanceAsync(seed.Block, seed.Type, seed.Key, ct);
+        var seedId = (seed.Block, seed.Type, KeyValue(seed.Key));
+        NtDistance dist;
+        if (session is not null && session.Distances.TryGetValue(seedId, out var cached)) dist = cached;
+        else
+        {
+            dist = await client.GetNtDistanceAsync(seed.Block, seed.Type, seed.Key, ct);
+            if (session is not null) session.Distances[seedId] = dist;
+        }
         updates.Report(Strings.Recovery_CollectingNestedNonces);
         var nonces = await client.GetNestedNoncesAsync(seed.Block, seed.Type, seed.Key, target, targetKeyType, isStatic: false, ct);
         if (nonces.Count < 2) return Array.Empty<ulong>();
@@ -402,7 +436,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
 
     private async Task<byte[]?> FirstWorkingKeyAsync(int block, MfKeyType keyType, IReadOnlyList<ulong> candidates,
         IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, string? detail = null,
-        HashSet<(int Block, MfKeyType Type, ulong Key)>? rejected = null)
+        MifareKeyRejections? rejected = null, MifareRecoverySession? session = null)
     {
         for (var i = 0; i < candidates.Count; i++)
         {
@@ -412,29 +446,34 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 MifareClassic.SectorOfBlock(block), keyType, KeyMark.Checking,
                 Detail: detail is null ? counter : $"{detail} · {counter}"));
             var key = KeyBytes(candidates[i]);
-            if (await TryAuthAsync(block, keyType, key, ct, rejected)) return key;
+            if (await TryAuthAsync(block, keyType, key, ct, rejected, session)) return key;
         }
         return null;
     }
 
     private async Task<bool> TryAuthAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct,
-        HashSet<(int Block, MfKeyType Type, ulong Key)>? rejected = null)
+        MifareKeyRejections? rejected = null, MifareRecoverySession? session = null)
     {
         var combination = (block, keyType, KeyValue(key));
         if (rejected?.Contains(combination) == true) return false;
+        var started = _timeProvider.GetTimestamp();
         for (var attempt = 0; attempt < 4; attempt++)
         {
             ct.ThrowIfCancellationRequested();
-            var status = await client.Mf1AuthStatusAsync(block, keyType, key, ct);
-            if (status == Status.HfTagOk) return true;
+            var status = await client.Mf1AuthStatusAsync(block, keyType, key, ct, drain: session is not null);
+            if (status == Status.HfTagOk)
+            { session?.RecordAuthentication(_timeProvider.GetElapsedTime(started)); return true; }
             if (status == Status.MfErrAuth)
             {
                 rejected?.Add(combination);
+                session?.RecordAuthentication(_timeProvider.GetElapsedTime(started));
                 return false;
             }
             if (status is not (Status.HfTagNo or Status.HfErrStat or Status.HfErrCrc
                 or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts))
                 throw new ChameleonException(Strings.Recovery_AuthFailed, status);
+            if (session is not null && status == Status.HfTagNo && attempt == 3)
+                throw new ChameleonException(Strings.Recovery_CardRemoved, status);
         }
         return false;
     }

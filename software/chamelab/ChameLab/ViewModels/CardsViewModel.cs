@@ -1476,11 +1476,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var tags = await client.Hf14aScanAsync(ct);
         if (tags.Count == 0 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
             throw new InvalidOperationException(Strings.Cards_PlaceSelectedCard);
-        var prng = await client.DetectNtLevelAsync(ct);
+        var recoverySession = MifareRecoverySession.For(dump, client);
+        var prng = recoverySession.Prng ?? await client.DetectNtLevelAsync(ct);
+        recoverySession.Prng = prng;
         var darkside = false;
         if (prng != MifareClassicPrngType.Static)
         {
-            try { darkside = await client.CheckDarksideAsync(ct) == DarksideResult.Vulnerable; }
+            try
+            {
+                if (!recoverySession.Darkside.TryGetValue((3, MfKeyType.B), out var result))
+                    recoverySession.Darkside[(3, MfKeyType.B)] = result = await client.CheckDarksideAsync(ct);
+                darkside = result == DarksideResult.Vulnerable;
+            }
             catch (ChameleonException) { }
         }
         for (var sector = 0; sector < dump.SectorCount; sector++)
@@ -1729,7 +1736,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             {
                 if (method is { } selected) await recovery.RecoverAsync(dump, selected, progress, cts.Token);
                 else result = await recovery.RecoverAutomaticallyAsync(dump, BuildKeyDictionary(), progress, cts.Token,
-                    KeySearchSettings.CreateOptions(RecoverySelectedSector));
+                    KeySearchSettings.CreateOptions(RecoverySelectedSector),
+                    useKnownUidKeys: DumpKeySources.Any(s => s.IsKnownCardKeys && s.IsSelected));
             }
             catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
             if (ReferenceEquals(_discardedDump, cts)) return;

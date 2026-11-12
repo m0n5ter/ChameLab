@@ -78,6 +78,7 @@ public enum Command : ushort
     Hf14aSniff = 2020,
     Mf0UlcWrite = 2021,
     Mf0UlcSetKey = 2022,
+    Mf1EncNestedWithKey = 2023,
     Hf14aGetConfig = 2200,
     Hf14aSetConfig = 2201,
 

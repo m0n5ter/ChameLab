@@ -1170,7 +1170,8 @@ public partial class MifareWorkflowTests
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire
             or Command.Mf1StaticNestedAcquire or Command.Mf1HardnestedAcquire or Command.Mf1DetectNtDist);
         Assert.Equal(Key, Assert.Single(known.ForUid(dump.Uid)));
-        Assert.Equal(1, changes);
+        Assert.Equal(4, changes);
+        Assert.Equal(4, known.PositionsForUid(dump.Uid).Count);
     }
 
     [Theory]

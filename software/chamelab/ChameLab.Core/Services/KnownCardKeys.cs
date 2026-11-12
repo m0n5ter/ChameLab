@@ -22,6 +22,7 @@ public sealed record KnownCard(KnownCardFamily Family, string Uid, TagSpecificTy
 }
 
 public readonly record struct KnownCardId(KnownCardFamily Family, string Uid);
+public sealed record KnownMifareKey(int Sector, MfKeyType KeyType, byte[] Key);
 
 public static class KnownCardFamilies
 {
@@ -102,7 +103,11 @@ public sealed class KnownCardKeys
     private readonly IKeyValueStore _store;
     private Dictionary<KnownCardId, Entry> _cards = new();
 
-    private sealed record Entry(TagSpecificType? Tag, List<string> Keys, string? Password);
+    private sealed record Position(int Sector, MfKeyType KeyType, string Key);
+    private sealed record Entry(TagSpecificType? Tag, List<string> Keys, string? Password)
+    {
+        public List<Position> Positions { get; init; } = [];
+    }
 
     public KnownCardKeys(IKeyValueStore store)
     {
@@ -132,6 +137,10 @@ public sealed class KnownCardKeys
         _cards.TryGetValue(new(KnownCardFamily.MifareClassic, Convert.ToHexString(uid)), out var entry)
             ? entry.Keys.Select(Convert.FromHexString).ToArray() : Array.Empty<byte[]>();
 
+    public IReadOnlyList<KnownMifareKey> PositionsForUid(byte[] uid) =>
+        _cards.TryGetValue(new(KnownCardFamily.MifareClassic, Convert.ToHexString(uid)), out var entry)
+            ? entry.Positions.Select(p => new KnownMifareKey(p.Sector, p.KeyType, Convert.FromHexString(p.Key))).ToArray() : [];
+
     /// <summary>The 4-byte PWD the NTAG / Ultralight with this UID last accepted or was given; null when unknown.</summary>
     public byte[]? PasswordForUid(byte[] uid) => PasswordFor(KnownCardFamily.Ultralight, uid);
 
@@ -160,7 +169,9 @@ public sealed class KnownCardKeys
             if (id.Family == KnownCardFamily.MifareClassic)
             {
                 if (card.Keys.Any(k => k.Length != 6)) throw new FormatException(Strings.Keys_KeyLength);
-                next[id] = new(tag, card.Keys.Select(Convert.ToHexString).Distinct().ToList(), null);
+                var keys = card.Keys.Select(Convert.ToHexString).Distinct().ToList();
+                next[id] = new(tag, keys, null) { Positions = next.GetValueOrDefault(id)?.Positions
+                    .Where(p => keys.Contains(p.Key)).ToList() ?? [] };
             }
             else
             {
@@ -191,7 +202,8 @@ public sealed class KnownCardKeys
             var keys = new List<string>(local.Keys);
             foreach (var key in entry.Keys) if (!keys.Contains(key)) keys.Add(key);
             // A password already known here is newer than the backup's.
-            next[id] = new(local.Tag ?? entry.Tag, keys, local.Password ?? entry.Password);
+            next[id] = new(local.Tag ?? entry.Tag, keys, local.Password ?? entry.Password)
+            { Positions = local.Positions.Concat(entry.Positions).DistinctBy(p => (p.Sector, p.KeyType)).ToList() };
         }
         if (Same(next)) return;
         if (LoadError is not null) throw new InvalidOperationException(LoadError);
@@ -208,12 +220,35 @@ public sealed class KnownCardKeys
         foreach (var key in keys)
             if (key.Length == 6 && seen.Add(Convert.ToHexString(key))) values.Add(Convert.ToHexString(key));
         if (values.Count == 0) return;
-        Put(id, new(ValidTag(id.Family, tag) ?? old?.Tag, values, null));
+        Put(id, new(ValidTag(id.Family, tag) ?? old?.Tag, values, null) { Positions = old?.Positions ?? [] });
     }
 
     /// <summary>Every key of the dump, with the card's MIFARE Classic type.</summary>
-    public void Remember(MifareDump dump) =>
-        Remember(dump.Uid, dump.KeyA.Concat(dump.KeyB).OfType<byte[]>(), MifareClassic.ToSlotTagType(dump.Type));
+    public void Remember(MifareDump dump) => RememberPositions(dump.Uid,
+        Enumerable.Range(0, dump.SectorCount).SelectMany(s => new[] {
+            new KnownMifareKey(s, MfKeyType.A, dump.KeyA[s] ?? []),
+            new KnownMifareKey(s, MfKeyType.B, dump.KeyB[s] ?? []) }), MifareClassic.ToSlotTagType(dump.Type));
+
+    public void RememberPosition(byte[] uid, int sector, MfKeyType type, byte[] key, TagSpecificType? tag = null) =>
+        RememberPositions(uid, [new(sector, type, key)], tag);
+
+    private void RememberPositions(byte[] uid, IEnumerable<KnownMifareKey> positions, TagSpecificType? tag)
+    {
+        if (uid.Length == 0) return;
+        var id = new KnownCardId(KnownCardFamily.MifareClassic, Convert.ToHexString(uid));
+        var old = _cards.GetValueOrDefault(id);
+        var values = old?.Keys.ToList() ?? [];
+        var slots = old?.Positions.ToDictionary(p => (p.Sector, p.KeyType)) ?? [];
+        foreach (var p in positions)
+        {
+            if (p.Key.Length != 6 || p.Sector is < 0 or >= 40 || p.KeyType is not (MfKeyType.A or MfKeyType.B)) continue;
+            var key = Convert.ToHexString(p.Key);
+            if (!values.Contains(key)) values.Add(key);
+            slots[(p.Sector, p.KeyType)] = new(p.Sector, p.KeyType, key);
+        }
+        if (values.Count == 0) return;
+        Put(id, new(ValidTag(id.Family, tag) ?? old?.Tag, values, null) { Positions = slots.Values.ToList() });
+    }
 
     /// <summary>Adds or replaces the NTAG / Ultralight password: a card has one PWD at a time.</summary>
     public void RememberPassword(byte[] uid, byte[] pwd, TagSpecificType? tag = null) =>
@@ -241,13 +276,13 @@ public sealed class KnownCardKeys
     }
 
     private Dictionary<KnownCardId, Entry> Copy() =>
-        _cards.ToDictionary(c => c.Key, c => c.Value with { Keys = new List<string>(c.Value.Keys) });
+        _cards.ToDictionary(c => c.Key, c => c.Value with { Keys = new List<string>(c.Value.Keys), Positions = c.Value.Positions.ToList() });
 
     private bool Same(Dictionary<KnownCardId, Entry> next) =>
         next.Count == _cards.Count && next.All(c => _cards.TryGetValue(c.Key, out var e) && SameEntry(e, c.Value));
 
     private static bool SameEntry(Entry a, Entry b) =>
-        a.Tag == b.Tag && a.Password == b.Password && a.Keys.SequenceEqual(b.Keys);
+        a.Tag == b.Tag && a.Password == b.Password && a.Keys.SequenceEqual(b.Keys) && a.Positions.SequenceEqual(b.Positions);
 
     private static TagSpecificType? ValidTag(KnownCardFamily family, TagSpecificType? tag) =>
         tag is { } t && KnownCardFamilies.Of(t) == family ? t : null;
@@ -271,7 +306,11 @@ public sealed class KnownCardKeys
             var card = new JsonObject { ["family"] = id.Family.JsonName(), ["uid"] = id.Uid };
             if (entry.Tag is { } tag) card["tag"] = tag.ToString();
             if (id.Family == KnownCardFamily.MifareClassic)
+            {
                 card["keys"] = new JsonArray(entry.Keys.Select(k => (JsonNode?)JsonValue.Create(k)).ToArray());
+                if (entry.Positions.Count > 0) card["sectors"] = new JsonArray(entry.Positions.Select(p => (JsonNode)new JsonObject
+                    { ["sector"] = p.Sector, ["type"] = p.KeyType == MfKeyType.A ? "A" : "B", ["key"] = p.Key }).ToArray());
+            }
             else card["password"] = entry.Password;
             list.Add((JsonNode)card); // the generic Add<T> isn't trim-safe
         }
@@ -303,6 +342,20 @@ public sealed class KnownCardKeys
             {
                 if (card["keys"] is not JsonArray keys) throw new FormatException(Strings.Keys_InvalidUidGroup);
                 AddKeys(result, id, tag, keys);
+                if (card["sectors"] is JsonArray positions)
+                    foreach (var nodePosition in positions)
+                    {
+                        var sector = nodePosition?["sector"]?.GetValue<int>() ?? -1;
+                        var type = nodePosition?["type"]?.GetValue<string>();
+                        var key = Convert.FromHexString(nodePosition?["key"]?.GetValue<string>() ?? "");
+                        if (sector is < 0 or >= 40 || type is not ("A" or "B") || key.Length != 6)
+                            throw new FormatException(Strings.Keys_InvalidKey);
+                        var hex = Convert.ToHexString(key);
+                        if (!result[id].Keys.Contains(hex)) result[id].Keys.Add(hex);
+                        var kt = type == "A" ? MfKeyType.A : MfKeyType.B;
+                        result[id].Positions.RemoveAll(p => p.Sector == sector && p.KeyType == kt);
+                        result[id].Positions.Add(new(sector, kt, hex));
+                    }
             }
             else result[id] = new(tag, new(), ParsePassword(card["password"]?.GetValue<string>()));
         }

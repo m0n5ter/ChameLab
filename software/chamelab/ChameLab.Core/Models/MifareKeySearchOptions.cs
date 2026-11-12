@@ -16,6 +16,8 @@ public sealed record MifareKeySearchOptions(
 {
     /// <summary>Return after the first successful authentication, once the current firmware reply is drained.</summary>
     public bool StopAfterFirstKey { get; init; }
+    /// <summary>Optional shared ledger used by the automatic recovery planner.</summary>
+    public MifareRecoverySession? Session { get; init; }
 
     public int[] GetSectorOrder(int sectorCount)
     {

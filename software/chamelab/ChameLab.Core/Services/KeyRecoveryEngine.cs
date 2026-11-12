@@ -8,7 +8,7 @@ using ChameLab.Protocol;
 
 namespace ChameLab.Services;
 
-public enum KeyRecoveryOperation { Nested, StaticNested, StaticEncryptedNested, FilterStaticEncrypted, Darkside, Mfkey32 }
+public enum KeyRecoveryOperation { Nested, StaticNested, StaticEncryptedNested, FilterStaticEncrypted, Darkside, Mfkey32, MatchStaticEncrypted }
 
 /// <summary>Serializable CPU work; device access and UI state stay in the calling runtime.</summary>
 public sealed record KeyRecoveryRequest(KeyRecoveryOperation Operation)
@@ -47,6 +47,7 @@ public sealed class ManagedKeyRecoveryEngine : IKeyRecoveryEngine
             KeyRecoveryOperation.StaticEncryptedNested => StaticEncryptedNestedRecovery.Recover(request.Uid, n[0], ct),
             KeyRecoveryOperation.FilterStaticEncrypted => StaticEncryptedNestedRecovery.Filter(
                 n[0].Nt, request.Keys, n[1].Nt, request.OtherKeys, ct),
+            KeyRecoveryOperation.MatchStaticEncrypted => StaticEncryptedNestedRecovery.MatchKeys(request.Uid, n[0], request.Keys, ct),
             KeyRecoveryOperation.Darkside => DarksideRecovery.Recover(request.Uid, request.Items, ct),
             KeyRecoveryOperation.Mfkey32 => Mfkey32Recovery.Recover(request.Logs[0], request.Logs[1]) is { } key
                 ? new[] { key } : Array.Empty<ulong>(),

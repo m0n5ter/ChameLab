@@ -49,6 +49,11 @@ const server = http.createServer((request, response) => {
                         let hash = 14695981039346656037n;
                         for (const key of keys) for (let b = 0n; b < 6n; b++) hash = BigInt.asUintN(64, (hash ^ ((BigInt(key) >> (8n * b)) & 255n)) * 1099511628211n);
                         if (hash.toString(16).toUpperCase() !== c.fingerprint) throw new Error(c.name + ': wrong fingerprint');
+                        const subset = keys.slice(0, 64);
+                        const evidence = JSON.parse(c.request);
+                        const matchRequest = JSON.stringify({ ...evidence, Operation: 6, Keys: subset.map(Number) });
+                        const matched = JSON.parse(await api.recover('dictionary-match', matchRequest)).map(String);
+                        if (matched.join() !== subset.join()) throw new Error('Offline dictionary matching lost evidence-valid keys');
                     }
                     rows.push({ name: c.name, candidates: keys.length, elapsedMs: performance.now() - started });
                 }

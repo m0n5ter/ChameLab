@@ -501,6 +501,30 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         ct.ThrowIfCancellationRequested();
         var frame = await conn.SendExpectAsync(Command.Mf1EncNestedAcquire, Status.HfTagOk, data, timeoutMs: 30000);
         ct.ThrowIfCancellationRequested();
+        return ParseStaticEncryptedCapture(frame, sectorCount);
+    }
+
+    /// <summary>Collect SEN evidence using a normal authenticated sector key (firmware command 2023).</summary>
+    public async Task<(uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)> GetStaticEncryptedNestedNoncesWithKeyAsync(
+        byte[] key, int knownBlock, MfKeyType knownType, int sectorCount, CancellationToken ct = default)
+    {
+        if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.", nameof(key));
+        if (knownBlock is < 0 or > 255) throw new ArgumentOutOfRangeException(nameof(knownBlock));
+        if (sectorCount is < 1 or > 40) throw new ArgumentOutOfRangeException(nameof(sectorCount));
+        if (knownType is not (MfKeyType.A or MfKeyType.B)) throw new ArgumentOutOfRangeException(nameof(knownType));
+        var data = new byte[10];
+        key.CopyTo(data, 0);
+        data[6] = (byte)sectorCount;
+        data[8] = (byte)knownBlock;
+        data[9] = knownType.ToWire();
+        ct.ThrowIfCancellationRequested();
+        var frame = await conn.SendExpectAsync(Command.Mf1EncNestedWithKey, Status.HfTagOk, data, timeoutMs: 30000);
+        ct.ThrowIfCancellationRequested();
+        return ParseStaticEncryptedCapture(frame, sectorCount);
+    }
+
+    private static (uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors) ParseStaticEncryptedCapture(ChameleonFrame frame, int sectorCount)
+    {
         if (frame.Data.Length != 4 + 14 * sectorCount)
             throw new ChameleonException(Strings.Device_IncompleteStaticEnc, frame.Status);
         NestedNonce Read(int offset)
@@ -516,7 +540,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     }
 
     public async Task<byte[]?> CheckMifareKeysOnBlockAsync(int block, MfKeyType type,
-        IReadOnlyList<byte[]> keys, CancellationToken ct = default)
+        IReadOnlyList<byte[]> keys, CancellationToken ct = default,
+        MifareRecoverySession? session = null, Action<byte[]>? onFound = null)
     {
         if (block is < 0 or > 255) throw new ArgumentOutOfRangeException(nameof(block));
         if (type is not (MfKeyType.A or MfKeyType.B)) throw new ArgumentOutOfRangeException(nameof(type));
@@ -529,15 +554,37 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             keys[i].CopyTo(data, 3 + 6 * i);
         }
         ct.ThrowIfCancellationRequested();
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
         var frame = await conn.SendAsync(Command.Mf1CheckKeysOnBlock, data, timeoutMs: 10000);
-        ct.ThrowIfCancellationRequested();
-        if (frame.Status == Status.MfErrAuth) return null;
+        if (frame.Status == Status.MfErrAuth)
+        {
+            foreach (var key in keys) session?.Rejected.Add((block, type, MifareRecoverySession.Value(key)));
+            session?.RecordCandidates(System.Diagnostics.Stopwatch.GetElapsedTime(started), keys.Count);
+            ct.ThrowIfCancellationRequested();
+            return null;
+        }
         if (frame.Status != Status.HfTagOk || frame.Data.Length != 7 || frame.Data[0] > 1)
             throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
-        if (frame.Data[0] == 0) return null;
+        if (frame.Data[0] == 0)
+        {
+            foreach (var key in keys) session?.Rejected.Add((block, type, MifareRecoverySession.Value(key)));
+            session?.RecordCandidates(System.Diagnostics.Stopwatch.GetElapsedTime(started), keys.Count);
+            ct.ThrowIfCancellationRequested();
+            return null;
+        }
         var found = frame.Data[1..7];
         if (!keys.Any(key => key.AsSpan().SequenceEqual(found)))
             throw new ChameleonException(Strings.Device_UnexpectedCandidate, frame.Status);
+        var tested = 0;
+        foreach (var key in keys)
+        {
+            tested++;
+            if (key.AsSpan().SequenceEqual(found)) break;
+            session?.Rejected.Add((block, type, MifareRecoverySession.Value(key)));
+        }
+        session?.RecordCandidates(System.Diagnostics.Stopwatch.GetElapsedTime(started), tested);
+        onFound?.Invoke(found);
+        ct.ThrowIfCancellationRequested();
         return found;
     }
 
@@ -572,7 +619,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         IReadOnlyList<byte[]> keys,
         IProgress<int>? keysChecked = null,
         Action<(int Sector, MfKeyType Type), byte[]>? onFound = null,
-        CancellationToken ct = default, bool stopAfterFirstKey = false)
+        CancellationToken ct = default, bool stopAfterFirstKey = false,
+        MifareRecoverySession? session = null)
     {
         ArgumentNullException.ThrowIfNull(wanted);
         ArgumentNullException.ThrowIfNull(keys);
@@ -619,10 +667,13 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             // A full 4K pass can try 80 pairs per candidate. Allow fixed-size batches to
             // finish even when every authentication fails (about 60 ms per RF attempt).
             var timeout = Math.Max(BatchKeyCheckChunkTimeoutMs, 1000 + pending * chunk.Length * 100);
+            var started = System.Diagnostics.Stopwatch.GetTimestamp();
+            var attemptedPairs = pairs.Where(p => !result.ContainsKey(p)).ToArray();
             var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload, timeoutMs: timeout);
 
             // The card leaving the field (HfTagNo) still returns the keys found before it went.
-            if (frame.Data.Length != 490 || frame.Status is not (Status.HfTagOk or Status.HfTagNo))
+            if (frame.Data.Length != 490 || frame.Status is not (Status.HfTagOk or Status.HfTagNo
+                or Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts))
                 throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
 
             foreach (var pair in returnedPairs)
@@ -638,8 +689,24 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             ct.ThrowIfCancellationRequested();
             // HfTagNo aborts the firmware loop midway, so this chunk was not fully checked.
             // Keep the found keys, but do not report an exhausted dictionary to the caller.
-            if (frame.Status == Status.HfTagNo)
+            if (frame.Status != Status.HfTagOk)
                 throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
+
+            if (session is not null)
+            {
+                session.RecordAuthentication(System.Diagnostics.Stopwatch.GetElapsedTime(started), attemptedPairs.Length * chunk.Length);
+                foreach (var p in attemptedPairs)
+                    foreach (var candidate in chunk)
+                    {
+                        if (result.TryGetValue(p, out var found))
+                        {
+                            if (found.AsSpan().SequenceEqual(candidate)) break;
+                            // A readable trailer B may not be one of the submitted keys.
+                            if (!chunk.Any(k => k.AsSpan().SequenceEqual(found))) break;
+                        }
+                        session.Rejected.Add((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, MifareRecoverySession.Value(candidate)));
+                    }
+            }
 
             checkedKeys += chunk.Length;
             keysChecked?.Report(checkedKeys);
@@ -985,14 +1052,16 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     /// Authenticates and returns the device status: <see cref="Status.HfTagOk"/>, <see cref="Status.MfErrAuth"/>
     /// for a wrong key, or an RF error (tag lost, CRC, parity…) that says nothing about the key.
     /// </summary>
-    internal async Task<Status> Mf1AuthStatusAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct)
+    internal async Task<Status> Mf1AuthStatusAsync(int block, MfKeyType keyType, byte[] key, CancellationToken ct, bool drain = false)
     {
         if (key.Length != 6) throw new ArgumentException("Key must be 6 bytes.");
         var data = new byte[8];
         data[0] = (byte)keyType;
         data[1] = (byte)block;
         key.CopyTo(data, 2);
-        var f = await conn.SendAsync(Command.Mf1AuthOneKeyBlock, data, ct: ct);
+        ct.ThrowIfCancellationRequested();
+        // Auto retains a successful reply before honoring Stop, just like batches.
+        var f = await conn.SendAsync(Command.Mf1AuthOneKeyBlock, data, ct: drain ? default : ct);
         return f.Status;
     }
 
@@ -1270,11 +1339,13 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     private async Task<byte[]?> FindSectorKeyAsync(
         int block, MfKeyType kt, int sector, IReadOnlyList<byte[]> keyDict,
         IReadOnlyList<byte[]> known, IReadOnlyList<byte[]> knownOther,
-        IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct)
+        IProgress<MifareKeyProgress>? keyProgress, CancellationToken ct, MifareRecoverySession? session = null)
     {
-        var preferred = known.Concat(knownOther).DistinctBy(k => Convert.ToHexString(k)).ToArray();
+        bool Untested(byte[] key) => session?.Rejected.Contains((MifareClassic.SectorTrailerBlock(sector), kt,
+            MifareRecoverySession.Value(key))) != true;
+        var preferred = known.Concat(knownOther).Where(Untested).DistinctBy(k => Convert.ToHexString(k)).ToArray();
         var seen = preferred.Select(k => Convert.ToHexString(k)).ToHashSet();
-        var candidates = keyDict.Where(k => seen.Add(Convert.ToHexString(k))).ToArray();
+        var candidates = keyDict.Where(k => Untested(k) && seen.Add(Convert.ToHexString(k))).ToArray();
         var total = preferred.Length + candidates.Length;
         var completed = 0;
         keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.Searching, 0, total, null));
@@ -1282,7 +1353,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         // Count known-key checks too; a quick hit is one actual attempt, not a full dictionary pass.
         foreach (var key in preferred)
         {
-            var ok = await AuthKnownKeyAsync(block, kt, key, ct);
+            var ok = session is null ? await AuthKnownKeyAsync(block, kt, key, ct)
+                : await AuthSessionKeyAsync(block, kt, key, session, ct);
             completed++;
             keyProgress?.Report(new MifareKeyProgress(sector, kt,
                 ok ? MifareKeyPhase.Found : MifareKeyPhase.Searching, completed, total, ok ? key : null));
@@ -1296,7 +1368,9 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             ct.ThrowIfCancellationRequested();
             var candidate = candidates[i];
             bool ok;
-            try { ok = await Mf1AuthAsync(block, kt, candidate, ct); }
+            try { ok = session is null ? await Mf1AuthAsync(block, kt, candidate, ct)
+                : await AuthSessionKeyAsync(block, kt, candidate, session, ct); }
+            catch (Exception) when (session is not null) { throw; }
             catch (Exception ex) when (IsRfFailure(ex)) { ok = false; }
             completed++;
             if (ok)
@@ -1310,6 +1384,27 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
 
         keyProgress?.Report(new MifareKeyProgress(sector, kt, MifareKeyPhase.NotFound, completed, total, null));
         return null;
+    }
+
+    private async Task<bool> AuthSessionKeyAsync(int block, MfKeyType type, byte[] key, MifareRecoverySession session, CancellationToken ct)
+    {
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        for (var attempt = 0; attempt < RfAttempts; attempt++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var status = await Mf1AuthStatusAsync(block, type, key, ct, drain: true);
+            if (status == Status.HfTagOk) { session.RecordAuthentication(System.Diagnostics.Stopwatch.GetElapsedTime(started)); return true; }
+            if (status == Status.MfErrAuth)
+            {
+                session.Rejected.Add((MifareClassic.SectorTrailerBlock(MifareClassic.SectorOfBlock(block)), type, MifareRecoverySession.Value(key)));
+                session.RecordAuthentication(System.Diagnostics.Stopwatch.GetElapsedTime(started));
+                return false;
+            }
+            if (status == Status.HfTagNo) throw new ChameleonException(Strings.Recovery_CardRemoved, status);
+            if (status is not (Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts))
+                throw new ChameleonException(Strings.Recovery_AuthFailed, status);
+        }
+        return false;
     }
 
     /// <summary>Reads one block with key A, falling back to key B; null if neither opens it.</summary>

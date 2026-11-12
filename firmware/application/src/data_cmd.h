@@ -81,6 +81,7 @@
 #define DATA_CMD_MF0_ULC_READ                   (2019)
 #define DATA_CMD_MF0_ULC_WRITE                  (2021)
 #define DATA_CMD_MF0_ULC_SET_KEY                (2022)
+#define DATA_CMD_MF1_ENC_NESTED_WITH_KEY        (2023)
 #define DATA_CMD_HF14A_SCAN_KEEP                (2016)  /* scan+RATS, keep field alive for APDU exchange */
 #define DATA_CMD_HF14A_AUTH_TRACE               (2017)  /* full anticoll + Crypto1 auth, every frame returned for inspection */
 #define DATA_CMD_MF1_MANIPULATE_VALUE_BLOCK     (2011)

@@ -148,21 +148,32 @@ implemented in the Android build. iOS continues to use BLE and TCP.
 **Auto** is available in the read and target-card recovery panels. Every known or newly
 recovered key is first checked against all remaining sector A/B keys, using firmware
 batches when available. A key that took minutes to find may open the rest of the card
-without another dictionary search or attack. Confirmed failures are not repeated during
-the attack phase, and newly disclosed trailer keys are reused too.
+without another dictionary search or attack. If **Known card keys** is selected, Auto
+first authenticates the keys saved for the full UID at their saved sector/A/B positions,
+then checks older entries without positions. Saved keys are hints until confirmed on
+the current card. Readable trailer B keys, including all-zero keys, are reused too.
 
 For keys still missing, Auto checks supported static encrypted backdoors before any
 dictionary search or PRNG-dependent attack. Stable captures are required before SEN
 calculation starts; a confirmed SEN capture is used for all unresolved keys, regardless
-of PRNG type or an existing seed. Newly recovered keys are propagated throughout.
+of PRNG type or an existing seed. The selected dictionaries are checked locally against
+the nonce, ciphertext and parity before recovery: only matching candidates are sent to
+the card. A bounded pool of candidate lists is scheduled by estimated checking cost,
+pair-seed compatibility and potential key reuse. A new key immediately changes the plan.
+If no backdoor works, firmware **2.3.16-cl** also supports collection with a known
+ordinary sector key (command 2023), with the same stability checks.
 If keys remain, Auto chooses Nested for weak PRNG, Static nested for static PRNG, or
 Hardnested for hardened PRNG when the firmware and local solver support it. Without a
 seed it tries Darkside where applicable, then searches the selected dictionaries only
 until a seed is found. Failed attacks leave unresolved keys available for dictionary
-fallback. These priorities are
+fallback. Two failed Nested attempts clear its calibration and allow a Hardnested
+fallback before repeating that failure on other sectors. These priorities are
 heuristics, not a guaranteed shortest-time search. If reader interaction is needed,
 Auto explains how to continue with mfkey32; it does not start a reader capture itself.
-Stop preserves confirmed keys and partial reads.
+Stop preserves confirmed keys and partial reads. The scan and Auto share a session
+containing the PRNG profile, confirmed rejections, calibration, captures and measured
+checking costs for the current connection. Radio errors do not reject keys. A new scan
+or connection starts a fresh session; confirmed keys remain in **Known card keys**.
 
 ## Reusing recovered keys
 
@@ -183,8 +194,8 @@ for FM11RF08S and compatible backdoored MIFARE Classic cards. A known sector
 key is not required. ChameLab first checks retained keys, keys saved for the same
 UID and the small built-in factory-key list against missing A/B keys in batches.
 If they open the card, no nonce collection or calculation is needed. Otherwise,
-ChameLab tries backdoor keys `A396EFA4E24F`, `A31667A8CEC1`
-and `518B3354E760`, collects the static encrypted nonces, calculates candidates
+ChameLab tries backdoor keys `A396EFA4E24F`, `A31667A8CEC1`,
+`518B3354E760` and `73B9836CF168`, collects the static encrypted nonces, calculates candidates
 locally, and checks them on the card in batches. Before calculating candidates,
 a second capture must confirm that every unknown key's nonce, ciphertext and
 parity are stable. Accepting a backdoor key alone does not establish support for

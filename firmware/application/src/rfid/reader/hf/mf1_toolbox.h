@@ -150,6 +150,9 @@ uint8_t mf1_hardnested_nonces_acquire(bool slow, uint8_t blkKnown, uint8_t typKn
 uint8_t targetBlk, uint8_t targetTyp, uint8_t *nonces, uint16_t noncesMax, uint8_t *num_nonces);
 
 uint8_t mf1_static_encrypted_nonces_acquire(uint64_t keyKnown, uint8_t sector_count, uint8_t starting_sector, uint8_t sector_data[40][sizeof(mf1_static_nonce_sector_t)], uint8_t *sectors_acquired, uint32_t *cardUid);
+uint8_t mf1_static_encrypted_nonces_with_key(uint64_t key, uint8_t known_block, uint8_t known_type,
+    uint8_t sector_count, uint8_t starting_sector, uint8_t sector_data[40][sizeof(mf1_static_nonce_sector_t)],
+    uint8_t *sectors_acquired, uint32_t *card_uid);
 
 #ifdef __cplusplus
 }

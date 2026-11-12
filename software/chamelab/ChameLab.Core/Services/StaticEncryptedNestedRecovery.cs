@@ -10,6 +10,26 @@ namespace ChameLab.Services;
 /// <summary>Managed ports of staticnested_1nt and the FM11RF08S seed filters in software/src.</summary>
 public static class StaticEncryptedNestedRecovery
 {
+    /// <summary>Cheap evidence test for dictionary keys; a matching key still needs on-card confirmation.</summary>
+    public static bool Matches(uint uid, NestedNonce nonce, ulong key)
+    {
+        var state = new Crypto1State(key);
+        if ((nonce.Nt ^ state.Crypto1Word(uid ^ nonce.Nt, false)) != nonce.NtEnc) return false;
+        var stream = (state.Crypto1Word(0, false) >> 24) & 1;
+        return (Crypto1.OddParity8((byte)nonce.Nt) ^ Crypto1.OddParity8((byte)nonce.NtEnc) ^ stream) == (nonce.Parity & 1);
+    }
+
+    public static IReadOnlyList<ulong> MatchKeys(uint uid, NestedNonce nonce, IReadOnlyList<ulong> keys, CancellationToken ct = default)
+    {
+        var matches = new List<ulong>();
+        foreach (var key in keys)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (Matches(uid, nonce, key)) matches.Add(key);
+        }
+        return matches;
+    }
+
     public static IReadOnlyList<ulong> Recover(uint uid, NestedNonce nonce, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

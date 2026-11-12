@@ -425,6 +425,19 @@ static data_frame_tx_t *cmd_processor_mf1_enc_nested_acquire(uint16_t cmd, uint1
     return data_frame_make(cmd, status, sectors_acquired * sizeof(mf1_static_nonce_sector_t) + sizeof(uint32_t), response_data);
 }
 
+static data_frame_tx_t *cmd_processor_mf1_enc_nested_with_key(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    /* key[6], sector_count, starting_sector, known_block, known_key_type */
+    if (length != 10 || data[6] == 0 || data[6] > 40 || data[7] >= data[6] ||
+        (data[9] != 0x60 && data[9] != 0x61)) return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    uint8_t sectors[40][sizeof(mf1_static_nonce_sector_t)] = {{0}}, count = 0;
+    uint32_t uid = 0;
+    status = mf1_static_encrypted_nonces_with_key(bytes_to_num(data, 6), data[8], data[9], data[6], data[7], sectors, &count, &uid);
+    uint8_t response[4 + count * sizeof(mf1_static_nonce_sector_t)];
+    num_to_bytes(uid, 4, response);
+    memcpy(response + 4, sectors[data[7]], count * sizeof(mf1_static_nonce_sector_t));
+    return data_frame_make(cmd, status, sizeof(response), response);
+}
+
 static data_frame_tx_t *cmd_processor_mf1_auth_one_key_block(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     typedef struct {
         uint8_t type;
@@ -3536,6 +3549,7 @@ static cmd_data_map_t m_data_cmd_map[] = {
     {    DATA_CMD_MF1_DETECT_NT_DIST,           before_hf_reader_run,        cmd_processor_mf1_detect_nt_dist,            after_hf_reader_run    },
     {    DATA_CMD_MF1_NESTED_ACQUIRE,           before_hf_reader_run,        cmd_processor_mf1_nested_acquire,            after_hf_reader_run    },
     {    DATA_CMD_MF1_ENC_NESTED_ACQUIRE,       before_hf_reader_run,        cmd_processor_mf1_enc_nested_acquire,        after_hf_reader_run    },
+    {    DATA_CMD_MF1_ENC_NESTED_WITH_KEY,      before_hf_reader_run,        cmd_processor_mf1_enc_nested_with_key,       after_hf_reader_run    },
 
     {    DATA_CMD_MF1_AUTH_ONE_KEY_BLOCK,       before_hf_reader_run,        cmd_processor_mf1_auth_one_key_block,        after_hf_reader_run    },
     {    DATA_CMD_MF1_READ_ONE_BLOCK,           before_hf_reader_run,        cmd_processor_mf1_read_one_block,            after_hf_reader_run    },

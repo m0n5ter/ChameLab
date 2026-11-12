@@ -113,7 +113,7 @@ public partial class MifareWorkflowTests
             .RecoverAutomaticallyAsync(dump, keys);
 
         Assert.True(result.Complete);
-        Assert.Equal(3, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
+        Assert.Equal(4, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
         var firstDictionary = transport.Requests.FindIndex(r => r.Command == Command.Mf1CheckKeysOfSectors);
         var lastBackdoor = transport.Requests.FindLastIndex(r => r.Command == Command.Mf1EncNestedAcquire);
         Assert.True(lastBackdoor < firstDictionary);
@@ -132,7 +132,7 @@ public partial class MifareWorkflowTests
         transport.Response = r =>
         {
             if (r.Command != Command.Mf1EncNestedAcquire) return reply(r);
-            var payload = EncryptedCapture(5);
+            var payload = AutoEncryptedCapture(5);
             if (++captures == 2) payload[7] ^= 1;
             return (Status.HfTagOk, payload);
         };
@@ -256,7 +256,7 @@ public partial class MifareWorkflowTests
         var reply = transport.Response!;
         transport.Response = r => r.Command switch
         {
-            Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, AutoEncryptedCapture(5)),
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(recovered).ToArray()),
             _ => reply(r),
         };
@@ -267,7 +267,7 @@ public partial class MifareWorkflowTests
 
         Assert.True(result.Complete);
         Assert.Equal(0, hardnested.Calls);
-        Assert.Equal(3, engine.Calls); // A/B candidates and one filter, then propagation opens the card.
+        Assert.Equal(1, engine.Calls); // Equal evidence is generated once, then propagation opens the card.
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
         Assert.All(dump.KeyA.Concat(dump.KeyB), key => Assert.Equal(recovered, key));
     }
@@ -292,9 +292,12 @@ public partial class MifareWorkflowTests
         var reply = transport.Response!;
         transport.Response = r => r.Command switch
         {
-            Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, AutoEncryptedCapture(5)),
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk,
-                new byte[] { 1 }.Concat(CardKey(MifareClassic.SectorOfBlock(r.Data[0]), (MfKeyType)r.Data[1])).ToArray()),
+                Enumerable.Range(0, r.Data[2]).Any(i => r.Data.AsSpan(3 + i * 6, 6).SequenceEqual(
+                    CardKey(MifareClassic.SectorOfBlock(r.Data[0]), (MfKeyType)r.Data[1])))
+                    ? new byte[] { 1 }.Concat(CardKey(MifareClassic.SectorOfBlock(r.Data[0]), (MfKeyType)r.Data[1])).ToArray()
+                    : new byte[] { 0, 0, 0, 0, 0, 0, 0 }),
             _ => reply(r),
         };
         await using var connection = new ChameleonConnection(transport);
@@ -317,7 +320,7 @@ public partial class MifareWorkflowTests
             Assert.Equal(Key, r.Data[10..]); // Only the key retained in the dump may be reused.
         });
         Assert.All(engine.Operations, op => Assert.True(op is KeyRecoveryOperation.StaticEncryptedNested
-            or KeyRecoveryOperation.FilterStaticEncrypted));
+            or KeyRecoveryOperation.FilterStaticEncrypted or KeyRecoveryOperation.MatchStaticEncrypted));
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire
             or Command.Mf1StaticNestedAcquire or Command.Mf1HardnestedAcquire or Command.Mf1DarksideAcquire);
         for (var s = 0; s < dump.SectorCount; s++)
@@ -338,7 +341,7 @@ public partial class MifareWorkflowTests
         transport.Response = r =>
         {
             if (r.Command != Command.Mf1EncNestedAcquire) return reply(r);
-            var payload = EncryptedCapture(5);
+            var payload = AutoEncryptedCapture(5);
             if (++captures == 2) payload[7] ^= 1;
             return (Status.HfTagOk, payload);
         };
@@ -363,7 +366,7 @@ public partial class MifareWorkflowTests
         var transport = AutoTransport(MifareClassicPrngType.Hard, (_, _) => null, backdoor: true);
         var reply = transport.Response!;
         transport.Response = r => r.Command == Command.Mf1EncNestedAcquire
-            ? (Status.HfTagOk, EncryptedCapture(5)) : reply(r);
+            ? (Status.HfTagOk, AutoEncryptedCapture(5)) : reply(r);
         transport.OnRequest = r => { if (r.Command == Command.Mf1EncNestedAcquire) stop.Cancel(); };
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
@@ -395,7 +398,7 @@ public partial class MifareWorkflowTests
             .RecoverAutomaticallyAsync(dump, [recovered]);
 
         Assert.True(result.Complete);
-        Assert.Equal(1, engine.Calls);
+        Assert.Equal(2, engine.Calls); // One bounded retry with fresh calibration, then dictionary fallback.
         Assert.Equal(recovered, dump.KeyB[4]);
         Assert.Equal(block, dump.GetBlock(0));
         Assert.Contains(known.ForUid(dump.Uid), key => key.SequenceEqual(recovered));
@@ -463,6 +466,8 @@ public partial class MifareWorkflowTests
             ct.ThrowIfCancellationRequested();
             Calls++;
             Operations.Add(request.Operation);
+            if (request.Operation == KeyRecoveryOperation.MatchStaticEncrypted)
+                return Task.FromResult(ManagedKeyRecoveryEngine.Execute(request, ct));
             return Task.FromResult(result);
         }
     }
