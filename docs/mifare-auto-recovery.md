@@ -7,18 +7,25 @@ take as long as the preceding one. The current order is:
 2. Read accessible B keys with A and propagate each confirmed key to missing pairs.
 3. Try four supported SEN backdoors, require two matching captures, and test the
    selected dictionaries against that evidence locally before any heavy recovery.
-4. Run the SEN candidate pipeline from Proxmark3: prepare all missing A/B lists,
+4. If a confirmed seed permits Nested, Static nested or Hardnested, use that
+   family after key propagation and local dictionary matching. Otherwise run
+   the SEN candidate pipeline from Proxmark3: prepare all missing A/B lists,
    intersect their seed sets, order paired seed buckets, prioritize repeated keys
    across sectors, and batch-check global reuse candidates. Choose the remaining
    path by the first candidate with a unique paired seed match, with list length
    breaking ties. A confirmed key reduces its paired list and is checked in other
-   sectors before continuing. An unsuccessful list is exhausted, without widening it.
+   sectors before continuing. Auto stops global verification after the first
+   successful firmware batch, propagates its keys and reselects the family.
+   If no seeded family is available, it continues the untested SEN tail.
+   An unsuccessful list is exhausted, without widening it.
 5. Use the cached PRNG profile to select Nested, Static nested or Hardnested.
    Without a seed, use applicable Darkside, then search the selected dictionaries
-   until a seed appears. A new seed can also enable SEN through normal authentication.
+   until a seed appears. Ordinary-key SEN collection is a fallback after an
+   applicable seeded family, rather than a prerequisite for running it.
 6. After two inconclusive Nested attempts, discard its calibration and move to
    Hardnested when available. Explicit nonce-target refusals are tracked separately.
-   Finish with the selected dictionaries for pairs still unresolved.
+   Finish with the selected dictionaries for pairs still unresolved, then resume
+   deferred SEN using its retained captures, candidate lists and rejection ledger.
 
 SEN keeps all sector lists available for cross-sector ranking on every platform.
 The cross-sector reuse pass checks up to 8000 keys; the duplicate-priority pass
@@ -27,7 +34,9 @@ dictionary evidence matching and paired ordering run in the recovery engine
 (a Web Worker in browsers). All inferred keys still require RF confirmation.
 The same pipeline serves manual SEN and Auto. Manual SEN does not read the UID
 database or add factory dictionaries. Auto uses only the selected dictionaries
-and honors the `Known card keys` setting.
+and honors the `Known card keys` setting. Manual SEN completes its own pipeline;
+only Auto yields to another recovery family. Global SEN verification reports
+the number of checked candidates and the total.
 
 The reference is Proxmark3's
 [`cmdhfmfsen.c`](https://github.com/RfidResearchGroup/proxmark3/blob/c7b80e1bc89ed03983832f93b1d2b5f980c8bc9b/client/src/cmdhfmfsen.c)

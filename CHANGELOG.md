@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: Auto uses a confirmed key for Nested, Static nested or Hardnested after checking reuse, instead of starting a long ordinary-key SEN search first. SEN yields after its first successful candidate batch and resumes saved candidates if the seeded method fails; global candidate verification shows checked/total progress
  - ChameLab: the card details of a new or saved card have a dice button next to the UID that fills in a random UID valid for the tag type: an HF UID keeps its length (Ultralight and NTAG get 7 bytes with the NXP manufacturer byte) and avoids cascade-tag values; LF cards get a random EM410x, EM4100 Electra, Viking, Jablotron or PAC ID, or a 26-bit HID Prox / Pyramid card. ioProx and IDTECK are not offered, since their IDs carry check fields
 
 ## [v1.5.42][2026-11-12] · firmware v2.3.17-cl

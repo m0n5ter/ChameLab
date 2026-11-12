@@ -155,19 +155,24 @@ the current card. Readable trailer B keys, including all-zero keys, are reused t
 
 For keys still missing, Auto checks supported static encrypted backdoors before any
 dictionary search or PRNG-dependent attack. Stable captures are required before SEN
-calculation starts; a confirmed SEN capture is used for all unresolved keys, regardless
-of PRNG type or an existing seed. The selected dictionaries are checked locally against
+calculation starts. The selected dictionaries are checked locally against
 the nonce, ciphertext and parity before recovery: only matching candidates are sent to
 the card. A bounded pool of candidate lists is scheduled by estimated checking cost,
-pair-seed compatibility and potential key reuse. A new key immediately changes the plan.
+pair-seed compatibility and potential key reuse. After the first successful candidate
+batch, Auto propagates the keys and checks whether the PRNG now permits a faster
+seeded method. Otherwise it continues checking the remaining SEN candidates, with
+a visible checked/total count.
 If no backdoor works, firmware **2.3.16-cl** also supports collection with a known
-ordinary sector key (command 2023), with the same stability checks.
+ordinary sector key (command 2023), with the same stability checks. This is a fallback
+after applicable Nested, Static nested or Hardnested; an existing seed does not start
+a long ordinary-key SEN search before those methods.
 If keys remain, Auto chooses Nested for weak PRNG, Static nested for static PRNG, or
 Hardnested for hardened PRNG when the firmware and local solver support it. Without a
 seed it tries Darkside where applicable, then searches the selected dictionaries only
 until a seed is found. Failed attacks leave unresolved keys available for dictionary
 fallback. Two failed Nested attempts clear its calibration and allow a Hardnested
-fallback before repeating that failure on other sectors. These priorities are
+fallback before repeating that failure on other sectors. If these paths leave keys
+unresolved, Auto resumes deferred SEN captures and candidate lists. These priorities are
 heuristics, not a guaranteed shortest-time search. If reader interaction is needed,
 Auto explains how to continue with mfkey32; it does not start a reader capture itself.
 Stop preserves confirmed keys and partial reads. The scan and Auto share a session

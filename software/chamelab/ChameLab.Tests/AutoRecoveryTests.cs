@@ -294,20 +294,15 @@ public partial class MifareWorkflowTests
     }
 
     [Theory]
-    [InlineData(MifareClassicPrngType.Weak, false)]
-    [InlineData(MifareClassicPrngType.Static, false)]
-    [InlineData(MifareClassicPrngType.Hard, false)]
-    [InlineData(MifareClassicPrngType.Weak, true)]
-    [InlineData(MifareClassicPrngType.Static, true)]
-    [InlineData(MifareClassicPrngType.Hard, true)]
-    public async Task Auto_StaticEncryptedPrecedesDictionaryAndOtherAttacksRegardlessOfPrngOrSeed(
-        MifareClassicPrngType prng, bool hasSeed)
+    [InlineData(MifareClassicPrngType.Weak)]
+    [InlineData(MifareClassicPrngType.Static)]
+    [InlineData(MifareClassicPrngType.Hard)]
+    public async Task Auto_StaticEncryptedWithoutSeedPrecedesDictionaryRegardlessOfPrng(MifareClassicPrngType prng)
     {
         var first = Convert.FromHexString("112233445566");
         var second = Convert.FromHexString("665544332211");
         byte[] CardKey(int sector, MfKeyType _) => sector switch { 4 => Key, < 2 => first, _ => second };
         var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
-        if (hasSeed) dump.KeyA[4] = Key;
         var engine = new AutoTestEngine([0x112233445566UL, 0x665544332211UL, 0xFFFFFFFFFFFFUL]);
         var transport = AutoTransport(prng, CardKey, backdoor: true);
         var reply = transport.Response!;
@@ -323,8 +318,8 @@ public partial class MifareWorkflowTests
         };
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
-        // A working factory key heads a large dictionary. It must not delay SEN even
-        // when it could open part of the card, or a seed already permits Nested.
+        // A working factory key heads a large dictionary. It must not delay SEN
+        // when there is no confirmed seed yet.
         var result = await new MifareKeyRecovery(new ChameleonClient(connection), new HardnestedEngine(), keyRecovery: engine)
             .RecoverAutomaticallyAsync(dump, new[] { Key }.Concat(DistinctKeys(200)).ToArray());
 
@@ -334,12 +329,7 @@ public partial class MifareWorkflowTests
         var capture = transport.Requests.FindIndex(r => r.Command == Command.Mf1EncNestedAcquire);
         var beforeCapture = transport.Requests.Take(capture).Where(r =>
             r.Command is Command.Mf1CheckKeysOfSectors or Command.Mf1AuthOneKeyBlock or Command.Mf1CheckKeysOnBlock);
-        if (!hasSeed) Assert.Empty(beforeCapture);
-        else Assert.All(beforeCapture, r =>
-        {
-            Assert.Equal(Command.Mf1CheckKeysOfSectors, r.Command);
-            Assert.Equal(Key, r.Data[10..]); // Only the key retained in the dump may be reused.
-        });
+        Assert.Empty(beforeCapture);
         Assert.All(engine.Operations, op => Assert.True(op is KeyRecoveryOperation.StaticEncryptedNested
             or KeyRecoveryOperation.FilterStaticEncrypted or KeyRecoveryOperation.MatchStaticEncrypted or KeyRecoveryOperation.OrderStaticEncrypted));
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire

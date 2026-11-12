@@ -16,9 +16,16 @@ public sealed partial class MifareKeyRecovery
     // Device I/O and confirmed-key persistence stay here; candidate preparation runs in the CPU engine.
     private async Task RecoverSenAsync(MifareDump dump, IReadOnlyList<byte[]> dictionary,
         MifareRecoverySession session, Action<int, MfKeyType, byte[]> store, IProgress<KeyRecoveryProgress>? progress,
-        Func<Task> spread, IReadOnlyList<ushort> capabilities, CancellationToken ct, bool manual = false)
+        Func<Task> spread, IReadOnlyList<ushort> capabilities, CancellationToken ct, bool manual = false,
+        Func<Task<bool>>? replanAfterSeed = null)
     {
         bool Complete() => dump.KeyA.Concat(dump.KeyB).All(k => k is not null);
+        var replanRequested = false;
+        async Task<bool> Replan()
+        {
+            if (!replanRequested && replanAfterSeed is not null) replanRequested = await replanAfterSeed();
+            return replanRequested;
+        }
         ulong? Known(int sector, MfKeyType type) => sector < dump.SectorCount
             ? (type == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is { } key ? KeyValue(key) : null
             : session.SenExtraKeys.GetValueOrDefault(type);
@@ -54,6 +61,9 @@ public sealed partial class MifareKeyRecovery
             }
             if (captured is null && !manual && capabilities.Contains((ushort)Command.Mf1EncNestedWithKey))
             {
+                // An ordinary seed already enables Static nested/Nested/HN. Do
+                // not turn their prerequisite into a full SEN candidate search.
+                if (await Replan()) return;
                 var seeds = Enumerable.Range(0, dump.SectorCount)
                     .SelectMany(s => new[] { (Sector: s, Type: MfKeyType.A, Key: dump.KeyA[s]), (Sector: s, Type: MfKeyType.B, Key: dump.KeyB[s]) })
                     .Where(p => p.Key is not null);
@@ -155,7 +165,7 @@ public sealed partial class MifareKeyRecovery
                     }
                     catch (ChameleonException ex) when (attempt < 1 && ex.Status is
                         Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts) { }
-                if (hit is not null) { await spread(); return true; }
+                if (hit is not null) { await spread(); await Replan(); return true; }
             }
             return false;
         }
@@ -180,9 +190,11 @@ public sealed partial class MifareKeyRecovery
                     }
                     await Check(s, type, matches);
                     session.SenDictionaries.Add((s, type, dictionaryId));
+                    if (Complete() || await Replan()) return;
                 }
 
         if (Complete()) return;
+        if (await Replan()) return;
 
         var planner = new SenRecoveryPlanner();
         foreach (var s in targets)
@@ -227,28 +239,47 @@ public sealed partial class MifareKeyRecovery
         foreach (var p in planner.Paths.Where(p => p.KnownKey is null)) session.SenCandidates[(p.Sector, p.Type)] = p.Keys;
         async Task CheckGlobal(IReadOnlyList<ulong> keys)
         {
-            if (keys.Count == 0) return;
-            var wanted = Enumerable.Range(0, dump.SectorCount)
-                .SelectMany(s => new[] { (s, MfKeyType.A), (s, MfKeyType.B) })
-                .Where(p => Known(p.s, p.Item2) is null).ToArray();
-            if (wanted.Length == 0) return;
-            var remaining = keys.Where(k => wanted.Any(p => !session.Rejected.Contains(
-                (MifareClassic.SectorFirstBlock(p.s), p.Item2, k)))).ToArray();
-            if (remaining.Length == 0) return;
-            if (capabilities.Contains((ushort)Command.Mf1CheckKeysOfSectors))
-                await client.CheckMifareKeysOfSectorsAsync(wanted, remaining.Select(KeyBytes).ToArray(),
-                    keysChecked: new SenBatchProgress(n => progress?.Report(new(Strings.Recovery_CheckStaticEnc)
-                        { Tried = n, Total = remaining.Length })),
-                    onFound: (p, key) => Store(p.Sector, p.Type, key), ct: ct, session: session);
-            else
-                foreach (var p in wanted)
-                    if (Known(p.s, p.Item2) is null) await Check(p.s, p.Item2, remaining);
-            await spread();
+            while (keys.Count > 0)
+            {
+                var wanted = Enumerable.Range(0, dump.SectorCount)
+                    .SelectMany(s => new[] { (Sector: s, Type: MfKeyType.A), (Sector: s, Type: MfKeyType.B) })
+                    .Where(p => Known(p.Sector, p.Type) is null).ToArray();
+                if (wanted.Length == 0) return;
+                var remaining = keys.Where(k => wanted.Any(p => !session.Rejected.Contains(
+                    (MifareClassic.SectorFirstBlock(p.Sector), p.Type, k)))).ToArray();
+                if (remaining.Length == 0) return;
+                var skipped = keys.Count - remaining.Length;
+                void Report(int n) => progress?.Report(new(Strings.Recovery_CheckStaticEnc,
+                    Detail: string.Format(Strings.Common_KeysTriedOf, skipped + n, keys.Count))
+                    { Tried = skipped + n, Total = keys.Count });
+                Report(0);
+                if (capabilities.Contains((ushort)Command.Mf1CheckKeysOfSectors))
+                {
+                    var found = await client.CheckMifareKeysOfSectorsAsync(wanted, remaining.Select(KeyBytes).ToArray(),
+                        keysChecked: new SenBatchProgress(Report),
+                        onFound: (p, key) => Store(p.Sector, p.Type, key), ct: ct, session: session,
+                        stopAfterFirstKey: replanAfterSeed is not null);
+                    await spread();
+                    if (Complete() || await Replan()) return;
+                    // Manual SEN completes its whole pass. Auto may stop a pass
+                    // after a hit; if no other family applies, continue its tail.
+                    if (replanAfterSeed is null || found.Count == 0) return;
+                }
+                else
+                {
+                    foreach (var p in wanted)
+                    {
+                        if (Known(p.Sector, p.Type) is null) await Check(p.Sector, p.Type, remaining);
+                        if (Complete() || replanRequested) return;
+                    }
+                    return;
+                }
+            }
         }
         await CheckGlobal(priority.Reuse);
-        if (Complete()) return;
+        if (Complete() || replanRequested) return;
         await CheckGlobal(priority.Duplicates);
-        if (Complete()) return;
+        if (Complete() || replanRequested) return;
 
         async Task Cascade()
         {
@@ -264,7 +295,7 @@ public sealed partial class MifareKeyRecovery
                 {
                     propagated.Add(key);
                     await CheckGlobal([key]);
-                    if (Complete()) return;
+                    if (Complete() || replanRequested) return;
                     foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null && p.Keys.Contains(key)).ToArray())
                         await Check(p.Sector, p.Type, [key]);
                 }
@@ -293,10 +324,14 @@ public sealed partial class MifareKeyRecovery
             ct.ThrowIfCancellationRequested();
             // The hidden sector helps recovery; reading a normal dump does not
             // require exhausting its keys after every visible key is confirmed.
-            if (Complete()) return;
+            if (Complete() || replanRequested) return;
             var best = planner.Next(session);
             if (best is null) break;
-            if (await Check(best.Sector, best.Type, best.Keys)) await Cascade();
+            if (await Check(best.Sector, best.Type, best.Keys))
+            {
+                if (replanRequested) return;
+                await Cascade();
+            }
             else session.SenExhausted.Add((best.Sector, best.Type));
         }
     }

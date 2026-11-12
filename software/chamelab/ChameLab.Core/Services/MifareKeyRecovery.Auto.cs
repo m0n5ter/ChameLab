@@ -76,30 +76,28 @@ public sealed partial class MifareKeyRecovery
         await Spread();
         if (Missing() == 0) return Finish();
         var capabilities = await client.GetCapabilitiesAsync(ct);
-        // SEN needs neither a seed nor a particular normal-authentication PRNG.
-        // Probe it before any dictionary search or PRNG-dependent attack, and keep
-        // using the confirmed capture while newly recovered keys are propagated.
-        if (capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
+        // Decide whether a confirmed seed opens another recovery family. SEN
+        // gets the first chance without a seed, then yields after key reuse.
+        async Task<MifareClassicPrngType> Prng()
         {
-            Choosing("Static encrypted nested");
-            await RecoverSenAsync(dump, keys, session, Store, progress, Spread, capabilities, ct);
-            if (Missing() == 0) return Finish();
+            if (session.Prng is not { } cached)
+            {
+                progress?.Report(new(Strings.Common_CheckingRecoveryMethods));
+                cached = await client.DetectNtLevelAsync(ct);
+                session.Prng = cached;
+                progress?.Report(new(Strings.Common_CheckingRecoveryMethods) { Prng = cached });
+            }
+            return cached;
         }
-        progress?.Report(new(Strings.Common_CheckingRecoveryMethods));
-        var prng = session.Prng ?? await client.DetectNtLevelAsync(ct);
-        session.Prng = prng;
-        progress?.Report(new(Strings.Common_CheckingRecoveryMethods) { Prng = prng });
-        var seededMethod = prng switch
+        MifareRecoveryMethod? Method(MifareClassicPrngType type) => type switch
         {
             MifareClassicPrngType.Weak => MifareRecoveryMethod.Nested,
             MifareClassicPrngType.Static => MifareRecoveryMethod.StaticNested,
             MifareClassicPrngType.Hard => MifareRecoveryMethod.Hardnested,
-            _ => (MifareRecoveryMethod?)null,
+            _ => null,
         };
-        // Old firmware may not return a capability list, but the original Nested commands
-        // predate that API. New recovery commands always require explicit advertisement.
         bool SupportsLegacy(Command command) => capabilities.Count == 0 || capabilities.Contains((ushort)command);
-        var canAttack = seededMethod switch
+        bool Supports(MifareRecoveryMethod? method) => method switch
         {
             MifareRecoveryMethod.Nested => SupportsLegacy(Command.Mf1NestedAcquire) && SupportsLegacy(Command.Mf1DetectNtDist),
             MifareRecoveryMethod.StaticNested => SupportsLegacy(Command.Mf1StaticNestedAcquire),
@@ -107,6 +105,21 @@ public sealed partial class MifareKeyRecovery
                 capabilities.Contains((ushort)Command.Mf1HardnestedAcquire),
             _ => false,
         };
+        async Task<bool> ReplanAfterSeed() => Missing() > 0 && HasSeed() && Supports(Method(await Prng()));
+
+        // SEN backdoors and local dictionary evidence precede dictionary guessing.
+        // A newly confirmed key is spread before returning to the family selector.
+        var hadSeedBeforeSen = HasSeed();
+        if (capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
+        {
+            Choosing("Static encrypted nested");
+            await RecoverSenAsync(dump, keys, session, Store, progress, Spread, capabilities, ct,
+                replanAfterSeed: ReplanAfterSeed);
+            if (Missing() == 0) return Finish();
+        }
+        var prng = await Prng();
+        var seededMethod = Method(prng);
+        var canAttack = Supports(seededMethod);
 
         if (!HasSeed() && prng == MifareClassicPrngType.Weak &&
             capabilities.Contains((ushort)Command.Mf1DarksideAcquire))
@@ -140,10 +153,6 @@ public sealed partial class MifareKeyRecovery
                 MifareRecoveryMethod.Hardnested => "Hardnested",
                 _ => "Nested",
             });
-            // A newly learned ordinary key can also unlock SEN without a known backdoor.
-            if (capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
-                await RecoverSenAsync(dump, keys, session, Store, progress, Spread, capabilities, ct);
-            if (Missing() == 0) return Finish();
             await RecoverCoreAsync(dump, seededMethod!.Value, progress, ct, spreadKeys: true, rejected, session);
             if (Missing() == 0) return Finish();
             if (seededMethod == MifareRecoveryMethod.Nested && session.NestedUnreliable &&
@@ -153,9 +162,20 @@ public sealed partial class MifareKeyRecovery
                 await RecoverCoreAsync(dump, MifareRecoveryMethod.Hardnested, progress, ct, spreadKeys: true, rejected, session);
                 if (Missing() == 0) return Finish();
             }
-            // SEN has already been tried. A failed seeded attack leaves only a
-            // dictionary fallback for the remaining unresolved A/B pairs.
             await Search(keys, seedOnly: false);
+            await Spread();
+            if (Missing() == 0) return Finish();
+        }
+        // Preserve SEN evidence/candidates when yielding. If the preferred seeded
+        // method did not finish, resume SEN rather than repeating its preparation.
+        // Without a new seed or a seeded attempt, the first SEN pass has already
+        // exhausted the available path; do not repeat failed capture calibration.
+        if (HasSeed() && (canAttack || !hadSeedBeforeSen) &&
+            capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
+        {
+            Choosing("Static encrypted nested");
+            await RecoverSenAsync(dump, keys, session, Store, progress, Spread, capabilities, ct);
+            if (Missing() == 0) return Finish();
         }
 
         return Finish(prng == MifareClassicPrngType.Hard && HasSeed() && !canAttack
