@@ -22,7 +22,8 @@ namespace ChameLab.Android
             var usb = new AndroidUsbCdcHost();
             AppServices.Register(new ITransportScanner[] { new UsbCdcScanner(usb), new BleScanner() },
                 dfu: new IDfuLocator[] { new UsbCdcDfuLocator(usb), new BleDfuLocator() },
-                feedback: new AndroidFeedbackPlayer(), hardnested: new ManagedHardnestedEngine());
+                feedback: new AndroidFeedbackPlayer(), hardnested: new ManagedHardnestedEngine(),
+                wakeLock: new WakeLockService(AndroidWakeLock.AcquireAsync));
             return base.CustomizeAppBuilder(builder)
             .WithInterFont()
             .UseReactiveUI(_ => { });

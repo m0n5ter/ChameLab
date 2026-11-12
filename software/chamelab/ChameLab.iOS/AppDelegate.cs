@@ -19,7 +19,8 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
         AppServices.Register(new ITransportScanner[] { new BleScanner() }, dfu: new IDfuLocator[] { new BleDfuLocator() },
-            feedback: new IosFeedbackPlayer(), hardnested: new ManagedHardnestedEngine());
+            feedback: new IosFeedbackPlayer(), hardnested: new ManagedHardnestedEngine(),
+            wakeLock: new WakeLockService(IosWakeLock.AcquireAsync));
         return base.CustomizeAppBuilder(builder)
             .WithInterFont()
             .UseReactiveUI(_ => { });

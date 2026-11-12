@@ -171,7 +171,7 @@ public sealed partial class ToolsViewModel
     private Task StartT55xxAsync()
     {
         if (IsBusy || IsT55xxRunning) return Task.CompletedTask;
-        _t55xxRun = RunAsync(async () =>
+        _t55xxRun = RunAwakeAsync(async () =>
         {
             var client = _device.Client ?? throw new InvalidOperationException(Strings.Common_ConnectFirst);
             // Either the one password the user knows, or every key from the chosen dictionaries.

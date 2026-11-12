@@ -142,7 +142,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             .Subscribe(_ => this.RaisePropertyChanged(nameof(WriteLfSettingsReady)));
         _isConnected = device.State == ConnectionState.Connected;
         WriteRecovery = new MifareKeyRecoveryViewModel(() => _device.Client, _dictionaries,
-            () => _slotInfos, SourceWriteKeys, work => RunAsync(work), cancelWrite: CancelWrite,
+            () => _slotInfos, SourceWriteKeys, work => RunAwakeAsync(work), cancelWrite: CancelWrite,
             targetCard: ResolveRecoveryTargetCard);
         WriteRecovery.SetGeneration(SelectedGeneration);
         WriteRecovery.WhenAnyValue(x => x.AllTargetKeysRecovered, x => x.AllPlannedSectorsWritten,
@@ -1686,7 +1686,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         catch (Exception e) when (e is not OperationCanceledException) { ScanFeedback.Missed(); throw; }
     }
 
-    private Task DumpAsync() => IsUltralightDump ? DumpUltralightAsync() : RunAsync(async () =>
+    private Task DumpAsync() => IsUltralightDump ? DumpUltralightAsync() : RunAwakeAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
@@ -1720,7 +1720,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
     });
 
-    private Task RecoverKeysAsync(MifareRecoveryMethod? method) => RunAsync(async () =>
+    private Task RecoverKeysAsync(MifareRecoveryMethod? method) => RunAwakeAsync(async () =>
     {
         var client = _device.Client;
         if (client is null || _classicDump is not { } dump) return;
@@ -1872,7 +1872,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
     }
 
-    private Task DumpUltralightAsync() => RunAsync(async () =>
+    private Task DumpUltralightAsync() => RunAwakeAsync(async () =>
     {
         var client = _device.Client;
         if (client is null) return;
@@ -3010,7 +3010,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Notify(string.Format(Strings.Cards_NowEmulated, card.Name, target.Index));
     });
 
-    private Task WriteAsync() => _writeTask = RunAsync(async () =>
+    private Task WriteAsync() => _writeTask = RunAwakeAsync(async () =>
     {
         var client = _device.Client;
         if (client is null || ActionCard() is not { } card) return;

@@ -22,7 +22,8 @@ internal sealed partial class Program
         var dfu = new List<IDfuLocator> { new WebSerialDfuLocator() };
         if (bluetooth) dfu.Add(new WebBluetoothDfuLocator());
         AppServices.Register(scanners, new LocalStorageStore(), dfu: dfu, feedback: new WebFeedbackPlayer(),
-            hardnested: new WebHardnestedEngine(), keyRecovery: new WebKeyRecoveryEngine());
+            hardnested: new WebHardnestedEngine(), keyRecovery: new WebKeyRecoveryEngine(),
+            wakeLock: new WakeLockService(WebWakeLock.AcquireAsync));
 
         return BuildAvaloniaApp()
             .WithInterFont()

@@ -99,7 +99,7 @@ public sealed partial class ToolsViewModel
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
-    private Task HfCaptureAsync() => RunAsync(async () =>
+    private Task HfCaptureAsync() => RunAwakeAsync(async () =>
     {
         var client = _device.Client ?? throw new InvalidOperationException(Strings.Tools_ConnectToCapture);
         var mode = await client.GetDeviceModeAsync();
@@ -202,6 +202,7 @@ public sealed partial class ToolsViewModel
 
     public ICommand HfRecoverAllCommand => field ??= ReactiveCommand.CreateFromTask(async () =>
     {
+        await using var wakeLock = await AppServices.WakeLock.AcquireAsync();
         foreach (var g in HfAuthGroups.Where(g => g is { CanRecover: true, Key: null }).ToList())
             await g.RecoverAsync();
     });
@@ -282,6 +283,7 @@ public sealed class HfAuthGroupViewModel : ViewModelBase
         Key = null;
         try
         {
+            await using var wakeLock = await AppServices.WakeLock.AcquireAsync();
             var found = await Task.Run(() => Mfkey32Recovery.Recover(_group));
             Key = found is { } f ? string.Join(' ', f.Key.ToString("X12").Chunk(2).Select(c => new string(c))) : null;
             Method = found?.Method;

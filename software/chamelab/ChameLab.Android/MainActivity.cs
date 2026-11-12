@@ -29,6 +29,7 @@ public class MainActivity : AvaloniaMainActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+        AndroidWakeLock.Window = Window;
         // Back on the start screen would only move the task to the background (Android 12+).
         PlatformExit.Quit = Finish;
         RequestBlePermissions();
@@ -38,6 +39,7 @@ public class MainActivity : AvaloniaMainActivity
     {
         // Only drop the hook if a newer activity hasn't already set its own.
         if (PlatformExit.Quit?.Target == this) PlatformExit.Quit = null;
+        if (ReferenceEquals(AndroidWakeLock.Window, Window)) AndroidWakeLock.Window = null;
         base.OnDestroy();
     }
 

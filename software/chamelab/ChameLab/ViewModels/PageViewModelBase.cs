@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using ChameLab.Services;
 using ReactiveUI;
 
 namespace ChameLab.ViewModels;
@@ -19,11 +20,13 @@ namespace ChameLab.ViewModels;
 public abstract class PageViewModelBase : ViewModelBase
 {
     private readonly Func<string> _title;
+    private readonly WakeLockService? _wakeLock;
 
     /// <param name="title">Reads the title, so it follows a change of UI language.</param>
-    protected PageViewModelBase(Func<string> title, string icon)
+    protected PageViewModelBase(Func<string> title, string icon, WakeLockService? wakeLock = null)
     {
         _title = title;
+        _wakeLock = wakeLock;
         Icon = icon;
         DismissErrorCommand = ReactiveCommand.Create(ClearError);
     }
@@ -116,6 +119,13 @@ public abstract class PageViewModelBase : ViewModelBase
     /// <summary>Runs device work; a failure goes under the page. Starting it clears an earlier failure.</summary>
     protected Task RunAsync(Func<Task> work, string? successMessage = null) =>
         RunAsync(work, successMessage, ReportError);
+
+    /// <summary>Runs a long operation with sleep inhibited through its cancellation cleanup.</summary>
+    protected Task RunAwakeAsync(Func<Task> work) => RunAsync(async () =>
+    {
+        await using var wakeLock = await (_wakeLock ?? AppServices.WakeLock).AcquireAsync();
+        await work();
+    });
 
     /// <summary>Like <see cref="RunAsync(Func{Task}, string?)"/>, for saving edits: a failure shows in the save bar.</summary>
     protected Task RunSaveAsync(Func<Task> work, string? successMessage = null)

@@ -175,6 +175,14 @@ containing the PRNG profile, confirmed rejections, calibration, captures and mea
 checking costs for the current connection. Radio errors do not reject keys. A new scan
 or connection starts a fresh session; confirmed keys remain in **Known card keys**.
 
+During attacks, dictionary searches, card reads/writes and sniff captures, ChameLab
+prevents automatic sleep and keeps the screen on. The protection ends when the last
+operation finishes, including cancellation cleanup and error handling. Android and
+iOS keep the screen awake while the app is in the foreground. Browsers use the
+Screen Wake Lock API where available and restore the lock when the tab becomes
+visible again during an active operation; browser or battery policies can deny it.
+Linux desktop builds use `systemd-inhibit` (systemd/logind); macOS uses `caffeinate`.
+
 ## Reusing recovered keys
 
 Nested, static nested, and hardnested first try the current card's known unique

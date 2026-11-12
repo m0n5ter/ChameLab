@@ -84,7 +84,7 @@ public sealed partial class CardsViewModel
     public string DumpStopLabel => IsMfkey32Done ? Strings.Common_Done : Strings.Common_Stop;
     public string DumpStopTip => IsMfkey32Done ? Strings.Cards_CloseMfkey32Result : Strings.Cards_StopKeepMemory;
 
-    private Task RunMfkey32Async() => RunAsync(async () =>
+    private Task RunMfkey32Async() => RunAwakeAsync(async () =>
     {
         if (_device.Client is not { } client || Form is not { } form) return;
         var card = form.Build();

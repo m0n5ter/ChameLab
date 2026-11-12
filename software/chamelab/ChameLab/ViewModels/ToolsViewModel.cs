@@ -163,7 +163,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
-    private Task CaptureAsync() => RunAsync(async () =>
+    private Task CaptureAsync() => RunAwakeAsync(async () =>
     {
         var client = _device.Client ?? throw new InvalidOperationException(Strings.Tools_ConnectToCapture);
         var mode = await client.GetDeviceModeAsync();
