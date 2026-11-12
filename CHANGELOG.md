@@ -9,6 +9,20 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.5.42][2026-11-12] · firmware v2.3.17-cl
+### Summary
+ - ChameLab: static encrypted nested MIFARE Classic recovery follows Proxmark3's candidate pipeline end to end and can recover the hidden FM11RF08S sector with firmware v2.3.17-cl
+ - ChameLab: sharing a device no longer drops when the computer would sleep, and stopping a share closes the relay link cleanly
+ - Firmware: static encrypted nonce captures authenticate each sector's first block, matching Proxmark3
+
+### Details
+ - ChameLab: static encrypted nested recovery, both manual and inside Auto, runs the full Proxmark3 candidate pipeline — it prepares the missing A and B lists, intersects their seed sets, orders paired seed buckets, prioritizes keys repeated across sectors and batch-checks global reuse candidates. It keeps every sector list for cross-sector ranking on all platforms instead of a bounded working set, confirms each inferred key by RF and shortens a key's paired list once confirmed. The cross-sector reuse pass checks up to 8000 keys and the duplicate-priority pass is skipped above 8000, matching Proxmark3
+ - ChameLab: static encrypted nested can recover the hidden FM11RF08S sector on Classic 1K cards. With firmware v2.3.17-cl the host makes a separate confirmed capture of sector 32 at block 128, and its recovered keys join reuse and pair reduction without adding a sector to the card dump; on older firmware or cards without it, a rejected optional capture leaves the normal-sector evidence intact
+ - ChameLab: sharing a device keeps the computer awake, so a share no longer drops when the machine sleeps or turns off the display; leaving or stopping a share no longer cancels the pending receive, so the relay closes the link cleanly and tells a normal stop from a dropped connection
+ - ChameLab: the computer is also kept awake during attacks and other long operations
+ - Firmware v2.3.17-cl: static encrypted nonce captures authenticate each sector's first block instead of its trailer, matching Proxmark3; the hidden FM11RF08S sector 32 is read at block 128, where earlier firmware addressed trailer 143
+ - Relay: raised the per-share memory limit from 64 to 128 MB to stop swapping under load, and it now logs how long each share and peer lasted and why it ended
+
 ## [v1.5.41][2026-11-12] · firmware v2.3.16-cl
 ### Summary
  - ChameLab: Auto recovers the keys of a MIFARE Classic card on its own: it tries every found key on the rest of the card and picks the attack that fits the card
