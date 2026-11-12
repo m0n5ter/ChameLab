@@ -411,8 +411,12 @@ static data_frame_tx_t *cmd_processor_mf1_enc_nested_acquire(uint16_t cmd, uint1
 
     payload_t *payload = (payload_t *)data;
 
+    if (payload->sector_count == 0 || payload->sector_count > 40 || payload->starting_sector >= payload->sector_count) {
+        return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    }
+
     uint64_t ui64Key = bytes_to_num(payload->key, 6);
-    uint8_t sector_data[40][sizeof(mf1_static_nonce_sector_t)];
+    uint8_t sector_data[40][sizeof(mf1_static_nonce_sector_t)] = {{0}};
     uint8_t sectors_acquired = 0;
     uint32_t cuid = 0;
 
@@ -420,7 +424,9 @@ static data_frame_tx_t *cmd_processor_mf1_enc_nested_acquire(uint16_t cmd, uint1
 
     uint8_t response_data[sizeof(uint32_t) + sectors_acquired * sizeof(mf1_static_nonce_sector_t)];
     num_to_bytes(cuid, 4, response_data);
-    memcpy(response_data + sizeof(uint32_t), sector_data, sectors_acquired * sizeof(mf1_static_nonce_sector_t));
+    // The collector indexes records by physical sector, not by response position.
+    // A request for sector 32 must not send the untouched sector-zero buffer.
+    memcpy(response_data + sizeof(uint32_t), sector_data[payload->starting_sector], sectors_acquired * sizeof(mf1_static_nonce_sector_t));
 
     return data_frame_make(cmd, status, sectors_acquired * sizeof(mf1_static_nonce_sector_t) + sizeof(uint32_t), response_data);
 }

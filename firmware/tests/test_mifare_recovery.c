@@ -4,7 +4,7 @@
 #include "mf1_crapto1.h"
 #include "parity.h"
 
-enum { STATUS_HF_TAG_OK, STATUS_HF_TAG_NO, STATUS_MF_ERR_AUTH, STATUS_HF_ERR_STAT, STATUS_HF_ERR_CRC };
+enum { STATUS_HF_TAG_OK, STATUS_HF_TAG_NO, STATUS_MF_ERR_AUTH, STATUS_HF_ERR_STAT, STATUS_HF_ERR_CRC, STATUS_PAR_ERR };
 enum { PICC_AUTHENT1A = 0x60, PICC_AUTHENT1B = 0x61 };
 static int tag;
 static int *p_tag_info = &tag;
@@ -90,6 +90,25 @@ static uint8_t send_cmd(struct Crypto1State *state, uint8_t nested, uint8_t type
 // The script extracts these functions verbatim from the production source.
 #include "recovery_under_test.c"
 
+typedef struct {
+    uint16_t command, status, length;
+    uint8_t data[4 + 40 * sizeof(mf1_static_nonce_sector_t)];
+} data_frame_tx_t;
+static data_frame_tx_t response_frame;
+static data_frame_tx_t *data_frame_make(uint16_t cmd, uint16_t status, uint16_t length, const uint8_t *data) {
+    assert(length <= sizeof(response_frame.data));
+    memset(&response_frame, 0, sizeof(response_frame));
+    response_frame.command = cmd;
+    response_frame.status = status;
+    response_frame.length = length;
+    if (length) memcpy(response_frame.data, data, length);
+    return &response_frame;
+}
+
+// Include the production command handlers as well: collection alone does not
+// exercise the response slicing that used to replace sector 32 with sector 0.
+#include "sen_commands_under_test.c"
+
 static void collect(unsigned first, unsigned count) {
     start_sector = first;
     sends = auth_calls = 0;
@@ -166,6 +185,58 @@ static void collect_backdoor(unsigned first, unsigned count) {
     backdoor_mode = false;
 }
 
+static void check_range_response(const data_frame_tx_t *response, unsigned first, unsigned count, unsigned nonce_offset) {
+    assert(response->status == STATUS_HF_TAG_OK);
+    assert(response->length == 4 + (count - first) * sizeof(mf1_static_nonce_sector_t));
+    assert(bytes_to_num(response->data, 4) == uid);
+    for (unsigned sector = first; sector < count; sector++)
+        for (unsigned type = 0; type < 2; type++) {
+            unsigned index = nonce_offset + (sector - first) * 2 + type;
+            uint32_t nt = prng_successor(base_nonce, index * 13);
+            const uint8_t *record = response->data + 4 + (sector - first) * sizeof(mf1_static_nonce_sector_t) + type * 7;
+            assert(bytes_to_num(record, 2) == (nt >> 16));
+            struct Crypto1State cipher;
+            crypto1_init(&cipher, target_key);
+            assert(bytes_to_num(record + 3, 4) == (nt ^ crypto1_word(&cipher, uid ^ nt, 0)));
+        }
+}
+
+static void command_range(unsigned first, unsigned count) {
+    uint8_t payload[10] = {0};
+    num_to_bytes(known_key, 6, payload);
+    payload[6] = count;
+    payload[7] = first;
+    payload[8] = 19;
+    payload[9] = PICC_AUTHENT1A;
+    start_sector = first;
+    sends = auth_calls = 0;
+    check_mode = false;
+    backdoor_mode = true;
+    auth_status = STATUS_HF_TAG_OK;
+    const data_frame_tx_t *response = cmd_processor_mf1_enc_nested_acquire(2014, 0, 8, payload);
+    assert(response->command == 2014 && sends == 4 * (count - first));
+    check_range_response(response, first, count, 0);
+    sends = auth_calls = 0;
+    backdoor_mode = false;
+    response = cmd_processor_mf1_enc_nested_with_key(2023, 0, 10, payload);
+    assert(response->command == 2023 && sends == 1 + 2 * (count - first));
+    check_range_response(response, first, count, 1);
+}
+
+static void invalid_ranges(void) {
+    uint8_t payload[8] = {0};
+    const unsigned ranges[][2] = {{0,0}, {0,41}, {32,32}, {33,32}, {255,40}};
+    sends = auth_calls = 0;
+    for (unsigned i = 0; i < sizeof(ranges) / sizeof(ranges[0]); i++) {
+        payload[7] = ranges[i][0];
+        payload[6] = ranges[i][1];
+        const data_frame_tx_t *response = cmd_processor_mf1_enc_nested_acquire(2014, 0, 8, payload);
+        assert(response->status == STATUS_PAR_ERR && response->length == 0);
+    }
+    assert(cmd_processor_mf1_enc_nested_acquire(2014, 0, 7, payload)->status == STATUS_PAR_ERR);
+    assert(sends == 0 && auth_calls == 0);
+}
+
 int main(void) {
     collect(0, 5);
     collect(0, 40);
@@ -179,7 +250,12 @@ int main(void) {
     collect_backdoor(0, 16);
     collect_backdoor(32, 33); // FM11RF08S hidden sector must use block 128, not 143.
     collect_backdoor(32, 40); // Preserve actual 4K sector geometry as well.
+    command_range(0, 16);
+    command_range(1, 3);
+    command_range(32, 33); // Actual wire reply for the RF08S hidden sector.
+    command_range(32, 40);
+    invalid_ranges();
     batch_checks();
-    puts("MIFARE recovery: nonce rewind, 4K geometry, zero B and RF errors passed.");
+    puts("MIFARE recovery: nonce rewind, 4K geometry, sector-range wire replies, invalid ranges, zero B and RF errors passed.");
     return 0;
 }

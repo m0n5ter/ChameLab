@@ -88,7 +88,14 @@ Its B candidates use ascending key order, and its recovered keys participate in
 reuse and pair reduction without creating a sector outside the normal card dump.
 On older firmware or cards without this extra sector, a rejected optional capture
 does not invalidate the normal-sector evidence. Full FM11RF08S collection requires
-2.3.17-cl: earlier versions addressed trailer 143 instead of block 128.
+2.3.19-cl. Versions before 2.3.17 addressed trailer 143 instead of block 128;
+2.3.17/2.3.18 collected block 128 correctly but command 2014 copied the reply from
+`sector_data[0]` rather than `sector_data[starting_sector]`. A separate hidden-sector
+request could therefore contain stale sector-zero evidence even across two
+matching replies. Firmware 2.3.19 fixes the reply slice, initializes the buffer,
+and rejects invalid sector ranges before touching the reader.
+The host skips optional hidden-sector range captures on identified firmware older
+than 2.3.19 rather than accepting those replies as genuine sector-32 evidence.
 
 The fallback follows the normal-key branch of Proxmark3's
 [`MifareAcquireStaticEncryptedNonces`](https://github.com/RfidResearchGroup/proxmark3/blob/c7b80e1bc89ed03983832f93b1d2b5f980c8bc9b/armsrc/mifarecmd.c#L1290)
@@ -99,5 +106,9 @@ still require hardware validation.
 Run the firmware's synthetic RF peer with `python3 firmware/tests/test_mifare_recovery.py`
 (GCC required). It executes the production collection and checking loops with
 the firmware's Crypto1/PRNG code, covering nonce rewind, all 40 sectors, partial
-sector ranges, readable zero B and error propagation. The browser worker harness
+sector ranges, readable zero B and error propagation. It also executes the actual
+2014/2023 command handlers and checks the UID, response length, A/B nonce and
+ciphertext for ranges `0..15`, `1..2`, sector 32 and `32..39`. Add
+`--check-range-regression` to verify that restoring the old sector-zero copy makes
+the protocol test fail. The browser worker harness
 also checks the offline dictionary operation against reference SEN candidates.

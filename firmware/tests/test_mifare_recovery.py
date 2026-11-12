@@ -6,6 +6,7 @@ come from the firmware. This does not validate physical RF timing.
 """
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 
@@ -24,6 +25,7 @@ def main():
     firmware = Path(__file__).resolve().parents[1]
     src = firmware / "application/src/rfid"
     toolbox = (src / "reader/hf/mf1_toolbox.c").read_text()
+    commands = (firmware / "application/src/app_cmd.c").read_text()
     signatures = ["static void nonce_distance(", "static bool check_lfsr_prng(",
                   "uint16_t mf1_toolbox_check_keys_of_sectors(",
                   "uint8_t mf1_static_encrypted_nonces_acquire(",
@@ -35,13 +37,29 @@ def main():
         (temp / "netdata.h").write_text("#pragma once\n#define PACKED __attribute__((packed))\n")
         (temp / "cmsis_gcc.h").write_text("#pragma once\n#define __REV(x) __builtin_bswap32(x)\n")
         (temp / "recovery_under_test.c").write_text("\n\n".join(function(toolbox, s) for s in signatures))
+        (temp / "sen_commands_under_test.c").write_text("\n\n".join(function(commands, s) for s in [
+            "static data_frame_tx_t *cmd_processor_mf1_enc_nested_acquire(",
+            "static data_frame_tx_t *cmd_processor_mf1_enc_nested_with_key("]))
         binary = temp / "test-mifare-recovery"
-        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter",
+        build = ["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter",
                         "-Wno-old-style-declaration", "-O2",
                         f"-I{temp}", f"-I{src}", f"-I{src / 'reader/hf'}",
                         str(firmware / "tests/test_mifare_recovery.c"),
-                        str(src / "mf1_crapto1.c"), str(src / "parity.c"), "-o", str(binary)], check=True)
+                        str(src / "mf1_crapto1.c"), str(src / "parity.c"), "-o", str(binary)]
+        subprocess.run(build, check=True)
         subprocess.run([str(binary)], check=True)
+        if "--check-range-regression" in sys.argv:
+            # Prove that the wire-level test detects the former sector-zero copy.
+            generated = temp / "sen_commands_under_test.c"
+            correct = generated.read_text()
+            broken = correct.replace("sector_data[payload->starting_sector],", "sector_data,")
+            assert broken != correct
+            generated.write_text(broken)
+            subprocess.run(build, check=True)
+            failed = subprocess.run([str(binary)], capture_output=True)
+            assert failed.returncode != 0 and b"check_range_response" in failed.stderr, failed.stderr
+            generated.write_text(correct)
+            print("Regression control: the old sector-zero reply copy fails the wire-level test.")
         (temp / "darkside_under_test.c").write_text("\n\n".join(function(toolbox, s) for s in [
             "static bool darkside_expired(", "static uint8_t darkside_select_nonces(",
             "uint8_t darkside_recover_key("]))

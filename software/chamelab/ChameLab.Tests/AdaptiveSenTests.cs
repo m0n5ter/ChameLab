@@ -14,15 +14,22 @@ namespace ChameLab.Tests;
 public partial class MifareWorkflowTests
 {
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task AdaptiveSen_OptionalHiddenCaptureDoesNotChangeDumpSizeOrDelayCompletedNormalCard(bool hiddenSupported)
+    [InlineData(true, "v2.3.19-cl", 2)]
+    [InlineData(false, "v2.3.19-cl", 1)]
+    [InlineData(true, "v2.3.18-cl-dirty", 0)]
+    [InlineData(true, "v2.3.17-cl", 0)]
+    [InlineData(true, "v2.3.16-cl", 0)]
+    [InlineData(true, "v2.3.20-cl", 2)]
+    [InlineData(true, "unversioned", 2)]
+    public async Task AdaptiveSen_OptionalHiddenCaptureDoesNotChangeDumpSizeOrDelayCompletedNormalCard(
+        bool hiddenSupported, string firmware, int expectedRangeCaptures)
     {
         var key = Convert.FromHexString("112233445566");
         var transport = AutoTransport(MifareClassicPrngType.Weak, (_, _) => key, backdoor: true);
         var reply = transport.Response!;
         transport.Response = r => r.Command switch
         {
+            Command.GetGitVersion => (Status.Success, System.Text.Encoding.UTF8.GetBytes(firmware)),
             Command.Mf1EncNestedAcquire when r.Data[7] == 32 => hiddenSupported
                 ? (Status.HfTagOk, AutoEncryptedCapture(1)) : (Status.MfErrAuth, Array.Empty<byte>()),
             Command.Mf1EncNestedAcquire => (Status.HfTagOk, AutoEncryptedCapture(16)),
@@ -36,7 +43,7 @@ public partial class MifareWorkflowTests
             .RecoverAutomaticallyAsync(dump, [], useKnownUidKeys: false)).Complete);
         Assert.Equal(16, dump.KeyA.Length);
         Assert.All(dump.KeyA.Concat(dump.KeyB), k => Assert.Equal(key, k));
-        Assert.Equal(hiddenSupported ? 2 : 1, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire && r.Data[7] == 32));
+        Assert.Equal(expectedRangeCaptures, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire && r.Data[7] == 32));
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
         Assert.Empty(MifareRecoverySession.For(dump, client).SenExtraKeys);
     }

@@ -109,7 +109,7 @@ public sealed partial class MifareKeyRecovery
             // FM11RF08S has an additional sector 32 at block 128. Older firmware
             // addressed trailer 143 instead; failure of this optional capture must
             // not discard the independently confirmed normal-sector evidence.
-            if (dump.Type == MifareClassicType.Classic1K && acceptedBackdoor is not null)
+            if (dump.Type == MifareClassicType.Classic1K && acceptedBackdoor is not null && !await HasBrokenSenRangeReplyAsync(ct))
             {
                 try
                 {
@@ -304,5 +304,15 @@ public sealed partial class MifareKeyRecovery
     private sealed class SenBatchProgress(Action<int> report) : IProgress<int>
     {
         public void Report(int value) => report(value);
+    }
+
+    private async Task<bool> HasBrokenSenRangeReplyAsync(CancellationToken ct)
+    {
+        try
+        {
+            return FirmwareVersion.TryParse(await client.GetGitVersionAsync(ct), out var version) &&
+                version < new FirmwareVersion(2, 3, 19, 0);
+        }
+        catch (ChameleonException) { return false; } // Unversioned/legacy firmware may still support ranges.
     }
 }
