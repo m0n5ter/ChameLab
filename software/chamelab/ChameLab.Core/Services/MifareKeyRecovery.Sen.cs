@@ -12,15 +12,26 @@ namespace ChameLab.Services;
 
 public sealed partial class MifareKeyRecovery
 {
-    private async Task RecoverSenAdaptiveAsync(MifareDump dump, IReadOnlyList<byte[]> dictionary,
+    // SEN follows Proxmark3 cmdhfmfsen.c at c7b80e1bc89ed03983832f93b1d2b5f980c8bc9b (GPLv3).
+    // Device I/O and confirmed-key persistence stay here; candidate preparation runs in the CPU engine.
+    private async Task RecoverSenAsync(MifareDump dump, IReadOnlyList<byte[]> dictionary,
         MifareRecoverySession session, Action<int, MfKeyType, byte[]> store, IProgress<KeyRecoveryProgress>? progress,
-        Func<Task> spread, IReadOnlyList<ushort> capabilities, CancellationToken ct)
+        Func<Task> spread, IReadOnlyList<ushort> capabilities, CancellationToken ct, bool manual = false)
     {
-        bool Known(int sector, MfKeyType type) => (type == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is not null;
+        bool Complete() => dump.KeyA.Concat(dump.KeyB).All(k => k is not null);
+        ulong? Known(int sector, MfKeyType type) => sector < dump.SectorCount
+            ? (type == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is { } key ? KeyValue(key) : null
+            : session.SenExtraKeys.GetValueOrDefault(type);
+        void Store(int sector, MfKeyType type, byte[] key)
+        {
+            if (sector < dump.SectorCount) store(sector, type, key);
+            else session.SenExtraKeys[type] = KeyValue(key);
+        }
         if (session.SenCapture is null)
         {
             Func<Task<(uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)>>? collect = null;
             (int Sector, MfKeyType Type, byte[] Key)? normalSeed = null;
+            byte[]? acceptedBackdoor = null;
             (uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)? captured = null;
             if (!session.BackdoorsChecked && capabilities.Contains((ushort)Command.Mf1EncNestedAcquire))
             {
@@ -33,6 +44,7 @@ public sealed partial class MifareKeyRecovery
                     {
                         collect = () => client.GetStaticEncryptedNestedNoncesAsync(backdoor, dump.SectorCount, ct);
                         captured = await collect();
+                        acceptedBackdoor = backdoor;
                         break;
                     }
                     catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth)
@@ -40,14 +52,14 @@ public sealed partial class MifareKeyRecovery
                 }
                 session.BackdoorsChecked = true;
             }
-            if (captured is null && capabilities.Contains((ushort)Command.Mf1EncNestedWithKey))
+            if (captured is null && !manual && capabilities.Contains((ushort)Command.Mf1EncNestedWithKey))
             {
                 var seeds = Enumerable.Range(0, dump.SectorCount)
                     .SelectMany(s => new[] { (Sector: s, Type: MfKeyType.A, Key: dump.KeyA[s]), (Sector: s, Type: MfKeyType.B, Key: dump.KeyB[s]) })
                     .Where(p => p.Key is not null);
                 foreach (var seed in seeds)
                 {
-                    var block = MifareClassic.SectorTrailerBlock(seed.Sector);
+                    var block = MifareClassic.SectorFirstBlock(seed.Sector);
                     var id = (block, seed.Type, KeyValue(seed.Key!));
                     if (session.NormalSenSeedsChecked.Contains(id)) continue;
                     progress?.Report(new(Strings.Recovery_CollectingStaticEnc));
@@ -61,12 +73,14 @@ public sealed partial class MifareKeyRecovery
                     }
                     catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth)
                     { session.NormalSenSeedsChecked.Add(id); collect = null; }
-                    // A calibration failure is inconclusive. Do not try the same timing
-                    // experiment on every known sector or remember it as a rejected key.
                     catch (ChameleonException ex) when (ex.Status == Status.HfErrStat) { return; }
                 }
             }
-            if (captured is not { } data || collect is null) return;
+            if (captured is not { } data || collect is null)
+            {
+                if (manual) throw new InvalidOperationException(Strings.Recovery_NoBackdoorAccepted);
+                return;
+            }
             async Task VerifyCard()
             {
                 var tags = await client.Hf14aScanAsync(ct);
@@ -82,16 +96,38 @@ public sealed partial class MifareKeyRecovery
             {
                 var pair = data.Sectors[proof.Sector];
                 var nonce = proof.Type == MfKeyType.A ? pair.A : pair.B;
-                // Repeated timing errors can also be stable. The inferred nonce
-                // must explain the key used to calibrate this capture.
                 if (!StaticEncryptedNestedRecovery.Matches(data.Uid, nonce, KeyValue(proof.Key))) return;
             }
             for (var s = 0; s < dump.SectorCount; s++)
-                if ((!Known(s, MfKeyType.A) && data.Sectors[s].A != confirmation.Sectors[s].A) ||
-                    (!Known(s, MfKeyType.B) && data.Sectors[s].B != confirmation.Sectors[s].B)) return;
-            session.SenCapture = new(data.Uid, data.Sectors);
+                if ((Known(s, MfKeyType.A) is null && data.Sectors[s].A != confirmation.Sectors[s].A) ||
+                    (Known(s, MfKeyType.B) is null && data.Sectors[s].B != confirmation.Sectors[s].B))
+                {
+                    if (manual) throw new InvalidOperationException(Strings.Recovery_StaticEncNotStatic);
+                    return;
+                }
+            (NestedNonce A, NestedNonce B)? extra = null;
+            // FM11RF08S has an additional sector 32 at block 128. Older firmware
+            // addressed trailer 143 instead; failure of this optional capture must
+            // not discard the independently confirmed normal-sector evidence.
+            if (dump.Type == MifareClassicType.Classic1K && acceptedBackdoor is not null)
+            {
+                try
+                {
+                    var first = await client.GetStaticEncryptedNestedNoncesAsync(acceptedBackdoor, 33, ct, startingSector: 32);
+                    var second = await client.GetStaticEncryptedNestedNoncesAsync(acceptedBackdoor, 33, ct, startingSector: 32);
+                    await VerifyCard();
+                    if (first.Uid != data.Uid || second.Uid != data.Uid)
+                        throw new InvalidOperationException(Strings.Recovery_CardRemoved);
+                    if (first.Sectors[0] == second.Sectors[0]) extra = first.Sectors[0];
+                }
+                catch (ChameleonException ex) when (ex.Status is Status.MfErrAuth or Status.HfErrStat) { }
+            }
+            session.SenCapture = new(data.Uid, data.Sectors) { Extra = extra };
         }
         var capture = session.SenCapture;
+        var targets = Enumerable.Range(0, dump.SectorCount).Concat(capture.Extra is null ? [] : new[] { 32 }).ToArray();
+        (NestedNonce A, NestedNonce B) Pair(int sector) => sector == 32 && capture.Extra is { } extra ? extra : capture.Sectors[sector];
+        NestedNonce Nonce(int sector, MfKeyType type) => type == MfKeyType.A ? Pair(sector).A : Pair(sector).B;
         var values = dictionary.Where(k => k.Length == 6).Select(KeyValue).Distinct().ToArray();
         using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         foreach (var value in values) digest.AppendData(KeyBytes(value));
@@ -100,45 +136,43 @@ public sealed partial class MifareKeyRecovery
 
         async Task<bool> Check(int sector, MfKeyType type, IReadOnlyList<ulong> candidates)
         {
-            var block = MifareClassic.SectorTrailerBlock(sector);
+            var block = MifareClassic.SectorFirstBlock(sector);
             var remaining = candidates.Where(k => !session.Rejected.Contains((block, type, k))).ToArray();
             for (var i = 0; i < remaining.Length; i += 64)
             {
                 ct.ThrowIfCancellationRequested();
                 progress?.Report(new(Strings.Recovery_CheckStaticEnc, sector, type, KeyMark.Checking,
-                    Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + 64, remaining.Length), remaining.Length)));
+                    Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + 64, remaining.Length), remaining.Length))
+                    { Tried = i, Total = remaining.Length });
                 var keys = remaining.Skip(i).Take(64).Select(KeyBytes).ToArray();
-                byte[]? hit = null;
+                byte[]? hit;
                 for (var attempt = 0; ; attempt++)
                     try
                     {
                         hit = await client.CheckMifareKeysOnBlockAsync(block, type, keys, ct, session,
-                            key => store(sector, type, key));
+                            key => Store(sector, type, key));
                         break;
                     }
                     catch (ChameleonException ex) when (attempt < 1 && ex.Status is
-                        Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts)
-                    { /* RF failures say nothing about these candidates. Retry once. */ }
+                        Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts) { }
                 if (hit is not null) { await spread(); return true; }
             }
             return false;
         }
 
-        // Local evidence checks are CPU work in the same engine/worker as recovery.
-        // Only matching keys cross the radio link, and each still needs authentication.
+        // Only the user's selected dictionary is used; manual SEN supplies none.
         if (values.Length > 0)
-            for (var s = 0; s < dump.SectorCount; s++)
+            foreach (var s in targets)
                 foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
                 {
-                    if (Known(s, type) || session.SenDictionaries.Contains((s, type, dictionaryId))) continue;
-                    var nonce = type == MfKeyType.A ? capture.Sectors[s].A : capture.Sectors[s].B;
+                    if (Known(s, type) is not null || session.SenDictionaries.Contains((s, type, dictionaryId))) continue;
+                    var nonce = Nonce(s, type);
                     if (!matchesByNonce.TryGetValue(nonce, out var matches))
                     {
                         var found = new List<ulong>();
                         for (var i = 0; i < values.Length; i += 4096)
                         {
-                            progress?.Report(new(Strings.Common_CheckingDictKeys, s, type, KeyMark.Checking)
-                                { Tried = i, Total = values.Length });
+                            progress?.Report(new(Strings.Common_CheckingDictKeys, s, type, KeyMark.Checking) { Tried = i, Total = values.Length });
                             found.AddRange(await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.MatchStaticEncrypted)
                                 { Uid = capture.Uid, Nonces = [nonce], Keys = values.Skip(i).Take(4096).ToArray() }, ct));
                         }
@@ -148,84 +182,127 @@ public sealed partial class MifareKeyRecovery
                     session.SenDictionaries.Add((s, type, dictionaryId));
                 }
 
+        if (Complete()) return;
+
         var planner = new SenRecoveryPlanner();
-        async Task Reprioritize()
+        foreach (var s in targets)
         {
-            foreach (var path in planner.Paths.ToArray())
+            foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
             {
-                if (Known(path.Sector, path.Type)) { planner.Remove(path.Sector, path.Type); session.SenCandidates.Remove((path.Sector, path.Type)); continue; }
-                var otherType = path.Type == MfKeyType.A ? MfKeyType.B : MfKeyType.A;
-                var otherKnown = (otherType == MfKeyType.A ? dump.KeyA : dump.KeyB)[path.Sector];
-                var otherNonce = otherType == MfKeyType.A ? capture.Sectors[path.Sector].A : capture.Sectors[path.Sector].B;
-                var other = otherKnown is not null ? new[] { KeyValue(otherKnown) }
-                    : planner.Paths.FirstOrDefault(p => p.Sector == path.Sector && p.Type == otherType)?.Keys.ToArray() ?? [];
-                var all = planner.Prioritize(path).Where(k => !session.Rejected.Contains((MifareClassic.SectorTrailerBlock(path.Sector), path.Type, k))).ToArray();
-                IReadOnlyList<ulong> preferred = [];
-                if (other.Length > 0 && otherNonce.Nt != path.Nonce.Nt)
-                    preferred = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.FilterStaticEncrypted)
-                        { Nonces = [path.Nonce, otherNonce], Keys = all, OtherKeys = other }, ct);
-                else if (otherKnown is not null && all.Contains(KeyValue(otherKnown))) preferred = [KeyValue(otherKnown)];
-                var order = preferred.Concat(all.Except(preferred)).ToArray();
-                // Keep all evidence-valid candidates: compatible backdoored chips need
-                // not share the RF08S seed relationship used for prioritization.
-                var updated = path with { Keys = order, PreferredCount = preferred.Count,
-                    CascadeBenefit = 1 + (other.Length > 0 ? 1 : 0) + planner.Paths.Count(p => p != path && p.Keys.Intersect(order.Take(64)).Any()) };
-                planner.Add(updated);
-                session.SenCandidates[(path.Sector, path.Type)] = order;
+                ct.ThrowIfCancellationRequested();
+                var nonce = Nonce(s, type);
+                IReadOnlyList<ulong> keys = [];
+                if (Known(s, type) is null && !session.SenExhausted.Contains((s, type)))
+                {
+                    if (!session.SenCandidates.TryGetValue((s, type), out keys!))
+                    {
+                        progress?.Report(new(Strings.Recovery_CalcStaticEnc, s, type, KeyMark.Checking));
+                        keys = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.StaticEncryptedNested)
+                            { Uid = capture.Uid, Nonces = [nonce] }, ct);
+                        session.SenCandidates[(s, type)] = keys;
+                    }
+                }
+                planner.Add(new(s, type, nonce, keys) { KnownKey = Known(s, type) });
+            }
+            var a = planner.Get(s, MfKeyType.A)!;
+            var b = planner.Get(s, MfKeyType.B)!;
+            if (a.KnownKey is null && b.KnownKey is null && !session.SenPrepared.Contains(s))
+            {
+                var orderedA = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.OrderStaticEncrypted)
+                    { Nonces = [a.Nonce, b.Nonce], Keys = a.Keys.ToArray(), OtherKeys = b.Keys.ToArray(), PreferredKeys = values }, ct);
+                var orderedB = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.OrderStaticEncrypted)
+                    { Nonces = [b.Nonce, a.Nonce], Keys = b.Keys.ToArray(), OtherKeys = a.Keys.ToArray(), PreferredKeys = values }, ct);
+                if (s == 32) orderedB = orderedB.Order().ToArray(); // fm11_prioritize_0000_prefix
+                planner.ReplaceKeys(a, orderedA);
+                planner.ReplaceKeys(b, orderedB);
+                session.SenCandidates[(s, MfKeyType.A)] = orderedA;
+                session.SenCandidates[(s, MfKeyType.B)] = orderedB;
+                session.SenPrepared.Add(s);
             }
         }
 
-        foreach (var cached in session.SenCandidates.ToArray())
+        // All lists participate, including later sectors and the hidden sector.
+        var propagated = planner.Paths.Where(p => p.KnownKey is not null).Select(p => p.KnownKey!.Value).ToHashSet();
+        var priority = planner.PrioritizeGlobal();
+        foreach (var p in planner.Paths.Where(p => p.KnownKey is null)) session.SenCandidates[(p.Sector, p.Type)] = p.Keys;
+        async Task CheckGlobal(IReadOnlyList<ulong> keys)
         {
-            if (!planner.HasRoom) break;
-            var (s, type) = cached.Key;
-            if (Known(s, type)) { session.SenCandidates.Remove(cached.Key); continue; }
-            planner.Add(new(s, type, type == MfKeyType.A ? capture.Sectors[s].A : capture.Sectors[s].B, cached.Value));
+            if (keys.Count == 0) return;
+            var wanted = Enumerable.Range(0, dump.SectorCount)
+                .SelectMany(s => new[] { (s, MfKeyType.A), (s, MfKeyType.B) })
+                .Where(p => Known(p.s, p.Item2) is null).ToArray();
+            if (wanted.Length == 0) return;
+            var remaining = keys.Where(k => wanted.Any(p => !session.Rejected.Contains(
+                (MifareClassic.SectorFirstBlock(p.s), p.Item2, k)))).ToArray();
+            if (remaining.Length == 0) return;
+            if (capabilities.Contains((ushort)Command.Mf1CheckKeysOfSectors))
+                await client.CheckMifareKeysOfSectorsAsync(wanted, remaining.Select(KeyBytes).ToArray(),
+                    keysChecked: new SenBatchProgress(n => progress?.Report(new(Strings.Recovery_CheckStaticEnc)
+                        { Tried = n, Total = remaining.Length })),
+                    onFound: (p, key) => Store(p.Sector, p.Type, key), ct: ct, session: session);
+            else
+                foreach (var p in wanted)
+                    if (Known(p.s, p.Item2) is null) await Check(p.s, p.Item2, remaining);
+            await spread();
         }
+        await CheckGlobal(priority.Reuse);
+        if (Complete()) return;
+        await CheckGlobal(priority.Duplicates);
+        if (Complete()) return;
+
+        async Task Cascade()
+        {
+            // RF-confirm every inferred/reused key, including hidden-sector keys.
+            // A seed reduction narrows the paired list; it never confirms a key by itself.
+            while (true)
+            {
+                planner.UpdateKnown(Known);
+                var known = planner.Paths.Where(p => p.KnownKey is not null).Select(p => p.KnownKey!.Value)
+                    .Distinct().Where(k => !propagated.Contains(k)).ToArray();
+                if (known.Length == 0) break;
+                foreach (var key in known)
+                {
+                    propagated.Add(key);
+                    await CheckGlobal([key]);
+                    if (Complete()) return;
+                    foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null && p.Keys.Contains(key)).ToArray())
+                        await Check(p.Sector, p.Type, [key]);
+                }
+            }
+            planner.UpdateKnown(Known);
+            foreach (var p in planner.Paths.Where(p => p.KnownKey is null).ToArray())
+            {
+                var other = planner.Get(p.Sector, p.Type == MfKeyType.A ? MfKeyType.B : MfKeyType.A)!;
+                if (other.KnownKey is not { } key) continue;
+                IReadOnlyList<ulong> reduced;
+                if (p.Nonce.Nt != other.Nonce.Nt)
+                {
+                    reduced = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.FilterStaticEncrypted)
+                        { Nonces = [p.Nonce, other.Nonce], Keys = p.Keys.ToArray(), OtherKeys = [key] }, ct);
+                    // PM3 leaves the list intact if the known seed has no matches.
+                    if (reduced.Count == 0) continue;
+                }
+                else reduced = p.Keys.OrderByDescending(k => k == key).ToArray();
+                planner.ReplaceKeys(p, reduced);
+                session.SenCandidates[(p.Sector, p.Type)] = reduced;
+            }
+        }
+        await Cascade();
         while (true)
         {
             ct.ThrowIfCancellationRequested();
-            var prepared = false;
-            for (var s = 0; s < dump.SectorCount && planner.HasRoom; s++)
-                foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
-                {
-                    if (!planner.HasRoom) break;
-                    if (Known(s, type) || planner.Contains(s, type) || session.SenExhausted.Contains((s, type))) continue;
-                    var nonce = type == MfKeyType.A ? capture.Sectors[s].A : capture.Sectors[s].B;
-                    progress?.Report(new(Strings.Recovery_CalcStaticEnc, s, type, KeyMark.Checking));
-                    var candidates = planner.Paths.FirstOrDefault(p => p.Nonce == nonce)?.Keys
-                        ?? await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.StaticEncryptedNested)
-                            { Uid = capture.Uid, Nonces = [nonce] }, ct);
-                    planner.Add(new(s, type, nonce, candidates));
-                    session.SenCandidates[(s, type)] = candidates;
-                    prepared = true;
-                }
-            if (prepared) await Reprioritize();
-            var best = planner.Next(dump, session);
+            // The hidden sector helps recovery; reading a normal dump does not
+            // require exhausting its keys after every visible key is confirmed.
+            if (Complete()) return;
+            var best = planner.Next(session);
             if (best is null) break;
-            if (best.Keys.Count == 0)
-            {
-                session.SenExhausted.Add((best.Sector, best.Type));
-                session.SenCandidates.Remove((best.Sector, best.Type));
-                planner.Remove(best.Sector, best.Type);
-                continue;
-            }
-            // A short batch is a scheduling quantum, not a dictionary prefix.
-            // Re-evaluate all prepared paths after it and after each key-reuse cascade.
-            var batch = best.Keys.Take(64).ToArray();
-            var hit = await Check(best.Sector, best.Type, batch);
-            if (hit)
-            {
-                planner.Remove(best.Sector, best.Type);
-                session.SenCandidates.Remove((best.Sector, best.Type));
-                await Reprioritize();
-            }
-            else
-            {
-                var remaining = best.Keys.Where(k => !session.Rejected.Contains((MifareClassic.SectorTrailerBlock(best.Sector), best.Type, k))).ToArray();
-                planner.Add(best with { Keys = remaining, PreferredCount = Math.Max(0, best.PreferredCount - batch.Length) });
-                session.SenCandidates[(best.Sector, best.Type)] = remaining;
-            }
+            if (await Check(best.Sector, best.Type, best.Keys)) await Cascade();
+            else session.SenExhausted.Add((best.Sector, best.Type));
         }
+    }
+
+    private sealed class SenBatchProgress(Action<int> report) : IProgress<int>
+    {
+        public void Report(int value) => report(value);
     }
 }

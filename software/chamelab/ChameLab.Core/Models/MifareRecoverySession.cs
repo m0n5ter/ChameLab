@@ -35,6 +35,8 @@ public sealed class MifareRecoverySession
     internal MifareSenCapture? SenCapture { get; set; }
     internal Dictionary<(int Sector, MfKeyType Type), IReadOnlyList<ulong>> SenCandidates { get; } = [];
     internal HashSet<(int Sector, MfKeyType Type)> SenExhausted { get; } = [];
+    internal HashSet<int> SenPrepared { get; } = [];
+    internal Dictionary<MfKeyType, ulong?> SenExtraKeys { get; } = [];
     internal HashSet<(int Sector, MfKeyType Type, string Dictionary)> SenDictionaries { get; } = [];
     internal HashSet<int> TrailersChecked { get; } = [];
     private double _authenticationMs, _candidateMs;
@@ -61,7 +63,10 @@ public sealed class MifareRecoverySession
     }
 }
 
-internal sealed record MifareSenCapture(uint Uid, System.Collections.Generic.IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors);
+internal sealed record MifareSenCapture(uint Uid, System.Collections.Generic.IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)
+{
+    internal (NestedNonce A, NestedNonce B)? Extra { get; init; }
+}
 
 /// <summary>One 80-bit sector mask per key, rather than up to 80 hash entries for that key.</summary>
 public sealed class MifareKeyRejections : IReadOnlyCollection<(int Block, MfKeyType Type, ulong Key)>

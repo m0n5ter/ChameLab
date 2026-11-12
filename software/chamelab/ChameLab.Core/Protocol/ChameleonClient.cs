@@ -488,20 +488,22 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         return (uid, nonces);
     }
 
-    /// <summary>Collects A/B static encrypted nonces through a backdoor key, starting at sector zero.</summary>
+    /// <summary>Collects A/B static encrypted nonces through a backdoor key, including optional hidden sector 32.</summary>
     public async Task<(uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)> GetStaticEncryptedNestedNoncesAsync(
-        byte[] backdoorKey, int sectorCount, CancellationToken ct = default)
+        byte[] backdoorKey, int sectorCount, CancellationToken ct = default, int startingSector = 0)
     {
         if (backdoorKey.Length != 6) throw new ArgumentException("Key must be 6 bytes.", nameof(backdoorKey));
         if (sectorCount is < 1 or > 40) throw new ArgumentOutOfRangeException(nameof(sectorCount));
+        if (startingSector < 0 || startingSector >= sectorCount) throw new ArgumentOutOfRangeException(nameof(startingSector));
         var data = new byte[8];
         backdoorKey.CopyTo(data, 0);
         data[6] = (byte)sectorCount;
+        data[7] = (byte)startingSector;
         // Drain the device reply before honoring cancellation; collection can take 30 seconds.
         ct.ThrowIfCancellationRequested();
         var frame = await conn.SendExpectAsync(Command.Mf1EncNestedAcquire, Status.HfTagOk, data, timeoutMs: 30000);
         ct.ThrowIfCancellationRequested();
-        return ParseStaticEncryptedCapture(frame, sectorCount);
+        return ParseStaticEncryptedCapture(frame, sectorCount - startingSector);
     }
 
     /// <summary>Collect SEN evidence using a normal authenticated sector key (firmware command 2023).</summary>

@@ -204,98 +204,16 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
             !capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
             throw new NotSupportedException(Strings.Recovery_NoStaticEncFirmware);
 
-        bool Known(int sector, MfKeyType type) =>
-            (type == MfKeyType.A ? dump.KeyA : dump.KeyB)[sector] is not null;
-        async Task<byte[]?> Check(int sector, MfKeyType type, IReadOnlyList<ulong> candidates, string status)
-        {
-            for (var i = 0; i < candidates.Count; i += 64)
-            {
-                ct.ThrowIfCancellationRequested();
-                progress?.Report(new KeyRecoveryProgress(status, sector, type, KeyMark.Checking,
-                    Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + 64, candidates.Count), candidates.Count)));
-                var batch = candidates.Skip(i).Take(64).Select(KeyBytes).ToArray();
-                var hit = await client.CheckMifareKeysOnBlockAsync(MifareClassic.SectorTrailerBlock(sector), type, batch, ct);
-                if (hit is not null) return hit;
-            }
-            return null;
-        }
+        if (dump.KeyA.Concat(dump.KeyB).All(k => k is not null)) return;
 
-        if (Enumerable.Range(0, dump.SectorCount).All(s => Known(s, MfKeyType.A) && Known(s, MfKeyType.B)))
+        var session = MifareRecoverySession.For(dump, client);
+        async Task Spread()
         {
-            ct.ThrowIfCancellationRequested();
-            progress?.Report(new KeyRecoveryProgress(Strings.Recovery_Finished));
-            return;
+            await ReadableKeysBAsync(dump, store, session, ct);
+            await SpreadKeysAsync(dump, store, progress, session.Rejected, ct, session);
+            await ReadableKeysBAsync(dump, store, session, ct);
         }
-
-        (uint Uid, IReadOnlyList<(NestedNonce A, NestedNonce B)> Sectors)? capture = null;
-        byte[]? acceptedBackdoor = null;
-        foreach (var backdoor in SenBackdoorKeys)
-        {
-            progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CollectingStaticEnc, Detail: string.Format(Strings.Recovery_BackdoorKey, backdoor)));
-            try
-            {
-                var key = Convert.FromHexString(backdoor);
-                capture = await client.GetStaticEncryptedNestedNoncesAsync(key, dump.SectorCount, ct);
-                acceptedBackdoor = key;
-                break;
-            }
-            catch (ChameleonException ex) when (ex.Status == Status.MfErrAuth) { }
-        }
-        if (capture is not { } data)
-            throw new InvalidOperationException(Strings.Recovery_NoBackdoorAccepted);
-        var tags = await client.Hf14aScanAsync(ct);
-        if (tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
-            throw new InvalidOperationException(Strings.Recovery_CardRemoved);
-
-        // Accepting a backdoor key does not establish the static-encrypted variant.
-        // With changing nonces, the backdoor plaintext and the target ciphertext belong
-        // to different authentications: even the real key is absent from the candidates.
-        progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CollectingStaticEnc));
-        var confirmation = await client.GetStaticEncryptedNestedNoncesAsync(acceptedBackdoor!, dump.SectorCount, ct);
-        tags = await client.Hf14aScanAsync(ct);
-        if (confirmation.Uid != data.Uid || tags.Count != 1 || !dump.Uid.AsSpan().SequenceEqual(tags[0].Uid))
-            throw new InvalidOperationException(Strings.Recovery_CardRemoved);
-        for (var s = 0; s < dump.SectorCount; s++)
-            if ((!Known(s, MfKeyType.A) && data.Sectors[s].A != confirmation.Sectors[s].A) ||
-                (!Known(s, MfKeyType.B) && data.Sectors[s].B != confirmation.Sectors[s].B))
-                throw new InvalidOperationException(Strings.Recovery_StaticEncNotStatic);
-
-        for (var s = 0; s < dump.SectorCount; s++)
-        {
-            ct.ThrowIfCancellationRequested();
-            if (dump.KeyA[s] is not null && dump.KeyB[s] is not null) continue;
-            var (a, b) = data.Sectors[s];
-            async Task<IReadOnlyList<ulong>> Candidates(NestedNonce nonce, MfKeyType type, byte[]? known)
-            {
-                if (known is not null) return new[] { KeyValue(known) };
-                progress?.Report(new KeyRecoveryProgress(Strings.Recovery_CalcStaticEnc, s, type, KeyMark.Checking));
-                return await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.StaticEncryptedNested)
-                    { Uid = data.Uid, Nonces = [nonce] }, ct);
-            }
-            var aKeys = await Candidates(a, MfKeyType.A, dump.KeyA[s]);
-            var bKeys = await Candidates(b, MfKeyType.B, dump.KeyB[s]);
-            foreach (var type in new[] { MfKeyType.B, MfKeyType.A })
-            {
-                if ((type == MfKeyType.A ? dump.KeyA : dump.KeyB)[s] is not null) continue;
-                var nonce = type == MfKeyType.A ? a : b;
-                var other = type == MfKeyType.A ? b : a;
-                var keys = type == MfKeyType.A ? aKeys : bKeys;
-                var otherKeys = type == MfKeyType.A ? bKeys : aKeys;
-                var filtered = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.FilterStaticEncrypted)
-                    { Nonces = [nonce, other], Keys = keys.ToArray(), OtherKeys = otherKeys.ToArray() }, ct);
-                var hit = await Check(s, type, filtered, Strings.Recovery_CheckStaticEnc);
-                // Other backdoored chips need not share the RF08S A/B seed relationship.
-                if (hit is null && filtered.Count != keys.Count)
-                    hit = await Check(s, type, keys.Except(filtered).ToArray(), Strings.Recovery_CheckStaticEnc);
-                if (hit is not null)
-                {
-                    store(s, type, hit);
-                    if (type == MfKeyType.B) bKeys = new[] { KeyValue(hit) };
-                    else aKeys = new[] { KeyValue(hit) };
-                }
-                else progress?.Report(new KeyRecoveryProgress(Strings.Recovery_KeyNotRecovered, s, type));
-            }
-        }
+        await RecoverSenAsync(dump, [], session, store, progress, Spread, capabilities, ct, manual: true);
         progress?.Report(new KeyRecoveryProgress(Strings.Recovery_Finished));
     }
 

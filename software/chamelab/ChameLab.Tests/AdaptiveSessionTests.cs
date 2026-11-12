@@ -101,6 +101,7 @@ public partial class MifareWorkflowTests
         var reply = transport.Response!;
         transport.Response = r => r.Command switch
         {
+            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
             Command.Mf1EncNestedAcquire => (Status.HfTagOk, AutoEncryptedCapture(5)),
             Command.Mf1CheckKeysOnBlock => ++checks == 1 ? (Status.HfErrParity, Array.Empty<byte>())
                 : (Status.HfTagOk, new byte[] { 1 }.Concat(key).ToArray()),
@@ -164,7 +165,7 @@ public partial class MifareWorkflowTests
     }
 
     [Fact]
-    public async Task AdaptiveSen_PreparesBoundedWorkingSetAndRetainsItOnStop()
+    public async Task AdaptiveSen_PreparesEverySectorBeforeVerificationAndRetainsCandidatesOnStop()
     {
         var data = AutoEncryptedCapture(5);
         for (var i = 0; i < 10; i++) BinaryPrimitives.WriteUInt32BigEndian(data.AsSpan(7 + i * 7), (uint)i);
@@ -177,7 +178,7 @@ public partial class MifareWorkflowTests
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[7]),
             _ => reply(r),
         };
-        transport.OnRequest = r => { if (r.Command == Command.Mf1CheckKeysOnBlock) stop.Cancel(); };
+        transport.OnRequest = r => { if (r.Command is Command.Mf1CheckKeysOnBlock or Command.Mf1CheckKeysOfSectors) stop.Cancel(); };
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
         var client = new ChameleonClient(connection);
@@ -185,7 +186,7 @@ public partial class MifareWorkflowTests
         var engine = new AdaptiveEngine(_ => [123]);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new MifareKeyRecovery(client, keyRecovery: engine)
             .RecoverAutomaticallyAsync(dump, [], ct: stop.Token));
-        Assert.Equal(new SenRecoveryPlanner().Capacity, engine.Operations.Count(op => op == KeyRecoveryOperation.StaticEncryptedNested));
-        Assert.InRange(MifareRecoverySession.For(dump, client).SenCandidates.Count, 1, new SenRecoveryPlanner().Capacity);
+        Assert.Equal(10, engine.Operations.Count(op => op == KeyRecoveryOperation.StaticEncryptedNested));
+        Assert.Equal(10, MifareRecoverySession.For(dump, client).SenCandidates.Count);
     }
 }

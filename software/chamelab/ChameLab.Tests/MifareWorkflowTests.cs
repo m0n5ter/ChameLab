@@ -1578,7 +1578,7 @@ public partial class MifareWorkflowTests
     private static byte[] EncryptedCapture(int sectors)
     {
         var data = new byte[4 + sectors * 14];
-        Convert.FromHexString("A13E4902").CopyTo(data, 0);
+        Convert.FromHexString("01020304").CopyTo(data, 0);
         for (var i = 0; i < sectors * 2; i++)
             Convert.FromHexString("D1410F2E9E49FC").CopyTo(data, 4 + i * 7);
         return data;
@@ -1592,7 +1592,7 @@ public partial class MifareWorkflowTests
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
         var result = await new ChameleonClient(connection).GetStaticEncryptedNestedNoncesAsync(Key, 2);
-        Assert.Equal(0xA13E4902u, result.Uid);
+        Assert.Equal(0x01020304u, result.Uid);
         Assert.Equal(2, result.Sectors.Count);
         Assert.Equal(new NestedNonce(0xD14191B3, 0x2E9E49FC, 15), result.Sectors[1].B);
         Assert.Equal(Convert.FromHexString("FFFFFFFFFFFF0200"), Assert.Single(transport.Requests).Data);
@@ -1610,6 +1610,17 @@ public partial class MifareWorkflowTests
         await connection.OpenAsync();
         await Assert.ThrowsAsync<ChameleonException>(() =>
             new ChameleonClient(connection).GetStaticEncryptedNestedNoncesAsync(Key, 2));
+    }
+
+    [Fact]
+    public async Task StaticEncrypted_CanCollectOnlyHiddenSector32()
+    {
+        var transport = new CardTransport { Response = _ => (Status.HfTagOk, EncryptedCapture(1)) };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var result = await new ChameleonClient(connection).GetStaticEncryptedNestedNoncesAsync(Key, 33, startingSector: 32);
+        Assert.Single(result.Sectors);
+        Assert.Equal(Convert.FromHexString("FFFFFFFFFFFF2120"), Assert.Single(transport.Requests).Data);
     }
 
     [Fact]
@@ -1665,7 +1676,7 @@ public partial class MifareWorkflowTests
         Assert.Equal(2, captures);
         var checks = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOnBlock).ToArray();
         var request = Assert.Single(checks); // Only calculated SEN candidates.
-        Assert.Equal(19, request.Data[0]);
+        Assert.Equal(16, request.Data[0]);
         Assert.Equal((byte)MfKeyType.B, request.Data[1]);
         Assert.InRange(request.Data[2], (byte)1, (byte)64);
         Assert.Equal(3 + 6 * request.Data[2], request.Data.Length);
@@ -1702,8 +1713,8 @@ public partial class MifareWorkflowTests
         var progress = new CallbackProgress<KeyRecoveryProgress>(p => { if (p.Mark == KeyMark.Found) stop.Cancel(); });
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new MifareKeyRecovery(new ChameleonClient(connection))
             .RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested, progress, stop.Token));
-        Assert.NotNull(dump.KeyB[0]);
-        Assert.All(dump.KeyA, key => Assert.Null(key));
+        Assert.NotNull(dump.KeyA[0]);
+        Assert.All(dump.KeyB, key => Assert.Null(key));
         Assert.Equal(2, captures);
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
     }

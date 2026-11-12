@@ -1214,7 +1214,9 @@ uint8_t mf1_static_encrypted_nonces_acquire(uint64_t keyKnown, uint8_t sector_co
 
     for (uint16_t sec = starting_sector; sec < sector_count && sec < 40; sec++) {
         mf1_toolbox_report_healthy();
-        uint16_t blockNo = (sec < 32) ? sec * 4 + 3 : 128 + (sec - 32) * 16 + 15;
+        // Match Proxmark3 SEN: authenticate the first block. FM11RF08S's hidden
+        // sector 32 starts at 128 and does not expose the 4K trailer at 143.
+        uint16_t blockNo = (sec < 32) ? sec * 4 : 128 + (sec - 32) * 16;
 
         mf1_static_nonce_sector_t sector_nonces = {0};
 
@@ -1322,7 +1324,7 @@ uint8_t mf1_static_encrypted_nonces_with_key(uint64_t key, uint8_t known_block, 
     for (uint16_t sec = starting_sector; sec < sector_count; sec++) {
         mf1_toolbox_report_healthy();
         mf1_static_nonce_sector_t captured = {0};
-        uint8_t block = sec < 32 ? sec * 4 + 3 : 128 + (sec - 32) * 16 + 15;
+        uint8_t block = sec < 32 ? sec * 4 : 128 + (sec - 32) * 16;
         for (uint8_t type = 0; type < 2; type++) {
             memset(parity, 0, sizeof(parity));
             if (send_cmd(&state, AUTH_NESTED, 0x60 + type, block, &status, answer, parity, sizeof(answer) * 8) != 32)

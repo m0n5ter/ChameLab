@@ -8,7 +8,7 @@ using ChameLab.Protocol;
 
 namespace ChameLab.Services;
 
-public enum KeyRecoveryOperation { Nested, StaticNested, StaticEncryptedNested, FilterStaticEncrypted, Darkside, Mfkey32, MatchStaticEncrypted }
+public enum KeyRecoveryOperation { Nested, StaticNested, StaticEncryptedNested, FilterStaticEncrypted, Darkside, Mfkey32, MatchStaticEncrypted, OrderStaticEncrypted }
 
 /// <summary>Serializable CPU work; device access and UI state stay in the calling runtime.</summary>
 public sealed record KeyRecoveryRequest(KeyRecoveryOperation Operation)
@@ -21,6 +21,7 @@ public sealed record KeyRecoveryRequest(KeyRecoveryOperation Operation)
     public DetectionLog[] Logs { get; init; } = [];
     public ulong[] Keys { get; init; } = [];
     public ulong[] OtherKeys { get; init; } = [];
+    public ulong[] PreferredKeys { get; init; } = [];
 }
 
 public interface IKeyRecoveryEngine
@@ -48,6 +49,8 @@ public sealed class ManagedKeyRecoveryEngine : IKeyRecoveryEngine
             KeyRecoveryOperation.FilterStaticEncrypted => StaticEncryptedNestedRecovery.Filter(
                 n[0].Nt, request.Keys, n[1].Nt, request.OtherKeys, ct),
             KeyRecoveryOperation.MatchStaticEncrypted => StaticEncryptedNestedRecovery.MatchKeys(request.Uid, n[0], request.Keys, ct),
+            KeyRecoveryOperation.OrderStaticEncrypted => StaticEncryptedNestedRecovery.Order(
+                n[0].Nt, request.Keys, n[1].Nt, request.OtherKeys, request.PreferredKeys, ct),
             KeyRecoveryOperation.Darkside => DarksideRecovery.Recover(request.Uid, request.Items, ct),
             KeyRecoveryOperation.Mfkey32 => Mfkey32Recovery.Recover(request.Logs[0], request.Logs[1]) is { } key
                 ? new[] { key } : Array.Empty<ulong>(),

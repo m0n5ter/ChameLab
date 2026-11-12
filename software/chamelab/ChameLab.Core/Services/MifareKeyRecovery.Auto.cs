@@ -82,7 +82,7 @@ public sealed partial class MifareKeyRecovery
         if (capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
         {
             Choosing("Static encrypted nested");
-            await RecoverSenAdaptiveAsync(dump, keys, session, Store, progress, Spread, capabilities, ct);
+            await RecoverSenAsync(dump, keys, session, Store, progress, Spread, capabilities, ct);
             if (Missing() == 0) return Finish();
         }
         progress?.Report(new(Strings.Common_CheckingRecoveryMethods));
@@ -140,7 +140,7 @@ public sealed partial class MifareKeyRecovery
             });
             // A newly learned ordinary key can also unlock SEN without a known backdoor.
             if (capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
-                await RecoverSenAdaptiveAsync(dump, keys, session, Store, progress, Spread, capabilities, ct);
+                await RecoverSenAsync(dump, keys, session, Store, progress, Spread, capabilities, ct);
             if (Missing() == 0) return Finish();
             await RecoverCoreAsync(dump, seededMethod!.Value, progress, ct, spreadKeys: true, rejected, session);
             if (Missing() == 0) return Finish();

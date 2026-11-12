@@ -26,6 +26,7 @@ def main():
     toolbox = (src / "reader/hf/mf1_toolbox.c").read_text()
     signatures = ["static void nonce_distance(", "static bool check_lfsr_prng(",
                   "uint16_t mf1_toolbox_check_keys_of_sectors(",
+                  "uint8_t mf1_static_encrypted_nonces_acquire(",
                   "uint8_t mf1_static_encrypted_nonces_with_key(",
                   "uint16_t mf1_toolbox_check_keys_on_block("]
     with tempfile.TemporaryDirectory(prefix="chamelab-mifare-") as temporary:

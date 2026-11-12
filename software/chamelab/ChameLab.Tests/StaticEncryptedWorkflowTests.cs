@@ -56,6 +56,7 @@ public partial class MifareWorkflowTests
         {
             Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
             Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
+            Command.Mf1CheckKeysOnBlock when r.Data.AsSpan(3).SequenceEqual(Key) => (Status.MfErrAuth, Array.Empty<byte>()),
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(r.Data[3..9]).ToArray()),
             _ => null,
         }};
@@ -67,11 +68,11 @@ public partial class MifareWorkflowTests
                 .RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested, progress, stop.Token));
 
         var recovered = Convert.FromHexString("112233445566");
-        Assert.Equal(recovered, dump.KeyB[0]);
-        Assert.All(dump.KeyA, key => Assert.Null(key));
+        Assert.Equal(recovered, dump.KeyA[0]);
+        Assert.All(dump.KeyB, key => Assert.Null(key));
         var check = Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
         Assert.Equal(recovered, check.Data[3..9]);
-        Assert.Equal(3, engine.Calls); // Recover A and B, then filter the B candidates.
+        Assert.Equal(20, engine.Calls); // Prepare all ten lists and order both sides of every pair.
         Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
         Assert.Contains(known.ForUid(dump.Uid), key => key.SequenceEqual(recovered));
     }
@@ -115,7 +116,7 @@ public partial class MifareWorkflowTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task StaticEncrypted_StableUnknownNonceUsesSolverAndUnfilteredFallback(bool changeKnownNonce)
+    public async Task StaticEncrypted_StableUnknownNonceUsesSolverAndPreservesKnownKeys(bool changeKnownNonce)
     {
         var dump = KnownCard();
         dump.KeyB[4] = null;
@@ -132,6 +133,7 @@ public partial class MifareWorkflowTests
             Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF")),
             Command.Mf1EncNestedAcquire => (Status.HfTagOk, Capture()),
             Command.Mf1CheckKeysOnBlock when captures < 2 => (Status.MfErrAuth, Array.Empty<byte>()),
+            Command.Mf1CheckKeysOnBlock when r.Data.AsSpan(3).SequenceEqual(Key) => (Status.MfErrAuth, Array.Empty<byte>()),
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(r.Data[3..9]).ToArray()),
             _ => null,
         }};
@@ -142,7 +144,7 @@ public partial class MifareWorkflowTests
 
         Assert.Equal(Convert.FromHexString("112233445566"), dump.KeyB[4]);
         Assert.All(dump.KeyA, key => Assert.Equal(Key, key));
-        Assert.Equal(2, engine.Calls); // One recovery and one filter, which rejects all candidates.
+        Assert.Equal(1, engine.Calls); // Equal nonces require recovery, without a paired-seed filter.
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
     }
 
@@ -193,6 +195,7 @@ public partial class MifareWorkflowTests
             {
                 KeyRecoveryOperation.StaticEncryptedNested => new[] { 0x112233445566UL },
                 KeyRecoveryOperation.FilterStaticEncrypted => Array.Empty<ulong>(),
+                KeyRecoveryOperation.OrderStaticEncrypted => request.Keys,
                 _ => throw new InvalidOperationException("Unexpected recovery operation."),
             };
             return Task.FromResult(keys);

@@ -14,7 +14,7 @@ static unsigned sends, auth_calls, start_sector, distance = 117;
 static uint32_t pending_nonce;
 static uint16_t auth_status;
 static uint8_t trailer[16];
-static bool check_mode;
+static bool check_mode, backdoor_mode;
 
 static uint64_t bytes_to_num(const uint8_t *bytes, unsigned count) {
     uint64_t value = 0;
@@ -41,6 +41,14 @@ static int authex(struct Crypto1State *state, uint32_t card_uid, uint8_t block, 
     uint64_t key, uint8_t nested, uint32_t *nt) {
     auth_calls++;
     if (check_mode) return auth_status;
+    if (backdoor_mode) {
+        unsigned sector = start_sector + sends / 4;
+        unsigned expected_block = sector < 32 ? sector * 4 : 128 + (sector - 32) * 16;
+        assert(card_uid == uid && block == expected_block && type == 0x64 + (sends / 2) % 2);
+        assert(key == known_key && nested == AUTH_FIRST);
+        *nt = base_nonce;
+        return auth_status;
+    }
     assert(card_uid == uid && block == 19 && type == PICC_AUTHENT1A && key == known_key && nested == AUTH_FIRST);
     if (auth_status != STATUS_HF_TAG_OK) return auth_status;
     *nt = sends == 0 ? base_nonce : prng_successor(pending_nonce, distance);
@@ -49,10 +57,23 @@ static int authex(struct Crypto1State *state, uint32_t card_uid, uint8_t block, 
 static uint8_t send_cmd(struct Crypto1State *state, uint8_t nested, uint8_t type, uint8_t block,
     uint8_t *status, uint8_t *out, uint8_t *parity, unsigned bits) {
     assert(nested == AUTH_NESTED);
+    if (backdoor_mode) {
+        unsigned sector = start_sector + sends / 4;
+        unsigned expected_block = sector < 32 ? sector * 4 : 128 + (sector - 32) * 16;
+        assert(block == expected_block && type == ((sends & 1) ? 0x60 : 0x64) + (sends / 2) % 2);
+        pending_nonce = prng_successor(base_nonce, (sends / 2) * 13);
+        struct Crypto1State cipher;
+        crypto1_init(&cipher, (sends & 1) ? target_key : known_key);
+        num_to_bytes(pending_nonce ^ crypto1_word(&cipher, uid ^ pending_nonce, 0), 4, out);
+        memset(parity, 0, 4);
+        sends++;
+        *status = STATUS_HF_TAG_OK;
+        return 32;
+    }
     if (sends == 0) assert(block == 19 && type == PICC_AUTHENT1A);
     else {
         unsigned sector = start_sector + (sends - 1) / 2;
-        unsigned expected_block = sector < 32 ? sector * 4 + 3 : 128 + (sector - 32) * 16 + 15;
+        unsigned expected_block = sector < 32 ? sector * 4 : 128 + (sector - 32) * 16;
         assert(block == expected_block && type == PICC_AUTHENT1A + ((sends - 1) % 2));
     }
     pending_nonce = prng_successor(base_nonce, sends * 13);
@@ -121,6 +142,30 @@ static void batch_checks(void) {
     assert(hit.found == 0);
 }
 
+static void collect_backdoor(unsigned first, unsigned count) {
+    start_sector = first;
+    sends = auth_calls = 0;
+    backdoor_mode = true;
+    check_mode = false;
+    auth_status = STATUS_HF_TAG_OK;
+    uint8_t captured[40][sizeof(mf1_static_nonce_sector_t)] = {{0}}, acquired = 0;
+    uint32_t captured_uid = 0;
+    assert(mf1_static_encrypted_nonces_acquire(known_key, count, first, captured,
+        &acquired, &captured_uid) == STATUS_HF_TAG_OK);
+    assert(acquired == count - first && captured_uid == uid && sends == 4U * acquired);
+    for (unsigned sector = first; sector < count; sector++)
+        for (unsigned type = 0; type < 2; type++) {
+            unsigned index = (sector - first) * 2 + type;
+            uint32_t nt = prng_successor(base_nonce, index * 13);
+            const uint8_t *record = captured[sector] + type * 7;
+            assert(bytes_to_num(record, 2) == (nt >> 16));
+            struct Crypto1State cipher;
+            crypto1_init(&cipher, target_key);
+            assert(bytes_to_num(record + 3, 4) == (nt ^ crypto1_word(&cipher, uid ^ nt, 0)));
+        }
+    backdoor_mode = false;
+}
+
 int main(void) {
     collect(0, 5);
     collect(0, 40);
@@ -131,6 +176,9 @@ int main(void) {
     assert(mf1_static_encrypted_nonces_with_key(known_key, 19, PICC_AUTHENT1A,
         5, 0, captured, &acquired, &captured_uid) == STATUS_HF_ERR_CRC);
     assert(acquired == 0);
+    collect_backdoor(0, 16);
+    collect_backdoor(32, 33); // FM11RF08S hidden sector must use block 128, not 143.
+    collect_backdoor(32, 40); // Preserve actual 4K sector geometry as well.
     batch_checks();
     puts("MIFARE recovery: nonce rewind, 4K geometry, zero B and RF errors passed.");
     return 0;

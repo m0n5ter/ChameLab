@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ChameLab.Models;
 using ChameLab.Crypto;
@@ -90,6 +91,74 @@ public static class StaticEncryptedNestedRecovery
     }
 
     public static ushort Seed(uint nt, ulong key) => SeedFromNonce(RollbackNonce(nt), key);
+
+    // Proxmark3 cmdhfmfsen.c, c7b80e1bc89ed03983832f93b1d2b5f980c8bc9b (GPLv3):
+    // intersect_pair -> prioritize_by_paired_seed -> sort_candidates_by_seed_bucket
+    // -> prioritize_defaults. Execute in the recovery worker on browsers.
+    public static IReadOnlyList<ulong> Order(uint nt, IReadOnlyList<ulong> keys, uint otherNt,
+        IReadOnlyList<ulong> otherKeys, IReadOnlyList<ulong> preferredKeys, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        var ordered = keys.ToArray();
+        PrioritizeDefaults(ordered, preferredKeys);
+        if (nt != otherNt && keys.Count > 0 && otherKeys.Count > 0)
+        {
+            var a = new (ulong Key, ushort Seed, int Ordinal)[ordered.Length];
+            var countsA = new int[65536];
+            var countsB = new int[65536];
+            for (var i = 0; i < a.Length; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+                a[i] = (ordered[i], Seed(nt, ordered[i]), i);
+                countsA[a[i].Seed]++;
+            }
+            foreach (var key in otherKeys)
+            {
+                ct.ThrowIfCancellationRequested();
+                countsB[Seed(otherNt, key)]++;
+            }
+            // Both lists lose seeds absent from their partner, as in fm11_intersect_pair.
+            a = a.Where(k => countsB[k.Seed] > 0).OrderBy(k => Math.Min(65535, countsB[k.Seed]))
+                .ThenBy(k => k.Ordinal).ToArray();
+            var buckets = Enumerable.Range(0, 65536).Where(s => countsA[s] > 0 && countsB[s] > 0)
+                .OrderByDescending(s => countsA[s] == 1 && countsB[s] == 1)
+                .ThenByDescending(s => countsA[s] == 1 || countsB[s] == 1)
+                .ThenBy(s => countsA[s] + countsB[s]).ThenBy(s => s).ToArray();
+            // PM3 moves each singleton to the front in bucket order. Build the same
+            // reversed prefix without quadratic memmoves on large candidate lists.
+            var promotedSeeds = new HashSet<ushort>();
+            var singleton = a.Where(k => countsA[k.Seed] == 1).ToDictionary(k => k.Seed, k => k.Key);
+            var prefix = new List<ulong>();
+            foreach (var seed in buckets)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (countsA[seed] == 1)
+                { prefix.Add(singleton[(ushort)seed]); promotedSeeds.Add((ushort)seed); }
+                if (countsA[seed] > 1 && countsB[seed] > 1) break;
+            }
+            prefix.Reverse();
+            ordered = prefix.Concat(a.Where(k => !promotedSeeds.Contains(k.Seed)).Select(k => k.Key)).ToArray();
+        }
+        ct.ThrowIfCancellationRequested();
+        PrioritizeDefaults(ordered, preferredKeys);
+        return ordered;
+    }
+
+    private static void PrioritizeDefaults(ulong[] keys, IReadOnlyList<ulong> preferred)
+    {
+        if (keys.Length == 0 || preferred.Count == 0) return;
+        var positions = new Dictionary<ulong, int>(keys.Length);
+        for (var i = 0; i < keys.Length; i++) positions[keys[i]] = i;
+        var dst = 0;
+        foreach (var key in preferred)
+            if (positions.TryGetValue(key, out var i) && i >= dst)
+            {
+                var displaced = keys[dst];
+                (keys[dst], keys[i]) = (keys[i], keys[dst]);
+                positions[displaced] = i;
+                positions[key] = dst++;
+            }
+    }
 
     private static ushort RollbackNonce(uint nt)
     {

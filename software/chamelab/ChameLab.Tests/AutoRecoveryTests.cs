@@ -246,7 +246,7 @@ public partial class MifareWorkflowTests
     }
 
     [Fact]
-    public async Task Auto_StaticEncryptedKeyIsSpreadBeforeMoreCandidateSearches()
+    public async Task Auto_StaticEncryptedGlobalReuseCanCompleteWithoutIndividualChecks()
     {
         var recovered = Convert.FromHexString("112233445566");
         var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
@@ -267,8 +267,9 @@ public partial class MifareWorkflowTests
 
         Assert.True(result.Complete);
         Assert.Equal(0, hardnested.Calls);
-        Assert.Equal(1, engine.Calls); // Equal evidence is generated once, then propagation opens the card.
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+        Assert.Equal(20, engine.Calls); // Prepare every path, then finish in the global reuse pass.
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
         Assert.All(dump.KeyA.Concat(dump.KeyB), key => Assert.Equal(recovered, key));
     }
 
@@ -320,7 +321,7 @@ public partial class MifareWorkflowTests
             Assert.Equal(Key, r.Data[10..]); // Only the key retained in the dump may be reused.
         });
         Assert.All(engine.Operations, op => Assert.True(op is KeyRecoveryOperation.StaticEncryptedNested
-            or KeyRecoveryOperation.FilterStaticEncrypted or KeyRecoveryOperation.MatchStaticEncrypted));
+            or KeyRecoveryOperation.FilterStaticEncrypted or KeyRecoveryOperation.MatchStaticEncrypted or KeyRecoveryOperation.OrderStaticEncrypted));
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire
             or Command.Mf1StaticNestedAcquire or Command.Mf1HardnestedAcquire or Command.Mf1DarksideAcquire);
         for (var s = 0; s < dump.SectorCount; s++)

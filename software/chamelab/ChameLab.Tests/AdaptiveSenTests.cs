@@ -13,6 +13,34 @@ namespace ChameLab.Tests;
 
 public partial class MifareWorkflowTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AdaptiveSen_OptionalHiddenCaptureDoesNotChangeDumpSizeOrDelayCompletedNormalCard(bool hiddenSupported)
+    {
+        var key = Convert.FromHexString("112233445566");
+        var transport = AutoTransport(MifareClassicPrngType.Weak, (_, _) => key, backdoor: true);
+        var reply = transport.Response!;
+        transport.Response = r => r.Command switch
+        {
+            Command.Mf1EncNestedAcquire when r.Data[7] == 32 => hiddenSupported
+                ? (Status.HfTagOk, AutoEncryptedCapture(1)) : (Status.MfErrAuth, Array.Empty<byte>()),
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, AutoEncryptedCapture(16)),
+            _ => reply(r),
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        var dump = new MifareDump(MifareClassicType.Classic1K, [1, 2, 3, 4]);
+        Assert.True((await new MifareKeyRecovery(client, keyRecovery: new AdaptiveEngine(_ => [0x112233445566UL]))
+            .RecoverAutomaticallyAsync(dump, [], useKnownUidKeys: false)).Complete);
+        Assert.Equal(16, dump.KeyA.Length);
+        Assert.All(dump.KeyA.Concat(dump.KeyB), k => Assert.Equal(key, k));
+        Assert.Equal(hiddenSupported ? 2 : 1, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire && r.Data[7] == 32));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+        Assert.Empty(MifareRecoverySession.For(dump, client).SenExtraKeys);
+    }
+
     [Fact]
     public async Task AdaptiveSen_OfflineDictionarySkipsHeavyRecoveryAndOnlyAuthenticatesMatches()
     {
@@ -41,7 +69,7 @@ public partial class MifareWorkflowTests
     }
 
     [Fact]
-    public async Task AdaptiveSen_CheapLaterSectorWinsOverFirstSector()
+    public async Task AdaptiveSen_CrossSectorReusePrecedesIndividualLists()
     {
         var key = Convert.FromHexString("112233445566");
         var data = AutoEncryptedCapture(5);
@@ -63,9 +91,8 @@ public partial class MifareWorkflowTests
         var result = await new MifareKeyRecovery(new ChameleonClient(connection), keyRecovery: engine)
             .RecoverAutomaticallyAsync(new(MifareClassicType.Mini, [1, 2, 3, 4]), []);
         Assert.True(result.Complete);
-        var firstCheck = transport.Requests.First(r => r.Command == Command.Mf1CheckKeysOnBlock);
-        Assert.Equal(7, firstCheck.Data[0]); // Sector 1 has two candidates, sector 0 has 100.
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+        Assert.Contains(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
     }
 
     [Fact]
@@ -83,7 +110,7 @@ public partial class MifareWorkflowTests
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(key).ToArray()),
             _ => reply(r),
         };
-        transport.OnRequest = r => { if (r.Command == Command.Mf1CheckKeysOnBlock) stop.Cancel(); };
+        transport.OnRequest = r => { if (r.Command is Command.Mf1CheckKeysOnBlock or Command.Mf1CheckKeysOfSectors) stop.Cancel(); };
         var known = new KnownCardKeys(new MemoryKeyValueStore());
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
@@ -123,7 +150,7 @@ public partial class MifareWorkflowTests
         Assert.True(result.Complete);
         var captures = transport.Requests.Where(r => r.Command == Command.Mf1EncNestedWithKey).ToArray();
         Assert.Equal(2, captures.Length);
-        Assert.All(captures, r => Assert.Equal(Key.Concat(new byte[] { 5, 0, 19, (byte)MfKeyType.A }), r.Data));
+        Assert.All(captures, r => Assert.Equal(Key.Concat(new byte[] { 5, 0, 16, (byte)MfKeyType.A }), r.Data));
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1EncNestedAcquire or Command.Mf1NestedAcquire);
     }
 
@@ -173,20 +200,25 @@ public class SenPlannerTests
     }
 
     [Fact]
-    public void ChoosesBenefitAndCostRatherThanSectorNumberAndUpdatesAfterNewKey()
+    public void ChoosesFirstUniquePairedSeedRatherThanSmallestListAndUpdatesAfterNewKey()
     {
         var planner = new SenRecoveryPlanner();
-        var dump = new MifareDump(MifareClassicType.Mini);
         var session = new MifareRecoverySession();
-        session.RecordCandidates(TimeSpan.FromMilliseconds(500), 10);
-        var slow = new SenRecoveryPlanner.Path(0, MfKeyType.B, new(0, 0, 0), Enumerable.Range(1, 100).Select(i => (ulong)i).ToArray());
+        var slow = new SenRecoveryPlanner.Path(0, MfKeyType.B, new(0xD14191B3, 0, 0),
+            Enumerable.Range(1, 100).Select(i => (ulong)i).ToArray());
         var fast = new SenRecoveryPlanner.Path(3, MfKeyType.A, new(0, 0, 0), [200, 201, 202]);
         planner.Add(slow); planner.Add(fast);
-        Assert.Equal(3, planner.Next(dump, session)!.Sector);
-        planner.Add(slow with { PreferredCount = 1, CascadeBenefit = 2 });
-        Assert.Equal(0, planner.Next(dump, session)!.Sector);
-        dump.KeyB[0] = new byte[6];
-        Assert.Equal(3, planner.Next(dump, session)!.Sector);
+        Assert.Equal(3, planner.Next(session)!.Sector);
+        // A confirmed A key matching the first B seed makes the longer B list cheaper.
+        var seed = StaticEncryptedNestedRecovery.Seed(slow.Nonce.Nt, slow.Keys[0]);
+        const uint otherNt = 0x12345678;
+        var key = Enumerable.Range(0, 2000000).Select(i => (ulong)i)
+            .First(k => StaticEncryptedNestedRecovery.Seed(otherNt, k) == seed);
+        planner.Add(new(0, MfKeyType.A, new(otherNt, 0, 0), []) { KnownKey = key });
+        Assert.Equal(1, planner.Cost(slow));
+        Assert.Equal(0, planner.Next(session)!.Sector);
+        planner.UpdateKnown((s, t) => s == 0 && t == MfKeyType.B ? 1UL : null);
+        Assert.Equal(3, planner.Next(session)!.Sector);
     }
 
     [Theory]
