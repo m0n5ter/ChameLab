@@ -15,7 +15,7 @@ Environment=Kestrel__Certificates__Default__KeyPath=%d/relay.key
 Restart=always
 RestartSec=5
 DynamicUser=yes
-MemoryMax=64M
+MemoryMax=128M
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

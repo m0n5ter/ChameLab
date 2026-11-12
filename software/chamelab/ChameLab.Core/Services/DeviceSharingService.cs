@@ -136,14 +136,19 @@ public sealed class DeviceSharingService(DeviceService device, WakeLockService? 
         // Only the device pump sends data; the closing handshake takes the same lock so the
         // two never overlap. Sends aren't canceled: canceling a WebSocket send aborts the socket.
         var sendLock = new SemaphoreSlim(1, 1);
-        using var end = CancellationTokenSource.CreateLinkedTokenSource(stop);
-        var up = PumpDeviceAsync(transport, ws, sendLock, end.Token);
+        // The relay pump isn't stopped with the share: canceling its receive would abort the socket
+        // before the close handshake. It ends on the relay's answering close, or when the socket goes.
+        using var end = new CancellationTokenSource();
+        using var deviceEnd = CancellationTokenSource.CreateLinkedTokenSource(stop, end.Token);
+        var up = PumpDeviceAsync(transport, ws, sendLock, deviceEnd.Token);
         var down = PumpRelayAsync(transport, ws, end.Token);
+        var stopped = Task.Delay(Timeout.Infinite, stop);
 
-        var first = await Task.WhenAny(up, down);
+        var first = await Task.WhenAny(up, down, stopped);
         var error = stop.IsCancellationRequested
             ? null
             : first.Exception?.GetBaseException() is IOException io ? io.Message : Strings.Relay_Closed;
+        await deviceEnd.CancelAsync();
 
         try
         {
@@ -155,6 +160,8 @@ public sealed class DeviceSharingService(DeviceService device, WakeLockService? 
                     await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, timeout.Token);
             }
             finally { sendLock.Release(); }
+            // The relay answers with its own close, which ends the relay pump.
+            await Task.WhenAny(down, Task.Delay(Timeout.Infinite, timeout.Token));
         }
         catch { /* the relay is gone already */ }
 

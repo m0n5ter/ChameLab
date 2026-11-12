@@ -37,7 +37,7 @@ if [ "$MODE" = "--docker" ]; then
   $S chown 1654:1654 /etc/chamelab-relay/relay.key
   $S docker build -q -t chamelab-relay "$STAGE" >/dev/null
   $S docker rm -f chamelab-relay >/dev/null 2>&1 || true
-  $S docker run -d --name chamelab-relay --restart unless-stopped --memory 64m \
+  $S docker run -d --name chamelab-relay --restart unless-stopped --memory 128m \
     -p 7443:7443 -v /etc/chamelab-relay:/certs:ro chamelab-relay >/dev/null
 else
   $S chown root:root /etc/chamelab-relay/relay.key

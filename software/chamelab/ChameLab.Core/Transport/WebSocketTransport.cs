@@ -25,6 +25,13 @@ public sealed class WebSocketTransport(RelayServer relay, ShareCode code) : ITra
     // so a command timeout would take the whole link down. A caller that gives up stops waiting,
     // and the lock is released once the send really ends.
     private readonly SemaphoreSlim _sendLock = new(1, 1);
+    // Receives aren't canceled either: that too aborts the socket, and with it the close handshake
+    // that tells the relay this side left on purpose. A read that gives up leaves its receive
+    // running; the next read (or the close) picks it up.
+    private readonly byte[] _received = new byte[8 * 1024];
+    private Task<ValueWebSocketReceiveResult>? _receive;
+    private int _receivedOffset;
+    private int _receivedCount;
 
     public TransportKind Kind => TransportKind.Remote;
     public string DisplayName => string.Format(Strings.Relay_DisplayName, code);
@@ -76,10 +83,23 @@ public sealed class WebSocketTransport(RelayServer relay, ShareCode code) : ITra
         var ws = _ws ?? throw new InvalidOperationException(Strings.Tcp_NotConnected);
         while (true)
         {
-            var r = await ws.ReceiveAsync(buffer, ct);
+            if (_receivedCount > 0)
+            {
+                var n = Math.Min(_receivedCount, buffer.Length);
+                _received.AsMemory(_receivedOffset, n).CopyTo(buffer);
+                _receivedOffset += n;
+                _receivedCount -= n;
+                return n;
+            }
+
+            _receive ??= ws.ReceiveAsync(_received.AsMemory(), CancellationToken.None).AsTask();
+            var r = await _receive.WaitAsync(ct);
+            _receive = null;
             if (r.MessageType == WebSocketMessageType.Close) throw ClosedError(ws);
-            if (r.MessageType == WebSocketMessageType.Binary && r.Count > 0) return r.Count;
             // Text: relay notices meant for the sharing side; nothing for the device stream.
+            if (r.MessageType != WebSocketMessageType.Binary) continue;
+            _receivedOffset = 0;
+            _receivedCount = r.Count;
         }
     }
 
@@ -90,7 +110,12 @@ public sealed class WebSocketTransport(RelayServer relay, ShareCode code) : ITra
         if (ws.State == WebSocketState.Open)
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-            try { await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, timeout.Token); }
+            try
+            {
+                await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, timeout.Token);
+                // The relay answers with its own close; a receive still running takes it in.
+                if (_receive is { } pending) await pending.WaitAsync(timeout.Token);
+            }
             catch { /* the link is going away anyway */ }
         }
         ws.Dispose();

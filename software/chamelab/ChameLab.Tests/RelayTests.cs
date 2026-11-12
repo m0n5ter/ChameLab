@@ -129,6 +129,35 @@ public sealed class RelayTests
         Assert.Equal("0405", Convert.ToHexString(buffer, 0, n));
     }
 
+    /// <summary>
+    /// A read that gives up must not abort the socket (that would also skip the close handshake):
+    /// the link keeps working, and a message bigger than the read buffer comes out in pieces.
+    /// </summary>
+    [Fact]
+    public async Task Read_CanceledByTheCaller_KeepsTheLink()
+    {
+        await using var relay = await TestRelay.StartAsync();
+        var (host, code) = await relay.ShareAsync();
+        using var _ = host;
+        await using var peer = new WebSocketTransport(relay.Server, code);
+        await peer.ConnectAsync(TestRelay.Timeout());
+        await AssertPeerJoinedAsync(host);
+
+        using var giveUp = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => peer.ReadAsync(new byte[16], giveUp.Token));
+
+        Assert.True(peer.IsConnected);
+        await host.SendAsync(new byte[] { 1, 2, 3, 4, 5 }, WebSocketMessageType.Binary, true, TestRelay.Timeout());
+        var buffer = new byte[2];
+        var read = "";
+        while (read.Length < 10)
+        {
+            var n = await peer.ReadAsync(buffer, TestRelay.Timeout());
+            read += Convert.ToHexString(buffer, 0, n);
+        }
+        Assert.Equal("0102030405", read);
+    }
+
     /// <summary>The sharing side hears who joined: this machine's user@computer.</summary>
     private static async Task AssertPeerJoinedAsync(WebSocket host)
     {
