@@ -2191,7 +2191,7 @@
     <value>Place exactly one target card on the reader.</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>Place the target card on the reader, then try keys or check recovery methods.</value>
+    <value>Place the target card on the reader, then try keys or start automatic recovery.</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>Preparing write…</value>

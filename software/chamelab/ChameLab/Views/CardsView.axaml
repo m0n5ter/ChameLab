@@ -1229,7 +1229,8 @@
                         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12"
                               VerticalAlignment="Center">
                           <TextBlock Classes="mono" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus?.Title}" />
-                          <TextBlock Grid.Column="1" FontSize="12" Text="{Binding #MemoryEditor.SelectionStatus?.Detail}"
+                          <!-- Proportional text sits lower than the mono title beside it: lift it onto the same line. -->
+                          <TextBlock Grid.Column="1" FontSize="12" Margin="0,-2,0,2" Text="{Binding #MemoryEditor.SelectionStatus?.Detail}"
                                      TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                      ToolTip.Tip="{Binding #MemoryEditor.SelectionStatus?.Detail}" />
                           <TextBlock Grid.Row="1" Classes="caption mono" Text="{Binding #MemoryEditor.SelectionStatus?.Position}" />

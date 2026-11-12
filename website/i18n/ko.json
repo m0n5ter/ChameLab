@@ -160,7 +160,7 @@
  "guide.read.2": "카드 읽기",
  "guide.read.3": "카드를 Chameleon에 올리고 <b>+ 카드 추가 → HF 스캔</b>을 누르세요. ChameLab이 유형, UID, SAK, ATQA, ATS를 바로 보여 줍니다.",
  "guide.read.4": "MIFARE Classic 카드는 아직 메모리를 읽지 않은 상태입니다. <b>키 시도</b>를 누르면 <a href=\"#dictionaries\">사전</a>의 모든 키와 기본 내장 키를 모든 섹터에 시도합니다.",
- "guide.read.5": "일부 섹터가 빨간색(<i>키 없음</i>)으로 남으면 <b>복구 방법 확인</b>을 누르세요. ChameLab이 카드를 검사하고 통하는 공격을 제안합니다.",
+ "guide.read.5": "MIFARE Classic 카드를 스캔하면 ChameLab이 복구 방법을 자동으로 확인하고 해당 카드에 통하는 공격을 제안합니다.",
  "guide.read.6": "모든 섹터가 녹색이 되면 <b>카드 저장</b>을 눌러 전체 덤프를 라이브러리에 보관하세요.",
  "guide.read.7.alt": "UID 4D 4F 4E 53인 방금 스캔한 MIFARE Classic 1K 카드와 읽지 않은 메모리 맵",
  "guide.read.8": "스캔 직후: 식별 정보는 확인, 메모리는 아직 읽지 않음.",

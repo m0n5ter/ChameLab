@@ -2518,7 +2518,7 @@
     <value>Metti sul lettore esattamente una scheda di destinazione.</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>Metti la scheda di destinazione sul lettore, poi prova le chiavi o verifica i metodi di recupero.</value>
+    <value>Metti la scheda di destinazione sul lettore, poi prova le chiavi o avvia il recupero automatico.</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>Preparazione della scrittura…</value>

@@ -2518,7 +2518,7 @@
     <value>리더기에 대상 카드를 정확히 한 장만 올려 두세요.</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>대상 카드를 리더기에 올려 둔 다음 키를 시도하거나 복구 방법을 확인하세요.</value>
+    <value>대상 카드를 리더기에 올려 둔 다음 키를 시도하거나 자동 복구를 시작하세요.</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>쓰기 준비 중…</value>

@@ -160,7 +160,7 @@
  "guide.read.2": "Leer una tarjeta",
  "guide.read.3": "Coloca la tarjeta sobre el Chameleon y pulsa <b>+ Añadir tarjeta → Escanear HF</b>. ChameLab muestra al instante el tipo, el UID, el SAK, el ATQA y el ATS.",
  "guide.read.4": "En una tarjeta MIFARE Classic la memoria aún no se ha leído. Pulsa <b>Probar claves</b> para probar cada clave de tus <a href=\"#dictionaries\">diccionarios</a>, más las predeterminadas incorporadas, en cada sector.",
- "guide.read.5": "Si algunos sectores siguen en rojo (<i>Sin clave</i>), pulsa <b>Comprobar métodos de recuperación</b>. ChameLab prueba la tarjeta y ofrece los ataques que funcionan con ella.",
+ "guide.read.5": "Al escanear una tarjeta MIFARE Classic, ChameLab comprueba automáticamente sus métodos de recuperación y ofrece los ataques que funcionan con ella.",
  "guide.read.6": "Cuando todos los sectores estén en verde, pulsa <b>Guardar tarjeta</b> para conservar el volcado completo en tu biblioteca.",
  "guide.read.7.alt": "Una tarjeta MIFARE Classic 1K recién escaneada con UID 4D 4F 4E 53 y un mapa de memoria sin leer",
  "guide.read.8": "Justo después del escaneo: identidad conocida, memoria aún sin leer.",

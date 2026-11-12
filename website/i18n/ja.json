@@ -160,7 +160,7 @@
  "guide.read.2": "カードを読み取る",
  "guide.read.3": "カードを Chameleon に置き、<b>+ カードを追加 → HF をスキャン</b>を押します。ChameLab は種類、UID、SAK、ATQA、ATS をすぐに表示します。",
  "guide.read.4": "MIFARE Classic カードの場合、メモリはまだ読み取られていません。<b>キーを試す</b>を押すと、<a href=\"#dictionaries\">辞書</a>のすべてのキーと組み込みの既定キーを全セクターで試します。",
- "guide.read.5": "赤いまま（<i>キーなし</i>）のセクターがある場合は、<b>復元方法を確認</b>を押します。ChameLab がカードをテストし、有効な攻撃を提示します。",
+ "guide.read.5": "MIFARE Classic カードをスキャンすると、ChameLab が復元方法を自動的に確認し、そのカードで使える攻撃を提示します。",
  "guide.read.6": "すべてのセクターが緑になったら、<b>カードを保存</b>を押して完全なダンプをライブラリに保存します。",
  "guide.read.7.alt": "UID 4D 4F 4E 53 のスキャン直後の MIFARE Classic 1K カードと、未読のメモリマップ",
  "guide.read.8": "スキャン直後: 識別情報は判明、メモリはまだ未読。",

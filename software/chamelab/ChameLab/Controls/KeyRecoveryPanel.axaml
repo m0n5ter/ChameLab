@@ -131,14 +131,6 @@
             <Border BorderBrush="{Binding #TryKeysButton.BorderBrush}" BorderThickness="1"
                     CornerRadius="8" IsHitTestVisible="False" />
           </Grid>
-          <Button Classes="responsive" Command="{Binding CheckRecoveryCommand}"
-                  ToolTip.Tip="{x:Static loc:Strings.KeyRecovery_CheckRecoveryMethods}" AutomationProperties.Name="{x:Static loc:Strings.KeyRecovery_CheckRecoveryMethods}"
-                  IsVisible="{Binding ShowCheckRecovery}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.search}" />
-              <TextBlock Classes="action-label" Text="{x:Static loc:Strings.KeyRecovery_CheckRecoveryMethods}" VerticalAlignment="Center" />
-            </StackPanel>
-          </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding DarksideCommand}" ToolTip.Tip="Darkside" AutomationProperties.Name="Darkside"
                   IsVisible="{Binding ShowDarkside}">
             <StackPanel Orientation="Horizontal" Spacing="6">

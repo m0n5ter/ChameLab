@@ -160,7 +160,7 @@
  "guide.read.2": "Eine Karte lesen",
  "guide.read.3": "Lege die Karte auf den Chameleon und drücke <b>+ Karte hinzufügen → HF scannen</b>. ChameLab zeigt sofort Typ, UID, SAK, ATQA und ATS.",
  "guide.read.4": "Bei einer MIFARE-Classic-Karte ist der Speicher noch nicht gelesen. Drücke <b>Schlüssel probieren</b>, um jeden Schlüssel aus deinen <a href=\"#dictionaries\">Wörterbüchern</a> sowie die eingebauten Standardschlüssel an jedem Sektor zu probieren.",
- "guide.read.5": "Bleiben manche Sektoren rot (<i>Kein Schlüssel</i>), drücke <b>Wiederherstellungsmethoden prüfen</b>. ChameLab testet die Karte und bietet die Angriffe an, die bei ihr funktionieren.",
+ "guide.read.5": "Beim Scannen einer MIFARE-Classic-Karte prüft ChameLab automatisch die Wiederherstellungsmethoden und bietet die Angriffe an, die bei ihr funktionieren.",
  "guide.read.6": "Wenn jeder Sektor grün ist, drücke <b>Karte speichern</b>, um den vollständigen Dump in deiner Bibliothek zu behalten.",
  "guide.read.7.alt": "Eine frisch gescannte MIFARE-Classic-1K-Karte mit UID 4D 4F 4E 53 und ungelesener Speicherkarte",
  "guide.read.8": "Direkt nach dem Scan: Identität bekannt, Speicher noch nicht gelesen.",

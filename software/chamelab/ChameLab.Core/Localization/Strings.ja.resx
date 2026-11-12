@@ -2518,7 +2518,7 @@
     <value>リーダーにはターゲットカードを 1 枚だけ置いてください。</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>ターゲットカードをリーダーに置き、キーを試すか復元方法を確認してください。</value>
+    <value>ターゲットカードをリーダーに置き、キーを試すか自動復元を開始してください。</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>書き込みを準備中…</value>

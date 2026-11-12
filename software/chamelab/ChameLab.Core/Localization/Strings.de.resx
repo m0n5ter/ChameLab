@@ -2518,7 +2518,7 @@
     <value>Legen Sie genau eine Zielkarte auf das Lesegerät.</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>Legen Sie die Zielkarte auf das Lesegerät und probieren Sie dann Schlüssel oder prüfen Sie die Wiederherstellungsmethoden.</value>
+    <value>Legen Sie die Zielkarte auf das Lesegerät und probieren Sie dann Schlüssel oder starten Sie die automatische Wiederherstellung.</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>Schreiben wird vorbereitet…</value>

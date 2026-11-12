@@ -2518,7 +2518,7 @@
     <value>请在读卡器上只放一张目标卡。</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>将目标卡放在读卡器上，然后尝试密钥或检查恢复方法。</value>
+    <value>将目标卡放在读卡器上，然后尝试密钥或启动自动恢复。</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>正在准备写入…</value>

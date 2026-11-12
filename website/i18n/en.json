@@ -160,7 +160,7 @@
  "guide.read.2": "Read a card",
  "guide.read.3": "Place the card on the Chameleon and press <b>+ Add card → Scan HF</b>. ChameLab shows the type, UID, SAK, ATQA and ATS straight away.",
  "guide.read.4": "For a MIFARE Classic card the memory isn't read yet. Press <b>Try keys</b> to try every key from your <a href=\"#dictionaries\">dictionaries</a>, plus the built-in defaults, on every sector.",
- "guide.read.5": "If some sectors stay red (<i>No key</i>), press <b>Check recovery methods</b>. ChameLab tests the card and offers the attacks that work on it.",
+ "guide.read.5": "When a MIFARE Classic card is scanned, ChameLab automatically checks its recovery methods and offers the attacks that work on it.",
  "guide.read.6": "When every sector is green, press <b>Save card</b> to keep the full dump in your library.",
  "guide.read.7.alt": "A freshly scanned MIFARE Classic 1K card with UID 4D 4F 4E 53 and an unread memory map",
  "guide.read.8": "Right after the scan: identity known, memory not read yet.",

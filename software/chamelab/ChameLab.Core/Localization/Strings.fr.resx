@@ -2518,7 +2518,7 @@
     <value>Placez exactement une carte cible sur le lecteur.</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>Placez la carte cible sur le lecteur, puis essayez des clés ou vérifiez les méthodes de récupération.</value>
+    <value>Placez la carte cible sur le lecteur, puis essayez des clés ou lancez la récupération automatique.</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>Préparation de l'écriture…</value>

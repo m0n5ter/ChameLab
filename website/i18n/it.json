@@ -160,7 +160,7 @@
  "guide.read.2": "Leggere una scheda",
  "guide.read.3": "Appoggia la scheda sul Chameleon e premi <b>+ Aggiungi scheda → Leggi HF</b>. ChameLab mostra subito tipo, UID, SAK, ATQA e ATS.",
  "guide.read.4": "Per una scheda MIFARE Classic la memoria non è ancora letta. Premi <b>Prova chiavi</b> per provare ogni chiave dei tuoi <a href=\"#dictionaries\">dizionari</a>, più quelle predefinite integrate, su ogni settore.",
- "guide.read.5": "Se alcuni settori restano rossi (<i>Nessuna chiave</i>), premi <b>Verifica i metodi di recupero</b>. ChameLab mette alla prova la scheda e propone gli attacchi che funzionano su di essa.",
+ "guide.read.5": "Quando scansioni una scheda MIFARE Classic, ChameLab verifica automaticamente i metodi di recupero e propone gli attacchi che funzionano su di essa.",
  "guide.read.6": "Quando tutti i settori sono verdi, premi <b>Salva scheda</b> per conservare il dump completo nella tua libreria.",
  "guide.read.7.alt": "Una scheda MIFARE Classic 1K appena letta con UID 4D 4F 4E 53 e una mappa di memoria non letta",
  "guide.read.8": "Subito dopo la lettura: identità nota, memoria non ancora letta.",

@@ -12,7 +12,6 @@ public interface IKeyRecoveryContext
     bool ShowRecoveryTools { get; }
     bool ShowWriteProgress { get; }
     ICommand CancelDumpCommand { get; }
-    ICommand CheckRecoveryCommand { get; }
     ICommand AutoRecoveryCommand { get; }
     bool ShowAutoRecovery { get; }
     ICommand DarksideCommand { get; }
@@ -46,7 +45,6 @@ public interface IKeyRecoveryContext
     string? RecoverySectorHint { get; }
     string? RecoveryIdentity { get; }
     int RecoverySelectedSector { get; set; }
-    bool ShowCheckRecovery { get; }
     bool ShowDarkside { get; }
     bool ShowDumpActions { get; }
     bool ShowDumpNotice { get; }

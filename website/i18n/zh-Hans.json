@@ -160,7 +160,7 @@
  "guide.read.2": "读取卡片",
  "guide.read.3": "把卡放在 Chameleon 上，按 <b>+ 添加卡片 → 扫描 HF</b>。ChameLab 会立即显示类型、UID、SAK、ATQA 和 ATS。",
  "guide.read.4": "对于 MIFARE Classic 卡，此时还没有读取存储内容。按<b>尝试密钥</b>，在每个扇区上尝试<a href=\"#dictionaries\">字典</a>中的每个密钥以及内置的默认密钥。",
- "guide.read.5": "如果有些扇区仍是红色（<i>无密钥</i>），按<b>检查恢复方法</b>。ChameLab 会测试这张卡，并提供对它有效的攻击。",
+ "guide.read.5": "扫描 MIFARE Classic 卡时，ChameLab 会自动检查恢复方法，并提供对这张卡有效的攻击。",
  "guide.read.6": "当所有扇区都变绿后，按<b>保存卡片</b>，把完整的转储保存在卡库中。",
  "guide.read.7.alt": "刚扫描的 MIFARE Classic 1K 卡，UID 为 4D 4F 4E 53，存储映射尚未读取",
  "guide.read.8": "扫描刚完成：已知标识，存储内容尚未读取。",

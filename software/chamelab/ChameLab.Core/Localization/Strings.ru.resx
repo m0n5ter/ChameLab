@@ -2188,7 +2188,7 @@
     <value>Положите на считыватель ровно одну целевую карту.</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>Положите целевую карту на считыватель, затем подберите ключи или проверьте методы восстановления.</value>
+    <value>Положите целевую карту на считыватель, затем подберите ключи или запустите автоматическое восстановление.</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>Подготовка записи…</value>

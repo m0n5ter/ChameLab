@@ -62,7 +62,6 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         _targetCard = targetCard ?? (target => CardFormats.FromMifareDump(target));
         var idle = this.WhenAnyValue(x => x.CanOperate);
         DumpCommand = ReactiveCommand.CreateFromTask(() => StartAsync(SearchAsync), idle);
-        CheckRecoveryCommand = ReactiveCommand.CreateFromTask(() => StartAsync(ProbeAsync), idle);
         AutoRecoveryCommand = ReactiveCommand.CreateFromTask(() => StartAsync((client, ct) => RecoverAsync(client, null, ct)), idle);
         DarksideCommand = Attack(MifareRecoveryMethod.Darkside, this.WhenAnyValue(x => x.ShowDarkside));
         NestedCommand = Attack(MifareRecoveryMethod.Nested, this.WhenAnyValue(x => x.ShowNested));
@@ -80,7 +79,6 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
                 (idle, show) => idle && show && (method != MifareRecoveryMethod.Hardnested || HardnestedWarning is null)));
 
     public ICommand DumpCommand { get; }
-    public ICommand CheckRecoveryCommand { get; }
     public ICommand AutoRecoveryCommand { get; }
     public bool ShowAutoRecovery => true;
     public ICommand DarksideCommand { get; }
@@ -112,7 +110,6 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     private bool RecoveryComplete => _hasWriteSession || AllTargetKeysRecovered || AllPlannedSectorsWritten;
     private bool HasKnownKeys => Target is { } d && d.KeyA.Concat(d.KeyB).Any(k => k is not null);
     private bool HasUnknownKeys => Target is null || Target.KeyA.Concat(Target.KeyB).Any(k => k is null);
-    public bool ShowCheckRecovery => _prng is null;
     public bool ShowDarkside => _darkside && HasUnknownKeys;
     public bool ShowNested => _prng == MifareClassicPrngType.Weak && HasKnownKeys && HasUnknownKeys;
     public bool ShowStaticNested => _prng == MifareClassicPrngType.Static && HasKnownKeys && HasUnknownKeys;
@@ -378,9 +375,6 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         Refresh();
         return Target;
     }
-
-    private async Task ProbeAsync(ChameleonClient client, CancellationToken ct)
-        => await ProbeCurrentAsync(client, ct, allowChange: true);
 
     private async Task ProbeCurrentAsync(ChameleonClient client, CancellationToken ct, bool allowChange)
     {

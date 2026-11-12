@@ -2518,7 +2518,7 @@
     <value>Coloca exactamente una tarjeta de destino en el lector.</value>
   </data>
   <data name="Recovery_PlaceTarget" xml:space="preserve">
-    <value>Coloca la tarjeta de destino en el lector y luego prueba claves o comprueba los métodos de recuperación.</value>
+    <value>Coloca la tarjeta de destino en el lector y luego prueba claves o inicia la recuperación automática.</value>
   </data>
   <data name="Recovery_PreparingWrite" xml:space="preserve">
     <value>Preparando la escritura…</value>

@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: scanning a MIFARE Classic card automatically checks its recovery methods; the separate Check recovery methods button is removed
  - ChameLab: the browser version installs firmware over Web Serial and Web Bluetooth. The first time, the browser asks to pick the Chameleon's bootloader in its device list (Select bootloader in the update dialog); later updates over USB find it on their own
 
 ## [v1.5.40][2026-11-11] · firmware v2.3.15-cl

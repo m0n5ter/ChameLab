@@ -99,7 +99,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private void UpdateRecoveryMethods()
     {
-        this.RaisePropertyChanged(nameof(ShowCheckRecovery));
         this.RaisePropertyChanged(nameof(ShowAutoRecovery));
         this.RaisePropertyChanged(nameof(ShowMfkey32));
         this.RaisePropertyChanged(nameof(ShowDarkside));
@@ -194,7 +193,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         HardnestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Hardnested),
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowHardnested),
                 (idle, show) => idle && show && CanRunHardnested));
-        CheckRecoveryCommand = ReactiveCommand.CreateFromTask(CheckRecoveryAsync, recoveryIdle);
         this.WhenAnyValue(x => x.IsBusy).Subscribe(_ => RaiseMfkey32Availability());
         Mfkey32Command = ReactiveCommand.CreateFromTask(() => _mfkey32Task = RunMfkey32Async(),
             this.WhenAnyValue(x => x.CanRunMfkey32));
@@ -1170,7 +1168,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public ICommand ScanHfCommand { get; }
     public ICommand ScanLfCommand { get; }
     public ICommand DumpCommand { get; }
-    public ICommand CheckRecoveryCommand { get; }
     public ICommand AutoRecoveryCommand { get; }
     public ICommand DarksideCommand { get; }
     public ICommand NestedCommand { get; }
@@ -1291,7 +1288,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         private set
         {
             this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(ShowCheckRecovery));
             RaiseDumpToolbar();
         }
     }
@@ -1459,11 +1455,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
     }
 
-    public bool ShowCheckRecovery => _classicDump is not null && _cardPrng is null && NeedsRecovery && HasUnknownKeys;
-
-    private Task CheckRecoveryAsync() => RunAsync(async () =>
+    private async Task CheckRecoveryAsync(ChameleonClient client)
     {
-        if (_device.Client is not { } client) return;
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
         DumpProgressText = Strings.Common_CheckingRecoveryMethods;
@@ -1474,7 +1467,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (ReferenceEquals(_dumpCts, cts)) _dumpCts = null;
             Avalonia.Threading.Dispatcher.UIThread.Post(IfKept(cts, FinishClassicOperation));
         }
-    });
+    }
 
     private async Task ProbeRecoveryAsync(ChameleonClient client, CancellationToken ct)
     {
@@ -1633,6 +1626,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             SetScanMatches(card);
             FormSource = string.Format(Strings.Cards_SourceTypeUid, card.Tag.DisplayName(), t.UidHex);
         });
+
+        if (_classicDump is not null) await CheckRecoveryAsync(client);
 
         Notify(Loc.Plural(Strings.Plural_FoundHfTags, tags.Count));
     });
