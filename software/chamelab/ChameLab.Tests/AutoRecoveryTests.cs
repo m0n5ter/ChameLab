@@ -114,6 +114,10 @@ public partial class MifareWorkflowTests
 
         Assert.True(result.Complete);
         Assert.Equal(3, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
+        var firstDictionary = transport.Requests.FindIndex(r => r.Command == Command.Mf1CheckKeysOfSectors);
+        var lastBackdoor = transport.Requests.FindLastIndex(r => r.Command == Command.Mf1EncNestedAcquire);
+        Assert.True(lastBackdoor < firstDictionary);
+        Assert.Equal(keys[0], transport.Requests[firstDictionary].Data[10..16]);
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1NestedAcquire);
     }
 
@@ -266,6 +270,111 @@ public partial class MifareWorkflowTests
         Assert.Equal(3, engine.Calls); // A/B candidates and one filter, then propagation opens the card.
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
         Assert.All(dump.KeyA.Concat(dump.KeyB), key => Assert.Equal(recovered, key));
+    }
+
+    [Theory]
+    [InlineData(MifareClassicPrngType.Weak, false)]
+    [InlineData(MifareClassicPrngType.Static, false)]
+    [InlineData(MifareClassicPrngType.Hard, false)]
+    [InlineData(MifareClassicPrngType.Weak, true)]
+    [InlineData(MifareClassicPrngType.Static, true)]
+    [InlineData(MifareClassicPrngType.Hard, true)]
+    public async Task Auto_StaticEncryptedPrecedesDictionaryAndOtherAttacksRegardlessOfPrngOrSeed(
+        MifareClassicPrngType prng, bool hasSeed)
+    {
+        var first = Convert.FromHexString("112233445566");
+        var second = Convert.FromHexString("665544332211");
+        byte[] CardKey(int sector, MfKeyType _) => sector switch { 4 => Key, < 2 => first, _ => second };
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        if (hasSeed) dump.KeyA[4] = Key;
+        var engine = new AutoTestEngine([0x112233445566UL, 0x665544332211UL, 0xFFFFFFFFFFFFUL]);
+        var transport = AutoTransport(prng, CardKey, backdoor: true);
+        var reply = transport.Response!;
+        transport.Response = r => r.Command switch
+        {
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, EncryptedCapture(5)),
+            Command.Mf1CheckKeysOnBlock => (Status.HfTagOk,
+                new byte[] { 1 }.Concat(CardKey(MifareClassic.SectorOfBlock(r.Data[0]), (MfKeyType)r.Data[1])).ToArray()),
+            _ => reply(r),
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        // A working factory key heads a large dictionary. It must not delay SEN even
+        // when it could open part of the card, or a seed already permits Nested.
+        var result = await new MifareKeyRecovery(new ChameleonClient(connection), new HardnestedEngine(), keyRecovery: engine)
+            .RecoverAutomaticallyAsync(dump, new[] { Key }.Concat(DistinctKeys(200)).ToArray());
+
+        Assert.True(result.Complete);
+        Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1DetectPrng);
+        var capture = transport.Requests.FindIndex(r => r.Command == Command.Mf1EncNestedAcquire);
+        var beforeCapture = transport.Requests.Take(capture).Where(r =>
+            r.Command is Command.Mf1CheckKeysOfSectors or Command.Mf1AuthOneKeyBlock or Command.Mf1CheckKeysOnBlock);
+        if (!hasSeed) Assert.Empty(beforeCapture);
+        else Assert.All(beforeCapture, r =>
+        {
+            Assert.Equal(Command.Mf1CheckKeysOfSectors, r.Command);
+            Assert.Equal(Key, r.Data[10..]); // Only the key retained in the dump may be reused.
+        });
+        Assert.All(engine.Operations, op => Assert.True(op is KeyRecoveryOperation.StaticEncryptedNested
+            or KeyRecoveryOperation.FilterStaticEncrypted));
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire
+            or Command.Mf1StaticNestedAcquire or Command.Mf1HardnestedAcquire or Command.Mf1DarksideAcquire);
+        for (var s = 0; s < dump.SectorCount; s++)
+        {
+            Assert.Equal(CardKey(s, MfKeyType.A), dump.KeyA[s]);
+            Assert.Equal(CardKey(s, MfKeyType.B), dump.KeyB[s]);
+        }
+    }
+
+    [Fact]
+    public async Task Auto_UnstableStaticEncryptedFallsBackToWorkingDictionary()
+    {
+        var captures = 0;
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        var engine = new AutoTestEngine([]);
+        var transport = AutoTransport(MifareClassicPrngType.Weak, (_, _) => Key, backdoor: true);
+        var reply = transport.Response!;
+        transport.Response = r =>
+        {
+            if (r.Command != Command.Mf1EncNestedAcquire) return reply(r);
+            var payload = EncryptedCapture(5);
+            if (++captures == 2) payload[7] ^= 1;
+            return (Status.HfTagOk, payload);
+        };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var result = await new MifareKeyRecovery(new ChameleonClient(connection), keyRecovery: engine)
+            .RecoverAutomaticallyAsync(dump, [Key]);
+
+        Assert.True(result.Complete);
+        Assert.Equal(2, captures);
+        Assert.Equal(0, engine.Calls);
+        Assert.True(transport.Requests.FindLastIndex(r => r.Command == Command.Mf1EncNestedAcquire)
+            < transport.Requests.FindIndex(r => r.Command == Command.Mf1CheckKeysOfSectors));
+    }
+
+    [Fact]
+    public async Task Auto_CancelingStaticEncryptedProbeNeverStartsDictionaryAndDrainsReply()
+    {
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        var engine = new AutoTestEngine([]);
+        using var stop = new CancellationTokenSource();
+        var transport = AutoTransport(MifareClassicPrngType.Hard, (_, _) => null, backdoor: true);
+        var reply = transport.Response!;
+        transport.Response = r => r.Command == Command.Mf1EncNestedAcquire
+            ? (Status.HfTagOk, EncryptedCapture(5)) : reply(r);
+        transport.OnRequest = r => { if (r.Command == Command.Mf1EncNestedAcquire) stop.Cancel(); };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new MifareKeyRecovery(client, keyRecovery: engine)
+            .RecoverAutomaticallyAsync(dump, DistinctKeys(200), ct: stop.Token));
+        await client.SetDeviceModeAsync(DeviceMode.Tag);
+
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1EncNestedAcquire);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1CheckKeysOfSectors or Command.Mf1AuthOneKeyBlock);
+        Assert.Equal(0, engine.Calls);
     }
 
     [Fact]

@@ -68,10 +68,20 @@ public sealed partial class MifareKeyRecovery
         if (Missing() == 0) return Finish();
         await Spread();
         if (Missing() == 0) return Finish();
+        var capabilities = await client.GetCapabilitiesAsync(ct);
+        // SEN needs neither a seed nor a particular normal-authentication PRNG.
+        // Probe it before any dictionary search or PRNG-dependent attack, and keep
+        // using the confirmed capture while newly recovered keys are propagated.
+        if (capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) &&
+            capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock))
+        {
+            Choosing("Static encrypted nested");
+            await StaticEncryptedNestedAsync(dump, Store, progress, ct, automatic: true, afterKeyFound: Spread);
+            if (Missing() == 0) return Finish();
+        }
         progress?.Report(new(Strings.Common_CheckingRecoveryMethods));
         var prng = await client.DetectNtLevelAsync(ct);
         progress?.Report(new(Strings.Common_CheckingRecoveryMethods) { Prng = prng });
-        var capabilities = await client.GetCapabilitiesAsync(ct);
         var seededMethod = prng switch
         {
             MifareClassicPrngType.Weak => MifareRecoveryMethod.Nested,
@@ -91,33 +101,6 @@ public sealed partial class MifareKeyRecovery
             _ => false,
         };
 
-        // An existing seed already unlocks Nested/Static nested. Hardnested is expensive:
-        // give a small dictionary prefix and the static-encrypted backdoor a chance first.
-        var quickCount = 0;
-        if (!HasSeed() || prng == MifareClassicPrngType.Hard)
-        {
-            Choosing(Strings.Common_TryKeys);
-            quickCount = Math.Min(8, keys.Length);
-            await Search(keys.Take(quickCount).ToArray(), seedOnly: !HasSeed() && canAttack);
-            // A slow dictionary hit can still be shared by the entire card. Before
-            // considering SEN or Hardnested, check that key across the remaining sectors.
-            await Spread();
-            if (Missing() == 0) return Finish();
-        }
-
-        var backdoorTried = false;
-        async Task TryBackdoor()
-        {
-            if (backdoorTried || !capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
-                !capabilities.Contains((ushort)Command.Mf1CheckKeysOnBlock)) return;
-            backdoorTried = true;
-            Choosing("Static encrypted nested");
-            await StaticEncryptedNestedAsync(dump, Store, progress, ct, automatic: true,
-                stopAfterFirstKey: canAttack && prng != MifareClassicPrngType.Hard, afterKeyFound: Spread);
-        }
-        if (!HasSeed() || prng == MifareClassicPrngType.Hard) await TryBackdoor();
-        if (Missing() == 0) return Finish();
-
         if (!HasSeed() && prng == MifareClassicPrngType.Weak &&
             capabilities.Contains((ushort)Command.Mf1DarksideAcquire))
         {
@@ -136,7 +119,7 @@ public sealed partial class MifareKeyRecovery
         if (!HasSeed() || !canAttack)
         {
             Choosing(Strings.Common_TryKeys);
-            await Search(keys.Skip(quickCount).ToArray(), seedOnly: canAttack);
+            await Search(keys, seedOnly: canAttack);
             await Spread();
             if (Missing() == 0) return Finish();
         }
@@ -150,10 +133,8 @@ public sealed partial class MifareKeyRecovery
             });
             await RecoverCoreAsync(dump, seededMethod!.Value, progress, ct, spreadKeys: true, rejected);
             if (Missing() == 0) return Finish();
-            // An attack can fail on individual keys. Retain those already found and try
-            // the alternative family and dictionary only on unresolved A/B pairs.
-            await TryBackdoor();
-            if (Missing() == 0) return Finish();
+            // SEN has already been tried. A failed seeded attack leaves only a
+            // dictionary fallback for the remaining unresolved A/B pairs.
             await Search(keys, seedOnly: false);
         }
 

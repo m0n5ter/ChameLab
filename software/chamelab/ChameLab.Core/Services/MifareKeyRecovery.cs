@@ -177,7 +177,7 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
 
     private async Task StaticEncryptedNestedAsync(MifareDump dump, Action<int, MfKeyType, byte[]> store,
         IProgress<KeyRecoveryProgress>? progress, CancellationToken ct, bool automatic = false,
-        bool stopAfterFirstKey = false, Func<Task>? afterKeyFound = null)
+        Func<Task>? afterKeyFound = null)
     {
         var capabilities = await client.GetCapabilitiesAsync(ct);
         if (!capabilities.Contains((ushort)Command.Mf1EncNestedAcquire) ||
@@ -290,7 +290,6 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                 {
                     store(s, type, hit);
                     if (afterKeyFound is not null) await afterKeyFound();
-                    if (stopAfterFirstKey) return;
                     if (type == MfKeyType.B) bKeys = new[] { KeyValue(hit) };
                     else aKeys = new[] { KeyValue(hit) };
                 }
