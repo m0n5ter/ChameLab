@@ -42,7 +42,60 @@
       <DockPanel IsVisible="{Binding ShowDumpActions}" VerticalAlignment="Center">
         <c:ActionRow DockPanel.Dock="Left" Classes="attackactions" Spacing="6"
                     VerticalAlignment="Center" IsEnabled="{Binding !IsBusy}">
-          <Button Classes="responsive accent theme-outline" c:ActionRow.Priority="4"
+          <Button c:ActionRow.Priority="5" IsVisible="{Binding !IsUltralightDump}" Padding="0" Width="40"
+                  ToolTip.Tip="{Binding DumpKeyCountText}"
+                  AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
+            <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft" OverlayDismissEventPassThrough="True">
+                <c:DictionarySelector ItemsSource="{Binding DumpKeySources}" CountText="{Binding DumpKeyCountText}" />
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+          <Button c:ActionRow.Priority="5" IsVisible="{Binding !IsUltralightDump}" Padding="0" Width="40"
+                  ToolTip.Tip="{x:Static loc:Strings.KeySearch_Options}"
+                  AutomationProperties.Name="{x:Static loc:Strings.KeySearch_Options}">
+            <PathIcon Data="{StaticResource Icon.settings}" Width="16" Height="16" />
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft" OverlayDismissEventPassThrough="True">
+                <ScrollViewer MaxHeight="520" HorizontalScrollBarVisibility="Disabled">
+                  <StackPanel Spacing="10" Margin="12" IsEnabled="{Binding !IsBusy}">
+                    <TextBlock Text="{Binding KeySearchSettings.Title}" Classes="overline" />
+                    <TextBlock Text="{x:Static loc:Strings.KeySearch_Method}" Classes="caption" />
+                    <Border Classes="segmented compact">
+                      <StackPanel>
+                        <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.SingleKey}"
+                                     Content="{x:Static loc:Strings.KeySearch_SingleKey}" />
+                        <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.AllSectors}"
+                                     Content="{x:Static loc:Strings.KeySearch_AllSectors}" />
+                        <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.OneSector}"
+                                     Content="{x:Static loc:Strings.KeySearch_OneSector}" />
+                      </StackPanel>
+                    </Border>
+                    <TextBlock Text="{x:Static loc:Strings.KeySearch_Start}" Classes="caption" />
+                    <Border Classes="segmented compact">
+                      <c:SpreadStack>
+                        <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.FromBeginning}"
+                                     Content="{x:Static loc:Strings.KeySearch_Beginning}" />
+                        <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.FromSelected}"
+                                     Content="{x:Static loc:Strings.KeySearch_Selected}" />
+                      </c:SpreadStack>
+                    </Border>
+                    <TextBlock Text="{x:Static loc:Strings.KeySearch_Order}" Classes="caption" />
+                    <Border Classes="segmented compact">
+                      <c:SpreadStack>
+                        <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.Sequential}"
+                                     Content="{x:Static loc:Strings.KeySearch_Sequential}" />
+                        <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.Random}"
+                                     Content="{x:Static loc:Strings.KeySearch_Random}" />
+                      </c:SpreadStack>
+                    </Border>
+                  </StackPanel>
+                </ScrollViewer>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+          <Button Classes="responsive success" c:ActionRow.Priority="4"
                   Command="{Binding AutoRecoveryCommand}" IsVisible="{Binding ShowAutoRecovery}"
                   ToolTip.Tip="{x:Static loc:Strings.AutoRecovery_Tip}"
                   AutomationProperties.Name="{x:Static loc:Strings.AutoRecovery_Label}">
@@ -51,86 +104,13 @@
               <TextBlock Classes="action-label" Text="{x:Static loc:Strings.AutoRecovery_Label}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Grid Height="40" c:ActionRow.Priority="3">
-            <Grid.Styles>
-              <Style Selector="Button.dump-main">
-                <Setter Property="CornerRadius" Value="8,0,0,8" />
-              </Style>
-              <Style Selector="Button.dump-main.ultralight">
-                <Setter Property="CornerRadius" Value="8" />
-              </Style>
-            </Grid.Styles>
-            <StackPanel Orientation="Horizontal" Spacing="0">
-              <Button x:Name="TryKeysButton" Command="{Binding DumpCommand}" Classes="dump-main responsive accent theme-outline"
-                      Classes.ultralight="{Binding IsUltralightDump}"
-                      Height="40" BorderThickness="0"
-                      ToolTip.Tip="{Binding TryKeysTip}">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.dump}" />
-                  <TextBlock Classes="action-label" Text="{Binding TryKeysLabel}" VerticalAlignment="Center" />
-                </StackPanel>
-              </Button>
-              <Button IsVisible="{Binding !IsUltralightDump}" ToolTip.Tip="{Binding DumpKeyCountText}"
-                      Height="40" Width="40" Padding="0" CornerRadius="0" BorderThickness="1,0,0,0"
-                      BorderBrush="{Binding #TryKeysButton.BorderBrush}"
-                      AutomationProperties.Name="{x:Static loc:Strings.Common_KeyDictionaries}">
-                <PathIcon Data="{StaticResource Icon.key}" Width="14" Height="14" />
-                <Button.Flyout>
-                  <Flyout Placement="BottomEdgeAlignedLeft" OverlayDismissEventPassThrough="True">
-                    <c:DictionarySelector ItemsSource="{Binding DumpKeySources}" CountText="{Binding DumpKeyCountText}" />
-                  </Flyout>
-                </Button.Flyout>
-              </Button>
-              <Button IsVisible="{Binding !IsUltralightDump}" Height="40" Width="40" Padding="0"
-                      CornerRadius="0,8,8,0" BorderThickness="1,0,0,0"
-                      BorderBrush="{Binding #TryKeysButton.BorderBrush}"
-                      ToolTip.Tip="{x:Static loc:Strings.KeySearch_Options}"
-                      AutomationProperties.Name="{x:Static loc:Strings.KeySearch_Options}">
-                <PathIcon Data="{StaticResource Icon.settings}" Width="16" Height="16" />
-                <Button.Flyout>
-                  <Flyout Placement="BottomEdgeAlignedLeft" OverlayDismissEventPassThrough="True">
-                    <ScrollViewer MaxHeight="520" HorizontalScrollBarVisibility="Disabled">
-                      <StackPanel Spacing="10" Margin="12" IsEnabled="{Binding !IsBusy}">
-                        <TextBlock Text="{Binding KeySearchSettings.Title}" Classes="overline" />
-                        <TextBlock Text="{x:Static loc:Strings.KeySearch_Method}" Classes="caption" />
-                        <Border Classes="segmented compact">
-                          <StackPanel>
-                            <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.SingleKey}"
-                                         Content="{x:Static loc:Strings.KeySearch_SingleKey}" />
-                            <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.AllSectors}"
-                                         Content="{x:Static loc:Strings.KeySearch_AllSectors}" />
-                            <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.OneSector}"
-                                         Content="{x:Static loc:Strings.KeySearch_OneSector}" />
-                          </StackPanel>
-                        </Border>
-                        <TextBlock Text="{x:Static loc:Strings.KeySearch_Start}" Classes="caption" />
-                        <Border Classes="segmented compact">
-                          <c:SpreadStack>
-                            <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.FromBeginning}"
-                                         Content="{x:Static loc:Strings.KeySearch_Beginning}" />
-                            <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.FromSelected}"
-                                         Content="{x:Static loc:Strings.KeySearch_Selected}" />
-                          </c:SpreadStack>
-                        </Border>
-                        <TextBlock Text="{x:Static loc:Strings.KeySearch_Order}" Classes="caption" />
-                        <Border Classes="segmented compact">
-                          <c:SpreadStack>
-                            <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.Sequential}"
-                                         Content="{x:Static loc:Strings.KeySearch_Sequential}" />
-                            <RadioButton Classes="segment" IsChecked="{Binding KeySearchSettings.Random}"
-                                         Content="{x:Static loc:Strings.KeySearch_Random}" />
-                          </c:SpreadStack>
-                        </Border>
-                      </StackPanel>
-                    </ScrollViewer>
-                  </Flyout>
-                </Button.Flyout>
-              </Button>
+          <Button Classes="responsive" c:ActionRow.Priority="3" Command="{Binding DumpCommand}"
+                  ToolTip.Tip="{Binding TryKeysTip}" AutomationProperties.Name="{Binding TryKeysLabel}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.dump}" />
+              <TextBlock Classes="action-label" Text="{Binding TryKeysLabel}" VerticalAlignment="Center" />
             </StackPanel>
-            <!-- Draw the shared outline above the button backgrounds. -->
-            <Border BorderBrush="{Binding #TryKeysButton.BorderBrush}" BorderThickness="1"
-                    CornerRadius="8" IsHitTestVisible="False" />
-          </Grid>
+          </Button>
           <Button Classes="responsive" c:ActionRow.Priority="1" Command="{Binding DarksideCommand}" ToolTip.Tip="Darkside" AutomationProperties.Name="Darkside"
                   IsVisible="{Binding ShowDarkside}">
             <StackPanel Orientation="Horizontal" Spacing="6">
