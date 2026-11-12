@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -75,6 +76,8 @@ internal sealed class RelaySessions(RelayOptions options, ILogger<RelaySessions>
         string code;
         do code = RelayCode.New(); while (!_sessions.TryAdd(code, session));
         log.LogInformation("Share opened ({Count} active)", _sessions.Count);
+        var started = Stopwatch.GetTimestamp();
+        var how = "closed by the sharing side";
         try
         {
             await session.SendToHostAsync(Message("code", RelayCode.Format(code)), ct);
@@ -82,13 +85,15 @@ internal sealed class RelaySessions(RelayOptions options, ILogger<RelaySessions>
         }
         catch (Exception ex) when (ex is WebSocketException or OperationCanceledException)
         {
-            // The sharing side went away.
+            // The sharing side went away without closing: network gone, or it stopped answering pings.
+            how = Describe(ex);
         }
         finally
         {
             _sessions.TryRemove(code, out _);
             await session.EndAsync();
-            log.LogInformation("Share closed ({Count} active)", _sessions.Count);
+            log.LogInformation("Share closed after {Seconds:F0} s: {How} ({Count} active)",
+                Stopwatch.GetElapsedTime(started).TotalSeconds, how, _sessions.Count);
         }
     }
 
@@ -111,6 +116,9 @@ internal sealed class RelaySessions(RelayOptions options, ILogger<RelaySessions>
             return;
         }
 
+        log.LogInformation("Peer joined");
+        var started = Stopwatch.GetTimestamp();
+        var how = "closed by the connecting side";
         try
         {
             await session.SendToPeerAsync(ws, Message("joined"), ct);
@@ -120,12 +128,23 @@ internal sealed class RelaySessions(RelayOptions options, ILogger<RelaySessions>
         catch (Exception ex) when (ex is WebSocketException or OperationCanceledException)
         {
             // The connecting side (or the sharing side under it) went away.
+            how = Describe(ex);
         }
         finally
         {
             if (session.Detach(ws)) await session.TrySendToHostAsync(Message("peer-left"));
+            else how = "the share ended";
+            log.LogInformation("Peer left after {Seconds:F0} s: {How}", Stopwatch.GetElapsedTime(started).TotalSeconds, how);
         }
     }
+
+    /// <summary>Why a socket ended without a close handshake, for the log.</summary>
+    private static string Describe(Exception ex) => ex switch
+    {
+        OperationCanceledException => "connection aborted",
+        WebSocketException ws => $"{ws.WebSocketErrorCode}: {ws.GetBaseException().Message}",
+        _ => ex.Message,
+    };
 
     private static async Task RejectAsync(WebSocket ws, string reason)
     {

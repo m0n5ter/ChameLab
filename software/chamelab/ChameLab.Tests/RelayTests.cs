@@ -355,6 +355,29 @@ public sealed class DeviceSharingServiceTests
     }
 
     [Fact]
+    public async Task Share_KeepsTheComputerAwakeUntilItEnds()
+    {
+        await using var relay = await TestRelay.StartAsync();
+        var held = 0;
+        var wakeLock = new WakeLockService(() =>
+        {
+            Interlocked.Increment(ref held);
+            return Task.FromResult<IAsyncDisposable?>(WakeLockService.ReleaseWith(() =>
+            {
+                Interlocked.Decrement(ref held);
+                return ValueTask.CompletedTask;
+            }));
+        });
+        var sharing = new DeviceSharingService(new DeviceService([new FixedScanner(new EchoDevice())]), wakeLock);
+
+        await sharing.StartAsync(FixedScanner.Candidate, [relay.Server], TestRelay.Timeout());
+        Assert.Equal(1, Volatile.Read(ref held));
+
+        await sharing.StopAsync();
+        Assert.Equal(0, Volatile.Read(ref held));
+    }
+
+    [Fact]
     public async Task UnreachableRelay_LeavesTheDeviceFree()
     {
         var device = new EchoDevice();

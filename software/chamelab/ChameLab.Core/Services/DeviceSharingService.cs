@@ -26,8 +26,10 @@ public enum SharingState
 /// Shares a locally attached device through the relay (ChameLab.Relay): opens the device's
 /// transport, gets a code from the relay, and copies raw bytes between the two until stopped.
 /// The device stays opened by the share the whole time, so it can't be connected locally then.
+/// The computer is kept awake meanwhile: nobody touches it while someone else uses the device,
+/// and a sleeping (or display-off standby) computer drops the link to the relay.
 /// </summary>
-public sealed class DeviceSharingService(DeviceService device)
+public sealed class DeviceSharingService(DeviceService device, WakeLockService? wakeLock = null)
 {
     private static readonly TimeSpan CloseTimeout = TimeSpan.FromSeconds(2);
 
@@ -110,13 +112,14 @@ public sealed class DeviceSharingService(DeviceService device)
             throw;
         }
 
+        var awake = wakeLock is null ? null : await wakeLock.AcquireAsync();
         Code = code;
         _stop = new CancellationTokenSource();
         SetState(SharingState.WaitingForPeer);
         // Off the caller's (UI) context: the pumps run for as long as the share does.
         var token = _stop.Token;
         var socket = ws!;
-        _run = Task.Run(() => RunAsync(transport, socket, token));
+        _run = Task.Run(() => RunAsync(transport, socket, awake, token));
     }
 
     /// <summary>Ends the share: the code stops working and whoever is connected is disconnected.</summary>
@@ -127,7 +130,8 @@ public sealed class DeviceSharingService(DeviceService device)
         await run;
     }
 
-    private async Task RunAsync(ITransport transport, ClientWebSocket ws, CancellationToken stop)
+    private async Task RunAsync(ITransport transport, ClientWebSocket ws, IAsyncDisposable? awake,
+        CancellationToken stop)
     {
         // Only the device pump sends data; the closing handshake takes the same lock so the
         // two never overlap. Sends aren't canceled: canceling a WebSocket send aborts the socket.
@@ -159,6 +163,7 @@ public sealed class DeviceSharingService(DeviceService device)
         await transport.DisposeAsync();
         try { await Task.WhenAll(up, down); }
         catch { /* reported through Error */ }
+        if (awake is not null) await awake.DisposeAsync();
 
         if (error is not null) Console.WriteLine($"[Share] {Candidate?.Id} ended: {error}");
         _stop?.Dispose();
