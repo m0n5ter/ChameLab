@@ -25,15 +25,16 @@
   <header class="guide-hero">
     <p class="eyebrow">PRIVACY</p>
     <h1>Privacy policy</h1>
-    <p class="meta">Last updated: November 10, 2026. This policy covers the ChameLab app on every platform
+    <p class="meta">Last updated: November 13, 2026. This policy covers the ChameLab app on every platform
       (Windows, macOS, Linux, Android, iOS and the web app) and this website.</p>
   </header>
 
   <section>
     <h2>In short</h2>
     <p>ChameLab has no accounts, no ads, no analytics and no tracking in the app. Everything you read,
-      save or edit stays on your device and on your ChameleonUltra or ChameleonLite. Nothing is sent to
-      the developer.</p>
+      save or edit stays on your device and on your ChameleonUltra or ChameleonLite. The only exception
+      is device sharing, which you start yourself: then the data exchanged with the device passes through
+      a ChameLab relay server, which forwards it and keeps none of it.</p>
   </section>
 
   <section>
@@ -52,12 +53,30 @@
     <ul class="changes">
       <li>check GitHub (<code>api.github.com</code>) for a newer app or firmware release, and download a
         firmware update from GitHub when you install one;</li>
-      <li>open links you tap, such as the release page or the guide, in your browser.</li>
+      <li>open links you tap, such as the release page or the guide, in your browser;</li>
+      <li>share a device or join a shared one, described below.</li>
     </ul>
     <p>These requests carry no personal data. GitHub sees your IP address, as with any web request,
       under the <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub
       privacy statement</a>. The app copy installed from Google Play does not check GitHub for app
       updates: Google Play updates it.</p>
+  </section>
+
+  <section>
+    <h2>Device sharing</h2>
+    <p>Sharing lets someone else use your Chameleon remotely with a one-time code. It runs only while you
+      share or join, and never in the background.</p>
+    <ul class="changes">
+      <li>The app measures the response time of the ChameLab relay servers (in Turkey, Bulgaria, Germany,
+        Russia and the USA) and uses the fastest one.</li>
+      <li>The relay forwards the bytes between the device and the person who joined, over an encrypted
+        (TLS) connection. It does not store them, does not look into them and does not log them.</li>
+      <li>The relay sees the IP addresses of both sides. It uses them only in memory, to limit how often
+        codes can be tried, and does not keep them. Its log holds only when a share opened and closed and
+        how long it lasted.</li>
+      <li>The person you give the code to can send any command to your device while connected, including
+        reading and changing its slots. Share codes only with people you trust, and stop sharing when done.</li>
+    </ul>
   </section>
 
   <section>
@@ -68,20 +87,21 @@
         permission location; the app never reads your location.</li>
       <li><b>USB</b>: to talk to a Chameleon plugged in by cable.</li>
       <li><b>Vibration</b>: an optional buzz when a scan finishes.</li>
-      <li><b>Internet</b>: for the update checks above.</li>
+      <li><b>Internet</b>: for the update checks and device sharing above.</li>
     </ul>
   </section>
 
   <section>
     <h2>This website</h2>
     <p>The website uses Cloudflare Web Analytics, which counts page visits without cookies and without
-      identifying visitors. The web app itself sends nothing anywhere except the GitHub requests above.</p>
+      identifying visitors. The web app itself sends nothing anywhere except the GitHub requests and
+      device sharing above.</p>
   </section>
 
   <section>
     <h2>Children</h2>
     <p>ChameLab is a tool for working with RFID hardware and is not aimed at children. It collects no
-      data from anyone.</p>
+      personal data from anyone.</p>
   </section>
 
   <section>
