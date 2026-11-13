@@ -145,7 +145,16 @@ public partial class MifareWorkflowTests
         Assert.Equal(Convert.FromHexString("112233445566"), dump.KeyB[4]);
         Assert.All(dump.KeyA, key => Assert.Equal(Key, key));
         Assert.Equal(1, engine.Calls); // Equal nonces require recovery, without a paired-seed filter.
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+        var checks = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOnBlock).ToArray();
+        Assert.Collection(checks,
+            r => Assert.Equal(Key, r.Data[3..]), // Try reusing the known key before calculated candidates.
+            r => Assert.Equal(Convert.FromHexString("112233445566"), r.Data[3..]));
+        Assert.All(checks, r =>
+        {
+            Assert.Equal(MifareClassic.SectorFirstBlock(4), r.Data[0]);
+            Assert.Equal((byte)MfKeyType.B, r.Data[1]);
+            Assert.Equal(1, r.Data[2]);
+        });
     }
 
     [Theory]

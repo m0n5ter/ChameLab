@@ -129,7 +129,7 @@ public partial class MifareWorkflowTests
         var seed = Convert.FromHexString("112233445566");
         var other = Convert.FromHexString("665544332211");
         var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
-        var transport = AutoTransport(MifareClassicPrngType.Static, (s, _) => s == 1 ? seed : other, backdoor: true);
+        var transport = AutoTransport(MifareClassicPrngType.Weak, (s, _) => s == 1 ? seed : other, backdoor: true);
         var reply = transport.Response!;
         transport.Response = r => r.Command switch
         {
@@ -198,18 +198,18 @@ public partial class MifareWorkflowTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task Auto_SenBlockHitYieldsBeforeAnotherSectorWithoutBatchFirmware(bool globalReuse)
+    public async Task Auto_SenBlockHitUsesStaticNestedWithoutBatchFirmware(bool globalReuse)
     {
         var seed = Convert.FromHexString("112233445566");
         var other = Convert.FromHexString("665544332211");
         var capture = AutoEncryptedCapture(5);
         for (var i = 0; i < 10; i++)
             System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(capture.AsSpan(7 + i * 7), (uint)i);
-        var transport = AutoTransport(MifareClassicPrngType.Weak, (s, _) => s == 0 ? seed : other, backdoor: true);
+        var transport = AutoTransport(MifareClassicPrngType.Static, (s, _) => s == 0 ? seed : other, backdoor: true);
         var reply = transport.Response!;
         transport.Response = r => r.Command switch
         {
-            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF07D507D6")),
+            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DE07DF07D3")),
             Command.Mf1EncNestedAcquire => (Status.HfTagOk, capture),
             Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, r.Data[0] == 0
                 ? new byte[] { 1 }.Concat(seed).ToArray() : new byte[7]),
@@ -219,7 +219,7 @@ public partial class MifareWorkflowTests
         {
             KeyRecoveryOperation.StaticEncryptedNested => globalReuse || r.Nonces[0].NtEnc == 0 ? [0x112233445566UL] : [],
             KeyRecoveryOperation.OrderStaticEncrypted => r.Keys,
-            KeyRecoveryOperation.Nested => [0x665544332211UL],
+            KeyRecoveryOperation.StaticNested => [0x665544332211UL],
             _ => throw new InvalidOperationException("SEN continued after an applicable seed was confirmed."),
         });
         await using var connection = new ChameleonConnection(transport);
@@ -227,22 +227,25 @@ public partial class MifareWorkflowTests
         Assert.True((await new MifareKeyRecovery(new ChameleonClient(connection), keyRecovery: engine)
             .RecoverAutomaticallyAsync(new(MifareClassicType.Mini, [1, 2, 3, 4]), [], useKnownUidKeys: false)).Complete);
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1NestedAcquire);
-        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.Single(transport.Requests, r => r.Command == Command.Mf1StaticNestedAcquire);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1CheckKeysOfSectors
+            or Command.Mf1NestedAcquire or Command.Mf1HardnestedAcquire);
     }
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false, false)]
-    public async Task Auto_GlobalSenHitYieldsAtTheFirstBatchAndRetainsTheTailForFallback(
-        bool seededSupported, bool seededFails)
+    [InlineData(MifareClassicPrngType.Static, true, false)]
+    [InlineData(MifareClassicPrngType.Static, true, true)]
+    [InlineData(MifareClassicPrngType.Static, false, false)]
+    [InlineData(MifareClassicPrngType.Weak, true, false)]
+    [InlineData(MifareClassicPrngType.Hard, true, false)]
+    public async Task Auto_GlobalSenHitYieldsOnlyToAnApplicableFamilyAndRetainsTheTailForFallback(
+        MifareClassicPrngType prng, bool seededSupported, bool seededFails)
     {
         var candidates = Enumerable.Range(1, 160).Select(i => (ulong)i).ToArray();
         var seed = Convert.FromHexString("000000000001");
         var other = Convert.FromHexString("0000000000A0");
         var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
-        var transport = AutoTransport(MifareClassicPrngType.Weak, (s, _) => s == 1 ? seed : other, backdoor: true);
+        var transport = AutoTransport(prng, (s, _) => s == 1 ? seed : other, backdoor: true);
         var reply = transport.Response!;
         var seededStarted = false;
         var senBatchesBeforeSeeded = 0;
@@ -258,15 +261,21 @@ public partial class MifareWorkflowTests
         ulong[] Generate() { generationCount++; return candidates; }
         transport.Response = r => r.Command switch
         {
-            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString(seededSupported
-                ? "07DC07DE07DF07D3" : "07DC07DE07DF")),
+            Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString("07DC07DE07DF" +
+                (seededSupported ? prng switch
+                {
+                    MifareClassicPrngType.Static => "07D3",
+                    MifareClassicPrngType.Weak => "07D507D6",
+                    _ => "07DD",
+                } : ""))),
             Command.Mf1EncNestedAcquire => (Status.HfTagOk, AutoEncryptedCapture(5)),
             Command.Mf1HardnestedAcquire => (Status.HfTagOk, new byte[495]),
             _ => reply(r),
         };
         transport.OnRequest = r =>
         {
-            if (r.Command == Command.Mf1StaticNestedAcquire) seededStarted = true;
+            if (r.Command is Command.Mf1StaticNestedAcquire or Command.Mf1NestedAcquire or Command.Mf1HardnestedAcquire)
+                seededStarted = true;
             if (!seededStarted && r.Command == Command.Mf1CheckKeysOfSectors && r.Data.Length > 16)
                 senBatchesBeforeSeeded++;
         };
@@ -278,14 +287,17 @@ public partial class MifareWorkflowTests
         Assert.True((await new MifareKeyRecovery(client, hardnested, keyRecovery: engine).RecoverAutomaticallyAsync(dump, [],
             progress: new CallbackProgress<KeyRecoveryProgress>(updates.Add), useKnownUidKeys: false)).Complete);
 
-        Assert.Equal(seededSupported, seededStarted);
-        if (seededSupported) Assert.Equal(1, senBatchesBeforeSeeded);
+        // Stable SEN evidence rules out Nested/Hardnested even if the first-auth
+        // PRNG profile and firmware capabilities would otherwise allow them.
+        var seededApplicable = seededSupported && prng == MifareClassicPrngType.Static;
+        Assert.Equal(seededApplicable, seededStarted);
+        if (seededApplicable) Assert.Equal(1, senBatchesBeforeSeeded);
         else Assert.True(senBatchesBeforeSeeded > 1); // No alternative: continue the untested tail.
         Assert.Equal(10, generationCount); // Fallback reuses the original ten candidate lists.
         Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
-        Assert.Equal(seededSupported ? seededFails ? 24 : 1 : 0,
+        Assert.Equal(seededApplicable ? seededFails ? 24 : 1 : 0,
             transport.Requests.Count(r => r.Command == Command.Mf1StaticNestedAcquire));
-        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1HardnestedAcquire);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire or Command.Mf1HardnestedAcquire);
         Assert.Equal(0, hardnested.Calls);
         Assert.Contains(updates, p => p.Status == Strings.Recovery_CheckStaticEnc && p.Sector == -1
             && p.Total == 160 && p.Tried > 0 && !string.IsNullOrEmpty(p.Detail));
