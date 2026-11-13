@@ -1,0 +1,49 @@
+name: Check Google Play access
+
+# Started by hand: checks that GOOGLE_PLAY_SERVICE_ACCOUNT_JSON can reach the app in the Play
+# Developer API and lists its tracks. It opens an edit and deletes it, so nothing changes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check Google Play access
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install the Google auth library
+        run: pip install google-auth requests
+      - name: List the tracks
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        shell: python
+        run: |
+          import json, os, sys
+          from google.oauth2 import service_account
+          from google.auth.transport.requests import AuthorizedSession
+          info = json.loads(os.environ["SERVICE_ACCOUNT_JSON"])
+          print("Service account:", info.get("client_email"))
+          credentials = service_account.Credentials.from_service_account_info(
+              info, scopes=["https://www.googleapis.com/auth/androidpublisher"])
+          session = AuthorizedSession(credentials)
+          base = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/io.github.m0n5ter.chamelab/edits"
+          response = session.post(base)
+          if not response.ok:
+              print(f"::error::Opening an edit failed: HTTP {response.status_code} {response.text}")
+              sys.exit(1)
+          edit = response.json()["id"]
+          try:
+              tracks = session.get(f"{base}/{edit}/tracks")
+              tracks.raise_for_status()
+              for track in tracks.json().get("tracks", []):
+                  for release in track.get("releases", []):
+                      print(f"{track['track']}: {release.get('name')} {release.get('versionCodes')} {release.get('status')}")
+          finally:
+              session.delete(f"{base}/{edit}")
+          print("Access works")
