@@ -1064,8 +1064,8 @@
                   <TextBlock Text="{Binding Form?.UidLabel}" Classes="caption" />
                   <!-- The dice fills in a random UID / ID valid for the type. -->
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
-                    <c:HexBox Text="{Binding Form?.Uid}" ByteLengths="{Binding Form?.UidLengths}" PlaceholderText="{Binding Form?.UidHint}" />
-                    <Button Grid.Column="1" Classes="icon" VerticalAlignment="Center"
+                    <c:HexBox Text="{Binding Form?.Uid}" ByteLengths="{Binding Form?.UidLengths}" PlaceholderText="{Binding Form?.UidHint}" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="icon" VerticalAlignment="Center" Margin="0,-4"
                             Command="{Binding Form?.GenerateUidCommand}"
                             IsVisible="{Binding Form?.CanGenerateUid, TargetNullValue=False}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_GenerateRandomUid}">
