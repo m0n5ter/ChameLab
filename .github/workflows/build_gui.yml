@@ -127,8 +127,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Install the WebAssembly workload
-        # Links SkiaSharp's native assets into the WASM output
-        run: dotnet workload install wasm-tools
+        # Links SkiaSharp's native assets into the WASM output. Restored from the project, not
+        # installed by name: when the runner image ships a newer SDK (11) than the target (net10),
+        # the project needs wasm-tools-net10, and plain wasm-tools would be the SDK's own version.
+        run: dotnet workload restore software/chamelab/ChameLab.Browser/ChameLab.Browser.csproj
       - name: Publish
         run: >
           dotnet publish software/chamelab/ChameLab.Browser/ChameLab.Browser.csproj
