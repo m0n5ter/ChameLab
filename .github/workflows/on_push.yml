@@ -181,7 +181,8 @@ jobs:
     name: Announce the release
     # Telegram (and MAX) in Russian from CHANGELOG.ru.md, Discord in English from CHANGELOG.md;
     # a channel without its secrets is skipped
-    if: startsWith(github.ref, 'refs/tags/v') && needs.create_release.result == 'success'
+    # always(): an optional job that did not run (the macOS CLI) would otherwise skip this one
+    if: always() && startsWith(github.ref, 'refs/tags/v') && needs.create_release.result == 'success'
     needs: create_release
     runs-on: ubuntu-latest
     permissions:
@@ -207,7 +208,8 @@ jobs:
     name: Upload to Google Play
     # The tagged release's bundle goes to the testing track with the changelog summary as its
     # release notes; Play reviews it and then updates the testers. Skipped without the secret.
-    if: startsWith(github.ref, 'refs/tags/v') && needs.create_release.result == 'success'
+    # always(): an optional job that did not run (the macOS CLI) would otherwise skip this one
+    if: always() && startsWith(github.ref, 'refs/tags/v') && needs.create_release.result == 'success'
     needs: create_release
     runs-on: ubuntu-latest
     permissions:
