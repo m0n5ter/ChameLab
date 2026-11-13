@@ -461,6 +461,10 @@ public partial class MifareWorkflowTests
             Command.GetDeviceCapabilities => (Status.Success,
                 Convert.FromHexString(backdoor ? "07DC07DD07DE07DF07D307D507D6" : "07DC07DD07D307D507D6")),
             Command.Mf1CheckKeysOfSectors => (Status.HfTagOk, BatchKeyResponse(r, keyFor)),
+            Command.Mf1CheckKeysOnBlock => keyFor(MifareClassic.SectorOfBlock(r.Data[0]), (MfKeyType)r.Data[1]) is { } found
+                && Enumerable.Range(0, r.Data[2]).Any(i => r.Data.AsSpan(3 + i * 6, 6).SequenceEqual(found))
+                    ? (Status.HfTagOk, new byte[] { 1 }.Concat(found).ToArray())
+                    : (Status.MfErrAuth, new byte[7]),
             Command.Mf1AuthOneKeyBlock => (keyFor(MifareClassic.SectorOfBlock(r.Data[1]), (MfKeyType)r.Data[0]) is { } key
                 && key.AsSpan().SequenceEqual(r.Data.AsSpan(2)) ? Status.HfTagOk : Status.MfErrAuth, Array.Empty<byte>()),
             Command.Mf1NestedAcquire => (Status.HfTagOk, new byte[18]),

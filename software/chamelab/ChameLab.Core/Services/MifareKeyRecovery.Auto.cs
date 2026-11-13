@@ -105,7 +105,16 @@ public sealed partial class MifareKeyRecovery
                 capabilities.Contains((ushort)Command.Mf1HardnestedAcquire),
             _ => false,
         };
-        async Task<bool> ReplanAfterSeed() => Missing() > 0 && HasSeed() && Supports(Method(await Prng()));
+        bool CanUseSeededFamily(MifareClassicPrngType type) => Supports(Method(type)) &&
+            (session.SenCapture is null || type == MifareClassicPrngType.Static);
+        async Task<bool> ReplanAfterSeed()
+        {
+            if (Missing() == 0 || !HasSeed()) return false;
+            var type = await Prng();
+            // Stable encrypted nonce evidence takes precedence over a changing
+            // first-auth PRNG. Nested/HN need varying nested nonces on the target.
+            return CanUseSeededFamily(type);
+        }
 
         // SEN backdoors and local dictionary evidence precede dictionary guessing.
         // A newly confirmed key is spread before returning to the family selector.
@@ -119,7 +128,7 @@ public sealed partial class MifareKeyRecovery
         }
         var prng = await Prng();
         var seededMethod = Method(prng);
-        var canAttack = Supports(seededMethod);
+        var canAttack = CanUseSeededFamily(prng);
 
         if (!HasSeed() && prng == MifareClassicPrngType.Weak &&
             capabilities.Contains((ushort)Command.Mf1DarksideAcquire))
@@ -178,7 +187,7 @@ public sealed partial class MifareKeyRecovery
             if (Missing() == 0) return Finish();
         }
 
-        return Finish(prng == MifareClassicPrngType.Hard && HasSeed() && !canAttack
+        return Finish(prng == MifareClassicPrngType.Hard && HasSeed() && !Supports(seededMethod)
             ? _hardnested.UnavailableReason ?? Strings.Recovery_NoHardnestedFirmware : null);
     }
 

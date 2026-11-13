@@ -11,6 +11,9 @@ public readonly record struct HardnestedSample(uint EncryptedNonce, byte Encrypt
 
 public sealed record HardnestedCapture(uint AuthenticationUid, IReadOnlyList<HardnestedSample> Samples);
 
+/// <summary>A repeated encrypted nonce cannot provide the diversity required by Hardnested.</summary>
+public sealed class HardnestedStaticNonceException() : InvalidOperationException(Strings.Recovery_PrngUnsupported);
+
 public interface IHardnestedEngine
 {
     string? UnavailableReason { get; }
@@ -41,6 +44,7 @@ public static class HardnestedCollector
         if (minimumSamples < 1) throw new ArgumentOutOfRangeException(nameof(minimumSamples));
         if (maximumBatches < 1) throw new ArgumentOutOfRangeException(nameof(maximumBatches));
         if (maximumAttempts < 1) throw new ArgumentOutOfRangeException(nameof(maximumAttempts));
+        var constantAttempts = 0;
         for (var attempt = 0; attempt < maximumAttempts; attempt++)
         {
             var samples = new List<HardnestedSample>();
@@ -48,6 +52,8 @@ public static class HardnestedCollector
             var distinct = 0;
             var paritySum = 0;
             var inconsistent = false;
+            uint? firstNonce = null;
+            var constantNonce = true;
             for (var batch = 0; batch < maximumBatches; batch++)
             {
                 ct.ThrowIfCancellationRequested();
@@ -56,6 +62,8 @@ public static class HardnestedCollector
                 {
                     if (sample.EncryptedParity > 15)
                         throw new InvalidOperationException(Strings.Recovery_InvalidNonceParity);
+                    firstNonce ??= sample.EncryptedNonce;
+                    constantNonce &= sample.EncryptedNonce == firstNonce;
                     var firstByte = (int)(sample.EncryptedNonce >> 24);
                     var parity = BitOperations.PopCount((uint)firstByte ^ (uint)((sample.EncryptedParity >> 3) & 1)) & 1;
                     if (parityByFirstByte[firstByte] is { } previous)
@@ -72,12 +80,22 @@ public static class HardnestedCollector
                 }
                 progress?.Report(string.Format(attempt == 0 ? Strings.Recovery_HardnestedCollecting : Strings.Recovery_HardnestedCollectingSlow,
                     samples.Count, distinct));
+                ct.ThrowIfCancellationRequested();
                 if (inconsistent) break;
+                // A full static-encrypted batch repeats one nonce. Confirm it
+                // with another batch, then retry slow mode instead of collecting
+                // 256 batches that can never cover all 256 first bytes.
+                if (batch > 0 && samples.Count >= 32 && constantNonce)
+                {
+                    constantAttempts++;
+                    break;
+                }
                 if (distinct != 256 || samples.Count < minimumSamples) continue;
                 if (!ValidSum(paritySum)) break;
                 return new HardnestedCapture(authenticationUid, samples.ToArray());
             }
         }
+        if (constantAttempts == maximumAttempts) throw new HardnestedStaticNonceException();
         throw new InvalidOperationException(
             Strings.Recovery_HardnestedInconsistent);
     }

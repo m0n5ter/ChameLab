@@ -36,6 +36,43 @@ public class HardnestedRecoveryTests
     }
 
     [Fact]
+    public async Task Collector_StaticEncryptedNonceStopsAfterTwoBatchesInEachMode()
+    {
+        var repeated = Enumerable.Repeat(new HardnestedSample(0x12345678, 0), 110).ToArray();
+        var source = new Source((_, _) => repeated);
+
+        await Assert.ThrowsAsync<HardnestedStaticNonceException>(() =>
+            HardnestedCollector.CollectAsync(source, 1, null, default));
+
+        Assert.Equal(new[] { false, false, true, true }, source.SlowModes);
+    }
+
+    [Fact]
+    public async Task Collector_StaticFastCaptureStillAllowsAWorkingSlowCapture()
+    {
+        var repeated = Enumerable.Repeat(new HardnestedSample(0x12345678, 0), 110).ToArray();
+        var good = Enumerable.Range(0, 256).Select(i => new HardnestedSample((uint)i << 24, 0)).ToArray();
+        var source = new Source((slow, _) => slow ? good : repeated);
+
+        var capture = await HardnestedCollector.CollectAsync(source, 1, null, default, minimumSamples: 256);
+
+        Assert.Equal(good, capture.Samples);
+        Assert.Equal(new[] { false, false, true }, source.SlowModes);
+    }
+
+    [Fact]
+    public async Task Collector_RepeatedFirstByteWithVaryingNoncesUsesTheFullBudget()
+    {
+        var source = new Source((_, _) => Enumerable.Range(0, 110)
+            .Select(i => new HardnestedSample((uint)i, 0)).ToArray());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            HardnestedCollector.CollectAsync(source, 1, null, default, maximumBatches: 3));
+
+        Assert.Equal(new[] { false, false, false, true, true, true }, source.SlowModes);
+    }
+
+    [Fact]
     public async Task Collector_InconsistentParityRetriesWithFreshSlowCapture()
     {
         var good = Enumerable.Range(0, 256)

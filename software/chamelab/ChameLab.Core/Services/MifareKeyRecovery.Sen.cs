@@ -21,9 +21,20 @@ public sealed partial class MifareKeyRecovery
     {
         bool Complete() => dump.KeyA.Concat(dump.KeyB).All(k => k is not null);
         var replanRequested = false;
+        SenRecoveryPlanner? planner = null;
         async Task<bool> Replan()
         {
-            if (!replanRequested && replanAfterSeed is not null) replanRequested = await replanAfterSeed();
+            if (replanRequested || replanAfterSeed is null) return replanRequested;
+            if (planner is not null)
+            {
+                planner.UpdateKnown(Known);
+                // Finish a cheap prepared path before acquiring new nonces for
+                // another family. In particular, the hidden RF08S sector can
+                // unlock the remaining pairs after the first global reuse hit.
+                var next = planner.Next(session);
+                if (next is not null && planner.Cost(next) <= 8) return false;
+            }
+            replanRequested = await replanAfterSeed();
             return replanRequested;
         }
         ulong? Known(int sector, MfKeyType type) => sector < dump.SectorCount
@@ -165,7 +176,12 @@ public sealed partial class MifareKeyRecovery
                     }
                     catch (ChameleonException ex) when (attempt < 1 && ex.Status is
                         Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts) { }
-                if (hit is not null) { await spread(); await Replan(); return true; }
+                if (hit is not null)
+                {
+                    await spread();
+                    if (planner is null) await Replan();
+                    return true;
+                }
             }
             return false;
         }
@@ -196,7 +212,7 @@ public sealed partial class MifareKeyRecovery
         if (Complete()) return;
         if (await Replan()) return;
 
-        var planner = new SenRecoveryPlanner();
+        planner = new SenRecoveryPlanner();
         foreach (var s in targets)
         {
             foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
@@ -234,10 +250,10 @@ public sealed partial class MifareKeyRecovery
         }
 
         // All lists participate, including later sectors and the hidden sector.
-        var propagated = planner.Paths.Where(p => p.KnownKey is not null).Select(p => p.KnownKey!.Value).ToHashSet();
+        var propagated = new HashSet<ulong>();
         var priority = planner.PrioritizeGlobal();
         foreach (var p in planner.Paths.Where(p => p.KnownKey is null)) session.SenCandidates[(p.Sector, p.Type)] = p.Keys;
-        async Task CheckGlobal(IReadOnlyList<ulong> keys)
+        async Task CheckGlobal(IReadOnlyList<ulong> keys, bool mayReplan = true)
         {
             while (keys.Count > 0)
             {
@@ -260,7 +276,7 @@ public sealed partial class MifareKeyRecovery
                         onFound: (p, key) => Store(p.Sector, p.Type, key), ct: ct, session: session,
                         stopAfterFirstKey: replanAfterSeed is not null);
                     await spread();
-                    if (Complete() || await Replan()) return;
+                    if (Complete() || mayReplan && await Replan()) return;
                     // Manual SEN completes its whole pass. Auto may stop a pass
                     // after a hit; if no other family applies, continue its tail.
                     if (replanAfterSeed is null || found.Count == 0) return;
@@ -294,10 +310,20 @@ public sealed partial class MifareKeyRecovery
                 foreach (var key in known)
                 {
                     propagated.Add(key);
-                    await CheckGlobal([key]);
+                    await CheckGlobal([key], mayReplan: false);
                     if (Complete() || replanRequested) return;
                     foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null && p.Keys.Contains(key)).ToArray())
                         await Check(p.Sector, p.Type, [key]);
+                    // Small edits to a reused key are cheap to test offline.
+                    // Only neighbors already present in vetted SEN lists reach
+                    // RF verification; no unselected dictionary is introduced.
+                    var neighbors = Enumerable.Range(0, 48).Select(bit => key ^ (1UL << bit)).ToHashSet();
+                    foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null).ToArray())
+                    {
+                        var hints = p.Keys.Where(neighbors.Contains).ToArray();
+                        if (hints.Length > 0) await Check(p.Sector, p.Type, hints);
+                        if (Complete()) return;
+                    }
                 }
             }
             planner.UpdateKnown(Known);
@@ -329,8 +355,8 @@ public sealed partial class MifareKeyRecovery
             if (best is null) break;
             if (await Check(best.Sector, best.Type, best.Keys))
             {
-                if (replanRequested) return;
                 await Cascade();
+                if (Complete() || await Replan()) return;
             }
             else session.SenExhausted.Add((best.Sector, best.Type));
         }

@@ -162,6 +162,13 @@ public sealed partial class MifareKeyRecovery(ChameleonClient client, IHardneste
                         }
                         Mark(s, kt, KeyMark.None, Strings.Recovery_KeyNotRecovered);
                     }
+                    catch (HardnestedStaticNonceException ex) when (session is not null)
+                    {
+                        // Auto resumes dictionary/SEN evidence after this method;
+                        // a static target must not abort the whole recovery run.
+                        Mark(s, kt, KeyMark.None, ex.Message);
+                        return;
+                    }
                     catch (ChameleonException ex)
                     {
                         if (session is not null && ex.Status == Status.HfTagNo) throw;

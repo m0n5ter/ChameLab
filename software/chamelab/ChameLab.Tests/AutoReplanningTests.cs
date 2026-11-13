@@ -66,12 +66,70 @@ public partial class MifareWorkflowTests
     }
 
     [Fact]
+    public async Task Auto_CheapPreparedSenPathPrecedesAcquiringNoncesForAnotherFamily()
+    {
+        var first = Convert.FromHexString("000000000001");
+        var second = Convert.FromHexString("000000000002");
+        var capture = AutoEncryptedCapture(5);
+        for (var i = 0; i < 10; i++)
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(capture.AsSpan(7 + i * 7), (uint)i);
+        var transport = AutoTransport(MifareClassicPrngType.Weak,
+            (s, t) => s == 0 && t == MfKeyType.B ? second : first, backdoor: true);
+        var reply = transport.Response!;
+        transport.Response = r => r.Command switch
+        {
+            Command.Mf1EncNestedAcquire => (Status.HfTagOk, capture),
+            Command.Mf1CheckKeysOnBlock => (Status.HfTagOk, new byte[] { 1 }.Concat(second).ToArray()),
+            _ => reply(r),
+        };
+        var engine = new AdaptiveEngine(r => r.Operation switch
+        {
+            KeyRecoveryOperation.StaticEncryptedNested => r.Nonces[0].NtEnc == 1 ? [1, 2] : [1],
+            KeyRecoveryOperation.OrderStaticEncrypted => r.Keys,
+            _ => throw new InvalidOperationException("A prepared SEN path was cheaper than another capture."),
+        });
+        var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        Assert.True((await new MifareKeyRecovery(new ChameleonClient(connection), keyRecovery: engine)
+            .RecoverAutomaticallyAsync(dump, [], useKnownUidKeys: false)).Complete);
+
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire
+            or Command.Mf1HardnestedAcquire or Command.Mf1DetectPrng);
+        var check = Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
+        Assert.Equal(second, check.Data[3..]);
+        Assert.Equal(second, dump.KeyB[0]);
+    }
+
+    [Fact]
+    public async Task Auto_StaticHardnestedCaptureFallsBackToDictionary()
+    {
+        var other = Convert.FromHexString("112233445566");
+        var dump = KnownCard();
+        dump.KeyB[4] = null;
+        var transport = AutoTransport(MifareClassicPrngType.Hard,
+            (s, t) => s == 4 && t == MfKeyType.B ? other : Key);
+        var reply = transport.Response!;
+        transport.Response = r => r.Command == Command.Mf1HardnestedAcquire
+            ? (Status.HfTagOk, new byte[495]) : reply(r);
+        var hardnested = new HardnestedEngine();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        Assert.True((await new MifareKeyRecovery(new ChameleonClient(connection), hardnested)
+            .RecoverAutomaticallyAsync(dump, [other], useKnownUidKeys: false)).Complete);
+
+        Assert.Equal(4, transport.Requests.Count(r => r.Command == Command.Mf1HardnestedAcquire));
+        Assert.Equal(0, hardnested.Calls);
+        Assert.Equal(other, dump.KeyB[4]);
+    }
+
+    [Fact]
     public async Task Auto_FailedNestedEnablesNormalKeySenAsFallback()
     {
         var seed = Convert.FromHexString("112233445566");
         var other = Convert.FromHexString("665544332211");
         var dump = new MifareDump(MifareClassicType.Mini, [1, 2, 3, 4]);
-        var transport = AutoTransport(MifareClassicPrngType.Weak, (s, _) => s == 1 ? seed : other, backdoor: true);
+        var transport = AutoTransport(MifareClassicPrngType.Static, (s, _) => s == 1 ? seed : other, backdoor: true);
         var reply = transport.Response!;
         transport.Response = r => r.Command switch
         {
@@ -194,20 +252,21 @@ public partial class MifareWorkflowTests
             KeyRecoveryOperation.StaticEncryptedNested => Generate(),
             KeyRecoveryOperation.OrderStaticEncrypted => r.Keys,
             KeyRecoveryOperation.FilterStaticEncrypted => r.Keys,
-            KeyRecoveryOperation.Nested => seededFails ? [] : [160],
+            KeyRecoveryOperation.StaticNested => seededFails ? [] : [160],
             _ => throw new InvalidOperationException("Unexpected recovery operation."),
         });
         ulong[] Generate() { generationCount++; return candidates; }
         transport.Response = r => r.Command switch
         {
             Command.GetDeviceCapabilities => (Status.Success, Convert.FromHexString(seededSupported
-                ? "07DC07DE07DF07D507D6" : "07DC07DE07DF")),
+                ? "07DC07DE07DF07D3" : "07DC07DE07DF")),
             Command.Mf1EncNestedAcquire => (Status.HfTagOk, AutoEncryptedCapture(5)),
+            Command.Mf1HardnestedAcquire => (Status.HfTagOk, new byte[495]),
             _ => reply(r),
         };
         transport.OnRequest = r =>
         {
-            if (r.Command == Command.Mf1NestedAcquire) seededStarted = true;
+            if (r.Command == Command.Mf1StaticNestedAcquire) seededStarted = true;
             if (!seededStarted && r.Command == Command.Mf1CheckKeysOfSectors && r.Data.Length > 16)
                 senBatchesBeforeSeeded++;
         };
@@ -215,7 +274,8 @@ public partial class MifareWorkflowTests
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
         var client = new ChameleonClient(connection);
-        Assert.True((await new MifareKeyRecovery(client, keyRecovery: engine).RecoverAutomaticallyAsync(dump, [],
+        var hardnested = new HardnestedEngine();
+        Assert.True((await new MifareKeyRecovery(client, hardnested, keyRecovery: engine).RecoverAutomaticallyAsync(dump, [],
             progress: new CallbackProgress<KeyRecoveryProgress>(updates.Add), useKnownUidKeys: false)).Complete);
 
         Assert.Equal(seededSupported, seededStarted);
@@ -223,8 +283,10 @@ public partial class MifareWorkflowTests
         else Assert.True(senBatchesBeforeSeeded > 1); // No alternative: continue the untested tail.
         Assert.Equal(10, generationCount); // Fallback reuses the original ten candidate lists.
         Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1EncNestedAcquire));
-        Assert.Equal(seededSupported ? seededFails ? 2 : 1 : 0,
-            transport.Requests.Count(r => r.Command == Command.Mf1NestedAcquire));
+        Assert.Equal(seededSupported ? seededFails ? 24 : 1 : 0,
+            transport.Requests.Count(r => r.Command == Command.Mf1StaticNestedAcquire));
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1HardnestedAcquire);
+        Assert.Equal(0, hardnested.Calls);
         Assert.Contains(updates, p => p.Status == Strings.Recovery_CheckStaticEnc && p.Sector == -1
             && p.Total == 160 && p.Tried > 0 && !string.IsNullOrEmpty(p.Detail));
         Assert.Equal(seed, dump.KeyB[1]);
