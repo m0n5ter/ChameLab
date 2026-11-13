@@ -8,6 +8,13 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.5.44][2026-11-13] · firmware v2.3.19-cl
+### Summary
+ - ChameLab: narrow screens keep everything in view: button rows tighten their gaps and icons, and titles scale down to fit; the desktop window can be made as narrow as a phone
+ - ChameLab: Google Play offers the Android app on devices without Bluetooth or location hardware too, where USB and TCP still work
+
+### Details
  - ChameLab: Android declares Bluetooth and location hardware optional, so Google Play also offers the app on devices without them (USB and TCP still work there)
  - ChameLab: narrow screens keep everything in view: a button row too narrow even for its icons closes the gaps between buttons and inside them down to 4 px, then narrows the icons; the Connect title and an open tool's title scale down to fit, and the Connect hint wraps within the page. The desktop window can be made as narrow as a typical phone (376 px). The Russian Settings show the website, Telegram and MAX without Discord, which stays for every other language
 
