@@ -118,6 +118,10 @@ dotnet run --project software/chamelab/ChameLab.Cli -c Release -- -c "hw connect
 It covers what the app does not have yet, such as raw access to every firmware
 command, for example `hw slot color`.
 
+It can also share a device over the same relay the app uses: `hw share` opens the
+connected Chameleon and prints a code, and `hw connect --code TR1-ABCD-1234` joins a
+device shared from another machine.
+
 Use `dump_help` for all commands and `COMMAND --help` for options. Release packages
 include the .NET runtime; launch `chamelab` (`chamelab.exe` on Windows).
 Migration progress and verification are recorded in [docs/cli-migration.md](docs/cli-migration.md).

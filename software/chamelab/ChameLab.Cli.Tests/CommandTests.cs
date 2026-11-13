@@ -18,7 +18,7 @@ public class CommandTests
     {
         using var output = new StringWriter(); using var error = new StringWriter();
         await using var cli = new CliSession(output, error);
-        Assert.Equal(115, CommandCatalog.Commands.Count);
+        Assert.Equal(116, CommandCatalog.Commands.Count);
         Assert.Equal(CommandCatalog.Commands.Select(c => c.Name).Order(), cli.ImplementedCommands.Order());
         foreach (var command in CommandCatalog.Commands)
         {

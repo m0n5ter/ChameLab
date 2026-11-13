@@ -7,11 +7,13 @@
     <IsPublishable>false</IsPublishable>
   </PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <ProjectReference Include="../ChameLab.Cli/ChameLab.Cli.csproj" />
     <ProjectReference Include="../ChameLab.Tools/ChameLab.Tools.csproj" />
+    <ProjectReference Include="../ChameLab.Relay/ChameLab.Relay.csproj" />
     <None Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

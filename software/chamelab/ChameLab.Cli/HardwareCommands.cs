@@ -7,6 +7,7 @@ public sealed partial class CliSession
     private partial void RegisterHardware()
     {
         Add("hw connect", ConnectAsync);
+        Add("hw share", ShareAsync);
         Add("hw disconnect", (_, _) => DisconnectAsync());
         Add("hw chipid", async (_, ct) => Print("Device chip ID: " + await Client.GetChipIdAsync(ct)));
         Add("hw address", async (_, ct) => Print("Device address: " + await Client.GetAddressAsync(ct)));

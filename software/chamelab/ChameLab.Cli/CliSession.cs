@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Text.Json;
 using ChameLab.Models;
 using ChameLab.Protocol;
+using ChameLab.Services;
 using ChameLab.Transport;
 using ChameLab.Transport.Serial;
 
@@ -120,27 +121,106 @@ public sealed partial class CliSession : IAsyncDisposable
 
     private async Task ConnectAsync(CliArguments a, CancellationToken ct)
     {
-        var port = a.Get("port");
-        if (port is null)
+        ITransport transport;
+        string what;
+        if (a.Get("code") is { } code)
         {
-            var candidates = await new SerialScanner().ScanAsync(ct);
-            port = candidates.Count switch
-            {
-                0 => throw new IOException("Chameleon not found. Connect it or specify hw connect -p PORT."),
-                1 => candidates[0].Id,
-                _ => throw new ArgumentException("Multiple devices found; use -p: " + string.Join(", ", candidates.Select(c => c.Id)))
-            };
+            var candidate = RelayScanner.Candidate(code);
+            transport = new RelayScanner().Create(candidate);
+            what = "shared " + candidate.Id;
         }
-        ITransport transport = port.StartsWith("tcp://", StringComparison.OrdinalIgnoreCase)
-            ? new TcpTransport(new Uri(port).Host, new Uri(port).Port) : new SerialTransport(port);
+        else
+        {
+            var port = a.Get("port");
+            if (port is null)
+            {
+                var candidates = await new SerialScanner().ScanAsync(ct);
+                port = candidates.Count switch
+                {
+                    0 => throw new IOException("Chameleon not found. Connect it or specify hw connect -p PORT."),
+                    1 => candidates[0].Id,
+                    _ => throw new ArgumentException("Multiple devices found; use -p: " + string.Join(", ", candidates.Select(c => c.Id)))
+                };
+            }
+            transport = port.StartsWith("tcp://", StringComparison.OrdinalIgnoreCase)
+                ? new TcpTransport(new Uri(port).Host, new Uri(port).Port) : new SerialTransport(port);
+            what = port;
+        }
         await AttachAsync(transport, ct);
         try
         {
             var model = await Client.GetDeviceModelAsync(ct);
             var version = await Client.GetAppVersionAsync(ct);
-            Output.WriteLine($"Chameleon {model} connected: v{version}");
+            Output.WriteLine($"Chameleon {model} connected ({what}): v{version}");
         }
         catch { await DisconnectAsync(); throw; }
+    }
+
+    private async Task ShareAsync(CliArguments a, CancellationToken ct)
+    {
+        TransportCandidate candidate;
+        var port = a.Get("port");
+        if (port is null)
+        {
+            var candidates = await new SerialScanner().ScanAsync(ct);
+            candidate = candidates.Count switch
+            {
+                0 => throw new IOException("Chameleon not found. Connect it or specify hw share -p PORT."),
+                1 => candidates[0],
+                _ => throw new ArgumentException("Multiple devices found; use -p: " + string.Join(", ", candidates.Select(c => c.Id)))
+            };
+        }
+        else if (port.StartsWith("tcp://", StringComparison.OrdinalIgnoreCase))
+        {
+            var uri = new Uri(port);
+            candidate = TcpScanner.Candidate($"{uri.Host}:{uri.Port}");
+        }
+        else
+        {
+            candidate = new TransportCandidate(TransportKind.Serial, port, port);
+        }
+
+        // The share opens the device itself and needs the port to itself; drop any local hold on it.
+        await DisconnectAsync();
+
+        var sharing = new DeviceSharingService(new DeviceService([new SerialScanner(), new TcpScanner()]));
+        await sharing.StartAsync(candidate, ct: ct);
+        Output.WriteLine($"Sharing {candidate.Id}. Share code: {sharing.Code}");
+        Output.WriteLine($"Join it with: hw connect --code {sharing.Code}");
+        Output.WriteLine("Press Ctrl+C to stop sharing.");
+
+        var lastPeer = sharing.PeerName;
+        void OnChanged()
+        {
+            if (sharing.State == SharingState.PeerConnected && sharing.PeerName != lastPeer)
+                Output.WriteLine("Connected: " + (sharing.PeerName ?? "someone"));
+            else if (sharing.State == SharingState.WaitingForPeer && lastPeer is not null)
+                Output.WriteLine("Peer left.");
+            lastPeer = sharing.PeerName;
+        }
+        sharing.Changed += OnChanged;
+        try { await WaitForShareEndAsync(sharing, ct); }
+        finally
+        {
+            sharing.Changed -= OnChanged;
+            await sharing.StopAsync();
+        }
+        if (sharing.Error is { } error) throw new IOException(error);
+    }
+
+    private static async Task WaitForShareEndAsync(DeviceSharingService sharing, CancellationToken ct)
+    {
+        var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnChanged() { if (sharing.State == SharingState.Idle) done.TrySetResult(); }
+        sharing.Changed += OnChanged;
+        try
+        {
+            await using var reg = ct.Register(() => done.TrySetResult());
+            // The share may already have ended between starting and subscribing.
+            if (sharing.State == SharingState.Idle) done.TrySetResult();
+            await done.Task;
+        }
+        finally { sharing.Changed -= OnChanged; }
     }
 
     private async Task DisconnectAsync()

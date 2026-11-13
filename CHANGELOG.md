@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab CLI: a device can be shared and joined over the relay from the command line, the same way the app does it. `hw share` opens the connected Chameleon on this computer and prints a code (`hw share -p PORT` picks a specific serial port or `tcp://host:port`); `hw connect --code TR1-ABCD-1234` joins a device someone shares from another machine
 
 ## [v1.5.43][2026-11-13] · firmware v2.3.19-cl
 ### Summary

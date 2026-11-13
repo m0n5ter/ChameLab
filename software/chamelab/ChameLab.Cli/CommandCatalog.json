@@ -1025,7 +1025,7 @@
   },
   {
     "name": "hw connect",
-    "description": "Connect to chameleon by serial port",
+    "description": "Connect to a chameleon locally by serial port, or to a shared one by its code",
     "options": [
       {
         "names": [
@@ -1039,7 +1039,55 @@
         "type": "str",
         "default": null,
         "choices": null,
-        "help": null,
+        "help": "Serial port, or tcp://host:port (default: the only Chameleon found)",
+        "const": null
+      },
+      {
+        "names": [
+          "-r",
+          "--code"
+        ],
+        "dest": "code",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Join a device shared over the relay by its code (e.g. TR1-ABCD-1234)",
+        "const": null
+      }
+    ],
+    "groups": [
+      {
+        "required": false,
+        "members": [
+          0,
+          1
+        ]
+      }
+    ],
+    "reader": false,
+    "device": false,
+    "scopedSlot": false
+  },
+  {
+    "name": "hw share",
+    "description": "Share the connected device over the relay so someone can join it by code",
+    "options": [
+      {
+        "names": [
+          "-p",
+          "--port"
+        ],
+        "dest": "port",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": null,
+        "choices": null,
+        "help": "Serial port, or tcp://host:port to share (default: the only Chameleon found)",
         "const": null
       }
     ],
