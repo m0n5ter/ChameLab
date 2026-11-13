@@ -43,6 +43,37 @@ internal static class ReleaseAnnouncer
         }
         return Render($"**{title}**\n\n{links}");
     }
+
+    // Google Play takes at most 500 characters of plain text per language
+    internal static string PlayNotes(List<string> bullets)
+    {
+        const int limit = 500;
+        var items = bullets.Select(b => Regex.Replace(Regex.Replace(b, "^ChameLab: ", ""), @"`|\*\*", ""))
+            .Select(b => "• " + char.ToUpperInvariant(b[0]) + b[1..]).ToList();
+        for (var count = items.Count; count > 0; count--)
+        {
+            var text = string.Join('\n', items.Take(count));
+            if (text.Length <= limit) return text;
+        }
+        if (items.Count == 0) return "";
+        // Even the first entry is too long: cut it at a word
+        var cut = items[0][..(limit - 1)];
+        var space = cut.LastIndexOf(' ');
+        return (space > 0 ? cut[..space] : cut).TrimEnd(',', ';', ':', ' ', '—') + "…";
+    }
+
+    // whatsnew-<locale> files for the Google Play upload, from the release's summary
+    public static void WritePlayNotes(string tag, string directory)
+    {
+        var english = Section("CHANGELOG.md", tag) ?? throw new ArgumentException("CHANGELOG.md has no section for " + tag);
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(Path.Combine(directory, "whatsnew-en-US"), PlayNotes(english.Bullets));
+        if (Section("CHANGELOG.ru.md", tag) is { Bullets.Count: > 0 } russian)
+            File.WriteAllText(Path.Combine(directory, "whatsnew-ru-RU"), PlayNotes(russian.Bullets));
+        foreach (var file in Directory.GetFiles(directory))
+            Console.WriteLine($"{Path.GetFileName(file)}:\n{File.ReadAllText(file)}\n");
+    }
+
     public static async Task Run(string tag, bool dryRun)
     {
         var english = Section("CHANGELOG.md", tag) ?? throw new ArgumentException("CHANGELOG.md has no section for " + tag);

@@ -27,6 +27,7 @@ internal static class Program
                 case ["check-languages"]: await CheckLanguages(); break;
                 case ["announce-release", var tag]: await ReleaseAnnouncer.Run(tag, false); break;
                 case ["announce-release", var tag, "--dry-run"]: await ReleaseAnnouncer.Run(tag, true); break;
+                case ["play-release-notes", var tag, var directory]: ReleaseAnnouncer.WritePlayNotes(tag, directory); break;
                 case ["zip", var source, var destination]: Archive(source, destination); break;
                 case ["name-release-files", var folder, var appVersion, var firmwareVersion]: NameReleaseFiles(folder, appVersion, firmwareVersion); break;
                 case ["--help"] or []:
