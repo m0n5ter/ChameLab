@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: Android declares Bluetooth and location hardware optional, so Google Play also offers the app on devices without them (USB and TCP still work there)
 
 ## [v1.5.43][2026-11-13] · firmware v2.3.19-cl
 ### Summary

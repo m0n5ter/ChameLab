@@ -14,7 +14,13 @@
 	<!-- Optional buzz when a card scan finishes -->
 	<uses-permission android:name="android.permission.VIBRATE" />
 
+	<!-- Every connection type is optional (USB, BLE, TCP). Google Play also infers features from
+	     the permissions above (bluetooth from BLUETOOTH, location from ACCESS_FINE_LOCATION) and
+	     would hide the app from devices without them unless they are declared optional here. -->
+	<uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 	<uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+	<uses-feature android:name="android.hardware.location" android:required="false" />
+	<uses-feature android:name="android.hardware.location.gps" android:required="false" />
 	<uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
 	<application android:label="ChameLab" android:icon="@drawable/Icon" />
