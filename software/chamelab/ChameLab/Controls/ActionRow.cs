@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 
 namespace ChameLab.Controls;
@@ -13,6 +15,9 @@ namespace ChameLab.Controls;
 /// get the <c>iconic</c> class one at a time (styles hide their label, leaving the icon) until
 /// the row fits: lowest <see cref="PriorityProperty"/> first, and among equals the last button
 /// first. Labels come back as soon as there is room again.
+/// Without <see cref="Wrap"/>, a row too narrow even for its icons then squeezes: first the gaps
+/// between the buttons and the buttons' side padding shrink together, in proportion, down to
+/// <see cref="MinGap"/>; past that the icons themselves narrow.
 /// </summary>
 public class ActionRow : Panel
 {
@@ -26,6 +31,11 @@ public class ActionRow : Panel
         AvaloniaProperty.RegisterAttached<ActionRow, Control, int>("Priority");
 
     public const string IconicClass = "iconic";
+
+    /// <summary>The least a squeezed row leaves between buttons and on either side of an icon.</summary>
+    public const double MinGap = 4;
+    /// <summary>The narrowest an icon gets, relative to its natural width.</summary>
+    public const double MinIconScale = 0.2;
 
     static ActionRow()
     {
@@ -48,6 +58,11 @@ public class ActionRow : Panel
     public double IconicWidth { get; private set; }
 
     private readonly List<Visual> _ancestors = new();
+    // Values a squeeze puts on the buttons, above their styles and local values; disposing them
+    // gives the buttons their own values back.
+    private readonly List<IDisposable> _squeeze = new();
+    // The gap between buttons as last laid out (less than Spacing while squeezed).
+    private double _gap = 8;
 
     private List<Control> Visible() => Children.Where(c => c.IsVisible).ToList();
 
@@ -100,6 +115,8 @@ public class ActionRow : Panel
     {
         // Hidden buttons keep their label, so they come back whole.
         foreach (var child in Children.Where(c => !c.IsVisible)) SetIconic(child, false);
+        ReleaseSqueeze();
+        _gap = Spacing;
 
         var order = CollapseOrder(Visible());
         var full = order.Select(c => WidthOf(c, iconic: false)).ToArray();
@@ -123,7 +140,106 @@ public class ActionRow : Panel
             order[i].Measure(Size.Infinity);
             height = Math.Max(height, order[i].DesiredSize.Height);
         }
+        if (!Wrap && collapsed == order.Count && width > limit) width = Squeeze(width - limit);
         return new Size(Math.Min(width, limit), Wrap ? LayoutRows(limit, arrange: false) : height);
+    }
+
+    /// <summary>A squeezable button's natural measures, all as laid out with its label hidden.</summary>
+    private readonly record struct Fit(Button Button, Control Content, double Width,
+        double ReducibleLeft, double ReducibleRight, double ContentWidth);
+
+    /// <summary>
+    /// How hard to squeeze a row <paramref name="excess"/> wider than its room. <c>Factor</c>
+    /// (0..1) is the share of the reducible gaps and padding taken away; <c>Scale</c> the width
+    /// left to the icons once all of that is gone.
+    /// </summary>
+    internal static (double Factor, double Scale) Plan(double excess, double reducible, double contentWidth)
+    {
+        if (excess <= 0) return (0, 1);
+        if (excess <= reducible) return (excess / reducible, 1);
+        var scale = contentWidth > 0 ? Math.Max(MinIconScale, 1 - (excess - reducible) / contentWidth) : 1;
+        return (reducible > 0 ? 1 : 0, scale);
+    }
+
+    /// <summary>Squeezes the measured icon-only row by <paramref name="excess"/>; returns its new width.</summary>
+    private double Squeeze(double excess)
+    {
+        var visible = Visible();
+        var gapCount = Math.Max(0, visible.Count - 1);
+        var gapReducible = Math.Max(0, Spacing - MinGap);
+        var fits = visible.Select(FitOf).OfType<Fit>().ToList();
+
+        var reducible = gapCount * gapReducible + fits.Sum(f => f.ReducibleLeft + f.ReducibleRight);
+        var (factor, scale) = Plan(excess, reducible, fits.Sum(f => f.ContentWidth));
+        _gap = Spacing - gapReducible * factor;
+
+        foreach (var fit in fits)
+        {
+            var button = fit.Button;
+            var narrower = fit.ContentWidth * (1 - scale);
+            if (double.IsNaN(button.Width))
+            {
+                var padding = button.Padding;
+                Hold(button.SetValue(Button.PaddingProperty, new Thickness(padding.Left - fit.ReducibleLeft * factor,
+                    padding.Top, padding.Right - fit.ReducibleRight * factor, padding.Bottom), BindingPriority.Animation));
+            }
+            else
+            {
+                var width = fit.Width - (fit.ReducibleLeft + fit.ReducibleRight) * factor - narrower;
+                Hold(button.SetValue(WidthProperty, width, BindingPriority.Animation));
+            }
+            if (scale >= 1) continue;
+            // The content keeps its natural layout and narrows only as drawn: a negative right
+            // margin makes it ask for the narrower slot, and a scale from its left edge draws it there.
+            var margin = fit.Content.Margin;
+            Hold(fit.Content.SetValue(MarginProperty,
+                new Thickness(margin.Left, margin.Top, margin.Right - narrower, margin.Bottom), BindingPriority.Animation));
+            Hold(fit.Content.SetValue(RenderTransformOriginProperty,
+                new RelativePoint(0, 0.5, RelativeUnit.Relative), BindingPriority.Animation));
+            Hold(fit.Content.SetValue(RenderTransformProperty, new ScaleTransform(scale, 1), BindingPriority.Animation));
+        }
+
+        var total = 0.0;
+        foreach (var child in visible)
+        {
+            foreach (var layoutable in child.GetSelfAndVisualDescendants().OfType<Layoutable>())
+                layoutable.InvalidateMeasure();
+            child.Measure(Size.Infinity);
+            total += child.DesiredSize.Width;
+        }
+        return total + gapCount * _gap;
+    }
+
+    /// <summary>
+    /// What a button can give up: the room beside its content past <see cref="MinGap"/>, and its
+    /// content's width. Null for anything else, which squeezes only by its gaps.
+    /// </summary>
+    private static Fit? FitOf(Control child)
+    {
+        if (child is not Button { Content: Control content } button) return null;
+        var width = button.DesiredSize.Width;
+        var contentWidth = content.DesiredSize.Width - content.Margin.Left - content.Margin.Right;
+        double left, right;
+        if (double.IsNaN(button.Width)) (left, right) = (button.Padding.Left, button.Padding.Right);
+        else
+        {
+            // A fixed-width button centers its content in what its border leaves.
+            var border = button.BorderThickness.Left + button.BorderThickness.Right;
+            left = right = (width - border - content.DesiredSize.Width) / 2;
+        }
+        return new Fit(button, content, width,
+            Math.Max(0, left - MinGap), Math.Max(0, right - MinGap), Math.Max(0, contentWidth));
+    }
+
+    private void Hold(IDisposable? value)
+    {
+        if (value is not null) _squeeze.Add(value);
+    }
+
+    private void ReleaseSqueeze()
+    {
+        foreach (var value in _squeeze) value.Dispose();
+        _squeeze.Clear();
     }
 
     private static double WidthOf(Control child, bool iconic)
@@ -160,7 +276,7 @@ public class ActionRow : Panel
             var size = child.DesiredSize;
             var height = child.VerticalAlignment == VerticalAlignment.Stretch ? finalSize.Height : size.Height;
             child.Arrange(new Rect(x, (finalSize.Height - height) / 2, size.Width, height));
-            x += size.Width + Spacing;
+            x += size.Width + _gap;
         }
         return finalSize;
     }

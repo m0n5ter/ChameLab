@@ -130,14 +130,13 @@ public sealed class SettingsViewModel : PageViewModelBase
     [
         new("Telegram", "https://t.me/chamelab", "telegram", 2),
         new("MAX", "https://max.ru/channel_ChameLab", "max", 0),
-        Discord,
     ];
 
     public const string WebsiteUrl = "https://m0n5ter.github.io/ChameLab/";
 
     /// <summary>
-    /// Links for the About card: the website first, then the Russian-speaking channels only in
-    /// the Russian UI and Discord in every language. Read afresh when the views are rebuilt for a
+    /// Links for the About card: the website first, then the Russian-speaking channels in the
+    /// Russian UI and Discord in every other language. Read afresh when the views are rebuilt for a
     /// new language (the website's name is localized).
     /// </summary>
     public IReadOnlyList<SocialLink> SocialLinks =>

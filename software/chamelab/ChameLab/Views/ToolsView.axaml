@@ -141,8 +141,10 @@
             <PathIcon Data="{StaticResource Icon.key}" IsVisible="{Binding IsT55xx}" />
           </Panel>
         </Border>
-        <TextBlock Grid.Column="2" Classes="h1" VerticalAlignment="Center"
-                   Text="{Binding CurrentToolTitle}" TextWrapping="Wrap" />
+        <!-- One line; short of width (long titles in some languages), it scales down to fit. -->
+        <Viewbox Grid.Column="2" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center">
+          <TextBlock Classes="h1" Text="{Binding CurrentToolTitle}" />
+        </Viewbox>
       </Grid>
 
       <!-- HF -->

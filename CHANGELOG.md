@@ -9,6 +9,7 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
  - ChameLab: Android declares Bluetooth and location hardware optional, so Google Play also offers the app on devices without them (USB and TCP still work there)
+ - ChameLab: narrow screens keep everything in view: a button row too narrow even for its icons closes the gaps between buttons and inside them down to 4 px, then narrows the icons; the Connect title and an open tool's title scale down to fit, and the Connect hint wraps within the page. The desktop window can be made as narrow as a typical phone (376 px). The Russian Settings show the website, Telegram and MAX without Discord, which stays for every other language
 
 ## [v1.5.43][2026-11-13] · firmware v2.3.19-cl
 ### Summary

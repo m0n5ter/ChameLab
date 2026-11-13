@@ -15,8 +15,9 @@
   <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
   <Grid x:Name="Page" Classes="page" MaxWidth="540" VerticalAlignment="Center" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
-      <!-- Hero: device above the title, or beside it on short windows. -->
-      <Grid x:Name="Hero" Grid.Row="0" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto"
+      <!-- Hero: device above the title, or beside it on short windows. The text's column takes
+           only the width the page leaves, so the caption wraps within it. -->
+      <Grid x:Name="Hero" Grid.Row="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
             IsVisible="{Binding !IsSharing}"
             HorizontalAlignment="Center" Margin="0,8,0,4">
         <Image x:Name="HeroImage" Grid.ColumnSpan="2" Source="/Assets/chameleon-ultra.png" Height="120"
@@ -28,7 +29,10 @@
         </Image>
         <StackPanel x:Name="HeroText" Grid.Row="1" Grid.ColumnSpan="2" Spacing="8" Margin="0,16,0,0"
                     VerticalAlignment="Center">
-          <TextBlock x:Name="HeroTitle" Text="{x:Static loc:Strings.Connect_ConnectYourChameleon}" Classes="h1" HorizontalAlignment="Center" />
+          <!-- Short of width, the title scales down rather than running past the edge. -->
+          <Viewbox x:Name="HeroTitle" StretchDirection="DownOnly" HorizontalAlignment="Center">
+            <TextBlock Text="{x:Static loc:Strings.Connect_ConnectYourChameleon}" Classes="h1" />
+          </Viewbox>
           <TextBlock x:Name="HeroCaption" Classes="caption" HorizontalAlignment="Center" TextAlignment="Center"
                      MaxWidth="380" TextWrapping="Wrap"
                      Text="{Binding IntroHint}" />

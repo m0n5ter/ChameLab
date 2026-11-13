@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
         x:Class="ChameLab.Views.MainWindow"
         Icon="/Assets/chameleon.ico"
-        Width="1280" Height="760" MinWidth="380" MinHeight="520"
+        Width="1280" Height="760" MinWidth="376" MinHeight="520"
         WindowStartupLocation="CenterScreen"
         Title="ChameLab">
         <views:MainView />
