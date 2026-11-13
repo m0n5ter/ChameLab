@@ -52,13 +52,20 @@ internal static class Program
         var files = (await Run("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], root)).Split('\0', StringSplitOptions.RemoveEmptyEntries).Distinct();
         var otherLanguages = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         { ".py", ".c", ".h", ".cpp", ".hpp", ".cc", ".cxx", ".go", ".rs", ".js", ".cjs", ".mjs", ".ts", ".tsx", ".jsx", ".sh", ".ps1", ".bat", ".cmd", ".java", ".kt", ".kts", ".rb", ".swift", ".m", ".mm", ".asm", ".s", ".lua", ".dart", ".fs", ".vb" };
+        var supportScripts = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "software/chamelab/ChameLab.Relay/build.sh",
+            "software/chamelab/ChameLab.Relay/deploy/deploy.sh",
+            "software/chamelab/ChameLab.Tests/Reference/generate_sen_vectors.py",
+        };
         var invalid = files.Where(f => File.Exists(System.IO.Path.Combine(root, f)) && otherLanguages.Contains(System.IO.Path.GetExtension(f))
+            && !supportScripts.Contains(f)
             && !f.StartsWith("firmware/", StringComparison.Ordinal) && !f.StartsWith("website/", StringComparison.Ordinal)
             && !f.StartsWith("software/chamelab/ChameLab.Browser/wwwroot/", StringComparison.Ordinal)
             && !f.StartsWith("software/chamelab/ChameLab.Browser/tests/", StringComparison.Ordinal)
             && !f.StartsWith("software/chamelab/ChameLab.Browser/tools/", StringComparison.Ordinal)).ToArray();
         if (invalid.Length > 0) throw new InvalidDataException("Non-C# source outside firmware/web: " + string.Join(", ", invalid));
-        Console.WriteLine("Source language audit passed: client/tools are C#; firmware and web are exempt.");
+        Console.WriteLine("Source language audit passed: client/tools are C#; firmware, web and listed support scripts are exempt.");
     }
 
     internal static async Task<string> Run(string executable, IEnumerable<string> args, string? directory = null)
