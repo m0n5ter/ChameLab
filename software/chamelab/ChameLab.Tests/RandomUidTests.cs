@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using ChameLab.Models;
 using ChameLab.Protocol;
+using ChameLab.Services;
+using System.Reflection;
 using ChameLab.ViewModels;
 using Xunit;
 
@@ -66,5 +68,80 @@ public class RandomUidTests
         form.GenerateUidCommand.Execute(null);
         Assert.True(Hex.TryParse(form.Uid, out var uid));
         Assert.Equal(4, uid.Length);
+    }
+
+    private static CardSave ReadClassic()
+    {
+        var uid = new byte[] { 0x11, 0x22, 0x33, 0x44 };
+        var data = BlankMemory.Create(TagSpecificType.Mifare1024, uid, 0x08, [0x04, 0x00]);
+        data[0][8] = 0xAB; // manufacturer data
+        return new CardSave { Name = "Door", Tag = TagSpecificType.Mifare1024, Uid = uid, Sak = 0x08, Atqa = [0x04, 0x00], Data = data };
+    }
+
+    [Fact]
+    public void GeneratedUidIsWrittenToBlockZeroOfASavedCard()
+    {
+        var form = new CardEditorViewModel(ReadClassic());
+        form.GenerateUidCommand.Execute(null);
+
+        Assert.True(Hex.TryParse(form.Uid, out var uid));
+        var block0 = form.Draft().Data[0];
+        Assert.Equal(uid, block0[..4]);
+        Assert.Equal((byte)(uid[0] ^ uid[1] ^ uid[2] ^ uid[3]), block0[4]);
+        Assert.Equal(0x08, block0[5]);
+        Assert.Equal(0xAB, block0[8]);
+        Assert.True(form.IsDirty);
+        Assert.True(form.Memory!.Undo());
+        Assert.Equal(new byte[] { 0x11, 0x22, 0x33, 0x44 }, form.Draft().Data[0][..4]);
+    }
+
+    [Fact]
+    public void UnreadBlockZeroStaysUnread()
+    {
+        var card = ReadClassic();
+        card.Data[0] = [];
+        var form = new CardEditorViewModel(card);
+        form.GenerateUidCommand.Execute(null);
+        Assert.Empty(form.Draft().Data[0]);
+    }
+
+    [Fact]
+    public void GeneratedUidIsWrittenToUltralightPages()
+    {
+        var uid = new byte[] { 0x04, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+        var card = new CardSave { Name = "Tag", Tag = TagSpecificType.Ntag215, Uid = uid, Sak = 0, Atqa = [0x44, 0x00],
+            Data = BlankMemory.Create(TagSpecificType.Ntag215, uid, 0, [0x44, 0x00]) };
+        var form = new CardEditorViewModel(card);
+        form.GenerateUidCommand.Execute(null);
+
+        Assert.True(Hex.TryParse(form.Uid, out var next));
+        var pages = form.Draft().Data;
+        Assert.Equal(next[..3], pages[0][..3]);
+        Assert.Equal((byte)(0x88 ^ next[0] ^ next[1] ^ next[2]), pages[0][3]);
+        Assert.Equal(next[3..], pages[1]);
+        Assert.Equal((byte)(next[3] ^ next[4] ^ next[5] ^ next[6]), pages[2][0]);
+    }
+
+    [Fact]
+    public void ScannedCardMatchingASavedOneIsCheckedAgain()
+    {
+        var store = new MemoryKeyValueStore();
+        var library = new CardLibrary(store);
+        library.Add(ReadClassic());
+        var vm = new CardsViewModel(new DeviceService([]), library, new DictionaryLibrary(store));
+        typeof(CardsViewModel).GetProperty(nameof(CardsViewModel.Pane))!.SetValue(vm, CardsPane.Add);
+        var scanned = ReadClassic();
+        typeof(CardsViewModel).GetProperty(nameof(CardsViewModel.Form))!.SetValue(vm, new CardEditorViewModel(scanned, sameFrequency: true));
+        typeof(CardsViewModel).GetMethod("SetScanMatches", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(vm, [scanned]);
+        Assert.True(vm.HasScanMatches);
+        Assert.False(vm.IsNewCardUnsaved);
+
+        vm.Form!.GenerateUidCommand.Execute(null);
+        Assert.False(vm.HasScanMatches);
+        Assert.True(vm.IsNewCardUnsaved);
+
+        vm.Form.Memory!.Undo();
+        vm.Form.Uid = "11 22 33 44";
+        Assert.True(vm.HasScanMatches);
     }
 }

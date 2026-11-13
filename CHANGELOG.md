@@ -8,8 +8,21 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.5.43][2026-11-13] · firmware v2.3.19-cl
+### Summary
+ - ChameLab: Auto reaches Nested, Static nested or Hardnested faster, using a confirmed key after a reuse check instead of first running a long ordinary-key SEN search
+ - ChameLab: card inspection stays fast — scanning and the recovery panels read the PRNG and cached results instead of running Darkside to decide which attacks to offer
+ - Firmware: a hidden-sector static encrypted nonce request returns the requested sector range instead of sector zero, so recovering the FM11RF08S sector needs v2.3.19-cl
+
+### Details
  - ChameLab: Auto uses a confirmed key for Nested, Static nested or Hardnested after checking reuse, instead of starting a long ordinary-key SEN search first. SEN yields after its first successful candidate batch and resumes saved candidates if the seeded method fails; global candidate verification shows checked/total progress
- - ChameLab: the card details of a new or saved card have a dice button next to the UID that fills in a random UID valid for the tag type: an HF UID keeps its length (Ultralight and NTAG get 7 bytes with the NXP manufacturer byte) and avoids cascade-tag values; LF cards get a random EM410x, EM4100 Electra, Viking, Jablotron or PAC ID, or a 26-bit HID Prox / Pyramid card. ioProx and IDTECK are not offered, since their IDs carry check fields
+ - ChameLab: scanning a card and the read and target card recovery panels inspect the PRNG and reuse cached results instead of running Darkside to decide which attacks to offer, so card inspection stays fast. A weak PRNG keeps offering Darkside until a cached result rules it out; the attack confirms the card is vulnerable only when it is selected or when Auto needs a seed after SEN, and Auto limits that seed attempt to a single target instead of probing every sector
+ - ChameLab: the host waits up to 120s for a Darkside reply, since a full parity sweep or a confirmed absence of NACK can exceed the former 60s limit; a Darkside capture drains its reply before honoring Stop, so a cancelled request's late response no longer leaks into the next collection
+ - ChameLab: the host skips optional hidden-sector range captures on identified firmware older than v2.3.19-cl rather than accepting a stale sector-zero reply as genuine sector-32 evidence
+ - ChameLab: the card details of a new or saved card have a dice button next to the UID that fills in a random UID valid for the tag type: an HF UID keeps its length (Ultralight and NTAG get 7 bytes with the NXP manufacturer byte) and avoids cascade-tag values, and a read MIFARE Classic block 0 or Ultralight / NTAG pages 0–2 take the new UID and its check bytes (Undo restores them); a scanned card is checked against the saved cards again, and a saved card shows as changed; LF cards get a random EM410x, EM4100 Electra, Viking, Jablotron or PAC ID, or a 26-bit HID Prox / Pyramid card. ioProx and IDTECK are not offered, since their IDs carry check fields
+ - Firmware v2.3.18-cl: Darkside nonce collection is bounded at 90s including resynchronization retries and returns a protocol result; partial NACK collection reports its Darkside status separately from the transport status
+ - Firmware v2.3.19-cl: the hidden-sector static encrypted nonce command (2014) copies the requested sector range into its reply instead of the untouched sector-zero buffer, initializes that buffer and rejects invalid sector ranges before touching the reader. Full FM11RF08S collection now requires v2.3.19-cl; 2.3.17 and 2.3.18 read the right block but could return stale sector-zero evidence
 
 ## [v1.5.42][2026-11-12] · firmware v2.3.17-cl
 ### Summary

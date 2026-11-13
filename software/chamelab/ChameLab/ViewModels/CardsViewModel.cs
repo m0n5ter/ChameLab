@@ -538,7 +538,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         {
             if (_form is not null) _form.PropertyChanged -= OnFormPropertyChanged;
             // Another card (or the saved state of this one): an earlier save error is moot.
-            if (!ReferenceEquals(_form, value)) ClearSaveError();
+            // Its library check, if any, follows the scan that opened it.
+            if (!ReferenceEquals(_form, value))
+            {
+                ClearSaveError();
+                _scanMatchesChecked = false;
+            }
             this.RaiseAndSetIfChanged(ref _form, value);
             this.RaisePropertyChanged(nameof(RecoverySelectedSector));
             if (_form is not null) _form.PropertyChanged += OnFormPropertyChanged;
@@ -582,6 +587,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             || e.PropertyName is nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.Sak)
                 or nameof(CardEditorViewModel.Atqa) or nameof(CardEditorViewModel.Ats)))
             InitializeDumpFromForm();
+        // A new card checked against the library is checked again as its UID or memory changes,
+        // e.g. a scanned card given a random UID is no longer the saved one.
+        if (_scanMatchesChecked && !_applyingDump && IsEditingNew && _form is { } edited
+            && e.PropertyName is nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.HasData))
+            SetScanMatches(edited.Draft());
         if (e.PropertyName != nameof(CardEditorViewModel.IsDirty)) return;
         this.RaisePropertyChanged(nameof(IsCardDirty));
         // Editing again supersedes the question about the previous save.
@@ -1518,6 +1528,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool HasScanMatches => ScanMatches.Count > 0;
 
     private bool _scanMatchesByDump;
+    // The new card came from a scan and was checked against the library; edits check it again.
+    private bool _scanMatchesChecked;
 
     public string ScanMatchText => _scanMatchesByDump
         ? Strings.Cards_DumpAlreadySaved
@@ -1526,6 +1538,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void SetScanMatches(CardSave? scanned)
     {
         ScanMatches.Clear();
+        _scanMatchesChecked = scanned is not null;
         _scanMatchesByDump = scanned is not null && scanned.Data.Any(d => d.Length > 0);
         if (scanned is { Uid.Length: > 0 } || _scanMatchesByDump)
             foreach (var card in _library.Cards.Where(c => c.Sense == scanned!.Sense

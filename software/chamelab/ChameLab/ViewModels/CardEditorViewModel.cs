@@ -286,14 +286,40 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
     /// <summary>A random UID / ID can be made for the type (see <see cref="RandomUid.Supports"/>).</summary>
     public bool CanGenerateUid => RandomUid.Supports(_tag);
 
-    /// <summary>Fills the UID / ID with a random one valid for the type; an HF UID keeps its length.</summary>
+    /// <summary>
+    /// Fills the UID / ID with a random one valid for the type; an HF UID keeps its length. The UID
+    /// bytes in memory (MIFARE Classic block 0, Ultralight pages 0–2) follow when they were read.
+    /// </summary>
     public ICommand GenerateUidCommand { get; }
 
     private void GenerateUid()
     {
         if (!CanGenerateUid) return;
         var length = Hex.TryParse(_uid, out var current) ? current.Length : 0;
-        Uid = Hex.Spaced(RandomUid.Generate(_tag, length));
+        var uid = RandomUid.Generate(_tag, length);
+        // Memory first, so whoever watches the UID sees the card as a whole.
+        WriteUidToMemory(uid);
+        Uid = Hex.Spaced(uid);
+    }
+
+    /// <summary>
+    /// Writes <paramref name="uid"/> (with its check bytes) into the memory rows that hold it, as one
+    /// undoable edit; the rest of block 0 (SAK, ATQA, manufacturer data) is kept. Unread rows stay unread.
+    /// </summary>
+    private void WriteUidToMemory(byte[] uid)
+    {
+        if (Memory is not { } memory || !BlankMemory.Supports(_tag)) return;
+        var (_, sak, atqa) = IdentityBytes();
+        var blank = BlankMemory.Create(_tag, uid, sak, atqa);
+        int bytes;
+        if (_tag.IsMifareClassic()) bytes = uid.Length == 4 ? 5 : uid.Length; // 4-byte UIDs are followed by their BCC
+        else if (_tag.IsUltralight() && uid.Length == 7) bytes = 9;            // pages 0–1 and BCC1 in page 2
+        else return;
+        var source = blank.SelectMany(r => r).Take(bytes).ToArray();
+        if (source.Length < bytes) return;
+        for (var row = 0; row * memory.RowLength < bytes; row++)
+            if (!memory.IsRead(row)) return;
+        memory.Write(0, source);
     }
 
     /// <summary>Farpointe / Pyramid: the ID can be built from a facility code and card number.</summary>
