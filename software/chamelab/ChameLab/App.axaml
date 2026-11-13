@@ -37,6 +37,7 @@
             <SolidColorBrush x:Key="BrandBlueSoftBrush" Color="#2E3DA9FC" />
             <SolidColorBrush x:Key="BrandAmberSoftBrush" Color="#2EF6A623" />
             <SolidColorBrush x:Key="HexKeyBBrush" Color="#B07CF5" />
+            <SolidColorBrush x:Key="HexManufacturerBrush" Color="#2EBD85" />
             <LinearGradientBrush x:Key="BrandLogoBrush" StartPoint="0%,0%" EndPoint="100%,100%">
                 <GradientStop Offset="0" Color="#3BE08A" />
                 <GradientStop Offset="1" Color="#17A2B8" />

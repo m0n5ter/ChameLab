@@ -1310,7 +1310,7 @@
     <Setter Property="LabelBrush" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
     <Setter Property="DimBrush" Value="{actipro:ThemeResource DefaultForegroundBrushDisabled}" />
     <Setter Property="ChangedBrush" Value="{DynamicResource BrandRedBrush}" />
-    <Setter Property="ManufacturerBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+    <Setter Property="ManufacturerBrush" Value="{DynamicResource HexManufacturerBrush}" />
     <Setter Property="KeyABrush" Value="{DynamicResource BrandBlueBrush}" />
     <Setter Property="AccessBitsBrush" Value="{DynamicResource BrandAmberBrush}" />
     <Setter Property="KeyBBrush" Value="{DynamicResource HexKeyBBrush}" />
@@ -1346,7 +1346,7 @@
     <Setter Property="FontSize" Value="11" />
   </Style>
   <Style Selector="WrapPanel.hexlegend > TextBlock.manufacturer">
-    <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+    <Setter Property="Foreground" Value="{DynamicResource HexManufacturerBrush}" />
   </Style>
   <Style Selector="WrapPanel.hexlegend > TextBlock.keya">
     <Setter Property="Foreground" Value="{DynamicResource BrandBlueBrush}" />
