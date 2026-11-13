@@ -179,80 +179,27 @@ jobs:
 
   announce_release:
     name: Announce the release
-    # Telegram (and MAX) in Russian from CHANGELOG.ru.md, Discord in English from CHANGELOG.md;
-    # a channel without its secrets is skipped
     # always(): an optional job that did not run (the macOS CLI) would otherwise skip this one
     if: always() && startsWith(github.ref, 'refs/tags/v') && needs.create_release.result == 'success'
     needs: create_release
-    runs-on: ubuntu-latest
     permissions:
       contents: read
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.0.x'
-      - name: Post to Telegram, MAX and Discord
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          MAX_BOT_TOKEN: ${{ secrets.MAX_BOT_TOKEN }}
-          MAX_CHAT_ID: ${{ vars.MAX_CHAT_ID }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- announce-release "$GITHUB_REF_NAME"
+    uses: ./.github/workflows/announce_release.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit
 
   publish_google_play:
     name: Upload to Google Play
-    # The tagged release's bundle goes to the testing track with the changelog summary as its
-    # release notes; Play reviews it and then updates the testers. Skipped without the secret.
-    # always(): an optional job that did not run (the macOS CLI) would otherwise skip this one
     if: always() && startsWith(github.ref, 'refs/tags/v') && needs.create_release.result == 'success'
     needs: create_release
-    runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
-    env:
-      SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-    steps:
-      - name: Check for the Google Play key
-        id: key
-        run: |
-          if [[ -n $SERVICE_ACCOUNT_JSON ]]; then echo "set=true" >> "$GITHUB_OUTPUT"
-          else echo "::warning::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not set, the bundle is not uploaded to Google Play"; fi
-      - name: Check out the repo
-        if: steps.key.outputs.set
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - name: Download the Google Play bundle
-        if: steps.key.outputs.set
-        uses: actions/download-artifact@v8
-        with:
-          name: google-play-bundle
-      - name: Set up .NET
-        if: steps.key.outputs.set
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.0.x'
-      - name: Write the release notes
-        if: steps.key.outputs.set
-        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- play-release-notes "$GITHUB_REF_NAME" whatsnew
-      - name: Upload the bundle
-        if: steps.key.outputs.set
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: io.github.m0n5ter.chamelab
-          releaseFiles: chamelab-google-play.aab
-          releaseName: ${{ github.ref_name }}
-          # The closed testing track; the GOOGLE_PLAY_TRACK variable switches it (to production later)
-          track: ${{ vars.GOOGLE_PLAY_TRACK || 'alpha' }}
-          status: completed
-          whatsNewDirectory: whatsnew
+    uses: ./.github/workflows/publish_google_play.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit
 
   start_feature_freeze:
     name: Start the next PR review cycle

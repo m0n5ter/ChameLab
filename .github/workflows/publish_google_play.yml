@@ -1,0 +1,78 @@
+name: Upload to Google Play
+
+# A tagged release's bundle goes to the testing track with the changelog summary as its release
+# notes; Play reviews it and then updates the testers. The push handler runs it after each tagged
+# release; started by hand, it uploads the bundle a tag's push run built (one it skipped or failed).
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, e.g. v1.5.44
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  upload:
+    name: Upload to Google Play
+    runs-on: ubuntu-latest
+    env:
+      SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Check for the Google Play key
+        id: key
+        run: |
+          if [[ -n $SERVICE_ACCOUNT_JSON ]]; then echo "set=true" >> "$GITHUB_OUTPUT"
+          else echo "::warning::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not set, the bundle is not uploaded to Google Play"; fi
+      - name: Find the run that built the bundle
+        if: steps.key.outputs.set
+        id: run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Called from the push handler, this run built it; by hand, the tag's latest push run
+          if [[ $GITHUB_EVENT_NAME == push ]]; then id=$GITHUB_RUN_ID
+          else id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow on_push.yml --branch "$TAG" --limit 1 --json databaseId --jq '.[0].databaseId'); fi
+          [[ -n $id ]] || { echo "::error::No push run found for $TAG"; exit 1; }
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+      - name: Check out the repo
+        if: steps.key.outputs.set
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Download the Google Play bundle
+        if: steps.key.outputs.set
+        uses: actions/download-artifact@v8
+        with:
+          name: google-play-bundle
+          run-id: ${{ steps.run.outputs.id }}
+          github-token: ${{ github.token }}
+      - name: Set up .NET
+        if: steps.key.outputs.set
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Write the release notes
+        if: steps.key.outputs.set
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- play-release-notes "$TAG" whatsnew
+      - name: Upload the bundle
+        if: steps.key.outputs.set
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: io.github.m0n5ter.chamelab
+          releaseFiles: chamelab-google-play.aab
+          releaseName: ${{ inputs.tag }}
+          # The closed testing track; the GOOGLE_PLAY_TRACK variable switches it (to production later)
+          track: ${{ vars.GOOGLE_PLAY_TRACK || 'alpha' }}
+          status: completed
+          whatsNewDirectory: whatsnew

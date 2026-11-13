@@ -1,0 +1,42 @@
+name: Announce the release
+
+# Telegram (and MAX) in Russian from CHANGELOG.ru.md, Discord in English from CHANGELOG.md;
+# a channel without its secrets is skipped. The push handler runs it after each tagged release;
+# it can also be started by hand for a tag whose announcement was skipped or failed.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, e.g. v1.5.44
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  announce:
+    name: Announce the release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Post to Telegram, MAX and Discord
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          MAX_BOT_TOKEN: ${{ secrets.MAX_BOT_TOKEN }}
+          MAX_CHAT_ID: ${{ vars.MAX_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TAG: ${{ inputs.tag }}
+        run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- announce-release "$TAG"
