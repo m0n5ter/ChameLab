@@ -131,20 +131,29 @@ public sealed class SerialScanner : ITransportScanner
     }
 
     private static bool LinuxPortMatchesVid(string portName, string vidHex) =>
-        string.Equals(LinuxUsbId(portName, "idVendor"), vidHex, StringComparison.OrdinalIgnoreCase);
+        LinuxUsbId(portName) is { } id && id.Vid == Convert.ToInt32(vidHex, 16);
 
     /// <summary>
-    /// Reads a USB id (idVendor / idProduct) for a tty from sysfs: /sys/class/tty/ttyACM0/device
-    /// is the USB interface, whose parent directory is the USB device holding the ids.
+    /// Reads the USB VID/PID of a tty from sysfs. /sys/class/tty/ttyACM0/device is the USB
+    /// interface, whose uevent carries PRODUCT=vid/pid/bcd (hex, no leading zeros). Reading
+    /// through the links lets the kernel resolve them; walking up with ".." from a resolved
+    /// link target does not work in .NET, which collapses ".." textually across the
+    /// /sys/class symlinks and ends up outside the device tree.
     /// </summary>
-    internal static string? LinuxUsbId(string portName, string file)
+    internal static (int Vid, int Pid)? LinuxUsbId(string portName)
     {
-        var tty = Path.GetFileName(portName);
-        var iface = new DirectoryInfo($"/sys/class/tty/{tty}/device");
-        if (!iface.Exists) return null;
-        var target = iface.ResolveLinkTarget(returnFinalTarget: true) as DirectoryInfo ?? iface;
-        var idFile = Path.Combine(target.Parent?.FullName ?? "", file);
-        return File.Exists(idFile) ? File.ReadAllText(idFile).Trim() : null;
+        var uevent = $"/sys/class/tty/{Path.GetFileName(portName)}/device/uevent";
+        if (!File.Exists(uevent)) return null;
+        foreach (var line in File.ReadLines(uevent))
+        {
+            if (!line.StartsWith("PRODUCT=", StringComparison.Ordinal)) continue;
+            var parts = line["PRODUCT=".Length..].Split('/');
+            if (parts.Length >= 2 &&
+                int.TryParse(parts[0], System.Globalization.NumberStyles.HexNumber, null, out var vid) &&
+                int.TryParse(parts[1], System.Globalization.NumberStyles.HexNumber, null, out var pid))
+                return (vid, pid);
+        }
+        return null;
     }
 
     internal static string[] PortNames() => SafeGetPortNames();
@@ -172,9 +181,7 @@ public sealed class SerialDfuLocator : IDfuLocator
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    if (string.Equals(SerialScanner.LinuxUsbId(name, "idVendor"), "1915", StringComparison.OrdinalIgnoreCase) &&
-                        string.Equals(SerialScanner.LinuxUsbId(name, "idProduct"), "521f", StringComparison.OrdinalIgnoreCase))
-                        return name;
+                    if (SerialScanner.LinuxUsbId(name) == (0x1915, 0x521F)) return name;
                 }
                 // macOS: no cheap USB id lookup; the bootloader is the modem port that wasn't there before.
                 else if (name.StartsWith("/dev/cu.usbmodem", StringComparison.Ordinal) && !before.Contains(name))

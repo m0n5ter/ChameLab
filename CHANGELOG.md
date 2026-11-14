@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: Linux finds the Chameleon and its DFU bootloader over USB. The USB vendor ID is read from the port's sysfs uevent; the former lookup followed the /sys/class/tty links to a nonexistent path, so no USB device was ever offered
 
 ## [v1.5.45][2026-11-14] · firmware v2.3.19-cl
 ### Summary
