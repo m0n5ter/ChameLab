@@ -9,6 +9,15 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.5.45][2026-11-14] · firmware v2.3.19-cl
+### Summary
+ - ChameLab: a Skip sector button in the MIFARE Classic recovery panels moves on from a sector that takes too long, keeping the keys already found
+ - ChameLab: static nested finds keys on cards that return different nonce generations for different sectors or key types
+
+### Details
+ - ChameLab: during dictionary searches and sector attacks the read and target card recovery panels show Skip sector next to Stop. It cancels the current sector's calculation and skips its remaining key types for the rest of the run, including Auto's reuse and fallback stages; confirmed keys are kept, a firmware command already running finishes and its keys are retained, and a new run can try the sector again. The progress line is shorter: `Sector 5A · key 3 of 100`
+ - ChameLab: static nested no longer derives the nonce offset from the seed key type alone. It keeps the first result when both captures agree on a key and otherwise tries the other offset pair (160/320 or 161/321), so a card that answers some sectors with one nonce generation and others with another no longer loses the correct key after Auto propagates a new seed
+
 ## [v1.5.44][2026-11-13] · firmware v2.3.19-cl
 ### Summary
  - ChameLab: narrow screens keep everything in view: button rows tighten their gaps and icons, and titles scale down to fit; the desktop window can be made as narrow as a phone
