@@ -8,6 +8,12 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.5.47][2026-11-15] · firmware v2.3.19-cl
+### Summary
+ - ChameLab: two dumps can be compared, against another saved card or a dump file, with the differing bytes highlighted
+
+### Details
  - ChameLab: two dumps can be compared. Compare on an open MIFARE Classic or Ultralight / NTAG card lists the blocks (pages) that differ from another saved card or a dump file, any import format, with the differing bytes highlighted and the UID, SAK, ATQA, ATS and type differences above; it follows edits of the open card as they are made, and can show every block
 
 ## [v1.5.46][2026-11-14] · firmware v2.3.19-cl
