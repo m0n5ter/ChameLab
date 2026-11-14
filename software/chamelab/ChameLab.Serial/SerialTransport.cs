@@ -79,6 +79,7 @@ public sealed class SerialTransport(string portName) : ITransport
 public sealed class SerialScanner : ITransportScanner
 {
     private const string ChameleonVidHex = "6868";
+    private const int ChameleonVid = 0x6868;
 
     public TransportKind Kind => TransportKind.Serial;
     public string DisplayName => Strings.Serial_Name;
@@ -120,7 +121,7 @@ public sealed class SerialScanner : ITransportScanner
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return WindowsSerialVid.PortMatchesVid(portName, ChameleonVidHex);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return LinuxPortMatchesVid(portName, ChameleonVidHex);
+                return LinuxSerialUsbId.Read(portName)?.Vid == ChameleonVid;
             // macOS: no cheap VID lookup; the CDC-ACM call-out node is the best signal.
             return portName.StartsWith("/dev/cu.usbmodem", StringComparison.Ordinal);
         }
@@ -128,23 +129,6 @@ public sealed class SerialScanner : ITransportScanner
         {
             return false;
         }
-    }
-
-    private static bool LinuxPortMatchesVid(string portName, string vidHex) =>
-        string.Equals(LinuxUsbId(portName, "idVendor"), vidHex, StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>
-    /// Reads a USB id (idVendor / idProduct) for a tty from sysfs: /sys/class/tty/ttyACM0/device
-    /// is the USB interface, whose parent directory is the USB device holding the ids.
-    /// </summary>
-    internal static string? LinuxUsbId(string portName, string file)
-    {
-        var tty = Path.GetFileName(portName);
-        var iface = new DirectoryInfo($"/sys/class/tty/{tty}/device");
-        if (!iface.Exists) return null;
-        var target = iface.ResolveLinkTarget(returnFinalTarget: true) as DirectoryInfo ?? iface;
-        var idFile = Path.Combine(target.Parent?.FullName ?? "", file);
-        return File.Exists(idFile) ? File.ReadAllText(idFile).Trim() : null;
     }
 
     internal static string[] PortNames() => SafeGetPortNames();
@@ -172,9 +156,7 @@ public sealed class SerialDfuLocator : IDfuLocator
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    if (string.Equals(SerialScanner.LinuxUsbId(name, "idVendor"), "1915", StringComparison.OrdinalIgnoreCase) &&
-                        string.Equals(SerialScanner.LinuxUsbId(name, "idProduct"), "521f", StringComparison.OrdinalIgnoreCase))
-                        return name;
+                    if (LinuxSerialUsbId.Read(name) == (0x1915, 0x521F)) return name;
                 }
                 // macOS: no cheap USB id lookup; the bootloader is the modem port that wasn't there before.
                 else if (name.StartsWith("/dev/cu.usbmodem", StringComparison.Ordinal) && !before.Contains(name))

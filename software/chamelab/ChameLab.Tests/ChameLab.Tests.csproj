@@ -21,6 +21,7 @@
     <Compile Include="..\Mobile\BleTransport.cs" Link="Mobile\BleTransport.cs" />
     <Compile Include="..\Mobile\UsbCdcTransport.cs" Link="Mobile\UsbCdcTransport.cs" />
     <Compile Include="..\ChameLab.Desktop\DesktopWakeLock.cs" Link="Desktop\DesktopWakeLock.cs" />
+    <Compile Include="..\ChameLab.Serial\LinuxSerialUsbId.cs" Link="Serial\LinuxSerialUsbId.cs" />
     <None Update="Reference\crypto_vectors.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Reference\sen_order_vectors.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Reference\hardnested_capture.txt" CopyToOutputDirectory="PreserveNewest" />
