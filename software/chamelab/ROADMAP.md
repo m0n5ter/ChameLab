@@ -23,6 +23,7 @@ Tick `[x]` as things land, and drop finished items over time.
 - Jablotron (read, emulate, write to T55xx)
 - Battery level and firmware battery condition; NFC field generator as a button action
 - Auto-detected devices (USB and BLE), manual TCP bridge
+- Cards shared as QR codes (web app links, a series for big dumps), scanned by camera on Android, iOS and the web, or from images
 
 ## High priority
 

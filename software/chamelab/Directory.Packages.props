@@ -8,6 +8,8 @@
   <ItemGroup>
     <PackageVersion Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
     <PackageVersion Include="BouncyCastle.Cryptography" Version="2.7.0" />
+    <!-- QR codes: card sharing (encode and decode, fully managed) -->
+    <PackageVersion Include="ZXing.Net" Version="0.16.11" />
     <!-- Avalonia -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
@@ -30,6 +32,8 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <!-- Android splash -->
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
+    <!-- Android QR scanner: Google Play services' ready-made scanner screen (no camera permission) -->
+    <PackageVersion Include="Xamarin.GooglePlayServices.Code.Scanner" Version="116.1.0.17" />
     <!-- Keep Core.Ktx in step with Core: the Kotlin extensions moved into Core, and mismatched
          versions both ship them, so D8 fails with "Type ... is defined multiple times". -->
     <PackageVersion Include="Xamarin.AndroidX.Core.Core.Ktx" Version="1.19.0.1" />

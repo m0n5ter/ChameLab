@@ -30,6 +30,9 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
   your key dictionaries, edited as hex and emulated in one tap.
 - **Saved cards** — a card library with search and color tags. Imports
   ChameleonUltraGUI, Proxmark3, Flipper `.nfc` / `.rfid`, MCT, `.bin` and `.eml`.
+- **QR sharing** — show a card as a QR code (a series of codes for big dumps) and scan it with
+  the camera on phones and in the web app, or from a screenshot; a phone's own camera opens it in
+  the web app.
 - **Cloning** — write LF IDs to T55xx (EM410x also to EM4305) and MIFARE Classic to Gen1a / Gen2 magic cards.
 - **Emulator settings** — Gen1a / Gen2 modes, write modes, nonce detection for mfkey32,
   Ultralight / NTAG version, signature and counters.
@@ -52,8 +55,7 @@ devices with insufficient memory report an error.
 The app speaks English, German, Spanish, French, Italian, Portuguese, Russian, Chinese
 (Simplified), Japanese and Korean; pick the language in Settings.
 
-Not there yet: QR sharing, the value block tool and Gen4 (GTU) magic card
-configuration. The full list is in the
+Not there yet: the value block tool and Gen4 (GTU) magic card configuration. The full list is in the
 [roadmap](software/chamelab/ROADMAP.md).
 
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor

@@ -34,6 +34,7 @@
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" />
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" />
     <PackageReference Include="Plugin.BLE" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Code.Scanner" />
   </ItemGroup>
 
   <ItemGroup>

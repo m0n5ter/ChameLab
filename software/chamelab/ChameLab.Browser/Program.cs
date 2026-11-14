@@ -23,7 +23,10 @@ internal sealed partial class Program
         if (bluetooth) dfu.Add(new WebBluetoothDfuLocator());
         AppServices.Register(scanners, new LocalStorageStore(), dfu: dfu, feedback: new WebFeedbackPlayer(),
             hardnested: new WebHardnestedEngine(), keyRecovery: new WebKeyRecoveryEngine(),
-            wakeLock: new WakeLockService(WebWakeLock.AcquireAsync));
+            wakeLock: new WakeLockService(WebWakeLock.AcquireAsync),
+            qrCamera: WebQrCamera.IsAvailable() ? new WebQrCamera() : null);
+        // main.js passes the address the app was opened with: a shared card's link (#card=…) opens the card.
+        if (args.Length > 0 && ChameLab.Models.CardQr.TryParse(args[0], out _)) AppLinks.Pending = args[0];
 
         return BuildAvaloniaApp()
             .WithInterFont()

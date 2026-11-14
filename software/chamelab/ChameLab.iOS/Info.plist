@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>ChameLab</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Scan QR codes of cards shared from ChameLab.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Connect to your Chameleon Ultra over Bluetooth LE.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>

@@ -30,6 +30,7 @@ public class MainActivity : AvaloniaMainActivity
     {
         base.OnCreate(savedInstanceState);
         AndroidWakeLock.Window = Window;
+        AndroidQrCamera.Activity = this;
         // Back on the start screen would only move the task to the background (Android 12+).
         PlatformExit.Quit = Finish;
         RequestBlePermissions();
@@ -40,6 +41,7 @@ public class MainActivity : AvaloniaMainActivity
         // Only drop the hook if a newer activity hasn't already set its own.
         if (PlatformExit.Quit?.Target == this) PlatformExit.Quit = null;
         if (ReferenceEquals(AndroidWakeLock.Window, Window)) AndroidWakeLock.Window = null;
+        if (ReferenceEquals(AndroidQrCamera.Activity, this)) AndroidQrCamera.Activity = null;
         base.OnDestroy();
     }
 

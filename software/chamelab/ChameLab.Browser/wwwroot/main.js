@@ -13,4 +13,11 @@ const dotnetRuntime = await dotnet
 
 const config = dotnetRuntime.getConfig();
 
-await dotnetRuntime.runMain(config.mainAssemblyName, [globalThis.location.href]);
+// A shared card arrives as #card=… (see CardQr): handed to the app once, then dropped from the
+// address so a reload or a bookmark doesn't offer the same card again.
+const href = globalThis.location.href;
+if (globalThis.location.hash.includes('card=')) {
+    history.replaceState(null, '', globalThis.location.pathname + globalThis.location.search);
+}
+
+await dotnetRuntime.runMain(config.mainAssemblyName, [href]);

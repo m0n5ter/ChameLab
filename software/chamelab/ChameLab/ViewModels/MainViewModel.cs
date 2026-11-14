@@ -67,6 +67,15 @@ public sealed class MainViewModel : ViewModelBase
         {
             if (e.PropertyName == nameof(FirmwareUpdateViewModel.IsInstalling)) UpdateWatching();
         };
+        // A shared card's link that opened the web app; after start-up, once the shell is shown.
+        AppLinks.Subscribe(link => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = OpenLinkAsync(link)));
+    }
+
+    private async Task OpenLinkAsync(string link)
+    {
+        if (!ChameLab.Models.CardQr.TryParse(link, out _)) return;
+        await NavigateAsync(Cards);
+        Cards.ReceiveQrLink(link);
     }
 
     public ConnectViewModel Connect => _connect;

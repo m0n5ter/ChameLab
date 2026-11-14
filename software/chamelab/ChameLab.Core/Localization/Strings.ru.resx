@@ -3756,4 +3756,82 @@
   <data name="Recovery_KeyProgress" xml:space="preserve">
     <value>ключ {0} из {1}</value>
   </data>
+  <data name="Qr_Damaged" xml:space="preserve">
+    <value>Из этих QR-кодов не получается карта. Отсканируйте их заново.</value>
+  </data>
+  <data name="Qr_PartOf" xml:space="preserve">
+    <value>Код {0} из {1}</value>
+  </data>
+  <data name="Qr_Pause" xml:space="preserve">
+    <value>Пауза</value>
+  </data>
+  <data name="Qr_Play" xml:space="preserve">
+    <value>Воспроизвести</value>
+  </data>
+  <data name="Qr_Previous" xml:space="preserve">
+    <value>Предыдущий код</value>
+  </data>
+  <data name="Qr_Next" xml:space="preserve">
+    <value>Следующий код</value>
+  </data>
+  <data name="Qr_SingleHint" xml:space="preserve">
+    <value>Отсканируйте камерой телефона, чтобы открыть карту в веб-версии, или в ChameLab: Добавить карту → QR-код.</value>
+  </data>
+  <data name="Qr_SeriesHint" xml:space="preserve">
+    <value>Карта занимает несколько кодов, они сменяют друг друга. Сканируйте их в ChameLab (Добавить карту → QR-код), пока не будут прочитаны все; камера телефона откроет веб-версию с первым из них.</value>
+  </data>
+  <data name="Qr_PointAtCode" xml:space="preserve">
+    <value>Наведите камеру на QR-код карты ChameLab</value>
+  </data>
+  <data name="Qr_OpenImageTitle" xml:space="preserve">
+    <value>Открыть изображение с QR-кодом</value>
+  </data>
+  <data name="Qr_NoCodeInImage" xml:space="preserve">
+    <value>В {0} не найден QR-код.</value>
+  </data>
+  <data name="Qr_NotACardCode" xml:space="preserve">
+    <value>Этот QR-код — не карта ChameLab.</value>
+  </data>
+  <data name="Qr_FromQrCode" xml:space="preserve">
+    <value>Из QR-кода</value>
+  </data>
+  <data name="Qr_CardReceived" xml:space="preserve">
+    <value>Карта получена</value>
+  </data>
+  <data name="Qr_PartsRead" xml:space="preserve">
+    <value>Прочитано кодов: {0} из {1}. Осталось: {2}.</value>
+  </data>
+  <data name="Qr_Share" xml:space="preserve">
+    <value>QR-код</value>
+  </data>
+  <data name="Qr_ShareTip" xml:space="preserve">
+    <value>Показать карту QR-кодом, чтобы отсканировать её другим телефоном или компьютером</value>
+  </data>
+  <data name="Qr_ShareHeader" xml:space="preserve">
+    <value>ПОДЕЛИТЬСЯ QR-КОДОМ</value>
+  </data>
+  <data name="Qr_ScanTile" xml:space="preserve">
+    <value>QR-код</value>
+  </data>
+  <data name="Qr_ScanCamera" xml:space="preserve">
+    <value>Камера</value>
+  </data>
+  <data name="Qr_ScanImage" xml:space="preserve">
+    <value>Из изображения</value>
+  </data>
+  <data name="Qr_ScanTip" xml:space="preserve">
+    <value>Добавить карту, которой поделились из ChameLab QR-кодом</value>
+  </data>
+  <data name="Qr_ScanImageTip" xml:space="preserve">
+    <value>Прочитать QR-код со скриншота или фото</value>
+  </data>
+  <data name="Qr_CameraDenied" xml:space="preserve">
+    <value>Доступ к камере запрещён. Разрешите его в настройках системы или откройте скриншот или фото кода.</value>
+  </data>
+  <data name="Qr_NoCamera" xml:space="preserve">
+    <value>Камера недоступна. Откройте вместо этого скриншот или фото кода.</value>
+  </data>
+  <data name="Qr_ScannerUnavailable" xml:space="preserve">
+    <value>QR-сканер недоступен на этом устройстве (нужны сервисы Google Play). Откройте вместо этого скриншот или фото кода.</value>
+  </data>
 </root>

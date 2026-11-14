@@ -48,7 +48,7 @@ public sealed record CardTypeOption(TagSpecificType? Tag)
 }
 
 /// <summary>Which action panel is open under a saved card.</summary>
-public enum CardAction { None, Slots, Write, Delete }
+public enum CardAction { None, Slots, Write, Delete, Qr }
 
 /// <summary>
 /// A saved dictionary in the Save keys menu, shown like its row in the dictionary list: choosing
@@ -198,6 +198,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.WhenAnyValue(x => x.CanRunMfkey32));
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         SkipSectorCommand = ReactiveCommand.Create(SkipSector, this.WhenAnyValue(x => x.ShowSkipSector));
+        InitQr();
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
         CancelAddCommand = ReactiveCommand.Create(CancelAdd);
@@ -2355,9 +2356,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaisePropertyChanged(nameof(IsSlotsOpen));
             this.RaisePropertyChanged(nameof(IsWriteOpen));
             this.RaisePropertyChanged(nameof(IsConfirmingDelete));
+            this.RaisePropertyChanged(nameof(IsQrOpen));
             this.RaisePropertyChanged(nameof(IsAsking));
             this.RaisePropertyChanged(nameof(ShowEditor));
             this.RaisePropertyChanged(nameof(ShowMemoryEditor));
+            OnQrActionChanged();
         }
     }
 

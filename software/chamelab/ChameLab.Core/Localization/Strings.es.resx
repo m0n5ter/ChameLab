@@ -3742,4 +3742,82 @@
   <data name="Recovery_KeyProgress" xml:space="preserve">
     <value>clave {0} de {1}</value>
   </data>
+  <data name="Qr_Damaged" xml:space="preserve">
+    <value>Los códigos QR no forman una tarjeta. Vuelve a escanearlos.</value>
+  </data>
+  <data name="Qr_PartOf" xml:space="preserve">
+    <value>Código {0} de {1}</value>
+  </data>
+  <data name="Qr_Pause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
+  <data name="Qr_Play" xml:space="preserve">
+    <value>Reproducir</value>
+  </data>
+  <data name="Qr_Previous" xml:space="preserve">
+    <value>Código anterior</value>
+  </data>
+  <data name="Qr_Next" xml:space="preserve">
+    <value>Código siguiente</value>
+  </data>
+  <data name="Qr_SingleHint" xml:space="preserve">
+    <value>Escanéalo con la cámara del móvil para abrir la tarjeta en la app web, o en ChameLab: Añadir una tarjeta → Código QR.</value>
+  </data>
+  <data name="Qr_SeriesHint" xml:space="preserve">
+    <value>La tarjeta ocupa varios códigos, que se muestran por turnos. Escanéalos en ChameLab (Añadir una tarjeta → Código QR) hasta leerlos todos; la cámara del móvil abre la app web con el primero.</value>
+  </data>
+  <data name="Qr_PointAtCode" xml:space="preserve">
+    <value>Apunta la cámara a un código QR de tarjeta de ChameLab</value>
+  </data>
+  <data name="Qr_OpenImageTitle" xml:space="preserve">
+    <value>Abrir una imagen con un código QR</value>
+  </data>
+  <data name="Qr_NoCodeInImage" xml:space="preserve">
+    <value>No se encontró ningún código QR en {0}.</value>
+  </data>
+  <data name="Qr_NotACardCode" xml:space="preserve">
+    <value>Este código QR no es una tarjeta de ChameLab.</value>
+  </data>
+  <data name="Qr_FromQrCode" xml:space="preserve">
+    <value>Desde un código QR</value>
+  </data>
+  <data name="Qr_CardReceived" xml:space="preserve">
+    <value>Tarjeta recibida</value>
+  </data>
+  <data name="Qr_PartsRead" xml:space="preserve">
+    <value>{0} de {1} códigos leídos. Faltan: {2}.</value>
+  </data>
+  <data name="Qr_Share" xml:space="preserve">
+    <value>Código QR</value>
+  </data>
+  <data name="Qr_ShareTip" xml:space="preserve">
+    <value>Mostrar la tarjeta como código QR para escanearla con otro móvil u ordenador</value>
+  </data>
+  <data name="Qr_ShareHeader" xml:space="preserve">
+    <value>COMPARTIR COMO CÓDIGO QR</value>
+  </data>
+  <data name="Qr_ScanTile" xml:space="preserve">
+    <value>Código QR</value>
+  </data>
+  <data name="Qr_ScanCamera" xml:space="preserve">
+    <value>Cámara</value>
+  </data>
+  <data name="Qr_ScanImage" xml:space="preserve">
+    <value>Desde una imagen</value>
+  </data>
+  <data name="Qr_ScanTip" xml:space="preserve">
+    <value>Añadir una tarjeta compartida desde ChameLab como código QR</value>
+  </data>
+  <data name="Qr_ScanImageTip" xml:space="preserve">
+    <value>Leer el código QR de una captura de pantalla o foto</value>
+  </data>
+  <data name="Qr_CameraDenied" xml:space="preserve">
+    <value>El acceso a la cámara está denegado. Permítelo en los ajustes del sistema o abre una captura o foto del código.</value>
+  </data>
+  <data name="Qr_NoCamera" xml:space="preserve">
+    <value>No hay ninguna cámara disponible. Abre una captura o foto del código.</value>
+  </data>
+  <data name="Qr_ScannerUnavailable" xml:space="preserve">
+    <value>El escáner QR no está disponible en este dispositivo (necesita los servicios de Google Play). Abre una captura o foto del código.</value>
+  </data>
 </root>

@@ -459,6 +459,12 @@
                 </MenuFlyout>
               </DropDownButton.Flyout>
             </DropDownButton>
+            <Button Command="{Binding ShareQrCommand}" c:ActionRow.Priority="1" ToolTip.Tip="{x:Static loc:Strings.Qr_ShareTip}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.qrcode}" />
+                <TextBlock Text="{x:Static loc:Strings.Qr_Share}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
             <!-- The card's known keys (MIFARE Classic A/B, Ultralight EV1 / NTAG password). -->
             <DropDownButton IsVisible="{Binding CanSaveKeys}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardsKeys}">
@@ -664,7 +670,45 @@
                     </StackPanel>
                   </Grid>
                 </Button>
+                <!-- The camera where the platform has a scanner, a screenshot or photo elsewhere. -->
+                <Button Classes="tile source" Command="{Binding ScanQrCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_ScanTip}">
+                  <Button.IsEnabled>
+                    <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                      <Binding Path="HasQrCamera" />
+                      <Binding Path="CanUseFiles" />
+                    </MultiBinding>
+                  </Button.IsEnabled>
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.qrcode}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Static loc:Strings.Qr_ScanTile}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <Panel>
+                        <TextBlock Text="{x:Static loc:Strings.Qr_ScanCamera}" Classes="caption" TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding HasQrCamera}" />
+                        <TextBlock Text="{x:Static loc:Strings.Qr_ScanImage}" Classes="caption" TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding !HasQrCamera}" />
+                      </Panel>
+                    </StackPanel>
+                  </Grid>
+                </Button>
+                <Button Classes="tile source" Command="{Binding ScanQrImageCommand}" IsEnabled="{Binding CanUseFiles}"
+                        IsVisible="{Binding HasQrCamera}" ToolTip.Tip="{x:Static loc:Strings.Qr_ScanImageTip}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.image}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Static loc:Strings.Qr_ScanTile}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{x:Static loc:Strings.Qr_ScanImage}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
               </UniformGrid>
+
+              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding QrScanStatus}"
+                         IsVisible="{Binding QrScanStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
               <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ScanMissText}"
                          Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineDanger}"
@@ -693,9 +737,40 @@
               <MultiBinding Converter="{x:Static BoolConverters.Or}">
                 <Binding Path="IsSlotsOpen" />
                 <Binding Path="IsWriteOpen" />
+                <Binding Path="IsQrOpen" />
               </MultiBinding>
             </Border.IsVisible>
             <StackPanel>
+              <!-- Share as QR code: one code, or a series that changes by itself -->
+              <StackPanel Spacing="10" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding IsQrOpen}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{x:Static loc:Strings.Qr_ShareHeader}" Classes="overline" />
+                    <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding QrHint}" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="icon" Command="{Binding ShareQrCommand}"
+                          ToolTip.Tip="{x:Static loc:Strings.Common_Close}" VerticalAlignment="Top">
+                    <PathIcon Data="{StaticResource Icon.close}" />
+                  </Button>
+                </Grid>
+                <c:QrCodeView Text="{Binding QrText}" MaxWidth="360" HorizontalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding IsQrSeries}">
+                  <Button Classes="icon" Command="{Binding QrPreviousCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_Previous}">
+                    <PathIcon Data="{StaticResource Icon.chevronleft}" />
+                  </Button>
+                  <Button Classes="icon" Command="{Binding QrPlayPauseCommand}" ToolTip.Tip="{Binding QrPlayPauseTip}">
+                    <Panel>
+                      <PathIcon Data="{StaticResource Icon.pause}" IsVisible="{Binding IsQrPlaying}" />
+                      <PathIcon Data="{StaticResource Icon.play}" IsVisible="{Binding !IsQrPlaying}" />
+                    </Panel>
+                  </Button>
+                  <TextBlock Text="{Binding QrPartLabel}" VerticalAlignment="Center" MinWidth="90" TextAlignment="Center" />
+                  <Button Classes="icon" Command="{Binding QrNextCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_Next}">
+                    <PathIcon Data="{StaticResource Icon.chevronright}" />
+                  </Button>
+                </StackPanel>
+              </StackPanel>
+
               <!-- Assign to slot -->
               <StackPanel Spacing="10" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding IsSlotsOpen}">
                 <Grid ColumnDefinitions="*,Auto">

@@ -3759,4 +3759,82 @@
   <data name="Recovery_KeyProgress" xml:space="preserve">
     <value>key {0} of {1}</value>
   </data>
+  <data name="Qr_Damaged" xml:space="preserve">
+    <value>The QR codes don't add up to a card. Scan them again.</value>
+  </data>
+  <data name="Qr_PartOf" xml:space="preserve">
+    <value>Code {0} of {1}</value>
+  </data>
+  <data name="Qr_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Qr_Play" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="Qr_Previous" xml:space="preserve">
+    <value>Previous code</value>
+  </data>
+  <data name="Qr_Next" xml:space="preserve">
+    <value>Next code</value>
+  </data>
+  <data name="Qr_SingleHint" xml:space="preserve">
+    <value>Scan it with a phone camera to open the card in the web app, or in ChameLab: Add a card → QR code.</value>
+  </data>
+  <data name="Qr_SeriesHint" xml:space="preserve">
+    <value>The card takes several codes, shown in turn. Scan them in ChameLab (Add a card → QR code) until all are read; a phone camera opens the web app with the first one.</value>
+  </data>
+  <data name="Qr_PointAtCode" xml:space="preserve">
+    <value>Point the camera at a ChameLab card QR code</value>
+  </data>
+  <data name="Qr_OpenImageTitle" xml:space="preserve">
+    <value>Open a QR code image</value>
+  </data>
+  <data name="Qr_NoCodeInImage" xml:space="preserve">
+    <value>No QR code found in {0}.</value>
+  </data>
+  <data name="Qr_NotACardCode" xml:space="preserve">
+    <value>This QR code is not a ChameLab card.</value>
+  </data>
+  <data name="Qr_FromQrCode" xml:space="preserve">
+    <value>From a QR code</value>
+  </data>
+  <data name="Qr_CardReceived" xml:space="preserve">
+    <value>Card received</value>
+  </data>
+  <data name="Qr_PartsRead" xml:space="preserve">
+    <value>{0} of {1} codes read. Missing: {2}.</value>
+  </data>
+  <data name="Qr_Share" xml:space="preserve">
+    <value>QR code</value>
+  </data>
+  <data name="Qr_ShareTip" xml:space="preserve">
+    <value>Show the card as a QR code to scan with another phone or computer</value>
+  </data>
+  <data name="Qr_ShareHeader" xml:space="preserve">
+    <value>SHARE AS QR CODE</value>
+  </data>
+  <data name="Qr_ScanTile" xml:space="preserve">
+    <value>QR code</value>
+  </data>
+  <data name="Qr_ScanCamera" xml:space="preserve">
+    <value>Camera</value>
+  </data>
+  <data name="Qr_ScanImage" xml:space="preserve">
+    <value>From an image</value>
+  </data>
+  <data name="Qr_ScanTip" xml:space="preserve">
+    <value>Add a card shared from ChameLab as a QR code</value>
+  </data>
+  <data name="Qr_ScanImageTip" xml:space="preserve">
+    <value>Read the QR code from a screenshot or photo</value>
+  </data>
+  <data name="Qr_CameraDenied" xml:space="preserve">
+    <value>Camera access is denied. Allow it in the system settings, or open a screenshot or photo of the code.</value>
+  </data>
+  <data name="Qr_NoCamera" xml:space="preserve">
+    <value>No camera is available. Open a screenshot or photo of the code instead.</value>
+  </data>
+  <data name="Qr_ScannerUnavailable" xml:space="preserve">
+    <value>The QR scanner is not available on this device (it needs Google Play services). Open a screenshot or photo of the code instead.</value>
+  </data>
 </root>

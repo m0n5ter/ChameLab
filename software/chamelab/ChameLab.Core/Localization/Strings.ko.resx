@@ -3742,4 +3742,82 @@
   <data name="Recovery_KeyProgress" xml:space="preserve">
     <value>키 {0}/{1}</value>
   </data>
+  <data name="Qr_Damaged" xml:space="preserve">
+    <value>QR 코드로 카드를 만들 수 없습니다. 다시 스캔하세요.</value>
+  </data>
+  <data name="Qr_PartOf" xml:space="preserve">
+    <value>코드 {0} / {1}</value>
+  </data>
+  <data name="Qr_Pause" xml:space="preserve">
+    <value>일시정지</value>
+  </data>
+  <data name="Qr_Play" xml:space="preserve">
+    <value>재생</value>
+  </data>
+  <data name="Qr_Previous" xml:space="preserve">
+    <value>이전 코드</value>
+  </data>
+  <data name="Qr_Next" xml:space="preserve">
+    <value>다음 코드</value>
+  </data>
+  <data name="Qr_SingleHint" xml:space="preserve">
+    <value>휴대폰 카메라로 스캔하면 웹 앱에서 카드가 열립니다. ChameLab에서는 카드 추가 → QR 코드.</value>
+  </data>
+  <data name="Qr_SeriesHint" xml:space="preserve">
+    <value>이 카드는 여러 코드로 나뉘어 차례로 표시됩니다. ChameLab(카드 추가 → QR 코드)에서 모두 읽을 때까지 스캔하세요. 휴대폰 카메라로는 첫 번째 코드로 웹 앱이 열립니다.</value>
+  </data>
+  <data name="Qr_PointAtCode" xml:space="preserve">
+    <value>ChameLab 카드 QR 코드에 카메라를 맞추세요</value>
+  </data>
+  <data name="Qr_OpenImageTitle" xml:space="preserve">
+    <value>QR 코드 이미지 열기</value>
+  </data>
+  <data name="Qr_NoCodeInImage" xml:space="preserve">
+    <value>{0}에서 QR 코드를 찾을 수 없습니다.</value>
+  </data>
+  <data name="Qr_NotACardCode" xml:space="preserve">
+    <value>이 QR 코드는 ChameLab 카드가 아닙니다.</value>
+  </data>
+  <data name="Qr_FromQrCode" xml:space="preserve">
+    <value>QR 코드에서</value>
+  </data>
+  <data name="Qr_CardReceived" xml:space="preserve">
+    <value>카드를 받았습니다</value>
+  </data>
+  <data name="Qr_PartsRead" xml:space="preserve">
+    <value>{1}개 중 {0}개 코드를 읽었습니다. 남은 코드: {2}.</value>
+  </data>
+  <data name="Qr_Share" xml:space="preserve">
+    <value>QR 코드</value>
+  </data>
+  <data name="Qr_ShareTip" xml:space="preserve">
+    <value>다른 휴대폰이나 컴퓨터로 스캔할 수 있도록 카드를 QR 코드로 표시</value>
+  </data>
+  <data name="Qr_ShareHeader" xml:space="preserve">
+    <value>QR 코드로 공유</value>
+  </data>
+  <data name="Qr_ScanTile" xml:space="preserve">
+    <value>QR 코드</value>
+  </data>
+  <data name="Qr_ScanCamera" xml:space="preserve">
+    <value>카메라</value>
+  </data>
+  <data name="Qr_ScanImage" xml:space="preserve">
+    <value>이미지에서</value>
+  </data>
+  <data name="Qr_ScanTip" xml:space="preserve">
+    <value>ChameLab에서 QR 코드로 공유된 카드 추가</value>
+  </data>
+  <data name="Qr_ScanImageTip" xml:space="preserve">
+    <value>스크린샷이나 사진에서 QR 코드 읽기</value>
+  </data>
+  <data name="Qr_CameraDenied" xml:space="preserve">
+    <value>카메라 접근이 거부되었습니다. 시스템 설정에서 허용하거나 코드의 스크린샷 또는 사진을 여세요.</value>
+  </data>
+  <data name="Qr_NoCamera" xml:space="preserve">
+    <value>사용할 수 있는 카메라가 없습니다. 대신 코드의 스크린샷이나 사진을 여세요.</value>
+  </data>
+  <data name="Qr_ScannerUnavailable" xml:space="preserve">
+    <value>이 기기에서는 QR 스캐너를 사용할 수 없습니다(Google Play 서비스 필요). 대신 코드의 스크린샷이나 사진을 여세요.</value>
+  </data>
 </root>

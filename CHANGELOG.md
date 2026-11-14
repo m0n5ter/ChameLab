@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: cards can be shared as QR codes. A saved card's QR code button shows it as a link to the web app, so another phone's ordinary camera opens the card there; a card too big for one code (a MIFARE Classic 4K dump, usually) becomes a series of codes that change by themselves, with arrows and pause. Add a card → QR code reads them with the camera on Android (Google Play services' scanner), iOS and in the web app, or from a screenshot or photo on every platform; the parts of a series can come in any order, and the card opens for review before it is saved. The card data stays in the link's #fragment, which browsers never send to the server
  - ChameLab: Linux finds the Chameleon and its DFU bootloader over USB. The USB vendor ID is read from the port's sysfs uevent; the former lookup followed the /sys/class/tty links to a nonexistent path, so no USB device was ever offered
 
 ## [v1.5.45][2026-11-14] · firmware v2.3.19-cl
