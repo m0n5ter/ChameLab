@@ -52,8 +52,8 @@ devices with insufficient memory report an error.
 The app speaks English, German, Spanish, French, Italian, Portuguese, Russian, Chinese
 (Simplified), Japanese and Korean; pick the language in Settings.
 
-Not there yet: editing slot data in place, backdoor key recovery and
-QR sharing. The full list is in the
+Not there yet: QR sharing, the value block tool and Gen4 (GTU) magic card
+configuration. The full list is in the
 [roadmap](software/chamelab/ROADMAP.md).
 
 The web version needs Chrome or Edge: Firefox and Safari support neither Web Serial nor
