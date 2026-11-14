@@ -31,7 +31,7 @@ public sealed partial class MifareKeyRecovery
                 // Finish a cheap prepared path before acquiring new nonces for
                 // another family. In particular, the hidden RF08S sector can
                 // unlock the remaining pairs after the first global reuse hit.
-                var next = planner.Next(session);
+                var next = planner.Next(session, s => !_sectors.IsSkipped(s));
                 if (next is not null && planner.Cost(next) <= 8) return false;
             }
             replanRequested = await replanAfterSeed();
@@ -157,11 +157,20 @@ public sealed partial class MifareKeyRecovery
 
         async Task<bool> Check(int sector, MfKeyType type, IReadOnlyList<ulong> candidates)
         {
+            var found = false;
+            await _sectors.RunAsync(sector, ct, async token =>
+            {
+                found = await CheckCore(sector, type, candidates, token);
+            });
+            return found;
+        }
+        async Task<bool> CheckCore(int sector, MfKeyType type, IReadOnlyList<ulong> candidates, CancellationToken token)
+        {
             var block = MifareClassic.SectorFirstBlock(sector);
             var remaining = candidates.Where(k => !session.Rejected.Contains((block, type, k))).ToArray();
             for (var i = 0; i < remaining.Length; i += 64)
             {
-                ct.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
                 progress?.Report(new(Strings.Recovery_CheckStaticEnc, sector, type, KeyMark.Checking,
                     Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + 64, remaining.Length), remaining.Length))
                     { Tried = i, Total = remaining.Length });
@@ -170,7 +179,7 @@ public sealed partial class MifareKeyRecovery
                 for (var attempt = 0; ; attempt++)
                     try
                     {
-                        hit = await client.CheckMifareKeysOnBlockAsync(block, type, keys, ct, session,
+                        hit = await client.CheckMifareKeysOnBlockAsync(block, type, keys, token, session,
                             key => Store(sector, type, key));
                         break;
                     }
@@ -191,21 +200,24 @@ public sealed partial class MifareKeyRecovery
             foreach (var s in targets)
                 foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
                 {
-                    if (Known(s, type) is not null || session.SenDictionaries.Contains((s, type, dictionaryId))) continue;
-                    var nonce = Nonce(s, type);
-                    if (!matchesByNonce.TryGetValue(nonce, out var matches))
+                    if (_sectors.IsSkipped(s) || Known(s, type) is not null || session.SenDictionaries.Contains((s, type, dictionaryId))) continue;
+                    await _sectors.RunAsync(s, ct, async token =>
                     {
-                        var found = new List<ulong>();
-                        for (var i = 0; i < values.Length; i += 4096)
+                        var nonce = Nonce(s, type);
+                        if (!matchesByNonce.TryGetValue(nonce, out var matches))
                         {
-                            progress?.Report(new(Strings.Common_CheckingDictKeys, s, type, KeyMark.Checking) { Tried = i, Total = values.Length });
-                            found.AddRange(await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.MatchStaticEncrypted)
-                                { Uid = capture.Uid, Nonces = [nonce], Keys = values.Skip(i).Take(4096).ToArray() }, ct));
+                            var found = new List<ulong>();
+                            for (var i = 0; i < values.Length; i += 4096)
+                            {
+                                progress?.Report(new(Strings.Common_CheckingDictKeys, s, type, KeyMark.Checking) { Tried = i, Total = values.Length });
+                                found.AddRange(await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.MatchStaticEncrypted)
+                                    { Uid = capture.Uid, Nonces = [nonce], Keys = values.Skip(i).Take(4096).ToArray() }, token));
+                            }
+                            matchesByNonce[nonce] = matches = found;
                         }
-                        matchesByNonce[nonce] = matches = found;
-                    }
-                    await Check(s, type, matches);
-                    session.SenDictionaries.Add((s, type, dictionaryId));
+                        await Check(s, type, matches);
+                        if (!_sectors.IsSkipped(s)) session.SenDictionaries.Add((s, type, dictionaryId));
+                    });
                     if (Complete() || await Replan()) return;
                 }
 
@@ -215,51 +227,58 @@ public sealed partial class MifareKeyRecovery
         planner = new SenRecoveryPlanner();
         foreach (var s in targets)
         {
-            foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
+            var prepared = await _sectors.RunAsync(s, ct, async token =>
             {
-                ct.ThrowIfCancellationRequested();
-                var nonce = Nonce(s, type);
-                IReadOnlyList<ulong> keys = [];
-                if (Known(s, type) is null && !session.SenExhausted.Contains((s, type)))
+                foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
                 {
-                    if (!session.SenCandidates.TryGetValue((s, type), out keys!))
+                    token.ThrowIfCancellationRequested();
+                    var nonce = Nonce(s, type);
+                    IReadOnlyList<ulong> keys = [];
+                    if (Known(s, type) is null && !session.SenExhausted.Contains((s, type)))
                     {
-                        progress?.Report(new(Strings.Recovery_CalcStaticEnc, s, type, KeyMark.Checking));
-                        keys = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.StaticEncryptedNested)
-                            { Uid = capture.Uid, Nonces = [nonce] }, ct);
-                        session.SenCandidates[(s, type)] = keys;
+                        if (!session.SenCandidates.TryGetValue((s, type), out keys!))
+                        {
+                            progress?.Report(new(Strings.Recovery_CalcStaticEnc, s, type, KeyMark.Checking));
+                            keys = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.StaticEncryptedNested)
+                                { Uid = capture.Uid, Nonces = [nonce] }, token);
+                            session.SenCandidates[(s, type)] = keys;
+                        }
                     }
+                    planner.Add(new(s, type, nonce, keys) { KnownKey = Known(s, type) });
                 }
-                planner.Add(new(s, type, nonce, keys) { KnownKey = Known(s, type) });
-            }
-            var a = planner.Get(s, MfKeyType.A)!;
-            var b = planner.Get(s, MfKeyType.B)!;
-            if (a.KnownKey is null && b.KnownKey is null && !session.SenPrepared.Contains(s))
-            {
-                var orderedA = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.OrderStaticEncrypted)
-                    { Nonces = [a.Nonce, b.Nonce], Keys = a.Keys.ToArray(), OtherKeys = b.Keys.ToArray(), PreferredKeys = values }, ct);
-                var orderedB = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.OrderStaticEncrypted)
-                    { Nonces = [b.Nonce, a.Nonce], Keys = b.Keys.ToArray(), OtherKeys = a.Keys.ToArray(), PreferredKeys = values }, ct);
-                if (s == 32) orderedB = orderedB.Order().ToArray(); // fm11_prioritize_0000_prefix
-                planner.ReplaceKeys(a, orderedA);
-                planner.ReplaceKeys(b, orderedB);
-                session.SenCandidates[(s, MfKeyType.A)] = orderedA;
-                session.SenCandidates[(s, MfKeyType.B)] = orderedB;
-                session.SenPrepared.Add(s);
-            }
+                var a = planner.Get(s, MfKeyType.A)!;
+                var b = planner.Get(s, MfKeyType.B)!;
+                if (a.KnownKey is null && b.KnownKey is null && !session.SenPrepared.Contains(s))
+                {
+                    var orderedA = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.OrderStaticEncrypted)
+                        { Nonces = [a.Nonce, b.Nonce], Keys = a.Keys.ToArray(), OtherKeys = b.Keys.ToArray(), PreferredKeys = values }, token);
+                    var orderedB = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.OrderStaticEncrypted)
+                        { Nonces = [b.Nonce, a.Nonce], Keys = b.Keys.ToArray(), OtherKeys = a.Keys.ToArray(), PreferredKeys = values }, token);
+                    if (s == 32) orderedB = orderedB.Order().ToArray(); // fm11_prioritize_0000_prefix
+                    planner.ReplaceKeys(a, orderedA);
+                    planner.ReplaceKeys(b, orderedB);
+                    session.SenCandidates[(s, MfKeyType.A)] = orderedA;
+                    session.SenCandidates[(s, MfKeyType.B)] = orderedB;
+                    session.SenPrepared.Add(s);
+                }
+            });
+            if (!prepared)
+                foreach (var type in new[] { MfKeyType.A, MfKeyType.B })
+                    planner.Add(new(s, type, Nonce(s, type), []) { KnownKey = Known(s, type) });
         }
 
         // All lists participate, including later sectors and the hidden sector.
         var propagated = new HashSet<ulong>();
         var priority = planner.PrioritizeGlobal();
-        foreach (var p in planner.Paths.Where(p => p.KnownKey is null)) session.SenCandidates[(p.Sector, p.Type)] = p.Keys;
+        foreach (var p in planner.Paths.Where(p => p.KnownKey is null && !_sectors.IsSkipped(p.Sector)))
+            session.SenCandidates[(p.Sector, p.Type)] = p.Keys;
         async Task CheckGlobal(IReadOnlyList<ulong> keys, bool mayReplan = true)
         {
             while (keys.Count > 0)
             {
                 var wanted = Enumerable.Range(0, dump.SectorCount)
                     .SelectMany(s => new[] { (Sector: s, Type: MfKeyType.A), (Sector: s, Type: MfKeyType.B) })
-                    .Where(p => Known(p.Sector, p.Type) is null).ToArray();
+                    .Where(p => Known(p.Sector, p.Type) is null && !_sectors.IsSkipped(p.Sector)).ToArray();
                 if (wanted.Length == 0) return;
                 var remaining = keys.Where(k => wanted.Any(p => !session.Rejected.Contains(
                     (MifareClassic.SectorFirstBlock(p.Sector), p.Type, k)))).ToArray();
@@ -274,7 +293,7 @@ public sealed partial class MifareKeyRecovery
                     var found = await client.CheckMifareKeysOfSectorsAsync(wanted, remaining.Select(KeyBytes).ToArray(),
                         keysChecked: new SenBatchProgress(Report),
                         onFound: (p, key) => Store(p.Sector, p.Type, key), ct: ct, session: session,
-                        stopAfterFirstKey: replanAfterSeed is not null);
+                        stopAfterFirstKey: replanAfterSeed is not null, sectorControl: _sectors);
                     await spread();
                     if (Complete() || mayReplan && await Replan()) return;
                     // Manual SEN completes its whole pass. Auto may stop a pass
@@ -312,13 +331,13 @@ public sealed partial class MifareKeyRecovery
                     propagated.Add(key);
                     await CheckGlobal([key], mayReplan: false);
                     if (Complete() || replanRequested) return;
-                    foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null && p.Keys.Contains(key)).ToArray())
+                    foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null && !_sectors.IsSkipped(p.Sector) && p.Keys.Contains(key)).ToArray())
                         await Check(p.Sector, p.Type, [key]);
                     // Small edits to a reused key are cheap to test offline.
                     // Only neighbors already present in vetted SEN lists reach
                     // RF verification; no unselected dictionary is introduced.
                     var neighbors = Enumerable.Range(0, 48).Select(bit => key ^ (1UL << bit)).ToHashSet();
-                    foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null).ToArray())
+                    foreach (var p in planner.Paths.Where(p => Known(p.Sector, p.Type) is null && !_sectors.IsSkipped(p.Sector)).ToArray())
                     {
                         var hints = p.Keys.Where(neighbors.Contains).ToArray();
                         if (hints.Length > 0) await Check(p.Sector, p.Type, hints);
@@ -327,15 +346,18 @@ public sealed partial class MifareKeyRecovery
                 }
             }
             planner.UpdateKnown(Known);
-            foreach (var p in planner.Paths.Where(p => p.KnownKey is null).ToArray())
+            foreach (var p in planner.Paths.Where(p => p.KnownKey is null && !_sectors.IsSkipped(p.Sector)).ToArray())
             {
                 var other = planner.Get(p.Sector, p.Type == MfKeyType.A ? MfKeyType.B : MfKeyType.A)!;
                 if (other.KnownKey is not { } key) continue;
-                IReadOnlyList<ulong> reduced;
+                IReadOnlyList<ulong> reduced = [];
                 if (p.Nonce.Nt != other.Nonce.Nt)
                 {
-                    reduced = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.FilterStaticEncrypted)
-                        { Nonces = [p.Nonce, other.Nonce], Keys = p.Keys.ToArray(), OtherKeys = [key] }, ct);
+                    if (!await _sectors.RunAsync(p.Sector, ct, async token =>
+                    {
+                        reduced = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.FilterStaticEncrypted)
+                            { Nonces = [p.Nonce, other.Nonce], Keys = p.Keys.ToArray(), OtherKeys = [key] }, token);
+                    })) continue;
                     // PM3 leaves the list intact if the known seed has no matches.
                     if (reduced.Count == 0) continue;
                 }
@@ -351,14 +373,14 @@ public sealed partial class MifareKeyRecovery
             // The hidden sector helps recovery; reading a normal dump does not
             // require exhausting its keys after every visible key is confirmed.
             if (Complete() || replanRequested) return;
-            var best = planner.Next(session);
+            var best = planner.Next(session, s => !_sectors.IsSkipped(s));
             if (best is null) break;
             if (await Check(best.Sector, best.Type, best.Keys))
             {
                 await Cascade();
                 if (Complete() || await Replan()) return;
             }
-            else session.SenExhausted.Add((best.Sector, best.Type));
+            else if (!_sectors.IsSkipped(best.Sector)) session.SenExhausted.Add((best.Sector, best.Type));
         }
     }
 

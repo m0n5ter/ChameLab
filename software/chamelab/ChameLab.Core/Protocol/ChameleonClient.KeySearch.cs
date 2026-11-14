@@ -12,6 +12,9 @@ public sealed partial class ChameleonClient
     private async Task SearchConfiguredMifareKeysAsync(MifareDump dump, IReadOnlyList<byte[]> keyDict,
         MifareKeySearchOptions options, bool onlyMissingData, IProgress<MifareKeyProgress>? progress, CancellationToken ct)
     {
+        var control = options.SectorControl ?? new MifareSectorControl();
+        if (options.SectorControl is not null && options.Session is null)
+            options = options with { Session = new MifareRecoverySession() };
         bool SeedFound() => options.StopAfterFirstKey && dump.KeyA.Concat(dump.KeyB).Any(k => k is not null);
         ct.ThrowIfCancellationRequested();
         if (SeedFound()) return;
@@ -23,7 +26,7 @@ public sealed partial class ChameleonClient
             pair.Type == MfKeyType.A ? dump.KeyA[pair.Sector] : dump.KeyB[pair.Sector];
         (int Sector, MfKeyType Type)[] Pending() => sectors
             .SelectMany(s => new[] { (Sector: s, Type: MfKeyType.A), (Sector: s, Type: MfKeyType.B) })
-            .Where(p => Known(p) is null).ToArray();
+            .Where(p => Known(p) is null && !control.IsSkipped(p.Sector)).ToArray();
         void Found((int Sector, MfKeyType Type) pair, byte[] key)
         {
             if (Known(pair) is not null) return;
@@ -44,30 +47,35 @@ public sealed partial class ChameleonClient
                 {
                     ct.ThrowIfCancellationRequested();
                     if (SeedFound()) return;
-                    if (type == MfKeyType.B && options.Session is { } session && dump.KeyA[s] is { } a
-                        && dump.KeyB[s] is null && !session.TrailersChecked.Contains(s))
+                    if (control.IsSkipped(s)) continue;
+                    await control.RunAsync(s, ct, async token =>
                     {
-                        for (var attempt = 0; attempt < 2; attempt++)
-                            try
-                            {
-                                var trailer = await Mf1ReadBlockAsync(MifareClassic.SectorTrailerBlock(s), MfKeyType.A, a, ct);
-                                if (trailer.Length != 16 || !MifareClassic.AccessBitsValid(trailer)) break;
-                                session.TrailersChecked.Add(s);
-                                dump.SetTrailerFromCard(s, trailer);
-                                if (MifareClassic.KeyBReadable(trailer)) Found((s, MfKeyType.B), trailer[10..16]);
-                                break;
-                            }
-                            catch (ChameleonException ex) when (ex.Status != Status.HfTagNo)
-                            { if (ex.Status == Status.MfErrAuth) break; }
-                    }
-                    if (Known((s, type)) is not null) continue;
-                    var own = (type == MfKeyType.A ? dump.KeyA : dump.KeyB).OfType<byte[]>().ToArray();
-                    var other = (type == MfKeyType.A ? dump.KeyB : dump.KeyA).OfType<byte[]>().ToArray();
-                    if (await FindSectorKeyAsync(MifareClassic.SectorFirstBlock(s), type, s, dictionary, own, other, progress, ct, options.Session) is { } key)
-                    {
-                        if (type == MfKeyType.A) dump.KeyA[s] = key;
-                        else dump.KeyB[s] = key;
-                    }
+                        if (type == MfKeyType.B && options.Session is { } session && dump.KeyA[s] is { } a
+                            && dump.KeyB[s] is null && !session.TrailersChecked.Contains(s))
+                        {
+                            for (var attempt = 0; attempt < 2; attempt++)
+                                try
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    var trailer = await Mf1ReadBlockAsync(MifareClassic.SectorTrailerBlock(s), MfKeyType.A, a);
+                                    if (trailer.Length != 16 || !MifareClassic.AccessBitsValid(trailer)) break;
+                                    session.TrailersChecked.Add(s);
+                                    dump.SetTrailerFromCard(s, trailer);
+                                    if (MifareClassic.KeyBReadable(trailer)) Found((s, MfKeyType.B), trailer[10..16]);
+                                    break;
+                                }
+                                catch (ChameleonException ex) when (ex.Status != Status.HfTagNo)
+                                { if (ex.Status == Status.MfErrAuth) break; }
+                        }
+                        if (Known((s, type)) is not null) return;
+                        var own = (type == MfKeyType.A ? dump.KeyA : dump.KeyB).OfType<byte[]>().ToArray();
+                        var other = (type == MfKeyType.A ? dump.KeyB : dump.KeyA).OfType<byte[]>().ToArray();
+                        if (await FindSectorKeyAsync(MifareClassic.SectorFirstBlock(s), type, s, dictionary, own, other, progress, token, options.Session) is { } key)
+                        {
+                            if (type == MfKeyType.A) dump.KeyA[s] = key;
+                            else dump.KeyB[s] = key;
+                        }
+                    });
                 }
         }
 
@@ -97,7 +105,7 @@ public sealed partial class ChameleonClient
             {
                 ct.ThrowIfCancellationRequested();
                 if (SeedFound()) return;
-                var groups = run.Where(p => Known(p) is null).GroupBy(p => string.Join(",", keys
+                var groups = run.Where(p => Known(p) is null && !control.IsSkipped(p.Sector)).GroupBy(p => string.Join(",", keys
                     .Where(k => options.Session?.Rejected.Contains((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, MifareRecoverySession.Value(k))) != true)
                     .Select(Convert.ToHexString)));
                 foreach (var group in groups)
@@ -106,7 +114,7 @@ public sealed partial class ChameleonClient
                     var candidates = group.Key.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Convert.FromHexString).ToArray();
                     if (candidates.Length == 0) continue;
                     await CheckMifareKeysOfSectorsAsync(group.ToArray(), candidates, onFound: Found, ct: ct,
-                        stopAfterFirstKey: options.StopAfterFirstKey, session: options.Session);
+                        stopAfterFirstKey: options.StopAfterFirstKey, session: options.Session, sectorControl: control);
                 }
             }
             foreach (var key in keys) reused.Add(Convert.ToHexString(key));
@@ -137,18 +145,22 @@ public sealed partial class ChameleonClient
                         ct.ThrowIfCancellationRequested();
                         if (SeedFound()) return;
                         if (Known((s, type)) is not null) continue;
-                        var candidates = dictionary.Where(k => !reused.Contains(Convert.ToHexString(k)) && options.Session?.Rejected
-                            .Contains((MifareClassic.SectorTrailerBlock(s), type, MifareRecoverySession.Value(k))) != true).ToArray();
-                        progress?.Report(new(s, type, MifareKeyPhase.Searching, 0, candidates.Length, null));
-                        await CheckMifareKeysOfSectorsAsync([(s, type)], candidates,
-                            keysChecked: new DelegateProgress<int>(done =>
-                            {
-                                if (Known((s, type)) is null)
-                                    progress?.Report(new(s, type, MifareKeyPhase.Searching, done, candidates.Length, null));
-                            }), onFound: Found, ct: ct, stopAfterFirstKey: options.StopAfterFirstKey, session: options.Session);
+                        if (control.IsSkipped(s)) continue;
+                        await control.RunAsync(s, ct, async token =>
+                        {
+                            var candidates = dictionary.Where(k => !reused.Contains(Convert.ToHexString(k)) && options.Session?.Rejected
+                                .Contains((MifareClassic.SectorTrailerBlock(s), type, MifareRecoverySession.Value(k))) != true).ToArray();
+                            progress?.Report(new(s, type, MifareKeyPhase.Searching, 0, candidates.Length, null));
+                            await CheckMifareKeysOfSectorsAsync([(s, type)], candidates,
+                                keysChecked: new DelegateProgress<int>(done =>
+                                {
+                                    if (Known((s, type)) is null)
+                                        progress?.Report(new(s, type, MifareKeyPhase.Searching, done, candidates.Length, null));
+                                }), onFound: Found, ct: token, stopAfterFirstKey: options.StopAfterFirstKey, session: options.Session, sectorControl: control);
+                            if (Known((s, type)) is null)
+                                progress?.Report(new(s, type, MifareKeyPhase.NotFound, candidates.Length, candidates.Length, null));
+                        });
                         if (SeedFound()) return;
-                        if (Known((s, type)) is null)
-                            progress?.Report(new(s, type, MifareKeyPhase.NotFound, candidates.Length, candidates.Length, null));
                         await ReuseFoundKeys();
                     }
             }

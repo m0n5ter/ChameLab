@@ -17,7 +17,9 @@ public sealed partial class MifareKeyRecovery
     {
         for (var sector = 0; sector < dump.SectorCount; sector++)
         {
+            if (_sectors.IsSkipped(sector)) continue;
             if (dump.KeyA[sector] is not { } a || dump.KeyB[sector] is not null || session.TrailersChecked.Contains(sector)) continue;
+            using var sectorScope = _sectors.Watch(sector);
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 try
@@ -44,6 +46,8 @@ public sealed partial class MifareKeyRecovery
         foreach (var p in knownKeys.PositionsForUid(dump.Uid).Where(p => p.Sector < dump.SectorCount))
         {
             if ((p.KeyType == MfKeyType.A ? dump.KeyA : dump.KeyB)[p.Sector] is not null) continue;
+            if (_sectors.IsSkipped(p.Sector)) continue;
+            using var sectorScope = _sectors.Watch(p.Sector);
             progress?.Report(new(Strings.Recovery_CheckingPrevious, p.Sector, p.KeyType, KeyMark.Checking));
             if (await TryAuthAsync(MifareClassic.SectorTrailerBlock(p.Sector), p.KeyType, p.Key, ct, session.Rejected, session))
             {
@@ -59,6 +63,6 @@ public sealed partial class MifareKeyRecovery
             else progress?.Report(new(Strings.Recovery_CheckingPrevious, p.Sector, p.KeyType, KeyMark.Checking));
         });
         await client.FindMifareKeysAsync(dump, saved, updates, ct,
-            new() { Session = session });
+            new() { Session = session, SectorControl = _sectors });
     }
 }

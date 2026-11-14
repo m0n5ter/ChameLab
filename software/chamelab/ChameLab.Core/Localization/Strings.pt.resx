@@ -2536,7 +2536,7 @@
     <value>Leia o cartão de destino antes de iniciar o mfkey32.</value>
   </data>
   <data name="Recovery_SectorKeyDetail" xml:space="preserve">
-    <value>Setor {0} · chave {1} · {2}</value>
+    <value>Setor {0}{1} · {2}</value>
   </data>
   <data name="Recovery_SectorKeyProgress" xml:space="preserve">
     <value>Setor {0} · chave {1} · {2}/{3}</value>
@@ -3733,4 +3733,13 @@
   <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>Próximo: {0}</value></data>
   <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>A recuperação automática terminou com {0} chaves desconhecidas. As chaves recuperadas foram mantidas.</value></data>
   <data name="AutoRecovery_TryReader" xml:space="preserve"><value>Tente outros dicionários ou mfkey32 com o leitor original e execute Auto novamente.</value></data>
+  <data name="Recovery_SkipSector" xml:space="preserve">
+    <value>Pular setor</value>
+  </data>
+  <data name="Recovery_SkipSectorTip" xml:space="preserve">
+    <value>Pular o setor {0} e continuar com o próximo. As chaves encontradas são mantidas.</value>
+  </data>
+  <data name="Recovery_KeyProgress" xml:space="preserve">
+    <value>chave {0} de {1}</value>
+  </data>
 </root>

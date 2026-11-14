@@ -12,6 +12,9 @@ public interface IKeyRecoveryContext
     bool ShowRecoveryTools { get; }
     bool ShowWriteProgress { get; }
     ICommand CancelDumpCommand { get; }
+    ICommand SkipSectorCommand { get; }
+    bool ShowSkipSector { get; }
+    string SkipSectorTip { get; }
     ICommand AutoRecoveryCommand { get; }
     bool ShowAutoRecovery { get; }
     ICommand DarksideCommand { get; }

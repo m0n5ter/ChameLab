@@ -165,6 +165,14 @@
             ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalAlignment="Center"
             IsVisible="{Binding IsDumpRunning}">
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Button Classes="progress-action" Command="{Binding SkipSectorCommand}"
+                  IsVisible="{Binding ShowSkipSector}" ToolTip.Tip="{Binding SkipSectorTip}"
+                  AutomationProperties.Name="{x:Static loc:Strings.Recovery_SkipSector}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.skip}" />
+              <TextBlock Classes="action-label" Text="{x:Static loc:Strings.Recovery_SkipSector}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
           <Button Classes="progress-action" Command="{Binding CancelDumpCommand}" b:DialogKeys.IsCancel="True"
                   AutomationProperties.Name="{Binding DumpStopLabel}"
                   Classes.danger="{Binding !IsMfkey32Done}"

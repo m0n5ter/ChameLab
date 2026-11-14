@@ -51,7 +51,7 @@ public class KeyRecoveryPanelTests
 
     [Theory]
     [InlineData(true, "Проверка ключа 3/10")]
-    [InlineData(false, "Сектор 39 - блок 255 - ключ A - 3/10")]
+    [InlineData(false, "Сектор 39A · ключ 3 из 10")]
     public void KeySearchDetailDistinguishesBatchFromSectorProgress(bool batch, string expected)
     {
         var previousCulture = CultureInfo.CurrentUICulture;
@@ -464,5 +464,38 @@ public class KeyRecoveryPanelTests
         Assert.Null(session.Target);
         Assert.False(session.HasDumpKeyProgress);
         Assert.Equal(KeyCellState.Unknown, session.DumpSectors[32].KeyBState);
+        Assert.False(session.ShowSkipSector);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SkipSectorActionIsSharedByReadAndWriteRecoveryAndPreservesFoundKeys(bool write)
+    {
+        var store = new MemoryKeyValueStore();
+        var cards = new CardsViewModel(new DeviceService([]), new CardLibrary(store), new DictionaryLibrary(store));
+        IKeyRecoveryContext panel = write ? cards.WriteRecovery : cards;
+        Assert.False(panel.ShowSkipSector);
+        using var stop = new System.Threading.CancellationTokenSource();
+        var control = new MifareSectorControl();
+        var type = panel.GetType();
+        type.GetField(write ? "_cts" : "_dumpCts", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(panel, stop);
+        type.GetField(write ? "_sectorControl" : "_dumpSectorControl", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(panel, control);
+        panel.DumpSectors.Add(new DumpSectorRow(0));
+        panel.DumpSectors[0].ApplyKey(new(0, MfKeyType.A, MifareKeyPhase.Found, 1, 10, new byte[6]));
+        panel.DumpSectors[0].ApplyKey(new(0, MfKeyType.B, MifareKeyPhase.Searching, 1, 10, null));
+        using var scope = control.Watch(0);
+        type.GetMethod(write ? "Refresh" : "RaiseDumpToolbar", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
+            .Invoke(panel, null);
+        Assert.True(panel.ShowSkipSector);
+        Assert.True(panel.SkipSectorCommand.CanExecute(null));
+        panel.SkipSectorCommand.Execute(null);
+        Assert.True(control.IsSkipped(0));
+        Assert.False(stop.IsCancellationRequested);
+        Assert.False(panel.ShowSkipSector);
+        Assert.Equal(KeyCellState.Found, panel.DumpSectors[0].KeyAState);
+        Assert.Equal(KeyCellState.Unknown, panel.DumpSectors[0].KeyBState);
+        panel.CancelDumpCommand.Execute(null);
+        Assert.True(stop.IsCancellationRequested);
     }
 }

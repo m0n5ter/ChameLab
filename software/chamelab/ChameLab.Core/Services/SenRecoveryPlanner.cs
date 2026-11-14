@@ -54,13 +54,13 @@ internal sealed class SenRecoveryPlanner
         return path.Keys.Count;
     }
 
-    internal Path? Next(MifareRecoverySession session)
+    internal Path? Next(MifareRecoverySession session, Func<int, bool>? includeSector = null)
     {
         Path? best = null;
         var bestCost = int.MaxValue;
         foreach (var path in Paths.OrderBy(p => p.Sector).ThenBy(p => p.Type))
         {
-            if (path.KnownKey is not null || path.Keys.Count == 0 || session.SenExhausted.Contains((path.Sector, path.Type))) continue;
+            if (includeSector?.Invoke(path.Sector) == false || path.KnownKey is not null || path.Keys.Count == 0 || session.SenExhausted.Contains((path.Sector, path.Type))) continue;
             var cost = Cost(path);
             if (path.Sector == 32 && path.Type == MfKeyType.B && best?.Sector == 32) cost = Math.Max(0, bestCost - 1);
             if (best is null || cost < bestCost || cost == bestCost && path.Keys.Count < best.Keys.Count)

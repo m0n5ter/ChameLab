@@ -18,6 +18,7 @@ public sealed record MifareKeySearchOptions(
     public bool StopAfterFirstKey { get; init; }
     /// <summary>Optional shared ledger used by the automatic recovery planner.</summary>
     public MifareRecoverySession? Session { get; init; }
+    public MifareSectorControl? SectorControl { get; init; }
 
     public int[] GetSectorOrder(int sectorCount)
     {

@@ -197,6 +197,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         Mfkey32Command = ReactiveCommand.CreateFromTask(() => _mfkey32Task = RunMfkey32Async(),
             this.WhenAnyValue(x => x.CanRunMfkey32));
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
+        SkipSectorCommand = ReactiveCommand.Create(SkipSector, this.WhenAnyValue(x => x.ShowSkipSector));
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
         CancelAddCommand = ReactiveCommand.Create(CancelAdd);
@@ -776,15 +777,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void OnDumpKey(MifareKeyProgress p)
     {
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
+        if (_dumpSectorControl?.IsSkipped(p.Sector) == true && p.Phase != MifareKeyPhase.Found) return;
         DumpSectors[p.Sector].ApplyKey(p);
         UpdateRecoveryMethods();
         var key = p.KeyType == MfKeyType.A ? "A" : "B";
-        var detail = p.Phase switch
-        {
-            MifareKeyPhase.Found => string.Format(Strings.Cards_FoundAfterChecks, p.Tried),
-            MifareKeyPhase.NotFound => string.Format(Strings.Cards_NotFoundChecked, p.Tried, p.Total),
-            _ => $"{Math.Min(p.Tried + 1, p.Total)}/{p.Total}",
-        };
+        var current = p.Phase == MifareKeyPhase.Searching ? Math.Min(p.Tried + 1, p.Total) : p.Tried;
+        var detail = string.Format(Strings.Recovery_KeyProgress, current, p.Total);
         DumpProgressText = p.Phase switch
         {
             MifareKeyPhase.Found => Strings.Common_DictKeyFound,
@@ -792,8 +790,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             _ => Strings.Common_CheckingDictKeys,
         };
         DumpProgressDetail = p.IsBatch
-            ? string.Format(Strings.Cards_CheckingKey, Math.Min(p.Tried + 1, p.Total), p.Total)
-            : string.Format(Strings.Cards_SectorBlockKeyDetail, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector), key, detail);
+            ? string.Format(Strings.Cards_CheckingKey, current, p.Total)
+            : string.Format(Strings.Recovery_SectorKeyDetail, p.Sector, key, detail);
         IsDumpProgressSuccess = p.Phase == MifareKeyPhase.Found;
         IsDumpProgressError = p.Phase == MifareKeyPhase.NotFound;
         SetDumpKeyProgress(p.Tried, p.Total);
@@ -1323,6 +1321,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         this.RaisePropertyChanged(nameof(ShowRecoveryTools));
         this.RaisePropertyChanged(nameof(IsDumpRunning));
+        this.RaisePropertyChanged(nameof(ShowSkipSector));
+        this.RaisePropertyChanged(nameof(SkipSectorTip));
         this.RaisePropertyChanged(nameof(ShowDumpActions));
         this.RaisePropertyChanged(nameof(ShowDumpNotice));
         this.RaisePropertyChanged(nameof(ShowDumpPassword));
@@ -1697,6 +1697,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (_classicDump is null && Form is { } form) _classicDump = form.Build().ToMifareDump();
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
+        BeginSectorControl();
         var keys = BuildKeyDictionary();
         try
         {
@@ -1708,7 +1709,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 DumpProgressText = Strings.Common_CheckingDictKeys;
                 var progress = new PostedProgress<MifareKeyProgress>(IfKept<MifareKeyProgress>(cts, OnDumpKey));
                 await client.FindMifareKeysAsync(complete, keys, progress, cts.Token,
-                    KeySearchSettings.CreateOptions(RecoverySelectedSector));
+                    KeySearchSettings.CreateOptions(RecoverySelectedSector) with { SectorControl = _dumpSectorControl });
                 // The explicit search already exhausted the dictionary; continue reading with its results.
                 keys = Array.Empty<byte[]>();
             }
@@ -1729,17 +1730,18 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (client is null || _classicDump is not { } dump) return;
         using var cts = new CancellationTokenSource();
         _dumpCts = cts;
+        BeginSectorControl();
         DumpProgressText = Strings.Common_StartingRecovery;
         try
         {
-            var recovery = new MifareKeyRecovery(client, AppServices.Hardnested, _dictionaries.KnownKeys);
+            var recovery = new MifareKeyRecovery(client, AppServices.Hardnested, _dictionaries.KnownKeys, sectorControl: _dumpSectorControl);
             var progress = new PostedProgress<KeyRecoveryProgress>(IfKept<KeyRecoveryProgress>(cts, OnRecoverProgress));
             MifareAutoRecoveryResult? result = null;
             try
             {
                 if (method is { } selected) await recovery.RecoverAsync(dump, selected, progress, cts.Token);
                 else result = await recovery.RecoverAutomaticallyAsync(dump, BuildKeyDictionary(), progress, cts.Token,
-                    KeySearchSettings.CreateOptions(RecoverySelectedSector),
+                    KeySearchSettings.CreateOptions(RecoverySelectedSector) with { SectorControl = _dumpSectorControl },
                     useKnownUidKeys: DumpKeySources.Any(s => s.IsKnownCardKeys && s.IsSelected));
             }
             catch (OperationCanceledException) when (cts.IsCancellationRequested) { }
@@ -1763,6 +1765,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private void FinishClassicOperation()
     {
+        _dumpSectorControl = null;
         foreach (var sector in DumpSectors)
             foreach (var kt in new[] { MfKeyType.A, MfKeyType.B })
                 if ((kt == MfKeyType.A ? sector.KeyAState : sector.KeyBState) == KeyCellState.Searching)
@@ -1778,6 +1781,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Maps a recovery tick onto the dump's per-sector key grid and status line.</summary>
     private void OnRecoverProgress(KeyRecoveryProgress p)
     {
+        if (_dumpSectorControl?.IsSkipped(p.Sector) == true && p.Mark != KeyMark.Found) return;
         if (p.Prng is { } prng)
         {
             _cardPrng = prng;
@@ -1790,8 +1794,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         IsDumpProgressSuccess = p.Mark == KeyMark.Found;
         IsDumpProgressError = p.Sector >= 0 && p.Mark == KeyMark.None;
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
-        DumpProgressDetail = string.Format(Strings.Cards_SectorBlockKey, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector), (p.KeyType == MfKeyType.A ? "A" : "B"));
-        if (p.Detail is { } detail) DumpProgressDetail += $" · {detail}";
+        var key = p.KeyType == MfKeyType.A ? "A" : "B";
+        DumpProgressDetail = p.Detail is { } detail
+            ? string.Format(Strings.Recovery_SectorKeyDetail, p.Sector, key, detail)
+            : string.Format(Strings.Common_SectorN, $"{p.Sector}{key}");
         var phase = p.Mark switch
         {
             KeyMark.Found => MifareKeyPhase.Found,
@@ -1832,7 +1838,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             // is handled the same as a completed one and can still be saved.
             var dump = read
                 ? await WithMissFeedback(client.ReadMifareClassicAsync(keys, progress, cts.Token, blockProgress, keyProgress, type, _classicDump,
-                    KeySearchSettings.CreateOptions(RecoverySelectedSector)))
+                    KeySearchSettings.CreateOptions(RecoverySelectedSector) with { SectorControl = _dumpSectorControl }))
                 : _classicDump!;
             learnedDump = dump;
             dump.FillRecoveredKeys();

@@ -24,7 +24,7 @@ public sealed partial class MifareKeyRecovery
         MifareKeySearchOptions? options = null, bool useKnownUidKeys = true)
     {
         var session = MifareRecoverySession.For(dump, client);
-        var search = (options ?? new()) with { StopAfterFirstKey = false, Session = session };
+        var search = (options ?? new()) with { StopAfterFirstKey = false, Session = session, SectorControl = _sectors };
         var keys = dictionary.Where(k => k.Length == 6).DistinctBy(Convert.ToHexString).ToArray();
         var rejected = session.Rejected;
         bool HasSeed() => FirstKnownKey(dump) is not null;
@@ -43,7 +43,8 @@ public sealed partial class MifareKeyRecovery
                     : Strings.Common_CheckingDictKeys, p.Sector, p.KeyType,
                 p.Phase == MifareKeyPhase.Found ? KeyMark.Found
                     : p.Phase == MifareKeyPhase.Searching ? KeyMark.Checking : KeyMark.None, p.Key,
-                string.Format(Strings.Common_KeysTriedOf, p.Tried, p.Total))
+                string.Format(Strings.Recovery_KeyProgress,
+                    p.Phase == MifareKeyPhase.Searching ? Math.Min(p.Tried + 1, p.Total) : p.Tried, p.Total))
                 { Tried = p.Tried, Total = p.Total });
         });
         Task Search(IReadOnlyList<byte[]> candidates, bool seedOnly) =>
@@ -210,7 +211,7 @@ public sealed partial class MifareKeyRecovery
             checkedThisPass.Add(value);
             var pending = Enumerable.Range(0, dump.SectorCount)
                 .SelectMany(s => new[] { (Sector: s, Type: MfKeyType.A), (Sector: s, Type: MfKeyType.B) })
-                .Where(p => !Known(p.Sector, p.Type) &&
+                .Where(p => !Known(p.Sector, p.Type) && !_sectors.IsSkipped(p.Sector) &&
                     !rejected.Contains((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, value))).ToArray();
             if (pending.Length == 0) continue;
             foreach (var p in pending)
@@ -222,8 +223,8 @@ public sealed partial class MifareKeyRecovery
                     await client.CheckMifareKeysOfSectorsAsync(pending, [key], onFound: (p, found) =>
                     {
                         if (!Known(p.Sector, p.Type)) store(p.Sector, p.Type, found);
-                    }, ct: ct, session: session);
-                    foreach (var p in pending.Where(p => !Known(p.Sector, p.Type)))
+                    }, ct: ct, session: session, sectorControl: _sectors);
+                    foreach (var p in pending.Where(p => !Known(p.Sector, p.Type) && !_sectors.IsSkipped(p.Sector)))
                         rejected.Add((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, value));
                     continue;
                 }
@@ -232,9 +233,12 @@ public sealed partial class MifareKeyRecovery
             }
             foreach (var p in pending)
             {
-                if (Known(p.Sector, p.Type)) continue;
-                if (await TryAuthAsync(MifareClassic.SectorTrailerBlock(p.Sector), p.Type, key, ct, rejected, session))
-                    store(p.Sector, p.Type, key);
+                if (Known(p.Sector, p.Type) || _sectors.IsSkipped(p.Sector)) continue;
+                await _sectors.RunAsync(p.Sector, ct, async token =>
+                {
+                    if (await TryAuthAsync(MifareClassic.SectorTrailerBlock(p.Sector), p.Type, key, token, rejected, session))
+                        store(p.Sector, p.Type, key);
+                });
             }
         }
     }

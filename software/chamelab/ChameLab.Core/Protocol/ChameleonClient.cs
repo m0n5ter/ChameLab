@@ -442,7 +442,10 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         data[0] = keyType.ToWire();
         data[1] = (byte)block;
         key.CopyTo(data, 2);
-        var f = await conn.SendAsync(Command.Mf1DetectNtDist, data, timeoutMs: 10000, ct: ct);
+        // Finish the firmware reply before a skipped sector can start another measurement.
+        ct.ThrowIfCancellationRequested();
+        var f = await conn.SendAsync(Command.Mf1DetectNtDist, data, timeoutMs: 10000);
+        ct.ThrowIfCancellationRequested();
         if (f.Status != Status.HfTagOk || f.Data.Length < 8)
             throw new ChameleonException(Strings.Device_NoDistance, f.Status);
         return new NtDistance(
@@ -622,7 +625,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         IProgress<int>? keysChecked = null,
         Action<(int Sector, MfKeyType Type), byte[]>? onFound = null,
         CancellationToken ct = default, bool stopAfterFirstKey = false,
-        MifareRecoverySession? session = null)
+        MifareRecoverySession? session = null, MifareSectorControl? sectorControl = null)
     {
         ArgumentNullException.ThrowIfNull(wanted);
         ArgumentNullException.ThrowIfNull(keys);
@@ -651,12 +654,13 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             var pending = 0;
             foreach (var pair in pairs)
             {
-                if (result.ContainsKey(pair)) continue;
+                if (result.ContainsKey(pair) || sectorControl?.IsSkipped(pair.Sector) == true) continue;
                 var bit = BitOf(pair);
                 mask[bit / 8] &= (byte)~(0x80 >> (bit % 8));
                 pending++;
             }
             if (pending == 0) break;
+            using var sectorScope = sectorControl?.Watch(pairs.First(p => (mask[BitOf(p) / 8] & (0x80 >> (BitOf(p) % 8))) == 0).Sector);
 
             var chunk = dictionary.Skip(checkedKeys).Take(BatchKeyCheckChunkSize).ToArray();
             var payload = new byte[10 + chunk.Length * 6];
@@ -670,7 +674,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             // finish even when every authentication fails (about 60 ms per RF attempt).
             var timeout = Math.Max(BatchKeyCheckChunkTimeoutMs, 1000 + pending * chunk.Length * 100);
             var started = System.Diagnostics.Stopwatch.GetTimestamp();
-            var attemptedPairs = pairs.Where(p => !result.ContainsKey(p)).ToArray();
+            var attemptedPairs = pairs.Where(p => (mask[BitOf(p) / 8] & (0x80 >> (BitOf(p) % 8))) == 0).ToArray();
             var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload, timeoutMs: timeout);
 
             // The card leaving the field (HfTagNo) still returns the keys found before it went.
@@ -730,7 +734,10 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         data[8] = targetKeyType.ToWire();
         data[9] = (byte)targetBlock;
         var cmd = isStatic ? Command.Mf1StaticNestedAcquire : Command.Mf1NestedAcquire;
-        var f = await conn.SendAsync(cmd, data, timeoutMs: 30000, ct: ct);
+        // Firmware cannot interrupt acquisition; keep a late reply out of the next sector.
+        ct.ThrowIfCancellationRequested();
+        var f = await conn.SendAsync(cmd, data, timeoutMs: 30000);
+        ct.ThrowIfCancellationRequested();
         if (f.Status != Status.HfTagOk)
             throw new ChameleonException(Strings.Device_CouldNotCollectNested, f.Status);
         return f;

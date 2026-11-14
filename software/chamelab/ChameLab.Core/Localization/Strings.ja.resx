@@ -2536,7 +2536,7 @@
     <value>mfkey32 を開始する前にターゲットカードをスキャンしてください。</value>
   </data>
   <data name="Recovery_SectorKeyDetail" xml:space="preserve">
-    <value>セクター {0} · キー {1} · {2}</value>
+    <value>セクター {0}{1} · {2}</value>
   </data>
   <data name="Recovery_SectorKeyProgress" xml:space="preserve">
     <value>セクター {0} · キー {1} · {2}/{3}</value>
@@ -3733,4 +3733,13 @@
   <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>次の方法：{0}</value></data>
   <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>自動復元を終了しました。不明なキーは残り {0} 個です。復元したキーは保存されています。</value></data>
   <data name="AutoRecovery_TryReader" xml:space="preserve"><value>別の辞書、または元のリーダーで mfkey32 を試してから、自動復元を再実行してください。</value></data>
+  <data name="Recovery_SkipSector" xml:space="preserve">
+    <value>セクターをスキップ</value>
+  </data>
+  <data name="Recovery_SkipSectorTip" xml:space="preserve">
+    <value>セクター {0} をスキップして次に進みます。見つかったキーは保持されます。</value>
+  </data>
+  <data name="Recovery_KeyProgress" xml:space="preserve">
+    <value>キー {0}/{1}</value>
+  </data>
 </root>

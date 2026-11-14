@@ -2536,7 +2536,7 @@
     <value>开始 mfkey32 前，请先扫描目标卡。</value>
   </data>
   <data name="Recovery_SectorKeyDetail" xml:space="preserve">
-    <value>扇区 {0} · 密钥 {1} · {2}</value>
+    <value>扇区 {0}{1} · {2}</value>
   </data>
   <data name="Recovery_SectorKeyProgress" xml:space="preserve">
     <value>扇区 {0} · 密钥 {1} · {2}/{3}</value>
@@ -3733,4 +3733,13 @@
   <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>下一种方法：{0}</value></data>
   <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>自动恢复已结束，仍有 {0} 个未知密钥。已恢复的密钥已保存。</value></data>
   <data name="AutoRecovery_TryReader" xml:space="preserve"><value>请尝试其他字典，或使用原始读卡器运行 mfkey32，然后再次运行自动恢复。</value></data>
+  <data name="Recovery_SkipSector" xml:space="preserve">
+    <value>跳过扇区</value>
+  </data>
+  <data name="Recovery_SkipSectorTip" xml:space="preserve">
+    <value>跳过扇区 {0} 并继续下一个。已找到的密钥将保留。</value>
+  </data>
+  <data name="Recovery_KeyProgress" xml:space="preserve">
+    <value>密钥 {0}/{1}</value>
+  </data>
 </root>

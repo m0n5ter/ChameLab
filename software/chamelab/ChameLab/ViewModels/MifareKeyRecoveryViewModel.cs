@@ -28,6 +28,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     private readonly Action? _cancelWrite;
     private readonly Func<MifareDump, CardSave> _targetCard;
     private CancellationTokenSource? _cts;
+    private MifareSectorControl? _sectorControl;
     private MifareClassicPrngType? _prng;
     private bool _darkside;
     private bool _online, _busy;
@@ -71,6 +72,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         Mfkey32Command = ReactiveCommand.CreateFromTask(() => StartAsync(Mfkey32Async),
             this.WhenAnyValue(x => x.CanRunMfkey32));
         CancelDumpCommand = ReactiveCommand.Create(Cancel);
+        SkipSectorCommand = ReactiveCommand.Create(SkipSector, this.WhenAnyValue(x => x.ShowSkipSector));
     }
 
     private ICommand Attack(MifareRecoveryMethod method, IObservable<bool> availability) =>
@@ -88,6 +90,18 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public ICommand HardnestedCommand { get; }
     public ICommand Mfkey32Command { get; }
     public ICommand CancelDumpCommand { get; }
+    public ICommand SkipSectorCommand { get; }
+    public bool ShowSkipSector => _cts is { IsCancellationRequested: false } && !_writing && !_mfkey32
+        && _sectorControl?.CurrentSector is >= 0;
+    public string SkipSectorTip => string.Format(Strings.Recovery_SkipSectorTip, _sectorControl?.CurrentSector ?? -1);
+
+    private void SkipSector()
+    {
+        if (!ShowSkipSector || _sectorControl is not { } control) return;
+        var sector = control.SkipCurrent();
+        if (sector >= 0 && sector < DumpSectors.Count) DumpSectors[sector].StopSearch();
+        Refresh();
+    }
     public ObservableCollection<DumpKeySourceViewModel> DumpKeySources { get; } = new();
     public ObservableCollection<DumpSectorRow> DumpSectors { get; } = new();
     public bool CanOperate => _online && !_busy && _cts is null && !_writing && !_hasWriteSession;
@@ -322,6 +336,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
             if (_client() is not { } client) return;
             using var cts = new CancellationTokenSource();
             _cts = cts;
+            _sectorControl = new MifareSectorControl();
+            _sectorControl.Changed += () => Dispatcher.UIThread.Post(RefreshSkipSector);
             _autoNotice = null;
             _progress = Strings.Common_StartingRecovery;
             Refresh();
@@ -340,6 +356,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         _cts = null;
+                        _sectorControl = null;
                         _progress = _detail = _foundKey = null;
                         _captured = null;
                         _mfkey32 = false;
@@ -398,7 +415,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         var target = await EnsureTargetAsync(client, ct);
         var keys = _sourceKeys().Concat(BuildKeyDictionary()).DistinctBy(Convert.ToHexString).ToArray();
         await client.FindMifareKeysAsync(target, keys, KeyProgress(), ct,
-            KeySearchSettings.CreateOptions(RecoverySelectedSector));
+            KeySearchSettings.CreateOptions(RecoverySelectedSector) with { SectorControl = _sectorControl });
         if (_prng is null && !ct.IsCancellationRequested) await ProbeCurrentAsync(client, ct, allowChange: false);
         Refresh();
     }
@@ -410,10 +427,13 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         var progress = new CallbackProgress<KeyRecoveryProgress>(p => Dispatcher.UIThread.Post(() =>
         {
             if (version != _version) return;
+            if (_sectorControl?.IsSkipped(p.Sector) == true && p.Mark != KeyMark.Found) return;
             if (p.Prng is { } prng) _prng = prng;
             _progress = p.Status;
             _detail = p.Sector < 0 ? p.Detail
-                : string.Format(Strings.Recovery_SectorKeyDetail, p.Sector, (p.KeyType == MfKeyType.A ? "A" : "B"), p.Detail);
+                : p.Detail is { } detail
+                ? string.Format(Strings.Recovery_SectorKeyDetail, p.Sector, (p.KeyType == MfKeyType.A ? "A" : "B"), detail)
+                : string.Format(Strings.Common_SectorN, $"{p.Sector}{(p.KeyType == MfKeyType.A ? "A" : "B")}");
             _tried = p.Tried;
             _total = p.Total;
             if (p.Sector >= 0 && p.Sector < DumpSectors.Count)
@@ -425,13 +445,13 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
                 }, p.Tried, p.Total, p.Key));
             Refresh();
         }));
-        var recovery = new MifareKeyRecovery(client, _hardnested, _dictionaries.KnownKeys);
+        var recovery = new MifareKeyRecovery(client, _hardnested, _dictionaries.KnownKeys, sectorControl: _sectorControl);
         if (method is { } selected) await recovery.RecoverAsync(target, selected, progress, ct);
         else
         {
             var keys = _sourceKeys().Concat(BuildKeyDictionary()).DistinctBy(Convert.ToHexString).ToArray();
             var result = await recovery.RecoverAutomaticallyAsync(target, keys, progress, ct,
-                KeySearchSettings.CreateOptions(RecoverySelectedSector),
+                KeySearchSettings.CreateOptions(RecoverySelectedSector) with { SectorControl = _sectorControl },
                 useKnownUidKeys: DumpKeySources.Any(s => s.IsKnownCardKeys && s.IsSelected));
             if (version == _version) _autoNotice = result.Message;
         }
@@ -454,7 +474,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         }));
         await new Mfkey32Wizard(client, _dictionaries.KnownKeys).RunAsync(_targetCard(target),
             progress, keys => client.FindMifareKeysAsync(target, keys, KeyProgress(), ct,
-                KeySearchSettings.CreateOptions(RecoverySelectedSector)), ct);
+                KeySearchSettings.CreateOptions(RecoverySelectedSector) with { SectorControl = _sectorControl }), ct);
     }
 
     private IProgress<MifareKeyProgress> KeyProgress()
@@ -469,6 +489,7 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
     public void ApplyKey(MifareKeyProgress p)
     {
         if (_writing) return;
+        if (_sectorControl?.IsSkipped(p.Sector) == true && p.Phase != MifareKeyPhase.Found) return;
         if (p.Sector < 0 || p.Sector >= DumpSectors.Count) return;
         DumpSectors[p.Sector].ApplyKey(p);
         if (_cts?.IsCancellationRequested == true) return;
@@ -477,8 +498,8 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         var current = p.Phase == MifareKeyPhase.Searching ? Math.Min(p.Tried + 1, p.Total) : p.Tried;
         _detail = p.IsBatch
             ? string.Format(Strings.Cards_CheckingKey, current, p.Total)
-            : string.Format(Strings.Cards_SectorBlockKeyDetail, p.Sector, MifareClassic.SectorTrailerBlock(p.Sector),
-                p.KeyType == MfKeyType.A ? "A" : "B", $"{current}/{p.Total}");
+            : string.Format(Strings.Recovery_SectorKeyDetail, p.Sector, p.KeyType == MfKeyType.A ? "A" : "B",
+                string.Format(Strings.Recovery_KeyProgress, current, p.Total));
         _tried = p.Tried;
         _total = p.Total;
         Refresh();
@@ -492,6 +513,12 @@ public sealed class MifareKeyRecoveryViewModel : ReactiveObject, IKeyRecoveryCon
         this.RaisePropertyChanged(nameof(CanRunMfkey32));
         this.RaisePropertyChanged(nameof(AllTargetKeysRecovered));
         this.RaisePropertyChanged(nameof(AllPlannedSectorsWritten));
+    }
+
+    private void RefreshSkipSector()
+    {
+        this.RaisePropertyChanged(nameof(ShowSkipSector));
+        this.RaisePropertyChanged(nameof(SkipSectorTip));
     }
     private static readonly string[] PresentationProperties = typeof(IKeyRecoveryContext).GetProperties()
         .Where(p => !typeof(ICommand).IsAssignableFrom(p.PropertyType)).Select(p => p.Name).ToArray();

@@ -2536,7 +2536,7 @@
     <value>Leggi la scheda di destinazione prima di avviare mfkey32.</value>
   </data>
   <data name="Recovery_SectorKeyDetail" xml:space="preserve">
-    <value>Settore {0} · chiave {1} · {2}</value>
+    <value>Settore {0}{1} · {2}</value>
   </data>
   <data name="Recovery_SectorKeyProgress" xml:space="preserve">
     <value>Settore {0} · chiave {1} · {2}/{3}</value>
@@ -3733,4 +3733,13 @@
   <data name="AutoRecovery_NextMethod" xml:space="preserve"><value>Prossimo metodo: {0}</value></data>
   <data name="AutoRecovery_Incomplete" xml:space="preserve"><value>Recupero automatico terminato. Chiavi ancora sconosciute: {0}. Le chiavi recuperate sono state conservate.</value></data>
   <data name="AutoRecovery_TryReader" xml:space="preserve"><value>Prova altri dizionari o mfkey32 con il lettore originale, poi avvia di nuovo Auto.</value></data>
+  <data name="Recovery_SkipSector" xml:space="preserve">
+    <value>Salta settore</value>
+  </data>
+  <data name="Recovery_SkipSectorTip" xml:space="preserve">
+    <value>Salta il settore {0} e passa al successivo. Le chiavi trovate vengono conservate.</value>
+  </data>
+  <data name="Recovery_KeyProgress" xml:space="preserve">
+    <value>chiave {0} di {1}</value>
+  </data>
 </root>

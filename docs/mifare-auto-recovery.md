@@ -52,6 +52,12 @@ entries for that key, keeping large dictionary sessions compact.
 No failed radio exchange rejects a candidate. Interrupted firmware commands are
 drained; successful keys from their replies are retained before honoring Stop.
 SEN captures and pending candidate lists survive Stop within the same session.
+During dictionary searches and sector attacks, **Skip sector** appears beside
+**Stop** in both recovery panels. It cancels the current sector's local calculation
+and skips both remaining key types for the rest of that run, including Auto's
+reuse and fallback stages. Confirmed keys are kept. An in-flight firmware command
+finishes and its keys are retained before continuing; later batches exclude the
+skipped sector. A new run can try the sector again.
 Rescanning or reconnecting clears transient evidence. The persistent UID database
 keeps confirmed keys and their positions through an optional `sectors` field in
 the existing version-2 JSON format. Older backups without that field still work.

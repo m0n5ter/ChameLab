@@ -2203,7 +2203,7 @@
     <value>Scan the target card before starting mfkey32.</value>
   </data>
   <data name="Recovery_SectorKeyDetail" xml:space="preserve">
-    <value>Sector {0} · key {1} · {2}</value>
+    <value>Sector {0}{1} · {2}</value>
   </data>
   <data name="Recovery_SectorKeyProgress" xml:space="preserve">
     <value>Sector {0} · key {1} · {2}/{3}</value>
@@ -3749,5 +3749,14 @@
   </data>
   <data name="AutoRecovery_TryReader" xml:space="preserve">
     <value>Try additional dictionaries or use mfkey32 with the original reader, then run Auto again.</value>
+  </data>
+  <data name="Recovery_SkipSector" xml:space="preserve">
+    <value>Skip sector</value>
+  </data>
+  <data name="Recovery_SkipSectorTip" xml:space="preserve">
+    <value>Skip sector {0} and continue with the next one. Keys already found are kept.</value>
+  </data>
+  <data name="Recovery_KeyProgress" xml:space="preserve">
+    <value>key {0} of {1}</value>
   </data>
 </root>

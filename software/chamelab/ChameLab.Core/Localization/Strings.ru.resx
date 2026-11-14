@@ -2200,7 +2200,7 @@
     <value>Перед запуском mfkey32 отсканируйте целевую карту.</value>
   </data>
   <data name="Recovery_SectorKeyDetail" xml:space="preserve">
-    <value>Сектор {0} · ключ {1} · {2}</value>
+    <value>Сектор {0}{1} · {2}</value>
   </data>
   <data name="Recovery_SectorKeyProgress" xml:space="preserve">
     <value>Сектор {0} · ключ {1} · {2}/{3}</value>
@@ -3746,5 +3746,14 @@
   </data>
   <data name="AutoRecovery_TryReader" xml:space="preserve">
     <value>Попробуйте дополнительные словари или mfkey32 с исходным считывателем, затем запустите «Авто» снова.</value>
+  </data>
+  <data name="Recovery_SkipSector" xml:space="preserve">
+    <value>Пропустить сектор</value>
+  </data>
+  <data name="Recovery_SkipSectorTip" xml:space="preserve">
+    <value>Пропустить сектор {0} и перейти к следующему. Найденные ключи сохранятся.</value>
+  </data>
+  <data name="Recovery_KeyProgress" xml:space="preserve">
+    <value>ключ {0} из {1}</value>
   </data>
 </root>
