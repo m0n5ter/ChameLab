@@ -9,6 +9,16 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.5.48][2026-11-15] · firmware v2.3.19-cl
+### Summary
+ - ChameLab: firmware updates over USB on macOS find the device again after it restarts into its bootloader
+ - ChameLab: Ultralight EV1 clones are recognized by their size, and Proxmark mfu dumps import as Ultralight / NTAG
+
+### Details
+ - ChameLab: on macOS a firmware update over USB lost the device once it restarted into its bootloader and timed out, because macOS can give the bootloader's port the same name as the application's. The bootloader is now found by its USB id
+ - ChameLab: clones that answer GET_VERSION with a non-NXP product type are typed by their storage size, so a 41-page Ultralight EV1 clone no longer reads as NTAG213; the end of an unknown model's memory is found page by page instead of keeping wrapped copies of page 0
+ - ChameLab: Proxmark mfu JSON dumps import as Ultralight / NTAG, with version, signature and counters, instead of MIFARE Classic
+
 ## [v1.5.47][2026-11-15] · firmware v2.3.19-cl
 ### Summary
  - ChameLab: two dumps can be compared, against another saved card or a dump file, with the differing bytes highlighted
