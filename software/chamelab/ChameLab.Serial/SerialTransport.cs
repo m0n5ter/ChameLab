@@ -142,28 +142,33 @@ public sealed class SerialDfuLocator : IDfuLocator
 
     private sealed class Target(IReadOnlyCollection<string> before) : IDfuTarget
     {
+        // macOS fallback: ports listed before the restart, minus those seen gone since. macOS can
+        // name the bootloader's port exactly like the application's (the name comes from the USB
+        // serial number or location), so a port that dropped out and came back counts as new.
+        private readonly HashSet<string> _stale = new(before, StringComparer.Ordinal);
+
         public async Task<IDfuChannel?> TryOpenAsync(CancellationToken ct) =>
             FindBootloader() is { } port ? await SerialDfuChannel.OpenAsync(new SerialTransport(port), ct) : null;
 
         private string? FindBootloader()
         {
-            foreach (var name in SerialScanner.PortNames())
+            var names = SerialScanner.PortNames();
+            if (OperatingSystem.IsWindows())
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
+                foreach (var name in names)
                     if (WindowsSerialVid.PortMatchesUsbId(name, "VID_1915&PID_521F")) return name;
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    if (LinuxSerialUsbId.Read(name) == (0x1915, 0x521F)) return name;
-                }
-                // macOS: no cheap USB id lookup; the bootloader is the modem port that wasn't there before.
-                else if (name.StartsWith("/dev/cu.usbmodem", StringComparison.Ordinal) && !before.Contains(name))
-                {
-                    return name;
-                }
+                return null;
             }
-            return null;
+            if (OperatingSystem.IsLinux())
+                return names.FirstOrDefault(n => LinuxSerialUsbId.Read(n) == (0x1915, 0x521F));
+
+            var modems = names.Where(n => n.StartsWith("/dev/cu.usbmodem", StringComparison.Ordinal)).ToList();
+            var ids = MacSerialUsbId.ReadAll();
+            if (modems.FirstOrDefault(n => ids.TryGetValue(n, out var id) && id == (0x1915, 0x521F)) is { } bootloader)
+                return bootloader;
+            _stale.IntersectWith(names);
+            // With ids known, a port that is not the bootloader never is; without them, guess by novelty.
+            return modems.FirstOrDefault(n => !_stale.Contains(n) && !ids.ContainsKey(n));
         }
     }
 }
