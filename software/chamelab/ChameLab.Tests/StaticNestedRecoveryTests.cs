@@ -10,7 +10,7 @@ namespace ChameLab.Tests;
 public class StaticNestedRecoveryTests
 {
     // Physical captures entered through a known A key, targeting either A or B.
-    // Passing the target B type instead of the known A type produced 128k wrong keys.
+    // Keep the existing A-seeded captures working while checking both nonce offsets.
     [Theory]
     [InlineData(MfKeyType.A, 0x2B7C6E42u, 0x1DE65248u, 0x112233445566UL)]
     [InlineData(MfKeyType.B, 0x2B7C6E42u, 0x1DE65248u, 0x112233445566UL)]
@@ -29,9 +29,13 @@ public class StaticNestedRecoveryTests
     [Theory]
     [InlineData(0x01200145u, MfKeyType.A, 160)]
     [InlineData(0x01200145u, MfKeyType.B, 160)]
+    [InlineData(0x01200145u, MfKeyType.A, 161)]
+    [InlineData(0x01200145u, MfKeyType.B, 161)]
     [InlineData(0x009080A2u, MfKeyType.A, 160)]
+    [InlineData(0x009080A2u, MfKeyType.A, 161)]
+    [InlineData(0x009080A2u, MfKeyType.B, 160)]
     [InlineData(0x009080A2u, MfKeyType.B, 161)]
-    public void SupportedNonceOffsets_RecoversKnownKey(uint nonce, MfKeyType type, int distance)
+    public void SupportedNonceOffsets_RecoversKnownKeyRegardlessOfSeedType(uint nonce, MfKeyType type, int distance)
     {
         const uint uid = 0x12345678;
         const ulong key = 0xA0A1A2A3A4A5;

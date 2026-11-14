@@ -10,9 +10,11 @@ namespace ChameLab.Services;
 public static class StaticNestedRecovery
 {
     /// <summary>
-    /// Gen1 uses nonce offsets 160/320. Gen2 uses 160/320 when entering through
-    /// a known A key and 161/321 through a known B key. This is the seed key's
-    /// type, not the type of the unknown key being recovered.
+    /// Static cards use nonce offsets 160/320 or 161/321. The seed key type
+    /// orders the guesses, but cannot determine the offset: a card can return
+    /// either nonce generation depending on the authenticated sector/key.
+    /// Keep the original result when both captures agree; otherwise try the
+    /// alternative offset, again requiring agreement between both captures.
     /// </summary>
     public static IReadOnlyList<ulong> Recover(
         uint uid, MfKeyType knownKeyType,
@@ -23,7 +25,10 @@ public static class StaticNestedRecovery
         if (knownKeyType is not (MfKeyType.A or MfKeyType.B)) return Array.Empty<ulong>();
         if (nt0 != nt1 || nt0 is not (0x01200145 or 0x009080A2)) return Array.Empty<ulong>();
         var keys = new HashSet<ulong>();
-        RecoverAtDistance(nt0 == 0x009080A2 && knownKeyType == MfKeyType.B ? 161 : 160);
+        var preferredDistance = nt0 == 0x009080A2 && knownKeyType == MfKeyType.B ? 161 : 160;
+        RecoverAtDistance(preferredDistance);
+        if (keys.Count == 0)
+            RecoverAtDistance(preferredDistance == 160 ? 161 : 160);
         return new List<ulong>(keys);
 
         void RecoverAtDistance(int distance)

@@ -62,6 +62,18 @@ Rescanning or reconnecting clears transient evidence. The persistent UID databas
 keeps confirmed keys and their positions through an optional `sectors` field in
 the existing version-2 JSON format. Older backups without that field still work.
 
+## Static nested nonce offsets
+
+Static nested keeps the original nonce offset and candidate result when both
+captures agree, trying the alternative offset only if no consistent key was
+found. The offset pairs are 160/320 and 161/321; the known seed's key type only
+orders these guesses. A physical card can return `009080A2`
+through one sector/key and `01200145` through another, and still require
+161/321 for the latter capture. Assigning one offset from the nonce or seed
+type alone can therefore discard the correct key after Auto propagates a
+new seed. Both captures must explain the same key at the same offset pair;
+single-sample candidates are not retained.
+
 ## Passive inspection and Darkside
 
 Scanning and the read/write recovery panels inspect PRNG and reuse cached results;
