@@ -29,7 +29,8 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
 - **Read and dump** — ISO14443-A and LF scans. MIFARE Classic Mini, 1K and 4K dumps with
   your key dictionaries, edited as hex and emulated in one tap.
 - **Saved cards** — a card library with search and color tags. Imports
-  ChameleonUltraGUI, Proxmark3, Flipper `.nfc` / `.rfid`, MCT, `.bin` and `.eml`.
+  ChameleonUltraGUI, Proxmark3, Flipper `.nfc` / `.rfid`, MCT, `.bin` and `.eml`, and compares
+  two dumps block by block.
 - **QR sharing** — show a card as a QR code (a series of codes for big dumps) and scan it with
   the camera on phones and in the web app, or from a screenshot; a phone's own camera opens it in
   the web app.

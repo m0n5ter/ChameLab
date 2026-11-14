@@ -3820,4 +3820,49 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>此设备上无法使用二维码扫描器（需要 Google Play 服务）。请改为打开二维码的截图或照片。</value>
   </data>
+  <data name="Compare_Button" xml:space="preserve">
+    <value>比较</value>
+  </data>
+  <data name="Compare_Tip" xml:space="preserve">
+    <value>将这张卡片的内存与另一张已保存的卡片或转储文件进行比较</value>
+  </data>
+  <data name="Compare_Header" xml:space="preserve">
+    <value>比较转储</value>
+  </data>
+  <data name="Compare_Hint" xml:space="preserve">
+    <value>选择一张已保存的卡片或打开转储文件。不同的字节会高亮显示；对这张卡片的修改会立即体现。</value>
+  </data>
+  <data name="Compare_PickCard" xml:space="preserve">
+    <value>要比较的已保存卡片</value>
+  </data>
+  <data name="Compare_OpenFile" xml:space="preserve">
+    <value>文件</value>
+  </data>
+  <data name="Compare_OpenFileTip" xml:space="preserve">
+    <value>与转储文件比较：JSON、Flipper .nfc、MCT、.bin、.eml 及其他导入格式</value>
+  </data>
+  <data name="Compare_OpenFileTitle" xml:space="preserve">
+    <value>打开要比较的转储</value>
+  </data>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>没有其他已保存的卡片具有这种内存。请改为打开转储文件。</value>
+  </data>
+  <data name="Compare_Identical" xml:space="preserve">
+    <value>两张卡片完全相同。</value>
+  </data>
+  <data name="Compare_BlocksDiffer" xml:space="preserve">
+    <value>不同的块：{0} / {1}；字节：{2}</value>
+  </data>
+  <data name="Compare_PagesDiffer" xml:space="preserve">
+    <value>不同的页：{0} / {1}；字节：{2}</value>
+  </data>
+  <data name="Compare_OnlyDifferences" xml:space="preserve">
+    <value>仅显示差异</value>
+  </data>
+  <data name="Compare_NotRead" xml:space="preserve">
+    <value>未读取</value>
+  </data>
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} 中没有具有这种内存的卡片。</value>
+  </data>
 </root>

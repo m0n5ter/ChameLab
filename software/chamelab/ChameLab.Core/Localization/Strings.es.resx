@@ -3820,4 +3820,49 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>El escáner QR no está disponible en este dispositivo (necesita los servicios de Google Play). Abre una captura o foto del código.</value>
   </data>
+  <data name="Compare_Button" xml:space="preserve">
+    <value>Comparar</value>
+  </data>
+  <data name="Compare_Tip" xml:space="preserve">
+    <value>Comparar la memoria de esta tarjeta con otra tarjeta guardada o un archivo de volcado</value>
+  </data>
+  <data name="Compare_Header" xml:space="preserve">
+    <value>COMPARAR VOLCADOS</value>
+  </data>
+  <data name="Compare_Hint" xml:space="preserve">
+    <value>Elige una tarjeta guardada o abre un archivo de volcado. Los bytes distintos se resaltan; los cambios en esta tarjeta se ven al instante.</value>
+  </data>
+  <data name="Compare_PickCard" xml:space="preserve">
+    <value>Tarjeta guardada para comparar</value>
+  </data>
+  <data name="Compare_OpenFile" xml:space="preserve">
+    <value>Archivo</value>
+  </data>
+  <data name="Compare_OpenFileTip" xml:space="preserve">
+    <value>Comparar con un archivo de volcado: JSON, Flipper .nfc, MCT, .bin, .eml y los demás formatos de importación</value>
+  </data>
+  <data name="Compare_OpenFileTitle" xml:space="preserve">
+    <value>Abrir un volcado para comparar</value>
+  </data>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>Ninguna otra tarjeta guardada tiene este tipo de memoria. Abre un archivo de volcado.</value>
+  </data>
+  <data name="Compare_Identical" xml:space="preserve">
+    <value>Las tarjetas son idénticas.</value>
+  </data>
+  <data name="Compare_BlocksDiffer" xml:space="preserve">
+    <value>Bloques distintos: {0} de {1}; bytes: {2}</value>
+  </data>
+  <data name="Compare_PagesDiffer" xml:space="preserve">
+    <value>Páginas distintas: {0} de {1}; bytes: {2}</value>
+  </data>
+  <data name="Compare_OnlyDifferences" xml:space="preserve">
+    <value>Solo diferencias</value>
+  </data>
+  <data name="Compare_NotRead" xml:space="preserve">
+    <value>no leído</value>
+  </data>
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} no contiene ninguna tarjeta con este tipo de memoria.</value>
+  </data>
 </root>

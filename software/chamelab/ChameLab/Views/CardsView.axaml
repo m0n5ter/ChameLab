@@ -465,6 +465,13 @@
                 <TextBlock Text="{x:Static loc:Strings.Qr_Share}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
+            <Button Command="{Binding CompareCommand}" IsVisible="{Binding CanCompareDump}"
+                    Classes.accent="{Binding IsCompareOpen}" ToolTip.Tip="{x:Static loc:Strings.Compare_Tip}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.compare}" />
+                <TextBlock Text="{x:Static loc:Strings.Compare_Button}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
             <!-- The card's known keys (MIFARE Classic A/B, Ultralight EV1 / NTAG password). -->
             <DropDownButton IsVisible="{Binding CanSaveKeys}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardsKeys}">
@@ -738,6 +745,7 @@
                 <Binding Path="IsSlotsOpen" />
                 <Binding Path="IsWriteOpen" />
                 <Binding Path="IsQrOpen" />
+                <Binding Path="IsCompareOpen" />
               </MultiBinding>
             </Border.IsVisible>
             <StackPanel>
@@ -768,6 +776,90 @@
                   <Button Classes="icon" Command="{Binding QrNextCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_Next}">
                     <PathIcon Data="{StaticResource Icon.chevronright}" />
                   </Button>
+                </StackPanel>
+              </StackPanel>
+
+              <!-- Compare with another saved card or a dump file -->
+              <StackPanel Spacing="10" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding IsCompareOpen}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{x:Static loc:Strings.Compare_Header}" Classes="overline" />
+                    <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Compare_Hint}" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="icon" Command="{Binding CompareCommand}"
+                          ToolTip.Tip="{x:Static loc:Strings.Common_Close}" VerticalAlignment="Top">
+                    <PathIcon Data="{StaticResource Icon.close}" />
+                  </Button>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CompareTargets}"
+                            SelectedItem="{Binding CompareTarget}" IsEnabled="{Binding HasCompareTargets}"
+                            PlaceholderText="{x:Static loc:Strings.Compare_PickCard}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CompareTargetViewModel">
+                        <StackPanel>
+                          <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding Detail}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <Button Grid.Column="1" Command="{Binding CompareFileCommand}" IsEnabled="{Binding CanUseFiles}"
+                          ToolTip.Tip="{x:Static loc:Strings.Compare_OpenFileTip}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <PathIcon Data="{StaticResource Icon.import}" />
+                      <TextBlock Text="{x:Static loc:Strings.Compare_OpenFile}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </Grid>
+                <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !HasCompareTargets}"
+                           Text="{x:Static loc:Strings.Compare_NoCards}" />
+
+                <StackPanel Spacing="10" IsVisible="{Binding HasComparison}">
+                  <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8">
+                    <TextBlock Text="A" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="1" Text="{Binding CompareNameA}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Row="1" Text="B" FontWeight="SemiBold" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CompareNameB}" TextTrimming="CharacterEllipsis" />
+                  </Grid>
+                  <TextBlock Text="{Binding CompareSummary}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <ItemsControl ItemsSource="{Binding CompareFields}" IsVisible="{Binding HasCompareFields}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CompareFieldRow">
+                        <Grid ColumnDefinitions="56,16,*" RowDefinitions="Auto,Auto" Margin="0,2">
+                          <TextBlock Grid.RowSpan="2" Text="{Binding Label}" Classes="caption" />
+                          <TextBlock Grid.Column="1" Text="A" Classes="caption" VerticalAlignment="Center" />
+                          <SelectableTextBlock Grid.Column="2" Text="{Binding A}" FontFamily="{x:Static c:AppFonts.Mono}"
+                                               TextWrapping="Wrap" />
+                          <TextBlock Grid.Row="1" Grid.Column="1" Text="B" Classes="caption" VerticalAlignment="Center" />
+                          <SelectableTextBlock Grid.Row="1" Grid.Column="2" Text="{Binding B}"
+                                               FontFamily="{x:Static c:AppFonts.Mono}" TextWrapping="Wrap" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <CheckBox Content="{x:Static loc:Strings.Compare_OnlyDifferences}" IsChecked="{Binding CompareOnlyDifferences}" />
+                  <ItemsControl ItemsSource="{Binding CompareRows}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CompareBlockRow">
+                        <StackPanel Spacing="2" Margin="0,4">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Sector}" Classes="caption" VerticalAlignment="Center"
+                                       IsVisible="{Binding Sector, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                          </StackPanel>
+                          <Grid ColumnDefinitions="16,*" RowDefinitions="Auto,Auto">
+                            <TextBlock Text="A" Classes="caption" VerticalAlignment="Center" />
+                            <c:HexDiffText Grid.Column="1" Bytes="{Binding A}" Other="{Binding B}"
+                                           MissingText="{x:Static loc:Strings.Compare_NotRead}" />
+                            <TextBlock Grid.Row="1" Text="B" Classes="caption" VerticalAlignment="Center" />
+                            <c:HexDiffText Grid.Row="1" Grid.Column="1" Bytes="{Binding B}" Other="{Binding A}"
+                                           MissingText="{x:Static loc:Strings.Compare_NotRead}" />
+                          </Grid>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
                 </StackPanel>
               </StackPanel>
 

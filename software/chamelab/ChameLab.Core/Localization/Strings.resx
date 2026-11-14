@@ -3837,4 +3837,49 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>The QR scanner is not available on this device (it needs Google Play services). Open a screenshot or photo of the code instead.</value>
   </data>
+  <data name="Compare_Button" xml:space="preserve">
+    <value>Compare</value>
+  </data>
+  <data name="Compare_Tip" xml:space="preserve">
+    <value>Compare this card's memory with another saved card or a dump file</value>
+  </data>
+  <data name="Compare_Header" xml:space="preserve">
+    <value>COMPARE DUMPS</value>
+  </data>
+  <data name="Compare_Hint" xml:space="preserve">
+    <value>Pick a saved card or open a dump file. Bytes that differ are highlighted; edits to this card show up right away.</value>
+  </data>
+  <data name="Compare_PickCard" xml:space="preserve">
+    <value>Saved card to compare with</value>
+  </data>
+  <data name="Compare_OpenFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="Compare_OpenFileTip" xml:space="preserve">
+    <value>Compare with a dump file: JSON, Flipper .nfc, MCT, .bin, .eml and the other import formats</value>
+  </data>
+  <data name="Compare_OpenFileTitle" xml:space="preserve">
+    <value>Open a dump to compare with</value>
+  </data>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>No other saved card has this kind of memory. Open a dump file instead.</value>
+  </data>
+  <data name="Compare_Identical" xml:space="preserve">
+    <value>The cards are identical.</value>
+  </data>
+  <data name="Compare_BlocksDiffer" xml:space="preserve">
+    <value>Blocks that differ: {0} of {1}; bytes: {2}</value>
+  </data>
+  <data name="Compare_PagesDiffer" xml:space="preserve">
+    <value>Pages that differ: {0} of {1}; bytes: {2}</value>
+  </data>
+  <data name="Compare_OnlyDifferences" xml:space="preserve">
+    <value>Only differences</value>
+  </data>
+  <data name="Compare_NotRead" xml:space="preserve">
+    <value>not read</value>
+  </data>
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} has no card with this kind of memory.</value>
+  </data>
 </root>

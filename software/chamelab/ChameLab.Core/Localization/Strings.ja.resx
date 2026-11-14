@@ -3820,4 +3820,49 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>このデバイスでは QR スキャナーを使用できません（Google Play 開発者サービスが必要です）。代わりにコードのスクリーンショットや写真を開いてください。</value>
   </data>
+  <data name="Compare_Button" xml:space="preserve">
+    <value>比較</value>
+  </data>
+  <data name="Compare_Tip" xml:space="preserve">
+    <value>このカードのメモリを、保存済みの別のカードやダンプファイルと比較します</value>
+  </data>
+  <data name="Compare_Header" xml:space="preserve">
+    <value>ダンプの比較</value>
+  </data>
+  <data name="Compare_Hint" xml:space="preserve">
+    <value>保存済みのカードを選ぶか、ダンプファイルを開いてください。異なるバイトは強調表示され、このカードの編集はすぐに反映されます。</value>
+  </data>
+  <data name="Compare_PickCard" xml:space="preserve">
+    <value>比較する保存済みカード</value>
+  </data>
+  <data name="Compare_OpenFile" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="Compare_OpenFileTip" xml:space="preserve">
+    <value>ダンプファイルと比較します：JSON、Flipper .nfc、MCT、.bin、.eml などのインポート形式</value>
+  </data>
+  <data name="Compare_OpenFileTitle" xml:space="preserve">
+    <value>比較するダンプを開く</value>
+  </data>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>この種類のメモリを持つ保存済みカードは他にありません。代わりにダンプファイルを開いてください。</value>
+  </data>
+  <data name="Compare_Identical" xml:space="preserve">
+    <value>2 枚のカードは同一です。</value>
+  </data>
+  <data name="Compare_BlocksDiffer" xml:space="preserve">
+    <value>異なるブロック：{0} / {1}、バイト：{2}</value>
+  </data>
+  <data name="Compare_PagesDiffer" xml:space="preserve">
+    <value>異なるページ：{0} / {1}、バイト：{2}</value>
+  </data>
+  <data name="Compare_OnlyDifferences" xml:space="preserve">
+    <value>差分のみ</value>
+  </data>
+  <data name="Compare_NotRead" xml:space="preserve">
+    <value>未読み取り</value>
+  </data>
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} にはこの種類のメモリを持つカードがありません。</value>
+  </data>
 </root>

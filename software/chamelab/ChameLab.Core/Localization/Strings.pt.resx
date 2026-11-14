@@ -3820,4 +3820,49 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>O leitor de QR não está disponível neste dispositivo (precisa dos serviços do Google Play). Abra uma captura de tela ou foto do código.</value>
   </data>
+  <data name="Compare_Button" xml:space="preserve">
+    <value>Comparar</value>
+  </data>
+  <data name="Compare_Tip" xml:space="preserve">
+    <value>Comparar a memória deste cartão com outro cartão salvo ou um arquivo de dump</value>
+  </data>
+  <data name="Compare_Header" xml:space="preserve">
+    <value>COMPARAR DUMPS</value>
+  </data>
+  <data name="Compare_Hint" xml:space="preserve">
+    <value>Escolha um cartão salvo ou abra um arquivo de dump. Os bytes diferentes ficam destacados; as edições deste cartão aparecem na hora.</value>
+  </data>
+  <data name="Compare_PickCard" xml:space="preserve">
+    <value>Cartão salvo para comparar</value>
+  </data>
+  <data name="Compare_OpenFile" xml:space="preserve">
+    <value>Arquivo</value>
+  </data>
+  <data name="Compare_OpenFileTip" xml:space="preserve">
+    <value>Comparar com um arquivo de dump: JSON, Flipper .nfc, MCT, .bin, .eml e os outros formatos de importação</value>
+  </data>
+  <data name="Compare_OpenFileTitle" xml:space="preserve">
+    <value>Abrir um dump para comparar</value>
+  </data>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>Nenhum outro cartão salvo tem esse tipo de memória. Abra um arquivo de dump.</value>
+  </data>
+  <data name="Compare_Identical" xml:space="preserve">
+    <value>Os cartões são idênticos.</value>
+  </data>
+  <data name="Compare_BlocksDiffer" xml:space="preserve">
+    <value>Blocos diferentes: {0} de {1}; bytes: {2}</value>
+  </data>
+  <data name="Compare_PagesDiffer" xml:space="preserve">
+    <value>Páginas diferentes: {0} de {1}; bytes: {2}</value>
+  </data>
+  <data name="Compare_OnlyDifferences" xml:space="preserve">
+    <value>Só diferenças</value>
+  </data>
+  <data name="Compare_NotRead" xml:space="preserve">
+    <value>não lido</value>
+  </data>
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} não tem nenhum cartão com esse tipo de memória.</value>
+  </data>
 </root>

@@ -3820,4 +3820,49 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>Le lecteur de QR codes n'est pas disponible sur cet appareil (il nécessite les services Google Play). Ouvrez plutôt une capture d'écran ou une photo du code.</value>
   </data>
+  <data name="Compare_Button" xml:space="preserve">
+    <value>Comparer</value>
+  </data>
+  <data name="Compare_Tip" xml:space="preserve">
+    <value>Comparer la mémoire de cette carte avec une autre carte enregistrée ou un fichier de dump</value>
+  </data>
+  <data name="Compare_Header" xml:space="preserve">
+    <value>COMPARER LES DUMPS</value>
+  </data>
+  <data name="Compare_Hint" xml:space="preserve">
+    <value>Choisissez une carte enregistrée ou ouvrez un fichier de dump. Les octets différents sont surlignés ; les modifications de cette carte apparaissent aussitôt.</value>
+  </data>
+  <data name="Compare_PickCard" xml:space="preserve">
+    <value>Carte enregistrée à comparer</value>
+  </data>
+  <data name="Compare_OpenFile" xml:space="preserve">
+    <value>Fichier</value>
+  </data>
+  <data name="Compare_OpenFileTip" xml:space="preserve">
+    <value>Comparer avec un fichier de dump : JSON, Flipper .nfc, MCT, .bin, .eml et les autres formats d'import</value>
+  </data>
+  <data name="Compare_OpenFileTitle" xml:space="preserve">
+    <value>Ouvrir un dump à comparer</value>
+  </data>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>Aucune autre carte enregistrée n'a ce type de mémoire. Ouvrez plutôt un fichier de dump.</value>
+  </data>
+  <data name="Compare_Identical" xml:space="preserve">
+    <value>Les cartes sont identiques.</value>
+  </data>
+  <data name="Compare_BlocksDiffer" xml:space="preserve">
+    <value>Blocs différents : {0} sur {1} ; octets : {2}</value>
+  </data>
+  <data name="Compare_PagesDiffer" xml:space="preserve">
+    <value>Pages différentes : {0} sur {1} ; octets : {2}</value>
+  </data>
+  <data name="Compare_OnlyDifferences" xml:space="preserve">
+    <value>Différences uniquement</value>
+  </data>
+  <data name="Compare_NotRead" xml:space="preserve">
+    <value>non lu</value>
+  </data>
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} ne contient aucune carte avec ce type de mémoire.</value>
+  </data>
 </root>

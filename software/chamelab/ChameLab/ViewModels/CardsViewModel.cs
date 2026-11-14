@@ -48,7 +48,7 @@ public sealed record CardTypeOption(TagSpecificType? Tag)
 }
 
 /// <summary>Which action panel is open under a saved card.</summary>
-public enum CardAction { None, Slots, Write, Delete, Qr }
+public enum CardAction { None, Slots, Write, Delete, Qr, Compare }
 
 /// <summary>
 /// A saved dictionary in the Save keys menu, shown like its row in the dictionary list: choosing
@@ -199,6 +199,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         SkipSectorCommand = ReactiveCommand.Create(SkipSector, this.WhenAnyValue(x => x.ShowSkipSector));
         InitQr();
+        InitCompare();
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
         CancelAddCommand = ReactiveCommand.Create(CancelAdd);
@@ -594,6 +595,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (_scanMatchesChecked && !_applyingDump && IsEditingNew && _form is { } edited
             && e.PropertyName is nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.HasData))
             SetScanMatches(edited.Draft());
+        // An open comparison follows the edits of this card's memory and identity.
+        if (IsCompareOpen && e.PropertyName is nameof(CardEditorViewModel.HasData) or nameof(CardEditorViewModel.Name)
+                or nameof(CardEditorViewModel.Tag) or nameof(CardEditorViewModel.Uid) or nameof(CardEditorViewModel.Sak)
+                or nameof(CardEditorViewModel.Atqa) or nameof(CardEditorViewModel.Ats))
+            RefreshComparison();
         if (e.PropertyName != nameof(CardEditorViewModel.IsDirty)) return;
         this.RaisePropertyChanged(nameof(IsCardDirty));
         // Editing again supersedes the question about the previous save.
@@ -2357,10 +2363,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaisePropertyChanged(nameof(IsWriteOpen));
             this.RaisePropertyChanged(nameof(IsConfirmingDelete));
             this.RaisePropertyChanged(nameof(IsQrOpen));
+            this.RaisePropertyChanged(nameof(IsCompareOpen));
             this.RaisePropertyChanged(nameof(IsAsking));
             this.RaisePropertyChanged(nameof(ShowEditor));
             this.RaisePropertyChanged(nameof(ShowMemoryEditor));
             OnQrActionChanged();
+            OnCompareActionChanged();
         }
     }
 
@@ -2765,6 +2773,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         this.RaisePropertyChanged(nameof(SelectedCardFolder));
         this.RaisePropertyChanged(nameof(CardFolderLabel));
         this.RaisePropertyChanged(nameof(CanExportDump));
+        this.RaisePropertyChanged(nameof(CanCompareDump));
         this.RaisePropertyChanged(nameof(CanSaveKeys));
         this.RaisePropertyChanged(nameof(CanWriteSelected));
         this.RaisePropertyChanged(nameof(IsMifareWrite));
