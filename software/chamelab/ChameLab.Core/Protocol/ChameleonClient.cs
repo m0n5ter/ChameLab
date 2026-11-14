@@ -2143,11 +2143,19 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
 
             if (type is null)
             {
-                // Unknown model: the first refused page is the end of memory. Keep what was read,
-                // typed by the smallest NTAG that holds it.
+                // Unknown model: the first refused page is the end of memory. READ wraps at the end,
+                // so a refusal only shows the end to within four pages; the pages just before it
+                // are tried one by one, and the wrapped copies of page 0 on are dropped.
                 total = lockedFrom ?? total;
+                if (lockedFrom is > 0 && !cardLost)
+                {
+                    for (var p = Math.Max(0, total - 3); p < total; p++)
+                    {
+                        if (await UltralightReadAsync(p, false, pwd, ct) is null) { total = p; break; }
+                    }
+                }
                 data = data[..total];
-                type = total <= 45 ? TagSpecificType.Ntag213 : total <= 135 ? TagSpecificType.Ntag215 : TagSpecificType.Ntag216;
+                type = CardTags.UltralightForUnknownVersion(version, total);
             }
 
             // PWD and PACK always read back as zeros; put the accepted ones in so a clone answers alike.
@@ -2243,21 +2251,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     {
         // GET_VERSION is answered by Ultralight EV1 and NTAG21x; storage size is byte 6.
         var version = await UltralightCommandAsync([0x60], ct);
-        if (version.Length == 8)
-        {
-            TagSpecificType? type = (version[2], version[6]) switch
-            {
-                (0x04, 0x0B) => TagSpecificType.Ntag210,
-                (0x04, 0x0E) => TagSpecificType.Ntag212,
-                (0x04, 0x0F) => TagSpecificType.Ntag213,
-                (0x04, 0x11) => TagSpecificType.Ntag215,
-                (0x04, 0x13) => TagSpecificType.Ntag216,
-                (0x03, 0x0B) => TagSpecificType.Mf0Ul11,
-                (0x03, 0x0E) => TagSpecificType.Mf0Ul21,
-                _ => null,
-            };
-            return (type, version);
-        }
+        if (version.Length == 8) return (CardTags.UltralightFromVersion(version), version);
         // No GET_VERSION: Ultralight C answers the first 3DES AUTHENTICATE step, Ultralight does not.
         var auth = await UltralightCommandAsync([0x1A, 0x00], ct);
         return (auth.Length > 0 ? TagSpecificType.Mf0Icu2 : TagSpecificType.Mf0Icu1, []);

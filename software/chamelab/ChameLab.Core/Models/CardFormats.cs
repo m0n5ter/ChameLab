@@ -82,6 +82,44 @@ public static class CardTags
           or TagSpecificType.Ntag210 or TagSpecificType.Ntag212
           or TagSpecificType.Ntag213 or TagSpecificType.Ntag215 or TagSpecificType.Ntag216;
 
+    /// <summary>
+    /// Model from an 8-byte GET_VERSION answer: product type (byte 2) and storage size (byte 6).
+    /// Clones often put a wrong product type in; their size still tells the model, except that
+    /// NTAG210 / NTAG212 share theirs with Ultralight EV1, which is then assumed. Null for an
+    /// unknown size, or a larger Ultralight (AES) the app has no type for.
+    /// </summary>
+    public static TagSpecificType? UltralightFromVersion(byte[] version) => (version[2], version[6]) switch
+    {
+        (0x04, 0x0B) => TagSpecificType.Ntag210,
+        (0x04, 0x0E) => TagSpecificType.Ntag212,
+        (_, 0x0B) => TagSpecificType.Mf0Ul11,
+        (_, 0x0E) => TagSpecificType.Mf0Ul21,
+        (0x03, _) => null,
+        (_, 0x0F) => TagSpecificType.Ntag213,
+        (_, 0x11) => TagSpecificType.Ntag215,
+        (_, 0x13) => TagSpecificType.Ntag216,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Type for an Ultralight-family card whose GET_VERSION answer names no known model, from
+    /// that answer (empty without one) and the pages it actually has: product type 0x04 is an
+    /// NTAG, anything else up to 41 pages an Ultralight EV1 (which shares its sizes with
+    /// NTAG210 / NTAG212); larger cards the smallest NTAG that holds them.
+    /// </summary>
+    public static TagSpecificType UltralightForUnknownVersion(byte[] version, int pages)
+    {
+        var ntag = version.Length > 2 && version[2] == 0x04;
+        return pages switch
+        {
+            <= 20 => ntag ? TagSpecificType.Ntag210 : TagSpecificType.Mf0Ul11,
+            <= 41 => ntag ? TagSpecificType.Ntag212 : TagSpecificType.Mf0Ul21,
+            <= 45 => TagSpecificType.Ntag213,
+            <= 135 => TagSpecificType.Ntag215,
+            _ => TagSpecificType.Ntag216,
+        };
+    }
+
     public static TagSpecificType MifareClassicForBlocks(int blocks) => blocks switch
     {
         <= 20 => TagSpecificType.MifareMini,
@@ -296,9 +334,36 @@ public static class CardFormats
                 blocks.Add(Hex.Parse(v.ToString()));
 
         card.Data = blocks;
-        card.Tag = blocks.Count > 0 && blocks[0].Length > 16
-            ? TagSpecificType.Undefined
-            : CardTags.MifareClassicForBlocks(blocks.Count);
+        if (root["FileType"]?.ToString() == "mfu" || blocks.Count > 0 && blocks[0].Length == 4)
+        {
+            // Ultralight / NTAG: 4-byte pages; the model comes from GET_VERSION, else the page count.
+            var version = Hex.Parse(info["Version"]?.ToString() ?? string.Empty);
+            card.Tag = (version.Length == 8 ? CardTags.UltralightFromVersion(version) : null)
+                ?? (version.Length == 0 && blocks.Count <= 16 ? TagSpecificType.Mf0Icu1
+                    : version.Length == 0 && blocks.Count == 48 ? TagSpecificType.Mf0Icu2
+                    : CardTags.UltralightForUnknownVersion(version, blocks.Count));
+            if (version.Length == 8) card.Extra.UltralightVersion = version;
+            if (Hex.Parse(info["Signature"]?.ToString() ?? string.Empty) is { Length: 32 } sig)
+                card.Extra.UltralightSignature = sig;
+            for (var i = 0; info[$"Counter{i}"]?.ToString() is { } hex; i++)
+            {
+                var c = Hex.Parse(hex);
+                if (c.Length < 3) break;
+                card.Extra.UltralightCounters.Add(c[0] | (c[1] << 8) | (c[2] << 16));
+            }
+            // The mfu file has no SAK / ATQA.
+            if (card.Atqa.Length == 0 && card.Tag.DefaultSakAtqa(card.Uid.Length == 7) is { } id)
+            {
+                card.Sak = id.Sak;
+                card.Atqa = id.Atqa;
+            }
+        }
+        else
+        {
+            card.Tag = blocks.Count > 0 && blocks[0].Length > 16
+                ? TagSpecificType.Undefined
+                : CardTags.MifareClassicForBlocks(blocks.Count);
+        }
         card.Name = card.UidHex;
         return card;
     }
