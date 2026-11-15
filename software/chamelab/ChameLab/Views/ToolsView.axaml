@@ -151,9 +151,17 @@
     <Style Selector="ScrollViewer.samples">
       <Setter Property="Height" Value="320" />
     </Style>
+
+    <!-- Pages keep a readable width; the console uses the whole window for long output lines. -->
+    <Style Selector="Grid.page.tools">
+      <Setter Property="MaxWidth" Value="980" />
+    </Style>
+    <Style Selector="Grid.page.tools.fullwidth">
+      <Setter Property="MaxWidth" Value="Infinity" />
+    </Style>
   </UserControl.Styles>
 
-  <Grid Classes="page" RowDefinitions="Auto,*" MaxWidth="980">
+  <Grid Classes="page tools" Classes.fullwidth="{Binding IsConsole}" RowDefinitions="Auto,*">
 
     <!-- ==================== Header: stays put while the results scroll ==================== -->
     <StackPanel Grid.Row="0" Spacing="10">
