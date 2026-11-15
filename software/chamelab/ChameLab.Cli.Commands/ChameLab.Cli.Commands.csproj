@@ -5,8 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>ChameLab.Cli</RootNamespace>
-    <!-- The app ships these commands in trimmed builds (iOS, browser); analyze here so desktop builds catch it too. -->
-    <IsTrimmable>true</IsTrimmable>
+    <!-- The app ships these commands in trimmed builds (iOS, browser); analyze here so desktop builds catch it too.
+         Only the analyzer, and only without a RID: IsTrimmable makes RID builds want a runtime pack (none for android-arm). -->
+    <EnableTrimAnalyzer Condition="'$(RuntimeIdentifier)' == ''">true</EnableTrimAnalyzer>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../ChameLab.Core/ChameLab.Core.csproj" />
