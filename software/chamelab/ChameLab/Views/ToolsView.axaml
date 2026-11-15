@@ -103,9 +103,10 @@
       <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
     </Style>
 
-    <!-- A word the console's hint line offers: a small soft accent badge that puts it in the line when clicked. -->
+    <!-- A word the console's hint line offers: a small badge, tinted toward the accent on hover, that puts it in
+         the line when clicked. -->
     <Style Selector="Button.hintword">
-      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+      <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
       <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="CornerRadius" Value="6" />
