@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: Settings link to the support page — Boosty in the Russian UI, Patreon in the others; the copies from Google Play and the App Store leave it out. The website footer, README and the GitHub Sponsor button link there too
 
 ## [v1.6.49][2026-11-15] · firmware v2.3.19-cl
 ### Summary

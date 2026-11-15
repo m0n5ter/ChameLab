@@ -134,16 +134,30 @@ public sealed class SettingsViewModel : PageViewModelBase
 
     public const string WebsiteUrl = "https://m0n5ter.github.io/ChameLab/";
 
+    // Boosty takes Russian cards, Patreon the rest of the world
+    private static readonly SocialLink Boosty = new("Boosty", "https://boosty.to/chamelab", "heart", 3);
+    private static readonly SocialLink Patreon = new("Patreon", "https://www.patreon.com/ChameLab", "heart", 3);
+
     /// <summary>
-    /// Links for the About card: the website first, then the Russian-speaking channels in the
-    /// Russian UI and Discord in every other language. Read afresh when the views are rebuilt for a
+    /// Store copies leave the support link out: Google Play and the App Store want payments to the
+    /// developer from inside the app to go through their own billing.
+    /// </summary>
+    private static bool ShowsSupportLink => !AppUpdateService.UpdatedByStore && !OperatingSystem.IsIOS();
+
+    /// <summary>
+    /// Links for the About card: the website first, then the support page (Boosty in the Russian UI,
+    /// Patreon in the others), then the Russian-speaking channels in the Russian UI and Discord in
+    /// every other language. Read afresh when the views are rebuilt for a
     /// new language (the website's name is localized).
     /// </summary>
     public IReadOnlyList<SocialLink> SocialLinks =>
     [
-        new(Strings.Settings_Website, WebsiteUrl, "web", 3),
-        .. CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ru" ? RussianLinks : [Discord],
+        new(Strings.Settings_Website, WebsiteUrl, "web", 4),
+        .. ShowsSupportLink ? [Russian ? Boosty : Patreon] : Array.Empty<SocialLink>(),
+        .. Russian ? RussianLinks : [Discord],
     ];
+
+    private static bool Russian => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ru";
 
     /// <summary>Opens a community link in the browser.</summary>
     public ICommand OpenLinkCommand { get; }

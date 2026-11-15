@@ -188,9 +188,10 @@
           </StackPanel>
           <TextBlock Classes="caption" TextWrapping="Wrap"
                      Text="{x:Static loc:Strings.Settings_CrossPlatformClientForTheChameleon}" />
-          <!-- The website, then community channels: Telegram and MAX in the Russian UI, Discord
-               everywhere. Short of room, they drop their labels by priority: MAX first, then
-               Discord, Telegram, and the website last. -->
+          <!-- The website, the support page (Boosty in the Russian UI, Patreon elsewhere; not in
+               store copies), then community channels: Telegram and MAX in the Russian UI, Discord
+               everywhere else. Short of room, they drop their labels by priority: MAX first, then
+               Discord, Telegram, the support page, and the website last. -->
           <ItemsControl Classes="links" ItemsSource="{Binding SocialLinks}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate><c:ActionRow /></ItemsPanelTemplate>

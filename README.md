@@ -158,6 +158,11 @@ release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSI
 - [Proxmark3 (Iceman)](https://github.com/RfidResearchGroup/proxmark3) — the RFID research tool;
   ChameLab imports its dumps and reads and writes its traces.
 
+## Support the project
+
+ChameLab is free and stays free for everyone. If it helps you, you can support its development on
+[Patreon](https://www.patreon.com/ChameLab) or, with a Russian card, on [Boosty](https://boosty.to/chamelab).
+
 ## License
 
 Free software under the [GNU GPL v3](LICENSE).

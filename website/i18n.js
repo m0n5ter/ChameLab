@@ -92,6 +92,8 @@
     if (lang !== 'en') apply();
     // Links for one language only, such as the Russian-speaking channels.
     for (const el of document.querySelectorAll('[data-only-lang]')) el.hidden = el.dataset.onlyLang !== lang;
+    // And links for every language but one, such as Patreon, which Boosty replaces in Russian.
+    for (const el of document.querySelectorAll('[data-not-lang]')) el.hidden = el.dataset.notLang === lang;
     picker();
     fitNav();
     let frame = 0;
