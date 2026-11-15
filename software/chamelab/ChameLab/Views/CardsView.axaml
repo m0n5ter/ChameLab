@@ -1080,12 +1080,12 @@
                     </StackPanel>
                   </Button>
                 </Grid>
-                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding !IsT55xxWriting}">
-                  <TextBlock Classes="caption" Text="{Binding WriteProgressText}"
-                             VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                             IsVisible="{Binding IsWriting}" />
+                <!-- The buttons are measured first with the whole width, so when it gets tight Save keys drops
+                     its label first, then Write / Write another; the progress caption takes what is left. -->
+                <DockPanel IsVisible="{Binding !IsT55xxWriting}">
+                  <c:ActionRow DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="8,0,0,0">
                   <!-- A T55xx password recovered by the write can be saved, as in Tools / T55xx. -->
-                  <DropDownButton Grid.Column="1" IsVisible="{Binding CanSaveWriteT55xxKey}"
+                  <DropDownButton IsVisible="{Binding CanSaveWriteT55xxKey}"
                                   ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardsKeys}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <PathIcon Data="{StaticResource Icon.key}" />
@@ -1134,26 +1134,31 @@
                   </DropDownButton>
                   <!-- While a write runs, Cancel stops it and the writer stays open to show the result;
                        otherwise the button is Close. -->
-                  <Button Grid.Column="2" Content="{Binding CancelWriteLabel}" Command="{Binding CancelWriteCommand}"
-                          Classes.danger="{Binding IsWriting}"
+                  <Button Content="{Binding CancelWriteLabel}" Command="{Binding CancelWriteCommand}"
+                          Classes.danger="{Binding IsWriting}" c:ActionRow.Priority="2"
                           ToolTip.Tip="{Binding CancelWriteTip}" />
-                  <Button Grid.Column="3" Classes="brandblue" Command="{Binding WriteNowCommand}"
-                          IsVisible="{Binding !IsWriteSuccessful}"
+                  <Button Classes="brandblue" Command="{Binding WriteNowCommand}"
+                          IsVisible="{Binding !IsWriteSuccessful}" c:ActionRow.Priority="1"
+                          ToolTip.Tip="{x:Static loc:Strings.Cards_Write}"
                           IsEnabled="{Binding IsConnected}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <PathIcon Data="{StaticResource Icon.upload}" />
                       <TextBlock Text="{x:Static loc:Strings.Cards_Write}" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>
-                  <Button Grid.Column="3" Classes="brandblue" Command="{Binding WriteAnotherCommand}"
-                          IsVisible="{Binding IsWriteSuccessful}"
+                  <Button Classes="brandblue" Command="{Binding WriteAnotherCommand}"
+                          IsVisible="{Binding IsWriteSuccessful}" c:ActionRow.Priority="1"
                           ToolTip.Tip="{x:Static loc:Strings.Cards_WriteTheSameCardToAnother}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <PathIcon Data="{StaticResource Icon.upload}" />
                       <TextBlock Text="{x:Static loc:Strings.Cards_WriteAnother}" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>
-                </Grid>
+                  </c:ActionRow>
+                  <TextBlock Classes="caption" Text="{Binding WriteProgressText}"
+                             VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                             IsVisible="{Binding IsWriting}" />
+                </DockPanel>
               </StackPanel>
             </StackPanel>
           </Border>
