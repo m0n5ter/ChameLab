@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - Linux udev rule: the logged-in user gets access to the Chameleon and its DFU bootloader without joining dialout (uaccess), and ModemManager leaves the bootloader port alone too; the file is now resource/driver/70-chameleon-usb-device.rules (@fooberticus)
 
 ## [v1.5.48][2026-11-15] · firmware v2.3.19-cl
 ### Summary
@@ -29,11 +30,11 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 ## [v1.5.46][2026-11-14] · firmware v2.3.19-cl
 ### Summary
  - ChameLab: cards can be shared as QR codes: show a card as a code (a series for big dumps) and scan it with the camera on Android, iOS and in the web app, or from a screenshot; a phone's own camera opens the card in the web app
- - ChameLab: Linux finds the Chameleon and its DFU bootloader over USB
+ - ChameLab: Linux finds the Chameleon and its DFU bootloader over USB (@fooberticus)
 
 ### Details
  - ChameLab: cards can be shared as QR codes. A saved card's QR code button shows it as a link to the web app, so another phone's ordinary camera opens the card there; a card too big for one code (a MIFARE Classic 4K dump, usually) becomes a series of codes that change by themselves, with arrows and pause. Add a card → QR code reads them with the camera on Android (Google Play services' scanner), iOS and in the web app, or from a screenshot or photo on every platform; the parts of a series can come in any order, and the card opens for review before it is saved. The card data stays in the link's #fragment, which browsers never send to the server
- - ChameLab: Linux finds the Chameleon and its DFU bootloader over USB. The USB vendor ID is read from the port's sysfs uevent; the former lookup followed the /sys/class/tty links to a nonexistent path, so no USB device was ever offered
+ - ChameLab: Linux finds the Chameleon and its DFU bootloader over USB. The USB vendor ID is read from the port's sysfs uevent; the former lookup followed the /sys/class/tty links to a nonexistent path, so no USB device was ever offered (@fooberticus, #5)
 
 ## [v1.5.45][2026-11-14] · firmware v2.3.19-cl
 ### Summary

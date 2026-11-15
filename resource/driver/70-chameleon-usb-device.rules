@@ -1,0 +1,25 @@
+# Chameleon Ultra / Lite udev rules
+#
+# Copy this file to /etc/udev/rules.d and reload the rules:
+#
+#   sudo cp 70-chameleon-usb-device.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+#
+# The logged-in user gets access to the port through uaccess, members of dialout
+# through the group. uaccess only works when the file name sorts before
+# 73-seat-late.rules, so keep the 70- prefix. ModemManager is told to leave the
+# ports alone, so it does not probe the Chameleon when it is plugged in.
+
+ACTION!="add|change", GOTO="chameleon_usb_device_end"
+SUBSYSTEM!="tty", GOTO="chameleon_usb_device_end"
+
+# Chameleon Ultra / Lite
+ATTRS{idVendor}=="6868", ATTRS{idProduct}=="8686", ENV{ID_MM_DEVICE_IGNORE}="1", SYMLINK+="ultra-%n", MODE="0660", GROUP="dialout", TAG+="uaccess"
+
+# Chameleon Ultra / Lite DFU bootloader (firmware update)
+ATTRS{idVendor}=="1915", ATTRS{idProduct}=="521f", ENV{ID_MM_DEVICE_IGNORE}="1", MODE="0660", GROUP="dialout", TAG+="uaccess"
+
+# Chameleon Tiny
+ATTRS{idVendor}=="2d2d", ATTRS{idProduct}=="504d", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+LABEL="chameleon_usb_device_end"
