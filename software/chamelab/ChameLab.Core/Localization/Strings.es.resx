@@ -3438,9 +3438,6 @@
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
     <value>Desplazamiento automático</value>
   </data>
-  <data name="Tools_ConsoleFolderButton" xml:space="preserve">
-    <value>Carpeta</value>
-  </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>Elige la carpeta para los archivos de los comandos</value>
   </data>

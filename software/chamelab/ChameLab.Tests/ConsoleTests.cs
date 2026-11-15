@@ -15,23 +15,23 @@ public class ConsoleTests
     [Fact]
     public void HintListsTheWordsThatMayComeNext()
     {
-        Assert.Contains("hw", ToolsViewModel.HintFor("").Split("   "));
-        Assert.Contains("hf", ToolsViewModel.HintFor("").Split("   "));
-        Assert.Subset(new HashSet<string> { "slot", "settings", "share" }, ToolsViewModel.HintFor("hw s").Split("   ").ToHashSet());
-        Assert.Contains("nested", ToolsViewModel.HintFor("hf mf ").Split("   "));
+        Assert.Contains("hw", ToolsViewModel.HintFor("").Words);
+        Assert.Contains("hf", ToolsViewModel.HintFor("").Words);
+        Assert.Subset(new HashSet<string> { "slot", "settings", "share" }, ToolsViewModel.HintFor("hw s").Words.ToHashSet());
+        Assert.Contains("nested", ToolsViewModel.HintFor("hf mf ").Words);
         // A whole word typed: what follows it.
-        Assert.Contains("list", ToolsViewModel.HintFor("hw slot").Split("   "));
+        Assert.Contains("list", ToolsViewModel.HintFor("hw slot").Words);
     }
 
     [Fact]
     public void HintListsTheOptionsOfATypedCommandRequiredOnesStarred()
     {
-        Assert.Contains("-s, --slot*", ToolsViewModel.HintFor("hw slot change ").Split("   "));
-        Assert.Contains("-s, --slot*", ToolsViewModel.HintFor("hw slot change").Split("   "));
-        Assert.Equal("-s, --slot*", ToolsViewModel.HintFor("hw slot change --sl"));
+        Assert.Contains("-s, --slot*", ToolsViewModel.HintFor("hw slot change ").Words);
+        Assert.Contains("-s, --slot*", ToolsViewModel.HintFor("hw slot change").Words);
+        Assert.Equal(["-s, --slot*"], ToolsViewModel.HintFor("hw slot change --sl").Words);
         // A value being typed has nothing to suggest but what the command does.
-        Assert.Equal("Set emulation tag slot activated", ToolsViewModel.HintFor("hw slot change -s 3"));
-        Assert.Equal("", ToolsViewModel.HintFor("nonsense"));
+        Assert.Equal(([], "Set emulation tag slot activated"), ToolsViewModel.HintFor("hw slot change -s 3"));
+        Assert.Equal(([], ""), ToolsViewModel.HintFor("nonsense"));
     }
 
     private sealed class Box(double width) : Control

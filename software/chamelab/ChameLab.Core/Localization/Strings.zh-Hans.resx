@@ -3438,9 +3438,6 @@
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
     <value>自动滚动</value>
   </data>
-  <data name="Tools_ConsoleFolderButton" xml:space="preserve">
-    <value>文件夹</value>
-  </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>选择命令文件所用的文件夹</value>
   </data>

@@ -3438,9 +3438,6 @@
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
     <value>자동 스크롤</value>
   </data>
-  <data name="Tools_ConsoleFolderButton" xml:space="preserve">
-    <value>폴더</value>
-  </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>명령 파일을 저장할 폴더 선택</value>
   </data>

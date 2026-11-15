@@ -3441,9 +3441,6 @@
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
     <value>Autoscroll</value>
   </data>
-  <data name="Tools_ConsoleFolderButton" xml:space="preserve">
-    <value>Folder</value>
-  </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>Choose the folder for files from commands</value>
   </data>

@@ -66,16 +66,23 @@ public sealed partial class ToolsViewModel
         set
         {
             this.RaiseAndSetIfChanged(ref field, value);
-            ConsoleHint = HintFor(value);
+            (ConsoleHintWords, ConsoleHint) = HintFor(value);
         }
     } = "";
 
-    /// <summary>What may come next in the line being typed: commands, options, or what the command does.</summary>
+    /// <summary>What may come next in the line being typed: the command words or options, one badge each.</summary>
+    public string[] ConsoleHintWords
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = HintFor("").Words;
+
+    /// <summary>Once nothing more can be added: what the command does.</summary>
     public string ConsoleHint
     {
         get;
         private set => this.RaiseAndSetIfChanged(ref field, value);
-    } = HintFor("");
+    } = "";
 
     /// <summary>Long lines wrap; otherwise the output scrolls sideways.</summary>
     public bool ConsoleWrap
@@ -282,16 +289,16 @@ public sealed partial class ToolsViewModel
     /// The hint line: the words that may come next (commands, or the command's options, required ones starred);
     /// once nothing more can be added, what the command does.
     /// </summary>
-    internal static string HintFor(string text)
+    internal static (string[] Words, string Text) HintFor(string text)
     {
         text = text.TrimStart();
         var words = NextWords(text);
         var current = text[(text.LastIndexOf(' ') + 1)..];
         // A whole word typed: what may follow it.
         if (current.Length > 0 && words is [var only] && only == current) words = NextWords(text + " ");
-        if (words.Length > 0) return string.Join("   ", words);
+        if (words.Length > 0) return (words, "");
         var (command, _) = CommandCatalog.Find(text.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        return command?.Description.Split('\n')[0] ?? "";
+        return ([], command?.Description.Split('\n')[0] ?? "");
     }
 
     private static string[] NextWords(string text)
