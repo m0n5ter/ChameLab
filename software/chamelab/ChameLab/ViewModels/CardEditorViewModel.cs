@@ -75,8 +75,9 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
 
     public string Id => _source.Id;
 
+    // SEOS is left out: a slot needs its data and keys, which only the CLI (hf seos eload/keys) uploads.
     private static readonly IReadOnlyList<TagSpecificType> AllTagTypes =
-        TagTypeExtensions.All().Where(t => t != TagSpecificType.Undefined).ToArray();
+        TagTypeExtensions.All().Where(t => t is not (TagSpecificType.Undefined or TagSpecificType.Seos)).ToArray();
 
     /// <summary>Tag types offered in the type picker.</summary>
     public IReadOnlyList<TagSpecificType> TagChoices { get; }
