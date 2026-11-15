@@ -8,12 +8,21 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.6.49][2026-11-15] · firmware v2.3.19-cl
+### Summary
+ - ChameLab: Tools has a Console that runs the command line client's commands over the app's own connection, on the desktop, on phones and in the web app
+ - CLI: `hf mf autopwn` recovers keys the way the app's Auto button does, with the same dictionary search settings
+ - ChameLab: MIFARE Classic dumps of cards with a 7-byte UID import with the full UID
+
+### Details
  - CLI: `hf mf autopwn` accepts `--method single-key|all-sectors|one-sector`, `--start-sector N` and `--sector-order sequential|random`, matching the UI's dictionary search settings. The start sector is validated against the scanned card; help and console completion include the options
  - ChameLab and CLI: automatic MIFARE Classic recovery limits each request to 8 authentication checks over USB/TCP or 32 over BLE, counting each key/sector/A-or-B combination separately. All-sectors searches retain the chosen sector order, progress marks only the current request's pairs, and Stop waits only for that bounded request while retaining its confirmed keys
  - CLI: `hf mf autopwn` uses the same automatic recovery planner as the UI's Auto button, including SEN priority, confirmed-key reuse and PRNG-based attack selection. It shows method and sector/key progress, avoids repeating the dictionary pass when reading, and saves confirmed keys and partial dumps on cancellation or failure
  - ChameLab: Tools has a Console that runs the command line client's commands over the app's own connection, with history shared with the CLI, Tab completion and a hint line of what may come next. It takes the whole height of the window, marks the commands typed, and can wrap lines and follow the newest output (both remembered). While a command runs it has the device to itself; relative file names go to Documents/ChameLab or a folder you choose (on phones they stay inside the app, in the web app until the page is reloaded), and data plot opens the samples in Sniff LF. On phones a tap on a hint adds it to the line
  - Linux udev rule: the logged-in user gets access to the Chameleon and its DFU bootloader without joining dialout (uaccess), and ModemManager leaves the bootloader port alone too; the file is now resource/driver/70-chameleon-usb-device.rules (@fooberticus)
  - ChameLab: MIFARE Classic .bin and .eml dumps of cards with a 7-byte (or 10-byte) UID import with the full UID, SAK and ATQA instead of the first 4 bytes. The UID size is read from block 0
+ - ChameLab and CLI: the firmware version shows in full (v2.3.19-cl) instead of major.minor, in the header, on the device card and in `hw version`; the device card no longer repeats the git version
 
 ## [v1.5.48][2026-11-15] · firmware v2.3.19-cl
 ### Summary
