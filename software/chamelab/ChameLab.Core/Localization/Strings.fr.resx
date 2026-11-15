@@ -3433,10 +3433,10 @@
     <value>Exécuter</value>
   </data>
   <data name="Tools_ConsoleWrap" xml:space="preserve">
-    <value>Retour à la ligne</value>
+    <value>Retour</value>
   </data>
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
-    <value>Défilement automatique</value>
+    <value>Défiler</value>
   </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>Choisir le dossier des fichiers des commandes</value>

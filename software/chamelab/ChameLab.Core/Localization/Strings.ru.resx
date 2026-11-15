@@ -3433,10 +3433,10 @@
     <value>Выполнить</value>
   </data>
   <data name="Tools_ConsoleWrap" xml:space="preserve">
-    <value>Переносить строки</value>
+    <value>Перенос</value>
   </data>
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
-    <value>Автопрокрутка</value>
+    <value>Прокрутка</value>
   </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>Выберите папку для файлов команд</value>

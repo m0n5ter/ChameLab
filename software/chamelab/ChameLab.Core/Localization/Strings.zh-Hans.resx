@@ -3433,10 +3433,10 @@
     <value>运行</value>
   </data>
   <data name="Tools_ConsoleWrap" xml:space="preserve">
-    <value>自动换行</value>
+    <value>换行</value>
   </data>
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
-    <value>自动滚动</value>
+    <value>滚动</value>
   </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>选择命令文件所用的文件夹</value>

@@ -3433,10 +3433,10 @@
     <value>Esegui</value>
   </data>
   <data name="Tools_ConsoleWrap" xml:space="preserve">
-    <value>A capo automatico</value>
+    <value>A capo</value>
   </data>
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
-    <value>Scorrimento automatico</value>
+    <value>Scorri</value>
   </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>Scegli la cartella per i file dei comandi</value>

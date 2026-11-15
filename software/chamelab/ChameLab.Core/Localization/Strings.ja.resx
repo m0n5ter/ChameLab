@@ -3433,10 +3433,10 @@
     <value>実行</value>
   </data>
   <data name="Tools_ConsoleWrap" xml:space="preserve">
-    <value>行を折り返す</value>
+    <value>折り返し</value>
   </data>
   <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
-    <value>自動スクロール</value>
+    <value>スクロール</value>
   </data>
   <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
     <value>コマンドのファイルを保存するフォルダーを選択</value>
