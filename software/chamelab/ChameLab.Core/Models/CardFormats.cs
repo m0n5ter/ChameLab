@@ -506,11 +506,10 @@ public static class CardFormats
     /// <summary>Takes UID/SAK/ATQA from block 0 when the dump came without them.</summary>
     private static void FillIdentityFromBlock0(CardSave card)
     {
-        if (card.Data.Count == 0 || card.Data[0].Length < 16) return;
-        var b0 = card.Data[0];
-        if (card.Uid.Length == 0) card.Uid = b0[..4];
-        if (card.Sak == 0) card.Sak = b0[5];
-        if (card.Atqa.Length == 0) card.Atqa = b0[6..8];
+        if (card.Data.Count == 0 || MifareClassic.DecodeBlock0(card.Data[0]) is not (var uid, var sak, var atqa)) return;
+        if (card.Uid.Length == 0) card.Uid = uid;
+        if (card.Sak == 0) card.Sak = sak;
+        if (card.Atqa.Length == 0) card.Atqa = atqa;
     }
 
     private static string? Match(string text, string pattern)

@@ -144,6 +144,32 @@ public static class MifareClassic
     }.Select(Hex).ToArray();
 
     public static byte[] Hex(string s) => Convert.FromHexString(s);
+
+    /// <summary>
+    /// Reads UID, SAK and ATQA from a manufacturer block 0. The layout depends on the UID size:
+    /// 4 bytes: UID(4) BCC SAK ATQA(2); 7 bytes: UID(7) SAK ATQA(2); 10 bytes: UID(10) SAK ATQA(2).
+    /// The size is told by the BCC of a 4-byte UID and by the UID-size bits (7–6) of the ATQA's
+    /// first byte (00 single, 01 double, 10 triple). ATQA is kept LSB first, as the card sends it.
+    /// </summary>
+    public static (byte[] Uid, byte Sak, byte[] Atqa)? DecodeBlock0(ReadOnlySpan<byte> b0)
+    {
+        if (b0.Length < 16) return null;
+        var uidLength = Block0UidLength(b0);
+        return (b0[..uidLength].ToArray(), b0[uidLength + (uidLength == 4 ? 1 : 0)],
+            b0.Slice(uidLength + (uidLength == 4 ? 2 : 1), 2).ToArray());
+    }
+
+    private static int Block0UidLength(ReadOnlySpan<byte> b0)
+    {
+        var bccOk = (b0[0] ^ b0[1] ^ b0[2] ^ b0[3]) == b0[4];
+        var single = (b0[6] & 0xC0) == 0x00;
+        var doubleSize = (b0[8] & 0xC0) == 0x40;
+        var tripleSize = (b0[11] & 0xC0) == 0x80;
+        if (bccOk && (single || !doubleSize)) return 4;
+        if (doubleSize) return 7;
+        if (tripleSize) return 10;
+        return 4; // unrecognized layout: keep the classic 4-byte reading
+    }
 }
 
 /// <summary>Progress tick while reading or writing a dump, one per sector.</summary>
@@ -180,8 +206,8 @@ public sealed class MifareDump(MifareClassicType type, byte[]? uid = null, byte[
 
     public MifareClassicType Type { get; } = type;
     public byte[] Uid { get; private set; } = uid ?? Array.Empty<byte>();
-    public byte[] Atqa { get; } = atqa ?? Array.Empty<byte>();
-    public byte Sak { get; } = sak;
+    public byte[] Atqa { get; private set; } = atqa ?? Array.Empty<byte>();
+    public byte Sak { get; private set; } = sak;
 
     public int BlockCount => _blocks.Length;
     public int SectorCount => MifareClassic.SectorCount(Type);
@@ -314,9 +340,9 @@ public sealed class MifareDump(MifareClassicType type, byte[]? uid = null, byte[
 
     private void CaptureIdentityFromBlock0()
     {
-        var b0 = _blocks[0];
-        if (b0 is null || b0.Length < 16) return;
-        // Block 0: [UID(4)][BCC(1)][SAK(1)][ATQA(2)][manufacturer…] for a 4-byte UID.
-        Uid = b0[..4];
+        if (_blocks[0] is not { } b0 || MifareClassic.DecodeBlock0(b0) is not (var uid, var sak, var atqa)) return;
+        Uid = uid;
+        Sak = sak;
+        Atqa = atqa;
     }
 }
