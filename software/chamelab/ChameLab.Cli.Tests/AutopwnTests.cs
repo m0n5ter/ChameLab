@@ -8,6 +8,58 @@ namespace ChameLab.Cli.Tests;
 public sealed class AutopwnTests
 {
     [Theory]
+    [InlineData("single-key", "sequential")]
+    [InlineData("single-key", "random")]
+    [InlineData("all-sectors", "sequential")]
+    [InlineData("all-sectors", "random")]
+    [InlineData("one-sector", "sequential")]
+    [InlineData("one-sector", "random")]
+    public async Task SearchOptionsReachAutoAndKeepEveryPairInTheChosenOrder(string method, string order)
+    {
+        await using var card = new CardFixture(MifareClassicPrngType.Hard, true) { Key = null };
+        await card.OpenAsync();
+
+        Assert.Equal(1, await card.Cli.ExecuteAsync($"hf mf autopwn --method {method} --start-sector 3 --sector-order {order}"));
+
+        var checks = card.Device.Requests.Where(r => r.Command is Command.Mf1AuthOneKeyBlock or Command.Mf1CheckKeysOfSectors).ToArray();
+        Assert.NotEmpty(checks);
+        Assert.All(checks, r => Assert.Equal(method == "single-key", r.Command == Command.Mf1AuthOneKeyBlock));
+        Assert.All(checks, r => Assert.InRange(AttemptsOf(r).Length, 1, 8));
+        var attempts = checks.SelectMany(AttemptsOf).ToArray();
+        Assert.Equal(10 * MifareClassic.DefaultKeys.Count, attempts.Length);
+        Assert.Equal(attempts.Length, attempts.Distinct().Count());
+        var firstKey = Convert.ToHexString(MifareClassic.DefaultKeys[0]);
+        var sectorOrder = attempts.Where(a => a.Key == firstKey).Select(a => a.Pair).ToArray();
+        Assert.Equal(6, sectorOrder[0]);
+        Assert.Equal(Enumerable.Range(0, 10), sectorOrder.Order());
+        Assert.All(MifareClassic.DefaultKeys, key => Assert.Equal(sectorOrder,
+            attempts.Where(a => a.Key == Convert.ToHexString(key)).Select(a => a.Pair)));
+        if (order == "sequential") Assert.Equal(new[] { 6, 7, 8, 9, 0, 1, 2, 3, 4, 5 }, sectorOrder);
+        card.AssertModeRestored();
+    }
+
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(40, 0)]
+    [InlineData(5, 1)]
+    public async Task InvalidStartSectorFailsBeforeRecoveryAndDoesNotCreateOutputFiles(int sector, int scans)
+    {
+        await using var card = new CardFixture(MifareClassicPrngType.Hard, true);
+        await card.OpenAsync();
+
+        Assert.Equal(2, await card.Cli.ExecuteAsync($"hf mf autopwn --start-sector {sector}"));
+
+        Assert.Equal(scans, card.Device.Requests.Count(r => r.Command == Command.Hf14aScan));
+        Assert.DoesNotContain(card.Device.Requests, r => r.Command is Command.Mf1CheckKeysOfSectors or Command.Mf1AuthOneKeyBlock
+            or Command.Mf1EncNestedAcquire or Command.Mf1DarksideAcquire);
+        Assert.False(File.Exists(card.PathFor(".key")));
+        Assert.False(File.Exists(card.PathFor(".dic")));
+        Assert.False(File.Exists(card.PathFor(".bin")));
+        Assert.Contains("--start-sector", card.Error.ToString());
+        card.AssertModeRestored();
+    }
+
+    [Theory]
     [InlineData(MifareClassicPrngType.Weak, false)]
     [InlineData(MifareClassicPrngType.Weak, true)]
     [InlineData(MifareClassicPrngType.Static, false)]
@@ -30,7 +82,7 @@ public sealed class AutopwnTests
         Assert.Equal(prng == MifareClassicPrngType.Weak ? 1 : 0, darkside.Length);
         Assert.All(darkside, r => Assert.InRange(requests.IndexOf(r), requests.IndexOf(captures[^1]) + 1, firstCheck - 1));
         Assert.DoesNotContain(requests, r => r.Command is Command.Mf1NestedAcquire or Command.Mf1StaticNestedAcquire or Command.Mf1HardnestedAcquire);
-        if (batch) Assert.Single(requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        if (batch) Assert.Equal(2, requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors));
         else Assert.All(requests.Where(r => r.Command == Command.Mf1AuthOneKeyBlock),
             r => Assert.Equal(card.Key, r.Data[2..]));
         Assert.Equal(Enumerable.Repeat(card.Key, 10).SelectMany(k => k!).ToArray(), card.Read(".key"));
@@ -55,9 +107,11 @@ public sealed class AutopwnTests
         Assert.Equal(new byte[60], card.Read(".key"));
         Assert.Equal(new byte[320], card.Read(".bin"));
         Assert.Empty(File.ReadAllLines(card.PathFor(".dic")));
-        var checkedKeys = card.Device.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors)
-            .SelectMany(r => r.Data[10..].Chunk(6)).Select(Convert.ToHexString).ToArray();
-        Assert.Equal(MifareClassic.DefaultKeys.Select(Convert.ToHexString), checkedKeys);
+        var attempts = card.Device.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors)
+            .SelectMany(r => Enumerable.Range(0, 10).Where(bit => (r.Data[bit / 8] & (0x80 >> (bit % 8))) == 0)
+                .SelectMany(bit => r.Data[10..].Chunk(6).Select(key => (Pair: bit, Key: Convert.ToHexString(key))))).ToArray();
+        Assert.Equal(10 * MifareClassic.DefaultKeys.Count, attempts.Length);
+        Assert.Equal(attempts.Length, attempts.Distinct().Count());
         Assert.DoesNotContain(card.Device.Requests, r => r.Command is Command.Mf1AuthOneKeyBlock or Command.Mf1ReadOneBlock);
         Assert.Contains("mfkey32", card.Output.ToString());
         Assert.Contains("incomplete", card.Error.ToString());
@@ -74,7 +128,7 @@ public sealed class AutopwnTests
 
         Assert.Equal(130, await card.Cli.ExecuteAsync("hf mf autopwn", stop.Token));
 
-        Assert.Equal(Enumerable.Repeat((byte)0xFF, 60), card.Read(".key"));
+        Assert.Equal(Enumerable.Repeat((byte)0xFF, 48).Concat(new byte[12]), card.Read(".key"));
         Assert.Equal(new[] { "FFFFFFFFFFFF" }, File.ReadAllLines(card.PathFor(".dic")));
         Assert.Equal(new byte[320], card.Read(".bin"));
         Assert.Single(card.Device.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
@@ -131,6 +185,12 @@ public sealed class AutopwnTests
         Assert.DoesNotContain(card.Device.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
         card.AssertModeRestored();
     }
+
+    private static (int Pair, string Key)[] AttemptsOf(ChameleonFrame request) => request.Command == Command.Mf1AuthOneKeyBlock
+        ? [(MifareClassic.SectorOfBlock(request.Data[1]) * 2 + (request.Data[0] == (byte)MfKeyType.A ? 0 : 1),
+            Convert.ToHexString(request.Data[2..]))]
+        : Enumerable.Range(0, 80).Where(bit => (request.Data[bit / 8] & (0x80 >> (bit % 8))) == 0)
+            .SelectMany(bit => request.Data[10..].Chunk(6).Select(key => (bit, Convert.ToHexString(key)))).ToArray();
 
     private sealed class CardFixture : IAsyncDisposable
     {

@@ -214,8 +214,6 @@ public sealed partial class MifareKeyRecovery
                 .Where(p => !Known(p.Sector, p.Type) && !_sectors.IsSkipped(p.Sector) &&
                     !rejected.Contains((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, value))).ToArray();
             if (pending.Length == 0) continue;
-            foreach (var p in pending)
-                progress?.Report(new(Strings.AutoRecovery_Reusing, p.Sector, p.Type, KeyMark.Checking));
             if (batch)
             {
                 try
@@ -223,7 +221,11 @@ public sealed partial class MifareKeyRecovery
                     await client.CheckMifareKeysOfSectorsAsync(pending, [key], onFound: (p, found) =>
                     {
                         if (!Known(p.Sector, p.Type)) store(p.Sector, p.Type, found);
-                    }, ct: ct, session: session, sectorControl: _sectors);
+                    }, ct: ct, session: session, sectorControl: _sectors, onChecking: (pairs, _) =>
+                    {
+                        foreach (var p in pairs)
+                            progress?.Report(new(Strings.AutoRecovery_Reusing, p.Sector, p.Type, KeyMark.Checking));
+                    });
                     foreach (var p in pending.Where(p => !Known(p.Sector, p.Type) && !_sectors.IsSkipped(p.Sector)))
                         rejected.Add((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, value));
                     continue;
@@ -236,6 +238,7 @@ public sealed partial class MifareKeyRecovery
                 if (Known(p.Sector, p.Type) || _sectors.IsSkipped(p.Sector)) continue;
                 await _sectors.RunAsync(p.Sector, ct, async token =>
                 {
+                    progress?.Report(new(Strings.AutoRecovery_Reusing, p.Sector, p.Type, KeyMark.Checking));
                     if (await TryAuthAsync(MifareClassic.SectorTrailerBlock(p.Sector), p.Type, key, token, rejected, session))
                         store(p.Sector, p.Type, key);
                 });

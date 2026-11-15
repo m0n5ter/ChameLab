@@ -69,7 +69,7 @@ public partial class MifareWorkflowTests
             new(MifareKeySearchMethod.OneSector, MifareKeySearchStart.Selected, SelectedSector: 0));
 
         var batches = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors).ToArray();
-        Assert.Equal(2, batches.Length);
+        Assert.Equal(kind == TransportKind.Ble ? 2 : 3, batches.Length);
         Assert.Equal(new[] { 0 }, RequestedPairs(batches[0]));
         Assert.Equal(size, (batches[0].Data.Length - 10) / 6);
         Assert.Equal(Key, batches[1].Data[10..]);
@@ -115,11 +115,11 @@ public partial class MifareWorkflowTests
     }
 
     [Theory]
-    [InlineData(MifareKeySearchMethod.AllSectors, TransportKind.Serial, 8, 5)]
-    [InlineData(MifareKeySearchMethod.AllSectors, TransportKind.Ble, 32, 2)]
+    [InlineData(MifareKeySearchMethod.AllSectors, TransportKind.Serial, 8, 400)]
+    [InlineData(MifareKeySearchMethod.AllSectors, TransportKind.Ble, 32, 120)]
     [InlineData(MifareKeySearchMethod.OneSector, TransportKind.Serial, 8, 400)]
     [InlineData(MifareKeySearchMethod.OneSector, TransportKind.Ble, 32, 160)]
-    public async Task ConfiguredSearch_UsesTransportBatchSizeEvenWithAll80PairsUnknown(
+    public async Task ConfiguredSearch_BoundsTotalChecksEvenWithAll80PairsUnknown(
         MifareKeySearchMethod method, TransportKind kind, int size, int commands)
     {
         var target = new MifareDump(MifareClassicType.Classic4K, [1, 2, 3, 4]);
@@ -129,8 +129,8 @@ public partial class MifareWorkflowTests
         await new ChameleonClient(connection).FindMifareKeysAsync(target, DistinctKeys(40), options: new(method));
         var batches = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors).ToArray();
         Assert.Equal(commands, batches.Length);
-        Assert.Equal(size, (batches[0].Data.Length - 10) / 6);
-        Assert.All(batches, batch => Assert.True((batch.Data.Length - 10) / 6 is 8 || (batch.Data.Length - 10) / 6 == size));
+        Assert.All(batches, batch => Assert.InRange(RequestedPairs(batch).Length * (batch.Data.Length - 10) / 6, 1, size));
+        Assert.Equal(40 * 80, batches.Sum(batch => RequestedPairs(batch).Length * (batch.Data.Length - 10) / 6));
         Assert.All(target.KeyA.Concat(target.KeyB), Assert.Null);
     }
 
@@ -175,8 +175,8 @@ public partial class MifareWorkflowTests
         Assert.Equal(extra, target.KeyB[0]);
         Assert.All(target.KeyA.Skip(1).Concat(target.KeyB.Skip(1)), k => Assert.Equal(extra, k));
         var batches = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors).ToArray();
-        Assert.Equal(2, batches.Length);
-        Assert.Equal(extra, batches[1].Data[10..]);
+        Assert.Equal(3, batches.Length);
+        Assert.Equal(extra, batches[^1].Data[10..]);
     }
 
     [Fact]
@@ -188,7 +188,9 @@ public partial class MifareWorkflowTests
         await connection.OpenAsync();
         await new ChameleonClient(connection).FindMifareKeysAsync(target, [Key], options: new());
         Assert.Equal(Key, target.KeyA[0]);
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        var checks = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors).ToArray();
+        Assert.Equal(2, checks.Length);
+        Assert.Equal(Enumerable.Range(0, 10), checks.SelectMany(RequestedPairs));
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
     }
 

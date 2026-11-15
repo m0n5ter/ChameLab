@@ -168,13 +168,14 @@ public sealed partial class MifareKeyRecovery
         {
             var block = MifareClassic.SectorFirstBlock(sector);
             var remaining = candidates.Where(k => !session.Rejected.Contains((block, type, k))).ToArray();
-            for (var i = 0; i < remaining.Length; i += 64)
+            var batchLimit = client.MifareKeyCheckBatchLimit;
+            for (var i = 0; i < remaining.Length; i += batchLimit)
             {
                 token.ThrowIfCancellationRequested();
                 progress?.Report(new(Strings.Recovery_CheckStaticEnc, sector, type, KeyMark.Checking,
-                    Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + 64, remaining.Length), remaining.Length))
+                    Detail: string.Format(Strings.Recovery_CandidatesRange, i + 1, Math.Min(i + batchLimit, remaining.Length), remaining.Length))
                     { Tried = i, Total = remaining.Length });
-                var keys = remaining.Skip(i).Take(64).Select(KeyBytes).ToArray();
+                var keys = remaining.Skip(i).Take(batchLimit).Select(KeyBytes).ToArray();
                 byte[]? hit;
                 for (var attempt = 0; ; attempt++)
                     try

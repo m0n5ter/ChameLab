@@ -23,3 +23,20 @@ key candidate. It shows the selected methods and sector/key progress, then saves
 `<UID>.key`, `<UID>.dic` and `<UID>.bin` in the current folder (or the app console's
 chosen folder). Cancellation and failures preserve confirmed keys and any blocks
 already read; incomplete recovery returns a failure status.
+
+Search settings can be specified for each `autopwn` run:
+
+| Option | Values | Default |
+| --- | --- | --- |
+| `--method` | `single-key` (one check at a time), `all-sectors` (batches across sectors), `one-sector` (batches for one sector/key type) | `all-sectors` |
+| `--start-sector` | Zero-based sector number on the scanned card | `0` |
+| `--sector-order` | `sequential` (wraps around the card), `random` (shuffles the remaining sectors) | `sequential` |
+
+The start sector is always first. For example:
+
+```text
+hf mf autopwn --method one-sector --start-sector 3 --sector-order random
+```
+
+Every batch is limited to 8 key/sector/A-or-B checks over USB/TCP or 32 over BLE.
+These options are also available in Tools → Console and in `hf mf autopwn --help`.

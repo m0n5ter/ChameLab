@@ -249,6 +249,8 @@ public partial class MifareWorkflowTests
         var reply = transport.Response!;
         var seededStarted = false;
         var senBatchesBeforeSeeded = 0;
+        var checkingSen = false;
+        var globals = new System.Collections.Generic.List<ChameleonFrame>();
         var generationCount = 0;
         var engine = new AdaptiveEngine(r => r.Operation switch
         {
@@ -276,8 +278,11 @@ public partial class MifareWorkflowTests
         {
             if (r.Command is Command.Mf1StaticNestedAcquire or Command.Mf1NestedAcquire or Command.Mf1HardnestedAcquire)
                 seededStarted = true;
-            if (!seededStarted && r.Command == Command.Mf1CheckKeysOfSectors && r.Data.Length > 16)
-                senBatchesBeforeSeeded++;
+            if (checkingSen && r.Command == Command.Mf1CheckKeysOfSectors)
+            {
+                globals.Add(r);
+                if (!seededStarted) senBatchesBeforeSeeded++;
+            }
         };
         var updates = new System.Collections.Generic.List<KeyRecoveryProgress>();
         await using var connection = new ChameleonConnection(transport);
@@ -285,7 +290,12 @@ public partial class MifareWorkflowTests
         var client = new ChameleonClient(connection);
         var hardnested = new HardnestedEngine();
         Assert.True((await new MifareKeyRecovery(client, hardnested, keyRecovery: engine).RecoverAutomaticallyAsync(dump, [],
-            progress: new CallbackProgress<KeyRecoveryProgress>(updates.Add), useKnownUidKeys: false)).Complete);
+            progress: new CallbackProgress<KeyRecoveryProgress>(p =>
+            {
+                updates.Add(p);
+                if (p.Status == Strings.Recovery_CheckStaticEnc) checkingSen = true;
+                else if (p.Status == Strings.AutoRecovery_Reusing || p.Status == Strings.AutoRecovery_Choosing) checkingSen = false;
+            }), useKnownUidKeys: false)).Complete);
 
         // Stable SEN evidence rules out Nested/Hardnested even if the first-auth
         // PRNG profile and firmware capabilities would otherwise allow them.
@@ -300,12 +310,16 @@ public partial class MifareWorkflowTests
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1NestedAcquire or Command.Mf1HardnestedAcquire);
         Assert.Equal(0, hardnested.Calls);
         Assert.Contains(updates, p => p.Status == Strings.Recovery_CheckStaticEnc && p.Sector == -1
-            && p.Total == 160 && p.Tried > 0 && !string.IsNullOrEmpty(p.Detail));
+            && p.Total == 160 && !string.IsNullOrEmpty(p.Detail));
+        // A hit may yield after only some sectors, before any candidate has covered the whole card.
+        if (!seededApplicable || seededFails)
+            Assert.Contains(updates, p => p.Status == Strings.Recovery_CheckStaticEnc && p.Tried > 0);
         Assert.Equal(seed, dump.KeyB[1]);
         Assert.All(new[] { 0, 2, 3, 4 }, s => Assert.Equal(other, dump.KeyA[s]));
-        // In a failed seeded attack, the resumed global pass must not resend its
-        // exhausted first chunk. Propagation requests carry just one key.
-        var globals = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors && r.Data.Length > 16).ToArray();
-        Assert.Single(globals, r => r.Data.AsSpan(10, 6).SequenceEqual(seed));
+        // A resumed pass can finish an interrupted candidate on other sectors,
+        // but must not resend a candidate/pair that already failed.
+        var attempts = globals.SelectMany(r => RequestedPairs(r)
+            .SelectMany(pair => RequestedKeys(r).Select(key => (pair, Key: Convert.ToHexString(key))))).ToArray();
+        Assert.Equal(attempts.Length, attempts.Distinct().Count());
     }
 }

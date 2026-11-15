@@ -2246,6 +2246,55 @@
         "choices": null,
         "help": "Known key",
         "const": null
+      },
+      {
+        "names": [
+          "--method"
+        ],
+        "dest": "method",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": "all-sectors",
+        "choices": [
+          "single-key",
+          "all-sectors",
+          "one-sector"
+        ],
+        "help": "Dictionary search: single-key (one check at a time), all-sectors (batches across sectors, default), or one-sector (batches for one sector/key type)",
+        "const": null
+      },
+      {
+        "names": [
+          "--start-sector"
+        ],
+        "dest": "start_sector",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "int",
+        "default": 0,
+        "choices": null,
+        "help": "Start at sector N (zero-based, default: 0); sequential order wraps around the card",
+        "const": null
+      },
+      {
+        "names": [
+          "--sector-order"
+        ],
+        "dest": "sector_order",
+        "required": false,
+        "action": "_StoreAction",
+        "nargs": null,
+        "type": "str",
+        "default": "sequential",
+        "choices": [
+          "sequential",
+          "random"
+        ],
+        "help": "Sector order: sequential (default) or random; the start sector is always first",
+        "const": null
       }
     ],
     "groups": [],

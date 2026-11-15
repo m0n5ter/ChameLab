@@ -176,8 +176,17 @@ public sealed partial class CliSession
     {
         var client = Client;
         var keys = MifareClassic.DefaultKeys.ToList(); if (a.Has("key")) keys.Insert(0, a.Hex("key", 6));
+        var search = new MifareKeySearchOptions(a.Text("method") switch
+        {
+            "single-key" => MifareKeySearchMethod.SingleKey,
+            "one-sector" => MifareKeySearchMethod.OneSector,
+            _ => MifareKeySearchMethod.AllSectors,
+        }, a.Has("start_sector") ? MifareKeySearchStart.Selected : MifareKeySearchStart.Beginning,
+            a.Text("sector_order") == "random" ? MifareKeySearchOrder.Random : MifareKeySearchOrder.Sequential,
+            Range(a.Int("start_sector"), 0, 39, "--start-sector"));
         var tag = (await client.Hf14aScanAsync(ct)).Single();
         var dump = new MifareDump(MifareClassic.FromSak(tag.Sak), tag.Uid, tag.Atqa, tag.Sak);
+        Range(search.SelectedSector, 0, dump.SectorCount - 1, "--start-sector for this card");
         var recovery = new MifareKeyRecovery(client, new ManagedHardnestedEngine(), keyRecovery: new ManagedKeyRecoveryEngine());
         var progress = new DirectProgress<KeyRecoveryProgress>(p =>
         {
@@ -188,11 +197,11 @@ public sealed partial class CliSession
         });
         try
         {
-            var result = await recovery.RecoverAutomaticallyAsync(dump, keys, progress, ct);
+            var result = await recovery.RecoverAutomaticallyAsync(dump, keys, progress, ct, options: search);
             // Auto has already searched the dictionary and propagated every confirmed key.
             // Keep its rejection ledger while filling the remaining readable blocks.
             dump = await client.ReadMifareClassicAsync([], ct: ct, existing: dump,
-                keySearch: new() { Session = MifareRecoverySession.For(dump, client) });
+                keySearch: search with { Session = MifareRecoverySession.For(dump, client) });
             ct.ThrowIfCancellationRequested();
             if (!result.Complete || dump.RecoveredBlocks != dump.BlockCount)
                 throw new IOException("Recovery is incomplete; saved the partial dump.");

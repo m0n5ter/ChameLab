@@ -37,7 +37,32 @@ public class CommandTests
     [InlineData("hw mode --reader --emulator")]
     [InlineData("hf 14a raw --unknown")]
     [InlineData("hf mf rdbl --blk 2 -k FFFFFFFFFFFF -a -b")]
+    [InlineData("hf mf autopwn --method invalid")]
+    [InlineData("hf mf autopwn --sector-order invalid")]
+    [InlineData("hf mf autopwn --start-sector text")]
+    [InlineData("hf mf autopwn --method")]
     public void InvalidArgumentsFailBeforeExecution(string line) => Assert.Throws<ArgumentException>(() => Parse(line));
+
+    [Fact]
+    public async Task AutopwnSearchOptionsHaveDefaultsHelpAndCompletion()
+    {
+        var defaults = Parse("hf mf autopwn");
+        Assert.Equal("all-sectors", defaults.Text("method"));
+        Assert.Equal("sequential", defaults.Text("sector_order"));
+        Assert.Equal(0, defaults.Int("start_sector"));
+        var selected = Parse("hf mf autopwn --method=one-sector --start-sector 5 --sector-order random");
+        Assert.Equal("one-sector", selected.Text("method"));
+        Assert.Equal(5, selected.Int("start_sector"));
+        Assert.Equal("random", selected.Text("sector_order"));
+        using var output = new StringWriter();
+        await using var cli = new CliSession(output, TextWriter.Null);
+        Assert.Equal(0, await cli.ExecuteAsync("hf mf autopwn --help"));
+        foreach (var option in new[] { "--method", "--start-sector", "--sector-order" })
+        {
+            Assert.Contains(option, output.ToString());
+            Assert.Contains("hf mf autopwn " + option, LineEditor.Complete("hf mf autopwn --"));
+        }
+    }
 
     [Fact]
     public void ParserKeepsConstDefaultsAndCombinedFlags()

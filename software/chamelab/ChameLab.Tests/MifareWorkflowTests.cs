@@ -742,7 +742,7 @@ public partial class MifareWorkflowTests
             Assert.Equal(Key, target.KeyA[s]);
             Assert.Equal(Key, target.KeyB[s]);
         });
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.Equal(4, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors));
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
     }
 
@@ -756,7 +756,7 @@ public partial class MifareWorkflowTests
         var dump = await new ChameleonClient(connection)
             .ReadMifareClassicAsync([Key], type: MifareClassicType.Classic1K);
 
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.Equal(4, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors));
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
         Assert.Equal(dump.BlockCount, transport.Requests.Count(r => r.Command == Command.Mf1ReadOneBlock));
         Assert.Equal(dump.BlockCount, dump.RecoveredBlocks);
@@ -816,7 +816,7 @@ public partial class MifareWorkflowTests
     }
 
     [Fact]
-    public async Task BatchKeyCheck_KeepsChunkSizeAsPairsAreFound()
+    public async Task BatchKeyCheck_IncreasesKeyCountWithinBudgetAsPairsAreFound()
     {
         var target = new MifareDump(MifareClassicType.Classic4K, [1, 2, 3, 4]);
         var dict = DistinctKeys(85);
@@ -827,8 +827,10 @@ public partial class MifareWorkflowTests
         await new ChameleonClient(connection).FindMifareKeysAsync(target, dict);
 
         var batches = transport.Requests.Where(r => r.Command == Command.Mf1CheckKeysOfSectors).ToArray();
-        // Eight keys per batch both for the initial 80 pairs and the last remaining pair.
-        Assert.Equal(Enumerable.Repeat(8, 10).Append(5), batches.Select(batch => (batch.Data.Length - 10) / 6));
+        // One key across eight pairs first; eight candidates once only one pair is missing.
+        Assert.Equal(Enumerable.Repeat(1, 10).Concat(Enumerable.Repeat(8, 10)).Append(4),
+            batches.Select(batch => (batch.Data.Length - 10) / 6));
+        Assert.All(batches, batch => Assert.InRange(RequestedPairs(batch).Length * (batch.Data.Length - 10) / 6, 1, 8));
         Assert.Equal(dict[^1], target.KeyB[39]);
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1AuthOneKeyBlock);
     }
@@ -910,8 +912,8 @@ public partial class MifareWorkflowTests
         }
         finally { releaseReply.TrySetResult(); }
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => search);
-        Assert.All(target.KeyA, k => Assert.Equal(Key, k));
-        Assert.All(target.KeyB, k => Assert.Equal(Key, k));
+        Assert.All(target.KeyA.Take(4).Concat(target.KeyB.Take(4)), k => Assert.Equal(Key, k));
+        Assert.All(target.KeyA.Skip(4).Concat(target.KeyB.Skip(4)), Assert.Null);
         Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
         Assert.Single(await client.Hf14aScanAsync());
     }

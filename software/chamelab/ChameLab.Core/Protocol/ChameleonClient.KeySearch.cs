@@ -34,12 +34,6 @@ public sealed partial class ChameleonClient
             else dump.KeyB[pair.Sector] = key;
             progress?.Report(new(pair.Sector, pair.Type, MifareKeyPhase.Found, 0, 0, key));
         }
-        void Searching(int done, bool batch)
-        {
-            foreach (var pair in Pending())
-                progress?.Report(new(pair.Sector, pair.Type, MifareKeyPhase.Searching, done, dictionary.Length, null) { IsBatch = batch });
-        }
-
         async Task Singles()
         {
             foreach (var s in sectors)
@@ -98,23 +92,37 @@ public sealed partial class ChameleonClient
             if (run.Count > 0) yield return run.ToArray();
         }
         var reused = new HashSet<string>();
-        async Task BatchInOrder(IReadOnlyList<byte[]> keys)
+        async Task BatchInOrder(IReadOnlyList<byte[]> keys, int dictionaryDone = 0)
         {
             if (keys.Count == 0) return;
             foreach (var run in Runs(Pending()))
             {
                 ct.ThrowIfCancellationRequested();
                 if (SeedFound()) return;
-                var groups = run.Where(p => Known(p) is null && !control.IsSkipped(p.Sector)).GroupBy(p => string.Join(",", keys
-                    .Where(k => options.Session?.Rejected.Contains((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, MifareRecoverySession.Value(k))) != true)
-                    .Select(Convert.ToHexString)));
+                // Only combine adjacent pairs. GroupBy would move a later sector ahead of an
+                // intervening sector when their retained rejection lists differ.
+                var groups = new List<(string Keys, List<(int Sector, MfKeyType Type)> Pairs)>();
+                foreach (var pair in run.Where(p => Known(p) is null && !control.IsSkipped(p.Sector)))
+                {
+                    var signature = string.Join(",", keys.Where(k => options.Session?.Rejected.Contains(
+                        (MifareClassic.SectorTrailerBlock(pair.Sector), pair.Type, MifareRecoverySession.Value(k))) != true)
+                        .Select(Convert.ToHexString));
+                    if (groups.Count == 0 || groups[^1].Keys != signature) groups.Add((signature, []));
+                    groups[^1].Pairs.Add(pair);
+                }
                 foreach (var group in groups)
                 {
                     if (SeedFound()) return;
-                    var candidates = group.Key.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Convert.FromHexString).ToArray();
+                    var candidates = group.Keys.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Convert.FromHexString).ToArray();
                     if (candidates.Length == 0) continue;
-                    await CheckMifareKeysOfSectorsAsync(group.ToArray(), candidates, onFound: Found, ct: ct,
-                        stopAfterFirstKey: options.StopAfterFirstKey, session: options.Session, sectorControl: control);
+                    await CheckMifareKeysOfSectorsAsync(group.Pairs.Where(p => Known(p) is null && !control.IsSkipped(p.Sector)).ToArray(),
+                        candidates, onFound: Found, ct: ct, stopAfterFirstKey: options.StopAfterFirstKey,
+                        session: options.Session, sectorControl: control, onChecking: (pairs, done) =>
+                        {
+                            foreach (var pair in pairs)
+                                progress?.Report(new(pair.Sector, pair.Type, MifareKeyPhase.Searching,
+                                    dictionaryDone + done, dictionary.Length, null));
+                        });
                 }
             }
             foreach (var key in keys) reused.Add(Convert.ToHexString(key));
@@ -135,7 +143,6 @@ public sealed partial class ChameleonClient
 
         try
         {
-            if (options.Method == MifareKeySearchMethod.AllSectors) Searching(0, batch: true);
             await ReuseFoundKeys();
             if (options.Method == MifareKeySearchMethod.OneSector)
             {
@@ -170,12 +177,11 @@ public sealed partial class ChameleonClient
                 while (done < dictionary.Length && Pending().Length > 0)
                 {
                     ct.ThrowIfCancellationRequested();
-                    var chunk = dictionary.Skip(done).Take(BatchKeyCheckChunkSize).ToArray();
-                    await BatchInOrder(chunk.Where(k => !reused.Contains(Convert.ToHexString(k))).ToArray());
+                    var chunk = dictionary.Skip(done).Take(MifareKeyCheckBatchLimit).ToArray();
+                    await BatchInOrder(chunk.Where(k => !reused.Contains(Convert.ToHexString(k))).ToArray(), done);
                     if (SeedFound()) return;
                     done += chunk.Length;
                     await ReuseFoundKeys();
-                    Searching(done, batch: true);
                 }
                 foreach (var pair in Pending())
                     progress?.Report(new(pair.Sector, pair.Type, MifareKeyPhase.NotFound, dictionary.Length, dictionary.Length, null));

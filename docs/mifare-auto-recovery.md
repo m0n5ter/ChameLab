@@ -10,6 +10,22 @@ confirmed keys and blocks already read. Unread blocks and unknown binary key
 entries are zero-filled; the `.dic` file contains only confirmed keys. Incomplete
 recovery returns a failure status, and cancellation returns status 130.
 
+CLI search options correspond to the UI's search settings: `--method single-key`,
+`all-sectors` (default), or `one-sector`; `--start-sector N` (zero-based, default
+0); and `--sector-order sequential` (default) or `random`. The start sector must
+exist on the scanned card and remains first in either order. Sequential order
+wraps around the card; random order shuffles the remaining sectors. Options are
+chosen per invocation, including when running in Tools → Console.
+
+Every key-check request is limited to **8 authentication checks over USB/TCP**
+or **32 over BLE**, in every search mode. A check is one candidate key against
+one sector and key type (A or B). The limit applies to dictionary searches,
+key propagation and attack-candidate verification, including global SEN passes.
+In **All sectors** mode, the requested sector order is retained across requests;
+the key count and sector mask are split so their product stays within the limit.
+Only the pairs in the current request are reported as checking. Stop drains that
+request and retains its keys before ending; it does not start the next request.
+
 Auto replans after every confirmed key. It never infers that the next key will
 take as long as the preceding one. The current order is:
 

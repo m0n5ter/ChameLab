@@ -288,7 +288,7 @@ public partial class MifareWorkflowTests
         Assert.True(result.Complete);
         Assert.Equal(0, hardnested.Calls);
         Assert.Equal(20, engine.Calls); // Prepare every path, then finish in the global reuse pass.
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.Equal(2, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors));
         Assert.DoesNotContain(transport.Requests, r => r.Command == Command.Mf1CheckKeysOnBlock);
         Assert.All(dump.KeyA.Concat(dump.KeyB), key => Assert.Equal(recovered, key));
     }

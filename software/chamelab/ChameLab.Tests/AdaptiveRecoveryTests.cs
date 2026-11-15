@@ -84,8 +84,10 @@ public partial class MifareWorkflowTests
         var session = MifareRecoverySession.For(dump, client);
         var options = new MifareKeySearchOptions { Session = session };
         await client.FindMifareKeysAsync(dump, [Key], options: options);
+        var firstPassRequests = transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.Equal(2, firstPassRequests);
         await client.FindMifareKeysAsync(dump, [Key], options: options);
-        Assert.Single(transport.Requests, r => r.Command == Command.Mf1CheckKeysOfSectors);
+        Assert.Equal(firstPassRequests, transport.Requests.Count(r => r.Command == Command.Mf1CheckKeysOfSectors));
         Assert.Equal(10, session.Rejected.Count);
         Assert.NotSame(session, MifareRecoverySession.For(dump, new ChameleonClient(connection)));
     }

@@ -560,11 +560,18 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         if (block is < 0 or > 255) throw new ArgumentOutOfRangeException(nameof(block));
         if (type is not (MfKeyType.A or MfKeyType.B)) throw new ArgumentOutOfRangeException(nameof(type));
         if (keys.Count is < 1 or > 83) throw new ArgumentOutOfRangeException(nameof(keys));
+        if (keys.Any(key => key.Length != 6)) throw new ArgumentException("Key must be 6 bytes.", nameof(keys));
+        if (keys.Count > MifareKeyCheckBatchLimit)
+        {
+            foreach (var chunk in keys.Chunk(MifareKeyCheckBatchLimit))
+                if (await CheckMifareKeysOnBlockAsync(block, type, chunk, ct, session, onFound) is { } hit)
+                    return hit;
+            return null;
+        }
         var data = new byte[3 + keys.Count * 6];
         data[0] = (byte)block; data[1] = type.ToWire(); data[2] = (byte)keys.Count;
         for (var i = 0; i < keys.Count; i++)
         {
-            if (keys[i].Length != 6) throw new ArgumentException("Key must be 6 bytes.", nameof(keys));
             keys[i].CopyTo(data, 3 + 6 * i);
         }
         ct.ThrowIfCancellationRequested();
@@ -606,7 +613,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     /// at most this many keys in one command.</summary>
     public const int BatchKeyCheckMaxKeys = 83;
 
-    private int BatchKeyCheckChunkSize => conn.Transport.Kind == TransportKind.Ble ? 32 : 8;
+    // One check is one candidate against one sector/key type, not one key across the card.
+    internal int MifareKeyCheckBatchLimit => conn.Transport.Kind == TransportKind.Ble ? 32 : 8;
     private const int BatchKeyCheckChunkTimeoutMs = 30_000;
 
     /// <summary>Whether the connected firmware advertises the batch key check command.</summary>
@@ -620,8 +628,10 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     /// Far fewer host round-trips than one authentication per key, which matters most over BLE.
     /// <paramref name="wanted"/> lists the pairs still missing a key (sectors 0..39); the result maps
     /// the pairs that were opened to the key that opened them — it may include a key B the trailer
-    /// revealed even when only A was asked for. Chunks contain up to 8 keys over USB or 32 over BLE; after each
-    /// chunk <paramref name="keysChecked"/> reports how many of <paramref name="keys"/> have been tried.
+    /// revealed even when only A was asked for. Each request contains at most 8 checks over USB/TCP
+    /// or 32 over BLE: requested sector/key pairs times candidate keys. Pairs retain the supplied order.
+    /// <paramref name="keysChecked"/> advances only after a candidate chunk has covered every pending pair.
+    /// <paramref name="onChecking"/> identifies the pairs in the request about to be sent and the completed key count.
     /// Partial results are delivered through onFound even if the card leaves or the call is canceled.
     /// With stopAfterFirstKey, all keys from the successful reply are retained before returning;
     /// no further dictionary chunk is sent.
@@ -634,7 +644,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         IProgress<int>? keysChecked = null,
         Action<(int Sector, MfKeyType Type), byte[]>? onFound = null,
         CancellationToken ct = default, bool stopAfterFirstKey = false,
-        MifareRecoverySession? session = null, MifareSectorControl? sectorControl = null)
+        MifareRecoverySession? session = null, MifareSectorControl? sectorControl = null,
+        Action<IReadOnlyList<(int Sector, MfKeyType Type)>, int>? onChecking = null)
     {
         ArgumentNullException.ThrowIfNull(wanted);
         ArgumentNullException.ThrowIfNull(keys);
@@ -650,82 +661,92 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         // type (A = 0, B = 1), MSB first within byte index/8. A set request bit means "skip this pair".
         static int BitOf((int Sector, MfKeyType Type) p) => p.Sector * 2 + (p.Type == MfKeyType.A ? 0 : 1);
 
-        var returnedPairs = pairs.Concat(pairs.Where(p => p.Type == MfKeyType.A)
-            .Select(p => (p.Sector, Type: MfKeyType.B))).Distinct().ToArray();
         var checkedKeys = 0;
         while (checkedKeys < dictionary.Length)
         {
             ct.ThrowIfCancellationRequested();
-
-            // Skip everything, then re-enable only the pairs still missing a key.
-            var mask = new byte[10];
-            Array.Fill(mask, (byte)0xFF);
-            var pending = 0;
-            foreach (var pair in pairs)
+            var pending = pairs.Where(p => !result.ContainsKey(p) && sectorControl?.IsSkipped(p.Sector) != true).ToArray();
+            if (pending.Length == 0) break;
+            var keyCount = Math.Max(1, MifareKeyCheckBatchLimit / Math.Min(pending.Length, MifareKeyCheckBatchLimit));
+            var chunk = dictionary.Skip(checkedKeys).Take(keyCount).ToArray();
+            var pairLimit = MifareKeyCheckBatchLimit / chunk.Length;
+            var next = 0;
+            while (next < pending.Length)
             {
-                if (result.ContainsKey(pair) || sectorControl?.IsSkipped(pair.Sector) == true) continue;
-                var bit = BitOf(pair);
-                mask[bit / 8] &= (byte)~(0x80 >> (bit % 8));
-                pending++;
-            }
-            if (pending == 0) break;
-            using var sectorScope = sectorControl?.Watch(pairs.First(p => (mask[BitOf(p) / 8] & (0x80 >> (BitOf(p) % 8))) == 0).Sector);
+                ct.ThrowIfCancellationRequested();
+                var attempted = new List<(int Sector, MfKeyType Type)>();
+                while (next < pending.Length)
+                {
+                    var pair = pending[next];
+                    if (result.ContainsKey(pair) || sectorControl?.IsSkipped(pair.Sector) == true) { next++; continue; }
+                    // Firmware walks the mask in ascending order. End the request before a wrap/shuffle.
+                    if (attempted.Count > 0 && (attempted.Count == pairLimit || BitOf(pair) < BitOf(attempted[^1]))) break;
+                    attempted.Add(pair);
+                    next++;
+                }
+                if (attempted.Count == 0) continue;
+                var attemptedPairs = attempted.ToArray();
+                using var sectorScope = sectorControl?.Watch(attemptedPairs[0].Sector);
+                var mask = new byte[10];
+                Array.Fill(mask, (byte)0xFF);
+                foreach (var pair in attemptedPairs)
+                {
+                    var bit = BitOf(pair);
+                    mask[bit / 8] &= (byte)~(0x80 >> (bit % 8));
+                }
+                var payload = new byte[10 + chunk.Length * 6];
+                mask.CopyTo(payload, 0);
+                for (var i = 0; i < chunk.Length; i++) chunk[i].CopyTo(payload, 10 + i * 6);
 
-            var chunk = dictionary.Skip(checkedKeys).Take(BatchKeyCheckChunkSize).ToArray();
-            var payload = new byte[10 + chunk.Length * 6];
-            mask.CopyTo(payload, 0);
-            for (var i = 0; i < chunk.Length; i++) chunk[i].CopyTo(payload, 10 + i * 6);
+                // The firmware cannot cancel a command. Drain its reply before allowing another
+                // command to start, and save any found keys before honoring cancellation.
+                onChecking?.Invoke(attemptedPairs, checkedKeys);
+                ct.ThrowIfCancellationRequested();
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
+                var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload, timeoutMs: BatchKeyCheckChunkTimeoutMs);
 
-            // The firmware cannot cancel a command. Drain its reply before allowing another
-            // command to start, and save any found keys before honoring cancellation.
-            ct.ThrowIfCancellationRequested();
-            // A full 4K pass can try 80 pairs per candidate. Allow fixed-size batches to
-            // finish even when every authentication fails (about 60 ms per RF attempt).
-            var timeout = Math.Max(BatchKeyCheckChunkTimeoutMs, 1000 + pending * chunk.Length * 100);
-            var started = System.Diagnostics.Stopwatch.GetTimestamp();
-            var attemptedPairs = pairs.Where(p => (mask[BitOf(p) / 8] & (0x80 >> (BitOf(p) % 8))) == 0).ToArray();
-            var frame = await conn.SendAsync(Command.Mf1CheckKeysOfSectors, payload, timeoutMs: timeout);
+                // The card leaving the field (HfTagNo) still returns the keys found before it went.
+                if (frame.Data.Length != 490 || frame.Status is not (Status.HfTagOk or Status.HfTagNo
+                    or Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts))
+                    throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
 
-            // The card leaving the field (HfTagNo) still returns the keys found before it went.
-            if (frame.Data.Length != 490 || frame.Status is not (Status.HfTagOk or Status.HfTagNo
-                or Status.HfErrStat or Status.HfErrCrc or Status.HfCollision or Status.HfErrBcc or Status.HfErrParity or Status.HfErrAts))
-                throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
+                var returnedPairs = attemptedPairs.Concat(attemptedPairs.Where(p => p.Type == MfKeyType.A)
+                    .Select(p => (p.Sector, Type: MfKeyType.B))).Distinct();
+                foreach (var pair in returnedPairs)
+                {
+                    if (result.ContainsKey(pair)) continue;
+                    var bit = BitOf(pair);
+                    if ((frame.Data[bit / 8] & (0x80 >> (bit % 8))) == 0) continue;
+                    var key = frame.Data[(10 + 6 * bit)..(16 + 6 * bit)];
+                    result[pair] = key;
+                    onFound?.Invoke(pair, key); // report as the chunk finds it, not only at the end
+                }
 
-            foreach (var pair in returnedPairs)
-            {
-                if (result.ContainsKey(pair)) continue;
-                var bit = BitOf(pair);
-                if ((frame.Data[bit / 8] & (0x80 >> (bit % 8))) == 0) continue;
-                var key = frame.Data[(10 + 6 * bit)..(16 + 6 * bit)];
-                result[pair] = key;
-                onFound?.Invoke(pair, key); // report as the chunk finds it, not only at the end
-            }
+                ct.ThrowIfCancellationRequested();
+                // HfTagNo aborts the firmware loop midway, so this chunk was not fully checked.
+                // Keep the found keys, but do not report an exhausted dictionary to the caller.
+                if (frame.Status != Status.HfTagOk)
+                    throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
 
-            ct.ThrowIfCancellationRequested();
-            // HfTagNo aborts the firmware loop midway, so this chunk was not fully checked.
-            // Keep the found keys, but do not report an exhausted dictionary to the caller.
-            if (frame.Status != Status.HfTagOk)
-                throw new ChameleonException(Strings.Device_CouldNotCheckCandidates, frame.Status);
-
-            if (session is not null)
-            {
-                session.RecordAuthentication(System.Diagnostics.Stopwatch.GetElapsedTime(started), attemptedPairs.Length * chunk.Length);
-                foreach (var p in attemptedPairs)
-                    foreach (var candidate in chunk)
-                    {
-                        if (result.TryGetValue(p, out var found))
+                if (session is not null)
+                {
+                    session.RecordAuthentication(System.Diagnostics.Stopwatch.GetElapsedTime(started), attemptedPairs.Length * chunk.Length);
+                    foreach (var p in attemptedPairs)
+                        foreach (var candidate in chunk)
                         {
-                            if (found.AsSpan().SequenceEqual(candidate)) break;
-                            // A readable trailer B may not be one of the submitted keys.
-                            if (!chunk.Any(k => k.AsSpan().SequenceEqual(found))) break;
+                            if (result.TryGetValue(p, out var found))
+                            {
+                                if (found.AsSpan().SequenceEqual(candidate)) break;
+                                // A readable trailer B may not be one of the submitted keys.
+                                if (!chunk.Any(k => k.AsSpan().SequenceEqual(found))) break;
+                            }
+                            session.Rejected.Add((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, MifareRecoverySession.Value(candidate)));
                         }
-                        session.Rejected.Add((MifareClassic.SectorTrailerBlock(p.Sector), p.Type, MifareRecoverySession.Value(candidate)));
-                    }
+                }
+                if (stopAfterFirstKey && result.Count > 0) return result;
             }
-
             checkedKeys += chunk.Length;
             keysChecked?.Report(checkedKeys);
-            if (stopAfterFirstKey && result.Count > 0) break;
         }
 
         return result;
@@ -1320,29 +1341,24 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             .DistinctBy(Convert.ToHexString).ToArray();
         if (keys.Length == 0) return true;
 
-        // Show every target cell as "checking" at once, then advance its bar as each chunk returns,
-        // so a dictionary that opens nothing still looks alive instead of a frozen spinner.
-        var remaining = new HashSet<(int Sector, MfKeyType Type)>(wanted);
-        void Searching(int done)
-        {
-            foreach (var (sector, type) in remaining)
-                keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Searching, done, keys.Length, null) { IsBatch = true });
-        }
         void Found((int Sector, MfKeyType Type) pair, byte[] key)
         {
             var (sector, type) = pair;
             if (type == MfKeyType.A ? dump.KeyA[sector] is not null : dump.KeyB[sector] is not null) return;
             if (type == MfKeyType.A) dump.KeyA[sector] ??= key;
             else dump.KeyB[sector] ??= key;
-            remaining.Remove(pair);
             keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Found, 0, 0, key));
         }
 
-        Searching(0);
         try
         {
             await CheckMifareKeysOfSectorsAsync(wanted, keys,
-                keysChecked: new DelegateProgress<int>(Searching), onFound: Found, ct: ct);
+                onFound: Found, ct: ct, onChecking: (pairs, done) =>
+                {
+                    foreach (var (sector, type) in pairs)
+                        keyProgress?.Report(new MifareKeyProgress(sector, type, MifareKeyPhase.Searching,
+                            done, keys.Length, null) { IsBatch = true });
+                });
             return true;
         }
         catch (Exception ex) when (ex is NotSupportedException ||
