@@ -29,6 +29,14 @@ public partial class ToolsView : UserControl
         ActualThemeVariantChanged += (_, _) => { if (_vm is not null) ShowConsoleOutput(_vm.ConsoleText); };
         // Tunnel: Tab would move focus and Up/Down move the caret before the box sees them.
         ConsoleInput.AddHandler(KeyDownEvent, OnConsoleKey, RoutingStrategies.Tunnel);
+        // A hint badge clicked: its word goes into the line, and typing carries on there.
+        ConsoleHints.AddHandler(Button.ClickEvent, (_, e) =>
+        {
+            if (_vm is null || (e.Source as Button)?.Content is not string word) return;
+            _vm.UseConsoleHint(word);
+            ConsoleInput.Focus();
+            ConsoleInput.CaretIndex = _vm.ConsoleInput.Length;
+        });
     }
 
     private ToolsViewModel? _vm;

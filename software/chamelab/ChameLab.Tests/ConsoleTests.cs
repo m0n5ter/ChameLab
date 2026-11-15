@@ -10,6 +10,7 @@ using Xunit;
 namespace ChameLab.Tests;
 
 /// <summary>The console's hint line and the row that keeps its command line wide.</summary>
+[Collection(AppSettingsCollection.Name)]
 public class ConsoleTests
 {
     [Fact]
@@ -32,6 +33,20 @@ public class ConsoleTests
         // A value being typed has nothing to suggest but what the command does.
         Assert.Equal(([], "Set emulation tag slot activated"), ToolsViewModel.HintFor("hw slot change -s 3"));
         Assert.Equal(([], ""), ToolsViewModel.HintFor("nonsense"));
+    }
+
+    [Theory]
+    [InlineData("hw s", "slot", "hw slot ")]
+    [InlineData("hw slot", "list", "hw slot list ")]
+    [InlineData("", "hw", "hw ")]
+    [InlineData("hw slot change ", "-s, --slot*", "hw slot change --slot ")]
+    [InlineData("hw slot change --sl", "-s, --slot*", "hw slot change --slot ")]
+    [InlineData("hw slot change", "-s, --slot*", "hw slot change --slot ")]
+    public void ClickedHintCompletesOrFollowsTheLine(string line, string hint, string expected)
+    {
+        var vm = new ToolsViewModel(new ChameLab.Services.DeviceService([])) { ConsoleInput = line };
+        vm.UseConsoleHint(hint);
+        Assert.Equal(expected, vm.ConsoleInput);
     }
 
     private sealed class Box(double width) : Control

@@ -272,6 +272,23 @@ public sealed partial class ToolsViewModel
         return completion.Length;
     }
 
+    /// <summary>
+    /// A hint badge clicked: its word completes the word being typed, or follows the line when that word is
+    /// whole. An option goes in by its long name.
+    /// </summary>
+    public void UseConsoleHint(string hint)
+    {
+        var word = hint.TrimEnd('*').Split(", ")[^1];
+        var text = ConsoleInput;
+        var last = text.LastIndexOf(' ') + 1;
+        var current = text[last..];
+        var line = current.Length > 0 && word.StartsWith(current, StringComparison.Ordinal) && word != current
+            ? text[..last] + word
+            : text.Length == 0 || text.EndsWith(' ') ? text + word : text + " " + word;
+        ConsoleInput = line + " ";
+        _historyIndex = -1;
+    }
+
     private static string CommonPrefix(string[] items)
     {
         var first = items[0];
