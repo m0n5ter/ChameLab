@@ -654,7 +654,7 @@
                         c:ActionRow.Priority="2" ToolTip.Tip="{x:Static vm:ToolsViewModel.ConsoleCancelTip}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <PathIcon Data="{StaticResource Icon.stop}" />
-                    <TextBlock Text="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding ConsoleCancelLabel}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
                 <Button Command="{Binding ClearConsoleCommand}" c:ActionRow.Priority="1"

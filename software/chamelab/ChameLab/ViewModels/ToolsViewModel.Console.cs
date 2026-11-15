@@ -127,6 +127,19 @@ public sealed partial class ToolsViewModel
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
+    /// <summary>Cancel was pressed; the command ends once the Chameleon answers the request it is working on.</summary>
+    public bool IsConsoleStopping
+    {
+        get;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(ConsoleCancelLabel));
+        }
+    }
+
+    public string ConsoleCancelLabel => IsConsoleStopping ? Strings.Common_Stopping : Strings.Common_Cancel;
+
     public string ConsoleFolderText => string.Format(Strings.Tools_ConsoleFolder, ConsoleFolder);
 
     public static string ConsoleRunTip => Strings.Tools_ConsoleRun + " (Enter)";
@@ -142,7 +155,7 @@ public sealed partial class ToolsViewModel
         // Run stays off while the line is blank: there is nothing to run.
         RunConsoleCommand = ReactiveCommand.Create(SubmitConsoleLine,
             this.WhenAnyValue(x => x.ConsoleInput, line => !string.IsNullOrWhiteSpace(line)));
-        CancelConsoleCommand = ReactiveCommand.Create(CancelConsole);
+        CancelConsoleCommand = ReactiveCommand.Create(CancelConsole, this.WhenAnyValue(x => x.IsConsoleStopping, stopping => !stopping));
         ClearConsoleCommand = ReactiveCommand.Create(ClearConsole);
         // The folder stays put while a command may be writing to it.
         var idleConsole = this.WhenAnyValue(x => x.IsConsoleRunning, running => !running);
@@ -224,6 +237,7 @@ public sealed partial class ToolsViewModel
             _consoleLine?.TrySetResult(null);
             _consoleLine = null;
             IsConsoleRunning = false;
+            IsConsoleStopping = false;
         }
     }
 
@@ -235,7 +249,17 @@ public sealed partial class ToolsViewModel
         return tcs.Task;
     }
 
-    private void CancelConsole() => _consoleCts?.Cancel();
+    /// <summary>
+    /// Cancel: says so at once, since the Chameleon cannot drop a command it has started (a batch of keys, a
+    /// nonce collection) and the command ends only once it answers.
+    /// </summary>
+    private void CancelConsole()
+    {
+        if (_consoleCts is not { IsCancellationRequested: false } cts) return;
+        IsConsoleStopping = true;
+        AppendConsole("Stopping: the Chameleon finishes the step it is on first.\n");
+        cts.Cancel();
+    }
 
     private void ClearConsole()
     {
