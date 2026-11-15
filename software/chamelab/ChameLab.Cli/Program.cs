@@ -29,7 +29,8 @@ public static class Program
         }
         if (commands.Count == 0 && Console.IsInputRedirected)
         { Console.Error.WriteLine("An interactive terminal is required unless --command is used."); return 2; }
-        await using var session = new CliSession();
+        await using var host = new TerminalCliHost();
+        await using var session = new CliSession(host: host);
         CancellationTokenSource? active = null;
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; active?.Cancel(); };
         Console.CancelKeyPress += cancel;

@@ -10,10 +10,9 @@
   <ItemGroup>
     <None Include="../../../LICENSE" Link="LICENSE" CopyToPublishDirectory="PreserveNewest" />
     <None Include="../ChameLab.Core/Crypto/Hardnested/NOTICE.md" Link="notices/hardnested.md" CopyToPublishDirectory="PreserveNewest" />
-    <ProjectReference Include="../ChameLab.Core/ChameLab.Core.csproj" />
+    <ProjectReference Include="../ChameLab.Cli.Commands/ChameLab.Cli.Commands.csproj" />
     <ProjectReference Include="../ChameLab.Serial/ChameLab.Serial.csproj" />
     <ProjectReference Include="../ChameLab.Cli.Plot/ChameLab.Cli.Plot.csproj" />
-    <EmbeddedResource Include="CommandCatalog.json;EnumCatalog.json;DesfireKeys.json" />
     <InternalsVisibleTo Include="ChameLab.Cli.Tests" />
   </ItemGroup>
 </Project>

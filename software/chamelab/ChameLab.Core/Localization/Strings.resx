@@ -3417,6 +3417,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>Try passwords from dictionaries</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>Console</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>Command line client commands</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>Runs the command line client’s commands on the connected Chameleon. Type help for the list, or a command with --help for its options.</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>Files without a full path go to {0}</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>Type a command; Tab completes it</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>Run</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>From the console</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>Place a T55XX tag on the reader. Keys are verified by writing and reading a different ID. When a key works, the original ID is restored and the new password is set.</value>
   </data>

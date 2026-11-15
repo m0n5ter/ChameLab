@@ -3414,6 +3414,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>Probar contraseñas de diccionarios</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>Consola</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>Comandos del cliente de línea de comandos</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>Ejecuta los comandos del cliente de línea de comandos en el Chameleon conectado. Escriba help para ver la lista, o un comando con --help para ver sus opciones.</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>Los archivos sin ruta completa van a {0}</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>Escriba un comando; Tab lo completa</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>Ejecutar</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>Desde la consola</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>Coloca una etiqueta T55XX en el lector. Las claves se verifican escribiendo y leyendo otro ID. Si una clave funciona, se restaura el ID original y se establece la nueva contraseña.</value>
   </data>

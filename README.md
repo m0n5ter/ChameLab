@@ -125,6 +125,9 @@ It can also share a device over the same relay the app uses: `hw share` opens th
 connected Chameleon and prints a code, and `hw connect --code TR1-ABCD-1234` joins a
 device shared from another machine.
 
+The same commands run in the app too: Tools → Console (desktop) uses the app's
+connection, so there is no need to disconnect it first.
+
 Use `dump_help` for all commands and `COMMAND --help` for options. Release packages
 include the .NET runtime; launch `chamelab` (`chamelab.exe` on Windows).
 Migration progress and verification are recorded in [docs/cli-migration.md](docs/cli-migration.md).
@@ -141,6 +144,7 @@ release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSI
 | --- | --- |
 | [`software/chamelab`](software/chamelab) | The ChameLab app (Avalonia, .NET) |
 | [`software/chamelab/ChameLab.Cli`](software/chamelab/ChameLab.Cli) | The C# CLI |
+| [`software/chamelab/ChameLab.Cli.Commands`](software/chamelab/ChameLab.Cli.Commands) | The CLI's commands, shared by the CLI and the app's console |
 | [`firmware`](firmware) | Application and bootloader firmware for nRF52840 |
 | [`hardware`](hardware) | Schematics and PCB files for Ultra and Lite |
 | [`website`](website) | The download page and the web app host |

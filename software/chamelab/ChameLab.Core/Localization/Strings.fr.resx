@@ -3414,6 +3414,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>Essayer les mots de passe des dictionnaires</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>Console</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>Commandes du client en ligne de commande</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>Exécute les commandes du client en ligne de commande sur le Chameleon connecté. Tapez help pour la liste, ou une commande suivie de --help pour ses options.</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>Les fichiers sans chemin complet vont dans {0}</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>Tapez une commande ; Tab la complète</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>Exécuter</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>Depuis la console</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>Placez un badge T55XX sur le lecteur. Les clés sont vérifiées en écrivant puis en lisant un autre ID. Si une clé fonctionne, l’ID d’origine est restauré et le nouveau mot de passe est défini.</value>
   </data>

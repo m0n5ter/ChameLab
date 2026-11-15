@@ -40,6 +40,18 @@ public static class CommandCatalog
         return (null, words);
     }
 
+    /// <summary>Completions for the text before the cursor: command paths, then the found command's options.</summary>
+    public static string[] Complete(string prefix)
+    {
+        var paths = Commands.Select(c => c.Name).Where(n => n.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
+        if (paths.Length > 0) return paths;
+        var (command, _) = Find(prefix.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        if (command is null) return [];
+        var last = prefix.LastIndexOf(' ') + 1;
+        return command.Options.SelectMany(o => o.Names).Where(n => n.StartsWith(prefix[last..], StringComparison.Ordinal))
+            .Select(n => prefix[..last] + n).ToArray();
+    }
+
     public static void Help(TextWriter output, CommandSpec? command = null, string prefix = "")
     {
         if (command is null)

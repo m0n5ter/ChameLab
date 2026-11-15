@@ -34,6 +34,14 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
     private Task? _readLoop;
     private volatile bool _closed;
 
+    // Exclusive use (RunExclusiveAsync): the flow that holds it, requests of others in flight, and the
+    // signals for "exclusive use ended" and "the others' requests are done".
+    private static readonly AsyncLocal<ChameleonConnection?> ExclusiveOwner = new();
+    private readonly object _exclusiveSync = new();
+    private int _sharedInFlight;
+    private TaskCompletionSource? _exclusiveEnded;
+    private TaskCompletionSource? _sharedDrained;
+
     public ITransport Transport => transport;
     public bool IsConnected => transport.IsConnected;
 
@@ -92,6 +100,94 @@ public sealed class ChameleonConnection(ITransport transport) : IAsyncDisposable
         // Responses carry only the command id, so two callers sending the same command at once
         // would get each other's answer (or one would wait forever): they take turns.
         if (_closed) throw new ChameleonDisconnectedException();
+        var shared = !ReferenceEquals(ExclusiveOwner.Value, this);
+        if (shared) await EnterSharedAsync(ct);
+        try
+        {
+            return await SendCoreAsync(cmd, data, status, timeoutMs, ct);
+        }
+        finally
+        {
+            if (shared) ExitShared();
+        }
+    }
+
+    /// <summary>
+    /// Runs <paramref name="work"/> with the device to itself: requests from other flows wait until it ends, and
+    /// it starts once theirs in flight are answered. Requests made by <paramref name="work"/> (and whatever it
+    /// awaits) go straight through; a nested call just runs.
+    /// </summary>
+    public async Task RunExclusiveAsync(Func<Task> work, CancellationToken ct = default)
+    {
+        if (ReferenceEquals(ExclusiveOwner.Value, this))
+        {
+            await work();
+            return;
+        }
+        TaskCompletionSource ended;
+        Task? drained;
+        while (true)
+        {
+            Task busy;
+            lock (_exclusiveSync)
+            {
+                if (_exclusiveEnded is null)
+                {
+                    ended = _exclusiveEnded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    _sharedDrained = _sharedInFlight > 0 ? new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously) : null;
+                    drained = _sharedDrained?.Task;
+                    break;
+                }
+                busy = _exclusiveEnded.Task;
+            }
+            await busy.WaitAsync(ct);
+        }
+        try
+        {
+            if (drained is not null) await drained.WaitAsync(ct);
+            ExclusiveOwner.Value = this;
+            await work();
+        }
+        finally
+        {
+            ExclusiveOwner.Value = null;
+            lock (_exclusiveSync)
+            {
+                _exclusiveEnded = null;
+                _sharedDrained = null;
+            }
+            ended.TrySetResult();
+        }
+    }
+
+    private async Task EnterSharedAsync(CancellationToken ct)
+    {
+        while (true)
+        {
+            Task busy;
+            lock (_exclusiveSync)
+            {
+                if (_exclusiveEnded is null)
+                {
+                    _sharedInFlight++;
+                    return;
+                }
+                busy = _exclusiveEnded.Task;
+            }
+            await busy.WaitAsync(ct);
+        }
+    }
+
+    private void ExitShared()
+    {
+        lock (_exclusiveSync)
+        {
+            if (--_sharedInFlight == 0) _sharedDrained?.TrySetResult();
+        }
+    }
+
+    private async Task<ChameleonFrame> SendCoreAsync(Command cmd, byte[]? data, ushort status, int timeoutMs, CancellationToken ct)
+    {
         var turn = _commandLocks.GetOrAdd(cmd, _ => new SemaphoreSlim(1, 1));
         await turn.WaitAsync(ct);
         var gated = false;

@@ -71,6 +71,15 @@
       <Setter Property="Height" Value="380" />
     </Style>
 
+    <!-- The console's output: a fixed height of its own, scrolled to the newest line. -->
+    <Style Selector="TextBox.console">
+      <Setter Property="Height" Value="460" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+    </Style>
+    <Style Selector=".compact TextBox.console">
+      <Setter Property="Height" Value="380" />
+    </Style>
+
     <Style Selector="ScrollViewer.samples">
       <Setter Property="Height" Value="320" />
     </Style>
@@ -126,6 +135,19 @@
             </StackPanel>
           </Grid>
         </Button>
+        <Button Classes="tile source" Command="{Binding OpenConsoleCommand}"
+                IsVisible="{x:Static vm:ToolsViewModel.IsConsoleAvailable}">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Border Classes="iconwell" VerticalAlignment="Center">
+              <PathIcon Data="{StaticResource Icon.console}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="{x:Static loc:Strings.Tools_Console}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{x:Static loc:Strings.Tools_ConsoleHint}" Classes="caption" TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Grid>
+        </Button>
       </c:FitGrid>
 
       <!-- A tool: Back to the list, as in Add card. -->
@@ -137,8 +159,10 @@
         <Border Grid.Column="1" Classes="iconwell" Classes.blue="{Binding IsHf}" Classes.amber="{Binding IsLf}"
                 VerticalAlignment="Center">
           <Panel>
-            <PathIcon Data="{StaticResource Icon.sniff}" IsVisible="{Binding !IsT55xx}" />
+            <PathIcon Data="{StaticResource Icon.sniff}" IsVisible="{Binding IsHf}" />
+            <PathIcon Data="{StaticResource Icon.sniff}" IsVisible="{Binding IsLf}" />
             <PathIcon Data="{StaticResource Icon.key}" IsVisible="{Binding IsT55xx}" />
+            <PathIcon Data="{StaticResource Icon.console}" IsVisible="{Binding IsConsole}" />
           </Panel>
         </Border>
         <!-- One line; short of width (long titles in some languages), it scales down to fit. -->
@@ -146,6 +170,12 @@
           <TextBlock Classes="h1" Text="{Binding CurrentToolTitle}" />
         </Viewbox>
       </Grid>
+
+      <!-- Console -->
+      <StackPanel Spacing="2" IsVisible="{Binding IsConsole}">
+        <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_ConsoleIntro}" />
+        <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ConsoleFolderText}" />
+      </StackPanel>
 
       <!-- HF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsHf}">
@@ -471,6 +501,27 @@
             </StackPanel>
           </Border>
         </StackPanel>
+
+        <!-- ========== Console ========== -->
+        <Border Classes="card" IsVisible="{Binding IsConsole}">
+          <Grid RowDefinitions="*,Auto" RowSpacing="10">
+            <TextBox Name="ConsoleOutput" Classes="console" Text="{Binding ConsoleText}" IsReadOnly="True"
+                     TextWrapping="Wrap" AcceptsReturn="True" FontFamily="{x:Static c:AppFonts.Mono}" FontSize="12"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+            <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+              <TextBlock Text="&gt;" FontFamily="{x:Static c:AppFonts.Mono}" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <TextBox Grid.Column="1" Name="ConsoleInput" Text="{Binding ConsoleInput}" FontFamily="{x:Static c:AppFonts.Mono}"
+                       FontSize="12" PlaceholderText="{x:Static loc:Strings.Tools_ConsolePlaceholder}" VerticalAlignment="Center" />
+              <Panel Grid.Column="2">
+                <Button Classes="accent" Content="{x:Static loc:Strings.Tools_ConsoleRun}" Command="{Binding RunConsoleCommand}"
+                        IsVisible="{Binding !IsConsoleRunning}" />
+                <Button Classes="danger" Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelConsoleCommand}"
+                        IsVisible="{Binding IsConsoleRunning}" b:DialogKeys.IsCancel="True" />
+              </Panel>
+              <Button Grid.Column="3" Content="{x:Static loc:Strings.Common_Clear}" Command="{Binding ClearConsoleCommand}" />
+            </Grid>
+          </Grid>
+        </Border>
 
         <!-- ========== LF ========== -->
         <StackPanel Spacing="12" IsVisible="{Binding IsLf}">

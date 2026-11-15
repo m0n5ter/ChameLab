@@ -40,8 +40,7 @@ public sealed partial class CliSession
         });
         Add("emv apdu", async (a, ct) =>
         {
-            if (Console.IsInputRedirected) throw new InvalidOperationException("Manual APDU responses require an interactive terminal.");
-            var timeout = Range(a.Int("timeout"), 1000, 60000, "timeout");
+                        var timeout = Range(a.Int("timeout"), 1000, 60000, "timeout");
             while (true)
             {
                 var watch = Stopwatch.StartNew(); byte[]? request = null;
@@ -54,7 +53,7 @@ public sealed partial class CliSession
                 }
                 if (request is null) { Print("No APDU received within timeout."); return; }
                 Print("Reader: " + Convert.ToHexString(request)); Output.Write("Response (hex, or quit): ");
-                var line = await Console.In.ReadLineAsync(ct);
+                var line = await Host.ReadLineAsync(ct);
                 if (line is null || line.Trim() is "quit" or "exit") return;
                 var response = HexText(line); await Wire(6001, [.. U16(response.Length), .. response], ct);
             }
@@ -98,7 +97,7 @@ public sealed partial class CliSession
             var capture = EmvCapture.Decode(await Wire(6005, null, ct, 15000));
             var document = capture.ToJson(); var text = document.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
             Print(text);
-            if (!string.IsNullOrEmpty(a.Get("file"))) await File.WriteAllTextAsync(a.Text("file"), text, ct);
+            if (!string.IsNullOrEmpty(a.Get("file"))) await File.WriteAllTextAsync(FilePath(a.Text("file")), text, ct);
             if (a.Has("slot")) await InstallEmv(capture, Range(a.Int("slot"), 1, 8, "slot"), ct);
         }
         finally { if (Connected) await Client.SetDeviceModeAsync(mode, CancellationToken.None); }
@@ -122,7 +121,7 @@ public sealed partial class CliSession
             return;
         }
         if (string.IsNullOrEmpty(a.Get("file"))) throw new ArgumentException("Specify --file, --cmd/--resp, --clear or --defaults.");
-        var capture = EmvCapture.FromJson(JsonNode.Parse(await File.ReadAllTextAsync(a.Text("file"), ct))!.AsObject());
+        var capture = EmvCapture.FromJson(JsonNode.Parse(await File.ReadAllTextAsync(FilePath(a.Text("file")), ct))!.AsObject());
         await InstallEmv(capture, await Slot(a, ct), ct);
     }
     private async Task InstallEmv(EmvCapture capture, int slot, CancellationToken ct)
@@ -200,7 +199,7 @@ public sealed partial class CliSession
         {
             using var s = typeof(CliSession).Assembly.GetManifestResourceStream("ChameLab.Cli.DesfireKeys.json")!;
             keys.AddRange(JsonSerializer.Deserialize<string[]>(s)!.Select(HexText));
-            if (a.Has("file")) keys.AddRange(File.ReadLines(a.Text("file")).Select(l => l.Split('#')[0].Trim()).Where(l => l.Length > 0).Select(HexText));
+            if (a.Has("file")) keys.AddRange(File.ReadLines(FilePath(a.Text("file"))).Select(l => l.Split('#')[0].Trim()).Where(l => l.Length > 0).Select(HexText));
             if (a.Flag("pattern1b")) for (var b = 0; b < 256; b++) { keys.Add(Enumerable.Repeat((byte)b, 8).ToArray()); keys.Add(Enumerable.Repeat((byte)b, 16).ToArray()); }
             if (a.Flag("pattern2b")) for (var n = 0; n < 65536; n++) keys.Add(Enumerable.Range(0, 16).Select(i => (byte)(i % 2 == 0 ? n >> 8 : n & 255)).ToArray());
         }

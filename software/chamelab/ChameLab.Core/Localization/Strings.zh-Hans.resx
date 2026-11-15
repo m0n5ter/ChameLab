@@ -3414,6 +3414,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>尝试字典中的密码</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>控制台</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>命令行客户端的命令</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>在已连接的 Chameleon 上运行命令行客户端的命令。输入 help 查看列表，或在命令后加 --help 查看其选项。</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>未写完整路径的文件保存在 {0}</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>输入命令，按 Tab 补全</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>运行</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>来自控制台</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>将 T55XX 标签放在读卡器上。通过写入并读取不同的 ID 来验证密钥。找到有效密钥后，恢复原始 ID 并设置新密码。</value>
   </data>

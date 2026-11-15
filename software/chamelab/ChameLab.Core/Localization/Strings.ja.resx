@@ -3414,6 +3414,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>辞書のパスワードを試す</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>コンソール</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>コマンドラインクライアントのコマンド</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>接続中の Chameleon でコマンドラインクライアントのコマンドを実行します。一覧は help、各コマンドのオプションはコマンドに --help を付けて入力します。</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>フルパスのないファイルは {0} に保存されます</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>コマンドを入力（Tab で補完）</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>実行</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>コンソールから</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>T55XX タグをリーダーに置いてください。別の ID を書き込んで読み取り、キーを検証します。キーが有効なら元の ID を復元し、新しいパスワードを設定します。</value>
   </data>

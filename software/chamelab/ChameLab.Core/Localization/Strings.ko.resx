@@ -3414,6 +3414,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>사전의 비밀번호 시도</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>콘솔</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>명령줄 클라이언트 명령</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>연결된 Chameleon에서 명령줄 클라이언트의 명령을 실행합니다. 목록은 help, 명령의 옵션은 명령 뒤에 --help를 입력하세요.</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>전체 경로가 없는 파일은 {0}에 저장됩니다</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>명령 입력, Tab으로 자동 완성</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>실행</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>콘솔에서</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>T55XX 태그를 리더기에 놓으세요. 다른 ID를 쓰고 읽어 키를 검증합니다. 키가 맞으면 원래 ID를 복원하고 새 비밀번호를 설정합니다.</value>
   </data>

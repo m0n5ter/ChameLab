@@ -35,7 +35,7 @@ public sealed partial class CliSession
             if (a.Has("dump_file")) { Dump(LoadDump(a.Text("dump_file")), 16); return; }
             if (!a.Has("key_file")) throw new ArgumentException("Specify --dump-file or --key-file.");
             var sectors = a.Int("maxSectors", 16);
-            var keys = ReadSectorKeys(File.ReadAllBytes(a.Text("key_file")), sectors);
+            var keys = ReadSectorKeys(File.ReadAllBytes(FilePath(a.Text("key_file"))), sectors);
             var blocks = MifareClassic.SectorFirstBlock(sectors);
             var bytes = new List<byte>();
             for (var block = 0; block < blocks; block++)
@@ -145,7 +145,7 @@ public sealed partial class CliSession
             catch (InvalidOperationException) when (i + 1 < attempts) { Print("Retrying acquisition."); }
         }
         if (capture is null) throw new InvalidOperationException("No usable nonces.");
-        if (a.Flag("keep_nonce_file")) await File.WriteAllBytesAsync("nonces.bin", HardnestedCaptureCodec.EncodeBinary(capture, target, KeyType(a, "t") == MfKeyType.B), ct);
+        if (a.Flag("keep_nonce_file")) await File.WriteAllBytesAsync(FilePath("nonces.bin"), HardnestedCaptureCodec.EncodeBinary(capture, target, KeyType(a, "t") == MfKeyType.B), ct);
         var found = await new ManagedHardnestedEngine().RecoverAsync(capture, new DirectProgress<string>(Print), ct);
         if (found is null || !await Client.Mf1AuthAsync(target, KeyType(a, "t"), KeyBytes(found.Value), ct)) throw new InvalidOperationException("Recovered key could not be verified.");
         Print($"Key: {found:X12}");
@@ -193,9 +193,9 @@ public sealed partial class CliSession
             var type = await Client.DetectNtLevelAsync(ct);
             await recovery.RecoverAsync(dump, type switch { MifareClassicPrngType.Static => MifareRecoveryMethod.StaticNested, MifareClassicPrngType.Weak => MifareRecoveryMethod.Nested, _ => MifareRecoveryMethod.Hardnested }, progress, ct);
         }
-        await File.WriteAllBytesAsync(dump.UidHex + ".key", Enumerable.Range(0, dump.SectorCount)
+        await File.WriteAllBytesAsync(FilePath(dump.UidHex + ".key"), Enumerable.Range(0, dump.SectorCount)
             .SelectMany(i => (dump.KeyA[i] ?? new byte[6]).Concat(dump.KeyB[i] ?? new byte[6])).ToArray(), ct);
-        await File.WriteAllLinesAsync(dump.UidHex + ".dic", dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Select(Convert.ToHexString).Distinct(), ct);
+        await File.WriteAllLinesAsync(FilePath(dump.UidHex + ".dic"), dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Select(Convert.ToHexString).Distinct(), ct);
         dump = await Client.ReadMifareClassicAsync(keys, ct: ct, existing: dump);
         var name = dump.UidHex + ".bin"; SaveDump(name, dump.ToBin(), "bin", 16); Print("Saved " + name);
         for (var i = 0; i < dump.SectorCount; i++) Print($"{i}: A={HexKey(dump.KeyA[i])} B={HexKey(dump.KeyB[i])}");
@@ -209,7 +209,7 @@ public sealed partial class CliSession
         if (a.Has("import_dic")) keys.AddRange(ReadDictionary(a.Text("import_dic")));
         if (a.Has("import_key"))
         {
-            var bytes = File.ReadAllBytes(a.Text("import_key"));
+            var bytes = File.ReadAllBytes(FilePath(a.Text("import_key")));
             if (bytes.Length % 6 != 0) throw new ArgumentException("Key file must contain complete 6-byte keys.");
             keys.AddRange(bytes.Chunk(6));
         }
@@ -232,8 +232,8 @@ public sealed partial class CliSession
             for (var i = 0; i < 10; i++) mask[i] |= frame.Data[i];
         }
         for (var s = 0; s < sectors; s++) Print($"{s}: A={HexKey(found.GetValueOrDefault(2 * s))} B={HexKey(found.GetValueOrDefault(2 * s + 1))}");
-        if (a.Has("export_key")) await File.WriteAllBytesAsync(a.Text("export_key"), Enumerable.Range(0, sectors * 2).SelectMany(i => found.GetValueOrDefault(i) ?? new byte[6]).ToArray(), ct);
-        if (a.Has("export_dic")) await File.WriteAllLinesAsync(a.Text("export_dic"), found.Values.Select(Convert.ToHexString).Distinct(), ct);
+        if (a.Has("export_key")) await File.WriteAllBytesAsync(FilePath(a.Text("export_key")), Enumerable.Range(0, sectors * 2).SelectMany(i => found.GetValueOrDefault(i) ?? new byte[6]).ToArray(), ct);
+        if (a.Has("export_dic")) await File.WriteAllLinesAsync(FilePath(a.Text("export_dic")), found.Values.Select(Convert.ToHexString).Distinct(), ct);
     }
 
     private async Task ValueBlockAsync(CliArguments a, CancellationToken ct)
@@ -301,13 +301,17 @@ public sealed partial class CliSession
             return (ParseKey(pair[0]), ParseKey(pair[1]));
         }).ToArray();
     }
-    private static byte[][] ReadDictionary(string path) => File.ReadLines(path).Select(s => s.Split('#')[0].Trim()).Where(s => s.Length != 0).Select(ParseKey).DistinctBy(Convert.ToHexString).ToArray();
-    private static byte[] LoadDump(string path, string? type = null)
-        => type == "hex" || type is null && Path.GetExtension(path).ToLowerInvariant() is ".eml" or ".hex"
-            ? Convert.FromHexString(string.Concat(File.ReadAllText(path).Where(c => !char.IsWhiteSpace(c)))) : File.ReadAllBytes(path);
-    private static void SaveDump(string path, byte[] bytes, string? type, int width)
+    private byte[][] ReadDictionary(string path) => File.ReadLines(FilePath(path)).Select(s => s.Split('#')[0].Trim()).Where(s => s.Length != 0).Select(ParseKey).DistinctBy(Convert.ToHexString).ToArray();
+    private byte[] LoadDump(string name, string? type = null)
     {
-        if (string.IsNullOrEmpty(path)) throw new ArgumentException("An output file is required.");
+        var path = FilePath(name);
+        return type == "hex" || type is null && Path.GetExtension(path).ToLowerInvariant() is ".eml" or ".hex"
+            ? Convert.FromHexString(string.Concat(File.ReadAllText(path).Where(c => !char.IsWhiteSpace(c)))) : File.ReadAllBytes(path);
+    }
+    private void SaveDump(string name, byte[] bytes, string? type, int width)
+    {
+        if (string.IsNullOrEmpty(name)) throw new ArgumentException("An output file is required.");
+        var path = FilePath(name);
         if (type == "hex" || type is null && Path.GetExtension(path).ToLowerInvariant() is ".eml" or ".hex") File.WriteAllLines(path, bytes.Chunk(width).Select(Convert.ToHexString));
         else File.WriteAllBytes(path, bytes);
     }

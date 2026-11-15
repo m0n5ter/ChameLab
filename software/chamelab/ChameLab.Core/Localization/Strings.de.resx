@@ -3414,6 +3414,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>Passwörter aus Wörterbüchern versuchen</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>Konsole</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>Befehle des Kommandozeilen-Clients</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>Führt die Befehle des Kommandozeilen-Clients auf dem verbundenen Chameleon aus. Geben Sie help für die Liste ein oder einen Befehl mit --help für seine Optionen.</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>Dateien ohne vollständigen Pfad landen in {0}</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>Befehl eingeben; Tab vervollständigt ihn</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>Ausführen</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>Aus der Konsole</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>Lege einen T55XX-Tag auf das Lesegerät. Schlüssel werden durch Schreiben und Lesen einer anderen ID geprüft. Bei einem Treffer wird die ursprüngliche ID wiederhergestellt und das neue Passwort gesetzt.</value>
   </data>

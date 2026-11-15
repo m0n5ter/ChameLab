@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/CLI/">
+    <Project Path="ChameLab.Cli.Commands/ChameLab.Cli.Commands.csproj" />
     <Project Path="ChameLab.Cli.Plot/ChameLab.Cli.Plot.csproj" />
     <Project Path="ChameLab.Cli/ChameLab.Cli.csproj" />
   </Folder>

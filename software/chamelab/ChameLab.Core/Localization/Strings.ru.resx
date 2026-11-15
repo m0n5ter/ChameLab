@@ -3414,6 +3414,27 @@
   <data name="Tools_T55xxDictionaryHint" xml:space="preserve">
     <value>Перебор паролей из словарей</value>
   </data>
+  <data name="Tools_Console" xml:space="preserve">
+    <value>Консоль</value>
+  </data>
+  <data name="Tools_ConsoleHint" xml:space="preserve">
+    <value>Команды консольного клиента</value>
+  </data>
+  <data name="Tools_ConsoleIntro" xml:space="preserve">
+    <value>Выполняет команды консольного клиента на подключённом Chameleon. Введите help, чтобы увидеть список, или команду с --help, чтобы увидеть её параметры.</value>
+  </data>
+  <data name="Tools_ConsoleFolder" xml:space="preserve">
+    <value>Файлы без полного пути сохраняются в {0}</value>
+  </data>
+  <data name="Tools_ConsolePlaceholder" xml:space="preserve">
+    <value>Введите команду; Tab дополняет её</value>
+  </data>
+  <data name="Tools_ConsoleRun" xml:space="preserve">
+    <value>Выполнить</value>
+  </data>
+  <data name="Tools_FromTheConsole" xml:space="preserve">
+    <value>Из консоли</value>
+  </data>
   <data name="Tools_T55xxDescription" xml:space="preserve">
     <value>Положите метку T55XX на считыватель. Ключ проверяется записью другого ID и чтением результата. Когда ключ подходит, исходный ID восстанавливается и устанавливается новый пароль.</value>
   </data>

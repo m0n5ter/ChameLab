@@ -4,14 +4,8 @@ namespace ChameLab.Cli;
 
 internal sealed class LineEditor
 {
-    private readonly string _historyFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".chamelab_history");
-    private readonly List<string> _history = [];
-    public LineEditor()
-    {
-        try { if (File.Exists(_historyFile)) _history.AddRange(File.ReadLines(_historyFile).TakeLast(1000)); }
-        catch (IOException) { }
-        catch (UnauthorizedAccessException) { }
-    }
+    private readonly CommandHistory _commands = new(CommandHistory.DefaultFile);
+    private IReadOnlyList<string> History => _commands.Lines;
 
     public string? Read(string prompt)
     {
@@ -24,7 +18,7 @@ internal sealed class LineEditor
     private string? ReadLine(string prompt)
     {
         Console.Write(prompt);
-        var text = new StringBuilder(); var cursor = 0; var history = _history.Count;
+        var text = new StringBuilder(); var cursor = 0; var history = History.Count;
         while (true)
         {
             var key = Console.ReadKey(intercept: true);
@@ -36,13 +30,7 @@ internal sealed class LineEditor
             {
                 case ConsoleKey.Enter:
                     Console.WriteLine(); var line = text.ToString();
-                    if (line.Length > 0)
-                    {
-                        _history.Add(line);
-                        try { File.WriteAllLines(_historyFile, _history.TakeLast(1000)); }
-                        catch (IOException) { }
-                        catch (UnauthorizedAccessException) { }
-                    }
+                    _commands.Add(line);
                     return line;
                 case ConsoleKey.LeftArrow: cursor = Math.Max(0, cursor - 1); break;
                 case ConsoleKey.RightArrow: cursor = Math.Min(text.Length, cursor + 1); break;
@@ -51,9 +39,9 @@ internal sealed class LineEditor
                 case ConsoleKey.Backspace: if (cursor > 0) text.Remove(--cursor, 1); break;
                 case ConsoleKey.Delete: if (cursor < text.Length) text.Remove(cursor, 1); break;
                 case ConsoleKey.UpArrow:
-                    if (history > 0) { text.Clear().Append(_history[--history]); cursor = text.Length; } break;
+                    if (history > 0) { text.Clear().Append(History[--history]); cursor = text.Length; } break;
                 case ConsoleKey.DownArrow:
-                    if (history < _history.Count) { history++; text.Clear().Append(history == _history.Count ? "" : _history[history]); cursor = text.Length; } break;
+                    if (history < History.Count) { history++; text.Clear().Append(history == History.Count ? "" : History[history]); cursor = text.Length; } break;
                 case ConsoleKey.Tab:
                     var prefix = text.ToString(0, cursor);
                     var matches = Complete(prefix);
@@ -77,14 +65,5 @@ internal sealed class LineEditor
         }
     }
 
-    internal static string[] Complete(string prefix)
-    {
-        var paths = CommandCatalog.Commands.Select(c => c.Name).Where(n => n.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
-        if (paths.Length > 0) return paths;
-        var (command, _) = CommandCatalog.Find(prefix.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        if (command is null) return [];
-        var last = prefix.LastIndexOf(' ') + 1;
-        return command.Options.SelectMany(o => o.Names).Where(n => n.StartsWith(prefix[last..], StringComparison.Ordinal))
-            .Select(n => prefix[..last] + n).ToArray();
-    }
+    internal static string[] Complete(string prefix) => CommandCatalog.Complete(prefix);
 }

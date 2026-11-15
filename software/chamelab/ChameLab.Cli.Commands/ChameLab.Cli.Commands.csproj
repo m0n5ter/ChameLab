@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The CLI's commands without a terminal: shared by the chamelab executable and the app's console. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ChameLab.Cli</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../ChameLab.Core/ChameLab.Core.csproj" />
+    <EmbeddedResource Include="CommandCatalog.json;EnumCatalog.json;DesfireKeys.json" />
+    <InternalsVisibleTo Include="chamelab" />
+    <InternalsVisibleTo Include="ChameLab.Cli.Tests" />
+  </ItemGroup>
+</Project>

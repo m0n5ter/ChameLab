@@ -46,6 +46,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, hasCapture);
         InitHf(idle);
         InitT55xx(dictionaries ?? AppServices.Dictionaries, idle);
+        InitConsole();
         OpenHfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Hf; });
         OpenLfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Lf; });
         BackCommand = ReactiveCommand.Create(() => { Tool = SniffTool.None; }, idle);
@@ -90,6 +91,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             this.RaisePropertyChanged(nameof(IsHf));
             this.RaisePropertyChanged(nameof(IsLf));
             this.RaisePropertyChanged(nameof(IsT55xx));
+            this.RaisePropertyChanged(nameof(IsConsole));
             this.RaisePropertyChanged(nameof(CurrentToolTitle));
         }
     }
@@ -102,6 +104,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     {
         SniffTool.Hf => Strings.Tools_SniffHF,
         SniffTool.T55xx => Strings.Tools_T55xxPassword,
+        SniffTool.Console => Strings.Tools_Console,
         _ => Strings.Tools_SniffLF,
     };
 
@@ -333,4 +336,4 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         };
 }
 
-public enum SniffTool { None, Hf, Lf, T55xx }
+public enum SniffTool { None, Hf, Lf, T55xx, Console }

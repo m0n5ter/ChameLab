@@ -23,6 +23,50 @@ public partial class ToolsView : UserControl
             ? Strings.Tools_FramesHintTouch
             : Strings.Tools_FramesHintMouse;
         UpdateCopyLabel();
+        // Tunnel: Tab would move focus and Up/Down move the caret before the box sees them.
+        ConsoleInput.AddHandler(KeyDownEvent, OnConsoleKey, RoutingStrategies.Tunnel);
+        ConsoleOutput.PropertyChanged += (_, e) =>
+        {
+            // Follows the newest output, unless something is selected to copy.
+            if (e.Property == TextBox.TextProperty && ConsoleOutput.SelectionStart == ConsoleOutput.SelectionEnd)
+                ConsoleOutput.CaretIndex = ConsoleOutput.Text?.Length ?? 0;
+        };
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (DataContext is ToolsViewModel vm)
+            vm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ToolsViewModel.IsConsole) && vm.IsConsole)
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => ConsoleInput.Focus());
+            };
+    }
+
+    private void OnConsoleKey(object? sender, KeyEventArgs e)
+    {
+        if (DataContext is not ToolsViewModel vm) return;
+        switch (e.Key)
+        {
+            case Key.Enter:
+                vm.RunConsoleCommand.Execute(null);
+                break;
+            case Key.Up or Key.Down:
+                vm.ConsoleHistory(e.Key == Key.Up ? -1 : 1);
+                ConsoleInput.CaretIndex = vm.ConsoleInput.Length;
+                break;
+            case Key.Tab when e.KeyModifiers == KeyModifiers.None:
+                ConsoleInput.CaretIndex = vm.CompleteConsole(ConsoleInput.CaretIndex);
+                break;
+            case Key.C when e.KeyModifiers.HasFlag(KeyModifiers.Control) && vm.IsConsoleRunning
+                                                                    && ConsoleInput.SelectionStart == ConsoleInput.SelectionEnd:
+                vm.CancelConsoleCommand.Execute(null);
+                break;
+            default:
+                return;
+        }
+        e.Handled = true;
     }
 
     private void UpdateCopyLabel()
