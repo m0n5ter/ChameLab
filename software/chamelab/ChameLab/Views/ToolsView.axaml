@@ -635,7 +635,7 @@
             <!-- Short of room, Clear and then Run / Cancel drop their labels before the line gets narrow. -->
             <c:SideDock Grid.Row="3">
               <TextBox Name="ConsoleInput" Classes="consoleline" Text="{Binding ConsoleInput}" FontFamily="{x:Static c:AppFonts.Mono}"
-                       FontSize="12" MinWidth="160" VerticalAlignment="Center"
+                       FontSize="14" MinWidth="160" VerticalAlignment="Center"
                        PlaceholderText="{x:Static loc:Strings.Tools_ConsolePlaceholder}">
                 <TextBox.InnerLeftContent>
                   <TextBlock Text="&gt;" FontFamily="{x:Static c:AppFonts.Mono}" FontWeight="SemiBold"
