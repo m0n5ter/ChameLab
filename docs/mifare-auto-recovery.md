@@ -1,5 +1,15 @@
 # MIFARE Classic Auto recovery
 
+The CLI command `hf mf autopwn` uses the same automatic recovery planner as the
+UI's **Auto** button. It supplies the built-in factory dictionary and an optional
+`-k` / `--key` candidate; the candidate is confirmed on the card before reuse.
+Method choices, sector/key details and checking progress appear in the console.
+After recovery it reads accessible blocks without repeating the dictionary pass.
+It saves `<UID>.key`, `<UID>.dic` and `<UID>.bin` even when interrupted, retaining
+confirmed keys and blocks already read. Unread blocks and unknown binary key
+entries are zero-filled; the `.dic` file contains only confirmed keys. Incomplete
+recovery returns a failure status, and cancellation returns status 130.
+
 Auto replans after every confirmed key. It never infers that the next key will
 take as long as the preceding one. The current order is:
 

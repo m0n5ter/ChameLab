@@ -16,3 +16,10 @@ dotnet run --project software/chamelab/ChameLab.Tools -c Release -- read-mfc4k -
 
 It preserves partial dumps and a JSON report, supports dictionary keys and
 managed nested recovery, and restores the original device mode on exit.
+
+`hf mf autopwn [-k KEY]` uses the same automatic MIFARE Classic recovery planner
+as the app's **Auto** button, with the built-in factory dictionary and optional
+key candidate. It shows the selected methods and sector/key progress, then saves
+`<UID>.key`, `<UID>.dic` and `<UID>.bin` in the current folder (or the app console's
+chosen folder). Cancellation and failures preserve confirmed keys and any blocks
+already read; incomplete recovery returns a failure status.

@@ -174,32 +174,39 @@ public sealed partial class CliSession
 
     private async Task AutopwnAsync(CliArguments a, CancellationToken ct)
     {
-        var tag = (await Client.Hf14aScanAsync(ct)).Single();
-        var dump = new MifareDump(MifareClassic.FromSak(tag.Sak), tag.Uid, tag.Atqa, tag.Sak);
+        var client = Client;
         var keys = MifareClassic.DefaultKeys.ToList(); if (a.Has("key")) keys.Insert(0, a.Hex("key", 6));
-        await Client.FindMifareKeysAsync(dump, keys, ct: ct);
-        var recovery = new MifareKeyRecovery(Client, new ManagedHardnestedEngine(), keyRecovery: new ManagedKeyRecoveryEngine());
-        var progress = new DirectProgress<KeyRecoveryProgress>(p => Print(p.Status));
-        if (dump.KeyA.All(k => k is null) && dump.KeyB.All(k => k is null))
+        var tag = (await client.Hf14aScanAsync(ct)).Single();
+        var dump = new MifareDump(MifareClassic.FromSak(tag.Sak), tag.Uid, tag.Atqa, tag.Sak);
+        var recovery = new MifareKeyRecovery(client, new ManagedHardnestedEngine(), keyRecovery: new ManagedKeyRecoveryEngine());
+        var progress = new DirectProgress<KeyRecoveryProgress>(p =>
         {
-            try { await recovery.RecoverAsync(dump, MifareRecoveryMethod.Darkside, progress, ct); }
-            catch (Exception ex) when (ex is InvalidOperationException or ChameleonException or NotSupportedException)
-            { Print("Darkside did not recover a key: " + ex.Message); }
-        }
-        if (dump.KeyA.All(k => k is null) && dump.KeyB.All(k => k is null))
-            await recovery.RecoverAsync(dump, MifareRecoveryMethod.StaticEncryptedNested, progress, ct);
-        if (dump.KeyA.Any(k => k is null) || dump.KeyB.Any(k => k is null))
+            var sector = p.Sector >= 0 ? $"Sector {p.Sector}{p.KeyType}: " : "";
+            var detail = p.Detail is { } text ? " · " + text : "";
+            var key = p.Key is { } found ? " · " + Convert.ToHexString(found) : "";
+            Print(sector + p.Status + detail + key);
+        });
+        try
         {
-            var type = await Client.DetectNtLevelAsync(ct);
-            await recovery.RecoverAsync(dump, type switch { MifareClassicPrngType.Static => MifareRecoveryMethod.StaticNested, MifareClassicPrngType.Weak => MifareRecoveryMethod.Nested, _ => MifareRecoveryMethod.Hardnested }, progress, ct);
+            var result = await recovery.RecoverAutomaticallyAsync(dump, keys, progress, ct);
+            // Auto has already searched the dictionary and propagated every confirmed key.
+            // Keep its rejection ledger while filling the remaining readable blocks.
+            dump = await client.ReadMifareClassicAsync([], ct: ct, existing: dump,
+                keySearch: new() { Session = MifareRecoverySession.For(dump, client) });
+            ct.ThrowIfCancellationRequested();
+            if (!result.Complete || dump.RecoveredBlocks != dump.BlockCount)
+                throw new IOException("Recovery is incomplete; saved the partial dump.");
         }
-        await File.WriteAllBytesAsync(FilePath(dump.UidHex + ".key"), Enumerable.Range(0, dump.SectorCount)
-            .SelectMany(i => (dump.KeyA[i] ?? new byte[6]).Concat(dump.KeyB[i] ?? new byte[6])).ToArray(), ct);
-        await File.WriteAllLinesAsync(FilePath(dump.UidHex + ".dic"), dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Select(Convert.ToHexString).Distinct(), ct);
-        dump = await Client.ReadMifareClassicAsync(keys, ct: ct, existing: dump);
-        var name = dump.UidHex + ".bin"; SaveDump(name, dump.ToBin(), "bin", 16); Print("Saved " + name);
-        for (var i = 0; i < dump.SectorCount; i++) Print($"{i}: A={HexKey(dump.KeyA[i])} B={HexKey(dump.KeyB[i])}");
-        if (dump.RecoveredBlocks != dump.BlockCount) throw new IOException("Recovery is incomplete; saved the partial dump.");
+        finally
+        {
+            // Save without the operation's cancelled token, including keys in a drained firmware reply.
+            dump.FillRecoveredKeys();
+            await File.WriteAllBytesAsync(FilePath(dump.UidHex + ".key"), Enumerable.Range(0, dump.SectorCount)
+                .SelectMany(i => (dump.KeyA[i] ?? new byte[6]).Concat(dump.KeyB[i] ?? new byte[6])).ToArray());
+            await File.WriteAllLinesAsync(FilePath(dump.UidHex + ".dic"), dump.KeyA.Concat(dump.KeyB).OfType<byte[]>().Select(Convert.ToHexString).Distinct());
+            var name = dump.UidHex + ".bin"; SaveDump(name, dump.ToBin(), "bin", 16); Print("Saved " + name);
+            for (var i = 0; i < dump.SectorCount; i++) Print($"{i}: A={HexKey(dump.KeyA[i])} B={HexKey(dump.KeyB[i])}");
+        }
     }
     private static string HexKey(byte[]? key) => key is null ? "------------" : Convert.ToHexString(key);
 
