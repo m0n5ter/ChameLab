@@ -1071,9 +1071,6 @@
   <data name="Chameleon_ForgetsEveryPhoneAndTabletPaired" xml:space="preserve">
     <value>Bluetooth LE でペアリングしたすべてのスマートフォンとタブレットの登録を解除します。</value>
   </data>
-  <data name="Chameleon_GitVersionHeader" xml:space="preserve">
-    <value>GIT バージョン</value>
-  </data>
   <data name="Chameleon_HardwareAndFirmwareIdentity" xml:space="preserve">
     <value>ハードウェアとファームウェアの識別情報</value>
   </data>

@@ -287,21 +287,15 @@
               </StackPanel>
             </StackPanel>
 
-            <UniformGrid Classes="cols2">
-              <Border Classes="inset">
-                <StackPanel Spacing="2">
-                  <TextBlock Text="{x:Static loc:Strings.Chameleon_FirmwareHeader}" Classes="overline" />
-                  <TextBlock Text="{Binding Info?.FullFirmwareVersion, TargetNullValue='-'}" Classes="value" />
-                </StackPanel>
-              </Border>
+            <c:FitGrid Columns="3" ColumnSpacing="16" RowSpacing="16">
               <Border Classes="inset">
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="{x:Static loc:Strings.Chameleon_GitVersionHeader}" Classes="overline" />
-                    <TextBlock Text="{Binding Info?.GitVersion, TargetNullValue='-'}" Classes="value mono" />
+                    <TextBlock Text="{x:Static loc:Strings.Chameleon_FirmwareHeader}" Classes="overline" />
+                    <TextBlock Text="{Binding Info?.FullFirmwareVersion, TargetNullValue='-'}" Classes="value mono" />
                   </StackPanel>
                   <Button Grid.Column="1" Classes="icon small" VerticalAlignment="Center"
-                          b:CopyToClipboard.Text="{Binding Info?.GitVersion}">
+                          b:CopyToClipboard.Text="{Binding Info?.FullFirmwareVersion}">
                     <PathIcon Data="{StaticResource Icon.copy}" />
                   </Button>
                 </Grid>
@@ -330,7 +324,7 @@
                   </Button>
                 </Grid>
               </Border>
-            </UniformGrid>
+            </c:FitGrid>
           </StackPanel>
         </Border>
 

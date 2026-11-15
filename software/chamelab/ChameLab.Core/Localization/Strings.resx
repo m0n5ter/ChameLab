@@ -540,9 +540,6 @@
   <data name="Chameleon_ForgetsEveryPhoneAndTabletPaired" xml:space="preserve">
     <value>Forgets every phone and tablet paired over Bluetooth LE.</value>
   </data>
-  <data name="Chameleon_GitVersionHeader" xml:space="preserve">
-    <value>GIT VERSION</value>
-  </data>
   <data name="Chameleon_HardwareAndFirmwareIdentity" xml:space="preserve">
     <value>Hardware and firmware identity</value>
   </data>

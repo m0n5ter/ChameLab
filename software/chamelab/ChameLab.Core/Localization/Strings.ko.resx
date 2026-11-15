@@ -1071,9 +1071,6 @@
   <data name="Chameleon_ForgetsEveryPhoneAndTabletPaired" xml:space="preserve">
     <value>블루투스 LE로 페어링된 모든 휴대폰과 태블릿을 삭제합니다.</value>
   </data>
-  <data name="Chameleon_GitVersionHeader" xml:space="preserve">
-    <value>GIT 버전</value>
-  </data>
   <data name="Chameleon_HardwareAndFirmwareIdentity" xml:space="preserve">
     <value>하드웨어 및 펌웨어 식별 정보</value>
   </data>
