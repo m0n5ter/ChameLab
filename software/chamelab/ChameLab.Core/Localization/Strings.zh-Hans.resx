@@ -3426,6 +3426,15 @@
   <data name="Tools_ConsolePlaceholder" xml:space="preserve">
     <value>输入命令，按 Tab 补全</value>
   </data>
+  <data name="Tools_ConsolePlaceholderTouch" xml:space="preserve">
+    <value>输入命令；点按提示即可添加</value>
+  </data>
+  <data name="Tools_ConsoleFilesInApp" xml:space="preserve">
+    <value>命令保存的文件保留在此设备上的 ChameLab 内。</value>
+  </data>
+  <data name="Tools_ConsoleFilesBrowser" xml:space="preserve">
+    <value>命令保存的文件保留在此页面中，重新加载页面后会丢失。</value>
+  </data>
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>运行</value>
   </data>

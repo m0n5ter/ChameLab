@@ -3426,6 +3426,15 @@
   <data name="Tools_ConsolePlaceholder" xml:space="preserve">
     <value>Befehl eingeben; Tab vervollständigt ihn</value>
   </data>
+  <data name="Tools_ConsolePlaceholderTouch" xml:space="preserve">
+    <value>Befehl eingeben; auf einen Vorschlag tippen, um ihn einzufügen</value>
+  </data>
+  <data name="Tools_ConsoleFilesInApp" xml:space="preserve">
+    <value>Dateien, die die Befehle speichern, bleiben auf diesem Gerät in ChameLab.</value>
+  </data>
+  <data name="Tools_ConsoleFilesBrowser" xml:space="preserve">
+    <value>Dateien, die die Befehle speichern, bleiben auf dieser Seite und gehen beim Neuladen verloren.</value>
+  </data>
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>Ausführen</value>
   </data>

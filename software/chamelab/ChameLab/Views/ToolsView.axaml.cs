@@ -57,7 +57,8 @@ public partial class ToolsView : UserControl
         if (_vm is not { } vm) return;
         switch (e.PropertyName)
         {
-            case nameof(ToolsViewModel.IsConsole) when vm.IsConsole:
+            // On a phone, focusing would pop the keyboard over the output before anything is asked for.
+            case nameof(ToolsViewModel.IsConsole) when vm.IsConsole && !ToolsViewModel.IsTouchConsole:
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => ConsoleInput.Focus());
                 break;
             case nameof(ToolsViewModel.ConsoleText):

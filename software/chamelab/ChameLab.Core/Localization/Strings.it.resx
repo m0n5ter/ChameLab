@@ -3426,6 +3426,15 @@
   <data name="Tools_ConsolePlaceholder" xml:space="preserve">
     <value>Digita un comando; Tab lo completa</value>
   </data>
+  <data name="Tools_ConsolePlaceholderTouch" xml:space="preserve">
+    <value>Digita un comando; tocca un suggerimento per aggiungerlo</value>
+  </data>
+  <data name="Tools_ConsoleFilesInApp" xml:space="preserve">
+    <value>I file salvati dai comandi restano all’interno di ChameLab su questo dispositivo.</value>
+  </data>
+  <data name="Tools_ConsoleFilesBrowser" xml:space="preserve">
+    <value>I file salvati dai comandi restano in questa pagina e vanno persi quando viene ricaricata.</value>
+  </data>
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>Esegui</value>
   </data>

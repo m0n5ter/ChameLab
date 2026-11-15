@@ -3426,6 +3426,15 @@
   <data name="Tools_ConsolePlaceholder" xml:space="preserve">
     <value>명령 입력, Tab으로 자동 완성</value>
   </data>
+  <data name="Tools_ConsolePlaceholderTouch" xml:space="preserve">
+    <value>명령을 입력하세요. 제안을 탭하면 추가됩니다</value>
+  </data>
+  <data name="Tools_ConsoleFilesInApp" xml:space="preserve">
+    <value>명령이 저장한 파일은 이 기기의 ChameLab 안에 보관됩니다.</value>
+  </data>
+  <data name="Tools_ConsoleFilesBrowser" xml:space="preserve">
+    <value>명령이 저장한 파일은 이 페이지에 남으며 새로 고치면 사라집니다.</value>
+  </data>
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>실행</value>
   </data>

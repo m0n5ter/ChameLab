@@ -39,8 +39,25 @@ public sealed partial class ToolsViewModel
     private bool _consoleCarriage;
     private int _historyIndex = -1;
 
-    /// <summary>A terminal-like tool fits a desktop; phones and the browser get it later.</summary>
-    public static bool IsConsoleAvailable => OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
+    /// <summary>A phone or tablet: no Tab key, and a soft keyboard that should not pop up unasked.</summary>
+    public static bool IsTouchConsole => OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
+
+    /// <summary>
+    /// A folder can be picked only where the system's picker hands back a real path: on the desktop. On phones and
+    /// in the browser the commands' files stay in the app's own storage.
+    /// </summary>
+    public static bool CanChooseConsoleFolder => !OperatingSystem.IsBrowser() && !IsTouchConsole;
+
+    /// <summary>Where the commands' files go when that is not a folder of the user's choosing; empty on the desktop.</summary>
+    public static string ConsoleFilesNote =>
+        OperatingSystem.IsBrowser() ? Strings.Tools_ConsoleFilesBrowser
+        : IsTouchConsole ? Strings.Tools_ConsoleFilesInApp
+        : "";
+
+    public static bool HasConsoleFilesNote => ConsoleFilesNote.Length > 0;
+
+    public static string ConsolePlaceholder =>
+        IsTouchConsole ? Strings.Tools_ConsolePlaceholderTouch : Strings.Tools_ConsolePlaceholder;
 
     public bool IsConsole => _tool == SniffTool.Console;
 
@@ -116,7 +133,9 @@ public sealed partial class ToolsViewModel
             this.RaisePropertyChanged(nameof(ConsoleFolderText));
             this.RaisePropertyChanged(nameof(IsConsoleFolderChosen));
         }
-    } = AppSettings.GetString(FolderSetting) is { Length: > 0 } saved && Path.IsPathRooted(saved) ? saved : AppCliHost.DefaultFolder;
+    } = CanChooseConsoleFolder && AppSettings.GetString(FolderSetting) is { Length: > 0 } saved && Path.IsPathRooted(saved)
+        ? saved
+        : AppCliHost.DefaultFolder;
 
     public bool IsConsoleFolderChosen => ConsoleFolder != AppCliHost.DefaultFolder;
 

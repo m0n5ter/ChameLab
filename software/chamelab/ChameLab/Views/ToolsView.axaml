@@ -211,8 +211,7 @@
             </StackPanel>
           </Grid>
         </Button>
-        <Button Classes="tile source" Command="{Binding OpenConsoleCommand}"
-                IsVisible="{x:Static vm:ToolsViewModel.IsConsoleAvailable}">
+        <Button Classes="tile source" Command="{Binding OpenConsoleCommand}">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
             <Border Classes="iconwell" VerticalAlignment="Center">
               <PathIcon Data="{StaticResource Icon.console}" />
@@ -248,8 +247,11 @@
       </Grid>
 
       <!-- Console -->
-      <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_ConsoleIntro}"
-                 IsVisible="{Binding IsConsole}" />
+      <StackPanel Spacing="2" IsVisible="{Binding IsConsole}">
+        <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_ConsoleIntro}" />
+        <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static vm:ToolsViewModel.ConsoleFilesNote}"
+                   IsVisible="{x:Static vm:ToolsViewModel.HasConsoleFilesNote}" />
+      </StackPanel>
 
       <!-- HF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsHf}">
@@ -584,13 +586,16 @@
             <!-- The folder button, then the path (read-only, to select and copy); short of room, the options
                  drop their labels before the path gets narrow. -->
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-              <Button Command="{Binding ChooseConsoleFolderCommand}" ToolTip.Tip="{x:Static loc:Strings.Tools_ConsoleChooseFolder}">
+              <!-- Only where a folder can be picked (the desktop); elsewhere just the options. -->
+              <Button Command="{Binding ChooseConsoleFolderCommand}" ToolTip.Tip="{x:Static loc:Strings.Tools_ConsoleChooseFolder}"
+                      IsVisible="{x:Static vm:ToolsViewModel.CanChooseConsoleFolder}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.folder}" />
                 </StackPanel>
               </Button>
               <c:SideDock Grid.Column="1">
                 <TextBox Classes="consoleline" Text="{Binding ConsoleFolder, Mode=OneWay}" IsReadOnly="True" MinWidth="140" VerticalAlignment="Center"
+                         IsVisible="{x:Static vm:ToolsViewModel.CanChooseConsoleFolder}"
                          ToolTip.Tip="{Binding ConsoleFolderText}">
                   <TextBox.InnerRightContent>
                     <Button Classes="icon small" Command="{Binding ResetConsoleFolderCommand}" Margin="0,0,4,0"
@@ -644,7 +649,8 @@
             <c:SideDock Grid.Row="3">
               <TextBox Name="ConsoleInput" Classes="consoleline" Text="{Binding ConsoleInput}" FontFamily="{x:Static c:AppFonts.Mono}"
                        FontSize="14" MinWidth="160" VerticalAlignment="Center"
-                       PlaceholderText="{x:Static loc:Strings.Tools_ConsolePlaceholder}">
+                       PlaceholderText="{x:Static vm:ToolsViewModel.ConsolePlaceholder}"
+                       TextInputOptions.AutoCapitalization="False" TextInputOptions.ReturnKeyType="Go">
                 <TextBox.InnerLeftContent>
                   <TextBlock Text="&gt;" FontFamily="{x:Static c:AppFonts.Mono}" FontWeight="SemiBold"
                              Foreground="{DynamicResource BrandBlueBrush}" VerticalAlignment="Center" Margin="8,0,0,0" />

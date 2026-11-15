@@ -3426,6 +3426,15 @@
   <data name="Tools_ConsolePlaceholder" xml:space="preserve">
     <value>Введите команду; Tab дополняет её</value>
   </data>
+  <data name="Tools_ConsolePlaceholderTouch" xml:space="preserve">
+    <value>Введите команду; нажмите подсказку, чтобы добавить её</value>
+  </data>
+  <data name="Tools_ConsoleFilesInApp" xml:space="preserve">
+    <value>Файлы, которые сохраняют команды, остаются внутри ChameLab на этом устройстве.</value>
+  </data>
+  <data name="Tools_ConsoleFilesBrowser" xml:space="preserve">
+    <value>Файлы, которые сохраняют команды, остаются на этой странице и пропадают при её перезагрузке.</value>
+  </data>
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>Выполнить</value>
   </data>

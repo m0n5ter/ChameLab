@@ -125,8 +125,8 @@ It can also share a device over the same relay the app uses: `hw share` opens th
 connected Chameleon and prints a code, and `hw connect --code TR1-ABCD-1234` joins a
 device shared from another machine.
 
-The same commands run in the app too: Tools → Console (desktop) uses the app's
-connection, so there is no need to disconnect it first.
+The same commands run in the app too: Tools → Console (desktop, phones and the
+web app) uses the app's connection, so there is no need to disconnect it first.
 
 Use `dump_help` for all commands and `COMMAND --help` for options. Release packages
 include the .NET runtime; launch `chamelab` (`chamelab.exe` on Windows).

@@ -3426,6 +3426,15 @@
   <data name="Tools_ConsolePlaceholder" xml:space="preserve">
     <value>コマンドを入力（Tab で補完）</value>
   </data>
+  <data name="Tools_ConsolePlaceholderTouch" xml:space="preserve">
+    <value>コマンドを入力。候補をタップすると追加されます</value>
+  </data>
+  <data name="Tools_ConsoleFilesInApp" xml:space="preserve">
+    <value>コマンドが保存したファイルは、このデバイスの ChameLab 内に保存されます。</value>
+  </data>
+  <data name="Tools_ConsoleFilesBrowser" xml:space="preserve">
+    <value>コマンドが保存したファイルはこのページ内にあり、再読み込みすると消えます。</value>
+  </data>
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>実行</value>
   </data>
