@@ -49,6 +49,18 @@ public class ConsoleTests
         Assert.Equal(expected, vm.ConsoleInput);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void BlankLineIsNotRun(string line)
+    {
+        var vm = new ToolsViewModel(new ChameLab.Services.DeviceService([])) { ConsoleInput = line };
+        Assert.False(vm.RunConsoleCommand.CanExecute(null));
+        vm.SubmitConsoleLine();
+        Assert.False(vm.IsConsoleRunning);
+        Assert.Equal("", vm.ConsoleText.Text);
+    }
+
     private sealed class Box(double width) : Control
     {
         protected override Size MeasureOverride(Size availableSize) => new(Math.Min(width, availableSize.Width), 30);

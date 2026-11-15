@@ -114,7 +114,7 @@ public partial class ToolsView : UserControl
         switch (e.Key)
         {
             case Key.Enter:
-                vm.RunConsoleCommand.Execute(null);
+                vm.SubmitConsoleLine();
                 break;
             case Key.Escape when e.KeyModifiers == KeyModifiers.None:
                 vm.ClearConsoleCommand.Execute(null);

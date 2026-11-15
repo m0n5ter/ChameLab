@@ -139,7 +139,9 @@ public sealed partial class ToolsViewModel
     private void InitConsole()
     {
         OpenConsoleCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Console; });
-        RunConsoleCommand = ReactiveCommand.Create(SubmitConsoleLine);
+        // Run stays off while the line is blank: there is nothing to run.
+        RunConsoleCommand = ReactiveCommand.Create(SubmitConsoleLine,
+            this.WhenAnyValue(x => x.ConsoleInput, line => !string.IsNullOrWhiteSpace(line)));
         CancelConsoleCommand = ReactiveCommand.Create(CancelConsole);
         ClearConsoleCommand = ReactiveCommand.Create(ClearConsole);
         ChooseConsoleFolderCommand = ReactiveCommand.CreateFromTask(ChooseConsoleFolderAsync);
@@ -171,24 +173,29 @@ public sealed partial class ToolsViewModel
             },
             () => ConsoleFolder));
 
-    /// <summary>Enter: runs the line, or hands it to the running command that asked for one.</summary>
-    private void SubmitConsoleLine()
+    /// <summary>
+    /// Enter: hands the line to the running command that asked for one (blank answers too), or runs it. A blank
+    /// line is not a command, and while one runs the line waits for it to end.
+    /// </summary>
+    public void SubmitConsoleLine()
     {
         var line = ConsoleInput;
-        ConsoleInput = "";
-        _historyIndex = -1;
         var waiting = _consoleLine;
-        _consoleLine = null;
         // A command canceled while it waited has nothing to hand the line to: it runs as a command.
         if (waiting is { Task.IsCompleted: false })
         {
+            _consoleLine = null;
+            ConsoleInput = "";
+            _historyIndex = -1;
             AppendConsole(line + "\n", typed: true);
             waiting.TrySetResult(line);
             return;
         }
-        if (IsConsoleRunning) return;
+        if (IsConsoleRunning || string.IsNullOrWhiteSpace(line)) return;
+        _consoleLine = null;
+        ConsoleInput = "";
+        _historyIndex = -1;
         AppendConsole("> " + line + "\n", typed: true);
-        if (string.IsNullOrWhiteSpace(line)) return;
         _history.Add(line);
         _ = RunConsoleAsync(line);
     }
