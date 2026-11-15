@@ -72,47 +72,57 @@
     </Style>
 
 
-    <!-- The console's options: toggles shaped like the buttons beside them, a soft accent fill when on. -->
+    <!-- The console's options: toggles shaped like the buttons beside them; on, they look like the checked
+         All / HF / LF segment (a soft accent fill framed by a thin accent outline). A template of their own,
+         since the theme's toggle draws a thick gray frame when checked. The 1px frame is always there
+         (the button's own border until checked), so checking never resizes anything. -->
     <Style Selector="ToggleButton.option">
-      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="PART_Bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Setter Property="Background" Value="{actipro:ThemeResource ButtonBackgroundBrushSoft}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ButtonForegroundBrush}" />
       <Setter Property="Height" Value="40" />
       <Setter Property="MinHeight" Value="0" />
       <Setter Property="Padding" Value="14,0" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
     </Style>
-    <!-- On: a thin accent outline. Set on the toggle itself, since its template takes the border from there
-         (the theme's own checked border is thicker and gray). -->
+    <Style Selector="ToggleButton.option:pointerover /template/ Border#PART_Bg">
+      <Setter Property="Background" Value="{actipro:ThemeResource ButtonBackgroundBrushSoftPointerOver}" />
+    </Style>
+    <Style Selector="ToggleButton.option:pressed /template/ Border#PART_Bg">
+      <Setter Property="Background" Value="{actipro:ThemeResource ButtonBackgroundBrushSoftPressed}" />
+    </Style>
     <Style Selector="ToggleButton.option:checked">
-      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+    </Style>
+    <Style Selector="ToggleButton.option:checked /template/ Border#PART_Bg">
+      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
       <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
     </Style>
-    <!-- The path and the command line: as tall as the buttons beside them. -->
-    <Style Selector="TextBox.consoleline">
-      <Setter Property="Height" Value="40" />
-      <Setter Property="MinHeight" Value="0" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Style Selector="ToggleButton.option:checked:pointerover /template/ Border#PART_Bg">
+      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccentPointerOver}" />
+    </Style>
+    <Style Selector="ToggleButton.option:checked:pressed /template/ Border#PART_Bg">
+      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccentPressed}" />
     </Style>
     <Style Selector="ToggleButton.option > StackPanel > PathIcon">
       <Setter Property="Width" Value="16" />
       <Setter Property="Height" Value="16" />
     </Style>
-    <Style Selector="ToggleButton.option:checked /template/ ContentPresenter">
-      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
-      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
-    </Style>
-    <Style Selector="ToggleButton.option:checked:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccentPointerOver}" />
-      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
-    </Style>
-    <Style Selector="ToggleButton.option:checked:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccentPressed}" />
-      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+
+    <!-- The path and the command line: as tall as the buttons beside them. -->
+    <Style Selector="TextBox.consoleline">
+      <Setter Property="Height" Value="40" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
 
     <!-- A word the console's hint line offers: a small badge, tinted toward the accent on hover, that puts it in
