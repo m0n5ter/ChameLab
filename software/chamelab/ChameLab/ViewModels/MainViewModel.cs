@@ -382,6 +382,6 @@ public sealed class MainViewModel : ViewModelBase
         var info = _device.DeviceInfo;
         DeviceSummary = !IsConnected ? Strings.Main_NotConnected
             : info is null ? Strings.Main_Connected
-            : string.Format(Strings.Main_DeviceSummary, info.ModelName, info.FirmwareVersion);
+            : string.Format(Strings.Main_DeviceSummary, info.ModelName, info.FullFirmwareVersion);
     }
 }

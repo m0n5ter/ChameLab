@@ -36,6 +36,10 @@ public readonly partial record struct FirmwareVersion(int Major, int Minor, int 
         TryParse(gitVersion, out var git) ? git :
         TryParse(appVersion, out var app) ? app : null;
 
+    /// <summary>The full version a device runs (<c>v2.3.2-cl</c>), falling back to the raw <c>major.minor</c>.</summary>
+    public static string Describe(string gitVersion, string appVersion) =>
+        OfDevice(gitVersion, appVersion)?.ToString() ?? appVersion;
+
     public int CompareTo(FirmwareVersion other) =>
         (Major, Minor, Patch, Commits).CompareTo((other.Major, other.Minor, other.Patch, other.Commits));
 

@@ -70,6 +70,15 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         return Encoding.UTF8.GetString(f.Data);
     }
 
+    /// <summary>The full firmware version (<c>v2.3.2-cl</c>), from the git version when it names a release.</summary>
+    public async Task<string> GetFullVersionAsync(CancellationToken ct = default)
+    {
+        var app = await GetAppVersionAsync(ct);
+        string git;
+        try { git = await GetGitVersionAsync(ct); } catch (ChameleonException) { git = "-"; }
+        return FirmwareVersion.Describe(git, app);
+    }
+
     public async Task<DeviceModel> GetDeviceModelAsync(CancellationToken ct = default)
     {
         var f = await conn.SendExpectAsync(Command.GetDeviceModel, Status.Success, ct: ct);

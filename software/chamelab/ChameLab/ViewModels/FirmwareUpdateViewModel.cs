@@ -182,8 +182,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
     public Task OnConnectedAsync()
     {
         if (_device.DeviceInfo is not { } info) return Task.CompletedTask;
-        CurrentVersion = FirmwareVersion.OfDevice(info.GitVersion, info.FirmwareVersion)?.ToString()
-                         ?? info.FirmwareVersion;
+        CurrentVersion = info.FullFirmwareVersion;
         this.RaisePropertyChanged(nameof(CanInstall));
         this.RaisePropertyChanged(nameof(CanInstallLatest));
         return CheckAsync(force: false);
@@ -308,7 +307,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
             _target = null;
             InstallTitle = Strings.Firmware_Updated;
             StepText = _device.DeviceInfo is { } info
-                ? string.Format(Strings.Firmware_NowRuns, info.ModelName, FirmwareVersion.OfDevice(info.GitVersion, info.FirmwareVersion)?.ToString() ?? info.FirmwareVersion)
+                ? string.Format(Strings.Firmware_NowRuns, info.ModelName, info.FullFirmwareVersion)
                 : Strings.Firmware_Restarted;
             Dialog = FirmwareDialog.Done;
         }

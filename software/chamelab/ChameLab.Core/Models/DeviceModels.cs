@@ -21,6 +21,9 @@ public sealed record DeviceInfo
     /// <summary>The firmware takes per-card slot LED colors (ChameLab firmware, not the original one).</summary>
     public bool SupportsSlotColors { get; init; }
 
+    /// <summary>The full firmware version for display (<c>v2.3.2-cl</c>), not just <c>major.minor</c>.</summary>
+    public string FullFirmwareVersion => global::ChameLab.Protocol.FirmwareVersion.Describe(GitVersion, FirmwareVersion);
+
     public string ModelName => Model == DeviceModel.Lite ? "Chameleon Lite" : "Chameleon Ultra";
 }
 

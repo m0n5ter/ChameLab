@@ -139,8 +139,8 @@ public sealed partial class CliSession : IAsyncDisposable
         try
         {
             var model = await Client.GetDeviceModelAsync(ct);
-            var version = await Client.GetAppVersionAsync(ct);
-            Output.WriteLine($"Chameleon {model} connected ({what}): v{version}");
+            var version = await Client.GetFullVersionAsync(ct);
+            Output.WriteLine($"Chameleon {model} connected ({what}): {version}");
         }
         catch { await DisconnectAsync(); throw; }
     }

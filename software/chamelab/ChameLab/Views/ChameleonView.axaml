@@ -291,7 +291,7 @@
               <Border Classes="inset">
                 <StackPanel Spacing="2">
                   <TextBlock Text="{x:Static loc:Strings.Chameleon_FirmwareHeader}" Classes="overline" />
-                  <TextBlock Text="{Binding Info?.FirmwareVersion, TargetNullValue='-'}" Classes="value" />
+                  <TextBlock Text="{Binding Info?.FullFirmwareVersion, TargetNullValue='-'}" Classes="value" />
                 </StackPanel>
               </Border>
               <Border Classes="inset">

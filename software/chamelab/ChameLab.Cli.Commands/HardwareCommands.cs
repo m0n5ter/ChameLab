@@ -11,7 +11,7 @@ public sealed partial class CliSession
         Add("hw disconnect", (_, _) => DisconnectAsync());
         Add("hw chipid", async (_, ct) => Print("Device chip ID: " + await Client.GetChipIdAsync(ct)));
         Add("hw address", async (_, ct) => Print("Device address: " + await Client.GetAddressAsync(ct)));
-        Add("hw version", async (_, ct) => Print($"Chameleon {await Client.GetDeviceModelAsync(ct)}, Version: v{await Client.GetAppVersionAsync(ct)} ({await Client.GetGitVersionAsync(ct)})"));
+        Add("hw version", async (_, ct) => Print($"Chameleon {await Client.GetDeviceModelAsync(ct)}, Version: {await Client.GetFullVersionAsync(ct)} ({await Client.GetGitVersionAsync(ct)})"));
         Add("hw mode", async (a, ct) =>
         {
             if (a.Flag("reader") || a.Flag("emulator")) await Client.SetDeviceModeAsync(a.Flag("reader") ? DeviceMode.Reader : DeviceMode.Tag, ct);
