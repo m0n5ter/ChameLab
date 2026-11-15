@@ -71,14 +71,6 @@
       <Setter Property="Height" Value="380" />
     </Style>
 
-    <!-- The console's output: a fixed height of its own, scrolled to the newest line. -->
-    <Style Selector="TextBox.console">
-      <Setter Property="Height" Value="460" />
-      <Setter Property="VerticalContentAlignment" Value="Top" />
-    </Style>
-    <Style Selector=".compact TextBox.console">
-      <Setter Property="Height" Value="380" />
-    </Style>
 
     <Style Selector="ScrollViewer.samples">
       <Setter Property="Height" Value="320" />
@@ -172,10 +164,8 @@
       </Grid>
 
       <!-- Console -->
-      <StackPanel Spacing="2" IsVisible="{Binding IsConsole}">
-        <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_ConsoleIntro}" />
-        <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding ConsoleFolderText}" />
-      </StackPanel>
+      <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_ConsoleIntro}"
+                 IsVisible="{Binding IsConsole}" />
 
       <!-- HF -->
       <StackPanel Spacing="10" IsVisible="{Binding IsHf}">
@@ -255,8 +245,9 @@
     </StackPanel>
 
     <!-- ==================== Results ==================== -->
+    <!-- Fills the height so the console can take what the window has. -->
     <ScrollViewer Grid.Row="1" Margin="0,4,0,0">
-      <StackPanel Classes="panestack">
+      <c:FillStack Classes="panestack">
 
         <StackPanel Spacing="12" IsVisible="{Binding IsT55xx}">
           <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_T55xxDescription}" />
@@ -503,23 +494,85 @@
         </StackPanel>
 
         <!-- ========== Console ========== -->
-        <Border Classes="card" IsVisible="{Binding IsConsole}">
-          <Grid RowDefinitions="*,Auto" RowSpacing="10">
-            <TextBox Name="ConsoleOutput" Classes="console" Text="{Binding ConsoleText}" IsReadOnly="True"
-                     TextWrapping="Wrap" AcceptsReturn="True" FontFamily="{x:Static c:AppFonts.Mono}" FontSize="12"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
-            <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
-              <TextBlock Text="&gt;" FontFamily="{x:Static c:AppFonts.Mono}" FontWeight="SemiBold" VerticalAlignment="Center" />
-              <TextBox Grid.Column="1" Name="ConsoleInput" Text="{Binding ConsoleInput}" FontFamily="{x:Static c:AppFonts.Mono}"
-                       FontSize="12" PlaceholderText="{x:Static loc:Strings.Tools_ConsolePlaceholder}" VerticalAlignment="Center" />
-              <Panel Grid.Column="2">
-                <Button Classes="accent" Content="{x:Static loc:Strings.Tools_ConsoleRun}" Command="{Binding RunConsoleCommand}"
-                        IsVisible="{Binding !IsConsoleRunning}" />
-                <Button Classes="danger" Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelConsoleCommand}"
-                        IsVisible="{Binding IsConsoleRunning}" b:DialogKeys.IsCancel="True" />
-              </Panel>
-              <Button Grid.Column="3" Content="{x:Static loc:Strings.Common_Clear}" Command="{Binding ClearConsoleCommand}" />
-            </Grid>
+        <!-- As tall as the window allows: the folder and options, the output, a hint line, the command line. -->
+        <Border Classes="card" IsVisible="{Binding IsConsole}" c:FillStack.Fill="True" MinHeight="300">
+          <Grid RowDefinitions="Auto,*,Auto,Auto" RowSpacing="8">
+            <!-- Short of room, Folder and then the options drop their labels before the path gets narrow. -->
+            <c:SideDock>
+              <TextBlock Classes="caption" Text="{Binding ConsoleFolderText}" ToolTip.Tip="{Binding ConsoleFolder}"
+                         TextTrimming="PathSegmentEllipsis" TextWrapping="NoWrap" VerticalAlignment="Center" MinWidth="120" />
+              <c:ActionRow>
+                <ToggleButton IsChecked="{Binding ConsoleWrap}" c:ActionRow.Priority="1"
+                              ToolTip.Tip="{x:Static loc:Strings.Tools_ConsoleWrap}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.wrap}" />
+                    <TextBlock Text="{x:Static loc:Strings.Tools_ConsoleWrap}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </ToggleButton>
+                <ToggleButton IsChecked="{Binding ConsoleAutoscroll}" c:ActionRow.Priority="1"
+                              ToolTip.Tip="{x:Static loc:Strings.Tools_ConsoleAutoscroll}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.autoscroll}" />
+                    <TextBlock Text="{x:Static loc:Strings.Tools_ConsoleAutoscroll}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </ToggleButton>
+                <Button Command="{Binding ChooseConsoleFolderCommand}" ToolTip.Tip="{x:Static loc:Strings.Tools_ConsoleChooseFolder}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.folder}" />
+                    <TextBlock Text="{x:Static loc:Strings.Tools_ConsoleFolderButton}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <Button Command="{Binding ResetConsoleFolderCommand}" IsVisible="{Binding IsConsoleFolderChosen}"
+                        ToolTip.Tip="{x:Static loc:Strings.Tools_ConsoleDefaultFolder}">
+                  <PathIcon Data="{StaticResource Icon.reset}" />
+                </Button>
+              </c:ActionRow>
+            </c:SideDock>
+
+            <Border Grid.Row="1" Classes="inset" Padding="10,8">
+              <ScrollViewer Name="ConsoleScroller">
+                <SelectableTextBlock Name="ConsoleOutput" FontFamily="{x:Static c:AppFonts.Mono}" FontSize="12" />
+              </ScrollViewer>
+            </Border>
+
+            <!-- What may come next in the line; Tab takes it. -->
+            <TextBlock Grid.Row="2" Classes="caption" FontFamily="{x:Static c:AppFonts.Mono}" Text="{Binding ConsoleHint}"
+                       ToolTip.Tip="{Binding ConsoleHint}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+
+            <!-- Short of room, Clear and then Run / Cancel drop their labels before the line gets narrow. -->
+            <c:SideDock Grid.Row="3">
+              <TextBox Name="ConsoleInput" Text="{Binding ConsoleInput}" FontFamily="{x:Static c:AppFonts.Mono}"
+                       FontSize="12" MinWidth="160" VerticalAlignment="Center"
+                       PlaceholderText="{x:Static loc:Strings.Tools_ConsolePlaceholder}">
+                <TextBox.InnerLeftContent>
+                  <TextBlock Text="&gt;" FontFamily="{x:Static c:AppFonts.Mono}" FontWeight="SemiBold"
+                             Foreground="{DynamicResource BrandBlueBrush}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                </TextBox.InnerLeftContent>
+              </TextBox>
+              <c:ActionRow>
+                <Button Classes="accent" Command="{Binding RunConsoleCommand}" IsVisible="{Binding !IsConsoleRunning}"
+                        c:ActionRow.Priority="2" ToolTip.Tip="{x:Static vm:ToolsViewModel.ConsoleRunTip}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.play}" />
+                    <TextBlock Text="{x:Static loc:Strings.Tools_ConsoleRun}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <Button Classes="danger" Command="{Binding CancelConsoleCommand}" IsVisible="{Binding IsConsoleRunning}"
+                        c:ActionRow.Priority="2" ToolTip.Tip="{x:Static vm:ToolsViewModel.ConsoleCancelTip}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.stop}" />
+                    <TextBlock Text="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <Button Command="{Binding ClearConsoleCommand}" c:ActionRow.Priority="1"
+                        ToolTip.Tip="{x:Static vm:ToolsViewModel.ConsoleClearTip}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.eraser}" />
+                    <TextBlock Text="{x:Static loc:Strings.Common_Clear}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </c:ActionRow>
+            </c:SideDock>
           </Grid>
         </Border>
 
@@ -644,7 +697,7 @@
             </StackPanel>
           </Border>
         </StackPanel>
-      </StackPanel>
+      </c:FillStack>
     </ScrollViewer>
   </Grid>
 </UserControl>

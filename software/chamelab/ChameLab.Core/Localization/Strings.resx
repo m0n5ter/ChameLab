@@ -3435,6 +3435,21 @@
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>Run</value>
   </data>
+  <data name="Tools_ConsoleWrap" xml:space="preserve">
+    <value>Wrap lines</value>
+  </data>
+  <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
+    <value>Autoscroll</value>
+  </data>
+  <data name="Tools_ConsoleFolderButton" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
+    <value>Choose the folder for files from commands</value>
+  </data>
+  <data name="Tools_ConsoleDefaultFolder" xml:space="preserve">
+    <value>Use the default folder</value>
+  </data>
   <data name="Tools_FromTheConsole" xml:space="preserve">
     <value>From the console</value>
   </data>

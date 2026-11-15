@@ -64,6 +64,16 @@ public static class StorageService
         return file.Name;
     }
 
+    /// <summary>Shows a folder dialog; returns the chosen folder's local path, or null if canceled or not local.</summary>
+    public static async Task<string?> PickFolderAsync(string title, string? start = null)
+    {
+        var options = new FolderPickerOpenOptions { Title = title, AllowMultiple = false };
+        if (start is not null && Directory.Exists(start))
+            options.SuggestedStartLocation = await Provider.TryGetFolderFromPathAsync(start);
+        var folders = await Provider.OpenFolderPickerAsync(options);
+        return folders.FirstOrDefault()?.TryGetLocalPath();
+    }
+
     private static FilePickerFileType[] BuildFilters(string[] extensions)
     {
         if (extensions.Length == 0)

@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
+using Avalonia.Media;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
@@ -23,25 +25,79 @@ public partial class ToolsView : UserControl
             ? Strings.Tools_FramesHintTouch
             : Strings.Tools_FramesHintMouse;
         UpdateCopyLabel();
+        // The typed lines' color comes from the theme.
+        ActualThemeVariantChanged += (_, _) => { if (_vm is not null) ShowConsoleOutput(_vm.ConsoleText); };
         // Tunnel: Tab would move focus and Up/Down move the caret before the box sees them.
         ConsoleInput.AddHandler(KeyDownEvent, OnConsoleKey, RoutingStrategies.Tunnel);
-        ConsoleOutput.PropertyChanged += (_, e) =>
-        {
-            // Follows the newest output, unless something is selected to copy.
-            if (e.Property == TextBox.TextProperty && ConsoleOutput.SelectionStart == ConsoleOutput.SelectionEnd)
-                ConsoleOutput.CaretIndex = ConsoleOutput.Text?.Length ?? 0;
-        };
     }
+
+    private ToolsViewModel? _vm;
 
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (DataContext is ToolsViewModel vm)
-            vm.PropertyChanged += (_, args) =>
-            {
-                if (args.PropertyName == nameof(ToolsViewModel.IsConsole) && vm.IsConsole)
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() => ConsoleInput.Focus());
-            };
+        if (_vm is not null) _vm.PropertyChanged -= OnViewModelChanged;
+        _vm = DataContext as ToolsViewModel;
+        if (_vm is null) return;
+        _vm.PropertyChanged += OnViewModelChanged;
+        ShowConsoleOutput(_vm.ConsoleText);
+        ApplyConsoleWrap(_vm.ConsoleWrap);
+    }
+
+    private void OnViewModelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (_vm is not { } vm) return;
+        switch (e.PropertyName)
+        {
+            case nameof(ToolsViewModel.IsConsole) when vm.IsConsole:
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => ConsoleInput.Focus());
+                break;
+            case nameof(ToolsViewModel.ConsoleText):
+                ShowConsoleOutput(vm.ConsoleText);
+                break;
+            case nameof(ToolsViewModel.ConsoleWrap):
+                ApplyConsoleWrap(vm.ConsoleWrap);
+                break;
+            case nameof(ToolsViewModel.ConsoleAutoscroll) when vm.ConsoleAutoscroll:
+                ConsoleScroller.ScrollToEnd();
+                break;
+        }
+    }
+
+    /// <summary>The console's text, the typed lines marked; follows the newest line when autoscroll is on.</summary>
+    private void ShowConsoleOutput(ConsoleOutput output)
+    {
+        var inlines = new InlineCollection();
+        var at = 0;
+        foreach (var span in output.Typed)
+        {
+            if (span.Start > at) inlines.Add(new Run(output.Text[at..span.Start]));
+            var end = Math.Min(span.Start + span.Length, output.Text.Length);
+            if (end > span.Start) inlines.Add(Typed(output.Text[span.Start..end]));
+            at = Math.Max(at, end);
+        }
+        if (at < output.Text.Length) inlines.Add(new Run(output.Text[at..]));
+        ConsoleOutput.Inlines = inlines;
+        if (_vm?.ConsoleAutoscroll == true)
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => ConsoleScroller.ScrollToEnd(), Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    /// <summary>A typed line: stands out from what the commands print, in the theme's blue.</summary>
+    private Run Typed(string text)
+    {
+        var run = new Run(text) { FontWeight = FontWeight.SemiBold };
+        if (this.TryFindResource("BrandBlueBrush", ActualThemeVariant, out var brush) && brush is IBrush blue)
+            run.Foreground = blue;
+        return run;
+    }
+
+    /// <summary>Wrapped, the output fits the width; otherwise long lines scroll sideways.</summary>
+    private void ApplyConsoleWrap(bool wrap)
+    {
+        ConsoleOutput.TextWrapping = wrap ? TextWrapping.Wrap : TextWrapping.NoWrap;
+        ConsoleScroller.HorizontalScrollBarVisibility = wrap
+            ? Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled
+            : Avalonia.Controls.Primitives.ScrollBarVisibility.Auto;
     }
 
     private void OnConsoleKey(object? sender, KeyEventArgs e)
@@ -51,6 +107,9 @@ public partial class ToolsView : UserControl
         {
             case Key.Enter:
                 vm.RunConsoleCommand.Execute(null);
+                break;
+            case Key.Escape when e.KeyModifiers == KeyModifiers.None:
+                vm.ClearConsoleCommand.Execute(null);
                 break;
             case Key.Up or Key.Down:
                 vm.ConsoleHistory(e.Key == Key.Up ? -1 : 1);

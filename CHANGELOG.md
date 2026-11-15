@@ -8,7 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
- - ChameLab: Tools has a Console on Windows, Linux and macOS that runs the command line client's commands over the app's own connection, with history shared with the CLI and Tab completion. While a command runs it has the device to itself; relative file names go to Documents/ChameLab, and data plot opens the samples in Sniff LF
+ - ChameLab: Tools has a Console on Windows, Linux and macOS that runs the command line client's commands over the app's own connection, with history shared with the CLI, Tab completion and a hint line of what may come next. It takes the whole height of the window, marks the commands typed, and can wrap lines and follow the newest output (both remembered). While a command runs it has the device to itself; relative file names go to Documents/ChameLab or a folder you choose, and data plot opens the samples in Sniff LF
  - Linux udev rule: the logged-in user gets access to the Chameleon and its DFU bootloader without joining dialout (uaccess), and ModemManager leaves the bootloader port alone too; the file is now resource/driver/70-chameleon-usb-device.rules (@fooberticus)
 
 ## [v1.5.48][2026-11-15] · firmware v2.3.19-cl

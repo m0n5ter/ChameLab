@@ -3432,6 +3432,21 @@
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>Executar</value>
   </data>
+  <data name="Tools_ConsoleWrap" xml:space="preserve">
+    <value>Quebrar linhas</value>
+  </data>
+  <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
+    <value>Rolagem automática</value>
+  </data>
+  <data name="Tools_ConsoleFolderButton" xml:space="preserve">
+    <value>Pasta</value>
+  </data>
+  <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
+    <value>Escolha a pasta para os arquivos dos comandos</value>
+  </data>
+  <data name="Tools_ConsoleDefaultFolder" xml:space="preserve">
+    <value>Usar a pasta padrão</value>
+  </data>
   <data name="Tools_FromTheConsole" xml:space="preserve">
     <value>Do console</value>
   </data>

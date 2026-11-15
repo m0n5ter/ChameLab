@@ -11,17 +11,19 @@ namespace ChameLab.Services;
 
 /// <summary>
 /// Runs the console's commands over the app's own link: <c>hw connect</c> and <c>hw disconnect</c> connect and
-/// disconnect the app as the Connect page would, and relative file names land in <see cref="Folder"/>.
+/// disconnect the app as the Connect page would, and relative file names land in the folder <paramref name="folder"/>
+/// gives (by default <see cref="DefaultFolder"/>).
 /// The console provides the rest (typed input, clearing, the waveform).
 /// </summary>
 public sealed class AppCliHost(
     DeviceService device,
     Func<CancellationToken, Task<string?>> readLine,
     Action clear,
-    Func<byte[], int, Task> showWaveform) : CliHost
+    Func<byte[], int, Task> showWaveform,
+    Func<string> folder) : CliHost
 {
-    /// <summary>Where relative file names in commands point: Documents/ChameLab.</summary>
-    public static string Folder { get; } = Path.Combine(
+    /// <summary>Where relative file names in commands point unless another folder is chosen: Documents/ChameLab.</summary>
+    public static string DefaultFolder { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) is { Length: > 0 } documents
             ? documents
             : Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -73,7 +75,8 @@ public sealed class AppCliHost(
     public override string ResolvePath(string path)
     {
         if (Path.IsPathRooted(path)) return path;
-        Directory.CreateDirectory(Folder);
-        return Path.Combine(Folder, path);
+        var root = folder();
+        Directory.CreateDirectory(root);
+        return Path.Combine(root, path);
     }
 }

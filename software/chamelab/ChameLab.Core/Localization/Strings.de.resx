@@ -3432,6 +3432,21 @@
   <data name="Tools_ConsoleRun" xml:space="preserve">
     <value>Ausführen</value>
   </data>
+  <data name="Tools_ConsoleWrap" xml:space="preserve">
+    <value>Zeilen umbrechen</value>
+  </data>
+  <data name="Tools_ConsoleAutoscroll" xml:space="preserve">
+    <value>Automatisch scrollen</value>
+  </data>
+  <data name="Tools_ConsoleFolderButton" xml:space="preserve">
+    <value>Ordner</value>
+  </data>
+  <data name="Tools_ConsoleChooseFolder" xml:space="preserve">
+    <value>Ordner für die Dateien der Befehle wählen</value>
+  </data>
+  <data name="Tools_ConsoleDefaultFolder" xml:space="preserve">
+    <value>Standardordner verwenden</value>
+  </data>
   <data name="Tools_FromTheConsole" xml:space="preserve">
     <value>Aus der Konsole</value>
   </data>
