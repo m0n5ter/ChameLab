@@ -43,7 +43,8 @@ public sealed class MainViewModel : ViewModelBase
         _currentPage = _connect;
 
         NavigateCommand = ReactiveCommand.CreateFromTask<PageViewModelBase>(NavigateAsync);
-        DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync);
+        DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync,
+            this.WhenAnyValue(x => x.IsNavigationLocked, locked => !locked));
         TogglePaneCommand = ReactiveCommand.Create(() => { IsPaneOpen = !IsPaneOpen; });
         AddCardCommand = ReactiveCommand.CreateFromTask(AddCardAsync,
             this.WhenAnyValue(x => x.CurrentPage, x => x.Cards.IsPickingSource,
@@ -53,6 +54,10 @@ public sealed class MainViewModel : ViewModelBase
         LocalizationService.LanguageChanged += UpdateDeviceSummary;
 
         Slots.OpenCardRequested += card => _ = OpenCardAsync(card.Id);
+        Tools.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ToolsViewModel.IsConsoleRunning)) this.RaisePropertyChanged(nameof(IsNavigationLocked));
+        };
         Cards.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(CardsViewModel.CurrentFolder)) RaiseNavSelection();
@@ -221,6 +226,12 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>Set by the view when the window is too narrow to dock the pane (it overlays content).</summary>
     public bool IsCompact { get; set; }
 
+    /// <summary>
+    /// A console command is running: it has the device to itself, so the rest of the app (other pages,
+    /// Disconnect) stays out of reach until it ends or is canceled.
+    /// </summary>
+    public bool IsNavigationLocked => Tools.IsConsoleRunning;
+
     public bool IsConnected
     {
         get;
@@ -260,6 +271,7 @@ public sealed class MainViewModel : ViewModelBase
             IsPaneOpen = false;
             return true;
         }
+        if (IsNavigationLocked) return true;
         if (ReferenceEquals(CurrentPage, StartPage)) return false;
         _ = NavigateAsync(StartPage);
         return true;
@@ -290,6 +302,12 @@ public sealed class MainViewModel : ViewModelBase
     private async Task NavigateAsync(PageViewModelBase page)
     {
         if (page is null) return;
+        // Held on the console while its command runs; the selection snaps back to it.
+        if (IsNavigationLocked && !ReferenceEquals(page, CurrentPage))
+        {
+            RaiseNavSelection();
+            return;
+        }
         var leaving = CurrentPage;
         CurrentPage = page;
         if (IsCompact) IsPaneOpen = false;

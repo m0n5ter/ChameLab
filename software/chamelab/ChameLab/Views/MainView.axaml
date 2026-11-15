@@ -104,7 +104,7 @@
               <!-- The pages, with the card folders (one level) indented under Cards. Cards are dragged
                    onto a folder, or onto Cards to take them out of theirs (see ListReorder). -->
               <!-- Scrolls only up and down: long folder names are trimmed, never scrolled to. -->
-              <ListBox Grid.Row="1" Classes="nav" Margin="10,0" ItemsSource="{Binding NavItems}"
+              <ListBox Grid.Row="1" Classes="nav" Margin="10,0" ItemsSource="{Binding NavItems}" IsEnabled="{Binding !IsNavigationLocked}"
                        SelectedItem="{Binding SelectedNavItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.DataTemplates>
                   <!-- Cards, with buttons for a new folder and a new card (before the general page template,
@@ -279,7 +279,7 @@
     <Panel Grid.Row="2" Classes="tabbar compact-only">
       <Border Padding="4,4,4,6" Background="{actipro:ThemeResource Container1BackgroundBrush}"
               BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,1,0,0">
-        <ListBox Classes="tabbar" ItemsSource="{Binding NavPages}" SelectedItem="{Binding SelectedNavPage}"
+        <ListBox Classes="tabbar" ItemsSource="{Binding NavPages}" SelectedItem="{Binding SelectedNavPage}" IsEnabled="{Binding !IsNavigationLocked}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
           <ListBox.ItemsPanel>
             <ItemsPanelTemplate>

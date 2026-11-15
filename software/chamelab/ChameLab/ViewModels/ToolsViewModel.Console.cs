@@ -144,8 +144,10 @@ public sealed partial class ToolsViewModel
             this.WhenAnyValue(x => x.ConsoleInput, line => !string.IsNullOrWhiteSpace(line)));
         CancelConsoleCommand = ReactiveCommand.Create(CancelConsole);
         ClearConsoleCommand = ReactiveCommand.Create(ClearConsole);
-        ChooseConsoleFolderCommand = ReactiveCommand.CreateFromTask(ChooseConsoleFolderAsync);
-        ResetConsoleFolderCommand = ReactiveCommand.Create(() => SetConsoleFolder(AppCliHost.DefaultFolder));
+        // The folder stays put while a command may be writing to it.
+        var idleConsole = this.WhenAnyValue(x => x.IsConsoleRunning, running => !running);
+        ChooseConsoleFolderCommand = ReactiveCommand.CreateFromTask(ChooseConsoleFolderAsync, idleConsole);
+        ResetConsoleFolderCommand = ReactiveCommand.Create(() => SetConsoleFolder(AppCliHost.DefaultFolder), idleConsole);
     }
 
     private async Task ChooseConsoleFolderAsync()
