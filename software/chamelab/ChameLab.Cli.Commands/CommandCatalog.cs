@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ChameLab.Cli;
 
@@ -17,15 +18,15 @@ public sealed record CommandSpec(string Name, string Description, OptionSpec[] O
 
 public static class CommandCatalog
 {
-    private static T Read<T>(string name)
+    private static T Read<T>(string name, JsonTypeInfo<T> type)
     {
         using var stream = typeof(CommandCatalog).Assembly.GetManifestResourceStream("ChameLab.Cli." + name)
             ?? throw new InvalidOperationException("Missing command resource: " + name);
-        return JsonSerializer.Deserialize<T>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+        return JsonSerializer.Deserialize(stream, type)!;
     }
 
-    public static IReadOnlyList<CommandSpec> Commands { get; } = Read<CommandSpec[]>("CommandCatalog.json");
-    private static readonly Dictionary<string, Dictionary<string, int>> Enums = Read<Dictionary<string, Dictionary<string, int>>>("EnumCatalog.json");
+    public static IReadOnlyList<CommandSpec> Commands { get; } = Read("CommandCatalog.json", CliJsonContext.Default.CommandSpecArray);
+    private static readonly Dictionary<string, Dictionary<string, int>> Enums = Read("EnumCatalog.json", CliJsonContext.Default.DictionaryStringDictionaryStringInt32);
 
     public static int EnumValue(string type, string value) => Enums[type].TryGetValue(value, out var n) ? n
         : throw new ArgumentException($"Unknown {type}: {value}");

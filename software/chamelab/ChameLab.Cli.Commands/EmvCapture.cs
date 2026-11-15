@@ -61,7 +61,7 @@ internal sealed record EmvCapture(byte[] Uid, byte[] Atqa, byte Sak, byte[] Ats,
                 else { app["AID"] = Convert.ToHexString(aid); app["FCITemplate"] = outer; }
             }
             else if (c[1] == 0xA8) app["GPO"] = outer;
-            else if (c[1] == 0xB2) records.Add(new JsonObject { ["SFI"] = (c[3] >> 3).ToString("X2"), ["RecordNum"] = c[2].ToString("X2"), ["Data"] = outer });
+            else if (c[1] == 0xB2) records.Add((JsonNode)new JsonObject { ["SFI"] = (c[3] >> 3).ToString("X2"), ["RecordNum"] = c[2].ToString("X2"), ["Data"] = outer });
             foreach (var t in tlvs.SelectMany(t => t.Flatten()))
             {
                 var hex = Convert.ToHexString(t.Value);

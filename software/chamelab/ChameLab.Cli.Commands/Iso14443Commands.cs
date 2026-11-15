@@ -198,7 +198,7 @@ public sealed partial class CliSession
         else
         {
             using var s = typeof(CliSession).Assembly.GetManifestResourceStream("ChameLab.Cli.DesfireKeys.json")!;
-            keys.AddRange(JsonSerializer.Deserialize<string[]>(s)!.Select(HexText));
+            keys.AddRange(JsonSerializer.Deserialize(s, CliJsonContext.Default.StringArray)!.Select(HexText));
             if (a.Has("file")) keys.AddRange(File.ReadLines(FilePath(a.Text("file"))).Select(l => l.Split('#')[0].Trim()).Where(l => l.Length > 0).Select(HexText));
             if (a.Flag("pattern1b")) for (var b = 0; b < 256; b++) { keys.Add(Enumerable.Repeat((byte)b, 8).ToArray()); keys.Add(Enumerable.Repeat((byte)b, 16).ToArray()); }
             if (a.Flag("pattern2b")) for (var n = 0; n < 65536; n++) keys.Add(Enumerable.Range(0, 16).Select(i => (byte)(i % 2 == 0 ? n >> 8 : n & 255)).ToArray());

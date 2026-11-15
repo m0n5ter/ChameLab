@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>ChameLab.Cli</RootNamespace>
+    <!-- The app ships these commands in trimmed builds (iOS, browser); analyze here so desktop builds catch it too. -->
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../ChameLab.Core/ChameLab.Core.csproj" />

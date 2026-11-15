@@ -157,7 +157,7 @@ public sealed partial class CliSession : IAsyncDisposable
         if (_ownsHost) await Host.DisposeAsync();
     }
     private void Print(object? value) => Output.WriteLine(value is byte[] b ? Convert.ToHexString(b) : value);
-    private void Json(object value) => Output.WriteLine(JsonSerializer.Serialize(value, new JsonSerializerOptions { WriteIndented = true }));
+    private void Json(object value) => Output.WriteLine(JsonSerializer.Serialize(value, value.GetType(), CliJsonContext.Default));
     private async Task<byte[]> Wire(int command, byte[]? data, CancellationToken ct, int timeout = 3000)
     {
         var f = await Client.Connection.SendAsync((Command)command, data, timeoutMs: timeout, ct: ct);
