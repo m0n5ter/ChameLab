@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: when the save bar appears under a page (or grows to show a save error), the field being edited scrolls back into view instead of ending up behind the bar; in the hex editors, the caret's line
 
 ## [v1.6.51][2026-11-16] · firmware v2.3.20-cl
 ### Summary

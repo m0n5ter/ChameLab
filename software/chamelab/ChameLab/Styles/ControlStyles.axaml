@@ -1,4 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui"
+        xmlns:b="using:ChameLab.Behaviors"
         xmlns:c="using:ChameLab.Controls"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui">
@@ -1068,6 +1069,10 @@
     <Setter Property="CornerRadius" Value="12" />
     <Setter Property="Padding" Value="14,10" />
     <Setter Property="Margin" Value="0,12,0,0" />
+  </Style>
+  <!-- Appearing under the page shortens it: keep the field being edited in view. -->
+  <Style Selector="Border.savebar:not(.dialog)">
+    <Setter Property="b:KeepFocusInView.IsEnabled" Value="True" />
   </Style>
   <!-- A question floating over the dimmed details instead of sitting in the bar. -->
   <Style Selector="Border.savebar.dialog">
