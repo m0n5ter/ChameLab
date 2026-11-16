@@ -8,6 +8,14 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.6.50][2026-11-16] · firmware v2.3.19-cl
+### Summary
+ - ChameLab: writing a MIFARE Classic card to a magic card always writes the card's UID into block 0
+ - ChameLab: on Android, Enter in the hex editors keeps the on-screen keyboard open and moves to the next row
+ - ChameLab: a Support us link in Settings and under the device in the navigation pane
+
+### Details
  - ChameLab: the website and community links in Settings drop their labels and keep only icons when the row is too narrow, instead of running past the edge (the Russian UI with its four links did)
  - ChameLab: a link to the support page, in Settings and as a button under the device at the foot of the navigation pane (Support us on Patreon), with a heart in the accent color — Boosty in the Russian UI, Patreon in the others; it keeps its label longest when the links run short of room. The copies from Google Play and the App Store leave it out. The website footer, README and the GitHub Sponsor button link there too
  - ChameLab: the card editor no longer offers SEOS as a card type; loaded into a slot from the app it lacked its data and keys. SEOS emulation stays in the CLI (`hf seos eload`, `hf seos keys`)
