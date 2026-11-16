@@ -135,8 +135,8 @@ public sealed class SettingsViewModel : PageViewModelBase
     public const string WebsiteUrl = "https://m0n5ter.github.io/ChameLab/";
 
     // Boosty takes Russian cards, Patreon the rest of the world
-    private static readonly SocialLink Boosty = new("Boosty", "https://boosty.to/chamelab", "heart", 3);
-    private static readonly SocialLink Patreon = new("Patreon", "https://www.patreon.com/ChameLab", "heart", 3);
+    private static readonly SocialLink Boosty = new("Boosty", "https://boosty.to/chamelab", "heart", 5, Accent: true);
+    private static readonly SocialLink Patreon = new("Patreon", "https://www.patreon.com/ChameLab", "heart", 5, Accent: true);
 
     /// <summary>
     /// Store copies leave the support link out: Google Play and the App Store want payments to the
@@ -172,5 +172,6 @@ public sealed class SettingsViewModel : PageViewModelBase
 /// <summary>
 /// A link shown in the About card, with its <c>Icon.*</c> mark. Short of room, lower
 /// <paramref name="Priority"/> drops its label first (see <see cref="Controls.ActionRow"/>).
+/// <paramref name="Accent"/> draws the icon in the accent color.
 /// </summary>
-public sealed record SocialLink(string Name, string Url, string IconKey, int Priority);
+public sealed record SocialLink(string Name, string Url, string IconKey, int Priority, bool Accent = false);

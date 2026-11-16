@@ -5,6 +5,7 @@
              xmlns:c="using:ChameLab.Controls"
              xmlns:conv="using:ChameLab.Converters"
              xmlns:loc="using:ChameLab.Localization"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
              x:Class="ChameLab.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -25,14 +26,19 @@
       <Setter Property="Width" Value="116" />
     </Style>
     <!-- Link buttons short of room: icon only (the tooltip has the address). ActionRow marks the
-         item containers, so the generic ActionRow styles do not reach the buttons inside. -->
-    <Style Selector="c|ActionRow > ContentPresenter.iconic > Button > StackPanel > TextBlock">
+         item containers, so the generic ActionRow styles do not reach the buttons inside. The
+         containers' logical parent is the ItemsControl, not the ActionRow that lays them out. -->
+    <Style Selector="ItemsControl.links > ContentPresenter.iconic > Button > StackPanel > TextBlock">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector="ItemsControl.links c|ActionRow > ContentPresenter" x:DataType="vm:SocialLink">
+    <Style Selector="ItemsControl.links > ContentPresenter" x:DataType="vm:SocialLink">
       <Setter Property="c:ActionRow.Priority" Value="{Binding Priority}" />
     </Style>
-    <Style Selector="c|ActionRow > ContentPresenter.iconic > Button">
+    <!-- The support link's heart in the accent color; its label stays as it is. -->
+    <Style Selector="ItemsControl.links PathIcon.accent">
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+    </Style>
+    <Style Selector="ItemsControl.links > ContentPresenter.iconic > Button">
       <Setter Property="Width" Value="40" />
       <Setter Property="Height" Value="40" />
       <Setter Property="MinWidth" Value="0" />
@@ -191,7 +197,7 @@
           <!-- The website, the support page (Boosty in the Russian UI, Patreon elsewhere; not in
                store copies), then community channels: Telegram and MAX in the Russian UI, Discord
                everywhere else. Short of room, they drop their labels by priority: MAX first, then
-               Discord, Telegram, the support page, and the website last. -->
+               Discord, Telegram, the website, and the support page last. -->
           <ItemsControl Classes="links" ItemsSource="{Binding SocialLinks}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate><c:ActionRow /></ItemsPanelTemplate>
@@ -201,7 +207,7 @@
                 <Button Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).OpenLinkCommand}"
                         CommandParameter="{Binding Url}" ToolTip.Tip="{Binding Url}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" /><TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                    <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" Classes.accent="{Binding Accent}" /><TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
               </DataTemplate>
