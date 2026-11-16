@@ -201,23 +201,11 @@
             </StackPanel>
           </Button>
           <Button Classes="danger" ToolTip.Tip="{x:Static loc:Strings.Common_DeleteFolder}"
-                  IsVisible="{Binding IsInFolder}">
+                  IsVisible="{Binding IsInFolder}" Command="{Binding DeleteCurrentFolderCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.delete}" />
               <TextBlock Text="{x:Static loc:Strings.Common_Delete}" VerticalAlignment="Center" />
             </StackPanel>
-            <Button.Flyout>
-              <Flyout Placement="BottomEdgeAlignedRight">
-                <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
-                  <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
-                             Text="{Binding ListTitle, StringFormat={x:Static loc:Strings.Common_DeleteFolderPrompt}}" />
-                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                             Text="{x:Static loc:Strings.Common_ItsCardsAreNotDeletedThey}" />
-                  <Button Classes="danger solid" Content="{x:Static loc:Strings.Common_DeleteFolder}" HorizontalAlignment="Right"
-                          Click="OnFolderDeleteClick" />
-                </StackPanel>
-              </Flyout>
-            </Button.Flyout>
           </Button>
           <Button Command="{Binding OpenNewFolderCommand}" IsVisible="{Binding !IsInFolder}"
                   ToolTip.Tip="{x:Static loc:Strings.Common_NewFolder}">

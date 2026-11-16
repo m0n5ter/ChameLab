@@ -244,6 +244,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         NewFolderCommand = ReactiveCommand.Create(NewFolder);
         OpenNewFolderCommand = ReactiveCommand.Create(OpenNewFolder);
         RenameCurrentFolderCommand = ReactiveCommand.Create(BeginRenameCurrentFolder);
+        DeleteCurrentFolderCommand = ReactiveCommand.Create(() => { if (CurrentFolder is { } f) AskDeleteFolder(f); });
+        ConfirmDeleteFolderCommand = ReactiveCommand.Create(ConfirmDeleteFolder);
+        CancelDeleteFolderCommand = ReactiveCommand.Create(() => { FolderToDelete = null; });
         ShowRootCommand = ReactiveCommand.Create(() => ShowFolder(null));
 
         // Library edits made on the UI thread rebuild synchronously so a new card can be selected right away.
@@ -981,7 +984,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             var at = -1;
             for (var j = i; j < Folders.Count; j++)
                 if (Folders[j].Name == names[i]) { at = j; break; }
-            if (at < 0) Folders.Insert(i, new CardFolderViewModel(names[i], f => ShowFolder(f), BeginRename, DeleteFolder));
+            if (at < 0) Folders.Insert(i, new CardFolderViewModel(names[i], f => ShowFolder(f), BeginRename, AskDeleteFolder));
             else if (at != i) Folders.Move(at, i);
             Folders[i].Count = counts.GetValueOrDefault(names[i]);
         }
@@ -1097,10 +1100,36 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public void CancelFolderRename() => IsRenamingFolder = false;
 
-    /// <summary>Deletes the open folder (confirmed in the view); Cards shows its cards then.</summary>
-    public void DeleteCurrentFolder()
+    /// <summary>Asks to delete the open folder, in the centered dialog.</summary>
+    public ICommand DeleteCurrentFolderCommand { get; }
+    public ICommand ConfirmDeleteFolderCommand { get; }
+    public ICommand CancelDeleteFolderCommand { get; }
+
+    /// <summary>The folder the delete dialog asks about; null while it is closed.</summary>
+    public CardFolderViewModel? FolderToDelete
     {
-        if (CurrentFolder is { } folder) DeleteFolder(folder);
+        get;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsConfirmingFolderDelete));
+            this.RaisePropertyChanged(nameof(FolderDeletePrompt));
+        }
+    }
+
+    public bool IsConfirmingFolderDelete => FolderToDelete is not null;
+
+    public string FolderDeletePrompt =>
+        FolderToDelete is { } folder ? string.Format(Strings.Common_DeleteFolderPrompt, folder.Name) : "";
+
+    private void AskDeleteFolder(CardFolderViewModel folder) => FolderToDelete = folder;
+
+    private void ConfirmDeleteFolder()
+    {
+        if (FolderToDelete is not { } folder) return;
+        FolderToDelete = null;
+        // Gone already (renamed or removed meanwhile): nothing to delete.
+        if (Folders.Contains(folder)) DeleteFolder(folder);
     }
 
     /// <summary>Deletes a folder; its cards stay, in no folder.</summary>

@@ -138,15 +138,6 @@ public partial class MainView : UserControl
         e.Handled = true;
     }
 
-    // Confirming closes the flyout before the folder (and the row it opened from) goes away. The
-    // folder is taken first: closing the flyout detaches its content from the row's DataContext.
-    private void OnFolderDeleteClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Control { DataContext: CardFolderViewModel folder } c) return;
-        if (c.FindLogicalAncestorOfType<Button>() is { Flyout: { } flyout }) flyout.Hide();
-        folder.DeleteCommand.Execute(null);
-    }
-
     private void OnFolderNameLostFocus(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { DataContext: CardFolderViewModel folder }) _vm?.Cards.CommitRename(folder);

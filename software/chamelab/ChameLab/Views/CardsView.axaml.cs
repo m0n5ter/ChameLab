@@ -68,7 +68,7 @@ public partial class CardsView : UserControl
         if (Math.Abs(MemoryScroll.MaxHeight - max) >= 1) MemoryScroll.MaxHeight = max;
     }
 
-    // ---- The open folder's title: renamed in place, deleted after a confirmation ----
+    // ---- The open folder's title: renamed in place ----
 
     private void OnFolderTitleKeyDown(object? sender, KeyEventArgs e)
     {
@@ -81,13 +81,6 @@ public partial class CardsView : UserControl
 
     private void OnFolderTitleLostFocus(object? sender, RoutedEventArgs e) =>
         (DataContext as CardsViewModel)?.CommitFolderRename();
-
-    // Confirming closes the flyout first: the folder (and its title) goes away with the delete.
-    private void OnFolderDeleteClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Control c && c.FindLogicalAncestorOfType<Button>() is { Flyout: { } flyout }) flyout.Hide();
-        (DataContext as CardsViewModel)?.DeleteCurrentFolder();
-    }
 
     // Save keys → clipboard: one hex key per line; the page notice confirms (the menu has closed).
     private async void OnCopyKeys(object? sender, RoutedEventArgs e)

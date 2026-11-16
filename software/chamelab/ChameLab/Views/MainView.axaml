@@ -173,20 +173,9 @@
                           <Button Classes="icon small" Command="{Binding RenameCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_RenameFolder}">
                             <PathIcon Data="{StaticResource Icon.edit}" />
                           </Button>
-                          <Button Classes="icon small danger" ToolTip.Tip="{x:Static loc:Strings.Common_DeleteFolder}">
+                          <Button Classes="icon small danger" Command="{Binding DeleteCommand}"
+                                  ToolTip.Tip="{x:Static loc:Strings.Common_DeleteFolder}">
                             <PathIcon Data="{StaticResource Icon.delete}" />
-                            <Button.Flyout>
-                              <Flyout Placement="RightEdgeAlignedTop">
-                                <StackPanel Spacing="12" MaxWidth="280" Margin="16,14">
-                                  <TextBlock TextWrapping="Wrap" FontWeight="SemiBold"
-                                             Text="{Binding Name, StringFormat={x:Static loc:Strings.Common_DeleteFolderPrompt}}" />
-                                  <TextBlock Classes="caption" TextWrapping="Wrap"
-                                             Text="{x:Static loc:Strings.Common_ItsCardsAreNotDeletedThey}" />
-                                  <Button Classes="danger solid" Content="{x:Static loc:Strings.Common_DeleteFolder}" HorizontalAlignment="Right"
-                                          Click="OnFolderDeleteClick" />
-                                </StackPanel>
-                              </Flyout>
-                            </Button.Flyout>
                           </Button>
                         </StackPanel>
                         <TextBox Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding EditName}" MaxLength="64"
@@ -367,6 +356,28 @@
               <Button Classes="accent" Content="{x:Static loc:Strings.Main_Retry}" Command="{Binding RetryCommand}" IsVisible="{Binding CanRetry}"
                       b:DialogKeys.IsDefault="True" />
             </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+
+    <!-- ==================== Delete folder dialog ==================== -->
+    <!-- Asked from the folder's row, its context menu or the open folder's header. -->
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+           DataContext="{Binding Cards}" IsVisible="{Binding IsConfirmingFolderDelete}" x:DataType="vm:CardsViewModel">
+      <Border Classes="card" MaxWidth="420" Margin="16" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock Classes="h2" TextWrapping="Wrap" Text="{Binding FolderDeletePrompt}" />
+          <TextBlock TextWrapping="Wrap" Text="{x:Static loc:Strings.Common_ItsCardsAreNotDeletedThey}" />
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelDeleteFolderCommand}"
+                    b:DialogKeys.IsCancel="True" />
+            <Button Classes="danger solid" Command="{Binding ConfirmDeleteFolderCommand}" b:DialogKeys.IsDefault="True">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" />
+                <TextBlock Text="{x:Static loc:Strings.Common_DeleteFolder}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
           </StackPanel>
         </StackPanel>
       </Border>
