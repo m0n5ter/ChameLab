@@ -263,6 +263,46 @@ public static class CardFormats
         return dump;
     }
 
+    /// <summary>
+    /// The dump to write onto a card. Block 0 carries the card's UID: built from the identity when the
+    /// card has no block 0 (only scanned, or sector 0 never read), and with the UID (and the BCC of a
+    /// 4-byte UID) put in when block 0 holds another one, so the UID shown is the UID written.
+    /// </summary>
+    public static MifareDump ToMifareWriteDump(this CardSave card)
+    {
+        var dump = card.ToMifareDump();
+        var uid = card.Uid;
+        if (uid.Length is not (4 or 7 or 10)) return dump;
+
+        var b0 = dump.GetBlock(0) is { Length: 16 } existing ? (byte[])existing.Clone() : null;
+        if (b0 is null)
+        {
+            // UID(4) BCC SAK ATQA(2) and the common magic-card manufacturer bytes 62..69,
+            // or UID(7/10) SAK ATQA(2) with the rest zero: what ChameleonUltraGUI writes too.
+            b0 = MifareClassic.BlankBlock(0);
+            uid.CopyTo(b0, 0);
+            var at = uid.Length;
+            if (uid.Length == 4)
+            {
+                b0[at++] = Bcc(uid);
+                for (var i = 8; i < 16; i++) b0[i] = (byte)(0x62 + i - 8);
+            }
+            b0[at++] = card.Sak;
+            if (card.Atqa.Length == 2) card.Atqa.CopyTo(b0, at);
+        }
+        else if (!b0.AsSpan(0, uid.Length).SequenceEqual(uid))
+        {
+            uid.CopyTo(b0, 0);
+            if (uid.Length == 4) b0[4] = Bcc(uid);
+        }
+        else return dump;
+
+        dump.SetBlock(0, b0);
+        return dump;
+    }
+
+    private static byte Bcc(byte[] uid) => (byte)(uid[0] ^ uid[1] ^ uid[2] ^ uid[3]);
+
     /// <summary>Best guess of the slot tag type from SAK (and ATQA for Ultralight).</summary>
     public static TagSpecificType GuessHfType(byte sak, byte[] atqa) => sak switch
     {

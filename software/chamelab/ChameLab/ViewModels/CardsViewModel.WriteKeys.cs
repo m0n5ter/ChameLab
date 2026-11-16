@@ -99,7 +99,7 @@ public sealed partial class CardsViewModel
         if (!IsWriteOpen || !IsMifareWrite) return;
         try
         {
-            if (ActionCard() is { } card) WriteRecovery.PreviewWrite(card.Tag, card.ToMifareDump(), IncludeWriteBlock0);
+            if (ActionCard() is { } card) WriteRecovery.PreviewWrite(card.Tag, card.ToMifareWriteDump(), IncludeWriteBlock0);
         }
         catch (FormatException)
         {

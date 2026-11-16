@@ -3046,7 +3046,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var resume = _writeSession is not null;
         if (!resume) _writeTargetHadDefaultKeys = _assumeDefaultWriteKeys || HasOnlyDefaultKeys(WriteRecovery.Target);
         var session = card.Tag.IsMifareClassic()
-            ? _writeSession ??= new MifareWriteSession(card.ToMifareDump(), SelectedGeneration, WriteGen2Block0, WriteRecovery.Target)
+            ? _writeSession ??= new MifareWriteSession(card.ToMifareWriteDump(),SelectedGeneration, WriteGen2Block0, WriteRecovery.Target)
             : null;
         var succeeded = false;
         using var cts = new CancellationTokenSource();
@@ -3145,7 +3145,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             }
             else if (session is not null)
             {
-                failed = await client.WriteMifareDumpToCardAsync(card.ToMifareDump(), writeKeys,
+                failed = await client.WriteMifareDumpToCardAsync(card.ToMifareWriteDump(), writeKeys,
                     SelectedGeneration, progress, cts.Token, blockProgress, keyProgress,
                     session.TargetKeys, WriteGen2Block0, session);
             }
