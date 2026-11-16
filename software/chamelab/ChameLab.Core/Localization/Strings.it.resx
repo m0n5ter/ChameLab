@@ -2053,7 +2053,7 @@
     <value>Nessun dispositivo collegato</value>
   </data>
   <data name="Main_SupportUs" xml:space="preserve">
-    <value>Sostienici</value>
+    <value>Sostienici su {0}</value>
   </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>NESSUN DISPOSITIVO</value>

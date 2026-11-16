@@ -199,26 +199,8 @@
                 </ListBox.DataTemplates>
               </ListBox>
 
-              <!-- The support page (Boosty in Russian, Patreon otherwise) above the device; store
-                   copies have none. -->
-              <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="20,8,12,0"
-                    IsVisible="{Binding Settings.SupportLink, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <TextBlock Grid.Column="0" Classes="caption" VerticalAlignment="Center"
-                           Text="{x:Static loc:Strings.Main_SupportUs}"
-                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                <Button Grid.Column="1" Padding="10,4" MinHeight="0"
-                        Command="{Binding Settings.OpenLinkCommand}" CommandParameter="{Binding Settings.SupportLink.Url}"
-                        ToolTip.Tip="{Binding Settings.SupportLink.Url}">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{StaticResource Icon.heart}" Width="14" Height="14"
-                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
-                    <TextBlock Text="{Binding Settings.SupportLink.Name}" VerticalAlignment="Center" />
-                  </StackPanel>
-                </Button>
-              </Grid>
-
               <!-- Single trimmed lines: wrapped text would change the height while the pane animates its width. -->
-              <Border Grid.Row="3" Classes="inset" Margin="12,8,12,14">
+              <Border Grid.Row="2" Classes="inset" Margin="12,8,12,8">
                 <StackPanel Spacing="2">
                   <TextBlock Text="{x:Static loc:Strings.Main_ConnectedDeviceHeader}" Classes="overline" IsVisible="{Binding IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
@@ -242,6 +224,21 @@
                   </Grid>
                 </StackPanel>
               </Border>
+
+              <!-- The support page (Boosty in Russian, Patreon otherwise) under the device, as wide
+                   as its panel; store copies have none. -->
+              <Button Grid.Row="3" Margin="12,0,12,14" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Height="28" MinHeight="0" Padding="8,0" FontSize="12"
+                      IsVisible="{Binding Settings.SupportLink, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      Command="{Binding Settings.OpenLinkCommand}" CommandParameter="{Binding Settings.SupportLink.Url}"
+                      ToolTip.Tip="{Binding Settings.SupportLink.Url}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.heart}" Width="13" Height="13"
+                            Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}" />
+                  <TextBlock Text="{Binding Settings.SupportLabel}" VerticalAlignment="Center"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+              </Button>
             </Grid>
           </Border>
         </Panel>

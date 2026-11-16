@@ -165,6 +165,9 @@ public sealed class SettingsViewModel : PageViewModelBase
     /// </summary>
     public SocialLink? SupportLink => ShowsSupportLink ? (Russian ? Boosty : Patreon) : null;
 
+    /// <summary>The navigation pane's support button: "Support us on Patreon".</summary>
+    public string? SupportLabel => SupportLink is { } link ? string.Format(Strings.Main_SupportUs, link.Name) : null;
+
     /// <summary>Opens a community link in the browser.</summary>
     public ICommand OpenLinkCommand { get; }
 

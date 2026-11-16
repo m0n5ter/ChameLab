@@ -880,7 +880,7 @@
     <value>NAVIGATION</value>
   </data>
   <data name="Main_SupportUs" xml:space="preserve">
-    <value>Support us</value>
+    <value>Support us on {0}</value>
   </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>NO DEVICE</value>

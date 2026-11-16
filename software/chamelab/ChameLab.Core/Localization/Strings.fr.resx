@@ -2053,7 +2053,7 @@
     <value>Aucun appareil branché</value>
   </data>
   <data name="Main_SupportUs" xml:space="preserve">
-    <value>Soutenez-nous</value>
+    <value>Soutenez-nous sur {0}</value>
   </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>AUCUN APPAREIL</value>

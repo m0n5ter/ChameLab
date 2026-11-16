@@ -2053,7 +2053,7 @@
     <value>Kein Gerät angeschlossen</value>
   </data>
   <data name="Main_SupportUs" xml:space="preserve">
-    <value>Unterstütze uns</value>
+    <value>Unterstütze uns auf {0}</value>
   </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>KEIN GERÄT</value>

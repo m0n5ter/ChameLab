@@ -877,7 +877,7 @@
     <value>НАВИГАЦИЯ</value>
   </data>
   <data name="Main_SupportUs" xml:space="preserve">
-    <value>Поддержите нас</value>
+    <value>Поддержите нас на {0}</value>
   </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>НЕТ УСТРОЙСТВА</value>
