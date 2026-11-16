@@ -2052,6 +2052,9 @@
   <data name="Main_NoDeviceAttached" xml:space="preserve">
     <value>未连接设备</value>
   </data>
+  <data name="Main_SupportUs" xml:space="preserve">
+    <value>支持我们</value>
+  </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>无设备</value>
   </data>

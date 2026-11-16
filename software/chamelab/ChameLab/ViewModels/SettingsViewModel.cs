@@ -153,11 +153,17 @@ public sealed class SettingsViewModel : PageViewModelBase
     public IReadOnlyList<SocialLink> SocialLinks =>
     [
         new(Strings.Settings_Website, WebsiteUrl, "web", 4),
-        .. ShowsSupportLink ? [Russian ? Boosty : Patreon] : Array.Empty<SocialLink>(),
+        .. SupportLink is { } support ? [support] : Array.Empty<SocialLink>(),
         .. Russian ? RussianLinks : [Discord],
     ];
 
     private static bool Russian => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ru";
+
+    /// <summary>
+    /// The support page for this language (Boosty in Russian, Patreon in the others), or null in
+    /// store copies. Shown in the About card and at the foot of the navigation pane.
+    /// </summary>
+    public SocialLink? SupportLink => ShowsSupportLink ? (Russian ? Boosty : Patreon) : null;
 
     /// <summary>Opens a community link in the browser.</summary>
     public ICommand OpenLinkCommand { get; }

@@ -2052,6 +2052,9 @@
   <data name="Main_NoDeviceAttached" xml:space="preserve">
     <value>연결된 장치 없음</value>
   </data>
+  <data name="Main_SupportUs" xml:space="preserve">
+    <value>후원해 주세요</value>
+  </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>장치 없음</value>
   </data>

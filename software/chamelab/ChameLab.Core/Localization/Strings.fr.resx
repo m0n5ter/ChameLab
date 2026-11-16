@@ -2052,6 +2052,9 @@
   <data name="Main_NoDeviceAttached" xml:space="preserve">
     <value>Aucun appareil branché</value>
   </data>
+  <data name="Main_SupportUs" xml:space="preserve">
+    <value>Soutenez-nous</value>
+  </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>AUCUN APPAREIL</value>
   </data>

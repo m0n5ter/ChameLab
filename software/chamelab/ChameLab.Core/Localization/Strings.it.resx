@@ -2052,6 +2052,9 @@
   <data name="Main_NoDeviceAttached" xml:space="preserve">
     <value>Nessun dispositivo collegato</value>
   </data>
+  <data name="Main_SupportUs" xml:space="preserve">
+    <value>Sostienici</value>
+  </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>NESSUN DISPOSITIVO</value>
   </data>

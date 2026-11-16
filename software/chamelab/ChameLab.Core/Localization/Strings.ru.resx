@@ -876,6 +876,9 @@
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>НАВИГАЦИЯ</value>
   </data>
+  <data name="Main_SupportUs" xml:space="preserve">
+    <value>Поддержите нас</value>
+  </data>
   <data name="Main_NoDeviceHeader" xml:space="preserve">
     <value>НЕТ УСТРОЙСТВА</value>
   </data>
