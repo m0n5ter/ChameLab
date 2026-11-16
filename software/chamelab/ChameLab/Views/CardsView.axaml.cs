@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
+using Avalonia.Threading;
 using ChameLab.Behaviors;
 using ChameLab.ViewModels;
 
@@ -29,13 +30,29 @@ public partial class CardsView : UserControl
     /// The memory scroll has already brought the caret into view; the request must
     /// not travel on to the pane scroll, which would scroll to the caret's position
     /// as if the inner scroll weren't there (jumping up to the card details). The
-    /// pane only needs to show the memory scroll itself; a no-op when it is visible.
+    /// pane shows the part of the memory scroll where the caret now is: on a phone
+    /// with the keyboard open the pane can be shorter than the memory scroll, and
+    /// showing all of it would leave a caret low in it under the keyboard. Once laid
+    /// out, so the inner scroll's new offset is in place.
     /// </summary>
     private void OnMemoryBringIntoView(object? sender, RequestBringIntoViewEventArgs e)
     {
         if (e.TargetObject == MemoryScroll) return;
         e.Handled = true;
-        MemoryScroll.BringIntoView();
+        if (e.TargetObject is not { } target)
+        {
+            MemoryScroll.BringIntoView();
+            return;
+        }
+        var rect = e.TargetRect;
+        Dispatcher.UIThread.Post(() =>
+        {
+            var shown = new Rect(MemoryScroll.Bounds.Size);
+            var spot = target.TransformToVisual(MemoryScroll) is { } toScroll
+                ? rect.TransformToAABB(toScroll).Intersect(shown)
+                : default;
+            MemoryScroll.BringIntoView(spot.Height > 0 ? spot : shown);
+        }, DispatcherPriority.Background);
     }
 
     /// <summary>

@@ -8,6 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using ChameLab.Behaviors;
+using ChameLab.Controls;
 using ChameLab.Services;
 using ChameLab.ViewModels;
 
@@ -233,7 +234,7 @@ public partial class MainView : UserControl
         if (_inputPane is not null)
             KeepClearOfKeyboard(_inputPane.State == InputPaneState.Open ? _inputPane.OccludedRect : default);
         // Likely made shorter for the keyboard by the platform itself.
-        if (shrank && _topLevel?.FocusManager?.GetFocusedElement() is TextBox) RevealFocused();
+        if (shrank && _topLevel?.FocusManager?.GetFocusedElement() is TextBox or HexEditor) RevealFocused();
     }
 
     // Pages differ in how much room they need, so the pane may dock or overlay on navigation.
