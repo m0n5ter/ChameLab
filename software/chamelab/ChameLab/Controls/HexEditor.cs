@@ -213,6 +213,9 @@ public sealed class HexEditor : Control
         TextInputOptions.SetShowSuggestions(this, false);
         TextInputOptions.SetAutoCapitalization(this, false);
         TextInputOptions.SetMultiline(this, false);
+        // Enter adds a row (key lists) or moves to the next one, so the on-screen keyboard shows a
+        // plain Enter key that keeps it open; a single-line "Done" key would hide it on every press.
+        TextInputOptions.SetReturnKeyType(this, TextInputReturnKeyType.Return);
         // A long press selects (with handles and a bar) instead of opening the menu. Added before
         // the menu, which opens on this event unless it is handled.
         AddHandler(ContextRequestedEvent, (_, e) =>
@@ -279,11 +282,6 @@ public sealed class HexEditor : Control
             if (_buffer is not null) _buffer.Changed -= OnBufferChanged;
             _buffer = Buffer;
             if (_buffer is not null) _buffer.Changed += OnBufferChanged;
-            // Where Enter adds a row (a key list), the on-screen keyboard shows a plain Enter key
-            // that keeps it open; a single-line "Done" key would hide the keyboard on every new row.
-            TextInputOptions.SetReturnKeyType(this, _buffer?.CanResize == true
-                ? TextInputReturnKeyType.Return
-                : TextInputReturnKeyType.Default);
             _caret = 0;
             _lowNibble = false;
             _anchor = -1;
@@ -1313,6 +1311,7 @@ public sealed class HexEditor : Control
             case Key.Back: MoveCaret(_lowNibble ? _caret : _caret - 1, false, false); break;
             case Key.Insert when editsBytes && !cmd && !shift: InsertByte(); break;
             case Key.Enter when _buffer.CanResize && !cmd: InsertRowBelow(); break;
+            case Key.Enter when !cmd: MoveToNextRow(); break;
             case Key.Delete when _buffer.CanResize: RemoveRows(); break;
             case Key.Tab when _showAscii && !cmd && !e.KeyModifiers.HasFlag(KeyModifiers.Alt):
                 // Switch between the hex and ASCII columns; leave the control from the side it's going to.
@@ -1354,6 +1353,15 @@ public sealed class HexEditor : Control
         var row = buf.RowAt(_caret);
         if (row < buf.RowCount - 1) buf.InsertRows(row + 1, 1);
         GoTo(buf.RowStart(Math.Min(row + 1, buf.ViewRowCount - 1)));
+    }
+
+    /// <summary>Enter in a fixed-size buffer: moves to the start of the next row; stays put on the last one.</summary>
+    private void MoveToNextRow()
+    {
+        if (_buffer is not { } buf) return;
+        var row = buf.RowAt(_caret);
+        // MoveCaret, not GoTo: the caret stays in the column (hex or ASCII) it was in.
+        if (row < buf.ViewRowCount - 1) MoveCaret(buf.RowStart(row + 1), false, extend: false);
     }
 
     /// <summary>
