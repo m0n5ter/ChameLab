@@ -19,17 +19,25 @@ public class SettingRow : Panel
     public static readonly StyledProperty<double> MinTextWidthProperty =
         AvaloniaProperty.Register<SettingRow, double>(nameof(MinTextWidth), 200);
 
+    /// <summary>
+    /// Stack only when the title doesn't fit on one line beside the control (at least
+    /// <see cref="MinTextWidth"/> still applies), for rows with a short title and a wide control.
+    /// </summary>
+    public static readonly StyledProperty<bool> FitTitleProperty =
+        AvaloniaProperty.Register<SettingRow, bool>(nameof(FitTitle));
+
     /// <summary>Set while stacked, so styles can make the control narrower.</summary>
     public const string StackedClass = "stacked";
 
     static SettingRow()
     {
-        AffectsMeasure<SettingRow>(SpacingProperty, RowSpacingProperty, MinTextWidthProperty);
+        AffectsMeasure<SettingRow>(SpacingProperty, RowSpacingProperty, MinTextWidthProperty, FitTitleProperty);
     }
 
     public double Spacing { get => GetValue(SpacingProperty); set => SetValue(SpacingProperty, value); }
     public double RowSpacing { get => GetValue(RowSpacingProperty); set => SetValue(RowSpacingProperty, value); }
     public double MinTextWidth { get => GetValue(MinTextWidthProperty); set => SetValue(MinTextWidthProperty, value); }
+    public bool FitTitle { get => GetValue(FitTitleProperty); set => SetValue(FitTitleProperty, value); }
 
     private bool _stacked;
 
@@ -54,7 +62,8 @@ public class SettingRow : Panel
         var trail = control.Width > 0 ? control.Width + Spacing : 0;
 
         var textWidth = width - lead - trail;
-        _stacked = !double.IsInfinity(width) && textWidth < MinTextWidth;
+        var minText = FitTitle ? Math.Max(MinTextWidth, Measure(Child(1), double.PositiveInfinity).Width) : MinTextWidth;
+        _stacked = !double.IsInfinity(width) && textWidth < minText;
         if (!_stacked)
         {
             var title = Measure(Child(1), textWidth);

@@ -23,7 +23,10 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     public async Task<LfCardCycle> GetLfCycleAsync(CancellationToken ct = default)
     {
         var frame = await conn.SendExpectAsync(Command.LfGetCycle, Status.Success, ct: ct);
-        return LfCardCycle.Decode(frame.Data);
+        var cycle = LfCardCycle.Decode(frame.Data);
+        if (!(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.LfGetCycleMode)) return cycle;
+        var mode = await conn.SendExpectAsync(Command.LfGetCycleMode, Status.Success, ct: ct);
+        return cycle.WithMode(mode.Data);
     }
 
     /// <summary>
@@ -33,11 +36,27 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     public async Task<LfCardCycle?[]> GetAllLfCyclesAsync(CancellationToken ct = default)
     {
         var frame = await conn.SendExpectAsync(Command.LfGetAllCycles, Status.Success, ct: ct);
-        return LfCardCycle.DecodeAll(frame.Data);
+        var cycles = LfCardCycle.DecodeAll(frame.Data);
+        if (!(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.LfGetAllCycleModes)) return cycles;
+        var modes = (await conn.SendExpectAsync(Command.LfGetAllCycleModes, Status.Success, ct: ct)).Data;
+        if (modes.Length != cycles.Length * LfCardCycle.ModeSize)
+            throw new ArgumentException("Invalid LF card cycle modes response.");
+        for (var i = 0; i < cycles.Length; i++)
+            cycles[i] = cycles[i]?.WithMode(modes.AsSpan(i * LfCardCycle.ModeSize, LfCardCycle.ModeSize));
+        return cycles;
     }
 
-    public async Task SetLfCycleAsync(LfCardCycle cycle, CancellationToken ct = default) =>
+    /// <summary>
+    /// Sets the active slot's extra LF cards and, where the firmware has modes and there is a list
+    /// to switch, how they are switched. Firmware without modes switches on each field appearance.
+    /// </summary>
+    public async Task SetLfCycleAsync(LfCardCycle cycle, CancellationToken ct = default)
+    {
+        var mode = cycle.EncodeMode(); // Validate before any slot writes.
         await conn.SendExpectAsync(Command.LfSetCycle, Status.Success, cycle.Encode(), ct: ct);
+        if (cycle.Extras.Length > 0 && (await GetCapabilitiesAsync(ct)).Contains((ushort)Command.LfSetCycleMode))
+            await conn.SendExpectAsync(Command.LfSetCycleMode, Status.Success, mode, ct: ct);
+    }
 
     private readonly SemaphoreSlim _slotLock = new(1, 1);
 

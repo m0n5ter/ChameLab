@@ -2671,7 +2671,34 @@
     <value>Predeterminado</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>Arrastra las tarjetas para cambiar el orden. Cada vez que aparece el campo del lector, el dispositivo envía la siguiente tarjeta por turno.</value>
+    <value>Arrastre las tarjetas para cambiar el orden.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>Cambiar tarjetas</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>Cada toque</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>En el campo</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>Cada vez que aparece el campo del lector, el dispositivo envía la siguiente tarjeta por turno. Para cambiar, aleje el dispositivo del lector y vuelva a acercarlo.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>Mientras el campo del lector esté presente, el dispositivo envía las tarjetas por turno. Recuerda la última tarjeta enviada y la próxima vez empieza por ella.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>Tiempo por tarjeta, ráfagas</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>1–10 ráfagas por tarjeta; una ráfaga son diez tramas de la tarjeta: unos 0,33 s para EM410x, de 0,16 (Viking, IDTECK) a 0,66 (Electra, Jablotron) para los demás tipos</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>Una ráfaga ≈ 0,16–0,66 s según el tipo.</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>Silencio entre tarjetas, s</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>Ranura vacía</value>

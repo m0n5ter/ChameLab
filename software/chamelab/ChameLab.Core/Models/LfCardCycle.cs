@@ -16,12 +16,31 @@ public sealed record LfCycleCard(TagSpecificType Type, byte[] Id)
     public bool SameAs(LfCycleCard other) => Type == other.Type && Id.AsSpan().SequenceEqual(other.Id);
 }
 
+/// <summary>How the device switches between the cards of an LF list.</summary>
+public enum LfCycleMode : byte
+{
+    /// <summary>The next card on each appearance of the reader's field: one steady card per tap.</summary>
+    PerField = 0,
+    /// <summary>The cards in turn while the field is present, resuming from the last one sent.</summary>
+    WhilePresent = 1,
+}
+
 /// <summary>
-/// Additional LF cards of any emulated type; the slot's own card is always first. The device
-/// emulates the next card in the list on each field appearance, so there is no per-card timing.
+/// Additional LF cards of any emulated type; the slot's own card is always first. How the cards
+/// are switched is <see cref="Mode"/>; <see cref="Bursts"/> per card and <see cref="GapSteps"/>
+/// (100 ms) of silence between cards apply to <see cref="LfCycleMode.WhilePresent"/>.
 /// </summary>
 public sealed record LfCardCycle(LfCycleCard[] Extras)
 {
+    public LfCycleMode Mode { get; init; }
+    public int Bursts { get; init; } = 1;
+    public int GapSteps { get; init; }
+
+    public const int MaxBursts = 10;
+    public const int MaxGapSteps = 30;
+    /// <summary>One slot's mode on the wire: mode, bursts, silence.</summary>
+    public const int ModeSize = 3;
+
     /// <summary>Largest LF emulator data; each card is zero-padded to it on the wire.</summary>
     private const int MaxIdLength = 16;
     /// <summary>One extra card on the wire: tag type (u16, big-endian) and 16 data bytes.</summary>
@@ -42,6 +61,22 @@ public sealed record LfCardCycle(LfCycleCard[] Extras)
             Extras[i].Id.CopyTo(data, o + 2);
         }
         return data;
+    }
+
+    /// <summary>The mode command payload (5910).</summary>
+    public byte[] EncodeMode()
+    {
+        if (!Enum.IsDefined(Mode) || Bursts is < 1 or > MaxBursts || GapSteps is < 0 or > MaxGapSteps)
+            throw new ArgumentException("Invalid LF card cycle mode.");
+        return [(byte)Mode, (byte)Bursts, (byte)GapSteps];
+    }
+
+    /// <summary>This cycle with the mode from a 5911 reply or a 5912 entry.</summary>
+    public LfCardCycle WithMode(ReadOnlySpan<byte> data)
+    {
+        if (data.Length != ModeSize || data[0] > (byte)LfCycleMode.WhilePresent || data[1] is < 1 or > MaxBursts || data[2] > MaxGapSteps)
+            throw new ArgumentException("Invalid LF card cycle mode response.");
+        return this with { Mode = (LfCycleMode)data[0], Bursts = data[1], GapSteps = data[2] };
     }
 
     public static LfCardCycle Decode(ReadOnlySpan<byte> data)
@@ -79,7 +114,7 @@ public sealed record LfCardCycle(LfCycleCard[] Extras)
         return result;
     }
 
-    /// <summary>The same cards in the same order (records compare the card arrays by reference).</summary>
-    public bool SameAs(LfCardCycle other) =>
+    /// <summary>The same mode and cards in the same order (records compare the card arrays by reference).</summary>
+    public bool SameAs(LfCardCycle other) => Mode == other.Mode && Bursts == other.Bursts && GapSteps == other.GapSteps &&
         Extras.Length == other.Extras.Length && Extras.Zip(other.Extras).All(p => p.First.SameAs(p.Second));
 }

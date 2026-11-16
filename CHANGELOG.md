@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - Firmware v2.3.20-cl / ChameLab: multi-card LF slots get a **Switch cards** setting. **Each tap** (the default) sends the next card on each appearance of the reader's field, as before. **In the field** brings back sending the cards in turn while the device stays at the reader, with the time per card (1–10 bursts) and the silence between cards (0–3 s); the card being sent when the field goes away is remembered, and the next pass starts from it instead of the first card. New commands 5910–5912 set and read the mode; 5907–5909 are unchanged. Lists saved by firmware v2.3.6-cl–v2.3.7-cl and not yet re-saved come back in **In the field** with their timing
 
 ## [v1.6.50][2026-11-16] · firmware v2.3.19-cl
 ### Summary

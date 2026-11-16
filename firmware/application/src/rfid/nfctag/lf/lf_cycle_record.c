@@ -14,14 +14,46 @@ bool lf_cycle_valid(const uint8_t *data, uint16_t length) {
     return true;
 }
 
+lf_cycle_settings_t lf_cycle_settings(const uint8_t *data, uint16_t length) {
+    lf_cycle_settings_t s = {LF_CYCLE_MODE_PER_FIELD, 1, 0};
+    if (!lf_cycle_valid(data, length)) return s;
+    if (data[LF_CYCLE_VERSION] == 4) {
+        // v4 only cycled while the field was present, bursts and silence in bytes 19/20.
+        s.mode = LF_CYCLE_MODE_WHILE_PRESENT;
+        s.bursts = data[19];
+        s.silence = data[20];
+    } else {
+        s.mode = data[LF_CYCLE_MODE];
+        s.bursts = data[LF_CYCLE_BURSTS];
+        s.silence = data[LF_CYCLE_SILENCE];
+    }
+    if (s.mode > LF_CYCLE_MODE_WHILE_PRESENT) s.mode = LF_CYCLE_MODE_PER_FIELD;
+    if (s.bursts < 1 || s.bursts > LF_CYCLE_BURSTS_MAX) s.bursts = 1;
+    if (s.silence > LF_CYCLE_SILENCE_MAX) s.silence = 0;
+    return s;
+}
+
+bool lf_cycle_settings_valid(lf_cycle_settings_t settings) {
+    return settings.mode <= LF_CYCLE_MODE_WHILE_PRESENT && settings.bursts >= 1 &&
+           settings.bursts <= LF_CYCLE_BURSTS_MAX && settings.silence <= LF_CYCLE_SILENCE_MAX;
+}
+
+void lf_cycle_store_settings(uint8_t *data, lf_cycle_settings_t settings) {
+    data[LF_CYCLE_MODE] = settings.mode;
+    data[LF_CYCLE_BURSTS] = settings.bursts;
+    data[LF_CYCLE_SILENCE] = settings.silence;
+}
+
 bool lf_cycle_prepare_save(uint8_t *data, uint16_t length) {
     if (!lf_cycle_valid(data, length)) return false;
     if (data[LF_CYCLE_VERSION] == 4) {
-        // Keep every card and its order; only the obsolete bursts/silence and
-        // padding bytes change. Doing this at save time lets the existing CRC
-        // check detect the migration and persist the complete v5 record.
+        // Keep every card, its order and the while-present timing; only the layout
+        // of the settings bytes changes. Doing this at save time lets the existing
+        // CRC check detect the migration and persist the complete v5 record.
+        lf_cycle_settings_t s = lf_cycle_settings(data, length);
         data[LF_CYCLE_VERSION] = 5;
         memset(data + LF_CYCLE_COUNT + 1, 0, LF_CYCLE_EXTRAS - LF_CYCLE_COUNT - 1);
+        lf_cycle_store_settings(data, s);
     }
     return true;
 }

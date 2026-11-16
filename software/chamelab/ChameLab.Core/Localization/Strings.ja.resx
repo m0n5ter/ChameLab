@@ -2671,7 +2671,34 @@
     <value>既定</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>カードをドラッグして順序を変更します。リーダーのフィールドが現れるたびに、デバイスは次のカードを順番に送信します。</value>
+    <value>カードをドラッグして順序を変更します。</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>カードの切り替え</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>タッチごと</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>フィールド中</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>リーダーのフィールドが現れるたびに、デバイスは次のカードを順番に送信します。切り替えるには、デバイスをリーダーから離して再びかざします。</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>リーダーのフィールドがある間、デバイスはカードを順番に送信します。最後に送信したカードを記憶し、次回はそのカードから始めます。</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>カードあたりの時間（バースト）</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>カードあたり 1～10 バースト。1 バーストはカードの 10 フレーム：EM410x で約 0.33 秒、その他の種類では 0.16（Viking、IDTECK）～0.66（Electra、Jablotron）秒</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>1 バースト ≈ 0.16～0.66 秒（種類による）。</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>カード間の無音、秒</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>空のスロット</value>

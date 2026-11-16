@@ -2671,7 +2671,34 @@
     <value>Padrão</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>Arraste os cartões para mudar a ordem. Cada vez que o campo do leitor aparece, o dispositivo envia o próximo cartão da vez.</value>
+    <value>Arraste os cartões para mudar a ordem.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>Trocar cartões</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>A cada toque</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>No campo</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>Cada vez que o campo do leitor aparece, o dispositivo envia o próximo cartão por vez. Para trocar, afaste o dispositivo do leitor e aproxime-o novamente.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>Enquanto o campo do leitor estiver presente, o dispositivo envia os cartões por vez. Ele lembra o último cartão enviado e começa por ele na próxima vez.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>Tempo por cartão, rajadas</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>1–10 rajadas por cartão; uma rajada são dez quadros do cartão: cerca de 0,33 s para EM410x, de 0,16 (Viking, IDTECK) a 0,66 (Electra, Jablotron) para os outros tipos</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>Uma rajada ≈ 0,16–0,66 s conforme o tipo.</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>Silêncio entre cartões, s</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>Slot vazio</value>

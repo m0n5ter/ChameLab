@@ -2671,7 +2671,34 @@
     <value>Par défaut</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>Faites glisser les cartes pour changer l'ordre. À chaque apparition du champ du lecteur, l'appareil envoie la carte suivante à tour de rôle.</value>
+    <value>Faites glisser les cartes pour changer l'ordre.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>Changer de carte</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>À chaque passage</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>Dans le champ</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>Chaque fois que le champ du lecteur apparaît, l'appareil envoie la carte suivante à tour de rôle. Pour changer, éloignez l'appareil du lecteur puis rapprochez-le.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>Tant que le champ du lecteur est présent, l'appareil envoie les cartes à tour de rôle. Il retient la dernière carte envoyée et repart d'elle la fois suivante.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>Temps par carte, salves</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>1–10 salves par carte ; une salve correspond à dix trames de la carte : environ 0,33 s pour EM410x, de 0,16 (Viking, IDTECK) à 0,66 (Electra, Jablotron) pour les autres types</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>Une salve ≈ 0,16–0,66 s selon le type.</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>Silence entre les cartes, s</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>Emplacement vide</value>

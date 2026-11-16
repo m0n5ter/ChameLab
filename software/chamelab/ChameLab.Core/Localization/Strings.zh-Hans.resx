@@ -2671,7 +2671,34 @@
     <value>默认</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>拖动卡片以更改顺序。每当读卡器的场出现时，设备会依次发送下一张卡。</value>
+    <value>拖动卡片以更改顺序。</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>切换卡片</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>每次触碰</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>在场内</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>每次读卡器的场出现时，设备依次发送下一张卡。要切换，请将设备移开读卡器后再靠近。</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>读卡器的场存在时，设备依次发送各张卡。它会记住最后发送的卡，下次从这张卡开始。</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>每张卡时长（突发）</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>每张卡 1–10 次突发；一次突发为卡的十帧：EM410x 约 0.33 秒，其他类型为 0.16（Viking、IDTECK）至 0.66（Electra、Jablotron）秒</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>一次突发 ≈ 0.16–0.66 秒（视类型而定）。</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>卡片间静默，秒</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>空卡槽</value>

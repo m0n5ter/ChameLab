@@ -2671,7 +2671,34 @@
     <value>Standard</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>Ziehen Sie Karten, um die Reihenfolge zu ändern. Jedes Mal, wenn das Feld des Lesegeräts erscheint, sendet das Gerät der Reihe nach die nächste Karte.</value>
+    <value>Ziehen Sie Karten, um die Reihenfolge zu ändern.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>Karten wechseln</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>Je Antippen</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>Im Feld</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>Jedes Mal, wenn das Feld des Lesegeräts erscheint, sendet das Gerät der Reihe nach die nächste Karte. Zum Wechseln das Gerät vom Lesegerät entfernen und wieder heranhalten.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>Solange das Feld des Lesegeräts besteht, sendet das Gerät die Karten der Reihe nach. Die zuletzt gesendete Karte wird gemerkt, und der nächste Durchlauf beginnt mit ihr.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>Zeit pro Karte, Bursts</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>1–10 Bursts pro Karte; ein Burst sind zehn Frames der Karte: etwa 0,33 s für EM410x, von 0,16 (Viking, IDTECK) bis 0,66 (Electra, Jablotron) für die anderen Typen</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>Ein Burst ≈ 0,16–0,66 s je nach Kartentyp.</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>Pause zwischen Karten, s</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>Leerer Slot</value>

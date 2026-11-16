@@ -23,8 +23,8 @@ the browser, Bluetooth on phones and in Chrome / Edge, TCP everywhere.
 - **Slots** — all eight slots at a glance, with each card's name and LED color. Drag to
   reorder, tap to activate, edit HF and LF separately.
 - **Multi-card LF** — one LF slot can hold up to eight LF cards of any emulated type, mixed
-  freely, and send the next one on each tap of a reader, so you can walk through them until the
-  right card opens. No other Chameleon firmware or app can do this; see
+  freely, and send the next one on each tap of a reader, or cycle through them while the device
+  stays at the reader, so you can walk through them until the right card opens. No other Chameleon firmware or app can do this; see
   [LF card cycling](docs/lf-card-cycle.md).
 - **Read and dump** — ISO14443-A and LF scans. MIFARE Classic Mini, 1K and 4K dumps with
   your key dictionaries, edited as hex and emulated in one tap.
@@ -72,7 +72,8 @@ with the app: features are added on both sides and shipped in the same release.
 - **Multi-card LF** — an LF slot holds up to eight cards of any emulated LF type
   (EM410x, Electra, HID Prox, ioProx, Viking, PAC, Jablotron, IDTECK, Pyramid), in any mix,
   and emulates the next one each time the reader's field appears — one steady card per tap,
-  wrapping back to the first. The position is kept across sleep. The list is saved with the
+  wrapping back to the first — or, per slot, sends them in turn while the field is present, with
+  1–10 bursts per card and 0–3 s of silence between cards. The position is kept across sleep. The list is saved with the
   slot and follows it when slots are swapped. This is unique to ChameLab: neither the stock
   firmware nor other apps have it.
 - **Slot LED colors** — each card in a slot can have its own LED color, so you can tell

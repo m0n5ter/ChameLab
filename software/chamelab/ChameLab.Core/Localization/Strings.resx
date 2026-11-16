@@ -1006,7 +1006,34 @@
     <value>Default</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>Drag cards to change the order. Each time the reader's field appears, the device sends the next card in turn.</value>
+    <value>Drag cards to change the order.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>Switch cards</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>Each tap</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>In the field</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>Each time the reader's field appears, the device sends the next card in turn. Take the device away from the reader and bring it back to switch.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>While the reader's field is present, the device sends the cards in turn. It remembers the last card sent and starts from it next time.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>Time per card, bursts</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>1–10 bursts per card; one burst is ten frames of the card: about 0.33 seconds for EM410x, from 0.16 (Viking, IDTECK) to 0.66 (Electra, Jablotron) for the other types</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>One burst ≈ 0.16–0.66 s by card type.</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>Silence between cards, s</value>
   </data>
   <data name="Slots_EmulationSlots" xml:space="preserve">
     <value>Emulation slots</value>

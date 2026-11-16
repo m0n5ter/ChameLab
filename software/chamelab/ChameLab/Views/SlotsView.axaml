@@ -116,49 +116,53 @@
     </DataTemplate>
 
     <DataTemplate x:Key="SlotLed" x:DataType="vm:SlotSideViewModel">
-        <!-- LED color -->
-        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" IsVisible="{Binding HasCard}">
-          <TextBlock Grid.Column="0" Text="{x:Static loc:Strings.Slots_LEDColor}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-          <Border Grid.Column="1" Classes="segmented compact">
-            <StackPanel Orientation="Horizontal">
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
-                           ToolTip.Tip="{x:Static loc:Strings.Slots_TheFirmwaresOwnColorGreenFor}">
-                <TextBlock Text="{x:Static loc:Strings.Slots_Default}" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"
-                           ToolTip.Tip="{x:Static loc:Strings.Slots_TheColorOfTheSavedCard}">
-                <TextBlock Text="{x:Static loc:Strings.Common_Card}" FontWeight="SemiBold" />
-              </RadioButton>
-              <RadioButton Classes="segment" IsChecked="{Binding IsColorCustom}" IsEnabled="{Binding SupportsColors}"
-                           ToolTip.Tip="{x:Static loc:Strings.Slots_AColorOfYourChoiceNeeds}">
-                <TextBlock Text="{x:Static loc:Strings.Slots_Custom}" FontWeight="SemiBold" />
-              </RadioButton>
-            </StackPanel>
-          </Border>
-          <Panel Grid.Column="2" VerticalAlignment="Center">
-            <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="{x:Static loc:Strings.Slots_TheColorTheSlotLEDShows}"
-                    Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-            <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="{x:Static loc:Strings.Slots_PickTheLEDColor}">
-              <Border Classes="swatch" Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-              <Button.Flyout>
-                <Flyout Placement="BottomEdgeAlignedLeft">
-                  <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
-                           SelectedItem="{Binding CustomColor}" Background="Transparent" BorderThickness="0"
-                           Tapped="OnSwatchTapped">
-                    <ListBox.ItemsPanel>
-                      <ItemsPanelTemplate><UniformGrid Columns="8" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                    <ListBox.ItemTemplate>
-                      <DataTemplate>
-                        <Border Classes="swatch" Background="{Binding Converter={x:Static conv:HexBrushConverter.Instance}}" />
-                      </DataTemplate>
-                    </ListBox.ItemTemplate>
-                  </ListBox>
-                </Flyout>
-              </Button.Flyout>
-            </Button>
-          </Panel>
-        </Grid>
+        <!-- LED color: the label gets a line of its own above the choice when the row is narrow. -->
+        <c:SettingRow Spacing="10" MinTextWidth="0" FitTitle="True" IsVisible="{Binding HasCard}">
+          <Panel IsVisible="False" />
+          <TextBlock Text="{x:Static loc:Strings.Slots_LEDColor}" VerticalAlignment="Center" TextWrapping="Wrap" />
+          <Panel IsVisible="False" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Border Classes="segmented compact">
+              <StackPanel Orientation="Horizontal">
+                <RadioButton Classes="segment" IsChecked="{Binding IsColorDefault}"
+                             ToolTip.Tip="{x:Static loc:Strings.Slots_TheFirmwaresOwnColorGreenFor}">
+                  <TextBlock Text="{x:Static loc:Strings.Slots_Default}" FontWeight="SemiBold" />
+                </RadioButton>
+                <RadioButton Classes="segment" IsChecked="{Binding IsColorCard}" IsEnabled="{Binding CanUseCardColor}"
+                             ToolTip.Tip="{x:Static loc:Strings.Slots_TheColorOfTheSavedCard}">
+                  <TextBlock Text="{x:Static loc:Strings.Common_Card}" FontWeight="SemiBold" />
+                </RadioButton>
+                <RadioButton Classes="segment" IsChecked="{Binding IsColorCustom}" IsEnabled="{Binding SupportsColors}"
+                             ToolTip.Tip="{x:Static loc:Strings.Slots_AColorOfYourChoiceNeeds}">
+                  <TextBlock Text="{x:Static loc:Strings.Slots_Custom}" FontWeight="SemiBold" />
+                </RadioButton>
+              </StackPanel>
+            </Border>
+            <Panel VerticalAlignment="Center">
+              <Border Classes="swatch" IsVisible="{Binding !IsColorCustom}" ToolTip.Tip="{x:Static loc:Strings.Slots_TheColorTheSlotLEDShows}"
+                      Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+              <Button Classes="ledpick" IsVisible="{Binding IsColorCustom}" ToolTip.Tip="{x:Static loc:Strings.Slots_PickTheLEDColor}">
+                <Border Classes="swatch" Background="{Binding LedPreview, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                <Button.Flyout>
+                  <Flyout Placement="BottomEdgeAlignedLeft">
+                    <ListBox Classes="swatches" ItemsSource="{x:Static vm:CardEditorViewModel.Palette}"
+                             SelectedItem="{Binding CustomColor}" Background="Transparent" BorderThickness="0"
+                             Tapped="OnSwatchTapped">
+                      <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate><UniformGrid Columns="8" ColumnSpacing="2" RowSpacing="2" /></ItemsPanelTemplate>
+                      </ListBox.ItemsPanel>
+                      <ListBox.ItemTemplate>
+                        <DataTemplate>
+                          <Border Classes="swatch" Background="{Binding Converter={x:Static conv:HexBrushConverter.Instance}}" />
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+            </Panel>
+          </StackPanel>
+        </c:SettingRow>
 
     </DataTemplate>
 
@@ -443,6 +447,46 @@
                   </StackPanel>
                 </Button>
               </Grid>
+              <!-- How the cards are switched; its description and timing indented under it -->
+              <c:SettingRow Spacing="10" MinTextWidth="0" FitTitle="True" IsVisible="{Binding ShowLfCycle}">
+                <Panel IsVisible="False" />
+                <TextBlock Text="{x:Static loc:Strings.Slots_SwitchCards}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <Panel IsVisible="False" />
+                <Border Classes="segmented compact">
+                  <StackPanel Orientation="Horizontal">
+                    <RadioButton Classes="segment" IsChecked="{Binding CyclePerField}">
+                      <TextBlock Text="{x:Static loc:Strings.Slots_CyclePerField}" FontWeight="SemiBold" />
+                    </RadioButton>
+                    <RadioButton Classes="segment" IsChecked="{Binding CycleWhilePresent}">
+                      <TextBlock Text="{x:Static loc:Strings.Slots_CycleWhilePresent}" FontWeight="SemiBold" />
+                    </RadioButton>
+                  </StackPanel>
+                </Border>
+              </c:SettingRow>
+              <StackPanel Margin="20,0,0,0" Spacing="12" IsVisible="{Binding LfCards.CanReorder}">
+                <Panel>
+                  <TextBlock Text="{x:Static loc:Strings.Slots_CyclePerFieldHint}" Classes="caption" TextWrapping="Wrap"
+                             IsVisible="{Binding CyclePerField}" />
+                  <TextBlock Text="{x:Static loc:Strings.Slots_CycleWhilePresentHint}" Classes="caption" TextWrapping="Wrap"
+                             IsVisible="{Binding CycleWhilePresent}" />
+                </Panel>
+                <!-- Timing, laid out like Settings: when narrow the title takes the whole line. -->
+                <c:SettingRow Classes="setting compact" Spacing="10" MinTextWidth="0" FitTitle="True" IsVisible="{Binding ShowCycleTiming}">
+                  <Panel IsVisible="False" />
+                  <TextBlock Text="{x:Static loc:Strings.Slots_TimePerCardBursts}" TextWrapping="Wrap"
+                             ToolTip.Tip="{x:Static loc:Strings.Slots_TimePerCardTip}" />
+                  <TextBlock Text="{x:Static loc:Strings.Slots_OneBurstByCardType}" Classes="caption" TextWrapping="Wrap" />
+                  <NumericUpDown Classes="stepper" Width="100" Minimum="1" Maximum="10" Increment="1" VerticalAlignment="Center"
+                                 FormatString="0" Value="{Binding CycleBursts}" />
+                </c:SettingRow>
+                <c:SettingRow Classes="setting compact" Spacing="10" MinTextWidth="0" FitTitle="True" IsVisible="{Binding ShowCycleTiming}">
+                  <Panel IsVisible="False" />
+                  <TextBlock Text="{x:Static loc:Strings.Slots_SilenceBetweenCardsS}" TextWrapping="Wrap" />
+                  <Panel IsVisible="False" />
+                  <NumericUpDown Classes="stepper" Width="100" Minimum="0" Maximum="3" Increment="0.1" VerticalAlignment="Center"
+                                 FormatString="0.0" Value="{Binding CycleGapSeconds}" />
+                </c:SettingRow>
+              </StackPanel>
               <ContentControl Content="{Binding Lf}" ContentTemplate="{StaticResource SlotLed}" />
               </StackPanel>
             </StackPanel>

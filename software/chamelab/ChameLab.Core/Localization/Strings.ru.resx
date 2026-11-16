@@ -1003,7 +1003,34 @@
     <value>По умолчанию</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>Перетаскивайте карты, чтобы изменить порядок. При каждом появлении поля считывателя устройство выдаёт следующую карту по очереди.</value>
+    <value>Перетаскивайте карты, чтобы изменить порядок.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>Переключать карты</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>По касанию</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>В поле</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>При каждом появлении поля считывателя устройство выдаёт следующую карту по очереди. Чтобы переключить карту, уберите устройство от считывателя и поднесите снова.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>Пока поле считывателя есть, устройство выдаёт карты по очереди. Последняя выданная карта запоминается, и следующий перебор начинается с неё.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>Время на карту, бурсты</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>1–10 бурстов на карту; один бурст — десять кадров карты: около 0,33 с для EM410x, от 0,16 (Viking, IDTECK) до 0,66 (Electra, Jablotron) для остальных типов</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>Один бурст ≈ 0,16–0,66 с в зависимости от типа.</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>Пауза между картами, с</value>
   </data>
   <data name="Slots_EmulationSlots" xml:space="preserve">
     <value>Слоты эмуляции</value>

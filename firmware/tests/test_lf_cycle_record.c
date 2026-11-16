@@ -53,7 +53,13 @@ static void test_v4_update_preserves_every_card(void) {
         assert(loaded[18] == count);
         assert(memcmp(loaded, flash, 16) == 0);
         assert(memcmp(loaded + 24, flash + 24, sizeof(flash) - 24) == 0);
-        for (unsigned i = 19; i < 24; i++) assert(loaded[i] == 0);
+        // v4 cycled while the field was present: the mode and its timing carry over.
+        assert(loaded[19] == LF_CYCLE_MODE_WHILE_PRESENT);
+        assert(loaded[20] == 10);
+        assert(loaded[21] == 30);
+        for (unsigned i = 22; i < 24; i++) assert(loaded[i] == 0);
+        lf_cycle_settings_t s = lf_cycle_settings(loaded, sizeof(loaded));
+        assert(s.mode == LF_CYCLE_MODE_WHILE_PRESENT && s.bursts == 10 && s.silence == 30);
 
         // Save and reboot; a second migration must be an exact no-op.
         memcpy(saved, loaded, sizeof(saved));
@@ -72,13 +78,42 @@ static void test_v5_is_unchanged(void) {
     assert(memcmp(record, before, sizeof(before)) == 0);
 }
 
-static void test_obsolete_timings_are_ignored(void) {
+static void test_out_of_range_v4_timings_fall_back(void) {
     uint8_t record[LF_CYCLE_SIZE];
     make_record(record, 4, 2);
     memset(record + 19, 0xFF, 5);
     assert(lf_cycle_valid(record, sizeof(record)));
     assert(lf_cycle_prepare_save(record, sizeof(record)));
-    for (unsigned i = 19; i < 24; i++) assert(record[i] == 0);
+    assert(record[19] == LF_CYCLE_MODE_WHILE_PRESENT && record[20] == 1 && record[21] == 0);
+    for (unsigned i = 22; i < 24; i++) assert(record[i] == 0);
+}
+
+static void test_v5_settings(void) {
+    uint8_t record[LF_CYCLE_SIZE];
+    // v5 records written before the mode existed have zeros there: per field.
+    make_record(record, 5, 3);
+    memset(record + 19, 0, 5);
+    lf_cycle_settings_t s = lf_cycle_settings(record, sizeof(record));
+    assert(s.mode == LF_CYCLE_MODE_PER_FIELD && s.bursts == 1 && s.silence == 0);
+
+    lf_cycle_settings_t timed = {LF_CYCLE_MODE_WHILE_PRESENT, 4, 12};
+    assert(lf_cycle_settings_valid(timed));
+    lf_cycle_store_settings(record, timed);
+    s = lf_cycle_settings(record, sizeof(record));
+    assert(s.mode == timed.mode && s.bursts == timed.bursts && s.silence == timed.silence);
+
+    // Out-of-range bytes fall back to the defaults one by one.
+    record[19] = 2; record[20] = 11; record[21] = 31;
+    s = lf_cycle_settings(record, sizeof(record));
+    assert(s.mode == LF_CYCLE_MODE_PER_FIELD && s.bursts == 1 && s.silence == 0);
+
+    // No list, no settings.
+    record[18] = 1;
+    s = lf_cycle_settings(record, sizeof(record));
+    assert(s.mode == LF_CYCLE_MODE_PER_FIELD && s.bursts == 1 && s.silence == 0);
+
+    lf_cycle_settings_t bad[] = {{2, 1, 0}, {1, 0, 0}, {1, 11, 0}, {0, 1, 31}};
+    for (unsigned i = 0; i < sizeof(bad) / sizeof(bad[0]); i++) assert(!lf_cycle_settings_valid(bad[i]));
 }
 
 static void assert_rejected_without_changes(uint8_t *record, uint16_t length) {
@@ -123,8 +158,9 @@ static void test_invalid_records_are_rejected(void) {
 int main(void) {
     test_v4_update_preserves_every_card();
     test_v5_is_unchanged();
-    test_obsolete_timings_are_ignored();
+    test_out_of_range_v4_timings_fall_back();
+    test_v5_settings();
     test_invalid_records_are_rejected();
-    puts("LF cycle records: migration, save/reload, current records and invalid data passed");
+    puts("LF cycle records: migration, save/reload, settings, current records and invalid data passed");
     return 0;
 }

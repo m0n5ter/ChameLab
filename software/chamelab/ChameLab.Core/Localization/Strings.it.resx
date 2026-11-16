@@ -2671,7 +2671,34 @@
     <value>Predefinito</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>Trascina le schede per cambiarne l'ordine. Ogni volta che compare il campo del lettore, il dispositivo invia la scheda successiva.</value>
+    <value>Trascina le tessere per cambiare l'ordine.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>Cambia tessera</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>A ogni tocco</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>Nel campo</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>Ogni volta che compare il campo del lettore, il dispositivo invia a turno la tessera successiva. Per cambiare, allontana il dispositivo dal lettore e riavvicinalo.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>Finché il campo del lettore è presente, il dispositivo invia le tessere a turno. Ricorda l'ultima tessera inviata e la volta successiva riparte da quella.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>Tempo per tessera, burst</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>1–10 burst per tessera; un burst sono dieci frame della tessera: circa 0,33 s per EM410x, da 0,16 (Viking, IDTECK) a 0,66 (Electra, Jablotron) per gli altri tipi</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>Un burst ≈ 0,16–0,66 s secondo il tipo.</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>Silenzio tra le tessere, s</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>Slot vuoto</value>

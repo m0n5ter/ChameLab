@@ -222,6 +222,59 @@ public class LfSlotListTests
     }
 
     [Fact]
+    public void CycleModeEditsShowForListsAndDiscardWithTheSlot()
+    {
+        var library = new CardLibrary(new MemoryKeyValueStore());
+        var editor = new SlotEditorViewModel(new DeviceService([]), library,
+            new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x }, () => { }, _ => { });
+        editor.SetLfCapabilities([(ushort)Command.LfSetCycle, (ushort)Command.LfGetCycle,
+            (ushort)Command.LfSetCycleMode, (ushort)Command.LfGetCycleMode]);
+        editor.Lf.UidRead(TagSpecificType.Em410x, Card(1).Uid);
+        editor.LfCards.Load(true, new LfCardCycle([]));
+        Assert.False(editor.ShowLfCycle);
+        editor.LfCards.Load(true, new LfCardCycle([Extra(2)]));
+        Assert.True(editor.ShowLfCycle);
+        Assert.True(editor.CyclePerField);
+        Assert.False(editor.ShowCycleTiming);
+        Assert.False(editor.IsDirty);
+
+        // Timing only counts while it applies.
+        editor.CycleBursts = 4;
+        Assert.False(editor.IsDirty);
+        editor.CycleWhilePresent = true;
+        Assert.False(editor.CyclePerField);
+        Assert.True(editor.ShowCycleTiming);
+        Assert.True(editor.IsDirty);
+        editor.CycleGapSeconds = 1.24m;
+        Assert.Equal(1.2m, editor.CycleGapSeconds);
+        editor.CycleGapSeconds = 4;
+        Assert.Equal(3, editor.CycleGapSeconds);
+        editor.CycleGapSeconds = -1;
+        Assert.Equal(0, editor.CycleGapSeconds);
+        editor.CycleBursts = 11;
+        Assert.Equal(10, editor.CycleBursts);
+
+        editor.Discard();
+        Assert.True(editor.CyclePerField);
+        Assert.Equal(1, editor.CycleBursts);
+        Assert.False(editor.IsDirty);
+    }
+
+    [Fact]
+    public void CycleModeIsHiddenOnFirmwareWithoutModes()
+    {
+        var library = new CardLibrary(new MemoryKeyValueStore());
+        var editor = new SlotEditorViewModel(new DeviceService([]), library,
+            new SlotInfo { Index = 1, LfType = TagSpecificType.Em410x }, () => { }, _ => { });
+        editor.SetLfCapabilities([(ushort)Command.LfSetCycle, (ushort)Command.LfGetCycle]);
+        editor.Lf.UidRead(TagSpecificType.Em410x, Card(1).Uid);
+        editor.LfCards.Load(true, new LfCardCycle([Extra(2)]));
+        Assert.True(editor.SupportsMultiLf);
+        Assert.False(editor.ShowLfCycle);
+        Assert.True(editor.CyclePerField);
+    }
+
+    [Fact]
     public void LegacyFirmwareUsesOriginalPickerAndReplacesExistingLfCard()
     {
         var library = new CardLibrary(new MemoryKeyValueStore());

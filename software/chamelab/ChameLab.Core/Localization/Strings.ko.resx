@@ -2671,7 +2671,34 @@
     <value>기본값</value>
   </data>
   <data name="Slots_DragCardsToChangeTheOrder" xml:space="preserve">
-    <value>카드를 드래그하여 순서를 바꿉니다. 리더기의 필드가 나타날 때마다 장치가 다음 카드를 차례로 보냅니다.</value>
+    <value>카드를 드래그하여 순서를 변경하세요.</value>
+  </data>
+  <data name="Slots_SwitchCards" xml:space="preserve">
+    <value>카드 전환</value>
+  </data>
+  <data name="Slots_CyclePerField" xml:space="preserve">
+    <value>태그할 때마다</value>
+  </data>
+  <data name="Slots_CycleWhilePresent" xml:space="preserve">
+    <value>필드 안에서</value>
+  </data>
+  <data name="Slots_CyclePerFieldHint" xml:space="preserve">
+    <value>리더의 필드가 나타날 때마다 장치가 다음 카드를 차례로 보냅니다. 전환하려면 장치를 리더에서 뗐다가 다시 대세요.</value>
+  </data>
+  <data name="Slots_CycleWhilePresentHint" xml:space="preserve">
+    <value>리더의 필드가 있는 동안 장치가 카드를 차례로 보냅니다. 마지막으로 보낸 카드를 기억하고 다음에는 그 카드부터 시작합니다.</value>
+  </data>
+  <data name="Slots_TimePerCardBursts" xml:space="preserve">
+    <value>카드당 시간, 버스트</value>
+  </data>
+  <data name="Slots_TimePerCardTip" xml:space="preserve">
+    <value>카드당 1–10 버스트; 1 버스트는 카드의 10 프레임: EM410x는 약 0.33초, 다른 유형은 0.16(Viking, IDTECK)에서 0.66(Electra, Jablotron)초</value>
+  </data>
+  <data name="Slots_OneBurstByCardType" xml:space="preserve">
+    <value>1 버스트 ≈ 0.16–0.66초 (유형별).</value>
+  </data>
+  <data name="Slots_SilenceBetweenCardsS" xml:space="preserve">
+    <value>카드 사이 무음, 초</value>
   </data>
   <data name="Slots_EmptySlot" xml:space="preserve">
     <value>빈 슬롯</value>

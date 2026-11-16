@@ -54,21 +54,79 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private SlotSideViewModel? _pickerSide;
     private string? _pickerFilter;
-    private bool _supportsLfCycle;
+    private bool _supportsLfCycle, _supportsCycleMode;
     // The cycle the LF cards were loaded with while multi-LF is supported, else null.
     private LfCardCycle? _shownCycle;
+    private bool _savedCycleWhilePresent;
+    private int _savedCycleBursts = 1;
+    private decimal _savedCycleGapSeconds;
 
     public LfSlotListViewModel LfCards { get; }
     public bool SupportsMultiLf => _supportsLfCycle;
 
-    private bool IsCycleDirty => SupportsMultiLf && LfCards.IsDirty;
+    /// <summary>How the cards are switched: shown for a list on firmware that has the modes.</summary>
+    public bool ShowLfCycle => _supportsLfCycle && _supportsCycleMode && LfCards.Cards.Count > 1;
+    public bool ShowCycleTiming => ShowLfCycle && CycleWhilePresent;
+
+    /// <summary>The next card on each appearance of the reader's field (the default).</summary>
+    public bool CyclePerField
+    {
+        get => !CycleWhilePresent;
+        set { if (value) CycleWhilePresent = false; }
+    }
+
+    /// <summary>The cards in turn while the field is present, with the bursts and silence below.</summary>
+    public bool CycleWhilePresent
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            SetField(ref field, value, nameof(CycleWhilePresent));
+            this.RaisePropertyChanged(nameof(CyclePerField));
+            this.RaisePropertyChanged(nameof(ShowCycleTiming));
+        }
+    }
+
+    public int CycleBursts
+    {
+        get;
+        set => SetField(ref field, Math.Clamp(value, 1, LfCardCycle.MaxBursts), nameof(CycleBursts));
+    } = 1;
+
+    public decimal CycleGapSeconds
+    {
+        get;
+        set => SetField(ref field, Math.Clamp(decimal.Round(value, 1), 0m, LfCardCycle.MaxGapSteps / 10m), nameof(CycleGapSeconds));
+    }
+
+    private bool IsCycleModeDirty => CycleWhilePresent != _savedCycleWhilePresent ||
+                                     (CycleWhilePresent && (CycleBursts != _savedCycleBursts || CycleGapSeconds != _savedCycleGapSeconds));
+
+    private bool IsCycleDirty => SupportsMultiLf && (LfCards.IsDirty || (ShowLfCycle && IsCycleModeDirty));
 
     internal void SetLfCapabilities(IReadOnlyList<ushort> capabilities)
     {
         _supportsLfCycle = capabilities.Contains((ushort)Command.LfSetCycle) && capabilities.Contains((ushort)Command.LfGetCycle);
+        _supportsCycleMode = capabilities.Contains((ushort)Command.LfSetCycleMode) && capabilities.Contains((ushort)Command.LfGetCycleMode);
         this.RaisePropertyChanged(nameof(SupportsMultiLf));
+        RaiseCycleShown();
         RaiseDirty();
     }
+
+    private void RaiseCycleShown()
+    {
+        this.RaisePropertyChanged(nameof(ShowLfCycle));
+        this.RaisePropertyChanged(nameof(ShowCycleTiming));
+    }
+
+    /// <summary>The list with the mode being edited.</summary>
+    private LfCardCycle EditedCycle() => LfCards.Cycle() with
+    {
+        Mode = CycleWhilePresent ? LfCycleMode.WhilePresent : LfCycleMode.PerField,
+        Bursts = CycleBursts,
+        GapSteps = (int)(CycleGapSeconds * 10m),
+    };
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
         Action onChanged, Action<CardSave> openCard)
@@ -123,6 +181,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         Hf.Discard();
         Lf.Discard();
         LfCards.Discard();
+        RestoreCycleMode();
         SetEmulator(_savedEmulator);
     }
 
@@ -158,6 +217,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     private void OnLfListChanged()
     {
+        RaiseCycleShown();
         RaiseDirty();
     }
 
@@ -233,6 +293,18 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     {
         _shownCycle = _supportsLfCycle ? cycle : null;
         LfCards.Load(_supportsLfCycle, cycle);
+        _savedCycleWhilePresent = cycle.Mode == LfCycleMode.WhilePresent;
+        _savedCycleBursts = cycle.Bursts;
+        _savedCycleGapSeconds = cycle.GapSteps / 10m;
+        RestoreCycleMode();
+        RaiseCycleShown();
+    }
+
+    private void RestoreCycleMode()
+    {
+        CycleWhilePresent = _savedCycleWhilePresent;
+        CycleBursts = _savedCycleBursts;
+        CycleGapSeconds = _savedCycleGapSeconds;
     }
 
     // The saved card is matched by the UID the slot emulates, not just its name.
@@ -305,7 +377,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             var emulator = CurrentEmulator;
             // Validate before writing either frequency, so invalid input leaves the device untouched.
             var cycle = _supportsLfCycle && LfCycleCard.CanCycle(Lf.Type)
-                ? LfCards.Cycle() : null;
+                ? EditedCycle() : null;
             var progress = new Progress<MifareProgress>(p => Notify(string.Format(Strings.Common_UploadingProgress, p.Done, p.Total)));
 
             await client.WithSlotLockAsync(async () =>
@@ -338,6 +410,12 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                 Hf.MarkSaved();
                 Lf.MarkSaved();
                 LfCards.MarkSaved();
+                if (cycle is not null && cycle.Extras.Length > 0 && _supportsCycleMode)
+                {
+                    _savedCycleWhilePresent = cycle.Mode == LfCycleMode.WhilePresent;
+                    _savedCycleBursts = cycle.Bursts;
+                    _savedCycleGapSeconds = cycle.GapSteps / 10m;
+                }
                 _savedEmulator = emulator;
                 _savedKind = _fieldsKind = TypeKind;
                 RaiseDirty();

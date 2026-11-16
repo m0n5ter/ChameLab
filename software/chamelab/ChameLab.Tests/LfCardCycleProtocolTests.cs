@@ -29,8 +29,55 @@ public class LfCardCycleProtocolTests
         await client.SetLfCycleAsync(cycle);
         var loaded = await client.GetLfCycleAsync();
         Assert.True(cycle.SameAs(loaded));
-        Assert.Equal(new[] { Command.LfSetCycle, Command.LfGetCycle }, transport.Requests.Select(r => r.Command));
-        Assert.Empty(transport.Requests[1].Data);
+        var commands = transport.Requests.Where(r => r.Command != Command.GetDeviceCapabilities).ToList();
+        Assert.Equal(new[] { Command.LfSetCycle, Command.LfGetCycle }, commands.Select(r => r.Command));
+        Assert.Empty(commands[1].Data);
+    }
+
+    [Fact]
+    public async Task WritesAndReadsCycleModeWhereSupported()
+    {
+        var transport = new CycleTransport { SupportsModes = true };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        var cycle = new LfCardCycle([Em("0001020304")]) { Mode = LfCycleMode.WhilePresent, Bursts = 3, GapSteps = 12 };
+        await client.SetLfCycleAsync(cycle);
+        Assert.Equal(new byte[] { 1, 3, 12 }, transport.Mode);
+        var loaded = await client.GetLfCycleAsync();
+        Assert.True(cycle.SameAs(loaded));
+        Assert.False(cycle.SameAs(loaded with { Bursts = 4 }));
+        var commands = transport.Requests.Select(r => r.Command).Where(c => c != Command.GetDeviceCapabilities);
+        Assert.Equal(new[] { Command.LfSetCycle, Command.LfSetCycleMode, Command.LfGetCycle, Command.LfGetCycleMode }, commands);
+    }
+
+    [Fact]
+    public async Task SingleCardSendsNoModeAndInvalidModeSendsNothing()
+    {
+        var transport = new CycleTransport { SupportsModes = true };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        await client.SetLfCycleAsync(new LfCardCycle([]) { Mode = LfCycleMode.WhilePresent });
+        Assert.DoesNotContain(transport.Requests, r => r.Command == Command.LfSetCycleMode);
+        transport.Requests.Clear();
+        await Assert.ThrowsAsync<ArgumentException>(() => client.SetLfCycleAsync(new LfCardCycle([Em("0001020304")]) { Bursts = 11 }));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.SetLfCycleAsync(new LfCardCycle([Em("0001020304")]) { GapSteps = 31 }));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.SetLfCycleAsync(new LfCardCycle([Em("0001020304")]) { Mode = (LfCycleMode)2 }));
+        Assert.Empty(transport.Requests);
+    }
+
+    [Fact]
+    public async Task OlderFirmwareGetsNoModeCommands()
+    {
+        var transport = new CycleTransport();
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        await client.SetLfCycleAsync(new LfCardCycle([Em("0001020304")]) { Mode = LfCycleMode.WhilePresent, Bursts = 2 });
+        var loaded = await client.GetLfCycleAsync();
+        Assert.Equal(LfCycleMode.PerField, loaded.Mode);
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.LfSetCycleMode or Command.LfGetCycleMode);
     }
 
     [Fact]
@@ -96,7 +143,10 @@ public class LfCardCycleProtocolTests
         // Slot 4: Viking without a cycle.
         e = 3 * LfCardCycle.AllCyclesEntrySize;
         all[e + 1] = (byte)TagSpecificType.Viking;
-        var transport = new CycleTransport { AllCycles = all };
+        var modes = new byte[8 * LfCardCycle.ModeSize];
+        for (var i = 0; i < 8; i++) modes[i * 3 + 1] = 1;
+        modes[3] = 1; modes[4] = 5; modes[5] = 7;
+        var transport = new CycleTransport { AllCycles = all, SupportsModes = true, AllModes = modes };
         await using var connection = new ChameleonConnection(transport);
         await connection.OpenAsync();
         var client = new ChameleonClient(connection);
@@ -108,10 +158,25 @@ public class LfCardCycleProtocolTests
         }).ToList();
         await client.ReadLfCyclesAsync(slots);
         Assert.True(Em("AABBCCDDEE").SameAs(slots[1].LfCycleCards.Single()));
+        Assert.Equal(LfCycleMode.WhilePresent, slots[1].LfCycle!.Mode);
+        Assert.Equal(5, slots[1].LfCycle!.Bursts);
+        Assert.Equal(7, slots[1].LfCycle!.GapSteps);
+        Assert.Equal(LfCycleMode.PerField, slots[3].LfCycle!.Mode);
         Assert.Empty(slots[3].LfCycleCards);
         Assert.Null(slots[0].LfCycle);
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.SetActiveSlot or Command.LfGetCycle);
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("0001")]
+    [InlineData("020100")]
+    [InlineData("010000")]
+    [InlineData("010B00")]
+    [InlineData("01011F")]
+    [InlineData("01010000")]
+    public void RejectsMalformedModeResponses(string hex) =>
+        Assert.Throws<ArgumentException>(() => new LfCardCycle([]).WithMode(Convert.FromHexString(hex)));
 
     [Fact]
     public void DecodeAllRejectsBadLength() =>
@@ -124,6 +189,9 @@ public class LfCardCycleProtocolTests
         public List<ChameleonFrame> Requests { get; } = [];
         public byte[] Cycle { get; private set; } = [0];
         public byte[]? AllCycles { get; init; }
+        public bool SupportsModes { get; init; }
+        public byte[]? AllModes { get; init; }
+        public byte[] Mode { get; private set; } = [0, 1, 0];
         private byte _active;
         public TransportKind Kind => TransportKind.Tcp;
         public string DisplayName => "Cycle test device";
@@ -134,22 +202,31 @@ public class LfCardCycleProtocolTests
             foreach (var request in _parser.Push(data))
             {
                 Requests.Add(request);
-                if (request.Command == Command.Em410xSetEmuId) Cycle = [0];
+                if (request.Command == Command.Em410xSetEmuId) { Cycle = [0]; Mode = [0, 1, 0]; }
+                if (request.Command == Command.LfSetCycleMode) Mode = request.Data.ToArray();
                 if (request.Command == Command.LfSetCycle) Cycle = request.Data.ToArray();
                 if (request.Command == Command.SetActiveSlot) _active = request.Data[0];
                 byte[] payload = request.Command switch
                 {
                     Command.LfGetCycle => Cycle,
                     Command.GetActiveSlot => [_active],
+                    Command.LfGetCycleMode => Mode,
                     Command.LfGetAllCycles when AllCycles is not null => AllCycles,
-                    Command.GetDeviceCapabilities when AllCycles is not null => [0x17, 0x13, 0x17, 0x14, 0x17, 0x15],
-                    Command.GetDeviceCapabilities => [0x17, 0x13, 0x17, 0x14],
+                    Command.LfGetAllCycleModes when AllModes is not null => AllModes,
+                    Command.GetDeviceCapabilities => Capabilities(),
                     Command.Em410xGetEmuId => [(byte)((ushort)TagSpecificType.Em410x >> 8), (byte)TagSpecificType.Em410x, 0, 1, 2, 3, 4],
                     _ => [],
                 };
                 _replies.Writer.TryWrite(FrameCodec.Encode(request.Command, payload, (ushort)Status.Success));
             }
             return Task.CompletedTask;
+        }
+        private byte[] Capabilities()
+        {
+            List<byte> list = [0x17, 0x13, 0x17, 0x14];
+            if (AllCycles is not null) list.AddRange([0x17, 0x15]);
+            if (SupportsModes) list.AddRange([0x17, 0x16, 0x17, 0x17, 0x17, 0x18]);
+            return list.ToArray();
         }
         public async Task<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
         {

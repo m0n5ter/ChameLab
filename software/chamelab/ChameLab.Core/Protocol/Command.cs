@@ -164,4 +164,7 @@ public enum Command : ushort
     LfSetCycle = 5907,
     LfGetCycle = 5908,
     LfGetAllCycles = 5909,
+    LfSetCycleMode = 5910,
+    LfGetCycleMode = 5911,
+    LfGetAllCycleModes = 5912,
 }
