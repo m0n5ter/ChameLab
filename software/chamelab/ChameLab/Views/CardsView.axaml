@@ -1679,7 +1679,12 @@
           <c:ActionBar>
             <TextBlock Classes="caption" VerticalAlignment="Center" TextWrapping="Wrap"
                        Text="{x:Static loc:Strings.Cards_DumpTheCardFirstToSave}" IsVisible="{Binding NeedsDump}" />
-            <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding CancelAddCommand}" />
+            <Button Classes="danger" Command="{Binding CancelAddCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Discard}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
             <Button Classes.accent="{Binding !NeedsDump}" Command="{Binding SaveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.save}" />
@@ -1704,8 +1709,14 @@
             <TextBlock Text="{Binding SaveError}" />
           </DockPanel>
           <c:ActionBar>
-            <TextBlock Text="{x:Static loc:Strings.Common_UnsavedChanges}" VerticalAlignment="Center" FontWeight="SemiBold" />
-            <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardCommand}" />
+            <!-- No message, but ActionBar takes its first child as one; keep the slot empty. -->
+            <TextBlock IsVisible="False" />
+            <Button Classes="danger" Command="{Binding DiscardCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" />
+                <TextBlock Text="{x:Static loc:Strings.Common_Discard}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
             <Button Classes="accent" Command="{Binding SaveCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.save}" />
@@ -1729,7 +1740,7 @@
                 <TextBlock Text="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding DiscardAndLeaveCommand}" c:ActionRow.Priority="1"
+            <Button Classes="danger" Command="{Binding DiscardAndLeaveCommand}" c:ActionRow.Priority="1"
                     ToolTip.Tip="{x:Static loc:Strings.Common_Discard}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.delete}" />

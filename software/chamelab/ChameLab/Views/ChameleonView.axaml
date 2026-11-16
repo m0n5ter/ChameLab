@@ -600,7 +600,12 @@
         </DockPanel>
         <c:ActionBar>
           <TextBlock Text="{x:Static loc:Strings.Common_UnsavedChanges}" VerticalAlignment="Center" FontWeight="SemiBold" />
-          <Button Content="{x:Static loc:Strings.Common_Discard}" Command="{Binding DiscardCommand}" />
+          <Button Classes="danger" Command="{Binding DiscardCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.delete}" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Discard}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
           <Button Classes="accent" Command="{Binding SaveCommand}"
                   ToolTip.Tip="{x:Static loc:Strings.Chameleon_SendTheseValuesToTheDevice}">
             <StackPanel Orientation="Horizontal" Spacing="6">
