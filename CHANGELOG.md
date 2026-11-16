@@ -8,8 +8,17 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.6.51][2026-11-16] · firmware v2.3.20-cl
+### Summary
+ - Firmware: multi-card LF slots can switch cards on each tap or in turn while the device stays in the reader's field
+ - ChameLab: on phones, the on-screen keyboard no longer covers the caret in the card memory editor
+ - ChameLab: Discard in the save bars is red with an icon
+
+### Details
  - Firmware v2.3.20-cl / ChameLab: multi-card LF slots get a **Switch cards** setting. **Each tap** (the default) sends the next card on each appearance of the reader's field, as before. **In the field** brings back sending the cards in turn while the device stays at the reader, with the time per card (1–10 bursts) and the silence between cards (0–3 s); the card being sent when the field goes away is remembered, and the next pass starts from it instead of the first card. New commands 5910–5912 set and read the mode; 5907–5909 are unchanged. Lists saved by firmware v2.3.6-cl–v2.3.7-cl and not yet re-saved come back in **In the field** with their timing
  - ChameLab: on phones, when the on-screen keyboard opens over the card memory editor, the page scrolls to the caret instead of showing the top of the editor, which could leave the caret under the keyboard; on older Android the memory editor is scrolled into view at all
+ - ChameLab: the save bars on the Cards, Slots, Dictionaries and device pages drop the Unsaved changes label; Discard is red with an icon on all of them
 
 ## [v1.6.50][2026-11-16] · firmware v2.3.19-cl
 ### Summary
