@@ -279,6 +279,11 @@ public sealed class HexEditor : Control
             if (_buffer is not null) _buffer.Changed -= OnBufferChanged;
             _buffer = Buffer;
             if (_buffer is not null) _buffer.Changed += OnBufferChanged;
+            // Where Enter adds a row (a key list), the on-screen keyboard shows a plain Enter key
+            // that keeps it open; a single-line "Done" key would hide the keyboard on every new row.
+            TextInputOptions.SetReturnKeyType(this, _buffer?.CanResize == true
+                ? TextInputReturnKeyType.Return
+                : TextInputReturnKeyType.Default);
             _caret = 0;
             _lowNibble = false;
             _anchor = -1;
