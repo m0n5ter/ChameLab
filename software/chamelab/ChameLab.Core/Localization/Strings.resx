@@ -216,6 +216,9 @@
   <data name="Cards_LFProtocol" xml:space="preserve">
     <value>LF protocol</value>
   </data>
+  <data name="Cards_LfAuto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>Language code, e.g. en, de, ru</value>
   </data>
@@ -2891,6 +2894,9 @@
   </data>
   <data name="Device_NoHfTag" xml:space="preserve">
     <value>No HF tag: {0}</value>
+  </data>
+  <data name="Device_NoLfTag" xml:space="preserve">
+    <value>No LF tag: {0}</value>
   </data>
   <data name="Device_NoPrng" xml:space="preserve">
     <value>Could not detect the card PRNG.</value>

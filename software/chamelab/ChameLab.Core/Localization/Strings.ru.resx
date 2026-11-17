@@ -213,6 +213,9 @@
   <data name="Cards_LFProtocol" xml:space="preserve">
     <value>Протокол LF</value>
   </data>
+  <data name="Cards_LfAuto" xml:space="preserve">
+    <value>Авто</value>
+  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>Код языка, например en, de, ru</value>
   </data>
@@ -2888,6 +2891,9 @@
   </data>
   <data name="Device_NoHfTag" xml:space="preserve">
     <value>Нет метки HF: {0}</value>
+  </data>
+  <data name="Device_NoLfTag" xml:space="preserve">
+    <value>Нет метки LF: {0}</value>
   </data>
   <data name="Device_NoPrng" xml:space="preserve">
     <value>Не удалось определить PRNG карты.</value>

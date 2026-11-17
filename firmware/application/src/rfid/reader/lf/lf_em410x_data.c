@@ -92,13 +92,13 @@ bool em410x_read(uint8_t *data, uint32_t timeout_ms) {
     bool have_em410x = false;
     uint8_t em410x_data[2 + 13] = {0};
     uint32_t em410x_deadline = 0;
+    // Once an EM410x frame is in, keep listening until the Electra deadline even
+    // past timeout_ms, so a short timeout (the LF auto scan) still tells them apart.
+#define EM410X_LISTENING() (have_em410x ? p_at->time < em410x_deadline : NO_TIMEOUT_1MS(p_at, timeout_ms))
     autotimer *p_at = bsp_obtain_timer(0);
-    while (!ok && NO_TIMEOUT_1MS(p_at, timeout_ms)) {
-        if (have_em410x && p_at->time >= em410x_deadline) {
-            break;
-        }
+    while (!ok && EM410X_LISTENING()) {
         uint16_t val = 0;
-        while (!ok && NO_TIMEOUT_1MS(p_at, timeout_ms) && cb_pop_front(&cb, &val)) {
+        while (!ok && EM410X_LISTENING() && cb_pop_front(&cb, &val)) {
             for (size_t i = 0; i < em410x_protocols_size; i++) {
                 const protocol *p = em410x_protocols[i];
                 if (!p->decoder.feed(codecs[i], val)) {
@@ -119,9 +119,9 @@ bool em410x_read(uint8_t *data, uint32_t timeout_ms) {
                     have_em410x = true;
                 }
             }
-            if (have_em410x && p_at->time >= em410x_deadline) break;
         }
     }
+#undef EM410X_LISTENING
 
     if (!ok && have_em410x) {
         memcpy(data, em410x_data, 2 + 5);

@@ -55,6 +55,11 @@ public sealed partial class CliSession
                 PrintLf(family.Type, await Client.GetLfEmulatorIdAsync(family.Type, ct));
             });
         }
+        Add("lf search", async (_, ct) =>
+        {
+            var tag = await Client.LfAutoScanAsync(ct);
+            PrintLf(tag.Type, tag.Id);
+        });
         Add("lf em 4x05 read", async (a, ct) =>
         {
             var data = await Wire(3030, a.Has("pwd") ? a.Hex("pwd", 4) : U32(0), ct, 5000);

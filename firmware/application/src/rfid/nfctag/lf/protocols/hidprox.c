@@ -32,17 +32,20 @@ nrf_pwm_sequence_t m_hidprox_pwm_seq = {
     .end_delay = 0,
 };
 
-void decoder_reset(hidprox_codec *d) {
-    d->sof = 0;
-    d->state = STATE_SOF;
-    d->raw = 0;
-    d->raw_length = 0;
-    d->bit = false;
+static void lane_reset(hidprox_lane_t *l) {
+    l->sof = 0;
+    l->state = STATE_SOF;
+    l->raw = 0;
+    l->raw_length = 0;
+    l->bit = false;
 }
 
 void hidprox_decoder_start(hidprox_codec *d, uint8_t format_hint) {
     memset(d->data, 0, HIDPROX_DATA_SIZE);
-    decoder_reset(d);
+    for (uint8_t i = 0; i < HIDPROX_PHASES; i++) {
+        lane_reset(&d->lanes[i]);
+        d->lanes[i].have_last = false;
+    }
     d->format_hint = format_hint;
 }
 
@@ -55,6 +58,9 @@ hidprox_codec *hidprox_codec_alloc(void) {
         // offset biases the fc/8 bin and, on weakly-coupled cards, pins every
         // bit to 0 so nothing decodes. This extends the usable coupling range.
         d->modem->dc_block = true;
+        // A bit from every window phase, each decoded in its own lane, so
+        // one lines up with the tag's bits wherever sampling started.
+        d->modem->align = true;
     }
     return d;
 }
@@ -72,12 +78,12 @@ void hidprox_codec_free(hidprox_codec *d) {
 }
 
 // ref: https://github.com/RfidResearchGroup/proxmark3/blob/810eaeac250f35eca8819aa9c23cb57c5276b3e6/client/src/wiegand_formatutils.c#L131
-static uint8_t hidprox_codec_get_length(hidprox_codec *d) {
+static uint8_t hidprox_codec_get_length(uint64_t raw) {
     //! TODO direct XOR check
-    if (!(d->raw >> 37) && 0x01) {
+    if (!(raw >> 37) && 0x01) {
         return 37;
     }
-    uint16_t bits = (d->raw >> 26) & 0x7ff;
+    uint16_t bits = (raw >> 26) & 0x7ff;
     uint8_t length = 25;
     while (bits) {
         bits >>= 1;
@@ -99,49 +105,57 @@ uint8_t *hidprox_get_data(hidprox_codec *d) {
     return d->data;
 };
 
-bool hidprox_decode_feed(hidprox_codec *d, bool bit) {
-    if (d->state == STATE_SOF) {
-        d->sof <<= 1;
+static bool hidprox_decode_feed(hidprox_codec *d, hidprox_lane_t *l, bool bit) {
+    if (l->state == STATE_SOF) {
+        l->sof <<= 1;
         if (bit) {
-            SET_BIT(d->sof, 0);
+            SET_BIT(l->sof, 0);
         }
-        if (d->sof == HIDPROX_SOF) {  // found start of frame
-            d->state = STATE_DATA_LO;
+        if (l->sof == HIDPROX_SOF) {  // found start of frame
+            l->state = STATE_DATA_LO;
         }
         return false;
     }
 
-    if (d->state == STATE_DATA_LO) {
-        d->bit = bit;
-        d->state = STATE_DATA_HI;
+    if (l->state == STATE_DATA_LO) {
+        l->bit = bit;
+        l->state = STATE_DATA_HI;
         return false;
     }
 
-    if (d->state == STATE_DATA_HI) {
-        if (bit == d->bit) {  // invalid manchester bit
-            decoder_reset(d);
+    if (l->state == STATE_DATA_HI) {
+        if (bit == l->bit) {  // invalid manchester bit
+            lane_reset(l);
             return false;
         }
 
-        d->raw <<= 1;
-        d->raw_length++;
-        if (d->bit && !bit) {
-            SET_BIT(d->raw, 0);
+        l->raw <<= 1;
+        l->raw_length++;
+        if (l->bit && !bit) {
+            SET_BIT(l->raw, 0);
         }
 
-        if (d->raw_length < 44) {
-            d->state = STATE_DATA_LO;
+        if (l->raw_length < 44) {
+            l->state = STATE_DATA_LO;
             return false;
         }
 
-        d->state = STATE_DONE;
-
-        uint8_t length = hidprox_codec_get_length(d);
-        wiegand_card_t *card = unpack(d->format_hint, length, 0, d->raw);
+        uint64_t raw = l->raw;
+        lane_reset(l);
+        wiegand_card_t *card = unpack(d->format_hint, hidprox_codec_get_length(raw), 0, raw);
         if (card == NULL) {
-            decoder_reset(d);
             return false;
         }
+        // Wiegand parity lets an occasional noisy frame through as another
+        // card; the tag repeats its frame, so take the card only once two
+        // frames agree.
+        if (!l->have_last || l->last_raw != raw) {
+            l->last_raw = raw;
+            l->have_last = true;
+            free(card);
+            return false;
+        }
+        free(d->card);
         d->card = card;
         return true;
     }
@@ -151,10 +165,10 @@ bool hidprox_decode_feed(hidprox_codec *d, bool bit) {
 
 bool hidprox_decoder_feed(hidprox_codec *d, uint16_t val) {
     bool bit = false;
-    if (!fsk_feed(d->modem, val, &bit)) {
+    if (!fsk_feed(d->modem, val, &bit) || d->modem->out_phase >= HIDPROX_PHASES) {
         return false;
     }
-    return hidprox_decode_feed(d, bit);
+    return hidprox_decode_feed(d, &d->lanes[d->modem->out_phase], bit);
 }
 
 void hidprox_raw_data(wiegand_card_t *card, uint32_t *hi, uint32_t *mid, uint32_t *bot) {

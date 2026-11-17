@@ -426,6 +426,9 @@
   <data name="Cards_LFProtocol" xml:space="preserve">
     <value>LF-Protokoll</value>
   </data>
+  <data name="Cards_LfAuto" xml:space="preserve">
+    <value>Automatisch</value>
+  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>Sprachcode, z. B. en, de, ru</value>
   </data>
@@ -1541,6 +1544,9 @@
   </data>
   <data name="Device_NoHfTag" xml:space="preserve">
     <value>Kein HF-Tag: {0}</value>
+  </data>
+  <data name="Device_NoLfTag" xml:space="preserve">
+    <value>Kein LF-Tag: {0}</value>
   </data>
   <data name="Device_NoPasswordToSet" xml:space="preserve">
     <value>Die Karte auf dem Lesegerät ({0}) hat kein setzbares Passwort.</value>

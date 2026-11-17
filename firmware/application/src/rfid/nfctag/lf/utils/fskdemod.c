@@ -40,7 +40,10 @@ void fsk_free(fsk_t *m) {
  * Changed from fixed BITRATE constant to dynamic parameter to allow
  * multiple protocols with different speeds.
  */
+static bool fsk_feed_aligned(fsk_t *m, uint16_t sample, bool *bit);
+
 bool fsk_feed(fsk_t *m, uint16_t sample, bool *bit) {
+    if (m->align) return fsk_feed_aligned(m, sample, bit);
     if (m->dc_block) {
         // Slow IIR baseline tracker (time const ~64 samples). Removes the large
         // raw-ADC DC offset that otherwise leaks into the fc/8 Goertzel bin and
@@ -68,6 +71,67 @@ bool fsk_feed(fsk_t *m, uint16_t sample, bool *bit) {
     return true;
 }
 
+static void fsk_track_dc(fsk_t *m, uint16_t sample) {
+    if (!m->dc_block) return;
+    if (!m->dc_seen) {
+        m->dc_run = (float)sample;
+        m->dc_seen = true;
+    } else {
+        m->dc_run += ((float)sample - m->dc_run) * (1.0f / 64.0f);
+    }
+}
+
+// fc/8 and fc/10 both repeat every 40 samples: cos/sin of each, per sample.
+static float m_tone[40][4];
+static bool m_tone_ready;
+
+static void fsk_tone_init(void) {
+    if (m_tone_ready) return;
+    for (int n = 0; n < 40; n++) {
+        m_tone[n][0] = cosf(2.0f * PI * n / 8.0f);
+        m_tone[n][1] = sinf(2.0f * PI * n / 8.0f);
+        m_tone[n][2] = cosf(2.0f * PI * n / 10.0f);
+        m_tone[n][3] = sinf(2.0f * PI * n / 10.0f);
+    }
+    m_tone_ready = true;
+}
+
+// Each sample is correlated once with both tones against a fixed time
+// reference and summed per block of step samples. A window's tone power is
+// then |sum of its blocks|^2 -- the same as a Goertzel over the window, since
+// a shifted time reference only turns the phase -- at a fraction of the cost
+// of a Goertzel per window, which at 125 kS/s did not keep up.
+static bool fsk_feed_aligned(fsk_t *m, uint16_t sample, bool *bit) {
+    fsk_track_dc(m, sample);
+    float x = (float)sample - (m->dc_block ? m->dc_run : 0.0f);
+    const float *t = m_tone[m->tick];
+    if (++m->tick == 40) m->tick = 0;
+    m->sum[0] += x * t[0];
+    m->sum[1] += x * t[1];
+    m->sum[2] += x * t[2];
+    m->sum[3] += x * t[3];
+    if (++m->c < m->step) return false;
+    m->c = 0;
+
+    memcpy(m->ring[m->block], m->sum, sizeof(m->sum));
+    memset(m->sum, 0, sizeof(m->sum));
+    m->out_phase = m->block;
+    if (++m->block == m->phases) m->block = 0;
+    if (m->blocks < m->phases && ++m->blocks < m->phases) return false;
+
+    float w[4] = {0, 0, 0, 0};
+    for (uint8_t i = 0; i < m->phases; i++) {
+        w[0] += m->ring[i][0];
+        w[1] += m->ring[i][1];
+        w[2] += m->ring[i][2];
+        w[3] += m->ring[i][3];
+    }
+    float p0 = w[0] * w[0] + w[1] * w[1];  // fc/8: bit 0
+    float p1 = w[2] * w[2] + w[3] * w[3];  // fc/10: bit 1
+    *bit = p1 > p0;
+    return true;
+}
+
 /**
  * Changed from fixed BITRATE constant to dynamic parameter to allow
  * multiple protocols with different speeds.
@@ -87,5 +151,17 @@ fsk_t *fsk_alloc(uint8_t bitrate) {
     m->dc_run = 0.0f;
     m->goertzel_fc_8 = GOERTZEL(15625.0f, 125000.0f);
     m->goertzel_fc_10 = GOERTZEL(12500.0f, 125000.0f);
+    // Windows per bit for align: 5 for RF/50 (every 10 samples), 4 for RF/64
+    // (every 16); the best window is then at most an eighth of a bit off.
+    m->phases = (bitrate % 5 == 0) ? 5 : 4;
+    m->step = (uint8_t)(bitrate / m->phases);
+    m->align = false;
+    m->out_phase = 0;
+    m->tick = 0;
+    m->block = 0;
+    m->blocks = 0;
+    memset(m->sum, 0, sizeof(m->sum));
+    memset(m->ring, 0, sizeof(m->ring));
+    fsk_tone_init();
     return m;
 }

@@ -13,16 +13,25 @@ typedef enum {
     STATE_DONE,
 } hidprox_codec_state_t;
 
+// Frame decoding for one window phase of the FSK demodulator (see fskdemod.h).
 typedef struct {
-    uint8_t data[HIDPROX_DATA_SIZE];
-
     bool bit;
     uint8_t sof;
     uint64_t raw;
     uint8_t raw_length;
+    hidprox_codec_state_t state;
+
+    uint64_t last_raw;  // previous frame's bits, awaiting a match
+    bool have_last;
+} hidprox_lane_t;
+
+#define HIDPROX_PHASES (5)  // fsk_alloc's windows per bit at RF/50
+
+typedef struct {
+    uint8_t data[HIDPROX_DATA_SIZE];
 
     fsk_t *modem;
-    hidprox_codec_state_t state;
+    hidprox_lane_t lanes[HIDPROX_PHASES];
 
     uint8_t format_hint;
     wiegand_card_t *card;

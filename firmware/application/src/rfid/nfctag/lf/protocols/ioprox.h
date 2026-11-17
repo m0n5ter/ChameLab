@@ -14,12 +14,19 @@
 #define IOPROX_DATA_SIZE 16
 #define IOPROX_MAX_BITS 256
 
-typedef struct {
-    fsk_t *modem;
+#define IOPROX_PHASES 4  // fsk_alloc's windows per bit at RF/64
 
+// The bit stream of one window phase of the FSK demodulator (see fskdemod.h).
+typedef struct {
     uint8_t bits[IOPROX_MAX_BITS];
     uint16_t bit_len;
+    uint8_t last[IOPROX_DATA_SIZE];  // previous frame's decode, awaiting a match
+    bool have_last;
+} ioprox_lane_t;
 
+typedef struct {
+    fsk_t *modem;
+    ioprox_lane_t lanes[IOPROX_PHASES];
     uint8_t data[IOPROX_DATA_SIZE];
 } ioprox_codec_t;
 

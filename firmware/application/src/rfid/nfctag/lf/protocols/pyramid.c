@@ -38,12 +38,13 @@ static void *pyramid_codec_alloc(void) {
     pyramid_codec_t *d = (pyramid_codec_t *)malloc(sizeof(pyramid_codec_t));
     if (!d) return NULL;
     memset(d, 0, sizeof(*d));
-    // RF/50 FSK demod, same modulation / bitrate as HID Prox. Enable the
-    // running DC baseline tracker: the raw 14-bit ADC DC otherwise swamps the
-    // fc/8 Goertzel bin and pins every bit to 0.
+    // RF/50 FSK demod, same modulation / bitrate as HID Prox, with a bit from
+    // every window phase. Enable the running DC baseline tracker: the raw
+    // 14-bit ADC DC otherwise swamps the fc/8 bin and pins every bit to 0.
     d->modem = fsk_alloc(FSK_BITRATE_HID);
     if (d->modem) {
         d->modem->dc_block = true;
+        d->modem->align = true;
     }
     return d;
 }
@@ -51,10 +52,7 @@ static void *pyramid_codec_alloc(void) {
 static void pyramid_codec_free(void *codec) {
     pyramid_codec_t *d = (pyramid_codec_t *)codec;
     if (!d) return;
-    if (d->modem) {
-        fsk_free(d->modem);
-        d->modem = NULL;
-    }
+    fsk_free(d->modem);
     free(d);
 }
 
@@ -91,12 +89,16 @@ const nrf_pwm_sequence_t *pyramid_modulator(pyramid_codec_t *d, uint8_t *buf) {
 // ---------------------------------------------------------------------------
 // Reader / decoder
 //
-// FSK demod (fsk_feed) yields one raw bit per RF/50 window; bits accumulate in
-// a ring buffer. We scan for the 24-bit Pyramid preamble {0x15 zeros, 1, 0x7
-// zeros, 1} and validate a candidate 128-bit frame three ways before accepting
-// it: 24-bit preamble, odd parity on every 8-bit group (bits 8..127), and a
-// CRC-8/Maxim trailer over the 13 payload bytes. With all three gates a false
-// positive is effectively impossible, so a single frame match is enough.
+// The FSK demod (fsk_feed) yields a bit for each RF/50 window ending every
+// 10 samples, and each window phase's bits go into its own 128-bit sliding
+// window. A phase whose window starts mid-bit decides every bit change by a
+// near coin toss, and one wrong bit in 128 fails the frame, so the
+// PYRAMID_PHASES phases are checked side by side.
+// Once full, a window is a frame candidate after each new bit: the 24-bit
+// Pyramid preamble {0x15 zeros, 1, 0x7 zeros, 1}, odd parity on every 8-bit
+// group (bits 8..127) and a CRC-8/Maxim trailer over the 13 payload bytes.
+// With all three gates a false positive is effectively impossible, so a
+// single frame match is enough.
 // ---------------------------------------------------------------------------
 
 // 24-bit preamble: fifteen 0s, a 1, seven 0s, a 1 (matches Proxmark detectPyramid)
@@ -126,29 +128,15 @@ static uint8_t pyramid_crc8_maxim(const uint8_t *data, uint8_t len) {
     return crc;
 }
 
-static void pyramid_reset_bits(pyramid_codec_t *d) {
-    d->bit_len = 0;
-}
-
-static inline void pyramid_push_bit(pyramid_codec_t *d, uint8_t bit) {
-    if (d->bit_len < PYRAMID_MAX_BITS) {
-        d->bits[d->bit_len++] = bit;
-        return;
+// Validates the 128-bit frame in b; on success packs it MSB-first into data.
+static bool pyramid_try_decode(const uint8_t *b, uint8_t *data) {
+    for (uint8_t k = 0; k < sizeof(PYRAMID_PREAMBLE); k++) {
+        if (b[k] != PYRAMID_PREAMBLE[k]) return false;
     }
-    // Buffer full: drop the oldest bit and append the new one
-    memmove(d->bits, d->bits + 1, PYRAMID_MAX_BITS - 1);
-    d->bits[PYRAMID_MAX_BITS - 1] = bit;
-}
-
-// Validates and unpacks the 128-bit frame whose preamble starts at idx.
-// Requires idx + 128 <= bit_len. On success packs the raw 16 bytes into d->data.
-static bool pyramid_try_decode(pyramid_codec_t *d, uint16_t idx) {
-    const uint8_t *b = d->bits;
 
     // Odd parity on every 8-bit group of bits 8..127 (15 groups, 7 data + 1 parity)
-    for (uint16_t g = idx + 8; g < idx + 128; g += 8) {
-        uint32_t grp = bits_to_u32(b, g, 8);
-        if ((__builtin_popcount(grp) & 1u) == 0u) {
+    for (uint16_t g = 8; g < PYRAMID_RAW_BITS; g += 8) {
+        if ((__builtin_popcount(bits_to_u32(b, g, 8)) & 1u) == 0u) {
             return false;  // group must have odd parity
         }
     }
@@ -156,45 +144,24 @@ static bool pyramid_try_decode(pyramid_codec_t *d, uint16_t idx) {
     // CRC-8/Maxim over the 13 payload bytes (bits 16..119) vs trailer (bits 120..127)
     uint8_t cs[13];
     for (uint8_t i = 0; i < 13; i++) {
-        cs[i] = (uint8_t)bits_to_u32(b, (uint16_t)(idx + 16 + i * 8), 8);
+        cs[i] = (uint8_t)bits_to_u32(b, (uint16_t)(16 + i * 8), 8);
     }
-    uint8_t checksum = (uint8_t)bits_to_u32(b, (uint16_t)(idx + 120), 8);
-    if (pyramid_crc8_maxim(cs, 13) != checksum) {
+    if (pyramid_crc8_maxim(cs, 13) != (uint8_t)bits_to_u32(b, 120, 8)) {
         return false;
     }
 
-    // Valid: pack the raw 128-bit frame MSB-first into the 16-byte output
     for (uint8_t i = 0; i < PYRAMID_DATA_SIZE; i++) {
-        d->data[i] = (uint8_t)bits_to_u32(b, (uint16_t)(idx + i * 8), 8);
+        data[i] = (uint8_t)bits_to_u32(b, (uint16_t)(i * 8), 8);
     }
     return true;
-}
-
-// Scans the bit buffer for a valid frame anchored on the 24-bit preamble.
-static bool pyramid_scan(pyramid_codec_t *d) {
-    if (d->bit_len < PYRAMID_RAW_BITS) return false;
-
-    for (uint16_t i = 0; (uint16_t)(i + PYRAMID_RAW_BITS) <= d->bit_len; i++) {
-        bool pre_ok = true;
-        for (uint8_t k = 0; k < sizeof(PYRAMID_PREAMBLE); k++) {
-            if ((d->bits[i + k] & 1u) != PYRAMID_PREAMBLE[k]) {
-                pre_ok = false;
-                break;
-            }
-        }
-        if (!pre_ok) continue;
-        if (pyramid_try_decode(d, i)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 static void pyramid_decoder_start(void *codec, uint8_t format_hint) {
     (void)format_hint;
     pyramid_codec_t *d = (pyramid_codec_t *)codec;
-    d->bit_len = 0;
-    memset(d->bits, 0, sizeof(d->bits));
+    for (uint8_t i = 0; i < PYRAMID_PHASES; i++) {
+        d->phases[i].bit_len = 0;
+    }
     memset(d->data, 0, sizeof(d->data));
 }
 
@@ -203,19 +170,24 @@ static bool pyramid_decoder_feed(void *codec, uint16_t val) {
     if (!d || !d->modem) return false;
 
     bool bit = false;
-    if (!fsk_feed(d->modem, val, &bit)) {
+    if (!fsk_feed(d->modem, val, &bit) || d->modem->out_phase >= PYRAMID_PHASES) {
         return false;
     }
-
-    pyramid_push_bit(d, (uint8_t)(bit ? 1u : 0u));
-
-    if (d->bit_len >= PYRAMID_RAW_BITS) {
-        if (pyramid_scan(d)) {
-            pyramid_reset_bits(d);
-            return true;
-        }
+    pyramid_phase_t *ph = &d->phases[d->modem->out_phase];
+    if (ph->bit_len < PYRAMID_RAW_BITS) {
+        ph->bits[ph->bit_len++] = bit ? 1u : 0u;
+        if (ph->bit_len < PYRAMID_RAW_BITS) return false;
+    } else {
+        memmove(ph->bits, ph->bits + 1, PYRAMID_RAW_BITS - 1);
+        ph->bits[PYRAMID_RAW_BITS - 1] = bit ? 1u : 0u;
     }
-    return false;
+    if (!pyramid_try_decode(ph->bits, d->data)) {
+        return false;
+    }
+    for (uint8_t i = 0; i < PYRAMID_PHASES; i++) {
+        d->phases[i].bit_len = 0;
+    }
+    return true;
 }
 
 const protocol pyramid = {

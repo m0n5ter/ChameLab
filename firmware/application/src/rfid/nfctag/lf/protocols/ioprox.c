@@ -27,11 +27,11 @@ nrf_pwm_sequence_t m_ioprox_pwm_seq = {
     .end_delay = 0,
 };
 
-void ioprox_reset_bits(ioprox_codec_t *d) {
+static void ioprox_reset_bits(ioprox_lane_t *d) {
     d->bit_len = 0;
 }
 
-static inline void push_bit(ioprox_codec_t *d, uint8_t bit) {
+static inline void push_bit(ioprox_lane_t *d, uint8_t bit) {
     if (d->bit_len < IOPROX_MAX_BITS) {
         d->bits[d->bit_len++] = bit;
         return;
@@ -65,7 +65,7 @@ static inline uint8_t bytebits_to_u8_msb_inv(const uint8_t *bits, uint16_t start
 }
 
 // Unpacks a raw 8-byte card frame into the codec bit buffer (MSB-first).
-bool ioprox_raw8_to_bits(const uint8_t *raw8, ioprox_codec_t *d) {
+static bool ioprox_raw8_to_bits(const uint8_t *raw8, ioprox_lane_t *d) {
     d->bit_len = 0;
     for (int i = 0; i < 8; i++) {
         uint8_t byte = raw8[i];
@@ -109,7 +109,7 @@ static bool preamble_match(const uint8_t *d, uint16_t off, bool inv) {
 //   [2-3]   card number (big-endian)
 //   [4-11]  raw8 frame bytes (for debugging and storage)
 //   [12-15] reserved (0x00)
-static bool decode_and_pack(ioprox_codec_t *d, uint16_t idx, bool inv) {
+static bool decode_and_pack(const ioprox_lane_t *d, uint16_t idx, bool inv, uint8_t *data) {
     uint8_t  b1, b2, b3, b4, b5, b6;
     uint16_t number;
     uint32_t raw_block1;
@@ -130,23 +130,23 @@ static bool decode_and_pack(ioprox_codec_t *d, uint16_t idx, bool inv) {
     raw_block1 = bytebits_to_byte(d->bits + idx,      32);
     raw_block2 = bytebits_to_byte(d->bits + idx + 32, 32);
 
-    memset(d->data, 0, sizeof(d->data));
+    memset(data, 0, IOPROX_DATA_SIZE);
 
-    d->data[0] = b3;                       // version
-    d->data[1] = b2;                       // facility code
-    d->data[2] = (uint8_t)(number >> 8);   // card number high byte
-    d->data[3] = (uint8_t)(number & 0xFF); // card number low byte
+    data[0] = b3;                       // version
+    data[1] = b2;                       // facility code
+    data[2] = (uint8_t)(number >> 8);   // card number high byte
+    data[3] = (uint8_t)(number & 0xFF); // card number low byte
 
     // Raw frame bytes (human-readable, stable across re-reads)
-    d->data[4]  = (uint8_t)(raw_block1 >> 24);
-    d->data[5]  = (uint8_t)(raw_block1 >> 16);
-    d->data[6]  = (uint8_t)(raw_block1 >>  8);
-    d->data[7]  = (uint8_t)(raw_block1);
-    d->data[8]  = (uint8_t)(raw_block2 >> 24);
-    d->data[9]  = (uint8_t)(raw_block2 >> 16);
-    d->data[10] = (uint8_t)(raw_block2 >>  8);
-    d->data[11] = (uint8_t)(raw_block2);
-    // d->data[12..15] zeroed by memset above
+    data[4]  = (uint8_t)(raw_block1 >> 24);
+    data[5]  = (uint8_t)(raw_block1 >> 16);
+    data[6]  = (uint8_t)(raw_block1 >>  8);
+    data[7]  = (uint8_t)(raw_block1);
+    data[8]  = (uint8_t)(raw_block2 >> 24);
+    data[9]  = (uint8_t)(raw_block2 >> 16);
+    data[10] = (uint8_t)(raw_block2 >>  8);
+    data[11] = (uint8_t)(raw_block2);
+    // data[12..15] zeroed by memset above
 
     return true;
 }
@@ -154,11 +154,10 @@ static bool decode_and_pack(ioprox_codec_t *d, uint16_t idx, bool inv) {
 // Decodes a raw 8-byte ioProx card frame into the 16-byte output buffer.
 // Returns true if the frame checksum is valid.
 bool ioprox_decode_raw_to_data(const uint8_t *raw8, uint8_t *output) {
-    ioprox_codec_t codec;
-    memset(&codec, 0, sizeof(codec));
-    ioprox_raw8_to_bits(raw8, &codec);
-    if (decode_and_pack(&codec, 0, false)) {
-        memcpy(output, codec.data, 16);
+    ioprox_lane_t lane;
+    memset(&lane, 0, sizeof(lane));
+    ioprox_raw8_to_bits(raw8, &lane);
+    if (decode_and_pack(&lane, 0, false, output)) {
         return true;
     }
     return false;
@@ -221,17 +220,15 @@ bool ioprox_encode_params_to_data(uint8_t version, uint8_t facility, uint16_t nu
     return true;
 }
 
-// Scans the tail of the bit buffer for a valid ioProx frame.
-// To keep CPU load low, only the last ~5 frames (320 bits) are scanned.
-// Returns true if a valid frame (checksum OK) was decoded into d->data.
-static bool scan_tail(ioprox_codec_t *d) {
-    // Need at least 128 bits to verify two consecutive 64-bit frames
-    if (d->bit_len < 128) return false;
+// Checks the frame start that the newest bit completed: a preamble there and
+// another 64 bits on. Called after every bit, so each start is checked once;
+// one per bit keeps four phase lanes affordable at 125 kS/s.
+// Returns true if a valid frame (checksum OK) was decoded into data.
+static bool scan_tail(const ioprox_lane_t *d, uint8_t *data, uint16_t *frame_at) {
+    if (d->bit_len < 64 + 10) return false;
 
-    // Limit scan to the last 320 bits (~5 frames) for performance
-    uint16_t start_from = (d->bit_len > 320) ? (uint16_t)(d->bit_len - 320) : 0;
-
-    for (uint16_t i = start_from; (uint16_t)(i + 64 + 10) <= d->bit_len; i++) {
+    uint16_t newest = (uint16_t)(d->bit_len - 64 - 10);
+    for (uint16_t i = newest; i <= newest; i++) {
         for (int inv_i = 0; inv_i <= 1; inv_i++) {
             bool inv = (inv_i == 1);
 
@@ -262,7 +259,8 @@ static bool scan_tail(ioprox_codec_t *d) {
                 // Tolerate up to 2 bad bits to handle noise
                 if (bad > 2) continue;
 
-                if (decode_and_pack(d, idx, inv)) {
+                if (decode_and_pack(d, idx, inv, data)) {
+                    *frame_at = idx;
                     return true;
                 }
             }
@@ -282,6 +280,7 @@ static void *ioprox_codec_alloc(void) {
         // Subtract a running DC baseline before the Goertzel (weak-coupling
         // robustness; see hidprox_codec_alloc). Same FSK demod path.
         d->modem->dc_block = true;
+        d->modem->align = true;  // a bit from every window phase (see fskdemod.h)
     }
     return d;
 }
@@ -304,8 +303,10 @@ static uint8_t *ioprox_get_data(void *codec) {
 static void ioprox_decoder_start(void *codec, uint8_t format_hint) {
     (void)format_hint;
     ioprox_codec_t *d = (ioprox_codec_t *)codec;
-    d->bit_len = 0;
-    memset(d->bits, 0, sizeof(d->bits));
+    for (uint8_t i = 0; i < IOPROX_PHASES; i++) {
+        d->lanes[i].bit_len = 0;
+        d->lanes[i].have_last = false;
+    }
     memset(d->data, 0, sizeof(d->data));
 }
 
@@ -314,22 +315,35 @@ static bool ioprox_decoder_feed(void *codec, uint16_t val) {
     if (!d || !d->modem) return false;
 
     bool bit = false;
-    if (!fsk_feed(d->modem, val, &bit)) {
+    if (!fsk_feed(d->modem, val, &bit) || d->modem->out_phase >= IOPROX_PHASES) {
         return false;
     }
+    ioprox_lane_t *l = &d->lanes[d->modem->out_phase];
+    push_bit(l, (uint8_t)(bit ? 1u : 0u));
 
-    push_bit(d, (uint8_t)(bit ? 1u : 0u));
-
-    if (d->bit_len >= 128) {
-        if (scan_tail(d)) {
-            ioprox_reset_bits(d);
-            return true;
+    {
+        uint16_t frame_at = 0;
+        if (scan_tail(l, d->data, &frame_at)) {
+            // The 8-bit checksum lets an occasional noisy frame through as
+            // another ID; the tag repeats its frame, so take the ID only
+            // once two frames agree.
+            if (l->have_last && memcmp(l->last, d->data, sizeof(d->data)) == 0) {
+                ioprox_reset_bits(l);
+                return true;
+            }
+            memcpy(l->last, d->data, sizeof(d->data));
+            l->have_last = true;
+            // Drop the bits up to this frame's start: the frames after it stay.
+            uint16_t drop = (uint16_t)(frame_at + 1);
+            memmove(l->bits, l->bits + drop, l->bit_len - drop);
+            l->bit_len = (uint16_t)(l->bit_len - drop);
+            return false;
         }
 
         // Discard oldest 64 bits when buffer grows too large to prevent stale noise buildup
-        if (d->bit_len >= 512) {
-            memmove(d->bits, d->bits + 64, 512 - 64);
-            d->bit_len -= 64;
+        if (l->bit_len >= 512) {
+            memmove(l->bits, l->bits + 64, 512 - 64);
+            l->bit_len -= 64;
         }
     }
 

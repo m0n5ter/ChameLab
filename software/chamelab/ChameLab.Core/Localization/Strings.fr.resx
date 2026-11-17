@@ -426,6 +426,9 @@
   <data name="Cards_LFProtocol" xml:space="preserve">
     <value>Protocole LF</value>
   </data>
+  <data name="Cards_LfAuto" xml:space="preserve">
+    <value>Automatique</value>
+  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>Code de langue, p. ex. en, de, ru</value>
   </data>
@@ -1541,6 +1544,9 @@
   </data>
   <data name="Device_NoHfTag" xml:space="preserve">
     <value>Aucun tag HF : {0}</value>
+  </data>
+  <data name="Device_NoLfTag" xml:space="preserve">
+    <value>Aucun tag LF : {0}</value>
   </data>
   <data name="Device_NoPasswordToSet" xml:space="preserve">
     <value>La carte sur le lecteur ({0}) n'a pas de mot de passe à définir.</value>

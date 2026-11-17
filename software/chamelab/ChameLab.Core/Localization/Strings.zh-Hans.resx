@@ -426,6 +426,9 @@
   <data name="Cards_LFProtocol" xml:space="preserve">
     <value>LF 协议</value>
   </data>
+  <data name="Cards_LfAuto" xml:space="preserve">
+    <value>自动</value>
+  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>语言代码，例如 en、de、ru</value>
   </data>
@@ -1541,6 +1544,9 @@
   </data>
   <data name="Device_NoHfTag" xml:space="preserve">
     <value>没有 HF 标签：{0}</value>
+  </data>
+  <data name="Device_NoLfTag" xml:space="preserve">
+    <value>没有 LF 标签：{0}</value>
   </data>
   <data name="Device_NoPasswordToSet" xml:space="preserve">
     <value>读卡器上的卡片（{0}）没有可设置的密码。</value>

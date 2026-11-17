@@ -1,6 +1,8 @@
 #include "lf_reader_main.h"
 
 #include <stdbool.h>
+#include <string.h>
+#include "nordic_common.h"
 #include "bsp_delay.h"
 #include "bsp_time.h"
 #include "hex_utils.h"
@@ -120,6 +122,60 @@ uint8_t scan_jablotron(uint8_t *uid) {
  */
 uint8_t scan_pyramid(uint8_t *data) {
     if (pyramid_read(data, g_timeout_readem_ms)) {
+        return STATUS_LF_TAG_OK;
+    }
+    return STATUS_LF_TAG_NO_FOUND;
+}
+
+static bool read_hidprox_any(uint8_t *data, uint32_t timeout_ms) { return hidprox_read(data, 0, timeout_ms); }
+static bool read_ioprox_any(uint8_t *data, uint32_t timeout_ms) { return ioprox_read(data, 0, timeout_ms); }
+
+typedef struct {
+    tag_specific_type_t type;  // TAG_TYPE_UNDEFINED: the reader writes the type itself (EM410x)
+    uint8_t data_size;
+    uint16_t window_ms;
+    bool (*read)(uint8_t *data, uint32_t timeout_ms);
+} lf_auto_reader_t;
+
+// Each window covers two frames or more plus the decoder's settling time.
+// Edge-timed (ASK, biphase) readers go first, they settle fastest; the
+// SAADC (FSK, NRZ) readers each run a demodulator per sample, too heavy to
+// run side by side at 125 kS/s, so every protocol gets a window of its own.
+// Their frame checks (EM410x parity, checksums, CRC, Manchester validity)
+// keep one protocol's reader from decoding another protocol's tag.
+static const lf_auto_reader_t lf_auto_readers[] = {
+    { TAG_TYPE_UNDEFINED,          2 + 13, 150, em410x_read      },  // + Electra wait once a frame is in
+    { TAG_TYPE_VIKING,             4,      100, viking_read      },
+    { TAG_TYPE_JABLOTRON,          5,      120, jablotron_read   },
+    { TAG_TYPE_HID_PROX,           16,     200, read_hidprox_any },
+    { TAG_TYPE_IOPROX,             16,     200, read_ioprox_any  },  // + 60 ms power cycle in the reader
+    { TAG_TYPE_FARPOINTE_PYRAMID,  16,     200, pyramid_read     },  // + 60 ms power cycle in the reader
+    { TAG_TYPE_PAC,                8,      160, pac_read         },  // + 10 ms power-up in the reader
+};
+
+/**
+ * Search for a tag of any protocol the reader decodes, trying each in turn.
+ * @param out tag type (2 bytes, big endian) followed by that protocol's scan data
+ * @param out_len bytes written to out
+ */
+uint8_t scan_lf_auto(uint8_t *out, uint16_t *out_len) {
+    *out_len = 0;
+    for (size_t i = 0; i < ARRAY_SIZE(lf_auto_readers); i++) {
+        const lf_auto_reader_t *r = &lf_auto_readers[i];
+        if (r->type == TAG_TYPE_UNDEFINED) {
+            uint8_t em[2 + 13] = {0};
+            if (!r->read(em, r->window_ms)) continue;
+            tag_specific_type_t type = (em[0] << 8) | em[1];
+            *out_len = 2 + (type == TAG_TYPE_EM410X_ELECTRA ? 13 : 5);
+            memcpy(out, em, *out_len);
+            return STATUS_LF_TAG_OK;
+        }
+        uint8_t data[16] = {0};
+        if (!r->read(data, r->window_ms)) continue;
+        out[0] = r->type >> 8;
+        out[1] = r->type;
+        memcpy(out + 2, data, r->data_size);
+        *out_len = 2 + r->data_size;
         return STATUS_LF_TAG_OK;
     }
     return STATUS_LF_TAG_NO_FOUND;

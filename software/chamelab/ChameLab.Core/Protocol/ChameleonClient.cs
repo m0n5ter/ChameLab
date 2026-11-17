@@ -999,6 +999,45 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         return new LfScanResult(type, f.Data[..Math.Min(len, f.Data.Length)]);
     }
 
+    /// <summary>The LF protocols <see cref="LfAutoScanAsync"/> tries, in the firmware's order.</summary>
+    public static readonly TagSpecificType[] LfAutoScanProtocols =
+    [
+        TagSpecificType.Em410x, TagSpecificType.Viking, TagSpecificType.Jablotron, TagSpecificType.HidProx,
+        TagSpecificType.IoProx, TagSpecificType.FarpointePyramid, TagSpecificType.Pac,
+    ];
+
+    /// <summary>
+    /// Reads an LF tag of any protocol in <see cref="LfAutoScanProtocols"/> and says which it is.
+    /// Firmware with the auto scan tries them all in one command (about a second when no tag
+    /// answers); older firmware gets one scan per protocol, half a second each.
+    /// </summary>
+    public async Task<LfScanResult> LfAutoScanAsync(CancellationToken ct = default)
+    {
+        if ((await GetCapabilitiesAsync(ct)).Contains((ushort)Command.LfAutoScan))
+        {
+            var f = await conn.SendAsync(Command.LfAutoScan, timeoutMs: 5000, ct: ct);
+            if (f.Status != Status.LfTagOk)
+                throw new ChameleonException(string.Format(Strings.Device_NoLfTag, f.Status.Describe()), f.Status);
+            if (f.Data.Length < 2) throw new System.IO.InvalidDataException("Invalid LF auto scan response.");
+            var type = (TagSpecificType)BinaryPrimitives.ReadUInt16BigEndian(f.Data);
+            var len = type.LfIdLength();
+            var id = f.Data[2..];
+            return new LfScanResult(type, len > 0 && id.Length > len ? id[..len] : id);
+        }
+
+        foreach (var type in LfAutoScanProtocols)
+        {
+            try
+            {
+                if (!type.IsEm410x()) return await LfScanAsync(type, ct);
+                var tag = await Em410xScanAsync(ct);
+                return new LfScanResult(tag.Type, tag.Id);
+            }
+            catch (ChameleonException e) when (e.Status == Status.LfTagNoFound) { }
+        }
+        throw new ChameleonException(string.Format(Strings.Device_NoLfTag, Status.LfTagNoFound.Describe()), Status.LfTagNoFound);
+    }
+
     // ---- LF write (T55xx) ---------------------------------------------
 
     /// <summary>Default T55xx write key used by the firmware (0x20206666).</summary>

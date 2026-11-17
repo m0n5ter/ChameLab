@@ -4919,6 +4919,15 @@
     "scopedSlot": false
   },
   {
+    "name": "lf search",
+    "description": "Scan an LF tag of any supported protocol and print its type and id",
+    "options": [],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
     "name": "lf em 410x read",
     "description": "Scan em410x tag and print id",
     "options": [],

@@ -1,4 +1,4 @@
-"""Run the actual firmware LF reader/codecs on a host compiler, without Nordic hardware.
+"""Run the actual firmware LF readers/codecs on a host compiler, without Nordic hardware.
 
 Usage: python3 firmware/tests/test_lf_em410x_read.py (requires gcc).
 """
@@ -18,7 +18,7 @@ typedef struct { uint16_t channel_0, channel_1, channel_2, counter_top; } nrf_pw
 typedef struct { union { const nrf_pwm_values_wave_form_t *p_wave_form; } values; uint16_t length; uint32_t repeats, end_delay; } nrf_pwm_sequence_t;
 #define NRF_PWM_VALUES_LENGTH(a) (sizeof(a) / (sizeof(uint16_t)))
 """,
-        "nordic_common.h": "#pragma once\n#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))\n#define IS_SET(x, b) (((x) >> (b)) & 1)\n",
+        "nordic_common.h": "#pragma once\n#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))\n#define IS_SET(x, b) (((x) >> (b)) & 1)\n#define SET_BIT(x, b) ((x) |= (1ULL << (b)))\n",
         "nrf_log.h": "#pragma once\n#define NRF_LOG_MODULE_REGISTER()\n#define NRF_LOG_INFO(...) ((void)0)\n#define NRF_LOG_DEBUG(...) ((void)0)\n",
         "nrf_log_ctrl.h": "#pragma once\n",
         "nrf_log_default_backends.h": "#pragma once\n",
@@ -65,6 +65,17 @@ void lf_125khz_radio_gpiote_disable(void);
                         str(firmware / "tests/test_lf_em4x05_write.c"), *em4x05,
                         str(src / "rfid/nfctag/lf/protocols/em410x.c"), str(src / "rfid/nfctag/lf/utils/manchester.c"),
                         str(src / "rfid/parity.c"), "-o", str(binary)], check=True)
+        subprocess.run([str(binary)], check=True)
+        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-O2",
+                        *[f"-I{p}" for p in includes], str(firmware / "tests/test_lf_pyramid_read.c"),
+                        str(src / "rfid/nfctag/lf/protocols/pyramid.c"), str(src / "rfid/nfctag/lf/utils/fskdemod.c"),
+                        "-lm", "-o", str(binary)], check=True)
+        subprocess.run([str(binary)], check=True)
+        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-Wno-sign-compare",
+                        "-O2", *[f"-I{p}" for p in includes], str(firmware / "tests/test_lf_fsk_read.c"),
+                        *[str(src / "rfid/nfctag/lf/protocols" / name) for name in ("hidprox.c", "wiegand.c", "ioprox.c")],
+                        str(src / "rfid/nfctag/lf/utils/fskdemod.c"), str(src / "rfid/parity.c"), str(src / "rfid/hex_utils.c"),
+                        "-lm", "-o", str(binary)], check=True)
         subprocess.run([str(binary)], check=True)
 
 

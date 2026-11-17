@@ -426,6 +426,9 @@
   <data name="Cards_LFProtocol" xml:space="preserve">
     <value>LF プロトコル</value>
   </data>
+  <data name="Cards_LfAuto" xml:space="preserve">
+    <value>自動</value>
+  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>言語コード（例: en、de、ru）</value>
   </data>
@@ -1541,6 +1544,9 @@
   </data>
   <data name="Device_NoHfTag" xml:space="preserve">
     <value>HF タグがありません: {0}</value>
+  </data>
+  <data name="Device_NoLfTag" xml:space="preserve">
+    <value>LF タグがありません: {0}</value>
   </data>
   <data name="Device_NoPasswordToSet" xml:space="preserve">
     <value>リーダー上のカード（{0}）には設定できるパスワードがありません。</value>

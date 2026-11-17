@@ -107,6 +107,7 @@ public enum Command : ushort
     Em410xWriteToEm4x05 = 3034,
     Em4x05WriteWord = 3035,
     Em4x05ReadWord = 3036,
+    LfAutoScan = 3037,
 
     Mf1WriteEmuBlockData = 4000,
     Hf14aSetAntiCollData = 4001,

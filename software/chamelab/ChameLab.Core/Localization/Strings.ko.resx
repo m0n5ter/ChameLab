@@ -426,6 +426,9 @@
   <data name="Cards_LFProtocol" xml:space="preserve">
     <value>LF 프로토콜</value>
   </data>
+  <data name="Cards_LfAuto" xml:space="preserve">
+    <value>자동</value>
+  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>언어 코드(예: en, de, ru)</value>
   </data>
@@ -1541,6 +1544,9 @@
   </data>
   <data name="Device_NoHfTag" xml:space="preserve">
     <value>HF 태그 없음: {0}</value>
+  </data>
+  <data name="Device_NoLfTag" xml:space="preserve">
+    <value>LF 태그 없음: {0}</value>
   </data>
   <data name="Device_NoPasswordToSet" xml:space="preserve">
     <value>리더기의 카드({0})에는 설정할 비밀번호가 없습니다.</value>

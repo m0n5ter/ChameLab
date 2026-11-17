@@ -1020,10 +1020,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public ICommand CancelAddCommand { get; }
     public ICommand OpenScanMatchCommand { get; }
 
-    /// <summary>LF protocols that can be scanned for.</summary>
+    /// <summary>LF protocols that can be scanned for; <see cref="TagSpecificType.Undefined"/> is Auto.</summary>
     public IReadOnlyList<TagSpecificType> LfProtocols { get; } = new[]
     {
-        TagSpecificType.Em410x, TagSpecificType.HidProx, TagSpecificType.IoProx,
+        TagSpecificType.Undefined, TagSpecificType.Em410x, TagSpecificType.HidProx, TagSpecificType.IoProx,
         TagSpecificType.Viking, TagSpecificType.Pac, TagSpecificType.Jablotron,
         TagSpecificType.FarpointePyramid,
     };
@@ -1032,7 +1032,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         get;
         set => this.RaiseAndSetIfChanged(ref field, value);
-    } = TagSpecificType.Em410x;
+    } = TagSpecificType.Undefined;
 
     /// <summary>Why the last scan produced no card (“No HF tag detected.”); null otherwise.</summary>
     public string? ScanMissText
@@ -1496,7 +1496,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             return;
         }
 
-        var result = await WithMissFeedback(client.LfScanAsync(LfProtocol));
+        var result = await WithMissFeedback(LfProtocol == TagSpecificType.Undefined
+            ? client.LfAutoScanAsync()
+            : client.LfScanAsync(LfProtocol));
         ScanFeedback.Found();
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
@@ -1511,7 +1513,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
         });
-        Notify(string.Format(Strings.Cards_LfTagRead, LfProtocol.DisplayName()));
+        Notify(string.Format(Strings.Cards_LfTagRead, result.Type.DisplayName()));
     });
 
     // Buzzes when a scan or dump fails outright (no tag, card lost); a cancel stays quiet.

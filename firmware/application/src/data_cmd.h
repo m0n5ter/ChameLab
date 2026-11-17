@@ -234,5 +234,6 @@
 #define DATA_CMD_EM410X_WRITE_TO_EM4X05         (3034)
 #define DATA_CMD_EM4X05_WRITE_WORD              (3035)
 #define DATA_CMD_EM4X05_READ_WORD               (3036)
+#define DATA_CMD_LF_AUTO_SCAN                   (3037)
 
 #endif
