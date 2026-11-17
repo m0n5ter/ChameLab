@@ -70,6 +70,7 @@ public class ActionBar : Panel
         if (message is null)
         {
             _stacked = false;
+            FitRow(count, limit);
             return new Size(double.IsInfinity(limit) ? _buttonsWidth : limit, _buttonsHeight);
         }
 
@@ -85,15 +86,19 @@ public class ActionBar : Panel
         }
 
         message.Measure(new Size(limit, double.PositiveInfinity));
-        if (count == 1 && _buttonsWidth > limit)
-        {
-            var row = Buttons().First();
-            row.Measure(new Size(limit, double.PositiveInfinity));
-            _buttonsWidth = row.DesiredSize.Width;
-            _buttonsHeight = row.DesiredSize.Height;
-        }
+        FitRow(count, limit);
         var height = message.DesiredSize.Height + (count > 0 ? RowSpacing + _buttonsHeight : 0);
         return new Size(limit, height);
+    }
+
+    // A lone ActionRow wider than the bar gets the bar's width, so its buttons drop their labels.
+    private void FitRow(int count, double limit)
+    {
+        if (count != 1 || double.IsInfinity(limit) || _buttonsWidth <= limit) return;
+        var row = Buttons().First();
+        row.Measure(new Size(limit, double.PositiveInfinity));
+        _buttonsWidth = row.DesiredSize.Width;
+        _buttonsHeight = row.DesiredSize.Height;
     }
 
     protected override Size ArrangeOverride(Size finalSize)
