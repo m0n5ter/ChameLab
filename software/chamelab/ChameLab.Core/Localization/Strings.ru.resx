@@ -210,12 +210,6 @@
   <data name="Cards_KeyB" xml:space="preserve">
     <value>■ Ключ B</value>
   </data>
-  <data name="Cards_LFProtocol" xml:space="preserve">
-    <value>Протокол LF</value>
-  </data>
-  <data name="Cards_LfAuto" xml:space="preserve">
-    <value>Авто</value>
-  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>Код языка, например en, de, ru</value>
   </data>
@@ -1391,9 +1385,6 @@
   </data>
   <data name="Cards_DynamicLockBytes" xml:space="preserve">
     <value>Динамические байты блокировки</value>
-  </data>
-  <data name="Cards_Em410xRead" xml:space="preserve">
-    <value>Метка EM410x прочитана.</value>
   </data>
   <data name="Cards_EnterIdentityFirst" xml:space="preserve">
     <value>Сначала введите корректные данные карты.</value>

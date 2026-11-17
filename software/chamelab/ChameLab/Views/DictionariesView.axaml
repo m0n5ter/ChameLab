@@ -286,8 +286,9 @@
               IsEnabled="{Binding !IsAsking}">
         <StackPanel Spacing="14">
           <Grid ColumnDefinitions="Auto,Auto,*">
-            <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
-                    Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
+            <!-- A new dictionary always offers Back: it returns to where it came from, not to the list. -->
+            <Button Grid.Column="0" Classes="icon backonly" Classes.keepback="{Binding IsNew}" Margin="-8,0,6,0"
+                    VerticalAlignment="Top" Command="{Binding CloseCommand}" ToolTip.Tip="{Binding EditorBackTip}"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
             </Button>
@@ -513,8 +514,8 @@
       <!-- Where a new dictionary comes from; it then opens in the editor to be reviewed and saved. -->
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsPickingSource}">
         <StackPanel Spacing="14">
-          <Grid ColumnDefinitions="Auto,*,Auto">
-            <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
+          <Grid ColumnDefinitions="Auto,*">
+            <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0" VerticalAlignment="Top"
                     Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />
@@ -523,10 +524,6 @@
               <TextBlock Text="{x:Static loc:Strings.Dictionaries_AddADictionary}" Classes="h2" />
               <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Dictionaries_AddHint}" />
             </StackPanel>
-            <Button Grid.Column="2" Classes="icon" Command="{Binding CloseCommand}"
-                    ToolTip.Tip="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Top">
-              <PathIcon Data="{StaticResource Icon.close}" />
-            </Button>
           </Grid>
           <c:FitGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
                 <Button Classes="tile source" Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
@@ -573,7 +570,7 @@
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsPickingDownload}">
         <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
           <Grid ColumnDefinitions="Auto,*">
-            <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0"
+            <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0" VerticalAlignment="Top"
                     Command="{Binding BackToAddCommand}" ToolTip.Tip="{Binding DownloadBackTip}"
                     b:DialogKeys.IsBack="True">
               <PathIcon Data="{StaticResource Icon.back}" />

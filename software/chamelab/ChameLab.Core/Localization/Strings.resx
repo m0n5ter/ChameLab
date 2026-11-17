@@ -213,12 +213,6 @@
   <data name="Cards_KeyB" xml:space="preserve">
     <value>■ Key B</value>
   </data>
-  <data name="Cards_LFProtocol" xml:space="preserve">
-    <value>LF protocol</value>
-  </data>
-  <data name="Cards_LfAuto" xml:space="preserve">
-    <value>Auto</value>
-  </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>Language code, e.g. en, de, ru</value>
   </data>
@@ -1394,9 +1388,6 @@
   </data>
   <data name="Cards_DynamicLockBytes" xml:space="preserve">
     <value>Dynamic lock bytes</value>
-  </data>
-  <data name="Cards_Em410xRead" xml:space="preserve">
-    <value>EM410x tag read.</value>
   </data>
   <data name="Cards_EnterIdentityFirst" xml:space="preserve">
     <value>Enter a valid card identity first.</value>

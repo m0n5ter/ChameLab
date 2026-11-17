@@ -315,9 +315,6 @@
   <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
     <value>修改会直接写入存储内容。拖动记录可移动它。</value>
   </data>
-  <data name="Cards_Em410xRead" xml:space="preserve">
-    <value>已读取 EM410x 标签。</value>
-  </data>
   <data name="Cards_Email" xml:space="preserve">
     <value>电子邮件</value>
   </data>
@@ -422,12 +419,6 @@
   </data>
   <data name="Cards_KeyBOfSectors" xml:space="preserve">
     <value>扇区 {0} 的密钥 B</value>
-  </data>
-  <data name="Cards_LFProtocol" xml:space="preserve">
-    <value>LF 协议</value>
-  </data>
-  <data name="Cards_LfAuto" xml:space="preserve">
-    <value>自动</value>
   </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>语言代码，例如 en、de、ru</value>

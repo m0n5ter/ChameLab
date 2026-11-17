@@ -315,9 +315,6 @@
   <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
     <value>편집 내용은 바로 메모리에 반영됩니다. 레코드를 드래그하여 이동할 수 있습니다.</value>
   </data>
-  <data name="Cards_Em410xRead" xml:space="preserve">
-    <value>EM410x 태그를 읽었습니다.</value>
-  </data>
   <data name="Cards_Email" xml:space="preserve">
     <value>이메일</value>
   </data>
@@ -422,12 +419,6 @@
   </data>
   <data name="Cards_KeyBOfSectors" xml:space="preserve">
     <value>섹터 {0}의 키 B</value>
-  </data>
-  <data name="Cards_LFProtocol" xml:space="preserve">
-    <value>LF 프로토콜</value>
-  </data>
-  <data name="Cards_LfAuto" xml:space="preserve">
-    <value>자동</value>
   </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>언어 코드(예: en, de, ru)</value>

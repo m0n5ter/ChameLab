@@ -311,6 +311,19 @@ public class CardDumpContinuationTests
         Assert.True(visibilityChanged > 0);
     }
 
+    [Fact]
+    public void BackFromNewCardReturnsToSourcePicker()
+    {
+        var vm = AddManual();
+        Assert.True(vm.IsEditingNew);
+        vm.CloseCommand.Execute(null);
+        Assert.True(vm.IsConfirmingLeave);
+        vm.DiscardAndLeaveCommand.Execute(null);
+        Assert.True(vm.IsAdding);
+        Assert.True(vm.IsPickingSource);
+        Assert.Null(vm.Form);
+    }
+
     private static CardsViewModel AddManual()
     {
         var store = new MemoryKeyValueStore();

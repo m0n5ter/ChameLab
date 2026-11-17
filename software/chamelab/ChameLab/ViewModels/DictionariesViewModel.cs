@@ -615,10 +615,16 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
     private void ClosePane()
     {
         if (_pane == DictionariesPane.Dictionary) { SetSelected(null); return; }
-        // A downloaded dictionary dropped unsaved: back to the downloads, to pick another.
-        var backToDownloads = _pane == DictionariesPane.New && _newFromDownload;
+        // A new dictionary dropped unsaved goes back to where it came from: the downloads (to pick
+        // another) or the choice of source. The source choice and the downloads step back as well.
+        var back = _pane switch
+        {
+            DictionariesPane.New => _newFromDownload ? DictionariesPane.Download : DictionariesPane.Add,
+            DictionariesPane.Download => DictionariesPane.Add,
+            _ => DictionariesPane.None,
+        };
         Form = null;
-        Pane = backToDownloads ? DictionariesPane.Download : DictionariesPane.None;
+        Pane = back;
     }
 
     // ---- Pane ----------------------------------------------------------
@@ -657,6 +663,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
             this.RaisePropertyChanged(nameof(IsDirty));
             this.RaisePropertyChanged(nameof(IsPickingSource));
             this.RaisePropertyChanged(nameof(IsPickingDownload));
+            this.RaisePropertyChanged(nameof(EditorBackTip));
             IsConfirmingDelete = false;
         }
     }
@@ -704,6 +711,11 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
 
     public string DownloadBackTip => string.Format(Strings.Common_BackTo, Strings.Dictionaries_AddADictionary);
 
+    /// <summary>The editor's Back: a new dictionary returns to where it came from, a saved one to the list.</summary>
+    public string EditorBackTip => _pane != DictionariesPane.New ? Strings.Common_BackToTheList
+        : _newFromDownload ? string.Format(Strings.Common_BackTo, Strings.Dictionaries_DownloadTitle)
+        : DownloadBackTip;
+
     private void BeginAdd()
     {
         if (_selected is not null) SetSelected(null);
@@ -730,6 +742,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
                 dict.Folder = FolderTree.Location;
                 OpenNew(dict, string.Format(Strings.Dictionaries_DlFrom, item.Source.Project, item.FileName));
                 _newFromDownload = true;
+                this.RaisePropertyChanged(nameof(EditorBackTip));
             });
         }
         finally { Avalonia.Threading.Dispatcher.UIThread.Post(() => item.IsDownloading = false); }

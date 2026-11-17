@@ -315,9 +315,6 @@
   <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
     <value>編集内容はそのままメモリに反映されます。レコードはドラッグで移動できます。</value>
   </data>
-  <data name="Cards_Em410xRead" xml:space="preserve">
-    <value>EM410x タグを読み取りました。</value>
-  </data>
   <data name="Cards_Email" xml:space="preserve">
     <value>メール</value>
   </data>
@@ -422,12 +419,6 @@
   </data>
   <data name="Cards_KeyBOfSectors" xml:space="preserve">
     <value>セクター {0} のキー B</value>
-  </data>
-  <data name="Cards_LFProtocol" xml:space="preserve">
-    <value>LF プロトコル</value>
-  </data>
-  <data name="Cards_LfAuto" xml:space="preserve">
-    <value>自動</value>
   </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>言語コード（例: en、de、ru）</value>

@@ -1000,6 +1000,9 @@
   <Style Selector="Grid.cardsplit.single Button.backonly">
     <Setter Property="IsVisible" Value="True" />
   </Style>
+  <Style Selector="Button.backonly.keepback">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
 
   <!-- Color palette (a ListBox of swatches, usually in a flyout). -->
   <Style Selector="Border.swatch">

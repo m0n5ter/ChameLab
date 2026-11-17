@@ -315,9 +315,6 @@
   <data name="Cards_EditsGoStraightIntoTheMemory" xml:space="preserve">
     <value>Los cambios van directamente a la memoria. Arrastra un registro para moverlo.</value>
   </data>
-  <data name="Cards_Em410xRead" xml:space="preserve">
-    <value>Etiqueta EM410x leída.</value>
-  </data>
   <data name="Cards_Email" xml:space="preserve">
     <value>Correo electrónico</value>
   </data>
@@ -422,12 +419,6 @@
   </data>
   <data name="Cards_KeyBOfSectors" xml:space="preserve">
     <value>clave B del sector {0}|clave B de los sectores {0}</value>
-  </data>
-  <data name="Cards_LFProtocol" xml:space="preserve">
-    <value>Protocolo LF</value>
-  </data>
-  <data name="Cards_LfAuto" xml:space="preserve">
-    <value>Automático</value>
   </data>
   <data name="Cards_LanguageCodeEGEnDe" xml:space="preserve">
     <value>Código de idioma, p. ej. en, de, ru</value>

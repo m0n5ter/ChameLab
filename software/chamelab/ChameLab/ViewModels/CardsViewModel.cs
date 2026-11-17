@@ -648,8 +648,14 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// </summary>
     public bool IsNewCardUnsaved => IsEditingNew && !HasScanMatches;
 
+    /// <summary>The header's Back: a new card returns to choosing a source, a saved one to the list.</summary>
+    public string HeaderBackTip => IsEditingNew
+        ? string.Format(Strings.Common_BackTo, Strings.Cards_AddACard)
+        : Strings.Common_BackToTheList;
+
     private void RaiseAddStage()
     {
+        this.RaisePropertyChanged(nameof(HeaderBackTip));
         this.RaisePropertyChanged(nameof(IsPickingSource));
         this.RaisePropertyChanged(nameof(IsEditingNew));
         this.RaisePropertyChanged(nameof(IsNewCardUnsaved));
@@ -999,6 +1005,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void ClosePane()
     {
         if (_pane == CardsPane.Card) { SetSelected(null); return; }
+        // Back from a scanned or imported card returns to choosing a source, not to an empty pane.
+        if (IsEditingNew) { CancelAdd(); return; }
         Form = null;
         Pane = CardsPane.None;
     }
@@ -1019,20 +1027,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public ICommand ManualCommand { get; }
     public ICommand CancelAddCommand { get; }
     public ICommand OpenScanMatchCommand { get; }
-
-    /// <summary>LF protocols that can be scanned for; <see cref="TagSpecificType.Undefined"/> is Auto.</summary>
-    public IReadOnlyList<TagSpecificType> LfProtocols { get; } = new[]
-    {
-        TagSpecificType.Undefined, TagSpecificType.Em410x, TagSpecificType.HidProx, TagSpecificType.IoProx,
-        TagSpecificType.Viking, TagSpecificType.Pac, TagSpecificType.Jablotron,
-        TagSpecificType.FarpointePyramid,
-    };
-
-    public TagSpecificType LfProtocol
-    {
-        get;
-        set => this.RaiseAndSetIfChanged(ref field, value);
-    } = TagSpecificType.Undefined;
 
     /// <summary>Why the last scan produced no card (“No HF tag detected.”); null otherwise.</summary>
     public string? ScanMissText
@@ -1480,25 +1474,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (client is null) return;
         await client.SetDeviceModeAsync(DeviceMode.Reader);
 
-        if (LfProtocol == TagSpecificType.Em410x)
-        {
-            var tag = await WithMissFeedback(client.Em410xScanAsync());
-            ScanFeedback.Found();
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                ResetAddState();
-                FormSource = string.Format(Strings.Cards_SourceTag, tag.Type.DisplayName());
-                var card = CardFormats.FromEm410x(tag);
-                Form = new CardEditorViewModel(card, sameFrequency: true);
-                SetScanMatches(card);
-            });
-            Notify(Strings.Cards_Em410xRead);
-            return;
-        }
-
-        var result = await WithMissFeedback(LfProtocol == TagSpecificType.Undefined
-            ? client.LfAutoScanAsync()
-            : client.LfScanAsync(LfProtocol));
+        var result = await WithMissFeedback(client.LfAutoScanAsync());
         ScanFeedback.Found();
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {

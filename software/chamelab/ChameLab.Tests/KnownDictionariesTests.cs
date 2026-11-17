@@ -67,7 +67,10 @@ public class KnownDictionariesTests
         Assert.True(vm.IsNew);
         Assert.True(vm.IsEditorPane);
 
+        // Dropping the new dictionary returns to choosing a source; Back from there closes the pane.
         vm.CancelNewCommand.Execute(null);
+        Assert.True(vm.IsPickingSource);
+        vm.CloseCommand.Execute(null);
         Assert.False(vm.HasPane);
     }
 }

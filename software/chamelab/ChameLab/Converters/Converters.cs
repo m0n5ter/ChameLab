@@ -3,7 +3,6 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using ChameLab.Localization;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Transport;
@@ -55,22 +54,6 @@ public sealed class EnumLabelConverter : IValueConverter
         NdefTnf t => t.Label(),
         null => null,
         _ => value.ToString(),
-    };
-
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
-}
-
-/// <summary>An LF protocol picker's label: <see cref="TagSpecificType.Undefined"/> stands for Auto.</summary>
-public sealed class LfProtocolLabelConverter : IValueConverter
-{
-    public static readonly LfProtocolLabelConverter Instance = new();
-
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
-    {
-        TagSpecificType.Undefined => Strings.Cards_LfAuto,
-        TagSpecificType t => t.DisplayName(),
-        _ => null,
     };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
