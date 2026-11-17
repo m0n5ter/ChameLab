@@ -84,8 +84,8 @@
   <data name="Cards_CardColor" xml:space="preserve">
     <value>Card color</value>
   </data>
-  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
-    <value>Card file, compatible with the Flutter app</value>
+  <data name="Cards_CardFileCompatibleWithChameleonUltraGui" xml:space="preserve">
+    <value>Card file, compatible with ChameleonUltraGUI</value>
   </data>
   <data name="Cards_CardName" xml:space="preserve">
     <value>Card name</value>
@@ -361,7 +361,7 @@
     <value>Save a copy of this card</value>
   </data>
   <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
-    <value>Save as JSON (compatible with the Flutter app)</value>
+    <value>Save as JSON (compatible with ChameleonUltraGUI)</value>
   </data>
   <data name="Cards_SaveTheCardToAFile" xml:space="preserve">
     <value>Save the card to a file</value>

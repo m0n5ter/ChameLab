@@ -62,7 +62,7 @@ public static class BackupService
         : new();
 
     /// <summary>
-    /// Imports the Flutter Chameleon Ultra GUI's settings export (or its shared_preferences.json):
+    /// Imports ChameleonUltraGUI's settings export (or its shared_preferences.json):
     /// cards with their folders, and dictionaries not already here.
     /// </summary>
     private static (int cards, int dictionaries) ImportChameleonGui(JsonObject o, CardLibrary cards, DictionaryLibrary dictionaries)

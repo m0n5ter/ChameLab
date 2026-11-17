@@ -454,7 +454,7 @@
               <DropDownButton.Flyout>
                 <MenuFlyout Placement="BottomEdgeAlignedLeft">
                   <MenuItem Header="JSON" Command="{Binding ExportCommand}"
-                            ToolTip.Tip="{x:Static loc:Strings.Cards_CardFileCompatibleWithTheFlutter}" />
+                            ToolTip.Tip="{x:Static loc:Strings.Cards_CardFileCompatibleWithChameleonUltraGui}" />
                   <MenuItem Header="{x:Static loc:Strings.Cards_BinDump}" Command="{Binding ExportBinCommand}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_RawMemoryDumpReadableByMost}" />
                   <MenuItem Header="{x:Static loc:Strings.Cards_EmlDump}" Command="{Binding ExportEmlCommand}"

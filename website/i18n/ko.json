@@ -44,7 +44,7 @@
  "index.app.22": "웹 버전은 데스크톱의 Chrome 또는 Edge가 필요합니다. Firefox와 Safari는 Web Serial을 지원하지 않습니다.",
  "index.why.1": "02 / 차이점",
  "index.why.2": "왜 ChameLab인가",
- "index.why.3": "Flutter로 만든 ChameleonUltraGUI 및 명령줄 클라이언트와의 비교.",
+ "index.why.3": "ChameleonUltraGUI 및 명령줄 클라이언트와의 비교.",
  "index.why.4.aria-label": "기능 비교, 작은 화면에서는 가로로 스크롤",
  "index.why.5": "기능",
  "index.why.6": "ChameleonUltraGUI",

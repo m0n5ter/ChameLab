@@ -177,8 +177,8 @@
   <data name="Cards_CardDetailsHeader" xml:space="preserve">
     <value>DETALLES DE LA TARJETA</value>
   </data>
-  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
-    <value>Archivo de tarjeta, compatible con la app Flutter</value>
+  <data name="Cards_CardFileCompatibleWithChameleonUltraGui" xml:space="preserve">
+    <value>Archivo de tarjeta, compatible con ChameleonUltraGUI</value>
   </data>
   <data name="Cards_CardId" xml:space="preserve">
     <value>ID de tarjeta</value>
@@ -724,7 +724,7 @@
     <value>Guardar una copia de esta tarjeta</value>
   </data>
   <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
-    <value>Guardar como JSON (compatible con la app Flutter)</value>
+    <value>Guardar como JSON (compatible con ChameleonUltraGUI)</value>
   </data>
   <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
     <value>¿Guardar la nueva tarjeta antes de salir?</value>

@@ -17,7 +17,7 @@ public sealed class CardSaveExtra
     /// <summary>
     /// MIFARE Classic sectors whose trailer was read but whose key A / key B is not known: the
     /// trailer holds zeros there, not the key. Stored as "unknown" so older cards (without the
-    /// lists) keep treating every trailer key as real. ChameLab only (the Flutter app ignores them).
+    /// lists) keep treating every trailer key as real. ChameLab only (ChameleonUltraGUI ignores them).
     /// </summary>
     public List<int> UnknownKeyA { get; set; } = new();
     public List<int> UnknownKeyB { get; set; } = new();
@@ -27,7 +27,7 @@ public sealed class CardSaveExtra
 /// A card saved in the local library: identity (UID/SAK/ATQA/ATS), tag type and
 /// optional memory contents (16-byte MIFARE Classic blocks or 4-byte
 /// Ultralight pages). For LF tags <see cref="Uid"/> holds the raw emulator ID.
-/// The JSON shape matches the Flutter ChameleonUltraGUI <c>CardSave</c>, so
+/// The JSON shape matches the ChameleonUltraGUI <c>CardSave</c>, so
 /// exports move freely between the two apps.
 /// </summary>
 public sealed class CardSave
@@ -45,9 +45,9 @@ public sealed class CardSave
     /// <summary>Accent color as <c>#RRGGBB</c>.</summary>
     public string Color { get; set; } = DefaultColor;
 
-    public const string DefaultColor = "#FF4000"; // the palette color nearest Flutter's Colors.deepOrange
+    public const string DefaultColor = "#FF4000"; // the palette color nearest ChameleonUltraGUI's Colors.deepOrange
 
-    /// <summary>The path of the folder the card is filed in (see <see cref="FolderPath"/>); empty for none. ChameLab only (the Flutter app ignores it).</summary>
+    /// <summary>The path of the folder the card is filed in (see <see cref="FolderPath"/>); empty for none. ChameLab only (ChameleonUltraGUI ignores it).</summary>
     public string Folder { get; set; } = string.Empty;
 
     public TagSenseType Sense => Tag.SenseType();
@@ -145,7 +145,7 @@ public sealed class CardSave
 
     private static TagSpecificType ParseTag(JsonNode? node)
     {
-        // Flutter writes the numeric tag value; tolerate enum names as well.
+        // ChameleonUltraGUI writes the numeric tag value; tolerate enum names as well.
         if (node is JsonValue v)
         {
             if (v.TryGetValue<int>(out var n) && Enum.IsDefined(typeof(TagSpecificType), (ushort)n))

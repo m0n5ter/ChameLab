@@ -15,7 +15,7 @@
 | gui-capture | 1,320 | 15.83 | 1.09 | GUI 14.52x | 151 / 160 |
 | gui-filtering | 1,772 | 3.82 | 0.79 | GUI 4.84x | 97 / 218 |
 
-**Method.** Three fresh-process runs per engine/case, sequential, alternating order; medians of GNU time wall time and peak RSS. Identical nonce/parity records and UID, prepared before timing. Includes input, runtime/library startup, tables and recovery; excludes Flutter/Avalonia startup. Caches unflushed. Expected keys only validate results; the native wrapper also checks the solver success status (including zero key).
+**Method.** Three fresh-process runs per engine/case, sequential, alternating order; medians of GNU time wall time and peak RSS. Identical nonce/parity records and UID, prepared before timing. Includes input, runtime/library startup, tables and recovery; excludes GUI framework startup. Caches unflushed. Expected keys only validate results; the native wrapper also checks the solver success status (including zero key).
 
 **Builds.** i9-13900H, 20 logical CPUs, Ubuntu/WSL2 `6.18.54.1-microsoft-standard-WSL2`. ChameLab `6562bc99d38e68013cd06c9cb1ab52bf5429ea53`, .NET SDK 10.0.402/runtime 10.0.13, self-contained linux-x64 Release, AVX2, up to 16 workers. GUI [release 1.4](https://github.com/GameTec-live/ChameleonUltraGUI/releases/tag/1.4), commit `dfd9f1e9b5a748c3f8eab9b21663af1ca926db33`, unmodified C sources, GCC 13.3.0/CMake 3.28.3 Release (`-O3 -fno-semantic-interposition`), default 128-bit SIMD, 20 search threads.
 

@@ -177,8 +177,8 @@
   <data name="Cards_CardDetailsHeader" xml:space="preserve">
     <value>카드 세부 정보</value>
   </data>
-  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
-    <value>카드 파일(Flutter 앱과 호환)</value>
+  <data name="Cards_CardFileCompatibleWithChameleonUltraGui" xml:space="preserve">
+    <value>카드 파일(ChameleonUltraGUI와 호환)</value>
   </data>
   <data name="Cards_CardId" xml:space="preserve">
     <value>카드 ID</value>
@@ -724,7 +724,7 @@
     <value>이 카드의 사본 저장</value>
   </data>
   <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
-    <value>JSON으로 저장(Flutter 앱과 호환)</value>
+    <value>JSON으로 저장(ChameleonUltraGUI와 호환)</value>
   </data>
   <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
     <value>나가기 전에 새 카드를 저장할까요?</value>

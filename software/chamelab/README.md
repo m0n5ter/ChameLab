@@ -55,9 +55,9 @@ responses matched to requests by command id.
   MIFARE Classic cards (Mini / 1K / 4K) can then be dumped with a key dictionary,
   edited as hex and loaded into the active slot to emulate them.
 - **Saved cards** — local card library (create / edit / duplicate / delete,
-  search, color tags). Save straight from **Read**, import Flutter
+  search, color tags). Save straight from **Read**, import
   ChameleonUltraGUI JSON, Proxmark3 JSON, Flipper `.nfc` / `.rfid`, MCT, `.bin` /
-  `.eml`, export to JSON (same format as the Flutter app) and MIFARE Classic
+  `.eml`, export to JSON (same format as ChameleonUltraGUI) and MIFARE Classic
   memory to `.bin` / `.eml`. Load any card into one
   of the eight slots — MIFARE Classic (blocks), Ultralight / NTAG (pages, version,
   signature, counters), ISO14443-4 and LF (EM410x, HID Prox, ioProx, Viking,
@@ -84,8 +84,8 @@ keys of that length) together with the name/key search. In the key editor each r
 as long as its key: typing after a key's last byte lengthens it, Backspace and Insert
 delete and insert bytes, and pasting several lines adds a key per line. A key shorter
 than 4 bytes can't be saved. Text import keeps every 4- to 16-byte line, and JSON
-backups keep the keys as they are; `keyLength` holds the most common length for the
-Flutter app. MIFARE Classic recovery uses the 6-byte keys of every dictionary, T55XX
+backups keep the keys as they are; `keyLength` holds the most common length for
+ChameleonUltraGUI. MIFARE Classic recovery uses the 6-byte keys of every dictionary, T55XX
 password recovery the 4-byte ones.
 
 **T55XX password recovery** is available in Tools and when writing an LF card.

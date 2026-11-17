@@ -44,7 +44,7 @@
  "index.app.22": "网页版需要电脑上的 Chrome 或 Edge：Firefox 和 Safari 不支持 Web Serial。",
  "index.why.1": "02 / 不同之处",
  "index.why.2": "为什么选择 ChameLab",
- "index.why.3": "本应用与 Flutter 版 ChameleonUltraGUI 及命令行客户端的对比。",
+ "index.why.3": "本应用与 ChameleonUltraGUI 及命令行客户端的对比。",
  "index.why.4.aria-label": "功能对比，在小屏幕上可横向滚动",
  "index.why.5": "功能",
  "index.why.6": "ChameleonUltraGUI",

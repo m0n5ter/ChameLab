@@ -13,7 +13,7 @@ public sealed record ChameleonGuiLibrary(
     IReadOnlyList<KeyDictionary> Dictionaries);
 
 /// <summary>
-/// Reads the saved cards and their folders out of the Flutter Chameleon Ultra GUI's files:
+/// Reads the saved cards and their folders out of ChameleonUltraGUI's files:
 /// <list type="bullet">
 /// <item>its settings export (Settings → Export settings → JSON file), which holds the whole library;</item>
 /// <item>its folder export (<c>"format": "chameleon-ultra-gui-folder"</c>);</item>

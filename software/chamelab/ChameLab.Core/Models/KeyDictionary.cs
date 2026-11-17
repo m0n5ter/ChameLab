@@ -11,7 +11,7 @@ public enum KeyDictionaryType { MifareClassic, T55xx, Generic }
 
 /// <summary>
 /// A named set of keys of 4 to 16 bytes, possibly of different lengths. The JSON shape matches
-/// the Flutter ChameleonUltraGUI <c>Dictionary</c> so dictionaries move between
+/// the ChameleonUltraGUI <c>Dictionary</c> so dictionaries move between
 /// the two apps; a plain <c>.dic</c> / <c>.keys</c> / <c>.txt</c> file (one hex key per line)
 /// also imports and exports.
 /// </summary>
@@ -40,7 +40,7 @@ public sealed class KeyDictionary
 
     /// <summary>
     /// Length most of the keys have (the first key's among equally common ones), or the length
-    /// the dictionary is made for while it has no keys. Stored as Flutter's <c>keyLength</c>.
+    /// the dictionary is made for while it has no keys. Stored as ChameleonUltraGUI's <c>keyLength</c>.
     /// </summary>
     public int KeyLength
     {
@@ -76,7 +76,7 @@ public sealed class KeyDictionary
         return copy;
     }
 
-    // ---- JSON (Flutter-compatible) ------------------------------------
+    // ---- JSON (ChameleonUltraGUI-compatible) ------------------------------------
 
     public JsonObject ToJson()
     {
@@ -103,7 +103,7 @@ public sealed class KeyDictionary
             Name = (string?)o["name"] ?? string.Empty,
             Color = CardSave.NormalizeColor((string?)o["color"]),
             Folder = FolderPath.Normalize((string?)o["folder"]),
-            // Older dictionaries have no type. Flutter stores the length in hex characters.
+            // Older dictionaries have no type. ChameleonUltraGUI stores the length in hex characters.
             KeyLength = o["keyLength"] is { } length
                 ? ReadKeyLength(length.GetValue<int>())
                 : (string?)o["type"] == nameof(KeyDictionaryType.T55xx) ? 4 : 6,

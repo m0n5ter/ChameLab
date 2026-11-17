@@ -1,4 +1,4 @@
-# Roadmap: parity with ChameleonUltraGUI (Flutter)
+# Roadmap: parity with ChameleonUltraGUI
 
 What ChameLab is missing compared with the original app,
 [GameTec-live/ChameleonUltraGUI](https://github.com/GameTec-live/ChameleonUltraGUI).

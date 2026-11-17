@@ -177,8 +177,8 @@
   <data name="Cards_CardDetailsHeader" xml:space="preserve">
     <value>卡片详情</value>
   </data>
-  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
-    <value>卡片文件，与 Flutter 应用兼容</value>
+  <data name="Cards_CardFileCompatibleWithChameleonUltraGui" xml:space="preserve">
+    <value>卡片文件，与 ChameleonUltraGUI兼容</value>
   </data>
   <data name="Cards_CardId" xml:space="preserve">
     <value>卡片 ID</value>
@@ -724,7 +724,7 @@
     <value>保存此卡片的副本</value>
   </data>
   <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
-    <value>另存为 JSON（与 Flutter 应用兼容）</value>
+    <value>另存为 JSON（与 ChameleonUltraGUI兼容）</value>
   </data>
   <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
     <value>离开前保存新卡片？</value>

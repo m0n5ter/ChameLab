@@ -44,7 +44,7 @@
  "index.app.22": "Web 版にはデスクトップの Chrome または Edge が必要です。Firefox と Safari は Web Serial に対応していません。",
  "index.why.1": "02 / ちがい",
  "index.why.2": "ChameLab を選ぶ理由",
- "index.why.3": "Flutter 製の ChameleonUltraGUI やコマンドラインクライアントとの比較。",
+ "index.why.3": "ChameleonUltraGUI やコマンドラインクライアントとの比較。",
  "index.why.4.aria-label": "機能比較（小さな画面では横にスクロール）",
  "index.why.5": "機能",
  "index.why.6": "ChameleonUltraGUI",

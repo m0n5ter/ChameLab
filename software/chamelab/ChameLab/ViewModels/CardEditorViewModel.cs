@@ -87,7 +87,7 @@ public sealed class CardEditorViewModel : ViewModelBase, IProtectionSettings
 
     public bool CanChangeTag => TagChoices.Count > 1;
 
-    /// <summary>Preset accents (Flutter app color picker defaults).</summary>
+    /// <summary>Preset accents (ChameleonUltraGUI color picker defaults).</summary>
     public static IReadOnlyList<string> Palette => SlotColors.Palette;
 
     public string Name { get => _name; set { this.RaiseAndSetIfChanged(ref _name, value); Touch(); } }

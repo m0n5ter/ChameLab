@@ -154,7 +154,7 @@ release. The firmware has its own version in [`firmware/VERSION`](firmware/VERSI
 
 - [ChameleonUltra](https://github.com/RfidResearchGroup/ChameleonUltra) — the official firmware,
   Python CLI and hardware from RfidResearchGroup, which ChameLab builds on.
-- [ChameleonUltraGUI](https://github.com/GameTec-live/ChameleonUltraGUI) — a Flutter app for
+- [ChameleonUltraGUI](https://github.com/GameTec-live/ChameleonUltraGUI) — a cross-platform app for
   ChameleonUltra and ChameleonLite; ChameLab imports its saved cards.
 - [Proxmark3 (Iceman)](https://github.com/RfidResearchGroup/proxmark3) — the RFID research tool;
   ChameLab imports its dumps and reads and writes its traces.

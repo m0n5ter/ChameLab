@@ -177,8 +177,8 @@
   <data name="Cards_CardDetailsHeader" xml:space="preserve">
     <value>カードの詳細</value>
   </data>
-  <data name="Cards_CardFileCompatibleWithTheFlutter" xml:space="preserve">
-    <value>カードファイル（Flutter アプリと互換）</value>
+  <data name="Cards_CardFileCompatibleWithChameleonUltraGui" xml:space="preserve">
+    <value>カードファイル（ChameleonUltraGUI と互換）</value>
   </data>
   <data name="Cards_CardId" xml:space="preserve">
     <value>カード ID</value>
@@ -724,7 +724,7 @@
     <value>このカードのコピーを保存</value>
   </data>
   <data name="Cards_SaveAsJSONCompatibleWithThe" xml:space="preserve">
-    <value>JSON として保存（Flutter アプリと互換）</value>
+    <value>JSON として保存（ChameleonUltraGUI と互換）</value>
   </data>
   <data name="Cards_SaveNewBeforeLeaving" xml:space="preserve">
     <value>移動する前に新しいカードを保存しますか？</value>

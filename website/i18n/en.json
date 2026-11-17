@@ -44,7 +44,7 @@
  "index.app.22": "The web version needs Chrome or Edge on a desktop: Firefox and Safari do not support Web Serial.",
  "index.why.1": "02 / THE DIFFERENCE",
  "index.why.2": "Why ChameLab",
- "index.why.3": "How the app compares with the Flutter ChameleonUltraGUI and the command line client.",
+ "index.why.3": "How the app compares with ChameleonUltraGUI and the command line client.",
  "index.why.4.aria-label": "Feature comparison, scroll horizontally on small screens",
  "index.why.5": "Feature",
  "index.why.6": "ChameleonUltraGUI",

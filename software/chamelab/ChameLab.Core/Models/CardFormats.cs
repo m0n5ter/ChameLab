@@ -203,8 +203,8 @@ public static class CardTags
 }
 
 /// <summary>
-/// Builds <see cref="CardSave"/>s from scans, dumps and the file formats the
-/// Flutter app imports: its own JSON, Proxmark3 JSON, Flipper NFC / RFID,
+/// Builds <see cref="CardSave"/>s from scans, dumps and the file formats
+/// ChameleonUltraGUI imports: its own JSON, Proxmark3 JSON, Flipper NFC / RFID,
 /// MIFARE Classic Tool, plus raw <c>.bin</c> / <c>.eml</c> dumps.
 /// </summary>
 public static class CardFormats
