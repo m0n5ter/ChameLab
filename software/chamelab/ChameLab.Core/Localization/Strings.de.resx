@@ -3958,4 +3958,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>Noch keine Wörterbücher in diesem Ordner. Ziehen Sie Wörterbücher im Navigationsbereich darauf oder fügen Sie hier eines hinzu.</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>Wörterbuch hinzufügen</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>Wörterbuch hinzufügen</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>Importieren Sie eine Schlüsseldatei, geben Sie die Schlüssel ein oder laden Sie ein bekanntes Wörterbuch herunter.</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>Ein Schlüsselwörterbuch importieren, eingeben oder herunterladen</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>Schlüssel von Hand eingeben</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>Herunterladen</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>Ein bekanntes Wörterbuch aus dem Proxmark3- oder Flipper-Zero-Projekt herunterladen</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>Wörterbuch herunterladen</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Schlüssellisten, die die Projekte Proxmark3 und Flipper Zero auf GitHub veröffentlichen. Das gewählte Wörterbuch öffnet sich vor dem Speichern zur Prüfung.</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>{0}-Standardschlüssel</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>{0}-Schlüssel</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>{0}-Passwörter</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>Heruntergeladen von {0} ({1})</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>{0} konnte nicht heruntergeladen werden: {1}</value>
+  </data>
 </root>

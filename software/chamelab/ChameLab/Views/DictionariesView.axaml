@@ -106,18 +106,11 @@
             <TextBlock Text="{x:Static loc:Strings.Common_NewFolder}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
-        <Button Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
-                VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ImportADicKeysTxtJson}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource Icon.import}" />
-            <TextBlock Text="{x:Static loc:Strings.Common_Import}" VerticalAlignment="Center" />
-          </StackPanel>
-        </Button>
-        <Button Classes="accent" Command="{Binding NewCommand}" VerticalAlignment="Center" c:ActionRow.Priority="1"
-                ToolTip.Tip="{x:Static loc:Strings.Dictionaries_StartANewDictionary}">
+        <Button Classes="accent" Command="{Binding AddCommand}" VerticalAlignment="Center" c:ActionRow.Priority="1"
+                ToolTip.Tip="{x:Static loc:Strings.Dictionaries_AddTip}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.add}" />
-            <TextBlock Text="{x:Static loc:Strings.Dictionaries_NewDictionary}" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static loc:Strings.Dictionaries_AddDictionary}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
         </c:ActionRow>
@@ -489,6 +482,142 @@
           </Border>
         </c:BalancedSplit>
         </ScrollViewer>
+        </Grid>
+      </Border>
+
+      <!-- ===================== Add a dictionary ===================== -->
+      <!-- Where a new dictionary comes from; it then opens in the editor to be reviewed and saved. -->
+      <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" VerticalAlignment="Top" IsVisible="{Binding IsPickingSource}">
+        <StackPanel Spacing="14">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Button Grid.Column="0" Classes="icon backonly" Margin="-8,0,6,0"
+                    Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
+                    b:DialogKeys.IsBack="True">
+              <PathIcon Data="{StaticResource Icon.back}" />
+            </Button>
+            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+              <TextBlock Text="{x:Static loc:Strings.Dictionaries_AddADictionary}" Classes="h2" />
+              <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Dictionaries_AddHint}" />
+            </StackPanel>
+            <Button Grid.Column="2" Classes="icon" Command="{Binding CloseCommand}"
+                    ToolTip.Tip="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Top">
+              <PathIcon Data="{StaticResource Icon.close}" />
+            </Button>
+          </Grid>
+          <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
+                <Button Classes="tile source" Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
+                        ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ImportADicKeysTxtJson}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell green" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.import}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Static loc:Strings.Cards_ImportFile}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text=".dic, .keys, .txt, .json" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+                <Button Classes="tile source" Command="{Binding NewCommand}"
+                        ToolTip.Tip="{x:Static loc:Strings.Dictionaries_StartANewDictionary}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.edit}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Static loc:Strings.Cards_EnterManually}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{x:Static loc:Strings.Dictionaries_TypeKeysByHand}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+                <Button Classes="tile source" Command="{Binding ShowDownloadsCommand}"
+                        ToolTip.Tip="{x:Static loc:Strings.Dictionaries_DownloadTip}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell blue" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.download}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Static loc:Strings.Dictionaries_Download}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="Proxmark3, Flipper Zero" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+          </UniformGrid>
+        </StackPanel>
+      </Border>
+
+      <!-- ===================== Download a known dictionary ===================== -->
+      <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsPickingDownload}">
+        <Grid RowDefinitions="Auto,*" RowSpacing="14">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0"
+                    Command="{Binding BackToAddCommand}" ToolTip.Tip="{Binding DownloadBackTip}"
+                    b:DialogKeys.IsBack="True">
+              <PathIcon Data="{StaticResource Icon.back}" />
+            </Button>
+            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+              <TextBlock Text="{x:Static loc:Strings.Dictionaries_DownloadTitle}" Classes="h2" />
+              <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Dictionaries_DownloadHint}" />
+            </StackPanel>
+            <Button Grid.Column="2" Classes="icon" Command="{Binding CloseCommand}"
+                    ToolTip.Tip="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Top">
+              <PathIcon Data="{StaticResource Icon.close}" />
+            </Button>
+          </Grid>
+          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="8">
+                <TextBlock Text="PROXMARK3" Classes="overline" />
+                <ItemsControl ItemsSource="{Binding Proxmark3Downloads}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Columns="1" RowSpacing="8" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:KnownDictionaryItemViewModel">
+                      <Button Classes="tile source" Command="{Binding DownloadCommand}"
+                              IsEnabled="{Binding !$parent[UserControl].((vm:DictionariesViewModel)DataContext).IsBusy}"
+                              ToolTip.Tip="{Binding Source.Url}">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto" ColumnSpacing="10">
+                          <Border Classes="iconwell blue" VerticalAlignment="Center">
+                            <PathIcon Data="{StaticResource Icon.download}" />
+                          </Border>
+                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding FileName}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" IsIndeterminate="True" Height="3" MinHeight="3"
+                                       Margin="0,6,0,0" IsVisible="{Binding IsDownloading}" />
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Border Height="6" />
+                <TextBlock Text="FLIPPER ZERO" Classes="overline" />
+                <ItemsControl ItemsSource="{Binding FlipperDownloads}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Columns="1" RowSpacing="8" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:KnownDictionaryItemViewModel">
+                      <Button Classes="tile source" Command="{Binding DownloadCommand}"
+                              IsEnabled="{Binding !$parent[UserControl].((vm:DictionariesViewModel)DataContext).IsBusy}"
+                              ToolTip.Tip="{Binding Source.Url}">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto" ColumnSpacing="10">
+                          <Border Classes="iconwell blue" VerticalAlignment="Center">
+                            <PathIcon Data="{StaticResource Icon.download}" />
+                          </Border>
+                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding FileName}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" IsIndeterminate="True" Height="3" MinHeight="3"
+                                       Margin="0,6,0,0" IsVisible="{Binding IsDownloading}" />
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
         </Grid>
       </Border>
 

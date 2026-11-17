@@ -3972,4 +3972,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>В этой папке пока нет словарей. Перетащите на неё словари в панели навигации или добавьте словарь здесь.</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>Добавить словарь</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>Новый словарь</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>Импортируйте файл с ключами, введите ключи вручную или скачайте известный словарь.</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>Импортировать, ввести вручную или скачать словарь ключей</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>Ввести ключи вручную</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>Скачать</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>Скачать известный словарь из проекта Proxmark3 или Flipper Zero</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>Скачать словарь</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Списки ключей, которые проекты Proxmark3 и Flipper Zero публикуют на GitHub. Выбранный словарь откроется для проверки перед сохранением.</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>Ключи {0} по умолчанию</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>Ключи {0}</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>Пароли {0}</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>Скачан из {0} ({1})</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>Не удалось скачать {0}: {1}</value>
+  </data>
 </root>

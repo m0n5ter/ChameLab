@@ -3958,4 +3958,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>Questa cartella non contiene ancora dizionari. Trascinali sulla cartella nel pannello di navigazione o aggiungine uno qui.</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>Aggiungi dizionario</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>Aggiungi un dizionario</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>Importa un file di chiavi, digita le chiavi o scarica un dizionario noto.</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>Importa, digita o scarica un dizionario di chiavi</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>Digita le chiavi a mano</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>Scarica</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>Scarica un dizionario noto dal progetto Proxmark3 o Flipper Zero</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>Scarica un dizionario</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Elenchi di chiavi pubblicati su GitHub dai progetti Proxmark3 e Flipper Zero. Quello scelto si apre per la revisione prima del salvataggio.</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>Chiavi predefinite {0}</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>Chiavi {0}</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>Password {0}</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>Scaricato da {0} ({1})</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>Impossibile scaricare {0}: {1}</value>
+  </data>
 </root>

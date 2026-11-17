@@ -3958,4 +3958,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>Aucun dictionnaire dans ce dossier pour l'instant. Faites-y glisser des dictionnaires dans le volet de navigation ou ajoutez-en un ici.</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>Ajouter un dictionnaire</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>Ajouter un dictionnaire</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>Importez un fichier de clés, saisissez les clés ou téléchargez un dictionnaire connu.</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>Importer, saisir ou télécharger un dictionnaire de clés</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>Saisir les clés à la main</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>Télécharger</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>Télécharger un dictionnaire connu du projet Proxmark3 ou Flipper Zero</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>Télécharger un dictionnaire</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Listes de clés publiées sur GitHub par les projets Proxmark3 et Flipper Zero. Celui que vous choisissez s'ouvre pour vérification avant d'être enregistré.</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>Clés par défaut {0}</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>Clés {0}</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>Mots de passe {0}</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>Téléchargé depuis {0} ({1})</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>Impossible de télécharger {0} : {1}</value>
+  </data>
 </root>

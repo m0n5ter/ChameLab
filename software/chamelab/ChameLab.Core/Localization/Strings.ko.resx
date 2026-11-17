@@ -3958,4 +3958,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>이 폴더에는 아직 사전이 없습니다. 탐색 창에서 사전을 폴더로 드래그하거나 여기에서 추가하세요.</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>사전 추가</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>사전 추가</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>키 파일을 가져오거나, 키를 직접 입력하거나, 알려진 사전을 다운로드하세요.</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>키 사전을 가져오거나 입력하거나 다운로드</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>키를 직접 입력</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>다운로드</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>Proxmark3 또는 Flipper Zero 프로젝트의 알려진 사전 다운로드</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>사전 다운로드</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Proxmark3 및 Flipper Zero 프로젝트가 GitHub에 공개한 키 목록입니다. 선택한 사전은 저장하기 전에 검토할 수 있도록 열립니다.</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>{0} 기본 키</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>{0} 키</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>{0} 비밀번호</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>{0}에서 다운로드함 ({1})</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>{0}을(를) 다운로드할 수 없습니다: {1}</value>
+  </data>
 </root>

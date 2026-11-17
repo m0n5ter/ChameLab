@@ -130,7 +130,7 @@ public sealed class KeyDictionary
     // ---- Plain text (.dic) --------------------------------------------
 
     /// <summary>
-    /// Parses one hex key per line, with '#' comments; lines that aren't a 4- to 16-byte key are
+    /// Parses one hex key per line, with '#' comments (whole lines or after a key); lines that aren't a 4- to 16-byte key are
     /// skipped. Keys may differ in length.
     /// </summary>
     public static KeyDictionary FromText(string name, string text, KeyDictionaryType? type = null)
@@ -140,7 +140,9 @@ public sealed class KeyDictionary
         foreach (var raw in text.Split('\n'))
         {
             var line = raw.Trim();
-            if (line.Length == 0 || line.StartsWith('#')) continue;
+            // A comment may follow the key on its line (Proxmark3: "FFFFFFFFFFFF  # default").
+            if (line.IndexOf('#') is var hash and >= 0) line = line[..hash].Trim();
+            if (line.Length == 0) continue;
             if (!Hex.TryParse(line, out var key) || key.Length is < MinKeyLength or > MaxKeyLength) continue;
             if (seen.Add(Convert.ToHexString(key))) dict.Keys.Add(key);
         }

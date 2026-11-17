@@ -3958,4 +3958,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>此文件夹中还没有字典。在导航栏中将字典拖到文件夹上，或在此添加。</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>添加字典</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>添加字典</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>导入密钥文件、手动输入密钥，或下载已知字典。</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>导入、输入或下载密钥字典</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>手动输入密钥</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>下载</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>从 Proxmark3 或 Flipper Zero 项目下载已知字典</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>下载字典</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Proxmark3 和 Flipper Zero 项目在 GitHub 上发布的密钥列表。所选字典会先打开供检查，然后再保存。</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>{0} 默认密钥</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>{0} 密钥</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>{0} 密码</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>下载自 {0}（{1}）</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>无法下载 {0}：{1}</value>
+  </data>
 </root>

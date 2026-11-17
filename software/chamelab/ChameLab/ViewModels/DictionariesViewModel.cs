@@ -190,7 +190,39 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
 }
 
 /// <summary>What the right-hand pane of the Dictionaries page shows.</summary>
-public enum DictionariesPane { None, New, Dictionary, KnownKeys }
+/// <remarks><see cref="Add"/> offers where a new dictionary comes from; <see cref="Download"/> lists the known ones.</remarks>
+public enum DictionariesPane { None, New, Dictionary, KnownKeys, Add, Download }
+
+/// <summary>A known dictionary of the Proxmark3 or Flipper Zero project, downloaded with a click.</summary>
+public sealed class KnownDictionaryItemViewModel : ViewModelBase
+{
+    public KnownDictionaryItemViewModel(KnownDictionary source, Action<KnownDictionaryItemViewModel> download)
+    {
+        Source = source;
+        DownloadCommand = ReactiveCommand.Create(() => download(this));
+    }
+
+    public KnownDictionary Source { get; }
+
+    /// <summary>“MIFARE Classic default keys”.</summary>
+    public string Title => string.Format(Source.Kind switch
+    {
+        KnownDictionaryKind.Passwords => Strings.Dictionaries_DlPasswords,
+        KnownDictionaryKind.Keys => Strings.Dictionaries_DlKeys,
+        _ => Strings.Dictionaries_DlDefaultKeys,
+    }, Source.Card);
+
+    public string FileName => Source.FileName;
+
+    public ICommand DownloadCommand { get; }
+
+    /// <summary>Being downloaded: its tile shows a progress ring.</summary>
+    public bool IsDownloading
+    {
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+}
 
 /// <summary>Order of the dictionary list; <see cref="Manual"/> is the library's own order, changed by dragging.</summary>
 /// <remarks><see cref="Size"/> is largest first, <see cref="SizeAsc"/> smallest first.</remarks>
@@ -264,6 +296,14 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
         var hasForm = this.WhenAnyValue(x => x.Form).Select(f => f is not null);
 
         NewCommand = ReactiveCommand.Create(() => LeaveThen(BeginNew));
+        AddCommand = ReactiveCommand.Create(() => LeaveThen(BeginAdd),
+            this.WhenAnyValue(x => x.Pane).Select(p => p != DictionariesPane.Add));
+        ShowDownloadsCommand = ReactiveCommand.Create(() => { Pane = DictionariesPane.Download; });
+        BackToAddCommand = ReactiveCommand.Create(BeginAdd);
+        Proxmark3Downloads = KnownDictionaries.All.Where(d => d.Project == KnownDictionaries.Proxmark3)
+            .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
+        FlipperDownloads = KnownDictionaries.All.Where(d => d.Project == KnownDictionaries.FlipperZero)
+            .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
         OpenKnownKeysCommand = ReactiveCommand.Create(() => LeaveThen(() =>
         {
             SetSelected(null);
@@ -311,7 +351,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
         + (_library.KnownKeys.PasswordCount > 0 ? Loc.Plural(Strings.Plural_NtagPasswords, _library.KnownKeys.PasswordCount) : "")
         + (_library.KnownKeys.T55xxPasswordCount > 0 ? Loc.Plural(Strings.Plural_T55xxPasswords, _library.KnownKeys.T55xxPasswordCount) : "");
     public bool IsKnownKeys => _pane == DictionariesPane.KnownKeys;
-    public bool IsEditorPane => HasPane && !IsKnownKeys;
+    public bool IsEditorPane => _pane is DictionariesPane.New or DictionariesPane.Dictionary;
 
     public bool IsEmpty => _library.Dictionaries.Count == 0 && !FolderTree.HasFolders;
 
@@ -607,6 +647,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
             this.RaisePropertyChanged(nameof(IsNew));
             this.RaisePropertyChanged(nameof(IsOpen));
             this.RaisePropertyChanged(nameof(IsDirty));
+            this.RaisePropertyChanged(nameof(IsPickingSource));
+            this.RaisePropertyChanged(nameof(IsPickingDownload));
             IsConfirmingDelete = false;
         }
     }
@@ -632,8 +674,57 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
 
     public static IReadOnlyList<string> Palette => CardEditorViewModel.Palette;
 
+    /// <summary>A new, empty dictionary, its keys typed by hand.</summary>
     public ICommand NewCommand { get; }
     public ICommand ImportCommand { get; }
+
+    /// <summary>The list's Add: offers importing a file, typing the keys or downloading a known dictionary.</summary>
+    public ICommand AddCommand { get; }
+    public ICommand ShowDownloadsCommand { get; }
+
+    /// <summary>From the downloads back to where a new dictionary comes from.</summary>
+    public ICommand BackToAddCommand { get; }
+
+    /// <summary>Choosing where a new dictionary comes from.</summary>
+    public bool IsPickingSource => _pane == DictionariesPane.Add;
+
+    /// <summary>Choosing a known dictionary to download.</summary>
+    public bool IsPickingDownload => _pane == DictionariesPane.Download;
+
+    public IReadOnlyList<KnownDictionaryItemViewModel> Proxmark3Downloads { get; }
+    public IReadOnlyList<KnownDictionaryItemViewModel> FlipperDownloads { get; }
+
+    public string DownloadBackTip => string.Format(Strings.Common_BackTo, Strings.Dictionaries_AddADictionary);
+
+    private void BeginAdd()
+    {
+        if (_selected is not null) SetSelected(null);
+        Form = null;
+        Pane = DictionariesPane.Add;
+    }
+
+    /// <summary>Downloads a known dictionary and opens it, like an imported one, to be reviewed before it is saved.</summary>
+    private Task DownloadAsync(KnownDictionaryItemViewModel item) => RunAsync(async () =>
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => item.IsDownloading = true);
+        try
+        {
+            KeyDictionary dict;
+            try { dict = await KnownDictionaries.DownloadAsync(item.Source, item.Title); }
+            catch (Exception ex) when (ex is not FormatException)
+            {
+                throw new InvalidOperationException(string.Format(Strings.Dictionaries_DlFailed, item.FileName, ex.Message), ex);
+            }
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                // Only while the downloads are still shown: going elsewhere meanwhile drops it.
+                if (_pane != DictionariesPane.Download) return;
+                dict.Folder = FolderTree.Location;
+                OpenNew(dict, string.Format(Strings.Dictionaries_DlFrom, item.Source.Project, item.FileName));
+            });
+        }
+        finally { Avalonia.Threading.Dispatcher.UIThread.Post(() => item.IsDownloading = false); }
+    });
     public ICommand CloseCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand DiscardCommand { get; }

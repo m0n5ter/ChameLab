@@ -3975,4 +3975,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>No dictionaries in this folder yet. Drag dictionaries onto it in the navigation pane, or add one here.</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>Add dictionary</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>Add a dictionary</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>Import a key file, type the keys in, or download a known dictionary.</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>Import, type in or download a key dictionary</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>Type the keys by hand</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>Download a known dictionary from the Proxmark3 or Flipper Zero project</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>Download a dictionary</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Key lists the Proxmark3 and Flipper Zero projects publish on GitHub. The one you pick opens for review before it is saved.</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>{0} default keys</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>{0} keys</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>{0} passwords</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>Downloaded from {0} ({1})</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>Could not download {0}: {1}</value>
+  </data>
 </root>

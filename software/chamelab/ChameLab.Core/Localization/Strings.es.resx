@@ -3958,4 +3958,46 @@
   <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
     <value>Aún no hay diccionarios en esta carpeta. Arrastra diccionarios sobre ella en el panel de navegación o añade uno aquí.</value>
   </data>
+  <data name="Dictionaries_AddDictionary" xml:space="preserve">
+    <value>Añadir diccionario</value>
+  </data>
+  <data name="Dictionaries_AddADictionary" xml:space="preserve">
+    <value>Añadir un diccionario</value>
+  </data>
+  <data name="Dictionaries_AddHint" xml:space="preserve">
+    <value>Importa un archivo de claves, escribe las claves o descarga un diccionario conocido.</value>
+  </data>
+  <data name="Dictionaries_AddTip" xml:space="preserve">
+    <value>Importar, escribir o descargar un diccionario de claves</value>
+  </data>
+  <data name="Dictionaries_TypeKeysByHand" xml:space="preserve">
+    <value>Escribir las claves a mano</value>
+  </data>
+  <data name="Dictionaries_Download" xml:space="preserve">
+    <value>Descargar</value>
+  </data>
+  <data name="Dictionaries_DownloadTip" xml:space="preserve">
+    <value>Descargar un diccionario conocido del proyecto Proxmark3 o Flipper Zero</value>
+  </data>
+  <data name="Dictionaries_DownloadTitle" xml:space="preserve">
+    <value>Descargar un diccionario</value>
+  </data>
+  <data name="Dictionaries_DownloadHint" xml:space="preserve">
+    <value>Listas de claves que los proyectos Proxmark3 y Flipper Zero publican en GitHub. El que elijas se abre para revisarlo antes de guardarlo.</value>
+  </data>
+  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
+    <value>Claves predeterminadas de {0}</value>
+  </data>
+  <data name="Dictionaries_DlKeys" xml:space="preserve">
+    <value>Claves de {0}</value>
+  </data>
+  <data name="Dictionaries_DlPasswords" xml:space="preserve">
+    <value>Contraseñas de {0}</value>
+  </data>
+  <data name="Dictionaries_DlFrom" xml:space="preserve">
+    <value>Descargado de {0} ({1})</value>
+  </data>
+  <data name="Dictionaries_DlFailed" xml:space="preserve">
+    <value>No se pudo descargar {0}: {1}</value>
+  </data>
 </root>

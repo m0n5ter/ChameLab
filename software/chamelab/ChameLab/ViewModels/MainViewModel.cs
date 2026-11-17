@@ -50,6 +50,10 @@ public sealed class MainViewModel : ViewModelBase
             this.WhenAnyValue(x => x.CurrentPage, x => x.Cards.IsPickingSource,
                 (page, picking) => !(ReferenceEquals(page, Cards) && picking)));
 
+        AddDictionaryCommand = ReactiveCommand.CreateFromTask(AddDictionaryAsync,
+            this.WhenAnyValue(x => x.CurrentPage, x => x.Dictionaries.IsPickingSource,
+                (page, picking) => !(ReferenceEquals(page, Dictionaries) && picking)));
+
         // Page titles are read again by the rebuilt views; the header text is kept here.
         LocalizationService.LanguageChanged += UpdateDeviceSummary;
 
@@ -313,6 +317,9 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>The navigation pane's Add card: opens Cards (from any page) and starts a new card there.</summary>
     public ICommand AddCardCommand { get; }
 
+    /// <summary>The navigation pane's Add on Dictionaries: opens the page and where a new dictionary comes from.</summary>
+    public ICommand AddDictionaryCommand { get; }
+
     private async Task NavigateAsync(PageViewModelBase page)
     {
         if (page is null) return;
@@ -344,6 +351,12 @@ public sealed class MainViewModel : ViewModelBase
         await NavigateAsync(Cards);
         // Cards may have been left with the source buttons up: then they are simply shown again.
         if (Cards.AddCommand.CanExecute(null)) Cards.AddCommand.Execute(null);
+    }
+
+    private async Task AddDictionaryAsync()
+    {
+        await NavigateAsync(Dictionaries);
+        if (Dictionaries.AddCommand.CanExecute(null)) Dictionaries.AddCommand.Execute(null);
     }
 
     private Task DisconnectAsync() => _device.DisconnectAsync();
