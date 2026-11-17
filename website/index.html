@@ -155,6 +155,13 @@
       reorder. Apps use the commands 5907–5909; the details are in
       <a href="https://github.com/m0n5ter/ChameLab/blob/main/docs/lf-card-cycle.md">LF card cycling</a>.</p>
 
+    <h3 data-i18n="index.firmware.fsk.1">Reliable LF FSK reading <span class="badge">New</span> <span class="badge">Only here</span></h3>
+    <p data-i18n="index.firmware.fsk.2">Farpointe / Pyramid, HID Prox and ioProx tags read on the first tap. An FSK reader that judges each bit from wherever the read happened to start misses whenever that falls mid-bit: a Pyramid test tag read 2 times in 30. The ChameLab firmware looks at every bit phase at once and takes the frame from the one that lines up — 30 times in 30. HID Prox and ioProx also take a card only once two frames agree, so a weak signal no longer gives a wrong ID.</p>
+    <ul class="changes">
+      <li data-i18n="index.firmware.fsk.3"><b>Scan LF finds the tag type:</b> one command listens for EM410x, Electra, Viking, Jablotron, HID Prox, ioProx, Pyramid and PAC in turn and says which one it read, with no protocol to pick first. In the CLI: <code>lf search</code>.</li>
+      <li data-i18n="index.firmware.fsk.4"><b>Pyramid to T5577:</b> a Farpointe / Pyramid card can be written to a T5577 tag, and it is read back before success is reported. In the CLI: <code>lf pyramid write</code>.</li>
+    </ul>
+
     <h3 data-i18n="index.firmware.10">Slot LED colors</h3>
     <p data-i18n="index.firmware.11">Each card in a slot can have its own LED color, so you can tell which card is active by
       looking at the device. The RGB lines are driven by PWM, so any color works, not only the
