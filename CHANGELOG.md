@@ -9,6 +9,7 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
  - ChameLab: when the save bar appears under a page (or grows to show a save error), the field being edited scrolls back into view instead of ending up behind the bar; in the hex editors, the caret's line
+ - ChameLab: on Android, the arrow keys of the on-screen keyboard's text editing panel (Gboard and others) move the caret in the hex editors, and its Select, Copy, Paste and Select all work there too
 
 ## [v1.6.51][2026-11-16] · firmware v2.3.20-cl
 ### Summary

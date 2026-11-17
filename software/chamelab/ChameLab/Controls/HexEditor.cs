@@ -1015,6 +1015,7 @@ public sealed class HexEditor : Control
         var old = _caret;
         _caret = Math.Clamp(offset, 0, _buffer.ViewLength - 1);
         _lowNibble = low && !extend;
+        _ime.CaretMoved();
         // A row's tail cell gets a line of its own while the caret is on it (typing past a full line).
         if (old != _caret && _lineY.Length > 0 && (TailOnOwnLine(old) || TailOnOwnLine(_caret)))
         {
@@ -1242,6 +1243,7 @@ public sealed class HexEditor : Control
         base.OnTextInput(e);
         if (_buffer is not { ViewLength: > 0, IsReadOnly: false } || string.IsNullOrEmpty(e.Text)) return;
         e.Handled = true;
+        _ime.Typed(e.Text.Length);
 
         // A list pasted from an on-screen keyboard's clipboard (or Win+V) comes as typed text:
         // paste it, so its lines stay keys of their own.
@@ -1281,18 +1283,31 @@ public sealed class HexEditor : Control
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (_buffer is not { ViewLength: > 0 } || _lineY.Length == 0 || e.Handled) return;
+        if (e.Handled) return;
+        // Backspace from an on-screen keyboard comes as "delete the text before the cursor":
+        // a selection of it, then Delete (see InputClient).
+        if (e.Key == Key.Delete && _ime.TakeDeletion(out var before))
+        {
+            for (var i = 0; i < before; i++) HandleKey(Key.Back, KeyModifiers.None);
+            e.Handled = true;
+            return;
+        }
+        e.Handled = HandleKey(e.Key, e.KeyModifiers);
+    }
 
-        var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
-        var cmd = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+    private bool HandleKey(Key key, KeyModifiers modifiers)
+    {
+        if (_buffer is not { ViewLength: > 0 } || _lineY.Length == 0) return false;
+
+        var shift = modifiers.HasFlag(KeyModifiers.Shift);
+        var cmd = modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
         var last = _buffer.ViewLength - 1;
         var line = LineOf(_caret);
         var col = ColumnInLine(_caret);
         var lastLine = _lineY.Length - 1;
         var editsBytes = _buffer is { VariableRowLength: true, IsReadOnly: false };
-        e.Handled = true;
 
-        switch (e.Key)
+        switch (key)
         {
             case Key.Left when _pane == Pane.Hex && _lowNibble && !shift:
                 MoveCaret(_caret, false, false);
@@ -1313,9 +1328,9 @@ public sealed class HexEditor : Control
             case Key.Enter when _buffer.CanResize && !cmd: InsertRowBelow(); break;
             case Key.Enter when !cmd: MoveToNextRow(); break;
             case Key.Delete when _buffer.CanResize: RemoveRows(); break;
-            case Key.Tab when _showAscii && !cmd && !e.KeyModifiers.HasFlag(KeyModifiers.Alt):
+            case Key.Tab when _showAscii && !cmd && !modifiers.HasFlag(KeyModifiers.Alt):
                 // Switch between the hex and ASCII columns; leave the control from the side it's going to.
-                if ((_pane == Pane.Hex) == shift) { e.Handled = false; return; }
+                if ((_pane == Pane.Hex) == shift) return false;
                 _pane = shift ? Pane.Hex : Pane.Ascii;
                 MoveCaret(_caret, false, false);
                 break;
@@ -1327,8 +1342,9 @@ public sealed class HexEditor : Control
             case Key.Z when cmd && shift: Redo(); break;
             case Key.Z when cmd: Undo(); break;
             case Key.Y when cmd: Redo(); break;
-            default: e.Handled = false; break;
+            default: return false;
         }
+        return true;
     }
 
     // ================================================================ Commands
@@ -1838,17 +1854,153 @@ public sealed class HexEditor : Control
     }
 
     /// <summary>
-    /// Minimal input-method client: lets the on-screen keyboard open on phones and
-    /// delivers typed characters as <see cref="TextInputEventArgs"/>.
+    /// Input-method client: lets the on-screen keyboard open on phones and delivers typed
+    /// characters as <see cref="TextInputEventArgs"/>.
     /// </summary>
+    /// <remarks>
+    /// On Android a keyboard's cursor keys (Gboard's text editing panel and the like) don't send
+    /// arrow keys: they move the cursor in the text the editor reports. So the keyboard is shown
+    /// filler text with the cursor in its middle, and each cursor move it asks for becomes arrow
+    /// key presses; the cursor then goes back to the middle. A selection of filler comes from the
+    /// keyboard's select mode, or is text the keyboard is deleting (Backspace), which Avalonia
+    /// follows with a Delete key press.
+    /// </remarks>
     private sealed class InputClient(HexEditor owner) : TextInputMethodClient
     {
+        private const int Middle = 256;
+        private static readonly string Filler = new('0', Middle * 2);
+        private static readonly bool Emulate = OperatingSystem.IsAndroid();
+
+        // The selection the keyboard was last told about; the end of it the caret is at.
+        private int _start = Middle, _end = Middle, _active = Middle;
+        // Characters just typed: Avalonia then moves the keyboard's cursor past them.
+        private int _typed;
+        // A selection set by the keyboard, applied unless a Delete key press takes it first.
+        private bool _rangePending;
+        private int _pendingActive;
+        private bool _driving;
+
         public override Visual TextViewVisual => owner;
         public override bool SupportsPreedit => false;
-        public override bool SupportsSurroundingText => false;
-        public override string SurroundingText => string.Empty;
+        public override bool SupportsSurroundingText => Emulate;
+        public override string SurroundingText => Emulate ? Filler : string.Empty;
         public override Rect CursorRectangle =>
             owner._lineY.Length > 0 ? owner.CellRect(owner._caret, owner._pane) : default;
-        public override TextSelection Selection { get => default; set { } }
+
+        public override TextSelection Selection
+        {
+            get => Emulate ? new TextSelection(_start, _end) : default;
+            set
+            {
+                if (!Emulate) return;
+                var (start, end) = (Math.Min(value.Start, value.End), Math.Max(value.Start, value.End));
+                if (start == _start && end == _end) return;
+                if (start == end && _typed > 0 && start == _start + _typed)
+                {
+                    _typed = 0;
+                    return;
+                }
+                if (start != end)
+                {
+                    // The end that moved is where the caret goes.
+                    var active = end != _end ? end : start;
+                    _start = start;
+                    _end = end;
+                    if (!_rangePending)
+                    {
+                        _rangePending = true;
+                        Dispatcher.UIThread.Post(ApplyRange);
+                    }
+                    _pendingActive = active;
+                    return;
+                }
+                _rangePending = false;
+                var delta = start - _active;
+                Recenter();
+                if (start == 0 || start == Filler.Length) Drive(start == 0 ? Key.Home : Key.End, 1, false);
+                else Drive(delta < 0 ? Key.Left : Key.Right, Math.Abs(delta), false);
+            }
+        }
+
+        private void ApplyRange()
+        {
+            if (!_rangePending) return;
+            _rangePending = false;
+            if (_start == 0 && _end == Filler.Length)
+            {
+                Drive(Key.A, 1, false, KeyModifiers.Control);
+                Recenter();
+                RaiseSelectionChanged();
+                return;
+            }
+            var delta = _pendingActive - _active;
+            _active = _pendingActive;
+            Drive(delta < 0 ? Key.Left : Key.Right, Math.Abs(delta), true);
+        }
+
+        private void Drive(Key key, int times, bool extend, KeyModifiers modifiers = KeyModifiers.None)
+        {
+            if (extend) modifiers |= KeyModifiers.Shift;
+            _driving = true;
+            try
+            {
+                for (var i = 0; i < times; i++) owner.HandleKey(key, modifiers);
+            }
+            finally { _driving = false; }
+        }
+
+        private void Recenter() => _start = _end = _active = Middle;
+
+        /// <summary>Text is being typed (Avalonia moves the keyboard's cursor past it next).</summary>
+        public void Typed(int length)
+        {
+            if (!Emulate) return;
+            _typed = length;
+            // Typed on a hardware keyboard, no cursor move follows.
+            Dispatcher.UIThread.Post(() => _typed = 0);
+        }
+
+        /// <summary>
+        /// A Delete key press: whether it deletes text the keyboard selected next to its cursor;
+        /// <paramref name="before"/> is how many characters before it (Backspace presses).
+        /// </summary>
+        public bool TakeDeletion(out int before)
+        {
+            before = 0;
+            if (!Emulate || !_rangePending || (_end != _active && _start != _active)) return false;
+            _rangePending = false;
+            if (_end == _active) before = _end - _start;
+            // Avalonia then puts the keyboard's cursor where the deleted text began; after that,
+            // back to the middle, so Backspace never runs out of text.
+            _end = _active = _start;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_start != _end || _rangePending) return;
+                Recenter();
+                RaiseSelectionChanged();
+            });
+            return true;
+        }
+
+        /// <summary>The caret moved: a tap or a key forgets a selection made on the keyboard.</summary>
+        public void CaretMoved()
+        {
+            if (!Emulate || _driving || _start == _end || _rangePending) return;
+            Recenter();
+            RaiseSelectionChanged();
+        }
+
+        public override void ExecuteContextMenuAction(ContextMenuAction action)
+        {
+            var key = action switch
+            {
+                ContextMenuAction.Copy => Key.C,
+                ContextMenuAction.Cut => Key.X,
+                ContextMenuAction.Paste => Key.V,
+                ContextMenuAction.SelectAll => Key.A,
+                _ => Key.None,
+            };
+            if (key != Key.None) Drive(key, 1, false, KeyModifiers.Control);
+        }
     }
 }
