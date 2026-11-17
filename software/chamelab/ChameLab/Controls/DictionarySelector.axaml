@@ -5,7 +5,7 @@
              xmlns:c="using:ChameLab.Controls"
              xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
              x:Class="ChameLab.Controls.DictionarySelector"
-             x:Name="Root">
+             x:Name="Root" x:DataType="c:DictionarySelector">
   <UserControl.Styles>
     <!-- Lightweight text buttons for the All/None shortcuts. -->
     <Style Selector="Button.link">
@@ -23,7 +23,8 @@
     </Style>
   </UserControl.Styles>
 
-  <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12">
+  <!-- The flyout pads it already: no room of its own above the header. -->
+  <StackPanel Spacing="10" MinWidth="240" MaxWidth="340" Margin="12,0,12,12">
     <!-- Header: the title on the left, the All/None shortcuts on the right. -->
     <Grid ColumnDefinitions="*,Auto">
       <TextBlock Text="{x:Static loc:Strings.KeyRecovery_KeyDictionariesHeader}" Classes="overline"
@@ -33,17 +34,32 @@
         <Button Classes="link" Click="OnNone" Content="{x:Static loc:Strings.Common_None}" />
       </StackPanel>
     </Grid>
-    <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
-      <ItemsControl ItemsSource="{Binding #Root.ItemsSource}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:DumpKeySourceViewModel">
-            <StackPanel>
-              <c:DictionaryToggle Margin="0,2" IsChecked="{Binding IsSelected}" Color="{Binding ColorBrush}"
-                                    Title="{Binding Name}" Count="{Binding KeyCount}" />
-              <Separator Margin="0,8,0,4" IsVisible="{Binding SeparatorAfter}" />
+    <!-- On phones scroll bars float over the content; here the bar takes a column of its own (reservebar),
+         so it never lies over the switches. -->
+    <ScrollViewer Classes="reservebar" MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl ItemsSource="{Binding #Root.Rows}">
+        <ItemsControl.DataTemplates>
+          <DataTemplate DataType="c:DictionarySelectorItem">
+            <StackPanel Margin="{Binding Indent}">
+              <c:DictionaryToggle IsChecked="{Binding Source.IsSelected}" Color="{Binding Source.ColorBrush}"
+                                  Title="{Binding Source.Name}" Count="{Binding Source.KeyCount}" />
+              <Separator Margin="0,8,0,4" IsVisible="{Binding Source.SeparatorAfter}" />
             </StackPanel>
           </DataTemplate>
-        </ItemsControl.ItemTemplate>
+          <!-- A folder: its name, and All/None for the dictionaries in it and in its folders. -->
+          <DataTemplate DataType="c:DictionarySelectorFolder">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" Margin="{Binding Indent}" ToolTip.Tip="{Binding Path}">
+              <PathIcon Grid.Column="0" Data="{StaticResource Icon.folder}" Width="15" Height="15" Opacity="0.75"
+                        VerticalAlignment="Center" />
+              <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center"
+                         TextTrimming="CharacterEllipsis" />
+              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <Button Classes="link" Click="OnFolderAll" Content="{x:Static loc:Strings.Common_All}" />
+                <Button Classes="link" Click="OnFolderNone" Content="{x:Static loc:Strings.Common_None}" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.DataTemplates>
       </ItemsControl>
     </ScrollViewer>
     <Separator Margin="0,2" />

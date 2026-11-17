@@ -1911,15 +1911,16 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         DumpKeySources.Add(NewKeySource(DumpKeySourceViewModel.BuiltInId, Strings.Common_BuiltInKeys, MifareClassic.DefaultKeys, separatorAfter: true));
         // MIFARE Classic keys are 6 bytes: those of every dictionary that has some.
         foreach (var d in _dictionaries.Dictionaries.Where(d => d.HasKeysOfLength(6)))
-            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.KeysOfLength(6), d.Color));
+            DumpKeySources.Add(NewKeySource(d.Id, string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_Untitled : d.Name, d.KeysOfLength(6), d.Color,
+                folder: d.Folder));
         WriteRecovery.SetKeySources(DumpKeySources);
         UpdateDumpKeyCount();
     }
 
     private DumpKeySourceViewModel NewKeySource(string id, string name, IReadOnlyList<byte[]> keys, string? color = null,
-        bool separatorAfter = false)
+        bool separatorAfter = false, string folder = "")
     {
-        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color, separatorAfter);
+        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color, separatorAfter, folder);
         source.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(on =>
         {
             if (!DumpKeySources.Contains(source)) return;

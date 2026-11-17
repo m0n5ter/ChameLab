@@ -47,13 +47,15 @@ public sealed class T55xxKeySelectionViewModel : ViewModelBase
         Add("t55xx-built-in", Strings.Common_BuiltInKeys, ChameleonClient.DefaultT55xxOldKeys, separatorAfter: true);
         // T55xx passwords are 4 bytes: those of every dictionary that has some.
         foreach (var dict in _library.Dictionaries.Where(d => d.HasKeysOfLength(4)))
-            Add(dict.Id, string.IsNullOrWhiteSpace(dict.Name) ? Strings.Common_Untitled : dict.Name, dict.KeysOfLength(4), dict.Color);
+            Add(dict.Id, string.IsNullOrWhiteSpace(dict.Name) ? Strings.Common_Untitled : dict.Name, dict.KeysOfLength(4), dict.Color,
+                folder: dict.Folder);
         UpdateCount();
     }
 
-    private void Add(string id, string name, IReadOnlyList<byte[]> keys, string? color = null, bool separatorAfter = false)
+    private void Add(string id, string name, IReadOnlyList<byte[]> keys, string? color = null, bool separatorAfter = false,
+        string folder = "")
     {
-        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color, separatorAfter);
+        var source = new DumpKeySourceViewModel(id, name, keys, KeySourceSelection.IsSelected(id), color, separatorAfter, folder);
         Sources.Add(source);
         _subscriptions.Add(source.WhenAnyValue(x => x.IsSelected).Skip(1).Subscribe(selected =>
         {
