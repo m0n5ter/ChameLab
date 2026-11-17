@@ -3977,13 +3977,13 @@
     <value>ダウンロード</value>
   </data>
   <data name="Dictionaries_DownloadTip" xml:space="preserve">
-    <value>Proxmark3 または Flipper Zero プロジェクトの既知の辞書をダウンロード</value>
+    <value>Proxmark3、Flipper Zero、Unleashed プロジェクトの既知の辞書をダウンロード</value>
   </data>
   <data name="Dictionaries_DownloadTitle" xml:space="preserve">
     <value>辞書をダウンロード</value>
   </data>
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
-    <value>Proxmark3 と Flipper Zero プロジェクトが GitHub で公開しているキーリストです。選んだ辞書は保存前に確認のため開きます。</value>
+    <value>Proxmark3、Flipper Zero、Unleashed プロジェクトが GitHub で公開しているキーリストです。選んだ辞書は保存前に確認のため開きます。</value>
   </data>
   <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
     <value>{0} の既定キー</value>

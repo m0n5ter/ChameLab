@@ -3994,13 +3994,13 @@
     <value>Download</value>
   </data>
   <data name="Dictionaries_DownloadTip" xml:space="preserve">
-    <value>Download a known dictionary from the Proxmark3 or Flipper Zero project</value>
+    <value>Download a known dictionary from the Proxmark3, Flipper Zero or Unleashed project</value>
   </data>
   <data name="Dictionaries_DownloadTitle" xml:space="preserve">
     <value>Download a dictionary</value>
   </data>
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
-    <value>Key lists the Proxmark3 and Flipper Zero projects publish on GitHub. The one you pick opens for review before it is saved.</value>
+    <value>Key lists the Proxmark3, Flipper Zero and Unleashed projects publish on GitHub. The one you pick opens for review before it is saved.</value>
   </data>
   <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
     <value>{0} default keys</value>

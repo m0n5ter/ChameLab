@@ -304,6 +304,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
             .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
         FlipperDownloads = KnownDictionaries.All.Where(d => d.Project == KnownDictionaries.FlipperZero)
             .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
+        UnleashedDownloads = KnownDictionaries.All.Where(d => d.Project == KnownDictionaries.Unleashed)
+            .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
         OpenKnownKeysCommand = ReactiveCommand.Create(() => LeaveThen(() =>
         {
             SetSelected(null);
@@ -693,6 +695,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
 
     public IReadOnlyList<KnownDictionaryItemViewModel> Proxmark3Downloads { get; }
     public IReadOnlyList<KnownDictionaryItemViewModel> FlipperDownloads { get; }
+    public IReadOnlyList<KnownDictionaryItemViewModel> UnleashedDownloads { get; }
 
     public string DownloadBackTip => string.Format(Strings.Common_BackTo, Strings.Dictionaries_AddADictionary);
 

@@ -3977,13 +3977,13 @@
     <value>下载</value>
   </data>
   <data name="Dictionaries_DownloadTip" xml:space="preserve">
-    <value>从 Proxmark3 或 Flipper Zero 项目下载已知字典</value>
+    <value>从 Proxmark3、Flipper Zero 或 Unleashed 项目下载已知字典</value>
   </data>
   <data name="Dictionaries_DownloadTitle" xml:space="preserve">
     <value>下载字典</value>
   </data>
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
-    <value>Proxmark3 和 Flipper Zero 项目在 GitHub 上发布的密钥列表。所选字典会先打开供检查，然后再保存。</value>
+    <value>Proxmark3、Flipper Zero 和 Unleashed 项目在 GitHub 上发布的密钥列表。所选字典会先打开供检查，然后再保存。</value>
   </data>
   <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
     <value>{0} 默认密钥</value>

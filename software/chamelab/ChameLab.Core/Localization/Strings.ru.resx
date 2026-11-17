@@ -3991,13 +3991,13 @@
     <value>Скачать</value>
   </data>
   <data name="Dictionaries_DownloadTip" xml:space="preserve">
-    <value>Скачать известный словарь из проекта Proxmark3 или Flipper Zero</value>
+    <value>Скачать известный словарь из проекта Proxmark3, Flipper Zero или Unleashed</value>
   </data>
   <data name="Dictionaries_DownloadTitle" xml:space="preserve">
     <value>Скачать словарь</value>
   </data>
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
-    <value>Списки ключей, которые проекты Proxmark3 и Flipper Zero публикуют на GitHub. Выбранный словарь откроется для проверки перед сохранением.</value>
+    <value>Списки ключей, которые проекты Proxmark3, Flipper Zero и Unleashed публикуют на GitHub. Выбранный словарь откроется для проверки перед сохранением.</value>
   </data>
   <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
     <value>Ключи {0} по умолчанию</value>

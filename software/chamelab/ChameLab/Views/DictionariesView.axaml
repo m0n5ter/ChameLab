@@ -539,7 +539,7 @@
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                       <TextBlock Text="{x:Static loc:Strings.Dictionaries_Download}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="Proxmark3, Flipper Zero" Classes="caption" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="Proxmark3, Flipper Zero, Unleashed" Classes="caption" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
                   </Grid>
                 </Button>
@@ -595,6 +595,32 @@
                 <Border Height="6" />
                 <TextBlock Text="FLIPPER ZERO" Classes="overline" />
                 <ItemsControl ItemsSource="{Binding FlipperDownloads}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Columns="1" RowSpacing="8" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:KnownDictionaryItemViewModel">
+                      <Button Classes="tile source" Command="{Binding DownloadCommand}"
+                              IsEnabled="{Binding !$parent[UserControl].((vm:DictionariesViewModel)DataContext).IsBusy}"
+                              ToolTip.Tip="{Binding Source.Url}">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto" ColumnSpacing="10">
+                          <Border Classes="iconwell blue" VerticalAlignment="Center">
+                            <PathIcon Data="{StaticResource Icon.download}" />
+                          </Border>
+                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding FileName}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" IsIndeterminate="True" Height="3" MinHeight="3"
+                                       Margin="0,6,0,0" IsVisible="{Binding IsDownloading}" />
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Border Height="6" />
+                <TextBlock Text="FLIPPER UNLEASHED" Classes="overline" />
+                <ItemsControl ItemsSource="{Binding UnleashedDownloads}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate><UniformGrid Columns="1" RowSpacing="8" /></ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>

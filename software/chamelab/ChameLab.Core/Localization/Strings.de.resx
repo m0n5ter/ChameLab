@@ -3977,13 +3977,13 @@
     <value>Herunterladen</value>
   </data>
   <data name="Dictionaries_DownloadTip" xml:space="preserve">
-    <value>Ein bekanntes Wörterbuch aus dem Proxmark3- oder Flipper-Zero-Projekt herunterladen</value>
+    <value>Ein bekanntes Wörterbuch aus dem Projekt Proxmark3, Flipper Zero oder Unleashed herunterladen</value>
   </data>
   <data name="Dictionaries_DownloadTitle" xml:space="preserve">
     <value>Wörterbuch herunterladen</value>
   </data>
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
-    <value>Schlüssellisten, die die Projekte Proxmark3 und Flipper Zero auf GitHub veröffentlichen. Das gewählte Wörterbuch öffnet sich vor dem Speichern zur Prüfung.</value>
+    <value>Schlüssellisten, die die Projekte Proxmark3, Flipper Zero und Unleashed auf GitHub veröffentlichen. Das gewählte Wörterbuch öffnet sich vor dem Speichern zur Prüfung.</value>
   </data>
   <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
     <value>{0}-Standardschlüssel</value>

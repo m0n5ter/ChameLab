@@ -3977,13 +3977,13 @@
     <value>Scarica</value>
   </data>
   <data name="Dictionaries_DownloadTip" xml:space="preserve">
-    <value>Scarica un dizionario noto dal progetto Proxmark3 o Flipper Zero</value>
+    <value>Scarica un dizionario noto dal progetto Proxmark3, Flipper Zero o Unleashed</value>
   </data>
   <data name="Dictionaries_DownloadTitle" xml:space="preserve">
     <value>Scarica un dizionario</value>
   </data>
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
-    <value>Elenchi di chiavi pubblicati su GitHub dai progetti Proxmark3 e Flipper Zero. Quello scelto si apre per la revisione prima del salvataggio.</value>
+    <value>Elenchi di chiavi pubblicati su GitHub dai progetti Proxmark3, Flipper Zero e Unleashed. Quello scelto si apre per la revisione prima del salvataggio.</value>
   </data>
   <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
     <value>Chiavi predefinite {0}</value>

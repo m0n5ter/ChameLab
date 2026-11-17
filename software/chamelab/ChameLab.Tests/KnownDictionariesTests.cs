@@ -21,6 +21,7 @@ public class KnownDictionariesTests
         Assert.Equal(KnownDictionaries.All.Count, KnownDictionaries.All.Select(d => d.Url).Distinct().Count());
         Assert.Contains(KnownDictionaries.All, d => d.Project == KnownDictionaries.Proxmark3);
         Assert.Contains(KnownDictionaries.All, d => d.Project == KnownDictionaries.FlipperZero);
+        Assert.Contains(KnownDictionaries.All, d => d.Project == KnownDictionaries.Unleashed);
     }
 
     [Fact]
@@ -55,7 +56,7 @@ public class KnownDictionariesTests
 
         vm.ShowDownloadsCommand.Execute(null);
         Assert.True(vm.IsPickingDownload);
-        Assert.Equal(KnownDictionaries.All.Count, vm.Proxmark3Downloads.Count + vm.FlipperDownloads.Count);
+        Assert.Equal(KnownDictionaries.All.Count, vm.Proxmark3Downloads.Count + vm.FlipperDownloads.Count + vm.UnleashedDownloads.Count);
         Assert.Equal("MIFARE Classic", vm.Proxmark3Downloads[0].Source.Card);
 
         vm.BackToAddCommand.Execute(null);
