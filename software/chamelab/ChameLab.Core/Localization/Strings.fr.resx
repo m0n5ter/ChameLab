@@ -2020,7 +2020,7 @@
     <value>APPAREIL CONNECTÉ</value>
   </data>
   <data name="Main_DeviceSummary" xml:space="preserve">
-    <value>{0} · fw {1}</value>
+    <value>{0} {1}</value>
   </data>
   <data name="Main_Disconnect" xml:space="preserve">
     <value>Déconnecter</value>
@@ -2056,10 +2056,7 @@
     <value>Non connecté</value>
   </data>
   <data name="Main_Offline" xml:space="preserve">
-    <value>Hors ligne</value>
-  </data>
-  <data name="Main_Online" xml:space="preserve">
-    <value>En ligne</value>
+    <value>Aucun appareil</value>
   </data>
   <data name="Main_PressBackAgainToExit" xml:space="preserve">
     <value>Appuyez à nouveau sur Retour pour quitter</value>

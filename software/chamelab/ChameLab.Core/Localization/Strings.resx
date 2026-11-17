@@ -883,10 +883,7 @@
     <value>No device. Open Connect to attach one.</value>
   </data>
   <data name="Main_Offline" xml:space="preserve">
-    <value>Offline</value>
-  </data>
-  <data name="Main_Online" xml:space="preserve">
-    <value>Online</value>
+    <value>No device</value>
   </data>
   <data name="Main_PressBackAgainToExit" xml:space="preserve">
     <value>Press Back again to exit</value>
@@ -2041,7 +2038,7 @@
     <value>Connected</value>
   </data>
   <data name="Main_DeviceSummary" xml:space="preserve">
-    <value>{0} · fw {1}</value>
+    <value>{0} {1}</value>
   </data>
   <data name="Main_NotConnected" xml:space="preserve">
     <value>Not connected</value>

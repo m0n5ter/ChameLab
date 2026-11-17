@@ -2020,7 +2020,7 @@
     <value>接続中のデバイス</value>
   </data>
   <data name="Main_DeviceSummary" xml:space="preserve">
-    <value>{0} · fw {1}</value>
+    <value>{0} {1}</value>
   </data>
   <data name="Main_Disconnect" xml:space="preserve">
     <value>切断</value>
@@ -2056,10 +2056,7 @@
     <value>未接続</value>
   </data>
   <data name="Main_Offline" xml:space="preserve">
-    <value>オフライン</value>
-  </data>
-  <data name="Main_Online" xml:space="preserve">
-    <value>オンライン</value>
+    <value>デバイスなし</value>
   </data>
   <data name="Main_PressBackAgainToExit" xml:space="preserve">
     <value>もう一度「戻る」を押すと終了します</value>

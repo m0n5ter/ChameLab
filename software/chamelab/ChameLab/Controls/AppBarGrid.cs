@@ -10,7 +10,7 @@ namespace ChameLab.Controls;
 public class AppBarGrid : Grid
 {
     private static readonly string[] Steps =
-        ["hide-summary", "hide-disconnect-label", "hide-logo", "hide-connection-label"];
+        ["hide-disconnect-label", "hide-connection-label", "hide-logo"];
 
     protected override Size MeasureOverride(Size availableSize)
     {

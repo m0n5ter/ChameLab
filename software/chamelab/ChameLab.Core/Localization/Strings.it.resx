@@ -2020,7 +2020,7 @@
     <value>DISPOSITIVO CONNESSO</value>
   </data>
   <data name="Main_DeviceSummary" xml:space="preserve">
-    <value>{0} · fw {1}</value>
+    <value>{0} {1}</value>
   </data>
   <data name="Main_Disconnect" xml:space="preserve">
     <value>Disconnetti</value>
@@ -2056,10 +2056,7 @@
     <value>Non connesso</value>
   </data>
   <data name="Main_Offline" xml:space="preserve">
-    <value>Offline</value>
-  </data>
-  <data name="Main_Online" xml:space="preserve">
-    <value>Online</value>
+    <value>Nessun dispositivo</value>
   </data>
   <data name="Main_PressBackAgainToExit" xml:space="preserve">
     <value>Premi di nuovo Indietro per uscire</value>

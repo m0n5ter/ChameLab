@@ -880,10 +880,7 @@
     <value>Нет устройства. Откройте «Подключение», чтобы подключить его.</value>
   </data>
   <data name="Main_Offline" xml:space="preserve">
-    <value>Не в сети</value>
-  </data>
-  <data name="Main_Online" xml:space="preserve">
-    <value>В сети</value>
+    <value>Нет устройства</value>
   </data>
   <data name="Main_PressBackAgainToExit" xml:space="preserve">
     <value>Нажмите «Назад» ещё раз для выхода</value>
@@ -2038,7 +2035,7 @@
     <value>Подключено</value>
   </data>
   <data name="Main_DeviceSummary" xml:space="preserve">
-    <value>{0} · прошивка {1}</value>
+    <value>{0} {1}</value>
   </data>
   <data name="Main_NotConnected" xml:space="preserve">
     <value>Не подключено</value>

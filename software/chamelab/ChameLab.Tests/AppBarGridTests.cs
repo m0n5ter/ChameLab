@@ -16,14 +16,13 @@ public class AppBarGridTests
     [Fact]
     public void CollapsesOnlyAsNeededAndRestoresDetailsWhenSpaceReturns()
     {
-        var bar = new AppBarGrid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto,Auto") };
+        var bar = new AppBarGrid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,Auto,Auto") };
         Control[] children =
         [
             new Detail(160, 160, ""),
-            new Detail(120, 0, "hide-summary"),
             new Detail(100, 36, "hide-disconnect-label"),
-            new Detail(60, 0, "hide-logo"),
-            new Detail(70, 28, "hide-connection-label")
+            new Detail(70, 28, "hide-connection-label"),
+            new Detail(60, 0, "hide-logo")
         ];
         for (var i = 0; i < children.Length; i++)
         {
@@ -34,19 +33,19 @@ public class AppBarGridTests
         bar.Measure(new Size(750, 100));
         Assert.Empty(bar.Classes);
 
-        bar.Measure(new Size(390, 100));
-        Assert.Equal(new[] { "hide-summary" }, bar.Classes);
+        bar.Measure(new Size(360, 100));
+        Assert.Equal(new[] { "hide-disconnect-label" }, bar.Classes);
 
-        bar.Measure(new Size(330, 100));
-        Assert.Contains("hide-disconnect-label", bar.Classes);
+        bar.Measure(new Size(300, 100));
+        Assert.Contains("hide-connection-label", bar.Classes);
         Assert.DoesNotContain("hide-logo", bar.Classes);
 
         bar.Measure(new Size(250, 100));
-        Assert.Contains("hide-connection-label", bar.Classes);
+        Assert.Contains("hide-logo", bar.Classes);
         Assert.True(bar.DesiredSize.Width <= 250);
 
         bar.Measure(new Size(750, 100));
         Assert.Empty(bar.Classes);
-        Assert.Equal(510, bar.DesiredSize.Width);
+        Assert.Equal(390, bar.DesiredSize.Width);
     }
 }

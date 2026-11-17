@@ -2020,7 +2020,7 @@
     <value>已连接设备</value>
   </data>
   <data name="Main_DeviceSummary" xml:space="preserve">
-    <value>{0} · 固件 {1}</value>
+    <value>{0} {1}</value>
   </data>
   <data name="Main_Disconnect" xml:space="preserve">
     <value>断开连接</value>
@@ -2056,10 +2056,7 @@
     <value>未连接</value>
   </data>
   <data name="Main_Offline" xml:space="preserve">
-    <value>离线</value>
-  </data>
-  <data name="Main_Online" xml:space="preserve">
-    <value>在线</value>
+    <value>无设备</value>
   </data>
   <data name="Main_PressBackAgainToExit" xml:space="preserve">
     <value>再按一次返回键退出</value>
