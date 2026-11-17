@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -18,11 +19,25 @@ public static class BringIntoViewOnShow
     public static readonly AttachedProperty<object?> ItemProperty =
         AvaloniaProperty.RegisterAttached<ItemsControl, object?>("Item", typeof(BringIntoViewOnShow));
 
+    /// <summary>
+    /// Controls hidden since the last dispatcher pass. Showing one of them again before that pass
+    /// is a rebuild flicker (e.g. the sector grid reset while the UID is typed), not an appearance:
+    /// the user never saw it go, so the pane must not scroll to it.
+    /// </summary>
+    private static readonly HashSet<Control> JustHidden = new();
+
     static BringIntoViewOnShow()
     {
         Visual.IsVisibleProperty.Changed.AddClassHandler<Control>((control, e) =>
         {
-            if (!GetIsEnabled(control) || e.NewValue is not true) return;
+            if (!GetIsEnabled(control)) return;
+            if (e.NewValue is not true)
+            {
+                if (JustHidden.Add(control))
+                    Dispatcher.UIThread.Post(() => JustHidden.Remove(control), DispatcherPriority.Background);
+                return;
+            }
+            if (JustHidden.Remove(control)) return;
             BringLater(control);
         });
         ItemProperty.Changed.AddClassHandler<ItemsControl>((list, e) =>
