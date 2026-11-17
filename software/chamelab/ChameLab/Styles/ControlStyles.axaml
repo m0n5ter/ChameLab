@@ -850,8 +850,21 @@
   <Style Selector="Button.foldertile.empty PathIcon.foldericon">
     <Setter Property="Opacity" Value="0.35" />
   </Style>
-  <Style Selector="Button.foldertile.empty TextBlock.foldername, Button.foldertile.empty TextBlock.foldercount">
+  <Style Selector="Button.foldertile.empty TextBlock.foldername, Button.foldertile.empty Border.foldercount">
     <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <!-- A folder tile's count: the number alone, framed. -->
+  <Style Selector="Button.foldertile Border.foldercount">
+    <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container3BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="6,1" />
+    <Setter Property="MinWidth" Value="24" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.foldertile Border.foldercount > TextBlock">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="TextAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.cardtile > Border.cardclip">
     <Setter Property="CornerRadius" Value="10.5" />

@@ -245,8 +245,10 @@
                           <TextBlock Grid.Column="1" Classes="foldername" Text="{Binding Name}" FontWeight="SemiBold"
                                      FontSize="15" VerticalAlignment="Center" TextWrapping="Wrap" MaxLines="2"
                                      LineSpacing="-2" TextTrimming="CharacterEllipsis" />
-                          <TextBlock Grid.Column="2" Classes="caption foldercount" VerticalAlignment="Center"
-                                     Text="{Binding CountText}" />
+                          <!-- Just the number, in a frame; the open folder's header words it (“3 cards”). -->
+                          <Border Grid.Column="2" Classes="foldercount" ToolTip.Tip="{Binding CountText}">
+                            <TextBlock Classes="caption" Text="{Binding Count}" />
+                          </Border>
                         </Grid>
                       </Border>
                     </Button>
