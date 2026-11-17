@@ -47,7 +47,7 @@ public sealed class CardSave
 
     public const string DefaultColor = "#FF4000"; // the palette color nearest Flutter's Colors.deepOrange
 
-    /// <summary>The folder the card is filed in; empty for none. ChameLab only (the Flutter app ignores it).</summary>
+    /// <summary>The path of the folder the card is filed in (see <see cref="FolderPath"/>); empty for none. ChameLab only (the Flutter app ignores it).</summary>
     public string Folder { get; set; } = string.Empty;
 
     public TagSenseType Sense => Tag.SenseType();
@@ -156,14 +156,8 @@ public sealed class CardSave
         return TagSpecificType.Undefined;
     }
 
-    /// <summary>Longest folder name kept.</summary>
-    public const int MaxFolderLength = 64;
-
-    public static string NormalizeFolder(string? folder)
-    {
-        var f = folder?.Trim() ?? string.Empty;
-        return f.Length > MaxFolderLength ? f[..MaxFolderLength].TrimEnd() : f;
-    }
+    /// <summary>The folder path cleaned up (see <see cref="FolderPath.Normalize"/>).</summary>
+    public static string NormalizeFolder(string? folder) => FolderPath.Normalize(folder);
 
     public static string NormalizeColor(string? color)
     {

@@ -10,6 +10,8 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 ## [unreleased][unreleased]
  - ChameLab: when the save bar appears under a page (or grows to show a save error), the field being edited scrolls back into view instead of ending up behind the bar; in the hex editors, the caret's line
  - ChameLab: on Android, the arrow keys of the on-screen keyboard's text editing panel (Gboard and others) move the caret in the hex editors, and its Select, Copy, Paste and Select all work there too
+ - ChameLab: card folders nest. A folder can hold folders, as deep as needed: **New folder** in an open folder (or **New folder inside** on its row in the navigation pane) makes one in it, **Move** takes the open folder with everything in it into another folder or back to the top, and the back button goes up one level. The navigation pane lists a folder's folders under it, indented, behind an arrow that shows or hides them; an open folder lists its folders as tiles after its cards. The folder pickers indent folders under the ones they are in. Deleting a folder moves its cards (and those of the folders in it) up to the folder that held it. Folders imported from Chameleon Ultra GUI keep their nesting, and libraries imported earlier, whose nested folders became names like “Work / Doors”, come back nested
+ - ChameLab: key dictionaries can be filed in folders, nested like the card folders: the dictionary folders are listed under Dictionaries in the navigation pane, dictionaries are dragged onto a folder or moved from the **Folder** button in the editor, and a new or imported dictionary goes into the folder shown. Backups keep the folders of cards and dictionaries, empty ones too
 
 ## [v1.6.51][2026-11-16] · firmware v2.3.20-cl
 ### Summary

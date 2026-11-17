@@ -153,9 +153,6 @@
   <data name="Cards_Auth1" xml:space="preserve">
     <value>AUTH1 (0 = solo protección contra escritura)</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>Volver a Tarjetas</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>Volcado .bin</value>
   </data>
@@ -1275,9 +1272,6 @@
   <data name="Common_ImportedFrom" xml:space="preserve">
     <value>Importado de {0}</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>Sus tarjetas no se eliminan: vuelven a Tarjetas.</value>
-  </data>
   <data name="Common_KeyA" xml:space="preserve">
     <value>Clave A</value>
   </data>
@@ -2043,9 +2037,6 @@
   <data name="Main_Install" xml:space="preserve">
     <value>Instalar</value>
   </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>Sus tarjetas se quedan en Tarjetas</value>
-  </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>NAVEGACIÓN</value>
   </data>
@@ -2260,7 +2251,7 @@
     <value>{0} tarjeta|{0} tarjetas</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>Carpeta {1} eliminada; su tarjeta sigue en Tarjetas.|Carpeta {1} eliminada; sus {0} tarjetas siguen en Tarjetas.</value>
+    <value>Carpeta {1} eliminada; su tarjeta ahora está en {2}.|Carpeta {1} eliminada; sus {0} tarjetas ahora están en {2}.</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} diccionario|{0} diccionarios</value>
@@ -3933,5 +3924,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} no contiene ninguna tarjeta con este tipo de memoria.</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>Volver a {0}</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>Mover</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>Mover esta carpeta a otra</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>Carpeta {0} movida a {1}.</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>Nueva carpeta dentro</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>Mostrar u ocultar las carpetas que contiene</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>Su contenido sube un nivel</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>No se elimina nada de su contenido: todo pasa a {0}.</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>Carpeta {1} eliminada; su diccionario ahora está en {2}.|Carpeta {1} eliminada; sus {0} diccionarios ahora están en {2}.</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>Mover este diccionario a una carpeta</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>Aún no hay diccionarios en esta carpeta. Arrastra diccionarios sobre ella en el panel de navegación o añade uno aquí.</value>
   </data>
 </root>

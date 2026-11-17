@@ -20,6 +20,9 @@ public sealed class KeyDictionary
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string Name { get; set; } = string.Empty;
     public string Color { get; set; } = CardSave.DefaultColor;
+
+    /// <summary>The path of the folder the dictionary is filed in (see <see cref="FolderPath"/>); empty for none. ChameLab only.</summary>
+    public string Folder { get; set; } = string.Empty;
     public const int MinKeyLength = 4;
     public const int MaxKeyLength = 16;
     private int _keyLength = 6;
@@ -75,16 +78,21 @@ public sealed class KeyDictionary
 
     // ---- JSON (Flutter-compatible) ------------------------------------
 
-    public JsonObject ToJson() => new()
+    public JsonObject ToJson()
     {
-        ["id"] = Id,
-        ["name"] = Name,
-        ["color"] = Color,
-        ["type"] = Type.ToString(),
-        ["keyLength"] = KeyLength * 2,
-        ["keys"] = new JsonArray(Keys.Select(k =>
-            (JsonNode)new JsonArray(k.Select(b => (JsonNode)(int)b).ToArray())).ToArray()),
-    };
+        var o = new JsonObject
+        {
+            ["id"] = Id,
+            ["name"] = Name,
+            ["color"] = Color,
+            ["type"] = Type.ToString(),
+            ["keyLength"] = KeyLength * 2,
+            ["keys"] = new JsonArray(Keys.Select(k =>
+                (JsonNode)new JsonArray(k.Select(b => (JsonNode)(int)b).ToArray())).ToArray()),
+        };
+        if (Folder.Length > 0) o["folder"] = Folder;
+        return o;
+    }
 
     public static KeyDictionary FromJson(JsonNode node)
     {
@@ -94,6 +102,7 @@ public sealed class KeyDictionary
             Id = (string?)o["id"] ?? Guid.NewGuid().ToString(),
             Name = (string?)o["name"] ?? string.Empty,
             Color = CardSave.NormalizeColor((string?)o["color"]),
+            Folder = FolderPath.Normalize((string?)o["folder"]),
             // Older dictionaries have no type. Flutter stores the length in hex characters.
             KeyLength = o["keyLength"] is { } length
                 ? ReadKeyLength(length.GetValue<int>())

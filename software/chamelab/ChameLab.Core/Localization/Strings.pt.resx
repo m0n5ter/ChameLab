@@ -153,9 +153,6 @@
   <data name="Cards_Auth1" xml:space="preserve">
     <value>AUTH1 (0 = só proteção contra gravação)</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>Voltar aos cartões</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>Dump .bin</value>
   </data>
@@ -1275,9 +1272,6 @@
   <data name="Common_ImportedFrom" xml:space="preserve">
     <value>Importado de {0}</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>Os cartões dela não são excluídos: voltam para Cartões.</value>
-  </data>
   <data name="Common_KeyA" xml:space="preserve">
     <value>Chave A</value>
   </data>
@@ -2043,9 +2037,6 @@
   <data name="Main_Install" xml:space="preserve">
     <value>Instalar</value>
   </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>Os cartões dela ficam em Cartões</value>
-  </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>NAVEGAÇÃO</value>
   </data>
@@ -2260,7 +2251,7 @@
     <value>{0} cartão|{0} cartões</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>A pasta {1} foi excluída; o cartão dela continua em Cartões.|A pasta {1} foi excluída; os {0} cartões dela continuam em Cartões.</value>
+    <value>A pasta {1} foi excluída; o cartão dela agora está em {2}.|A pasta {1} foi excluída; os {0} cartões dela agora estão em {2}.</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} dicionário|{0} dicionários</value>
@@ -3933,5 +3924,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} não tem nenhum cartão com esse tipo de memória.</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>Voltar para {0}</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>Mover</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>Mover esta pasta para outra</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>A pasta {0} foi movida para {1}.</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>Nova pasta dentro</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>Mostrar ou ocultar as pastas dentro</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>O conteúdo sobe um nível</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>Nada do conteúdo é excluído: tudo vai para {0}.</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>A pasta {1} foi excluída; o dicionário dela agora está em {2}.|A pasta {1} foi excluída; os {0} dicionários dela agora estão em {2}.</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>Mover este dicionário para uma pasta</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>Ainda não há dicionários nesta pasta. Arraste dicionários para ela no painel de navegação ou adicione um aqui.</value>
   </data>
 </root>

@@ -28,7 +28,7 @@ public class EditorSelectionTests
         form.Name = "Unsaved card";
         var pane = vm.Pane;
 
-        vm.ShowFolder(vm.Folders[0]);
+        vm.ShowFolder(vm.FolderTree.Folders[0]);
         Assert.Equal("Other", vm.CurrentFolder?.Name);
         Assert.False(vm.IsConfirmingLeave);
         Assert.Same(form, vm.Form);
@@ -36,12 +36,12 @@ public class EditorSelectionTests
         var second = Assert.Single(vm.Cards);
         Assert.Equal("Second", second.Name);
 
-        vm.ShowRootCommand.Execute(null);
+        vm.FolderTree.ShowParentCommand.Execute(null);
         Assert.Null(vm.CurrentFolder);
         Assert.False(vm.IsConfirmingLeave);
         Assert.Same(form, vm.Form);
 
-        vm.ShowFolder(vm.Folders[0]);
+        vm.ShowFolder(vm.FolderTree.Folders[0]);
         second = Assert.Single(vm.Cards);
         vm.Selected = second;
         Assert.True(vm.IsConfirmingLeave);

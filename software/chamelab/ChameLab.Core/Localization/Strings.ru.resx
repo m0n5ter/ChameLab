@@ -69,9 +69,6 @@
   <data name="Cards_AssignToSlot" xml:space="preserve">
     <value>Загрузить в слот</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>Назад к картам</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>Дамп .bin</value>
   </data>
@@ -681,9 +678,6 @@
   <data name="Common_Export" xml:space="preserve">
     <value>Экспорт</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>Её карты не удаляются: они вернутся в «Карты».</value>
-  </data>
   <data name="Common_KeyDictionaries" xml:space="preserve">
     <value>Словари ключей</value>
   </data>
@@ -869,9 +863,6 @@
   </data>
   <data name="Main_Install" xml:space="preserve">
     <value>Установить</value>
-  </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>Её карты останутся в «Картах»</value>
   </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>НАВИГАЦИЯ</value>
@@ -2146,7 +2137,7 @@
     <value>{0} карта|{0} карты|{0} карт</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>Папка {1} удалена; её {0} карта осталась в «Картах».|Папка {1} удалена; её {0} карты остались в «Картах».|Папка {1} удалена; её {0} карт остались в «Картах».</value>
+    <value>Папка {1} удалена; её {0} карта теперь в «{2}».|Папка {1} удалена; её {0} карты теперь в «{2}».|Папка {1} удалена; её {0} карт теперь в «{2}».</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} словарь|{0} словаря|{0} словарей</value>
@@ -3947,5 +3938,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>В {0} нет карты с такой памятью.</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>Назад в «{0}»</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>Переместить</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>Переместить папку в другую</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>Папка {0} перемещена в «{1}».</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>Новая папка внутри</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>Показать или скрыть вложенные папки</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>Её содержимое переместится на уровень выше</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>Её содержимое не удаляется: всё переместится в «{0}».</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>Папка {1} удалена; её {0} словарь теперь в «{2}».|Папка {1} удалена; её {0} словаря теперь в «{2}».|Папка {1} удалена; её {0} словарей теперь в «{2}».</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>Переместить словарь в папку</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>В этой папке пока нет словарей. Перетащите на неё словари в панели навигации или добавьте словарь здесь.</value>
   </data>
 </root>

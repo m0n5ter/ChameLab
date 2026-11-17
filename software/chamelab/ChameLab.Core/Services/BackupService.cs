@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -25,6 +26,8 @@ public static class BackupService
             ["version"] = 1,
             ["cards"] = new JsonArray(cards.Cards.Select(c => (JsonNode)c.ToJson()).ToArray()),
             ["dictionaries"] = new JsonArray(dictionaries.Dictionaries.Select(d => (JsonNode)d.ToJson()).ToArray()),
+            ["cardFolders"] = new JsonArray(cards.Folders.Select(f => (JsonNode)f).ToArray()),
+            ["dictionaryFolders"] = new JsonArray(dictionaries.Folders.Select(f => (JsonNode)f).ToArray()),
             ["knownCardKeys"] = dictionaries.KnownKeys.ToJson(),
         };
         return Encoding.UTF8.GetBytes(o.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
@@ -49,8 +52,14 @@ public static class BackupService
         if (o["knownCardKeys"] is { } knownKeys) dictionaries.KnownKeys.Merge(knownKeys);
         if (importedCards.Count > 0) cards.AddRange(importedCards);
         if (importedDicts.Count > 0) dictionaries.AddRange(importedDicts);
+        if (Names(o["cardFolders"]) is { Count: > 0 } cardFolders) cards.AddFolders(cardFolders);
+        if (Names(o["dictionaryFolders"]) is { Count: > 0 } dictFolders) dictionaries.AddFolders(dictFolders);
         return (importedCards.Count, importedDicts.Count);
     }
+
+    private static List<string> Names(JsonNode? node) => node is JsonArray list
+        ? list.OfType<JsonValue>().Select(v => v.TryGetValue<string>(out var s) ? s : null).OfType<string>().ToList()
+        : new();
 
     /// <summary>
     /// Imports the Flutter Chameleon Ultra GUI's settings export (or its shared_preferences.json):

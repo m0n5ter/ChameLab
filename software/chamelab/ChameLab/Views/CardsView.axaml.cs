@@ -70,17 +70,23 @@ public partial class CardsView : UserControl
 
     // ---- The open folder's title: renamed in place ----
 
+    // A click on the open folder's title starts renaming it (Cards and Dictionaries themselves are not renamed).
+    private void OnFolderTitleTapped(object? sender, TappedEventArgs e)
+    {
+        if (DataContext is CardsViewModel vm && vm.FolderTree.IsInFolder) vm.FolderTree.RenameCurrentCommand.Execute(null);
+    }
+
     private void OnFolderTitleKeyDown(object? sender, KeyEventArgs e)
     {
         if (DataContext is not CardsViewModel vm) return;
-        if (e.Key == Key.Enter) vm.CommitFolderRename();
-        else if (e.Key == Key.Escape) vm.CancelFolderRename();
+        if (e.Key == Key.Enter) vm.FolderTree.CommitFolderRename();
+        else if (e.Key == Key.Escape) vm.FolderTree.CancelFolderRename();
         else return;
         e.Handled = true;
     }
 
     private void OnFolderTitleLostFocus(object? sender, RoutedEventArgs e) =>
-        (DataContext as CardsViewModel)?.CommitFolderRename();
+        (DataContext as CardsViewModel)?.FolderTree.CommitFolderRename();
 
     // Save keys → clipboard: one hex key per line; the page notice confirms (the menu has closed).
     private async void OnCopyKeys(object? sender, RoutedEventArgs e)

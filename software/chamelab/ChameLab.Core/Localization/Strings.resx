@@ -72,9 +72,6 @@
   <data name="Cards_AssignToSlot" xml:space="preserve">
     <value>Assign to slot</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>Back to Cards</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>.bin dump</value>
   </data>
@@ -684,9 +681,6 @@
   <data name="Common_Export" xml:space="preserve">
     <value>Export</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>Its cards are not deleted: they go back to Cards.</value>
-  </data>
   <data name="Common_KeyDictionaries" xml:space="preserve">
     <value>Key dictionaries</value>
   </data>
@@ -872,9 +866,6 @@
   </data>
   <data name="Main_Install" xml:space="preserve">
     <value>Install</value>
-  </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>Its cards stay in Cards</value>
   </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>NAVIGATION</value>
@@ -2149,7 +2140,7 @@
     <value>{0} card|{0} cards</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>Deleted the folder {1}; its card is still in Cards.|Deleted the folder {1}; its {0} cards are still in Cards.</value>
+    <value>Deleted the folder {1}; its card is now in {2}.|Deleted the folder {1}; its {0} cards are now in {2}.</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} dictionary|{0} dictionaries</value>
@@ -3950,5 +3941,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} has no card with this kind of memory.</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>Back to {0}</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>Move this folder into another</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>Moved the folder {0} to {1}.</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>New folder inside</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>Show or hide the folders inside</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>What is in it moves up a level</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>Nothing in it is deleted: it all moves to {0}.</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>Deleted the folder {1}; its dictionary is now in {2}.|Deleted the folder {1}; its {0} dictionaries are now in {2}.</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>Move this dictionary to a folder</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>No dictionaries in this folder yet. Drag dictionaries onto it in the navigation pane, or add one here.</value>
   </data>
 </root>

@@ -153,9 +153,6 @@
   <data name="Cards_Auth1" xml:space="preserve">
     <value>AUTH1 (0 = nur Schreibschutz)</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>Zurück zu Karten</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>.bin-Dump</value>
   </data>
@@ -1275,9 +1272,6 @@
   <data name="Common_ImportedFrom" xml:space="preserve">
     <value>Importiert aus {0}</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>Seine Karten werden nicht gelöscht: Sie kehren zu Karten zurück.</value>
-  </data>
   <data name="Common_KeyA" xml:space="preserve">
     <value>Schlüssel A</value>
   </data>
@@ -2043,9 +2037,6 @@
   <data name="Main_Install" xml:space="preserve">
     <value>Installieren</value>
   </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>Seine Karten bleiben in Karten</value>
-  </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>NAVIGATION</value>
   </data>
@@ -2260,7 +2251,7 @@
     <value>{0} Karte|{0} Karten</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>Ordner {1} gelöscht; seine Karte ist noch in Karten.|Ordner {1} gelöscht; seine {0} Karten sind noch in Karten.</value>
+    <value>Ordner {1} gelöscht; seine Karte ist jetzt in {2}.|Ordner {1} gelöscht; seine {0} Karten sind jetzt in {2}.</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} Wörterbuch|{0} Wörterbücher</value>
@@ -3933,5 +3924,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} enthält keine Karte mit dieser Art von Speicher.</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>Zurück zu {0}</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>Verschieben</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>Diesen Ordner in einen anderen verschieben</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>Ordner {0} nach {1} verschoben.</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>Neuer Ordner darin</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>Ordner darin ein- oder ausblenden</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>Der Inhalt wandert eine Ebene nach oben</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>Der Inhalt wird nicht gelöscht: Alles wandert nach {0}.</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>Ordner {1} gelöscht; sein Wörterbuch ist jetzt in {2}.|Ordner {1} gelöscht; seine {0} Wörterbücher sind jetzt in {2}.</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>Dieses Wörterbuch in einen Ordner verschieben</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>Noch keine Wörterbücher in diesem Ordner. Ziehen Sie Wörterbücher im Navigationsbereich darauf oder fügen Sie hier eines hinzu.</value>
   </data>
 </root>

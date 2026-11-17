@@ -95,17 +95,6 @@
       <Setter Property="Margin" Value="-7,0,0,0" />
       <Setter Property="MinHeight" Value="0" />
     </Style>
-    <!-- The open folder's title being renamed: as big as the title it replaces. -->
-    <Style Selector="TextBox.titlebox.foldertitle">
-      <Setter Property="FontSize" Value="24" />
-      <!-- Frame and padding outside the text (border 1 + padding), so the letters stay where the title's were. -->
-      <Setter Property="Padding" Value="6,2" />
-      <Setter Property="Margin" Value="-7,-3" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Panel.renaming > TextBlock.h1">
-      <Setter Property="Opacity" Value="0" />
-    </Style>
     <Style Selector="TextBox.titlebox:pointerover">
       <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
     </Style>
@@ -170,44 +159,68 @@
     <Grid Grid.Column="0" Classes="listpane panestack" RowDefinitions="Auto,*"
           IsEnabled="{Binding !ListLocked}">
       <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
-        <!-- Back from a folder to Cards, also when the navigation pane is hidden (narrow, or closed). -->
+        <!-- Up from a folder to the one that holds it (or Cards), also when the navigation pane is hidden
+             (narrow, or closed). -->
         <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0" VerticalAlignment="Center"
-                IsVisible="{Binding IsInFolder}" Command="{Binding ShowRootCommand}"
-                ToolTip.Tip="{x:Static loc:Strings.Cards_BackToCards}" b:DialogKeys.IsBack="True">
+                IsVisible="{Binding FolderTree.IsInFolder}" Command="{Binding FolderTree.ShowParentCommand}"
+                ToolTip.Tip="{Binding FolderTree.BackTip}" b:DialogKeys.IsBack="True">
           <PathIcon Data="{StaticResource Icon.back}" />
         </Button>
         <!-- Short of room, the buttons drop their labels (Add card last); then the title trims. -->
         <c:TitleRow Grid.Column="1">
         <StackPanel Spacing="2">
-          <!-- A folder's title, renamed in place (Rename beside Add card). -->
+          <!-- A folder's title, renamed in place by a click on it. -->
           <!-- Renaming: the title stays, unseen, so the header keeps its size; the field lies over it. -->
-          <Panel Classes.renaming="{Binding IsRenamingFolder}">
-            <TextBlock Text="{Binding ListTitle}" Classes="h1" TextTrimming="CharacterEllipsis"
-                       ToolTip.Tip="{Binding ListTitle}" />
-            <TextBox Classes="titlebox foldertitle" Text="{Binding FolderRenameText}" MaxLength="64"
-                     IsVisible="{Binding IsRenamingFolder}" b:FocusOnShow.IsEnabled="True"
+          <Panel Classes.renaming="{Binding FolderTree.IsRenamingFolder}">
+            <TextBlock Text="{Binding FolderTree.Title}" Classes="h1" TextTrimming="CharacterEllipsis"
+                       Classes.renamable="{Binding FolderTree.IsInFolder}" Tapped="OnFolderTitleTapped"
+                       ToolTip.Tip="{Binding FolderTree.Current}" />
+            <TextBox Classes="titlebox foldertitle" Text="{Binding FolderTree.FolderRenameText}" MaxLength="64"
+                     IsVisible="{Binding FolderTree.IsRenamingFolder}" b:FocusOnShow.IsEnabled="True"
                      KeyDown="OnFolderTitleKeyDown" LostFocus="OnFolderTitleLostFocus" />
           </Panel>
           <TextBlock Classes="caption" Text="{Binding CountText}" />
         </StackPanel>
-        <!-- The open folder's Rename and Delete; short of room Delete drops its label first, then Rename.
-             New folder only in Cards: folders are one level. -->
+        <!-- The open folder's Move and Delete (a click on its title renames it), and a new folder in the one shown; short of room
+             they drop their labels first (Add card last). -->
         <c:ActionRow>
-          <Button Command="{Binding RenameCurrentFolderCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_RenameFolder}"
-                  IsVisible="{Binding IsInFolder}">
+          <Button ToolTip.Tip="{x:Static loc:Strings.Common_MoveFolder}" IsVisible="{Binding FolderTree.IsInFolder}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.edit}" />
-              <TextBlock Text="{x:Static loc:Strings.Common_Rename}" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.folder}" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Move}" VerticalAlignment="Center" />
             </StackPanel>
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft">
+                <!-- Cards (the top) or any folder outside the open one; folders in others are indented. -->
+                <ScrollViewer Width="260" MaxHeight="360" HorizontalScrollBarVisibility="Disabled">
+                  <ListBox ItemsSource="{Binding FolderTree.MoveOptions}" SelectedItem="{Binding FolderTree.MoveTarget}"
+                           Background="Transparent" BorderThickness="0"
+                           ScrollViewer.HorizontalScrollBarVisibility="Disabled" Tapped="OnFlyoutPickTapped">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:FolderOption">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="{Binding Indent}">
+                          <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
+                                    Data="{StaticResource Icon.cards}" IsVisible="{Binding IsRoot}" />
+                          <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
+                                    Data="{StaticResource Icon.folder}" IsVisible="{Binding !IsRoot}" />
+                          <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                                     TextWrapping="Wrap" MaxLines="2" LineSpacing="-2" TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </ScrollViewer>
+              </Flyout>
+            </Button.Flyout>
           </Button>
           <Button Classes="danger" ToolTip.Tip="{x:Static loc:Strings.Common_DeleteFolder}"
-                  IsVisible="{Binding IsInFolder}" Command="{Binding DeleteCurrentFolderCommand}">
+                  IsVisible="{Binding FolderTree.IsInFolder}" Command="{Binding FolderTree.DeleteCurrentCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.delete}" />
               <TextBlock Text="{x:Static loc:Strings.Common_Delete}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
-          <Button Command="{Binding OpenNewFolderCommand}" IsVisible="{Binding !IsInFolder}"
+          <Button Command="{Binding FolderTree.OpenNewFolderCommand}"
                   ToolTip.Tip="{x:Static loc:Strings.Common_NewFolder}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <PathIcon Data="{StaticResource Icon.folderAdd}" />
@@ -332,18 +345,18 @@
                 </ListBox.ItemTemplate>
               </ListBox>
 
-              <!-- Cards (no folder open): the folders after its own cards. A tile opens its folder, and cards
-                   are dragged onto it like onto a folder in the navigation pane (see ListReorder). -->
-              <StackPanel Spacing="4" Margin="8,4,8,12" IsVisible="{Binding ShowsFolderTiles}">
+              <!-- The folders in the one shown (or in Cards), after its own cards. A tile opens its folder, and
+                   cards are dragged onto it like onto a folder in the navigation pane (see ListReorder). -->
+              <StackPanel Spacing="4" Margin="8,4,8,12" IsVisible="{Binding FolderTree.ShowsTiles}">
                 <TextBlock Text="{x:Static loc:Strings.Cards_FoldersHeader}" Classes="overline" Margin="4,0" />
-                <ItemsControl ItemsSource="{Binding Folders}">
+                <ItemsControl ItemsSource="{Binding FolderTree.Subfolders}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                       <c:TileGrid MinItemWidth="280" />
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:CardFolderViewModel">
+                    <DataTemplate x:DataType="vm:FolderViewModel">
                       <Button Classes="foldertile" Classes.empty="{Binding IsEmpty}"
                               Command="{Binding OpenCommand}" b:ListReorder.IsDropTarget="True"
                               ToolTip.Tip="{Binding Name}">
@@ -518,13 +531,14 @@
               </StackPanel>
               <Button.Flyout>
                 <Flyout Placement="BottomEdgeAlignedLeft">
-                  <!-- Fixed width: long names wrap onto a second line, tightly spaced, then trim. No folder
-                       (back to Cards) stands apart above the folders; one choice across both lists. -->
+                  <!-- Fixed width: long names wrap onto a second line, tightly spaced, then trim; folders in
+                       others are indented. No folder (back to Cards) stands apart above the folders; one choice
+                       across both lists. -->
                   <StackPanel Width="260">
-                    <ListBox ItemsSource="{Binding RootFolderOptions}" SelectedItem="{Binding SelectedCardFolder}"
+                    <ListBox ItemsSource="{Binding FolderTree.RootOptions}" SelectedItem="{Binding SelectedCardFolder}"
                              Background="Transparent" BorderThickness="0" Tapped="OnFlyoutPickTapped">
                       <ListBox.ItemTemplate>
-                        <DataTemplate x:DataType="vm:CardFolderOption">
+                        <DataTemplate x:DataType="vm:FolderOption">
                           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                             <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
                                       Data="{StaticResource Icon.cards}" />
@@ -533,14 +547,14 @@
                         </DataTemplate>
                       </ListBox.ItemTemplate>
                     </ListBox>
-                    <Separator Margin="0,4" IsVisible="{Binding HasFolders}" />
+                    <Separator Margin="0,4" IsVisible="{Binding FolderTree.HasFolders}" />
                     <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
-                      <ListBox ItemsSource="{Binding FolderOptions}" SelectedItem="{Binding SelectedCardFolder}"
+                      <ListBox ItemsSource="{Binding FolderTree.Options}" SelectedItem="{Binding SelectedCardFolder}"
                                Background="Transparent" BorderThickness="0"
                                ScrollViewer.HorizontalScrollBarVisibility="Disabled" Tapped="OnFlyoutPickTapped">
                         <ListBox.ItemTemplate>
-                          <DataTemplate x:DataType="vm:CardFolderOption">
-                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                          <DataTemplate x:DataType="vm:FolderOption">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="{Binding Indent}">
                               <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
                                         Data="{StaticResource Icon.folder}" />
                               <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"

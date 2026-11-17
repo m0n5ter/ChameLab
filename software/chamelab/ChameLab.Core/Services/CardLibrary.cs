@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -12,28 +11,31 @@ namespace ChameLab.Services;
 /// <summary>
 /// The user's saved cards, persisted as a JSON array through an
 /// <see cref="IKeyValueStore"/>. Every mutation saves immediately and raises
-/// <see cref="Changed"/> so open pages can refresh. Cards are filed in one level of
-/// folders by <see cref="CardSave.Folder"/>; the folder names are kept apart as well, so a
-/// folder stays while it is empty.
+/// <see cref="Changed"/> so open pages can refresh. Cards are filed in nested folders by
+/// <see cref="CardSave.Folder"/> (see <see cref="FolderPath"/>); the folders are kept apart as
+/// well, so a folder stays while it is empty.
 /// </summary>
-public sealed class CardLibrary
+public sealed class CardLibrary : IFolderLibrary
 {
     private const string StoreKey = "cards";
     private const string FoldersKey = "cardFolders";
     private readonly IKeyValueStore _store;
     private readonly List<CardSave> _cards = new();
-    private readonly List<string> _folders = new();
+    private readonly FolderList<CardSave> _folders;
 
     public CardLibrary(IKeyValueStore store)
     {
         _store = store;
+        _folders = new FolderList<CardSave>(_cards, c => c.Folder, (c, f) => c.Folder = f);
         Load();
     }
 
     public IReadOnlyList<CardSave> Cards => _cards;
 
-    /// <summary>Folder names, A–Z, numbers by value (Folder 2 before Folder 10).</summary>
-    public IReadOnlyList<string> Folders => _folders;
+    /// <summary>Folder paths in tree order, names A–Z, numbers by value (Folder 2 before Folder 10).</summary>
+    public IReadOnlyList<string> Folders => _folders.Paths;
+
+    public IEnumerable<string> ItemFolders => _folders.ItemFolders;
 
     /// <summary>Set when the stored library could not be parsed (it is left untouched on disk).</summary>
     public string? LoadError { get; private set; }
@@ -63,17 +65,13 @@ public sealed class CardLibrary
 
     private void LoadFolders()
     {
-        try
-        {
-            if (JsonNode.Parse(_store.Read(FoldersKey) ?? "[]") is JsonArray list)
-                foreach (var node in list)
-                    AddFolderName((string?)node);
-        }
+        JsonNode? names = null;
+        try { names = JsonNode.Parse(_store.Read(FoldersKey) ?? "[]"); }
         catch (Exception)
         {
             // Lost names only drop empty folders; the cards' own folders come back below.
         }
-        foreach (var card in _cards) AddFolderName(card.Folder);
+        _folders.Load(names);
     }
 
     private void Save()
@@ -82,8 +80,7 @@ public sealed class CardLibrary
         if (LoadError is not null) return;
         var array = new JsonArray(_cards.Select(c => (JsonNode)c.ToJson()).ToArray());
         _store.Write(StoreKey, array.ToJsonString(new JsonSerializerOptions { WriteIndented = false }));
-        var folders = new JsonArray(_folders.Select(f => (JsonNode)f).ToArray());
-        _store.Write(FoldersKey, folders.ToJsonString());
+        _store.Write(FoldersKey, _folders.ToJson().ToJsonString());
         Changed?.Invoke();
     }
 
@@ -96,8 +93,15 @@ public sealed class CardLibrary
             // Imports of an already-saved card keep both copies.
             if (_cards.Any(c => c.Id == card.Id)) card.Id = Guid.NewGuid().ToString();
             _cards.Add(card);
-            AddFolderName(card.Folder);
+            _folders.File(card, card.Folder);
         }
+        Save();
+    }
+
+    /// <summary>Creates the folders listed (empty ones too), e.g. from a backup.</summary>
+    public void AddFolders(IEnumerable<string> folders)
+    {
+        foreach (var folder in folders) _folders.Add(folder);
         Save();
     }
 
@@ -109,12 +113,11 @@ public sealed class CardLibrary
     /// <returns>Cards added, and cards already here that were filed in a folder.</returns>
     public (int Added, int Refiled) Merge(IEnumerable<CardSave> cards, IEnumerable<string> folders)
     {
-        foreach (var folder in folders) AddFolderName(folder);
+        foreach (var folder in folders) _folders.Add(folder);
         int added = 0, refiled = 0;
         foreach (var card in cards)
         {
-            AddFolderName(card.Folder);
-            var folder = FindFolder(card.Folder) ?? string.Empty;
+            var folder = _folders.Add(card.Folder);
             if (_cards.FirstOrDefault(c => c.Id == card.Id) is { } existing)
             {
                 if (existing.Folder.Length > 0 || folder.Length == 0) continue;
@@ -134,7 +137,7 @@ public sealed class CardLibrary
     {
         var i = _cards.FindIndex(c => c.Id == card.Id);
         if (i < 0) _cards.Add(card); else _cards[i] = card;
-        AddFolderName(card.Folder);
+        _folders.File(card, card.Folder);
         Save();
     }
 
@@ -169,82 +172,46 @@ public sealed class CardLibrary
 
     // ---- Folders --------------------------------------------------------
 
-    private static readonly StringComparer FolderOrder = MakeFolderOrder();
+    public string? FindFolder(string? path) => _folders.Find(path);
 
-    /// <summary>A–Z ignoring case, with runs of digits compared as numbers where the platform can.</summary>
-    private static StringComparer MakeFolderOrder()
+    public string? AddFolder(string path)
     {
-        try
-        {
-            var comparer = CultureInfo.CurrentCulture.CompareInfo
-                .GetStringComparer(CompareOptions.IgnoreCase | CompareOptions.NumericOrdering);
-            comparer.Compare("a2", "a10");
-            return comparer;
-        }
-        catch (Exception)
-        {
-            return StringComparer.CurrentCultureIgnoreCase;
-        }
-    }
-
-    /// <summary>The folder of that name as it is spelled in the library (names ignore case), or null.</summary>
-    public string? FindFolder(string? name)
-    {
-        var n = CardSave.NormalizeFolder(name);
-        return _folders.FirstOrDefault(f => string.Equals(f, n, StringComparison.CurrentCultureIgnoreCase));
-    }
-
-    /// <summary>Adds the name to the folder list (kept A–Z) unless it is empty or already there.</summary>
-    private void AddFolderName(string? name)
-    {
-        var n = CardSave.NormalizeFolder(name);
-        if (n.Length == 0 || FindFolder(n) is not null) return;
-        var i = _folders.FindIndex(f => FolderOrder.Compare(f, n) > 0);
-        _folders.Insert(i < 0 ? _folders.Count : i, n);
-    }
-
-    /// <summary>Creates an empty folder. False when the name is empty or taken.</summary>
-    public bool AddFolder(string name)
-    {
-        var n = CardSave.NormalizeFolder(name);
-        if (n.Length == 0 || FindFolder(n) is not null) return false;
-        AddFolderName(n);
+        if (FolderPath.Normalize(path).Length == 0 || _folders.Find(path) is not null) return null;
+        var added = _folders.Add(path);
         Save();
-        return true;
+        return added;
     }
 
-    /// <summary>Renames a folder and refiles its cards. False when the new name is empty or taken.</summary>
-    public bool RenameFolder(string from, string to)
+    public string? RenameFolder(string path, string newName)
     {
-        var n = CardSave.NormalizeFolder(to);
-        if (FindFolder(from) is not { } old || n.Length == 0) return false;
-        // Only the spelling may change to that of another folder: its own.
-        if (FindFolder(n) is { } taken && taken != old) return false;
-        if (n == old) return true;
-        _folders.Remove(old);
-        AddFolderName(n);
-        foreach (var card in _cards.Where(c => c.Folder == old)) card.Folder = n;
-        Save();
-        return true;
+        var old = _folders.Find(path);
+        var renamed = _folders.Rename(path, newName);
+        if (renamed is not null && renamed != old) Save();
+        return renamed;
     }
 
-    /// <summary>Deletes a folder; its cards stay in the library, in no folder.</summary>
-    public void RemoveFolder(string name)
+    public string? MoveFolder(string path, string parent)
     {
-        if (FindFolder(name) is not { } old) return;
-        _folders.Remove(old);
-        foreach (var card in _cards.Where(c => c.Folder == old)) card.Folder = string.Empty;
-        Save();
+        var old = _folders.Find(path);
+        var moved = _folders.Move(path, parent);
+        if (moved is not null && moved != old) Save();
+        return moved;
+    }
+
+    /// <summary>Deletes a folder and the folders in it; their cards move up to the folder that held it.</summary>
+    public void RemoveFolder(string path)
+    {
+        if (_folders.Remove(path)) Save();
     }
 
     /// <summary>Files a card in a folder (empty for none), creating the folder if needed.</summary>
     public void MoveToFolder(CardSave card, string folder)
     {
-        var n = FindFolder(folder) ?? CardSave.NormalizeFolder(folder);
-        if (_cards.FirstOrDefault(c => c.Id == card.Id) is not { } saved || saved.Folder == n) return;
-        saved.Folder = n;
-        if (!ReferenceEquals(saved, card)) card.Folder = n;
-        AddFolderName(n);
+        if (_cards.FirstOrDefault(c => c.Id == card.Id) is not { } saved) return;
+        var path = _folders.Find(folder) ?? FolderPath.Normalize(folder);
+        if (saved.Folder == path) return;
+        path = _folders.File(saved, path);
+        if (!ReferenceEquals(saved, card)) card.Folder = path;
         Save();
     }
 }

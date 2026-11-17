@@ -26,8 +26,8 @@ public class ChameleonGuiImportTests
         var lib = ChameleonGuiImport.TryRead(Bytes(json));
 
         Assert.NotNull(lib);
-        Assert.Equal(["Work / Doors", "", ""], lib.Cards.Select(c => c.Folder));
-        Assert.Equal(["Work", "Work / Doors", "Empty"], lib.Folders);
+        Assert.Equal(["Work/Doors", "", ""], lib.Cards.Select(c => c.Folder));
+        Assert.Equal(["Work", "Work/Doors", "Empty"], lib.Folders);
         Assert.Equal("FF", Assert.Single(lib.Dictionaries).Name);
     }
 
@@ -45,7 +45,7 @@ public class ChameleonGuiImportTests
 
         Assert.NotNull(lib);
         Assert.Equal("Office", lib.Cards[0].Name);
-        Assert.Equal("Work / Doors", lib.Cards[0].Folder);
+        Assert.Equal("Work/Doors", lib.Cards[0].Folder);
         Assert.Single(lib.Dictionaries);
     }
 
@@ -80,8 +80,8 @@ public class ChameleonGuiImportTests
         var (added, refiled) = library.Merge(lib.Cards, lib.Folders);
         Assert.Equal((1, 1), (added, refiled));
         Assert.Equal(2, library.Cards.Count);
-        Assert.Equal("Work / Doors", library.Cards.Single(c => c.Id == "c1").Folder);
-        Assert.Equal(["Empty", "Work", "Work / Doors"], library.Folders);
+        Assert.Equal("Work/Doors", library.Cards.Single(c => c.Id == "c1").Folder);
+        Assert.Equal(["Empty", "Work", "Work/Doors"], library.Folders);
 
         Assert.Equal((0, 0), library.Merge(lib.Cards, lib.Folders));
         Assert.Equal(2, library.Cards.Count);
@@ -97,6 +97,6 @@ public class ChameleonGuiImportTests
 
         Assert.Equal((2, 1), BackupService.Import(Bytes(json), cards, dicts));
         Assert.Equal((0, 0), BackupService.Import(Bytes(json), cards, dicts));
-        Assert.Equal(["Work", "Work / Doors"], cards.Folders);
+        Assert.Equal(["Work", "Work/Doors"], cards.Folders);
     }
 }

@@ -12,6 +12,30 @@
              x:Class="ChameLab.Views.MainView"
              x:DataType="vm:MainViewModel">
 
+  <UserControl.Resources>
+    <!-- Deleting a folder: what is in it moves up to the folder that held it. -->
+    <DataTemplate x:Key="DeleteFolderDialog" x:DataType="vm:FolderBrowser">
+      <Panel Background="#80000000">
+        <Border Classes="card" MaxWidth="420" Margin="16" VerticalAlignment="Center">
+          <StackPanel Spacing="14">
+            <TextBlock Classes="h2" TextWrapping="Wrap" Text="{Binding DeletePrompt}" />
+            <TextBlock TextWrapping="Wrap" Text="{Binding DeleteDetail}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+              <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelDeleteCommand}"
+                      b:DialogKeys.IsCancel="True" />
+              <Button Classes="danger solid" Command="{Binding ConfirmDeleteCommand}" b:DialogKeys.IsDefault="True">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.delete}" />
+                  <TextBlock Text="{x:Static loc:Strings.Common_DeleteFolder}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Panel>
+    </DataTemplate>
+  </UserControl.Resources>
+
   <Grid x:Name="Root" RowDefinitions="Auto,*,Auto">
 
     <!-- ==================== Top app bar ==================== -->
@@ -101,8 +125,10 @@
             <Grid RowDefinitions="Auto,*,Auto,Auto">
               <TextBlock Grid.Row="0" Text="{x:Static loc:Strings.Main_NavigationHeader}" Classes="overline" Margin="20,18,0,6" />
 
-              <!-- The pages, with the card folders (one level) indented under Cards. Cards are dragged
-                   onto a folder, or onto Cards to take them out of theirs (see ListReorder). -->
+              <!-- The pages, with the card folders indented under Cards and the dictionary folders under
+                   Dictionaries; a folder's folders are listed under it while it is expanded. Cards (and
+                   dictionaries) are dragged onto a folder, or onto their page to take them out of theirs
+                   (see ListReorder). -->
               <!-- Scrolls only up and down: long folder names are trimmed, never scrolled to. -->
               <ListBox Grid.Row="1" Classes="nav" Margin="10,0" ItemsSource="{Binding NavItems}" IsEnabled="{Binding !IsNavigationLocked}"
                        SelectedItem="{Binding SelectedNavItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -117,7 +143,7 @@
                         <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
                                   Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
                         <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" />
-                        <Button Grid.Column="3" Classes="icon small" Command="{Binding NewFolderCommand}"
+                        <Button Grid.Column="3" Classes="icon small" Command="{Binding FolderTree.NewFolderCommand}"
                                 ToolTip.Tip="{x:Static loc:Strings.Common_NewFolder}">
                           <PathIcon Data="{StaticResource Icon.folderAdd}" />
                         </Button>
@@ -125,6 +151,23 @@
                                 Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).AddCardCommand}"
                                 ToolTip.Tip="{x:Static loc:Strings.Common_AddCard}">
                           <PathIcon Data="{StaticResource Icon.add}" />
+                        </Button>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+
+                  <!-- Dictionaries, with a button for a new folder. -->
+                  <DataTemplate DataType="vm:DictionariesViewModel">
+                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
+                      <Grid ColumnDefinitions="Auto,Auto,*,Auto" Height="40">
+                        <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
+                                Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
+                        <PathIcon Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0"
+                                  Data="{Binding Icon, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" />
+                        <Button Grid.Column="3" Classes="icon small" Margin="0,0,4,0" Command="{Binding FolderTree.NewFolderCommand}"
+                                ToolTip.Tip="{x:Static loc:Strings.Common_NewFolder}">
+                          <PathIcon Data="{StaticResource Icon.folderAdd}" />
                         </Button>
                       </Grid>
                     </Border>
@@ -142,34 +185,47 @@
                     </Border>
                   </DataTemplate>
 
-                  <DataTemplate DataType="vm:CardFolderViewModel">
+                  <DataTemplate DataType="vm:FolderViewModel">
                     <Border Classes="navrow" b:ListReorder.IsDropTarget="True" Margin="0,1">
                       <Grid Classes="folderrow" Classes.empty="{Binding IsEmpty}" Classes.editing="{Binding IsEditing}"
-                            ColumnDefinitions="Auto,Auto,*,Auto" MinHeight="32">
+                            ColumnDefinitions="Auto,Auto,Auto,*,Auto" MinHeight="32">
                         <Grid.ContextFlyout>
                           <MenuFlyout>
+                            <MenuItem Header="{x:Static loc:Strings.Common_NewFolderInside}" Command="{Binding NewSubfolderCommand}" />
                             <MenuItem Header="{x:Static loc:Strings.Common_Rename}" Command="{Binding RenameCommand}" />
                             <MenuItem Header="{x:Static loc:Strings.Common_DeleteFolder}" Command="{Binding DeleteCommand}"
-                                      ToolTip.Tip="{x:Static loc:Strings.Main_ItsCardsStayInCards}" />
+                                      ToolTip.Tip="{x:Static loc:Strings.Common_FolderContentsMoveUp}" />
                           </MenuFlyout>
                         </Grid.ContextFlyout>
                         <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
                                 Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
-                        <!-- Indented under Cards. -->
-                        <PathIcon Grid.Column="1" Classes="foldericon" Width="15" Height="15" Margin="22,0,10,0"
+                        <!-- Indented under the page, and further under the folder it is in. The arrow shows or
+                             hides the folders in it; a folder without any keeps the arrow's room. -->
+                        <Panel Grid.Column="1" Width="18" Margin="{Binding NavIndent}">
+                          <Button Classes="icon small folderexpander" Classes.expanded="{Binding IsExpanded}"
+                                  Width="18" Height="18" MinWidth="0" MinHeight="0" Padding="0"
+                                  IsVisible="{Binding HasChildren}" Command="{Binding ToggleExpandedCommand}"
+                                  ToolTip.Tip="{x:Static loc:Strings.Common_ShowOrHideFoldersInside}">
+                            <PathIcon Data="{StaticResource Icon.chevronright}" Width="14" Height="14" />
+                          </Button>
+                        </Panel>
+                        <PathIcon Grid.Column="2" Classes="foldericon" Width="15" Height="15" Margin="4,0,10,0"
                                   Data="{StaticResource Icon.folder}" />
                         <!-- A transparent box around the name, so its tooltip shows over the whole cell, not just the glyphs. -->
-                        <Border Grid.Column="2" Classes="foldername" Background="Transparent" ToolTip.Tip="{Binding Name}">
+                        <Border Grid.Column="3" Classes="foldername" Background="Transparent" ToolTip.Tip="{Binding Path}">
                           <!-- Long names wrap onto a second line, tightly spaced, then trim. -->
                           <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" Margin="0,4"
                                      TextWrapping="Wrap" MaxLines="2" LineSpacing="-2" TextTrimming="CharacterEllipsis" />
                         </Border>
-                        <TextBlock Grid.Column="3" Classes="caption foldercount" Text="{Binding Count}"
+                        <TextBlock Grid.Column="4" Classes="caption foldercount" Text="{Binding Count}"
                                    VerticalAlignment="Center" Margin="8,0,10,0" />
                         <!-- On hover (and on the open folder) the folder's actions, over the end of the name and the
                              count: the name keeps its width, so it doesn't rewrap as they come and go. -->
-                        <StackPanel Grid.Column="2" Grid.ColumnSpan="2" Classes="folderactions" Orientation="Horizontal"
+                        <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Classes="folderactions" Orientation="Horizontal"
                                     HorizontalAlignment="Right" Margin="4,0,2,0" IsVisible="{Binding !IsEditing}">
+                          <Button Classes="icon small" Command="{Binding NewSubfolderCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_NewFolderInside}">
+                            <PathIcon Data="{StaticResource Icon.folderAdd}" />
+                          </Button>
                           <Button Classes="icon small" Command="{Binding RenameCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_RenameFolder}">
                             <PathIcon Data="{StaticResource Icon.edit}" />
                           </Button>
@@ -178,7 +234,7 @@
                             <PathIcon Data="{StaticResource Icon.delete}" />
                           </Button>
                         </StackPanel>
-                        <TextBox Grid.Column="2" Grid.ColumnSpan="2" Text="{Binding EditName}" MaxLength="64"
+                        <TextBox Grid.Column="3" Grid.ColumnSpan="2" Text="{Binding EditName}" MaxLength="64"
                                  MinHeight="0" Padding="6,2" Margin="-7,-3,4,-3" VerticalAlignment="Center" FontSize="13"
                                  IsVisible="{Binding IsEditing}" b:FocusOnShow.IsEnabled="True"
                                  KeyDown="OnFolderNameKeyDown" LostFocus="OnFolderNameLostFocus" />
@@ -361,26 +417,16 @@
       </Border>
     </Panel>
 
-    <!-- ==================== Delete folder dialog ==================== -->
-    <!-- Asked from the folder's row, its context menu or the open folder's header. -->
-    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
-           DataContext="{Binding Cards}" IsVisible="{Binding IsConfirmingFolderDelete}" x:DataType="vm:CardsViewModel">
-      <Border Classes="card" MaxWidth="420" Margin="16" VerticalAlignment="Center">
-        <StackPanel Spacing="14">
-          <TextBlock Classes="h2" TextWrapping="Wrap" Text="{Binding FolderDeletePrompt}" />
-          <TextBlock TextWrapping="Wrap" Text="{x:Static loc:Strings.Common_ItsCardsAreNotDeletedThey}" />
-          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-            <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelDeleteFolderCommand}"
-                    b:DialogKeys.IsCancel="True" />
-            <Button Classes="danger solid" Command="{Binding ConfirmDeleteFolderCommand}" b:DialogKeys.IsDefault="True">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.delete}" />
-                <TextBlock Text="{x:Static loc:Strings.Common_DeleteFolder}" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
-          </StackPanel>
-        </StackPanel>
-      </Border>
+    <!-- ==================== Delete folder dialogs ==================== -->
+    <!-- Asked from the folder's row, its context menu or the open folder's header; one for the card
+         folders, one for the dictionary folders. -->
+    <Panel Grid.Row="0" Grid.RowSpan="3" DataContext="{Binding Cards.FolderTree}" IsVisible="{Binding IsConfirmingDelete}"
+           x:DataType="vm:FolderBrowser">
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DeleteFolderDialog}" />
+    </Panel>
+    <Panel Grid.Row="0" Grid.RowSpan="3" DataContext="{Binding Dictionaries.FolderTree}" IsVisible="{Binding IsConfirmingDelete}"
+           x:DataType="vm:FolderBrowser">
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DeleteFolderDialog}" />
     </Panel>
 
     <!-- ==================== Exit hint ==================== -->

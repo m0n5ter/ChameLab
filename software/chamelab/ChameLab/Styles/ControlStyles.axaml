@@ -696,6 +696,19 @@
   <Style Selector="ListBox.nav Border.navrow.droptarget">
     <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
   </Style>
+  <!-- A folder's arrow points down while the folders in it are listed under it. -->
+  <Style Selector="Button.folderexpander PathIcon">
+    <Setter Property="Opacity" Value="0.7" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+      </Transitions>
+    </Setter>
+    <Setter Property="RenderTransform" Value="rotate(0deg)" />
+  </Style>
+  <Style Selector="Button.folderexpander.expanded PathIcon">
+    <Setter Property="RenderTransform" Value="rotate(90deg)" />
+  </Style>
   <!-- Folders without cards are dimmed (the name, icon and count; not the rename / delete buttons). -->
   <Style Selector="Grid.folderrow PathIcon.foldericon">
     <Setter Property="Opacity" Value="0.75" />
@@ -1020,6 +1033,24 @@
     <Setter Property="Padding" Value="6,4" />
     <Setter Property="Margin" Value="-7,0,0,0" />
     <Setter Property="MinHeight" Value="0" />
+  </Style>
+  <!-- The open folder's title (Cards, Dictionaries) being renamed: as big as the title it replaces. -->
+  <Style Selector="TextBox.titlebox.foldertitle">
+    <Setter Property="FontSize" Value="24" />
+    <!-- Frame and padding outside the text (border 1 + padding), so the letters stay where the title's were. -->
+    <Setter Property="Padding" Value="6,2" />
+    <Setter Property="Margin" Value="-7,-3" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- The open folder's title is renamed by a click on it. -->
+  <Style Selector="TextBlock.h1.renamable">
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="TextBlock.h1.renamable:pointerover">
+    <Setter Property="TextDecorations" Value="Underline" />
+  </Style>
+  <Style Selector="Panel.renaming > TextBlock.h1">
+    <Setter Property="Opacity" Value="0" />
   </Style>
   <Style Selector="TextBox.titlebox:pointerover">
     <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />

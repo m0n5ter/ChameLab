@@ -153,9 +153,6 @@
   <data name="Cards_Auth1" xml:space="preserve">
     <value>AUTH1 (0 = protection en écriture seule)</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>Retour aux cartes</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>Dump .bin</value>
   </data>
@@ -1275,9 +1272,6 @@
   <data name="Common_ImportedFrom" xml:space="preserve">
     <value>Importé depuis {0}</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>Ses cartes ne sont pas supprimées : elles retournent dans Cartes.</value>
-  </data>
   <data name="Common_KeyA" xml:space="preserve">
     <value>Clé A</value>
   </data>
@@ -2043,9 +2037,6 @@
   <data name="Main_Install" xml:space="preserve">
     <value>Installer</value>
   </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>Ses cartes restent dans Cartes</value>
-  </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>NAVIGATION</value>
   </data>
@@ -2260,7 +2251,7 @@
     <value>{0} carte|{0} cartes</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>Dossier {1} supprimé ; sa carte est toujours dans Cartes.|Dossier {1} supprimé ; ses {0} cartes sont toujours dans Cartes.</value>
+    <value>Dossier {1} supprimé ; sa carte est maintenant dans {2}.|Dossier {1} supprimé ; ses {0} cartes sont maintenant dans {2}.</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} dictionnaire|{0} dictionnaires</value>
@@ -3933,5 +3924,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} ne contient aucune carte avec ce type de mémoire.</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>Retour à {0}</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>Déplacer</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>Déplacer ce dossier dans un autre</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>Dossier {0} déplacé dans {1}.</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>Nouveau dossier à l'intérieur</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>Afficher ou masquer les dossiers qu'il contient</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>Son contenu remonte d'un niveau</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>Rien de son contenu n'est supprimé : tout va dans {0}.</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>Dossier {1} supprimé ; son dictionnaire est maintenant dans {2}.|Dossier {1} supprimé ; ses {0} dictionnaires sont maintenant dans {2}.</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>Déplacer ce dictionnaire dans un dossier</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>Aucun dictionnaire dans ce dossier pour l'instant. Faites-y glisser des dictionnaires dans le volet de navigation ou ajoutez-en un ici.</value>
   </data>
 </root>

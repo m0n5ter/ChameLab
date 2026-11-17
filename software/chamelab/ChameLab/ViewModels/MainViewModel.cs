@@ -62,8 +62,13 @@ public sealed class MainViewModel : ViewModelBase
         {
             if (e.PropertyName == nameof(CardsViewModel.CurrentFolder)) RaiseNavSelection();
         };
+        Dictionaries.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(DictionariesViewModel.CurrentFolder)) RaiseNavSelection();
+        };
         NavPages.CollectionChanged += (_, _) => SyncNavItems();
-        Cards.Folders.CollectionChanged += (_, _) => SyncNavItems();
+        Cards.FolderTree.NavFolders.CollectionChanged += (_, _) => SyncNavItems();
+        Dictionaries.FolderTree.NavFolders.CollectionChanged += (_, _) => SyncNavItems();
         SyncNavItems();
         _device.StateChanged += OnStateChanged;
         UpdateWatching();
@@ -131,7 +136,7 @@ public sealed class MainViewModel : ViewModelBase
             _connect.StopWatching();
     }
 
-    /// <summary>The page shown, for the bottom tab bar of narrow layouts (the card folders stay in the pane).</summary>
+    /// <summary>The page shown, for the bottom tab bar of narrow layouts (the folders stay in the pane).</summary>
     public PageViewModelBase? SelectedNavPage
     {
         get => _clearingNavSelection ? null : NavPages.Contains(_currentPage) ? _currentPage : null;
@@ -141,8 +146,17 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
-    /// <summary>The navigation list: the pages, with the card folders under Cards.</summary>
+    /// <summary>The navigation list: the pages, with the card folders under Cards and the dictionary folders under Dictionaries.</summary>
     public ObservableCollection<object> NavItems { get; } = new();
+
+    /// <summary>The page whose folders these are.</summary>
+    private PageViewModelBase PageOf(FolderBrowser tree) => ReferenceEquals(tree, Cards.FolderTree) ? Cards : Dictionaries;
+
+    /// <summary>The folder shown on the page shown, if it has folders and shows one.</summary>
+    private FolderViewModel? ShownFolder =>
+        ReferenceEquals(_currentPage, Cards) ? Cards.CurrentFolder
+        : ReferenceEquals(_currentPage, Dictionaries) ? Dictionaries.CurrentFolder
+        : null;
 
     /// <summary>Keeps <see cref="NavItems"/> in step with the pages and folders, in place (so a folder being renamed keeps its row).</summary>
     private void SyncNavItems()
@@ -151,8 +165,8 @@ public sealed class MainViewModel : ViewModelBase
         foreach (var page in NavPages)
         {
             wanted.Add(page);
-            if (!ReferenceEquals(page, Cards)) continue;
-            wanted.AddRange(Cards.Folders);
+            if (ReferenceEquals(page, Cards)) wanted.AddRange(Cards.FolderTree.NavFolders);
+            else if (ReferenceEquals(page, Dictionaries)) wanted.AddRange(Dictionaries.FolderTree.NavFolders);
         }
         for (var i = NavItems.Count - 1; i >= 0; i--)
             if (!wanted.Contains(NavItems[i])) NavItems.RemoveAt(i);
@@ -166,13 +180,13 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Two-way selection for the navigation list: the page shown, or the card folder shown. Selecting
-    /// a page navigates to it (Cards shows the cards in no folder), a folder shows its cards.
+    /// Two-way selection for the navigation list: the page shown, or the folder shown. Selecting a page
+    /// navigates to it (Cards shows the cards in no folder), a folder shows what is in it.
     /// </summary>
     public object? SelectedNavItem
     {
         get => _clearingNavSelection ? null
-            : ReferenceEquals(_currentPage, Cards) && Cards.CurrentFolder is { } folder ? folder
+            : ShownFolder is { } folder ? folder
             : NavPages.Contains(_currentPage) ? _currentPage : null;
         set
         {
@@ -180,9 +194,9 @@ public sealed class MainViewModel : ViewModelBase
             {
                 case PageViewModelBase page:
                     if (!ReferenceEquals(page, _currentPage)) _ = NavigateAsync(page);
-                    else if (ReferenceEquals(page, Cards) && Cards.CurrentFolder is not null) ShowFolder(null);
+                    else if (ShownFolder is { } shown) ShowFolder(shown.Owner, null);
                     break;
-                case CardFolderViewModel folder when !ReferenceEquals(folder, SelectedNavItem):
+                case FolderViewModel folder when !ReferenceEquals(folder, SelectedNavItem):
                     _ = OpenFolderAsync(folder);
                     break;
             }
@@ -211,15 +225,15 @@ public sealed class MainViewModel : ViewModelBase
         }, Avalonia.Threading.DispatcherPriority.Background);
     }
 
-    private async Task OpenFolderAsync(CardFolderViewModel folder)
+    private async Task OpenFolderAsync(FolderViewModel folder)
     {
-        await NavigateAsync(Cards);
-        ShowFolder(folder);
+        await NavigateAsync(PageOf(folder.Owner));
+        ShowFolder(folder.Owner, folder.Path);
     }
 
-    private void ShowFolder(CardFolderViewModel? folder)
+    private void ShowFolder(FolderBrowser tree, string? path)
     {
-        Cards.ShowFolder(folder);
+        tree.Show(path);
         RaiseNavSelection();
     }
 

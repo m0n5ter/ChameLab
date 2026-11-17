@@ -153,9 +153,6 @@
   <data name="Cards_Auth1" xml:space="preserve">
     <value>AUTH1（0 = 仅写保护）</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>返回卡片</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>.bin 转储</value>
   </data>
@@ -1275,9 +1272,6 @@
   <data name="Common_ImportedFrom" xml:space="preserve">
     <value>从 {0} 导入</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>其中的卡片不会被删除，而是回到“卡片”。</value>
-  </data>
   <data name="Common_KeyA" xml:space="preserve">
     <value>密钥 A</value>
   </data>
@@ -2043,9 +2037,6 @@
   <data name="Main_Install" xml:space="preserve">
     <value>安装</value>
   </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>其中的卡片保留在“卡片”中</value>
-  </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>导航</value>
   </data>
@@ -2260,7 +2251,7 @@
     <value>{0} 张卡片</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>已删除文件夹 {1}；其中的 {0} 张卡片仍在“卡片”中。</value>
+    <value>已删除文件夹 {1}；其中的 {0} 张卡片已移到 {2}。</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} 个字典</value>
@@ -3933,5 +3924,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} 中没有具有这种内存的卡片。</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>返回 {0}</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>移动</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>将此文件夹移到另一个文件夹</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>已将文件夹 {0} 移到 {1}。</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>在其中新建文件夹</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>显示或隐藏其中的文件夹</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>其中的内容会上移一级</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>其中的内容不会被删除，全部移到 {0}。</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>已删除文件夹 {1}；其中的 {0} 个字典已移到 {2}。</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>将此字典移到文件夹</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>此文件夹中还没有字典。在导航栏中将字典拖到文件夹上，或在此添加。</value>
   </data>
 </root>

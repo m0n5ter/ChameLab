@@ -153,9 +153,6 @@
   <data name="Cards_Auth1" xml:space="preserve">
     <value>AUTH1（0 = 書き込み保護のみ）</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>カード一覧に戻る</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>.bin ダンプ</value>
   </data>
@@ -1275,9 +1272,6 @@
   <data name="Common_ImportedFrom" xml:space="preserve">
     <value>{0} からインポート</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>中のカードは削除されず、「カード」に戻ります。</value>
-  </data>
   <data name="Common_KeyA" xml:space="preserve">
     <value>キー A</value>
   </data>
@@ -2043,9 +2037,6 @@
   <data name="Main_Install" xml:space="preserve">
     <value>インストール</value>
   </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>中のカードは「カード」に残ります</value>
-  </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>ナビゲーション</value>
   </data>
@@ -2260,7 +2251,7 @@
     <value>{0} 枚のカード</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>フォルダー {1} を削除しました。中の {0} 枚のカードは「カード」に残っています。</value>
+    <value>フォルダー {1} を削除しました。中の {0} 枚のカードは {2} に移りました。</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>{0} 個の辞書</value>
@@ -3933,5 +3924,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} にはこの種類のメモリを持つカードがありません。</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>{0} に戻る</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>移動</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>このフォルダーを別のフォルダーに移動</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>フォルダー {0} を {1} に移動しました。</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>中に新しいフォルダー</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>中のフォルダーを表示/非表示</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>中身は 1 つ上の階層に移動します</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>中身は削除されず、すべて {0} に移動します。</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>フォルダー {1} を削除しました。中の {0} 個の辞書は {2} に移りました。</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>この辞書をフォルダーに移動</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>このフォルダーにはまだ辞書がありません。ナビゲーションペインで辞書をフォルダーにドラッグするか、ここで追加してください。</value>
   </data>
 </root>

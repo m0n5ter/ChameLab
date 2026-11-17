@@ -19,13 +19,11 @@ public sealed record ChameleonGuiLibrary(
 /// <item>its folder export (<c>"format": "chameleon-ultra-gui-folder"</c>);</item>
 /// <item>its desktop <c>shared_preferences.json</c> (keys prefixed <c>flutter.</c>, entries as JSON strings).</item>
 /// </list>
-/// The GUI nests folders; ChameLab keeps one level, so a nested folder becomes the path of
-/// names from the top, joined by <see cref="PathSeparator"/>.
+/// Folders nest in both apps; a folder becomes the path of names from the top (see <see cref="FolderPath"/>).
 /// </summary>
 public static class ChameleonGuiImport
 {
     public const string FolderFormat = "chameleon-ultra-gui-folder";
-    public const string PathSeparator = " / ";
 
     /// <summary>The library in the file, or null when it is not a Chameleon Ultra GUI library file.</summary>
     public static ChameleonGuiLibrary? TryRead(byte[] bytes)
@@ -83,9 +81,9 @@ public static class ChameleonGuiImport
             var names = new List<string>();
             var seen = new HashSet<string>();
             for (var at = id; at is not null && seen.Add(at) && folders.TryGetValue(at, out var f); at = f.Parent)
-                if (f.Name.Trim().Length > 0) names.Add(f.Name.Trim());
+                if (FolderPath.NormalizeName(f.Name) is { Length: > 0 } name) names.Add(name);
             names.Reverse();
-            return paths[id] = CardSave.NormalizeFolder(string.Join(PathSeparator, names));
+            return paths[id] = string.Join(FolderPath.Separator, names);
         }
 
         var cards = new List<CardSave>();

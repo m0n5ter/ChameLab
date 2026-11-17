@@ -127,20 +127,20 @@ public partial class MainView : UserControl
         return true;
     }
 
-    // ---- Card folder names, edited in place ----------------------------------
+    // ---- Folder names, edited in place ----------------------------------
 
     private void OnFolderNameKeyDown(object? sender, KeyEventArgs e)
     {
-        if (sender is not Control { DataContext: CardFolderViewModel folder } || _vm is null) return;
-        if (e.Key == Key.Enter) _vm.Cards.CommitRename(folder);
-        else if (e.Key == Key.Escape) CardsViewModel.CancelRename(folder);
+        if (sender is not Control { DataContext: FolderViewModel folder }) return;
+        if (e.Key == Key.Enter) folder.Owner.CommitRename(folder);
+        else if (e.Key == Key.Escape) FolderBrowser.CancelRename(folder);
         else return;
         e.Handled = true;
     }
 
     private void OnFolderNameLostFocus(object? sender, RoutedEventArgs e)
     {
-        if (sender is Control { DataContext: CardFolderViewModel folder }) _vm?.Cards.CommitRename(folder);
+        if (sender is Control { DataContext: FolderViewModel folder }) folder.Owner.CommitRename(folder);
     }
 
     /// <summary>Closes the most recently opened flyout or drop-down, if any.</summary>

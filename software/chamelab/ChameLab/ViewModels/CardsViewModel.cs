@@ -75,8 +75,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private CardBand _band;
     private CardTypeOption _typeFilter = CardTypeOption.Any;
     private CardSort _sort = LoadSort();
-    // The folder shown; null shows the cards in no folder.
-    private string? _folder;
     private bool _isConnected;
     private IReadOnlyList<SlotInfo> _slotInfos = Array.Empty<SlotInfo>();
 
@@ -137,6 +135,15 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _device = device;
         _library = library;
         _dictionaries = dictionaries;
+        FolderTree = new FolderBrowser(library, "cardFoldersExpanded", () => Strings.Nav_Cards,
+            n => Loc.Plural(Strings.Plural_Cards, n),
+            (n, name, to) => Loc.Plural(Strings.Plural_DeletedFolderCards, n, name, to),
+            Notify, ReportError);
+        FolderTree.CurrentChanged += Rebuild;
+        FolderTree.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(FolderBrowser.CurrentFolder)) this.RaisePropertyChanged(nameof(CurrentFolder));
+        };
         WriteT55xxSettings = new(dictionaries);
         WriteT55xxSettings.WhenAnyValue(x => x.ReadyToStart, x => x.NewKeyError)
             .Subscribe(_ => this.RaisePropertyChanged(nameof(WriteLfSettingsReady)));
@@ -241,13 +248,6 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 (online, busy, succeeded) => online && !busy && succeeded));
         DetectCommand = ReactiveCommand.CreateFromTask(DetectAsync, connected);
         ResetFiltersCommand = ReactiveCommand.Create(ResetFilters, this.WhenAnyValue(x => x.HasFilters));
-        NewFolderCommand = ReactiveCommand.Create(NewFolder);
-        OpenNewFolderCommand = ReactiveCommand.Create(OpenNewFolder);
-        RenameCurrentFolderCommand = ReactiveCommand.Create(BeginRenameCurrentFolder);
-        DeleteCurrentFolderCommand = ReactiveCommand.Create(() => { if (CurrentFolder is { } f) AskDeleteFolder(f); });
-        ConfirmDeleteFolderCommand = ReactiveCommand.Create(ConfirmDeleteFolder);
-        CancelDeleteFolderCommand = ReactiveCommand.Create(() => { FolderToDelete = null; });
-        ShowRootCommand = ReactiveCommand.Create(() => ShowFolder(null));
 
         // Library edits made on the UI thread rebuild synchronously so a new card can be selected right away.
         _library.Changed += () =>
@@ -285,11 +285,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public ObservableCollection<CardItemViewModel> Cards { get; } = new();
 
-    public bool IsEmpty => _library.Cards.Count == 0;
+    /// <summary>No cards and no folders: the list shows how to add a card instead.</summary>
+    public bool IsEmpty => _library.Cards.Count == 0 && !FolderTree.HasFolders;
     /// <summary>The search or filters hide every card of the folder (or of Cards) shown.</summary>
     public bool NoMatches => HasFilters && Cards.Count == 0 && _library.Cards.Any(InView);
-    /// <summary>The open folder has no cards (Cards with every card in a folder shows the folder tiles instead).</summary>
-    public bool IsFolderEmpty => !IsEmpty && _folder is not null && !_library.Cards.Any(InView);
+    /// <summary>The open folder has no cards and no folders.</summary>
+    public bool IsFolderEmpty => !IsEmpty && FolderTree.IsInFolder && !FolderTree.ShowsTiles && !_library.Cards.Any(InView);
 
     public string CountText
     {
@@ -301,10 +302,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     }
 
     /// <summary>The card belongs where the list is: the folder shown, or no folder for Cards.</summary>
-    private bool InView(CardSave card) => card.Folder == (_folder ?? string.Empty);
-
-    /// <summary>The page title: the open folder, or Cards for the cards in no folder.</summary>
-    public string ListTitle => _folder ?? Strings.Nav_Cards;
+    private bool InView(CardSave card) => card.Folder == FolderTree.Location;
     public bool CanUseFiles => StorageService.IsAvailable;
 
     public string? Filter
@@ -457,8 +455,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (_library.Cards.All(c => c.Id != id)) return;
         if (Cards.All(c => c.Card.Id != id))
         {
-            var folder = _library.Cards.First(c => c.Id == id).Folder;
-            SetFolder(folder.Length == 0 ? null : folder);
+            FolderTree.Show(_library.Cards.First(c => c.Id == id).Folder);
             ResetFilters();
         }
         SetSelected(Cards.FirstOrDefault(c => c.Card.Id == id));
@@ -855,6 +852,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     private void Rebuild()
     {
         var selectedId = _selected?.Card.Id;
+        FolderTree.Rebuild();
         _rebuilding = true;
         try
         {
@@ -904,246 +902,44 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             SetSelected(reselect);
         }
 
-        RebuildFolders();
         this.RaisePropertyChanged(nameof(IsEmpty));
         this.RaisePropertyChanged(nameof(NoMatches));
         this.RaisePropertyChanged(nameof(IsFolderEmpty));
         this.RaisePropertyChanged(nameof(CountText));
-        this.RaisePropertyChanged(nameof(ListTitle));
-    }
-
-    // ---- Folders ---------------------------------------------------------
-
-    /// <summary>The library's folders, A–Z, listed in the navigation pane.</summary>
-    public ObservableCollection<CardFolderViewModel> Folders { get; } = new();
-
-    /// <summary>The folder shown, or null when the list shows every card.</summary>
-    public CardFolderViewModel? CurrentFolder => _folder is null ? null : Folders.FirstOrDefault(f => f.Name == _folder);
-
-    public ICommand NewFolderCommand { get; }
-
-    /// <summary>Back from a folder to Cards (the list's own back button, for when the navigation pane is hidden).</summary>
-    public ICommand ShowRootCommand { get; }
-
-    public bool IsInFolder => _folder is not null;
-
-    public bool HasFolders => Folders.Count > 0;
-
-    /// <summary>Cards (no folder open) lists the folders after its own cards.</summary>
-    public bool ShowsFolderTiles => _folder is null && Folders.Count > 0;
-
-    /// <summary>Where the open card can be moved: no folder (back to Cards), apart from the folders below it.</summary>
-    public IReadOnlyList<CardFolderOption> RootFolderOptions { get; } = new[] { new CardFolderOption(string.Empty) };
-
-    /// <summary>Where the open card can be moved: every folder.</summary>
-    public ObservableCollection<CardFolderOption> FolderOptions { get; } = new();
-
-    /// <summary>The open card's folder; picking another moves the card, and the list follows it there.</summary>
-    public CardFolderOption? SelectedCardFolder
-    {
-        get => _selected is { } s ? new CardFolderOption(s.Card.Folder) : null;
-        set
-        {
-            if (_rebuilding || value is null || _selected is not { } s || s.Card.Folder == value.Name) return;
-            SetFolder(value.Name.Length == 0 ? null : value.Name);
-            _library.MoveToFolder(s.Card, value.Name);
-            Notify(value.Name.Length == 0 ? string.Format(Strings.Cards_MovedOutOfFolder, s.Name) : string.Format(Strings.Cards_MovedToFolder, s.Name, value.Name));
-        }
-    }
-
-    /// <summary>Label of the open card's folder button.</summary>
-    public string CardFolderLabel => _selected is { Card.Folder: { Length: > 0 } folder } ? folder : Strings.Cards_Folder;
-
-    /// <summary>Shows the cards of a folder, or all of them for null.</summary>
-    public void ShowFolder(CardFolderViewModel? folder)
-    {
-        SetFolder(folder?.Name);
-        Rebuild();
-    }
-
-    private void SetFolder(string? name)
-    {
-        if (_folder == name) return;
-        _folder = name;
-        IsRenamingFolder = false;
-        this.RaisePropertyChanged(nameof(CurrentFolder));
-        this.RaisePropertyChanged(nameof(IsInFolder));
-        this.RaisePropertyChanged(nameof(ShowsFolderTiles));
-    }
-
-    /// <summary>Syncs <see cref="Folders"/> with the library in place, so selection and an edit in progress survive.</summary>
-    private void RebuildFolders()
-    {
-        var names = _library.Folders;
-        if (_folder is not null && !names.Contains(_folder)) SetFolder(null);
-        var counts = _library.Cards.GroupBy(c => c.Folder).ToDictionary(g => g.Key, g => g.Count());
-        for (var i = Folders.Count - 1; i >= 0; i--)
-            if (!names.Contains(Folders[i].Name)) Folders.RemoveAt(i);
-        for (var i = 0; i < names.Count; i++)
-        {
-            var at = -1;
-            for (var j = i; j < Folders.Count; j++)
-                if (Folders[j].Name == names[i]) { at = j; break; }
-            if (at < 0) Folders.Insert(i, new CardFolderViewModel(names[i], f => ShowFolder(f), BeginRename, AskDeleteFolder));
-            else if (at != i) Folders.Move(at, i);
-            Folders[i].Count = counts.GetValueOrDefault(names[i]);
-        }
-
-        var options = names.Select(n => new CardFolderOption(n, counts.GetValueOrDefault(n))).ToList();
-        // Rebuilt when a name or a count changed (options compare by name alone).
-        if (!options.Select(o => (o.Name, o.Count)).SequenceEqual(FolderOptions.Select(o => (o.Name, o.Count))))
-        {
-            _rebuilding = true;
-            try
-            {
-                FolderOptions.Clear();
-                foreach (var option in options) FolderOptions.Add(option);
-            }
-            finally { _rebuilding = false; }
-        }
-        this.RaisePropertyChanged(nameof(CurrentFolder));
-        this.RaisePropertyChanged(nameof(HasFolders));
-        this.RaisePropertyChanged(nameof(ShowsFolderTiles));
         this.RaisePropertyChanged(nameof(SelectedCardFolder));
         this.RaisePropertyChanged(nameof(CardFolderLabel));
     }
 
-    /// <summary>The list's New folder: opens the new folder with its title being renamed, as the navigation
-    /// pane (where <see cref="NewFolderCommand"/> renames it) may be hidden.</summary>
-    public ICommand OpenNewFolderCommand { get; }
+    // ---- Folders ---------------------------------------------------------
 
-    private void NewFolder()
-    {
-        if (AddFolder() is { } folder) BeginRename(folder);
-    }
+    /// <summary>The cards' nested folders: the one shown, the navigation pane's rows, the tiles and the pickers.</summary>
+    public FolderBrowser FolderTree { get; }
 
-    private void OpenNewFolder()
-    {
-        if (AddFolder() is not { } folder) return;
-        ShowFolder(folder);
-        BeginRenameCurrentFolder();
-    }
+    /// <summary>The folder shown, or null for the cards in no folder.</summary>
+    public FolderViewModel? CurrentFolder => FolderTree.CurrentFolder;
 
-    private CardFolderViewModel? AddFolder()
+    /// <summary>The open card's folder; picking another moves the card, and the list follows it there.</summary>
+    public FolderOption? SelectedCardFolder
     {
-        var name = Strings.Common_NewFolder;
-        for (var n = 2; _library.FindFolder(name) is not null; n++) name = string.Format(Strings.Cards_NewFolderN, n);
-        return _library.AddFolder(name) ? Folders.FirstOrDefault(f => f.Name == name) : null;
-    }
-
-    private void BeginRename(CardFolderViewModel folder)
-    {
-        foreach (var other in Folders.Where(f => f.IsEditing && f != folder)) other.IsEditing = false;
-        folder.EditName = folder.Name;
-        folder.IsEditing = true;
-    }
-
-    /// <summary>Ends an edit of a folder's name; a name another folder has is refused.</summary>
-    public void CommitRename(CardFolderViewModel folder)
-    {
-        if (!folder.IsEditing) return;
-        folder.IsEditing = false;
-        RenameFolder(folder, folder.EditName);
-    }
-
-    /// <summary>Renames a folder; a name another folder has is refused.</summary>
-    private void RenameFolder(CardFolderViewModel folder, string? newName)
-    {
-        var old = folder.Name;
-        var name = CardSave.NormalizeFolder(newName);
-        if (name.Length == 0 || name == old) return;
-        if (_library.FindFolder(name) is { } taken && taken != old)
+        get => _selected is { } s ? new FolderOption(s.Card.Folder, string.Empty) : null;
+        set
         {
-            ReportError(string.Format(Strings.Cards_FolderExists, taken));
-            return;
-        }
-        // Renamed in place first, so the row (and the selection on it) is kept.
-        folder.Name = name;
-        if (_folder == old) _folder = name;
-        if (_library.RenameFolder(old, name)) return;
-        folder.Name = old;
-        if (_folder == name) _folder = old;
-    }
-
-    public static void CancelRename(CardFolderViewModel folder) => folder.IsEditing = false;
-
-    // ---- The open folder's own header: rename in place, delete ------------
-
-    /// <summary>The open folder's title is a field.</summary>
-    public bool IsRenamingFolder
-    {
-        get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
-    }
-
-    public string? FolderRenameText
-    {
-        get;
-        set => this.RaiseAndSetIfChanged(ref field, value);
-    }
-
-    public ICommand RenameCurrentFolderCommand { get; }
-
-    private void BeginRenameCurrentFolder()
-    {
-        if (CurrentFolder is not { } folder) return;
-        FolderRenameText = folder.Name;
-        IsRenamingFolder = true;
-    }
-
-    public void CommitFolderRename()
-    {
-        if (!IsRenamingFolder) return;
-        IsRenamingFolder = false;
-        if (CurrentFolder is { } folder) RenameFolder(folder, FolderRenameText);
-    }
-
-    public void CancelFolderRename() => IsRenamingFolder = false;
-
-    /// <summary>Asks to delete the open folder, in the centered dialog.</summary>
-    public ICommand DeleteCurrentFolderCommand { get; }
-    public ICommand ConfirmDeleteFolderCommand { get; }
-    public ICommand CancelDeleteFolderCommand { get; }
-
-    /// <summary>The folder the delete dialog asks about; null while it is closed.</summary>
-    public CardFolderViewModel? FolderToDelete
-    {
-        get;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(IsConfirmingFolderDelete));
-            this.RaisePropertyChanged(nameof(FolderDeletePrompt));
+            if (_rebuilding || value is null || _selected is not { } s || s.Card.Folder == value.Path) return;
+            FolderTree.Show(value.Path);
+            _library.MoveToFolder(s.Card, value.Path);
+            Notify(MovedText(s.Name, value.Path));
         }
     }
 
-    public bool IsConfirmingFolderDelete => FolderToDelete is not null;
+    private static string MovedText(string name, string folder) => folder.Length == 0
+        ? string.Format(Strings.Cards_MovedOutOfFolder, name)
+        : string.Format(Strings.Cards_MovedToFolder, name, FolderPath.Name(folder));
 
-    public string FolderDeletePrompt =>
-        FolderToDelete is { } folder ? string.Format(Strings.Common_DeleteFolderPrompt, folder.Name) : "";
+    /// <summary>Label of the open card's folder button.</summary>
+    public string CardFolderLabel => _selected is { Card.Folder: { Length: > 0 } folder } ? FolderPath.Name(folder) : Strings.Cards_Folder;
 
-    private void AskDeleteFolder(CardFolderViewModel folder) => FolderToDelete = folder;
-
-    private void ConfirmDeleteFolder()
-    {
-        if (FolderToDelete is not { } folder) return;
-        FolderToDelete = null;
-        // Gone already (renamed or removed meanwhile): nothing to delete.
-        if (Folders.Contains(folder)) DeleteFolder(folder);
-    }
-
-    /// <summary>Deletes a folder; its cards stay, in no folder.</summary>
-    private void DeleteFolder(CardFolderViewModel folder)
-    {
-        if (_folder == folder.Name) SetFolder(null);
-        var count = folder.Count;
-        _library.RemoveFolder(folder.Name);
-        Notify(count switch
-        {
-            0 => string.Format(Strings.Cards_DeletedFolder, folder.Name),
-            _ => Loc.Plural(Strings.Plural_DeletedFolderCards, count, folder.Name),
-        });
-    }
+    /// <summary>Shows the cards of a folder, or those in no folder for null.</summary>
+    public void ShowFolder(FolderViewModel? folder) => FolderTree.Show(folder?.Path);
 
     /// <summary>
     /// Moves a card to a folder (empty for none). Taking the open card out of the folder shown
@@ -1155,13 +951,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         void Move()
         {
             _library.MoveToFolder(card, folder);
-            Notify(folder.Length == 0 ? string.Format(Strings.Cards_MovedOutOfFolder, name) : string.Format(Strings.Cards_MovedToFolder, name, folder));
+            Notify(MovedText(name, folder));
         }
-        if (folder != (_folder ?? string.Empty) && _selected?.Card.Id == card.Id) LeaveThen(Move);
+        if (folder != FolderTree.Location && _selected?.Card.Id == card.Id) LeaveThen(Move);
         else Move();
     }
 
-    // Cards are dropped onto a folder in the navigation pane, or onto Cards to take them out of theirs.
+    // Cards are dropped onto a folder (its row in the navigation pane, its tile), or onto Cards to take them out of theirs.
     bool IDropOutList.CanDropOut(object item, object target) =>
         item is CardItemViewModel card && TargetFolder(target) is { } folder && card.Card.Folder != folder;
 
@@ -1172,7 +968,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private string? TargetFolder(object target) => target switch
     {
-        CardFolderViewModel f => f.Name,
+        FolderViewModel f when ReferenceEquals(f.Owner, FolderTree) => f.Path,
         CardsViewModel c when ReferenceEquals(c, this) => string.Empty,
         _ => null,
     };
@@ -2192,8 +1988,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 return;
             }
             // A whole library export goes straight in (the open folder takes cards that have none).
-            if (_folder is not null)
-                foreach (var card in cards.Where(c => c.Folder.Length == 0)) card.Folder = _folder;
+            if (FolderTree.Current is { } folder)
+                foreach (var card in cards.Where(c => c.Folder.Length == 0)) card.Folder = folder;
             _library.AddRange(cards);
             SelectById(cards[^1].Id);
             Notify(Loc.Plural(Strings.Plural_ImportedCards, cards.Count));
@@ -2213,7 +2009,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         var isNew = _pane == CardsPane.Add;
         var previous = isNew ? null : _selected?.Card;
-        if (isNew && card.Folder.Length == 0 && _folder is not null) card.Folder = _folder;
+        if (isNew && card.Folder.Length == 0 && FolderTree.Current is { } folder) card.Folder = folder;
         try
         {
             if (isNew) _library.Add(card); else _library.Update(card);

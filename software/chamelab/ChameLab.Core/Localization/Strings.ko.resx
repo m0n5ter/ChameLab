@@ -153,9 +153,6 @@
   <data name="Cards_Auth1" xml:space="preserve">
     <value>AUTH1(0 = 쓰기 보호만)</value>
   </data>
-  <data name="Cards_BackToCards" xml:space="preserve">
-    <value>카드로 돌아가기</value>
-  </data>
   <data name="Cards_BinDump" xml:space="preserve">
     <value>.bin 덤프</value>
   </data>
@@ -1275,9 +1272,6 @@
   <data name="Common_ImportedFrom" xml:space="preserve">
     <value>{0}에서 가져옴</value>
   </data>
-  <data name="Common_ItsCardsAreNotDeletedThey" xml:space="preserve">
-    <value>폴더의 카드는 삭제되지 않고 ‘카드’로 돌아갑니다.</value>
-  </data>
   <data name="Common_KeyA" xml:space="preserve">
     <value>키 A</value>
   </data>
@@ -2043,9 +2037,6 @@
   <data name="Main_Install" xml:space="preserve">
     <value>설치</value>
   </data>
-  <data name="Main_ItsCardsStayInCards" xml:space="preserve">
-    <value>폴더의 카드는 ‘카드’에 남습니다</value>
-  </data>
   <data name="Main_NavigationHeader" xml:space="preserve">
     <value>탐색</value>
   </data>
@@ -2260,7 +2251,7 @@
     <value>카드 {0}장</value>
   </data>
   <data name="Plural_DeletedFolderCards" xml:space="preserve">
-    <value>{1} 폴더를 삭제했습니다. 폴더의 카드 {0}장은 ‘카드’에 남아 있습니다.</value>
+    <value>{1} 폴더를 삭제했습니다. 폴더의 카드 {0}장은 이제 {2}에 있습니다.</value>
   </data>
   <data name="Plural_Dictionaries" xml:space="preserve">
     <value>사전 {0}개</value>
@@ -3933,5 +3924,38 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0}에 이런 종류의 메모리를 가진 카드가 없습니다.</value>
+  </data>
+  <data name="Common_BackTo" xml:space="preserve">
+    <value>{0}(으)로 돌아가기</value>
+  </data>
+  <data name="Common_Move" xml:space="preserve">
+    <value>이동</value>
+  </data>
+  <data name="Common_MoveFolder" xml:space="preserve">
+    <value>이 폴더를 다른 폴더로 이동</value>
+  </data>
+  <data name="Common_MovedFolder" xml:space="preserve">
+    <value>{0} 폴더를 {1}(으)로 옮겼습니다.</value>
+  </data>
+  <data name="Common_NewFolderInside" xml:space="preserve">
+    <value>안에 새 폴더</value>
+  </data>
+  <data name="Common_ShowOrHideFoldersInside" xml:space="preserve">
+    <value>안의 폴더 표시 또는 숨기기</value>
+  </data>
+  <data name="Common_FolderContentsMoveUp" xml:space="preserve">
+    <value>안의 항목은 한 단계 위로 이동합니다</value>
+  </data>
+  <data name="Common_FolderContentsMoveTo" xml:space="preserve">
+    <value>안의 항목은 삭제되지 않고 모두 {0}(으)로 이동합니다.</value>
+  </data>
+  <data name="Plural_DeletedFolderDictionaries" xml:space="preserve">
+    <value>{1} 폴더를 삭제했습니다. 폴더의 사전 {0}개는 이제 {2}에 있습니다.</value>
+  </data>
+  <data name="Dictionaries_MoveThisDictionaryToAFolder" xml:space="preserve">
+    <value>이 사전을 폴더로 이동</value>
+  </data>
+  <data name="Dictionaries_NoDictionariesInThisFolderYet" xml:space="preserve">
+    <value>이 폴더에는 아직 사전이 없습니다. 탐색 창에서 사전을 폴더로 드래그하거나 여기에서 추가하세요.</value>
   </data>
 </root>

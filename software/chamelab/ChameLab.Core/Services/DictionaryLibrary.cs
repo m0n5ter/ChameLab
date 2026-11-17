@@ -8,16 +8,23 @@ using ChameLab.Localization;
 
 namespace ChameLab.Services;
 
-/// <summary>The user's saved key dictionaries, persisted via an <see cref="IKeyValueStore"/>.</summary>
-public sealed class DictionaryLibrary
+/// <summary>
+/// The user's saved key dictionaries, persisted via an <see cref="IKeyValueStore"/>. Dictionaries
+/// are filed in nested folders like cards (see <see cref="FolderPath"/>); the folders are kept
+/// apart as well, so a folder stays while it is empty.
+/// </summary>
+public sealed class DictionaryLibrary : IFolderLibrary
 {
     private const string StoreKey = "dictionaries";
+    private const string FoldersKey = "dictionaryFolders";
     private readonly IKeyValueStore _store;
     private readonly List<KeyDictionary> _dicts = new();
+    private readonly FolderList<KeyDictionary> _folders;
 
     public DictionaryLibrary(IKeyValueStore store)
     {
         _store = store;
+        _folders = new FolderList<KeyDictionary>(_dicts, d => d.Folder, (d, f) => d.Folder = f);
         KnownKeys = new KnownCardKeys(store);
         KnownKeys.Changed += () => Changed?.Invoke();
         Load();
@@ -25,6 +32,12 @@ public sealed class DictionaryLibrary
 
     public IReadOnlyList<KeyDictionary> Dictionaries => _dicts;
     public KnownCardKeys KnownKeys { get; }
+
+    /// <summary>Folder paths in tree order.</summary>
+    public IReadOnlyList<string> Folders => _folders.Paths;
+
+    public IEnumerable<string> ItemFolders => _folders.ItemFolders;
+
     public string? LoadError { get; private set; }
 
     public event Action? Changed;
@@ -34,11 +47,10 @@ public sealed class DictionaryLibrary
         string? json;
         try { json = _store.Read(StoreKey); }
         catch (Exception ex) { LoadError = ex.Message; return; }
-        if (string.IsNullOrWhiteSpace(json)) return;
 
         try
         {
-            if (JsonNode.Parse(json) is JsonArray list)
+            if (!string.IsNullOrWhiteSpace(json) && JsonNode.Parse(json) is JsonArray list)
                 foreach (var node in list)
                     if (node is not null) _dicts.Add(KeyDictionary.FromJson(node));
         }
@@ -47,6 +59,14 @@ public sealed class DictionaryLibrary
             LoadError = string.Format(Strings.Library_DictionariesLoadError, ex.Message);
             _dicts.Clear();
         }
+
+        JsonNode? names = null;
+        try { names = JsonNode.Parse(_store.Read(FoldersKey) ?? "[]"); }
+        catch (Exception)
+        {
+            // Lost names only drop empty folders; the dictionaries' own folders come back.
+        }
+        _folders.Load(names);
     }
 
     private void Save()
@@ -54,6 +74,7 @@ public sealed class DictionaryLibrary
         if (LoadError is not null) return;
         var array = new JsonArray(_dicts.Select(d => (JsonNode)d.ToJson()).ToArray());
         _store.Write(StoreKey, array.ToJsonString(new JsonSerializerOptions { WriteIndented = false }));
+        _store.Write(FoldersKey, _folders.ToJson().ToJsonString());
         Changed?.Invoke();
     }
 
@@ -65,7 +86,15 @@ public sealed class DictionaryLibrary
         {
             if (_dicts.Any(d => d.Id == dict.Id)) dict.Id = Guid.NewGuid().ToString();
             _dicts.Add(dict);
+            _folders.File(dict, dict.Folder);
         }
+        Save();
+    }
+
+    /// <summary>Creates the folders listed (empty ones too), e.g. from a backup.</summary>
+    public void AddFolders(IEnumerable<string> folders)
+    {
+        foreach (var folder in folders) _folders.Add(folder);
         Save();
     }
 
@@ -73,6 +102,7 @@ public sealed class DictionaryLibrary
     {
         var i = _dicts.FindIndex(d => d.Id == dict.Id);
         if (i < 0) _dicts.Add(dict); else _dicts[i] = dict;
+        _folders.File(dict, dict.Folder);
         Save();
     }
 
@@ -103,6 +133,51 @@ public sealed class DictionaryLibrary
     public void Remove(KeyDictionary dict)
     {
         if (_dicts.RemoveAll(d => d.Id == dict.Id) > 0) Save();
+    }
+
+    // ---- Folders --------------------------------------------------------
+
+    public string? FindFolder(string? path) => _folders.Find(path);
+
+    public string? AddFolder(string path)
+    {
+        if (FolderPath.Normalize(path).Length == 0 || _folders.Find(path) is not null) return null;
+        var added = _folders.Add(path);
+        Save();
+        return added;
+    }
+
+    public string? RenameFolder(string path, string newName)
+    {
+        var old = _folders.Find(path);
+        var renamed = _folders.Rename(path, newName);
+        if (renamed is not null && renamed != old) Save();
+        return renamed;
+    }
+
+    public string? MoveFolder(string path, string parent)
+    {
+        var old = _folders.Find(path);
+        var moved = _folders.Move(path, parent);
+        if (moved is not null && moved != old) Save();
+        return moved;
+    }
+
+    /// <summary>Deletes a folder and the folders in it; their dictionaries move up to the folder that held it.</summary>
+    public void RemoveFolder(string path)
+    {
+        if (_folders.Remove(path)) Save();
+    }
+
+    /// <summary>Files a dictionary in a folder (empty for none), creating the folder if needed.</summary>
+    public void MoveToFolder(KeyDictionary dict, string folder)
+    {
+        if (_dicts.FirstOrDefault(d => d.Id == dict.Id) is not { } saved) return;
+        var path = _folders.Find(folder) ?? FolderPath.Normalize(folder);
+        if (saved.Folder == path) return;
+        path = _folders.File(saved, path);
+        if (!ReferenceEquals(saved, dict)) dict.Folder = path;
+        Save();
     }
 
     /// <summary>All keys from every dictionary, de-duplicated, for a dump pass.</summary>

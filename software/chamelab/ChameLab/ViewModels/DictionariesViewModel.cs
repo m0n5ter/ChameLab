@@ -47,6 +47,8 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     private readonly int _keyLength;
 
     private readonly string _id;
+    // The dictionary opened: its folder may change (moved from the list) while it is being edited.
+    private readonly KeyDictionary _source;
     private readonly string _baseline;
     private readonly List<byte[]> _rows;
     // Rows whose key already appears higher up, with the row it repeats.
@@ -60,6 +62,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
     public DictionaryEditorViewModel(KeyDictionary source)
     {
         _id = source.Id;
+        _source = source;
         _name = source.Name;
         _color = source.Color;
         _keyLength = source.KeyLength;
@@ -179,6 +182,7 @@ public sealed class DictionaryEditorViewModel : ViewModelBase
             Id = _id,
             Name = _name.Trim(),
             Color = CardSave.NormalizeColor(_color),
+            Folder = _source.Folder,
             KeyLength = _keyLength,
             Keys = _rows.Where((r, i) => r.Length > 0 && !_repeats.ContainsKey(i)).Select(r => (byte[])r.Clone()).ToList(),
         };
@@ -223,7 +227,7 @@ public static class DictionarySortExtensions
 /// in place, saved from the bar below) with duplicate / export / delete actions. Dumps use the
 /// dictionaries (plus the built-in defaults) when recovering a card.
 /// </summary>
-public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
+public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList, IDropOutList
 {
     private readonly DictionaryLibrary _library;
     private DictionaryItemViewModel? _selected;
@@ -240,6 +244,15 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public DictionariesViewModel(DictionaryLibrary library, CardLibrary? cards = null) : base(() => Strings.Nav_Dictionaries, "key")
     {
         _library = library;
+        FolderTree = new FolderBrowser(library, "dictionaryFoldersExpanded", () => Strings.Nav_Dictionaries,
+            n => Loc.Plural(Strings.Plural_Dictionaries, n),
+            (n, name, to) => Loc.Plural(Strings.Plural_DeletedFolderDictionaries, n, name, to),
+            Notify, ReportError);
+        FolderTree.CurrentChanged += Rebuild;
+        FolderTree.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(FolderBrowser.CurrentFolder)) this.RaisePropertyChanged(nameof(CurrentFolder));
+        };
         KnownEditor = new KnownKeysEditorViewModel(library.KnownKeys, cards ?? AppServices.Cards);
         KnownEditor.PropertyChanged += (_, e) =>
         {
@@ -300,9 +313,20 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     public bool IsKnownKeys => _pane == DictionariesPane.KnownKeys;
     public bool IsEditorPane => HasPane && !IsKnownKeys;
 
-    public bool IsEmpty => _library.Dictionaries.Count == 0;
-    public bool NoMatches => !IsEmpty && Dictionaries.Count == 0;
-    public string CountText => Loc.Plural(Strings.Plural_Dictionaries, _library.Dictionaries.Count);
+    public bool IsEmpty => _library.Dictionaries.Count == 0 && !FolderTree.HasFolders;
+
+    /// <summary>The search or the key length hides every dictionary of the folder (or of Dictionaries) shown.</summary>
+    public bool NoMatches => HasFilters && Dictionaries.Count == 0 && _library.Dictionaries.Any(InView);
+
+    /// <summary>The open folder has no dictionaries and no folders.</summary>
+    public bool IsFolderEmpty => FolderTree.IsInFolder && !FolderTree.ShowsTiles && !_library.Dictionaries.Any(InView);
+
+    private bool HasFilters => !string.IsNullOrWhiteSpace(_filter) || _keyLengthFilter.Length != 0;
+
+    public string CountText => Loc.Plural(Strings.Plural_Dictionaries, _library.Dictionaries.Count(InView));
+
+    /// <summary>The dictionary belongs where the list is: the folder shown, or no folder for Dictionaries.</summary>
+    private bool InView(KeyDictionary dict) => dict.Folder == FolderTree.Location;
     public bool CanUseFiles => StorageService.IsAvailable;
 
     public string? Filter
@@ -382,10 +406,12 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     {
         this.RaisePropertyChanged(nameof(KnownKeysCountText));
         var selectedId = _selected?.Dictionary.Id;
+        FolderTree.Rebuild();
         _rebuilding = true;
         try
         {
             var items = _library.Dictionaries
+                .Where(InView)
                 .Select(d => new DictionaryItemViewModel(d))
                 .Where(d => (_keyLengthFilter.Length == 0 || d.Dictionary.HasKeysOfLength(_keyLengthFilter.Length))
                     && d.Matches(_filter));
@@ -425,8 +451,76 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
 
         this.RaisePropertyChanged(nameof(IsEmpty));
         this.RaisePropertyChanged(nameof(NoMatches));
+        this.RaisePropertyChanged(nameof(IsFolderEmpty));
         this.RaisePropertyChanged(nameof(CountText));
+        this.RaisePropertyChanged(nameof(SelectedDictionaryFolder));
+        this.RaisePropertyChanged(nameof(DictionaryFolderLabel));
     }
+
+    // ---- Folders ---------------------------------------------------------
+
+    /// <summary>The dictionaries' nested folders: the one shown, the navigation pane's rows, the tiles and the pickers.</summary>
+    public FolderBrowser FolderTree { get; }
+
+    /// <summary>The folder shown, or null for the dictionaries in no folder.</summary>
+    public FolderViewModel? CurrentFolder => FolderTree.CurrentFolder;
+
+    /// <summary>Shows the dictionaries of a folder, or those in no folder for null.</summary>
+    public void ShowFolder(FolderViewModel? folder) => FolderTree.Show(folder?.Path);
+
+    /// <summary>The open dictionary's folder; picking another moves it, and the list follows it there.</summary>
+    public FolderOption? SelectedDictionaryFolder
+    {
+        get => _selected is { } s ? new FolderOption(s.Dictionary.Folder, string.Empty) : null;
+        set
+        {
+            if (_rebuilding || value is null || _selected is not { } s || s.Dictionary.Folder == value.Path) return;
+            FolderTree.Show(value.Path);
+            _library.MoveToFolder(s.Dictionary, value.Path);
+            Notify(MovedText(s.Name, value.Path));
+        }
+    }
+
+    /// <summary>Label of the open dictionary's folder button.</summary>
+    public string DictionaryFolderLabel =>
+        _selected is { Dictionary.Folder: { Length: > 0 } folder } ? FolderPath.Name(folder) : Strings.Cards_Folder;
+
+    private static string MovedText(string name, string folder) => folder.Length == 0
+        ? string.Format(Strings.Cards_MovedOutOfFolder, name)
+        : string.Format(Strings.Cards_MovedToFolder, name, FolderPath.Name(folder));
+
+    /// <summary>
+    /// Moves a dictionary to a folder (empty for none). Taking the open one out of the folder shown
+    /// closes it, so unsaved edits are asked about first.
+    /// </summary>
+    private void MoveDictionary(KeyDictionary dict, string folder)
+    {
+        var name = string.IsNullOrWhiteSpace(dict.Name) ? Strings.Common_NoName : dict.Name;
+        void Move()
+        {
+            _library.MoveToFolder(dict, folder);
+            Notify(MovedText(name, folder));
+        }
+        if (folder != FolderTree.Location && _selected?.Dictionary.Id == dict.Id) LeaveThen(Move);
+        else Move();
+    }
+
+    // Dictionaries are dropped onto a folder (its row in the navigation pane, its tile), or onto Dictionaries
+    // to take them out of theirs.
+    bool IDropOutList.CanDropOut(object item, object target) =>
+        item is DictionaryItemViewModel d && TargetFolder(target) is { } folder && d.Dictionary.Folder != folder;
+
+    void IDropOutList.DropOut(object item, object target)
+    {
+        if (item is DictionaryItemViewModel d && TargetFolder(target) is { } folder) MoveDictionary(d.Dictionary, folder);
+    }
+
+    private string? TargetFolder(object target) => target switch
+    {
+        FolderViewModel f when ReferenceEquals(f.Owner, FolderTree) => f.Path,
+        DictionariesViewModel d when ReferenceEquals(d, this) => string.Empty,
+        _ => null,
+    };
 
     private void SelectById(string id) => SetSelected(Dictionaries.FirstOrDefault(d => d.Dictionary.Id == id));
 
@@ -457,6 +551,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     {
         if (ReferenceEquals(value, _selected)) return;
         this.RaiseAndSetIfChanged(ref _selected, value, nameof(Selected));
+        this.RaisePropertyChanged(nameof(SelectedDictionaryFolder));
+        this.RaisePropertyChanged(nameof(DictionaryFolderLabel));
         IsConfirmingDelete = false;
         if (value is not null)
         {
@@ -551,6 +647,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
     private void BeginNew() => OpenNew(new KeyDictionary
     {
         Name = Strings.Dictionaries_NewDictionary,
+        Folder = FolderTree.Location,
         KeyLength = _keyLengthFilter.Length == 0 ? 6 : _keyLengthFilter.Length,
     }, Strings.Dictionaries_NewDictionary);
 
@@ -713,6 +810,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList
         if (string.IsNullOrWhiteSpace(dict.Name)) dict.Name = name;
         // A fresh id, so a re-import never stands in for the saved original.
         dict.Id = Guid.NewGuid().ToString();
+        // Filed in the folder shown, like a new one.
+        dict.Folder = FolderTree.Location;
 
         // Reviewed (name, color, keys) before it is saved, like a new one.
         Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenNew(dict, string.Format(Strings.Common_ImportedFrom, file.Name)));
