@@ -4,7 +4,13 @@ using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
+using Avalonia;
 using Avalonia.Android;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Layout;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using ChameLab.Services;
 
 namespace ChameLab.Android;
@@ -43,6 +49,29 @@ public class MainActivity : AvaloniaMainActivity
         if (ReferenceEquals(AndroidWakeLock.Window, Window)) AndroidWakeLock.Window = null;
         if (ReferenceEquals(AndroidQrCamera.Activity, this)) AndroidQrCamera.Activity = null;
         base.OnDestroy();
+    }
+
+    public override void OnWindowFocusChanged(bool hasFocus)
+    {
+        base.OnWindowFocusChanged(hasFocus);
+        if (hasFocus) Dispatcher.UIThread.Post(RefreshView, DispatcherPriority.Background);
+    }
+
+    /// <summary>
+    /// Content that changed while another activity covered the app (the QR scanner, a file picker) can
+    /// come back half drawn: controls missing, buttons drawn over each other. Back in front, the whole
+    /// view is laid out and drawn again.
+    /// </summary>
+    private static void RefreshView()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is not ISingleViewApplicationLifetime { MainView: { } view })
+            return;
+        var root = (Visual?)TopLevel.GetTopLevel(view) ?? view;
+        foreach (var visual in root.GetSelfAndVisualDescendants())
+        {
+            if (visual is Layoutable layoutable) layoutable.InvalidateMeasure();
+            visual.InvalidateVisual();
+        }
     }
 
     private void RequestBlePermissions()
