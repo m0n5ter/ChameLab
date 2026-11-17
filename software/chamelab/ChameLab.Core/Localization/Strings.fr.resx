@@ -3979,18 +3979,6 @@
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
     <value>Listes de clés publiées sur GitHub par les projets Proxmark3, Flipper Zero et Unleashed. Celui que vous choisissez s'ouvre pour vérification avant d'être enregistré.</value>
   </data>
-  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
-    <value>Clés par défaut {0}</value>
-  </data>
-  <data name="Dictionaries_DlKeys" xml:space="preserve">
-    <value>Clés {0}</value>
-  </data>
-  <data name="Dictionaries_DlPasswords" xml:space="preserve">
-    <value>Mots de passe {0}</value>
-  </data>
-  <data name="Dictionaries_DlFrom" xml:space="preserve">
-    <value>Téléchargé depuis {0} ({1})</value>
-  </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>Impossible de télécharger {0} : {1}</value>
   </data>

@@ -59,6 +59,8 @@ public class KnownDictionariesTests
         Assert.Equal(["PROXMARK3", "FLIPPER ZERO", "FLIPPER UNLEASHED"], vm.DownloadSections.Select(s => s.Title));
         Assert.Equal(KnownDictionaries.All.Count, vm.DownloadSections.Sum(s => s.Items.Count));
         Assert.Equal("MIFARE Classic", vm.DownloadSections[0].Items[0].Card);
+        Assert.Equal(["PM3 - MIFARE Classic", "FZ - MIFARE Classic", "FZU - MIFARE Classic"],
+            vm.DownloadSections.Select(s => s.Items[0].Source.Name));
 
         vm.BackToAddCommand.Execute(null);
         Assert.True(vm.IsPickingSource);

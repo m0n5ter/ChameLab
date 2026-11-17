@@ -8,13 +8,14 @@ using ChameLab.Models;
 
 namespace ChameLab.Services;
 
-/// <summary>What a known dictionary holds, for its title (“MIFARE Classic default keys”).</summary>
-public enum KnownDictionaryKind { DefaultKeys, Keys, Passwords }
-
 /// <summary>A key list another project publishes (one hex key per line, <c>#</c> comments).</summary>
 /// <param name="Project">Who publishes it: Proxmark3, Flipper Zero, Flipper Unleashed.</param>
 /// <param name="Card">The cards its keys are for: MIFARE Classic, T55xx…</param>
-public sealed record KnownDictionary(string Project, string Card, KnownDictionaryKind Kind, string FileName, string Url);
+public sealed record KnownDictionary(string Project, string Card, string FileName, string Url)
+{
+    /// <summary>The downloaded dictionary's name: the project, short, and the cards (“PM3 - MIFARE Classic”).</summary>
+    public string Name => $"{KnownDictionaries.ShortName(Project)} - {Card}";
+}
 
 /// <summary>
 /// The key dictionaries of the Proxmark3 (Iceman), Flipper Zero and Unleashed (a Flipper Zero firmware)
@@ -26,39 +27,48 @@ public static class KnownDictionaries
     public const string FlipperZero = "Flipper Zero";
     public const string Unleashed = "Flipper Unleashed";
 
+    /// <summary>The project's short name in a dictionary's name: PM3, FZ, FZU.</summary>
+    public static string ShortName(string project) => project switch
+    {
+        Proxmark3 => "PM3",
+        FlipperZero => "FZ",
+        Unleashed => "FZU",
+        _ => project,
+    };
+
     private const string Proxmark3Base = "https://raw.githubusercontent.com/RfidResearchGroup/proxmark3/master/client/dictionaries/";
     private const string FlipperBase = "https://raw.githubusercontent.com/flipperdevices/flipperzero-firmware/dev/applications/main/nfc/resources/nfc/assets/";
     private const string UnleashedBase = "https://raw.githubusercontent.com/DarkFlippers/unleashed-firmware/dev/applications/main/";
 
     public static IReadOnlyList<KnownDictionary> All { get; } =
     [
-        Pm3("MIFARE Classic", KnownDictionaryKind.DefaultKeys, "mfc_default_keys.dic"),
-        Pm3("MIFARE Ultralight C", KnownDictionaryKind.DefaultKeys, "mfulc_default_keys.dic"),
-        Pm3("MIFARE Plus", KnownDictionaryKind.DefaultKeys, "mfp_default_keys.dic"),
+        Pm3("MIFARE Classic", "mfc_default_keys.dic"),
+        Pm3("MIFARE Ultralight C", "mfulc_default_keys.dic"),
+        Pm3("MIFARE Plus", "mfp_default_keys.dic"),
         // Its 24-byte 3K3DES keys are longer than a dictionary holds and are left out.
-        Pm3("MIFARE DESFire", KnownDictionaryKind.DefaultKeys, "mfdes_default_keys.dic"),
-        Pm3("iCLASS", KnownDictionaryKind.DefaultKeys, "iclass_default_keys.dic"),
-        Pm3("iCLASS Elite", KnownDictionaryKind.Keys, "iclass_elite_keys.dic"),
-        Pm3("T55xx", KnownDictionaryKind.Passwords, "t55xx_default_pwds.dic"),
-        Pm3("Hitag2", KnownDictionaryKind.DefaultKeys, "ht2_default.dic"),
-        Flipper("MIFARE Classic", KnownDictionaryKind.DefaultKeys, "mf_classic_dict.nfc"),
-        Flipper("MIFARE Ultralight C", KnownDictionaryKind.DefaultKeys, "mf_ultralight_c_dict.nfc"),
-        UnleashedNfc("MIFARE Classic", KnownDictionaryKind.DefaultKeys, "mf_classic_dict.nfc"),
-        UnleashedNfc("MIFARE Plus", KnownDictionaryKind.DefaultKeys, "mf_plus_dict.nfc"),
-        UnleashedNfc("MIFARE Ultralight C", KnownDictionaryKind.DefaultKeys, "mf_ultralight_c_dict.nfc"),
-        UnleashedNfc("MIFARE Ultralight AES", KnownDictionaryKind.DefaultKeys, "mf_ultralight_aes_dict.nfc"),
-        new(Unleashed, "T5577", KnownDictionaryKind.Passwords, "t5577_dict.lfrfid",
+        Pm3("MIFARE DESFire", "mfdes_default_keys.dic"),
+        Pm3("iCLASS", "iclass_default_keys.dic"),
+        Pm3("iCLASS Elite", "iclass_elite_keys.dic"),
+        Pm3("T55xx", "t55xx_default_pwds.dic"),
+        Pm3("Hitag2", "ht2_default.dic"),
+        Flipper("MIFARE Classic", "mf_classic_dict.nfc"),
+        Flipper("MIFARE Ultralight C", "mf_ultralight_c_dict.nfc"),
+        UnleashedNfc("MIFARE Classic", "mf_classic_dict.nfc"),
+        UnleashedNfc("MIFARE Plus", "mf_plus_dict.nfc"),
+        UnleashedNfc("MIFARE Ultralight C", "mf_ultralight_c_dict.nfc"),
+        UnleashedNfc("MIFARE Ultralight AES", "mf_ultralight_aes_dict.nfc"),
+        new(Unleashed, "T5577", "t5577_dict.lfrfid",
             UnleashedBase + "lfrfid/resources/lfrfid/assets/t5577_dict.lfrfid"),
     ];
 
-    private static KnownDictionary Pm3(string card, KnownDictionaryKind kind, string file) =>
-        new(Proxmark3, card, kind, file, Proxmark3Base + file);
+    private static KnownDictionary Pm3(string card, string file) =>
+        new(Proxmark3, card, file, Proxmark3Base + file);
 
-    private static KnownDictionary Flipper(string card, KnownDictionaryKind kind, string file) =>
-        new(FlipperZero, card, kind, file, FlipperBase + file);
+    private static KnownDictionary Flipper(string card, string file) =>
+        new(FlipperZero, card, file, FlipperBase + file);
 
-    private static KnownDictionary UnleashedNfc(string card, KnownDictionaryKind kind, string file) =>
-        new(Unleashed, card, kind, file, UnleashedBase + "nfc/resources/nfc/assets/" + file);
+    private static KnownDictionary UnleashedNfc(string card, string file) =>
+        new(Unleashed, card, file, UnleashedBase + "nfc/resources/nfc/assets/" + file);
 
     private static readonly HttpClient Http = CreateHttp();
 

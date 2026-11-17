@@ -3979,18 +3979,6 @@
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
     <value>Proxmark3、Flipper Zero 和 Unleashed 项目在 GitHub 上发布的密钥列表。所选字典会先打开供检查，然后再保存。</value>
   </data>
-  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
-    <value>{0} 默认密钥</value>
-  </data>
-  <data name="Dictionaries_DlKeys" xml:space="preserve">
-    <value>{0} 密钥</value>
-  </data>
-  <data name="Dictionaries_DlPasswords" xml:space="preserve">
-    <value>{0} 密码</value>
-  </data>
-  <data name="Dictionaries_DlFrom" xml:space="preserve">
-    <value>下载自 {0}（{1}）</value>
-  </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>无法下载 {0}：{1}</value>
   </data>

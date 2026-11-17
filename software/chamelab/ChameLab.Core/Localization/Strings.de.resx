@@ -3979,18 +3979,6 @@
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
     <value>Schlüssellisten, die die Projekte Proxmark3, Flipper Zero und Unleashed auf GitHub veröffentlichen. Das gewählte Wörterbuch öffnet sich vor dem Speichern zur Prüfung.</value>
   </data>
-  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
-    <value>{0}-Standardschlüssel</value>
-  </data>
-  <data name="Dictionaries_DlKeys" xml:space="preserve">
-    <value>{0}-Schlüssel</value>
-  </data>
-  <data name="Dictionaries_DlPasswords" xml:space="preserve">
-    <value>{0}-Passwörter</value>
-  </data>
-  <data name="Dictionaries_DlFrom" xml:space="preserve">
-    <value>Heruntergeladen von {0} ({1})</value>
-  </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>{0} konnte nicht heruntergeladen werden: {1}</value>
   </data>

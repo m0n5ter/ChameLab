@@ -3979,18 +3979,6 @@
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
     <value>Proxmark3、Flipper Zero、Unleashed プロジェクトが GitHub で公開しているキーリストです。選んだ辞書は保存前に確認のため開きます。</value>
   </data>
-  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
-    <value>{0} の既定キー</value>
-  </data>
-  <data name="Dictionaries_DlKeys" xml:space="preserve">
-    <value>{0} のキー</value>
-  </data>
-  <data name="Dictionaries_DlPasswords" xml:space="preserve">
-    <value>{0} のパスワード</value>
-  </data>
-  <data name="Dictionaries_DlFrom" xml:space="preserve">
-    <value>{0} からダウンロード ({1})</value>
-  </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>{0} をダウンロードできませんでした: {1}</value>
   </data>

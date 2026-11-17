@@ -3996,18 +3996,6 @@
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
     <value>Key lists the Proxmark3, Flipper Zero and Unleashed projects publish on GitHub. The one you pick opens for review before it is saved.</value>
   </data>
-  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
-    <value>{0} default keys</value>
-  </data>
-  <data name="Dictionaries_DlKeys" xml:space="preserve">
-    <value>{0} keys</value>
-  </data>
-  <data name="Dictionaries_DlPasswords" xml:space="preserve">
-    <value>{0} passwords</value>
-  </data>
-  <data name="Dictionaries_DlFrom" xml:space="preserve">
-    <value>Downloaded from {0} ({1})</value>
-  </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>Could not download {0}: {1}</value>
   </data>

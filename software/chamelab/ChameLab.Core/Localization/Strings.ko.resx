@@ -3979,18 +3979,6 @@
   <data name="Dictionaries_DownloadHint" xml:space="preserve">
     <value>Proxmark3, Flipper Zero 및 Unleashed 프로젝트가 GitHub에 공개한 키 목록입니다. 선택한 사전은 저장하기 전에 검토할 수 있도록 열립니다.</value>
   </data>
-  <data name="Dictionaries_DlDefaultKeys" xml:space="preserve">
-    <value>{0} 기본 키</value>
-  </data>
-  <data name="Dictionaries_DlKeys" xml:space="preserve">
-    <value>{0} 키</value>
-  </data>
-  <data name="Dictionaries_DlPasswords" xml:space="preserve">
-    <value>{0} 비밀번호</value>
-  </data>
-  <data name="Dictionaries_DlFrom" xml:space="preserve">
-    <value>{0}에서 다운로드함 ({1})</value>
-  </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>{0}을(를) 다운로드할 수 없습니다: {1}</value>
   </data>

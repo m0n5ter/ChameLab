@@ -207,14 +207,6 @@ public sealed class KnownDictionaryItemViewModel : ViewModelBase
     /// <summary>The cards it is for (“MIFARE Classic”), its row's label under the project's heading.</summary>
     public string Card => Source.Card;
 
-    /// <summary>“MIFARE Classic default keys”, the downloaded dictionary's name.</summary>
-    public string Title => string.Format(Source.Kind switch
-    {
-        KnownDictionaryKind.Passwords => Strings.Dictionaries_DlPasswords,
-        KnownDictionaryKind.Keys => Strings.Dictionaries_DlKeys,
-        _ => Strings.Dictionaries_DlDefaultKeys,
-    }, Source.Card);
-
     public string FileName => Source.FileName;
 
     public ICommand DownloadCommand { get; }
@@ -730,7 +722,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
         try
         {
             KeyDictionary dict;
-            try { dict = await KnownDictionaries.DownloadAsync(item.Source, item.Title); }
+            try { dict = await KnownDictionaries.DownloadAsync(item.Source, item.Source.Name); }
             catch (Exception ex) when (ex is not FormatException)
             {
                 throw new InvalidOperationException(string.Format(Strings.Dictionaries_DlFailed, item.FileName, ex.Message), ex);
@@ -740,7 +732,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
                 // Only while the downloads are still shown: going elsewhere meanwhile drops it.
                 if (_pane != DictionariesPane.Download) return;
                 dict.Folder = FolderTree.Location;
-                OpenNew(dict, string.Format(Strings.Dictionaries_DlFrom, item.Source.Project, item.FileName));
+                OpenNew(dict, null);
                 _newFromDownload = true;
                 this.RaisePropertyChanged(nameof(EditorBackTip));
             });
