@@ -14,6 +14,8 @@ public partial class DictionariesView : UserControl
         InitializeComponent();
         // Opening dictionaries, and dragging them into place in manual order.
         _ = new ListReorder(DictList, ListScroll);
+        // Going back up a folder returns the list to where it was left.
+        _ = new FolderScrollMemory(this, dc => (dc as ViewModels.DictionariesViewModel)?.FolderTree, ListPaneScroll, ListScroll);
         KnownList.LayoutUpdated += OnKnownLayoutUpdated;
     }
 

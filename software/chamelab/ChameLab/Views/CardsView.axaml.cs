@@ -20,6 +20,8 @@ public partial class CardsView : UserControl
         MemoryScroll.AddHandler(RequestBringIntoViewEvent, OnMemoryBringIntoView, handledEventsToo: true);
         // Opening cards, and dragging them into place in manual order.
         _ = new ListReorder(CardList, ListScroll);
+        // Going back up a folder returns the list to where it was left.
+        _ = new FolderScrollMemory(this, dc => (dc as CardsViewModel)?.FolderTree, ListPaneScroll, ListScroll);
         // NDEF records are dragged into place by their grip, within the editor pane.
         _ = new ListReorder(NdefList, PaneScroll);
     }
