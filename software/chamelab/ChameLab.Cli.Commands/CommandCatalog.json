@@ -5969,8 +5969,21 @@
     "scopedSlot": false
   },
   {
+    "name": "lf pyramid write",
+    "description": "Write a Farpointe/Pyramid frame to T55xx and verify by reading it back",
+    "options": [
+      { "names": ["--raw"], "dest": "raw", "required": false, "action": "_StoreAction", "nargs": null, "type": "str", "default": null, "choices": null, "help": "Raw 128-bit frame (16 bytes hex)", "const": null },
+      { "names": ["--fc"], "dest": "fc", "required": false, "action": "_StoreAction", "nargs": null, "type": "int", "default": null, "choices": null, "help": "Facility code (26-bit format)", "const": null },
+      { "names": ["--cn"], "dest": "cn", "required": false, "action": "_StoreAction", "nargs": null, "type": "int", "default": null, "choices": null, "help": "Card number (26-bit format)", "const": null }
+    ],
+    "groups": [],
+    "reader": true,
+    "device": true,
+    "scopedSlot": false
+  },
+  {
     "name": "lf clone",
-    "description": "Clone a LF card ID onto a blank T55xx tag.\nSupported types: em410x, electra, hid, ioprox, pac, viking, idteck.\nOnly supported on Chameleon Ultra (Lite has no LF writer).",
+    "description": "Clone a LF card ID onto a blank T55xx tag.\nSupported types: em410x, electra, hid, ioprox, pac, viking, idteck, pyramid.\nOnly supported on Chameleon Ultra (Lite has no LF writer).",
     "options": [
       {
         "names": [
@@ -5990,9 +6003,10 @@
           "ioprox",
           "pac",
           "viking",
-          "idteck"
+          "idteck",
+          "pyramid"
         ],
-        "help": "Card type: em410x, electra, hid, ioprox, pac, viking, idteck",
+        "help": "Card type: em410x, electra, hid, ioprox, pac, viking, idteck, pyramid",
         "const": null
       },
       {
@@ -6006,7 +6020,7 @@
         "type": "str",
         "default": null,
         "choices": null,
-        "help": "Card ID in hex: 10 for em410x, 26 for electra, 8 for viking, 8 or 16 for idteck; 8 ASCII chars for pac",
+        "help": "Card ID in hex: 10 for em410x, 26 for electra, 8 for viking, 8 or 16 for idteck, 32 for pyramid; 8 ASCII chars for pac",
         "const": null
       },
       {
@@ -6067,7 +6081,7 @@
         "type": "int",
         "default": null,
         "choices": null,
-        "help": "Facility code (HID / ioProx)",
+        "help": "Facility code (HID / ioProx / Pyramid)",
         "const": null
       },
       {
@@ -6081,7 +6095,7 @@
         "type": "int",
         "default": null,
         "choices": null,
-        "help": "Card number (HID / ioProx)",
+        "help": "Card number (HID / ioProx / Pyramid)",
         "const": null
       },
       {

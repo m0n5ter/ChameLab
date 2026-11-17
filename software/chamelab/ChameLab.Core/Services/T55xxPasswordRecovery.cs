@@ -22,7 +22,7 @@ public static class T55xxPasswordRecovery
 {
     private static readonly TagSpecificType[] ReadableTypes =
         [TagSpecificType.Em410x, TagSpecificType.HidProx, TagSpecificType.IoProx,
-         TagSpecificType.Viking, TagSpecificType.Pac, TagSpecificType.Jablotron];
+         TagSpecificType.Viking, TagSpecificType.Pac, TagSpecificType.Jablotron, TagSpecificType.FarpointePyramid];
 
     public static Task<T55xxPasswordResult?> RecoverAsync(ChameleonClient client, IEnumerable<byte[]> passwords,
         byte[]? newKey = null, Action<int, int>? progress = null, Action<LfScanResult>? originalRead = null,
@@ -206,6 +206,7 @@ public static class T55xxPasswordRecovery
                     TagSpecificType.Viking => 0x00088040u,
                     TagSpecificType.Pac => 0x00080080u,
                     TagSpecificType.Jablotron => 0x00158040u,
+                    TagSpecificType.FarpointePyramid => 0x00107080u,
                     _ => throw new NotSupportedException(string.Format(Strings.Device_CannotWriteT55xx, card.Type.DisplayName())),
                 };
                 await client.WriteT55xxBlockAsync(0, config, password);

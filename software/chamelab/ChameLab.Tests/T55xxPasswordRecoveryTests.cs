@@ -572,6 +572,7 @@ public class T55xxPasswordRecoveryTests
                     case Command.IoProxScan:
                     case Command.PacScan:
                     case Command.JablotronScan:
+                    case Command.PyramidScan:
                         status = Status.LfTagNoFound; break;
                     case Command.VikingScan:
                         status = !Missing && CurrentType == TagSpecificType.Viking ? Status.LfTagOk : Status.LfTagNoFound;

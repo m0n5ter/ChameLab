@@ -1058,6 +1058,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Pac => Command.PacWriteToT55xx,
             TagSpecificType.Jablotron => Command.JablotronWriteToT55xx,
             TagSpecificType.Idteck => Command.IdteckWriteToT55xx,
+            TagSpecificType.FarpointePyramid => Command.LfT55xxWrite,
             _ => throw new NotSupportedException(string.Format(Strings.Device_CannotWriteT55xx, type.DisplayName())),
         };
 
@@ -1065,12 +1066,37 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         if (expected > 0 && id.Length != expected)
             throw new ArgumentException(string.Format(Strings.Device_IdLengthGot, type.DisplayName(), expected, id.Length));
 
-        var buf = new List<byte>(id);
-        buf.AddRange(newKey);
-        foreach (var k in oldKeys) buf.AddRange(k);
-        var f = await conn.SendAsync(cmd, [.. buf], timeoutMs: 5000, ct: ct);
-        if (f.Status != Status.LfTagOk)
-            throw new ChameleonException(string.Format(Strings.Device_T55xxWriteFailed, f.Status.Describe()), f.Status);
+        if (type == TagSpecificType.FarpointePyramid)
+        {
+            if (oldKeys.Any(k => k.Length != 4)) throw new ArgumentException(Strings.Device_T55xxKeyLength);
+            // Use the existing raw-block command, so Pyramid writing also works on
+            // firmware that can scan Pyramid but has no dedicated clone command.
+            // Re-key protected tags first; no permanent lock bits are set.
+            var password = BinaryPrimitives.ReadUInt32BigEndian(newKey);
+            foreach (var key in oldKeys)
+                await WriteT55xxBlockAsync(7, password, key, ct);
+            await WriteT55xxBlockAsync(7, password, newKey, ct);
+            await WriteT55xxBlockAsync(7, password, null, ct);
+            for (byte block = 1; block <= 4; block++)
+            {
+                var word = BinaryPrimitives.ReadUInt32BigEndian(id.AsSpan((block - 1) * 4, 4));
+                await WriteT55xxBlockAsync(block, word, null, ct);
+                await WriteT55xxBlockAsync(block, word, newKey, ct);
+            }
+            // RF/50, FSK2a, four data blocks, password enabled. Configuration
+            // comes last, after the complete 128-bit frame has been stored.
+            await WriteT55xxBlockAsync(0, 0x00107090, null, ct);
+            await WriteT55xxBlockAsync(0, 0x00107090, newKey, ct);
+        }
+        else
+        {
+            var buf = new List<byte>(id);
+            buf.AddRange(newKey);
+            foreach (var k in oldKeys) buf.AddRange(k);
+            var f = await conn.SendAsync(cmd, [.. buf], timeoutMs: 5000, ct: ct);
+            if (f.Status != Status.LfTagOk)
+                throw new ChameleonException(string.Format(Strings.Device_T55xxWriteFailed, f.Status.Describe()), f.Status);
+        }
 
         // A T55xx tag never ACKs a write, so the firmware reports success blindly: a tag
         // locked with a password we don't have silently rejects every block. Read the ID

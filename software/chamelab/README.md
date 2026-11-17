@@ -97,6 +97,16 @@ and the original ID restored before returning. Keep the tag on the reader until 
 finishes. Recovery needs firmware with raw T55XX block writes and a readable LF format;
 normal writing also supports blank, unprotected tags.
 
+**Farpointe / Pyramid writing** preserves the complete 128-bit frame and writes it to
+T5577 as four big-endian data words at FSK2a, RF/50. The configuration is written last,
+and a Pyramid scan must return the exact frame before the app reports success. This
+uses the existing raw T55xx block command; firmware with Pyramid reading and raw block
+writing needs no update. Write a saved Pyramid card from Saved cards, or use
+`lf pyramid write --raw <32 hex digits>` in the console / CLI. For a new 26-bit ID use
+`lf pyramid write --fc <0..255> --cn <0..65535>`. The generic command also accepts
+`lf clone --type pyramid --id <32 hex digits>`. Password handling and the Keep / Set
+choice work as for the other readable T55xx formats.
+
 ## Build & run
 
 ```bash

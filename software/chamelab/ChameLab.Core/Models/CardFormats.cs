@@ -182,7 +182,7 @@ public static class CardTags
         t.IsMifareClassic()
         || t.UltralightPages() > 0
         || t is TagSpecificType.HidProx or TagSpecificType.IoProx or TagSpecificType.Viking
-             or TagSpecificType.Pac or TagSpecificType.Jablotron or TagSpecificType.Idteck
+             or TagSpecificType.Pac or TagSpecificType.Jablotron or TagSpecificType.Idteck or TagSpecificType.FarpointePyramid
         || t.IsEm410x();
 
     /// <summary>Expected emulator-ID length for an LF tag type (0 = unknown / any).</summary>
