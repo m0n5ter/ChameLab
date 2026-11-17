@@ -630,7 +630,7 @@
                 </Button>
               </Grid>
 
-              <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
+              <c:FitGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
                 <Button Classes="tile source" Command="{Binding ScanHfCommand}" IsVisible="{Binding IsConnected}"
                         ToolTip.Tip="{x:Static loc:Strings.Cards_ScanAnISO14443ATagThe}">
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
@@ -714,7 +714,7 @@
                     </StackPanel>
                   </Grid>
                 </Button>
-              </UniformGrid>
+              </c:FitGrid>
 
               <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding QrScanStatus}"
                          IsVisible="{Binding QrScanStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />

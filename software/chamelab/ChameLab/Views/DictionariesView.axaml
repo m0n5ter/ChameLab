@@ -504,7 +504,7 @@
               <PathIcon Data="{StaticResource Icon.close}" />
             </Button>
           </Grid>
-          <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
+          <c:FitGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
                 <Button Classes="tile source" Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
                         ToolTip.Tip="{x:Static loc:Strings.Dictionaries_ImportADicKeysTxtJson}">
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
@@ -541,7 +541,7 @@
                     </StackPanel>
                   </Grid>
                 </Button>
-          </UniformGrid>
+          </c:FitGrid>
         </StackPanel>
       </Border>
 
