@@ -204,7 +204,10 @@ public sealed class KnownDictionaryItemViewModel : ViewModelBase
 
     public KnownDictionary Source { get; }
 
-    /// <summary>“MIFARE Classic default keys”.</summary>
+    /// <summary>The cards it is for (“MIFARE Classic”), its row's label under the project's heading.</summary>
+    public string Card => Source.Card;
+
+    /// <summary>“MIFARE Classic default keys”, the downloaded dictionary's name.</summary>
     public string Title => string.Format(Source.Kind switch
     {
         KnownDictionaryKind.Passwords => Strings.Dictionaries_DlPasswords,
@@ -223,6 +226,9 @@ public sealed class KnownDictionaryItemViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref field, value);
     }
 }
+
+/// <summary>The known dictionaries one project publishes, under its name.</summary>
+public sealed record KnownDictionarySection(string Title, IReadOnlyList<KnownDictionaryItemViewModel> Items);
 
 /// <summary>Order of the dictionary list; <see cref="Manual"/> is the library's own order, changed by dragging.</summary>
 /// <remarks><see cref="Size"/> is largest first, <see cref="SizeAsc"/> smallest first.</remarks>
@@ -300,12 +306,10 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
             this.WhenAnyValue(x => x.Pane).Select(p => p != DictionariesPane.Add));
         ShowDownloadsCommand = ReactiveCommand.Create(() => { Pane = DictionariesPane.Download; });
         BackToAddCommand = ReactiveCommand.Create(BeginAdd);
-        Proxmark3Downloads = KnownDictionaries.All.Where(d => d.Project == KnownDictionaries.Proxmark3)
-            .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
-        FlipperDownloads = KnownDictionaries.All.Where(d => d.Project == KnownDictionaries.FlipperZero)
-            .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
-        UnleashedDownloads = KnownDictionaries.All.Where(d => d.Project == KnownDictionaries.Unleashed)
-            .Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray();
+        DownloadSections = KnownDictionaries.All.GroupBy(d => d.Project)
+            .Select(g => new KnownDictionarySection(g.Key.ToUpperInvariant(),
+                g.Select(d => new KnownDictionaryItemViewModel(d, item => _ = DownloadAsync(item))).ToArray()))
+            .ToArray();
         OpenKnownKeysCommand = ReactiveCommand.Create(() => LeaveThen(() =>
         {
             SetSelected(null);
@@ -611,8 +615,10 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
     private void ClosePane()
     {
         if (_pane == DictionariesPane.Dictionary) { SetSelected(null); return; }
+        // A downloaded dictionary dropped unsaved: back to the downloads, to pick another.
+        var backToDownloads = _pane == DictionariesPane.New && _newFromDownload;
         Form = null;
-        Pane = DictionariesPane.None;
+        Pane = backToDownloads ? DictionariesPane.Download : DictionariesPane.None;
     }
 
     // ---- Pane ----------------------------------------------------------
@@ -667,7 +673,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
     public bool IsDirty => _pane == DictionariesPane.KnownKeys ? KnownEditor.IsDirty
         : _pane == DictionariesPane.Dictionary && _form?.IsDirty == true;
 
-    /// <summary>Where the new dictionary came from (“New dictionary”, “Imported from x.dic”).</summary>
+    /// <summary>Where the new dictionary came from (“Imported from x.dic”); null for one typed by hand.</summary>
     public string? FormSource
     {
         get;
@@ -693,9 +699,8 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
     /// <summary>Choosing a known dictionary to download.</summary>
     public bool IsPickingDownload => _pane == DictionariesPane.Download;
 
-    public IReadOnlyList<KnownDictionaryItemViewModel> Proxmark3Downloads { get; }
-    public IReadOnlyList<KnownDictionaryItemViewModel> FlipperDownloads { get; }
-    public IReadOnlyList<KnownDictionaryItemViewModel> UnleashedDownloads { get; }
+    /// <summary>The known dictionaries, a section per project (Proxmark3, Flipper Zero, Flipper Unleashed).</summary>
+    public IReadOnlyList<KnownDictionarySection> DownloadSections { get; }
 
     public string DownloadBackTip => string.Format(Strings.Common_BackTo, Strings.Dictionaries_AddADictionary);
 
@@ -724,6 +729,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
                 if (_pane != DictionariesPane.Download) return;
                 dict.Folder = FolderTree.Location;
                 OpenNew(dict, string.Format(Strings.Dictionaries_DlFrom, item.Source.Project, item.FileName));
+                _newFromDownload = true;
             });
         }
         finally { Avalonia.Threading.Dispatcher.UIThread.Post(() => item.IsDownloading = false); }
@@ -738,15 +744,20 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
     public ICommand CancelDeleteCommand { get; }
     public ICommand ConfirmDeleteCommand { get; }
 
+    /// <summary>The new dictionary was downloaded: dropping it returns to the downloads.</summary>
+    private bool _newFromDownload;
+
     private void BeginNew() => OpenNew(new KeyDictionary
     {
         Name = Strings.Dictionaries_NewDictionary,
         Folder = FolderTree.Location,
         KeyLength = _keyLengthFilter.Length == 0 ? 6 : _keyLengthFilter.Length,
-    }, Strings.Dictionaries_NewDictionary);
+    }, null);
 
-    private void OpenNew(KeyDictionary dict, string source)
+    /// <param name="source">Where it came from, under its name; none for one typed by hand.</param>
+    private void OpenNew(KeyDictionary dict, string? source)
     {
+        _newFromDownload = false;
         if (_selected is not null) SetSelected(null);
         Form = new DictionaryEditorViewModel(dict);
         FormSource = source;

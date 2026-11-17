@@ -28,6 +28,22 @@
     <Style Selector="Grid.dictionary-list.narrow Button.library-clear">
       <Setter Property="Grid.Row" Value="1" />
     </Style>
+    <!-- A known dictionary to download: a plain row, no frame, highlighted under the pointer. -->
+    <Style Selector="Button.dlrow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="8,5" />
+      <!-- Indented under the project's heading. -->
+      <Setter Property="Margin" Value="12,0,-8,0" />
+      <Setter Property="Height" Value="NaN" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.dlrow:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    </Style>
   </UserControl.Styles>
 
   <!-- Laid out like the Cards page; the shared styles are under "Library pages" in ControlStyles. -->
@@ -296,8 +312,14 @@
             </Button>
             <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="0">
               <TextBox Classes="titlebox" Text="{Binding Form?.Name}" MaxLength="64" PlaceholderText="{x:Static loc:Strings.Dictionaries_DictionaryName}" />
-              <TextBlock Text="{Binding FormSource}" Classes="caption" TextWrapping="Wrap"
-                         IsVisible="{Binding IsNew}" />
+              <TextBlock Text="{Binding FormSource}" Classes="caption" TextWrapping="Wrap">
+                <TextBlock.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="IsNew" />
+                    <Binding Path="FormSource" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                  </MultiBinding>
+                </TextBlock.IsVisible>
+              </TextBlock>
               <TextBlock Text="{Binding Form?.KeyCountText}" Classes="caption" TextWrapping="Wrap" />
             </StackPanel>
           </Grid>
@@ -549,8 +571,8 @@
 
       <!-- ===================== Download a known dictionary ===================== -->
       <Border Grid.Row="0" Grid.RowSpan="2" Classes="card" IsVisible="{Binding IsPickingDownload}">
-        <Grid RowDefinitions="Auto,*" RowSpacing="14">
-          <Grid ColumnDefinitions="Auto,*,Auto">
+        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
+          <Grid ColumnDefinitions="Auto,*">
             <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0"
                     Command="{Binding BackToAddCommand}" ToolTip.Tip="{Binding DownloadBackTip}"
                     b:DialogKeys.IsBack="True">
@@ -560,91 +582,43 @@
               <TextBlock Text="{x:Static loc:Strings.Dictionaries_DownloadTitle}" Classes="h2" />
               <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Dictionaries_DownloadHint}" />
             </StackPanel>
-            <Button Grid.Column="2" Classes="icon" Command="{Binding CloseCommand}"
-                    ToolTip.Tip="{x:Static loc:Strings.Common_Cancel}" VerticalAlignment="Top">
-              <PathIcon Data="{StaticResource Icon.close}" />
-            </Button>
           </Grid>
-          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Spacing="8">
-                <TextBlock Text="PROXMARK3" Classes="overline" />
-                <ItemsControl ItemsSource="{Binding Proxmark3Downloads}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><UniformGrid Columns="1" RowSpacing="8" /></ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:KnownDictionaryItemViewModel">
-                      <Button Classes="tile source" Command="{Binding DownloadCommand}"
-                              IsEnabled="{Binding !$parent[UserControl].((vm:DictionariesViewModel)DataContext).IsBusy}"
-                              ToolTip.Tip="{Binding Source.Url}">
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto" ColumnSpacing="10">
-                          <Border Classes="iconwell blue" VerticalAlignment="Center">
-                            <PathIcon Data="{StaticResource Icon.download}" />
-                          </Border>
-                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding FileName}" Classes="caption" TextTrimming="CharacterEllipsis" />
-                          </StackPanel>
-                          <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" IsIndeterminate="True" Height="3" MinHeight="3"
-                                       Margin="0,6,0,0" IsVisible="{Binding IsDownloading}" />
-                        </Grid>
-                      </Button>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Border Height="6" />
-                <TextBlock Text="FLIPPER ZERO" Classes="overline" />
-                <ItemsControl ItemsSource="{Binding FlipperDownloads}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><UniformGrid Columns="1" RowSpacing="8" /></ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:KnownDictionaryItemViewModel">
-                      <Button Classes="tile source" Command="{Binding DownloadCommand}"
-                              IsEnabled="{Binding !$parent[UserControl].((vm:DictionariesViewModel)DataContext).IsBusy}"
-                              ToolTip.Tip="{Binding Source.Url}">
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto" ColumnSpacing="10">
-                          <Border Classes="iconwell blue" VerticalAlignment="Center">
-                            <PathIcon Data="{StaticResource Icon.download}" />
-                          </Border>
-                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding FileName}" Classes="caption" TextTrimming="CharacterEllipsis" />
-                          </StackPanel>
-                          <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" IsIndeterminate="True" Height="3" MinHeight="3"
-                                       Margin="0,6,0,0" IsVisible="{Binding IsDownloading}" />
-                        </Grid>
-                      </Button>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Border Height="6" />
-                <TextBlock Text="FLIPPER UNLEASHED" Classes="overline" />
-                <ItemsControl ItemsSource="{Binding UnleashedDownloads}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><UniformGrid Columns="1" RowSpacing="8" /></ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:KnownDictionaryItemViewModel">
-                      <Button Classes="tile source" Command="{Binding DownloadCommand}"
-                              IsEnabled="{Binding !$parent[UserControl].((vm:DictionariesViewModel)DataContext).IsBusy}"
-                              ToolTip.Tip="{Binding Source.Url}">
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto" ColumnSpacing="10">
-                          <Border Classes="iconwell blue" VerticalAlignment="Center">
-                            <PathIcon Data="{StaticResource Icon.download}" />
-                          </Border>
-                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding FileName}" Classes="caption" TextTrimming="CharacterEllipsis" />
-                          </StackPanel>
-                          <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" IsIndeterminate="True" Height="3" MinHeight="3"
-                                       Margin="0,6,0,0" IsVisible="{Binding IsDownloading}" />
-                        </Grid>
-                      </Button>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
+          <!-- Sets the header apart from the list scrolling under it. -->
+          <Separator Grid.Row="1" Margin="0" />
+          <!-- A section per project: its name, then a plain row per list (the cards, the file). -->
+          <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding DownloadSections}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><StackPanel Spacing="12" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:KnownDictionarySection">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding Title}" Classes="overline" Margin="0,0,0,2" />
+                    <ItemsControl ItemsSource="{Binding Items}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:KnownDictionaryItemViewModel">
+                          <Button Classes="dlrow" Command="{Binding DownloadCommand}"
+                                  IsEnabled="{Binding !$parent[UserControl].((vm:DictionariesViewModel)DataContext).IsBusy}"
+                                  ToolTip.Tip="{Binding Source.Url}">
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto" ColumnSpacing="10">
+                              <PathIcon Data="{StaticResource Icon.download}" Width="16" Height="16"
+                                        Foreground="{DynamicResource BrandBlueBrush}" VerticalAlignment="Center" />
+                              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Card}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding FileName}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                              </StackPanel>
+                              <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" IsIndeterminate="True" Height="3" MinHeight="3"
+                                           Margin="0,4,0,0" IsVisible="{Binding IsDownloading}" />
+                            </Grid>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </ScrollViewer>
         </Grid>
       </Border>

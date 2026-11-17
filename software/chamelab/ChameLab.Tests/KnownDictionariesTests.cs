@@ -56,8 +56,9 @@ public class KnownDictionariesTests
 
         vm.ShowDownloadsCommand.Execute(null);
         Assert.True(vm.IsPickingDownload);
-        Assert.Equal(KnownDictionaries.All.Count, vm.Proxmark3Downloads.Count + vm.FlipperDownloads.Count + vm.UnleashedDownloads.Count);
-        Assert.Equal("MIFARE Classic", vm.Proxmark3Downloads[0].Source.Card);
+        Assert.Equal(["PROXMARK3", "FLIPPER ZERO", "FLIPPER UNLEASHED"], vm.DownloadSections.Select(s => s.Title));
+        Assert.Equal(KnownDictionaries.All.Count, vm.DownloadSections.Sum(s => s.Items.Count));
+        Assert.Equal("MIFARE Classic", vm.DownloadSections[0].Items[0].Card);
 
         vm.BackToAddCommand.Execute(null);
         Assert.True(vm.IsPickingSource);
