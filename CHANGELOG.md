@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: on Android, a card scanned from a QR code is laid out at the full width again: the v1.7.52 fix didn't take, and the action buttons still piled up and the tag type and UID fields stayed blank. Whatever changes while the scanner or a file picker covers the app is now measured again once the app is back in front
 
 ## [v1.7.52][2026-11-17] · firmware v2.3.21-cl
 ### Summary

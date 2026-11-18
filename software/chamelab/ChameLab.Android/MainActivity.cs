@@ -51,17 +51,52 @@ public class MainActivity : AvaloniaMainActivity
         base.OnDestroy();
     }
 
-    public override void OnWindowFocusChanged(bool hasFocus)
+    protected override void OnResume()
     {
-        base.OnWindowFocusChanged(hasFocus);
-        if (hasFocus) Dispatcher.UIThread.Post(RefreshView, DispatcherPriority.Background);
+        base.OnResume();
+        WatchSurface();
     }
 
+    // ---- Layout after another activity covered the app ----------------------------------------
+
+    private SurfaceView? _watchedSurface;
+    private readonly SurfaceWatcher _surfaceWatcher = new();
+
     /// <summary>
-    /// Content that changed while another activity covered the app (the QR scanner, a file picker) can
-    /// come back half drawn: controls missing, buttons drawn over each other. Back in front, the whole
-    /// view is laid out and drawn again.
+    /// While another activity covers the app (the QR scanner, a file picker), Avalonia's surface is
+    /// gone and it reports the view as 1×1 pixel, so whatever changes meanwhile (a card scanned from
+    /// a QR code) is laid out at no width. When the surface comes back at the size Avalonia had last
+    /// seen, it raises no resize, and panels that keep the layout of their last measure (the action
+    /// row, the flow grids) stay squeezed. So each time the surface gets its size, the whole view is
+    /// measured again.
     /// </summary>
+    private void WatchSurface()
+    {
+        if (_watchedSurface is { Handle: not 0 }) return;
+        _watchedSurface = FindSurface(Window?.DecorView);
+        _watchedSurface?.Holder?.AddCallback(_surfaceWatcher);
+    }
+
+    private static SurfaceView? FindSurface(global::Android.Views.View? view)
+    {
+        if (view is SurfaceView surface) return surface;
+        if (view is not ViewGroup group) return null;
+        for (var i = 0; i < group.ChildCount; i++)
+            if (FindSurface(group.GetChildAt(i)) is { } found)
+                return found;
+        return null;
+    }
+
+    private sealed class SurfaceWatcher : Java.Lang.Object, ISurfaceHolderCallback
+    {
+        public void SurfaceChanged(ISurfaceHolder holder, global::Android.Graphics.Format format, int width, int height) =>
+            Dispatcher.UIThread.Post(RefreshView, DispatcherPriority.Render);
+
+        public void SurfaceCreated(ISurfaceHolder holder) { }
+
+        public void SurfaceDestroyed(ISurfaceHolder holder) { }
+    }
+
     private static void RefreshView()
     {
         if (Avalonia.Application.Current?.ApplicationLifetime is not ISingleViewApplicationLifetime { MainView: { } view })
