@@ -225,9 +225,16 @@
   <!-- The theme fills disabled buttons with its disabled brush, near black in the dark theme and
        darker than the surrounding surface. Keep each button's own fill and border instead; the
        disabled text color is enough to show the state. -->
-  <Style Selector=":is(Button):disabled /template/ ContentPresenter">
+  <Style Selector=":is(Button):not(DropDownButton):disabled /template/ ContentPresenter">
     <Setter Property="Background" Value="{Binding $parent[Button].Background}" />
     <Setter Property="BorderBrush" Value="{Binding $parent[Button].BorderBrush}" />
+  </Style>
+  <!-- Drop-down buttons draw their fill on a root Border#border instead, with the content presenters
+       inside it: filling those would paint square corners over the rounded border, so the fix goes
+       on the Border. -->
+  <Style Selector="DropDownButton:disabled /template/ Border#border">
+    <Setter Property="Background" Value="{Binding $parent[DropDownButton].Background}" />
+    <Setter Property="BorderBrush" Value="{Binding $parent[DropDownButton].BorderBrush}" />
   </Style>
   <Style Selector="Button > StackPanel > PathIcon">
     <Setter Property="Width" Value="16" />

@@ -328,7 +328,7 @@
                 <Expander.Header>
                   <TextBlock Text="{x:Static loc:Strings.Slots_MifareClassicEmulatorHeader}" Classes="overline" />
                 </Expander.Header>
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="10" Margin="10,0">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                       <TextBlock Text="{x:Static loc:Strings.Slots_PRNGType}" VerticalAlignment="Center" />
                       <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
@@ -386,7 +386,7 @@
                 <Expander.Header>
                   <TextBlock Text="{x:Static loc:Strings.Slots_UltralightNtagEmulatorHeader}" Classes="overline" />
                 </Expander.Header>
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="10" Margin="10,0">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                         <TextBlock Text="{x:Static loc:Strings.Slots_UIDMagicMode}" VerticalAlignment="Center" TextWrapping="Wrap" />
                         <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
