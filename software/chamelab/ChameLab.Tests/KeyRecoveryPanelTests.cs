@@ -14,6 +14,26 @@ namespace ChameLab.Tests;
 public class KeyRecoveryPanelTests
 {
     [Fact]
+    public void Mfkey32IsAvailableForConnectedClassicCardWithoutLoadedSlot()
+    {
+        var store = new MemoryKeyValueStore();
+        var library = new CardLibrary(store);
+        var card = new CardSave { Name = "Source", Tag = TagSpecificType.Mifare1024, Uid = [1, 2, 3, 4], Sak = 8, Atqa = [4, 0] };
+        library.Add(card);
+        var vm = new CardsViewModel(new DeviceService([]), library, new DictionaryLibrary(store));
+        vm.OpenCard(card.Id);
+        Assert.False(vm.CanRunMfkey32);
+        typeof(CardsViewModel).GetProperty(nameof(CardsViewModel.IsConnected))!.SetValue(vm, true);
+        Assert.Empty(vm.SlotTargets);
+        Assert.True(vm.CanRunMfkey32);
+        Assert.True(vm.Mfkey32Command.CanExecute(null));
+        Assert.False(vm.Mfkey32SelectSlotCommand.CanExecute(null));
+        typeof(PageViewModelBase).GetProperty(nameof(CardsViewModel.IsBusy))!.SetValue(vm, true);
+        Assert.False(vm.CanRunMfkey32);
+        Assert.False(vm.Mfkey32Command.CanExecute(null));
+    }
+
+    [Fact]
     public void KeySearchPreferencesPersistAllChoicesAndShareAcrossReadAndWritePanels()
     {
         var original = AppSettings.Get(MifareKeySearchSettingsViewModel.SettingsKey);

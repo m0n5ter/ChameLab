@@ -1453,7 +1453,7 @@
     <value>Данные производителя</value>
   </data>
   <data name="Cards_Mfkey32LoadIntoSlot" xml:space="preserve">
-    <value>Перед запуском mfkey32 загрузите эту карту в слот.</value>
+    <value>Загрузите карту в слот чтобы продолжить</value>
   </data>
   <data name="Cards_Mfkey32NeedsClassic" xml:space="preserve">
     <value>Для mfkey32 нужна карта MIFARE Classic.</value>

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using ChameLab.Models;
+using ChameLab.Localization;
 using ChameLab.Protocol;
 using ChameLab.Services;
 using ChameLab.Transport;
@@ -56,7 +57,7 @@ public class Mfkey32WizardTests
             Assert.False(transport.Detection);
             read = true;
             return Task.CompletedTask;
-        }, default);
+        }, default, loadCardIntoSlot: _ => throw new Exception("An existing slot must skip loading"));
 
         Assert.True(read);
         AssertRestored(transport);
@@ -156,6 +157,82 @@ public class Mfkey32WizardTests
         Assert.Equal(EmulatorWriteMode.Normal, transport.WriteMode);
     }
 
+    [Fact]
+    public async Task MissingSlotPromptsBeforeEmulationAndContinuesAfterLoading()
+    {
+        var card = Card();
+        var transport = new WizardTransport(card) { SlotLoaded = false };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        var client = new ChameleonClient(connection);
+        var updates = new List<Mfkey32Progress>();
+        var loaded = false;
+        var read = false;
+        using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await new Mfkey32Wizard(client, new KnownCardKeys(new MemoryKeyValueStore()))
+            .RunAsync(card, new CallbackProgress(updates.Add), _ =>
+            {
+                Assert.True(loaded);
+                read = true;
+                return Task.CompletedTask;
+            }, stop.Token, loadCardIntoSlot: async ct =>
+            {
+                Assert.Equal(Strings.Cards_Mfkey32LoadIntoSlot, Assert.Single(updates).Status);
+                Assert.DoesNotContain(transport.Requests, r => r.Command is Command.ChangeDeviceMode
+                    or Command.SetActiveSlot or Command.Mf1SetDetectionEnable);
+                // The loading step must be able to acquire the slot lock without deadlocking.
+                await client.WithSlotLockAsync(() =>
+                {
+                    transport.SlotLoaded = true;
+                    loaded = true;
+                    return Task.CompletedTask;
+                }, ct);
+            });
+        Assert.True(read);
+        AssertRestored(transport);
+    }
+
+    [Fact]
+    public async Task CancellingSlotPromptDoesNotChangeDeviceState()
+    {
+        var card = Card();
+        var transport = new WizardTransport(card) { SlotLoaded = false };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        using var stop = new CancellationTokenSource();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            new Mfkey32Wizard(new ChameleonClient(connection), new KnownCardKeys(new MemoryKeyValueStore()))
+                .RunAsync(card, new QuietProgress(), _ => throw new Exception("Must not read"), stop.Token,
+                    loadCardIntoSlot: ct =>
+                    {
+                        stop.Cancel();
+                        return Task.Delay(Timeout.Infinite, ct);
+                    }));
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.ChangeDeviceMode
+            or Command.SetActiveSlot or Command.Mf1SetDetectionEnable);
+        AssertRestored(transport);
+    }
+
+    [Fact]
+    public async Task LoadingStepMustProvideMatchingSlotBeforeEmulation()
+    {
+        var card = Card();
+        var transport = new WizardTransport(card) { SlotLoaded = false };
+        await using var connection = new ChameleonConnection(transport);
+        await connection.OpenAsync();
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            new Mfkey32Wizard(new ChameleonClient(connection), new KnownCardKeys(new MemoryKeyValueStore()))
+                .RunAsync(card, new QuietProgress(), _ => throw new Exception("Must not read"), default,
+                    loadCardIntoSlot: _ => Task.CompletedTask));
+        Assert.DoesNotContain(transport.Requests, r => r.Command is Command.ChangeDeviceMode
+            or Command.SetActiveSlot or Command.Mf1SetDetectionEnable);
+    }
+
+    private sealed class CallbackProgress(Action<Mfkey32Progress> report) : IProgress<Mfkey32Progress>
+    {
+        public void Report(Mfkey32Progress value) => report(value);
+    }
+
     private sealed class QuietProgress : IProgress<Mfkey32Progress> { public void Report(Mfkey32Progress value) { } }
 
     [Fact]
@@ -189,6 +266,7 @@ public class Mfkey32WizardTests
         public List<ChameleonFrame> Requests { get; } = new();
         public Action<ChameleonFrame>? OnRequest { get; set; }
         public bool FailWriteSetup { get; init; }
+        public bool SlotLoaded { get; set; } = true;
         public Func<(Status Status, byte[] Payload)>? ScanResponse { get; init; }
         public DeviceMode Mode { get; set; } = DeviceMode.Reader;
         public int ActiveSlot { get; private set; } = 1;
@@ -217,7 +295,7 @@ public class Mfkey32WizardTests
                         BinaryPrimitives.WriteUInt16BigEndian(payload.AsSpan(4), (ushort)card.Tag);
                         break;
                     case Command.GetEnabledSlots:
-                        payload = new byte[16]; payload[2] = 1; break;
+                        payload = new byte[16]; payload[2] = (byte)(SlotLoaded ? 1 : 0); break;
                     case Command.GetAllSlotNicks:
                         var nick = Encoding.UTF8.GetBytes(card.Name);
                         payload = new byte[16 + nick.Length]; payload[2] = (byte)nick.Length;

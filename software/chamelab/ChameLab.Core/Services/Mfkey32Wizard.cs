@@ -21,11 +21,22 @@ public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKey
             .OrderByDescending(s => s.IsActive).ThenBy(s => s.Index).FirstOrDefault();
 
     public async Task RunAsync(CardSave card, IProgress<Mfkey32Progress> progress,
-        Func<IReadOnlyList<byte[]>, Task> readCard, CancellationToken ct) =>
+        Func<IReadOnlyList<byte[]>, Task> readCard, CancellationToken ct,
+        Func<CancellationToken, Task>? loadCardIntoSlot = null)
+    {
+        if (!card.Tag.IsMifareClassic() || card.Uid.Length is not (4 or 7 or 10))
+            throw new ArgumentException("mfkey32 requires a MIFARE Classic card with a valid UID.", nameof(card));
+        if (FindSlot(await client.GetAllSlotsAsync(ct), card) is null)
+        {
+            progress.Report(new(Strings.Cards_Mfkey32LoadIntoSlot));
+            if (loadCardIntoSlot is null)
+                throw new InvalidOperationException(Strings.Cards_Mfkey32LoadIntoSlot);
+            // The loader may take the slot lock; wait for the user before taking it here.
+            await loadCardIntoSlot(ct);
+            ct.ThrowIfCancellationRequested();
+        }
         await client.WithSlotLockAsync(async () =>
         {
-            if (!card.Tag.IsMifareClassic() || card.Uid.Length is not (4 or 7 or 10))
-                throw new ArgumentException("mfkey32 requires a MIFARE Classic card with a valid UID.", nameof(card));
             progress.Report(new(Strings.Cards_PreparingEmulation));
             var slot = FindSlot(await client.GetAllSlotsAsync(ct), card)
                 ?? throw new InvalidOperationException(Strings.Cards_Mfkey32LoadIntoSlot);
@@ -76,6 +87,7 @@ public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKey
                     throw new InvalidOperationException(Strings.Mfkey32_RestoreFailed, new AggregateException(errors));
             }
         }, ct);
+    }
 
     private async Task<IReadOnlyList<byte[]>> CaptureAsync(CardSave card, IProgress<Mfkey32Progress> progress, CancellationToken ct)
     {

@@ -1334,6 +1334,33 @@
                            IsVisible="{Binding ShowDumpHint}" />
               </StackPanel>
               <StackPanel Spacing="8">
+                <StackPanel Spacing="8" IsVisible="{Binding IsMfkey32WaitingForSlot}"
+                            b:BringIntoViewOnShow.IsEnabled="True">
+                  <TextBlock Text="{x:Static loc:Strings.Cards_Mfkey32LoadIntoSlot}" TextWrapping="Wrap" />
+                  <TextBlock Classes="caption" TextWrapping="Wrap"
+                             Text="{x:Static loc:Strings.Cards_TheCardReplacesTheSlotsCurrent}" />
+                  <ItemsControl ItemsSource="{Binding SlotTargets}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate><UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:SlotTargetViewModel">
+                        <Button Classes="slottarget"
+                                Command="{Binding $parent[ItemsControl].((vm:CardsViewModel)DataContext).Mfkey32SelectSlotCommand}"
+                                CommandParameter="{Binding}">
+                          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                            <Border Classes="slotnum" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14">
+                              <TextBlock Text="{Binding Index}" FontWeight="Bold"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" Classes.dim="{Binding IsEmpty}" />
+                          </Grid>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
                 <!-- Actions and progress share a fixed-height slot to keep the sector grid still. -->
                 <c:KeyRecoveryPanel>
                   <!-- Hidden when it has nothing to show, so its empty slot adds no spacing above the page map. -->

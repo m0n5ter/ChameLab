@@ -13,6 +13,10 @@ public sealed partial class CardsViewModel
 {
     private bool _mfkey32Running;
     private Task? _mfkey32Task;
+    private TaskCompletionSource<SlotTargetViewModel>? _mfkey32SlotChoice;
+
+    public bool IsMfkey32WaitingForSlot => _mfkey32SlotChoice is not null;
+    public ICommand Mfkey32SelectSlotCommand { get; }
 
     public int? Mfkey32CapturedCount
     {
@@ -55,8 +59,8 @@ public sealed partial class CardsViewModel
             if (Form is not { IsMifareClassic: true } form) return Strings.Cards_Mfkey32NeedsClassic;
             try
             {
-                return Mfkey32Wizard.FindSlot(_slotInfos, form.Build()) is null
-                    ? Strings.Cards_Mfkey32LoadIntoSlot : null;
+                form.Build();
+                return null;
             }
             catch (FormatException) { return Strings.Cards_EnterIdentityFirst; }
         }
@@ -113,7 +117,49 @@ public sealed partial class CardsViewModel
                 cts.Token.ThrowIfCancellationRequested();
                 // The reader verifies the full UID before it applies any keys or memory.
                 await MifareDumpBodyAsync(client, keys, _classicDump!.Type, cts, finish: false);
-            }, cts.Token);
+            }, cts.Token, loadCardIntoSlot: async ct =>
+            {
+                var slots = await client.GetAllSlotsAsync(ct);
+                var choice = new TaskCompletionSource<SlotTargetViewModel>(TaskCreationOptions.RunContinuationsAsynchronously);
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(IfKept(cts, () =>
+                {
+                    _slotInfos = slots;
+                    RebuildTargets();
+                    _mfkey32SlotChoice = choice;
+                    this.RaisePropertyChanged(nameof(IsMfkey32WaitingForSlot));
+                }));
+                try
+                {
+                    var target = await choice.Task.WaitAsync(ct);
+                    ct.ThrowIfCancellationRequested();
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(IfKept(cts, () =>
+                    {
+                        _mfkey32SlotChoice = null;
+                        this.RaisePropertyChanged(nameof(IsMfkey32WaitingForSlot));
+                    }));
+                    var uploadProgress = new PostedProgress<MifareProgress>(IfKept<MifareProgress>(cts, p =>
+                    {
+                        if (!ct.IsCancellationRequested)
+                            DumpProgressText = string.Format(Strings.Common_UploadingProgress, p.Done, p.Total);
+                    }));
+                    await client.WithSlotLockAsync(() => client.LoadCardToSlotAsync(card, target.Index, uploadProgress, ct), ct);
+                    slots = await client.GetAllSlotsAsync(ct);
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(IfKept(cts, () =>
+                    {
+                        _slotInfos = slots;
+                        RebuildTargets();
+                    }));
+                }
+                finally
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        if (!ReferenceEquals(_mfkey32SlotChoice, choice)) return;
+                        _mfkey32SlotChoice = null;
+                        this.RaisePropertyChanged(nameof(IsMfkey32WaitingForSlot));
+                    });
+                }
+            });
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(IfKept(cts, () =>
             {
                 if (cts.IsCancellationRequested) return;

@@ -200,9 +200,12 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         HardnestedCommand = ReactiveCommand.CreateFromTask(() => RecoverKeysAsync(MifareRecoveryMethod.Hardnested),
             recoveryIdle.CombineLatest(this.WhenAnyValue(x => x.ShowHardnested),
                 (idle, show) => idle && show && CanRunHardnested));
-        this.WhenAnyValue(x => x.IsBusy).Subscribe(_ => RaiseMfkey32Availability());
+        this.WhenAnyValue(x => x.IsConnected, x => x.IsBusy).Subscribe(_ => RaiseMfkey32Availability());
         Mfkey32Command = ReactiveCommand.CreateFromTask(() => _mfkey32Task = RunMfkey32Async(),
             this.WhenAnyValue(x => x.CanRunMfkey32));
+        Mfkey32SelectSlotCommand = ReactiveCommand.Create<SlotTargetViewModel>(
+            target => _mfkey32SlotChoice?.TrySetResult(target),
+            this.WhenAnyValue(x => x.IsMfkey32WaitingForSlot));
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         SkipSectorCommand = ReactiveCommand.Create(SkipSector, this.WhenAnyValue(x => x.ShowSkipSector));
         InitQr();

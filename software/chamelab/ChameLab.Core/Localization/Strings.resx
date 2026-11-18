@@ -1456,7 +1456,7 @@
     <value>Manufacturer data</value>
   </data>
   <data name="Cards_Mfkey32LoadIntoSlot" xml:space="preserve">
-    <value>Load this card into a slot before starting mfkey32.</value>
+    <value>Load the card into a slot to continue.</value>
   </data>
   <data name="Cards_Mfkey32NeedsClassic" xml:space="preserve">
     <value>mfkey32 requires a MIFARE Classic card.</value>
