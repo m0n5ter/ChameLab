@@ -8,7 +8,23 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.7.53][2026-11-18] · firmware v2.3.21-cl
+### Summary
+ - ChameLab: the slot page shows the MIFARE Classic nonces and Ultralight / NTAG passwords the emulator collects as they come in, recovers the MIFARE keys from the nonces itself and saves them to a dictionary or a file
+ - ChameLab: mfkey32 starts even when the card isn't in a slot yet and offers to load it into one
+ - Web app: the browser's Back closes dialogs and goes back a page instead of leaving the site; on iPhone, downloads work and Safari no longer zooms in on text fields
+
+### Details
  - ChameLab: on Android, a card scanned from a QR code is laid out at the full width again: the v1.7.52 fix didn't take, and the action buttons (also above the memory and in the save bar) still piled up while the tag type and UID fields stayed blank. Whatever changes while the scanner or a file picker covers the app is now laid out again once the app is back in front
+ - ChameLab: the MIFARE Classic and Ultralight / NTAG emulator settings of a slot fold away under their headers. MIFARE Classic has a **Collect nonces** switch, Ultralight / NTAG its **Password detection**; while one is on, the slot page shows how many nonces or passwords the emulator has collected, read again every second while the page is open. Keys are recovered from the MIFARE nonces with mfkey32 as they come in and listed with the card's UID, sector and key type; captured Ultralight passwords are listed as they are. **Save keys** copies them to the clipboard, adds them to a dictionary or a new one, or saves a .dic file. Saving the slot no longer clears what was collected unless the switch itself changed
+ - ChameLab: mfkey32 can be started for a card that isn't in a slot yet: it asks to load the card into a slot, lists the slots, and goes on once the card is loaded into the one picked
+ - ChameLab: downloaded key dictionaries are named after their row in Download, with the project's short name in front (“PM3 - MIFARE Classic”, “FZ - …”, “FZU - …”); the Downloaded from caption under the name is gone
+ - ChameLab: Discard and Save in the save bars of a new or edited card drop their labels and keep only icons when short of room (Discard first), instead of running past the edge
+ - ChameLab: editing a card's UID no longer scrolls the page down to the sector grid
+ - Web app: the browser's Back button closes the open dialog or goes back a page; in Chrome and Safari the first Back used to leave the site at once
+ - Web app: in Safari on iPhone, key dictionary downloads and update checks work; they failed with “Load failed”
+ - Web app: Safari on iPhone no longer zooms in when a text field gets focus, which left the app cut off on the right and at the top
 
 ## [v1.7.52][2026-11-17] · firmware v2.3.21-cl
 ### Summary
