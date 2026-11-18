@@ -44,6 +44,7 @@ public sealed class EnumLabelConverter : IValueConverter
         ButtonPressFunction f => f.Label(),
         AnimationMode m => m.Label(),
         MifareClassicPrngType p => p.Label(),
+        EmulatorWriteMode m => m.Label(),
         MagicGeneration g => g.Label(),
         TagSpecificType t => t.DisplayName(),
         CardSort s => s.Label(),

@@ -896,6 +896,26 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     public Task SetMf0DetectionEnableAsync(bool enabled, CancellationToken ct = default) =>
         conn.SendExpectAsync(Command.Mf0NtagSetDetectionEnable, Status.Success, [(byte)(enabled ? 1 : 0)], ct: ct);
 
+    /// <summary>Reads the captured Ultralight / NTAG passwords without resetting collection.</summary>
+    public async Task<IReadOnlyList<byte[]>> GetAllMf0DetectionPasswordsAsync(CancellationToken ct = default)
+    {
+        var countFrame = await conn.SendExpectAsync(Command.Mf0NtagGetDetectionCount, Status.Success, ct: ct);
+        if (countFrame.Data.Length != 4) throw new System.IO.InvalidDataException(Strings.Device_IncompleteResponse);
+        var count = checked((int)BinaryPrimitives.ReadUInt32BigEndian(countFrame.Data));
+        var passwords = new List<byte[]>();
+        while (passwords.Count < count)
+        {
+            var index = new byte[4];
+            BinaryPrimitives.WriteUInt32BigEndian(index, (uint)passwords.Count);
+            var frame = await conn.SendExpectAsync(Command.Mf0NtagGetDetectionLog, Status.Success, index, ct: ct);
+            if (frame.Data.Length == 0 || frame.Data.Length % 4 != 0)
+                throw new System.IO.InvalidDataException(Strings.Device_IncompleteResponse);
+            for (var offset = 0; offset < frame.Data.Length && passwords.Count < count; offset += 4)
+                passwords.Add(frame.Data[offset..(offset + 4)]);
+        }
+        return passwords;
+    }
+
     // ---- Scanning ------------------------------------------------------
 
     public async Task<IReadOnlyList<Hf14aTag>> Hf14aScanAsync(CancellationToken ct = default)
@@ -1939,7 +1959,9 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             await SetMf1Gen1aModeAsync(m.Gen1a, ct);
             await SetMf1Gen2ModeAsync(m.Gen2, ct);
             await SetMf1BlockAntiCollModeAsync(m.BlockAntiColl, ct);
-            await SetMf1DetectionEnableAsync(m.Detection, ct);
+            // The firmware clears the collection on every SET, even if the flag is unchanged.
+            if (await GetMf1DetectionEnableAsync(ct) != m.Detection)
+                await SetMf1DetectionEnableAsync(m.Detection, ct);
             await SetMf1WriteModeAsync(m.WriteMode, ct);
             if (m.FieldOffReset is { } reset)
                 try { await SetMf1FieldOffDoResetAsync(reset, ct); } catch (ChameleonException) { }
@@ -1951,7 +1973,12 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             await SetMf0UidMagicModeAsync(u.UidMagic, ct);
             await SetMf0WriteModeAsync(u.WriteMode, ct);
             if (u.Detection is { } detection)
-                try { await SetMf0DetectionEnableAsync(detection, ct); } catch (ChameleonException) { }
+                try
+                {
+                    if (await GetMf0DetectionEnableAsync(ct) != detection)
+                        await SetMf0DetectionEnableAsync(detection, ct);
+                }
+                catch (ChameleonException) { }
         }
     }
 

@@ -1047,6 +1047,9 @@
   <data name="Slots_PasswordDetection" xml:space="preserve">
     <value>Перехват паролей</value>
   </data>
+  <data name="Slots_CollectNonces" xml:space="preserve">
+    <value>Собирать nonce</value>
+  </data>
   <data name="Slots_PickTheLEDColor" xml:space="preserve">
     <value>Выберите цвет светодиода</value>
   </data>
@@ -3995,5 +3998,14 @@
   </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>Не удалось скачать {0}: {1}</value>
+  </data>
+  <data name="Slots_NonceCount" xml:space="preserve">
+    <value>Собрано nonce</value>
+  </data>
+  <data name="Device_IncompleteResponse" xml:space="preserve">
+    <value>Неполный ответ устройства с данными сбора.</value>
+  </data>
+  <data name="Slots_PasswordCount" xml:space="preserve">
+    <value>Собрано паролей</value>
   </data>
 </root>

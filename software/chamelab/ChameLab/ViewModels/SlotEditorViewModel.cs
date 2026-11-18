@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ChameLab.Models;
@@ -129,13 +130,18 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     };
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
-        Action onChanged, Action<CardSave> openCard)
+        Action onChanged, Action<CardSave> openCard, DictionaryLibrary? dictionaries = null)
         : base(() => string.Format(Strings.Slots_SlotN, info.Index), "slots")
     {
         _device = device;
         _library = library;
         _slot = info.Index;
         _onChanged = onChanged;
+        var keyDictionaries = dictionaries ?? AppServices.Dictionaries;
+        MfcCapture = new EmulatorCaptureViewModel(() => _device.Client, _slot, true, keyDictionaries);
+        UlCapture = new EmulatorCaptureViewModel(() => _device.Client, _slot, false, keyDictionaries);
+        MfcCapture.PropertyChanged += OnCapturePropertyChanged;
+        UlCapture.PropertyChanged += OnCapturePropertyChanged;
 
         var colors = device.DeviceInfo?.SupportsSlotColors == true;
         Hf = new SlotSideViewModel(TagSenseType.Hf, info, library, colors, OnHfChanged, OpenPicker, SaveToLibraryAsync, openCard);
@@ -155,6 +161,15 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     public SlotSideViewModel Hf { get; }
     public SlotSideViewModel Lf { get; }
+    public EmulatorCaptureViewModel MfcCapture { get; }
+    public EmulatorCaptureViewModel UlCapture { get; }
+
+    public override bool HasActivity => base.HasActivity || MfcCapture.IsBusy || UlCapture.IsBusy;
+
+    private void OnCapturePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(IsBusy)) this.RaisePropertyChanged(nameof(HasActivity));
+    }
 
     public static IReadOnlyList<EmulatorWriteMode> WriteModes { get; } = new[]
     {
@@ -195,6 +210,33 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     }
 
     // ---- Emulator settings (HF) ----------------------------------------
+
+    private const string MfcExpandedSetting = "slotsMfcSettingsExpanded";
+    private const string UlExpandedSetting = "slotsUlSettingsExpanded";
+
+    public bool MfcSettingsExpanded
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            this.RaiseAndSetIfChanged(ref field, value);
+            AppSettings.Set(MfcExpandedSetting, value);
+        }
+    } = AppSettings.Get(MfcExpandedSetting) is JsonValue savedMfc
+        && savedMfc.TryGetValue<bool>(out var expandedMfc) && expandedMfc;
+
+    public bool UlSettingsExpanded
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            this.RaiseAndSetIfChanged(ref field, value);
+            AppSettings.Set(UlExpandedSetting, value);
+        }
+    } = AppSettings.Get(UlExpandedSetting) is JsonValue savedUl
+        && savedUl.TryGetValue<bool>(out var expandedUl) && expandedUl;
 
     /// <summary>The emulator settings the HF card's type has.</summary>
     private EmulatorKind TypeKind =>
@@ -270,6 +312,12 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     {
         var client = _device.Client;
         if (client is null) return;
+        var capture = TypeKind switch
+        {
+            EmulatorKind.Mfc => MfcCapture,
+            EmulatorKind.Ul => UlCapture,
+            _ => null,
+        };
         await client.WithSlotLockAsync(async () =>
         {
             await client.SetActiveSlotAsync(_slot);
@@ -287,6 +335,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             });
             await LoadEmulatorAsync(client);
         });
+        // Refresh acquires the slot lock itself; run it after loading the slot has released it.
+        if (capture is not null) await capture.RefreshAsync();
     });
 
     private void LoadCycle(LfCardCycle cycle)
@@ -354,6 +404,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         }
         catch (ChameleonException) { /* the firmware defaults are shown */ }
 
+        UpdateSavedCollection(kind, e);
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             _savedEmulator = e;
@@ -364,6 +415,12 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     }
 
     // ---- Saving --------------------------------------------------------
+
+    private void UpdateSavedCollection(EmulatorKind kind, Emulator emulator)
+    {
+        MfcCapture.CollectionEnabled = kind == EmulatorKind.Mfc && emulator.MfcDetection;
+        UlCapture.CollectionEnabled = kind == EmulatorKind.Ul && emulator.UlDetection;
+    }
 
     /// <returns>False when the slot could not be saved (the edits stay).</returns>
     public async Task<bool> SaveAsync()
@@ -404,6 +461,10 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                 }
                 await client.SaveSlotConfigAsync();
             });
+
+            UpdateSavedCollection(kind, emulator);
+            if (kind == EmulatorKind.Mfc && !emulator.MfcDetection) MfcCapture.Clear();
+            if (kind == EmulatorKind.Ul && !emulator.UlDetection) UlCapture.Clear();
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {

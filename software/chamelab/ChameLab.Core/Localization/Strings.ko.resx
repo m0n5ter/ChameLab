@@ -2293,13 +2293,13 @@
     <value>; {0}번 틀리면 카드가 잠깁니다.</value>
   </data>
   <data name="Prng_Hard" xml:space="preserve">
-    <value>Hard(예측 불가)</value>
+    <value>강함(예측 불가)</value>
   </data>
   <data name="Prng_Static" xml:space="preserve">
-    <value>Static(고정 nonce)</value>
+    <value>정적(고정 nonce)</value>
   </data>
   <data name="Prng_Weak" xml:space="preserve">
-    <value>Weak(예측 가능)</value>
+    <value>약함(예측 가능)</value>
   </data>
   <data name="Protection_AnswerPACK" xml:space="preserve">
     <value>응답(PACK)</value>
@@ -2729,6 +2729,9 @@
   </data>
   <data name="Slots_PasswordDetection" xml:space="preserve">
     <value>비밀번호 감지</value>
+  </data>
+  <data name="Slots_CollectNonces" xml:space="preserve">
+    <value>nonce 수집</value>
   </data>
   <data name="Slots_PickTheLEDColor" xml:space="preserve">
     <value>LED 색상 선택</value>
@@ -3981,5 +3984,14 @@
   </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>{0}을(를) 다운로드할 수 없습니다: {1}</value>
+  </data>
+  <data name="Slots_NonceCount" xml:space="preserve">
+    <value>수집된 nonce</value>
+  </data>
+  <data name="Device_IncompleteResponse" xml:space="preserve">
+    <value>기기의 수집 데이터 응답이 불완전합니다.</value>
+  </data>
+  <data name="Slots_PasswordCount" xml:space="preserve">
+    <value>수집된 비밀번호</value>
   </data>
 </root>

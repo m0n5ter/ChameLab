@@ -2730,6 +2730,9 @@
   <data name="Slots_PasswordDetection" xml:space="preserve">
     <value>Rilevamento password</value>
   </data>
+  <data name="Slots_CollectNonces" xml:space="preserve">
+    <value>Raccogli nonce</value>
+  </data>
   <data name="Slots_PickTheLEDColor" xml:space="preserve">
     <value>Scegli il colore del LED</value>
   </data>
@@ -3364,10 +3367,10 @@
     <value>Normale</value>
   </data>
   <data name="WriteMode_Shadow" xml:space="preserve">
-    <value>Shadow (solo RAM)</value>
+    <value>Ombra (solo RAM)</value>
   </data>
   <data name="WriteMode_ShadowRequested" xml:space="preserve">
-    <value>Shadow (richiesta)</value>
+    <value>Ombra (richiesta)</value>
   </data>
   <data name="Write_PlanChanged" xml:space="preserve">
     <value>Il piano di scrittura è cambiato. Avvia una nuova sessione di scrittura.</value>
@@ -3981,5 +3984,14 @@
   </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>Impossibile scaricare {0}: {1}</value>
+  </data>
+  <data name="Slots_NonceCount" xml:space="preserve">
+    <value>Nonce raccolti</value>
+  </data>
+  <data name="Device_IncompleteResponse" xml:space="preserve">
+    <value>Risposta incompleta del dispositivo con i dati raccolti.</value>
+  </data>
+  <data name="Slots_PasswordCount" xml:space="preserve">
+    <value>Password raccolte</value>
   </data>
 </root>

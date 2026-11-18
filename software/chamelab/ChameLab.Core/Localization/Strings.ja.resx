@@ -2293,13 +2293,13 @@
     <value>。{0} 回間違えるとカードがロックされます。</value>
   </data>
   <data name="Prng_Hard" xml:space="preserve">
-    <value>Hard（予測不可能）</value>
+    <value>強い（予測不可能）</value>
   </data>
   <data name="Prng_Static" xml:space="preserve">
-    <value>Static（固定 nonce）</value>
+    <value>静的（固定 nonce）</value>
   </data>
   <data name="Prng_Weak" xml:space="preserve">
-    <value>Weak（予測可能）</value>
+    <value>弱い（予測可能）</value>
   </data>
   <data name="Protection_AnswerPACK" xml:space="preserve">
     <value>応答（PACK）</value>
@@ -2729,6 +2729,9 @@
   </data>
   <data name="Slots_PasswordDetection" xml:space="preserve">
     <value>パスワード検出</value>
+  </data>
+  <data name="Slots_CollectNonces" xml:space="preserve">
+    <value>nonce を収集</value>
   </data>
   <data name="Slots_PickTheLEDColor" xml:space="preserve">
     <value>LED の色を選ぶ</value>
@@ -3981,5 +3984,14 @@
   </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>{0} をダウンロードできませんでした: {1}</value>
+  </data>
+  <data name="Slots_NonceCount" xml:space="preserve">
+    <value>収集した nonce</value>
+  </data>
+  <data name="Device_IncompleteResponse" xml:space="preserve">
+    <value>デバイスからの収集データの応答が不完全です。</value>
+  </data>
+  <data name="Slots_PasswordCount" xml:space="preserve">
+    <value>収集したパスワード</value>
   </data>
 </root>

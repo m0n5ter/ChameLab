@@ -27,7 +27,7 @@ public sealed class MainViewModel : ViewModelBase
         Firmware = new FirmwareUpdateViewModel(device, firmware);
         _connect = new ConnectViewModel(device, AppServices.Sharing);
         Chameleon = new ChameleonViewModel(device, cards, Firmware);
-        Slots = new SlotsViewModel(device, cards);
+        Slots = new SlotsViewModel(device, cards, dictionaries);
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries, cards);
         Tools = new ToolsViewModel(device, dictionaries);

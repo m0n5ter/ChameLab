@@ -1050,6 +1050,9 @@
   <data name="Slots_PasswordDetection" xml:space="preserve">
     <value>Password detection</value>
   </data>
+  <data name="Slots_CollectNonces" xml:space="preserve">
+    <value>Collect nonces</value>
+  </data>
   <data name="Slots_PickTheLEDColor" xml:space="preserve">
     <value>Pick the LED color</value>
   </data>
@@ -3998,5 +4001,14 @@
   </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>Could not download {0}: {1}</value>
+  </data>
+  <data name="Slots_NonceCount" xml:space="preserve">
+    <value>Nonces collected</value>
+  </data>
+  <data name="Device_IncompleteResponse" xml:space="preserve">
+    <value>Incomplete collection response from the device.</value>
+  </data>
+  <data name="Slots_PasswordCount" xml:space="preserve">
+    <value>Passwords collected</value>
   </data>
 </root>

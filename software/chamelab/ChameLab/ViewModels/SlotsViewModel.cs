@@ -4,6 +4,8 @@ using System.Windows.Input;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
+using Avalonia.Threading;
 using ChameLab.Behaviors;
 using ChameLab.Models;
 using ChameLab.Services;
@@ -23,6 +25,11 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
 {
     private readonly DeviceService _device;
     private readonly CardLibrary _cards;
+    private readonly DictionaryLibrary _dictionaries;
+    private DispatcherTimer? _captureTimer;
+    private CancellationTokenSource? _capturePoll;
+    private bool _capturePageActive;
+    private SlotEditorViewModel? _loadingEditor;
     private SlotItemViewModel? _selected;
     private SlotEditorViewModel? _editor;
     private bool _isConnected;
@@ -34,10 +41,11 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     // Page margins 56 + list 280 + gap 18 + details 420 (see SlotsView).
     public override double MinContentWidth => 774;
 
-    public SlotsViewModel(DeviceService device, CardLibrary cards) : base(() => Strings.Nav_Slots, "slots")
+    public SlotsViewModel(DeviceService device, CardLibrary cards, DictionaryLibrary? dictionaries = null) : base(() => Strings.Nav_Slots, "slots")
     {
         _device = device;
         _cards = cards;
+        _dictionaries = dictionaries ?? AppServices.Dictionaries;
         _isConnected = device.State == ConnectionState.Connected;
 
         CloseCommand = ReactiveCommand.Create(() => LeaveThen(() => SetSelected(null)));
@@ -166,14 +174,82 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>A fresh editor on what the slot holds; activates the slot on the device.</summary>
     private void OpenEditor(SlotItemViewModel slot)
     {
-        var editor = new SlotEditorViewModel(_device, _cards, slot.Info, OnSlotChanged, OpenCard);
+        var editor = new SlotEditorViewModel(_device, _cards, slot.Info, OnSlotChanged, OpenCard, _dictionaries);
         Editor = editor;
         foreach (var s in Slots) s.IsActive = s.Index == slot.Index;
         this.RaisePropertyChanged(nameof(CountText));
-        _ = editor.OnActivatedAsync();
+        _ = ActivateEditorAsync(editor);
     }
 
-    public override Task OnActivatedAsync() => LoadAsync(reopen: true);
+    private async Task ActivateEditorAsync(SlotEditorViewModel editor)
+    {
+        _loadingEditor = editor;
+        _captureTimer?.Stop();
+        try { await editor.OnActivatedAsync(); }
+        finally
+        {
+            if (ReferenceEquals(_loadingEditor, editor)) _loadingEditor = null;
+            ScheduleCaptureRefresh();
+        }
+    }
+
+    public override Task OnActivatedAsync()
+    {
+        StartCaptureRefresh();
+        return LoadAsync(reopen: true);
+    }
+
+    public override Task OnDeactivatedAsync()
+    {
+        StopCaptureRefresh();
+        return Task.CompletedTask;
+    }
+
+    internal void StartCaptureRefresh()
+    {
+        _capturePageActive = true;
+        if (_captureTimer is null)
+        {
+            _captureTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _captureTimer.Tick += async (_, _) => await TickCaptureRefreshAsync();
+        }
+        ScheduleCaptureRefresh();
+    }
+
+    private void ScheduleCaptureRefresh()
+    {
+        if (_capturePageActive && _editor is not null && _loadingEditor is null) _captureTimer?.Start();
+    }
+
+    internal async Task TickCaptureRefreshAsync()
+    {
+        // One-shot scheduling: the one-second pause starts only after the refresh has finished.
+        _captureTimer?.Stop();
+        try { await RefreshCaptureAsync(); }
+        finally
+        {
+            ScheduleCaptureRefresh();
+        }
+    }
+
+    internal void StopCaptureRefresh()
+    {
+        _capturePageActive = false;
+        _captureTimer?.Stop();
+        _capturePoll?.Cancel();
+    }
+
+    internal async Task RefreshCaptureAsync()
+    {
+        if (!_capturePageActive || !IsConnected || IsBusy || IsAsking || _capturePoll is not null
+            || _editor is not { IsBusy: false } editor) return;
+        var capture = editor.ShowMfcSettings ? editor.MfcCapture : editor.ShowUlSettings ? editor.UlCapture : null;
+        if (capture?.RefreshCommand.CanExecute(null) != true) return;
+        using var poll = new CancellationTokenSource();
+        _capturePoll = poll;
+        try { await capture.RefreshAsync(poll.Token); }
+        finally { _capturePoll = null; }
+    }
 
     /// <summary>
     /// Reads the slots, updating the rows in place so the selection stays. With
@@ -253,9 +329,13 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
         get => _editor;
         private set
         {
+            if (!ReferenceEquals(_editor, value)) _capturePoll?.Cancel();
             if (_editor is not null) _editor.PropertyChanged -= OnEditorPropertyChanged;
             this.RaiseAndSetIfChanged(ref _editor, value);
+            if (_editor is null) _captureTimer?.Stop();
+            else ScheduleCaptureRefresh();
             if (_editor is not null) _editor.PropertyChanged += OnEditorPropertyChanged;
+            this.RaisePropertyChanged(nameof(HasActivity));
             this.RaisePropertyChanged(nameof(HasPane));
             this.RaisePropertyChanged(nameof(IsDirty));
             this.RaisePropertyChanged(nameof(IsAsking));
@@ -266,6 +346,9 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     {
         switch (e.PropertyName)
         {
+            case nameof(HasActivity):
+                this.RaisePropertyChanged(nameof(HasActivity));
+                break;
             case nameof(SlotEditorViewModel.IsDirty):
                 this.RaisePropertyChanged(nameof(IsDirty));
                 break;
@@ -284,6 +367,8 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
 
     /// <summary>The right-hand pane is in use; on phones it replaces the list.</summary>
     public bool HasPane => _editor is not null;
+
+    public override bool HasActivity => base.HasActivity || _editor?.HasActivity == true;
 
     /// <summary>The open slot has unsaved edits (drives the save bar).</summary>
     public bool IsDirty => _editor?.IsDirty == true;

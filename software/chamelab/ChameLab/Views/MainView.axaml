@@ -321,7 +321,7 @@
           <!-- Thin activity bar while the current page talks to the device. -->
           <ProgressBar Grid.Row="0" VerticalAlignment="Top" IsIndeterminate="True" Height="3" MinHeight="3"
                        CornerRadius="0" Foreground="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" Background="Transparent"
-                       IsVisible="{Binding CurrentPage.IsBusy}" />
+                       IsVisible="{Binding CurrentPage.HasActivity}" />
 
           <!-- A passing confirmation at the top of the page: clears itself, and clicks go through it. -->
           <Border Grid.Row="0" Classes="notice" VerticalAlignment="Top" HorizontalAlignment="Center"

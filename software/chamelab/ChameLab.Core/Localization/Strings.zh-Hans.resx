@@ -2730,6 +2730,9 @@
   <data name="Slots_PasswordDetection" xml:space="preserve">
     <value>密码检测</value>
   </data>
+  <data name="Slots_CollectNonces" xml:space="preserve">
+    <value>收集 nonce</value>
+  </data>
   <data name="Slots_PickTheLEDColor" xml:space="preserve">
     <value>选择 LED 颜色</value>
   </data>
@@ -3981,5 +3984,14 @@
   </data>
   <data name="Dictionaries_DlFailed" xml:space="preserve">
     <value>无法下载 {0}：{1}</value>
+  </data>
+  <data name="Slots_NonceCount" xml:space="preserve">
+    <value>已收集 nonce</value>
+  </data>
+  <data name="Device_IncompleteResponse" xml:space="preserve">
+    <value>设备返回的收集数据不完整。</value>
+  </data>
+  <data name="Slots_PasswordCount" xml:space="preserve">
+    <value>已收集密码</value>
   </data>
 </root>

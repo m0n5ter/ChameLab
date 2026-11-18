@@ -50,8 +50,16 @@ public abstract class PageViewModelBase : ViewModelBase
     public bool IsBusy
     {
         get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
+        private set
+        {
+            if (field == value) return;
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(HasActivity));
+        }
     }
+
+    /// <summary>Activity shown by the window's progress bar, including work in nested editors.</summary>
+    public virtual bool HasActivity => IsBusy;
 
     /// <summary>A passing confirmation (see <see cref="Notify"/>).</summary>
     public string? Notice
