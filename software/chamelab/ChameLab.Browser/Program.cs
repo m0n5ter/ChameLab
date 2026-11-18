@@ -39,6 +39,7 @@ internal sealed partial class Program
                 _ = WebSerialInterop.EnsureModuleAsync();
                 if (bluetooth) _ = WebBluetoothInterop.EnsureModuleAsync();
                 _ = WebFeedbackInterop.EnsureModuleAsync();
+                _ = WebHistoryGuard.InstallAsync();
             })
             // NOTE: Avalonia DevTools is not WebAssembly-safe (uses System.Diagnostics.Process),
             // so it is intentionally not attached for the browser head.

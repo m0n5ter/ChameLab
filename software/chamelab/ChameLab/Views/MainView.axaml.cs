@@ -54,6 +54,7 @@ public partial class MainView : UserControl
         _topLevel = TopLevel.GetTopLevel(this);
         if (_topLevel is null) return;
         _topLevel.BackRequested += OnBackRequested;
+        SystemBack.Handler = HandleBack;
         _inputPane = _topLevel.InputPane;
         if (_inputPane is not null) _inputPane.StateChanged += OnInputPaneChanged;
         _insets = _topLevel.InsetsManager;
@@ -66,6 +67,7 @@ public partial class MainView : UserControl
         base.OnDetachedFromVisualTree(e);
         LocalizationService.LanguageChanged -= OnLanguageChanged;
         if (_topLevel is not null) _topLevel.BackRequested -= OnBackRequested;
+        if (SystemBack.Handler?.Target == this) SystemBack.Handler = null;
         if (_inputPane is not null) _inputPane.StateChanged -= OnInputPaneChanged;
         if (_insets is not null) _insets.SafeAreaChanged -= OnSafeAreaChanged;
         _topLevel = null;
@@ -104,15 +106,21 @@ public partial class MainView : UserControl
     /// </summary>
     private void OnBackRequested(object? sender, RoutedEventArgs e)
     {
-        if (e.Handled || _topLevel is null || DataContext is not MainViewModel vm) return;
-        e.Handled = CloseTopPopup(_topLevel)
-                    || DialogKeys.TryCancel(_topLevel)
-                    // Nothing to cancel while firmware installs, and Back must not leave the dialog either.
-                    || vm.Firmware.IsDialogOpen
-                    || DialogKeys.TryGoBack(_topLevel)
-                    || vm.TryGoBack()
-                    // Only phones and the browser tab close on an unhandled Back; desktop ignores it.
-                    || (OperatingSystem.IsAndroid() || OperatingSystem.IsBrowser()) && (!vm.ConfirmExit() || Quit(vm));
+        if (!e.Handled) e.Handled = HandleBack();
+    }
+
+    /// <summary>The Back of <see cref="OnBackRequested"/>; true when the app took it.</summary>
+    private bool HandleBack()
+    {
+        if (_topLevel is null || DataContext is not MainViewModel vm) return false;
+        return CloseTopPopup(_topLevel)
+               || DialogKeys.TryCancel(_topLevel)
+               // Nothing to cancel while firmware installs, and Back must not leave the dialog either.
+               || vm.Firmware.IsDialogOpen
+               || DialogKeys.TryGoBack(_topLevel)
+               || vm.TryGoBack()
+               // Only phones and the browser tab close on an unhandled Back; desktop ignores it.
+               || (OperatingSystem.IsAndroid() || OperatingSystem.IsBrowser()) && (!vm.ConfirmExit() || Quit(vm));
     }
 
     /// <summary>
