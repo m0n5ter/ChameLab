@@ -82,6 +82,24 @@ public class ActionRowTests
         Assert.Equal(120 + 3 * ActionRow.MinGap, row.Children[3].Bounds.X);
     }
 
+    [Fact]
+    public void ARowMeasuredAgainInTheSamePlaceIsArrangedAgain()
+    {
+        // As on Android while another activity covers the app: measured at no width, arranged in its
+        // full place; then measured again at the full width and arranged in the same place.
+        var row = new ActionRow { Spacing = 8 };
+        for (var i = 0; i < 4; i++) row.Children.Add(new ActionButton());
+        var place = new Rect(0, 0, 400, 40);
+        row.Measure(new Size(0, 100));
+        row.Arrange(place);
+        Assert.Equal(40 + ActionRow.MinGap, row.Children[1].Bounds.X);
+
+        row.Measure(new Size(400, 100));
+        row.Arrange(place);
+        // 4 × 100 + 3 × 8 = 424: the last button drops its label.
+        Assert.Equal(new[] { 0.0, 108, 216, 324 }, row.Children.Select(c => c.Bounds.X));
+    }
+
     /// <summary>
     /// Stands in for a button template's content presenter: a ContentPresenter only builds its
     /// child under a logical root, which these tests have none of.

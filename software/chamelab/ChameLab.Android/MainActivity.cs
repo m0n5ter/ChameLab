@@ -7,7 +7,6 @@ using Android.Views;
 using Avalonia;
 using Avalonia.Android;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -60,20 +59,21 @@ public class MainActivity : AvaloniaMainActivity
     // ---- Layout after another activity covered the app ----------------------------------------
 
     private SurfaceView? _watchedSurface;
-    private readonly SurfaceWatcher _surfaceWatcher = new();
+    private SurfaceWatcher? _surfaceWatcher;
 
     /// <summary>
     /// While another activity covers the app (the QR scanner, a file picker), Avalonia's surface is
-    /// gone and it reports the view as 1×1 pixel, so whatever changes meanwhile (a card scanned from
-    /// a QR code) is laid out at no width. When the surface comes back at the size Avalonia had last
-    /// seen, it raises no resize, and panels that keep the layout of their last measure (the action
-    /// row, the flow grids) stay squeezed. So each time the surface gets its size, the whole view is
-    /// measured again.
+    /// gone and it lays the view out at 1×1 pixel, so whatever changes meanwhile (a card scanned from
+    /// a QR code) is measured at no width. When the surface comes back, Avalonia measures the view
+    /// again, but a control measured anew whose place didn't change is not arranged again: its
+    /// children keep the places of the squeezed layout, drawn over each other. So each time the
+    /// surface gets its size, the whole view is invalidated, measure and arrange.
     /// </summary>
     private void WatchSurface()
     {
         if (_watchedSurface is { Handle: not 0 }) return;
         _watchedSurface = FindSurface(Window?.DecorView);
+        _surfaceWatcher ??= new SurfaceWatcher(() => Dispatcher.UIThread.Post(RefreshView, DispatcherPriority.Render));
         _watchedSurface?.Holder?.AddCallback(_surfaceWatcher);
     }
 
@@ -87,26 +87,22 @@ public class MainActivity : AvaloniaMainActivity
         return null;
     }
 
-    private sealed class SurfaceWatcher : Java.Lang.Object, ISurfaceHolderCallback
+    private sealed class SurfaceWatcher(Action changed) : Java.Lang.Object, ISurfaceHolderCallback
     {
         public void SurfaceChanged(ISurfaceHolder holder, global::Android.Graphics.Format format, int width, int height) =>
-            Dispatcher.UIThread.Post(RefreshView, DispatcherPriority.Render);
+            changed();
 
         public void SurfaceCreated(ISurfaceHolder holder) { }
 
         public void SurfaceDestroyed(ISurfaceHolder holder) { }
     }
 
-    private static void RefreshView()
+    private void RefreshView()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is not ISingleViewApplicationLifetime { MainView: { } view })
-            return;
+        if (Content is not Visual view) return;
         var root = (Visual?)TopLevel.GetTopLevel(view) ?? view;
         foreach (var visual in root.GetSelfAndVisualDescendants())
-        {
             if (visual is Layoutable layoutable) layoutable.InvalidateMeasure();
-            visual.InvalidateVisual();
-        }
     }
 
     private void RequestBlePermissions()

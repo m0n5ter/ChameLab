@@ -118,6 +118,9 @@ public class FlowGrid : Panel
         }
 
         var height = items.Count == 0 ? 0 : y - RowSpacing;
+        // The rects just computed must reach the children even if the panel keeps its place:
+        // Avalonia only arranges a control again when its place changes or its arrange is invalid.
+        InvalidateArrange();
         return new Size(unbounded ? widest : limit, height);
     }
 
