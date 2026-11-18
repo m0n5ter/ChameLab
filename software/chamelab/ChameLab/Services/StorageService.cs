@@ -52,7 +52,7 @@ public static class StorageService
         var file = await Provider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = title,
-            SuggestedFileName = suggestedName,
+            SuggestedFileName = SuggestedName(suggestedName, extension),
             DefaultExtension = extension,
             FileTypeChoices = BuildFilters(new[] { extension }),
         });
@@ -62,6 +62,19 @@ public static class StorageService
         await using var stream = await file.OpenWriteAsync();
         await stream.WriteAsync(data);
         return file.Name;
+    }
+
+    /// <summary>
+    /// Avalonia's Android picker appends <c>DefaultExtension</c> to the suggested name
+    /// unconditionally ("key.dic" became "key.dic.dic"), so there the extension is
+    /// dropped from the name; the other platforms add it only when it's missing.
+    /// </summary>
+    private static string SuggestedName(string name, string extension)
+    {
+        var suffix = "." + extension.TrimStart('.');
+        return OperatingSystem.IsAndroid() && name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)
+            ? name[..^suffix.Length]
+            : name;
     }
 
     /// <summary>Shows a folder dialog; returns the chosen folder's local path, or null if canceled or not local.</summary>
