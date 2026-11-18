@@ -4,8 +4,10 @@
 <head>
     <title>ChameLab</title>
     <meta charset="UTF-8">
-    <!-- resizes-content: the on-screen keyboard shrinks the page (and the app) instead of covering it. -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+    <!-- resizes-content: the on-screen keyboard shrinks the page (and the app) instead of covering it.
+         maximum-scale: iOS Safari otherwise zooms the page in when a text field gets focus and
+         leaves it zoomed, cutting the app off on the right. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-content">
     <link rel="icon" href="./favicon.ico">
     <link rel="stylesheet" href="./app.css" />
 </head>
