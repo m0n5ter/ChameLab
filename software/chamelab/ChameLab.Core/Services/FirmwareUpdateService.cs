@@ -186,7 +186,10 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
     private static HttpClient CreateHttp()
     {
         var http = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("ChameLab");
+        // A browser sends its own; a set one makes Safari ask GitHub (which refuses) whether it may, and the
+        // download fails with "Load failed".
+        if (!OperatingSystem.IsBrowser())
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ChameLab");
         return http;
     }
 }

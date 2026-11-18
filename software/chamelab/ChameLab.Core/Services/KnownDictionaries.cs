@@ -75,7 +75,10 @@ public static class KnownDictionaries
     private static HttpClient CreateHttp()
     {
         var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("ChameLab");
+        // A browser sends its own; a set one makes Safari ask GitHub (which refuses) whether it may, and the
+        // download fails with "Load failed".
+        if (!OperatingSystem.IsBrowser())
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ChameLab");
         return http;
     }
 
