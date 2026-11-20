@@ -51,6 +51,9 @@ public sealed class HexEditor : Control
         AvaloniaProperty.Register<HexEditor, IBrush?>(nameof(DimBrush));
     public static readonly StyledProperty<IBrush?> ChangedBrushProperty =
         AvaloniaProperty.Register<HexEditor, IBrush?>(nameof(ChangedBrush));
+    /// <summary>Bytes the buffer marks (<see cref="HexBuffer.Marked"/>), e.g. those that differ in a comparison.</summary>
+    public static readonly StyledProperty<IBrush?> MarkedBrushProperty =
+        AvaloniaProperty.Register<HexEditor, IBrush?>(nameof(MarkedBrush));
     public static readonly StyledProperty<IBrush?> ManufacturerBrushProperty =
         AvaloniaProperty.Register<HexEditor, IBrush?>(nameof(ManufacturerBrush));
     public static readonly StyledProperty<IBrush?> KeyABrushProperty =
@@ -156,7 +159,7 @@ public sealed class HexEditor : Control
         FocusableProperty.OverrideDefaultValue<HexEditor>(true);
         AffectsMeasure<HexEditor>(BufferProperty, FontFamilyProperty, FontSizeProperty, ShowGroupHeadersProperty);
         AffectsRender<HexEditor>(ShowGroupHeadersProperty);
-        AffectsRender<HexEditor>(ForegroundProperty, LabelBrushProperty, DimBrushProperty, ChangedBrushProperty,
+        AffectsRender<HexEditor>(ForegroundProperty, LabelBrushProperty, DimBrushProperty, ChangedBrushProperty, MarkedBrushProperty,
             ManufacturerBrushProperty, KeyABrushProperty, AccessBitsBrushProperty, KeyBBrushProperty, CaretBrushProperty,
             CaretCellBrushProperty, SelectionBrushProperty, ActiveRowBrushProperty, SeparatorBrushProperty, StripeBrushProperty);
         TextInputMethodClientRequestedEvent.AddClassHandler<HexEditor>((editor, e) =>
@@ -245,6 +248,7 @@ public sealed class HexEditor : Control
     public IBrush? LabelBrush { get => GetValue(LabelBrushProperty); set => SetValue(LabelBrushProperty, value); }
     public IBrush? DimBrush { get => GetValue(DimBrushProperty); set => SetValue(DimBrushProperty, value); }
     public IBrush? ChangedBrush { get => GetValue(ChangedBrushProperty); set => SetValue(ChangedBrushProperty, value); }
+    public IBrush? MarkedBrush { get => GetValue(MarkedBrushProperty); set => SetValue(MarkedBrushProperty, value); }
     public IBrush? ManufacturerBrush { get => GetValue(ManufacturerBrushProperty); set => SetValue(ManufacturerBrushProperty, value); }
     public IBrush? KeyABrush { get => GetValue(KeyABrushProperty); set => SetValue(KeyABrushProperty, value); }
     public IBrush? AccessBitsBrush { get => GetValue(AccessBitsBrushProperty); set => SetValue(AccessBitsBrushProperty, value); }
@@ -716,6 +720,7 @@ public sealed class HexEditor : Control
         var baseline = y + (_lineH - sample.Height) / 2 + sample.Baseline;
         void Add(string text, IBrush brush, double center) => AddGlyphs(text, brush, center, baseline);
 
+        var marked = MarkedBrush ?? changed;
         var labelDrawn = false;
         if (StartsRow(line))
         {
@@ -748,7 +753,8 @@ public sealed class HexEditor : Control
             var b = read ? buf[offset] : template ?? 0;
             var known = !read && buf.IsTemplateKnown(offset);
             var brush = !read && !known ? dim
-                : buf.IsChanged(offset) || buf.Marked(buf.RowAt(offset), buf.ColumnAt(offset)) ? changed
+                : buf.IsChanged(offset) ? changed
+                : buf.Marked(buf.RowAt(offset), buf.ColumnAt(offset)) ? marked
                 : KindBrush(buf.Classify(buf.RowAt(offset), buf.ColumnAt(offset)), fg);
             Add(read || template is not null ? HexBytes[b] : "--", brush, ByteX(col) + _digitW);
             if (_showAscii)

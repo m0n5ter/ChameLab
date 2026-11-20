@@ -200,7 +200,7 @@ public sealed class HexBuffer
     /// </summary>
     public Func<int, int, bool> TemplateKnown { get; init; } = (_, _) => false;
 
-    /// <summary>A byte drawn in the changed color although not edited (e.g. one that differs in a comparison).</summary>
+    /// <summary>A byte drawn in the editor's marked color (e.g. one that differs in a comparison).</summary>
     public Func<int, int, bool> Marked { get; init; } = (_, _) => false;
 
     /// <summary>The byte is unread but known from the <see cref="Template"/>.</summary>
