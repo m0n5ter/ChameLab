@@ -3892,7 +3892,7 @@
     <value>QR-сканер недоступен на этом устройстве (нужны сервисы Google Play). Откройте вместо этого скриншот или фото кода.</value>
   </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Выберите две сохранённые карты или файлы дампов. Отличающиеся байты подсвечены.</value>
+    <value>Выберите две сохранённые карты или файлы дампов. Отличающиеся байты подсвечены. Если выбрать карту с другим типом памяти, вторая сторона очистится.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>Файл</value>
@@ -3902,9 +3902,6 @@
   </data>
   <data name="Compare_OpenFileTitle" xml:space="preserve">
     <value>Открыть дамп для сравнения</value>
-  </data>
-  <data name="Compare_NoCards" xml:space="preserve">
-    <value>У других сохранённых карт нет такой памяти. Откройте файл дампа.</value>
   </data>
   <data name="Compare_Identical" xml:space="preserve">
     <value>Карты одинаковые.</value>
@@ -3920,9 +3917,6 @@
   </data>
   <data name="Compare_NotRead" xml:space="preserve">
     <value>не прочитан</value>
-  </data>
-  <data name="Compare_FileHasNoMatch" xml:space="preserve">
-    <value>В {0} нет карты с такой памятью.</value>
   </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>Сравнение дампов</value>
@@ -3941,6 +3935,12 @@
   </data>
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>В {0} нет дампа MIFARE Classic или Ultralight / NTAG.</value>
+  </data>
+  <data name="Compare_StartOver" xml:space="preserve">
+    <value>Начать заново</value>
+  </data>
+  <data name="Compare_StartOverTip" xml:space="preserve">
+    <value>Очистить обе карты</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Назад в «{0}»</value>

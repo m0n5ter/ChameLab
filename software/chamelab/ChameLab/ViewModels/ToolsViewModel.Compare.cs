@@ -43,6 +43,7 @@ public sealed partial class ToolsViewModel
     public ICommand ChooseCompareBCommand { get; private set; } = null!;
     public ICommand CloseComparePickerCommand { get; private set; } = null!;
     public ICommand CompareFileCommand { get; private set; } = null!;
+    public ICommand CompareStartOverCommand { get; private set; } = null!;
 
     private void InitCompare(CardLibrary cards)
     {
@@ -52,6 +53,12 @@ public sealed partial class ToolsViewModel
         ChooseCompareBCommand = ReactiveCommand.Create(() => OpenComparePicker(CompareSide.B));
         CloseComparePickerCommand = ReactiveCommand.Create(CloseComparePicker);
         CompareFileCommand = ReactiveCommand.CreateFromTask(CompareFileAsync);
+        CompareStartOverCommand = ReactiveCommand.Create(() =>
+        {
+            CompareA = null;
+            CompareB = null;
+            _compareFiles.Clear();
+        });
         _cards.Changed += () => Dispatcher.UIThread.Post(OnCardsChanged);
     }
 
@@ -83,6 +90,7 @@ public sealed partial class ToolsViewModel
     public CardItemViewModel? CompareItemB => CompareB is { } card ? new CardItemViewModel(card) : null;
     public bool HasCompareA => CompareA is not null;
     public bool HasCompareB => CompareB is not null;
+    public bool HasCompareSide => CompareA is not null || CompareB is not null;
 
     /// <summary>Only the blocks that differ are listed (the default); otherwise every block.</summary>
     public bool CompareOnlyDifferences
@@ -150,8 +158,9 @@ public sealed partial class ToolsViewModel
     public string ComparePickerTitle => _pickingSide == CompareSide.B ? Strings.Compare_ChooseB : Strings.Compare_ChooseA;
 
     /// <summary>
-    /// The saved cards with a dump the side can take: the same kind of memory as the other side, if
-    /// that is chosen. A new list each time the dialog opens, so its search starts over.
+    /// The saved cards with a dump, but the other side's card: any kind of memory, so a side can change
+    /// to another kind (the other side is then cleared). A new list each time the dialog opens, so its
+    /// search starts over.
     /// </summary>
     public ObservableCollection<CardSave> ComparePickerCards
     {
@@ -159,7 +168,7 @@ public sealed partial class ToolsViewModel
         private set => this.RaiseAndSetIfChanged(ref field, value);
     } = new();
 
-    public string ComparePickerEmptyText => OtherSide(_pickingSide) is null ? Strings.Compare_NoDumps : Strings.Compare_NoCards;
+    public string ComparePickerEmptyText => Strings.Compare_NoDumps;
 
     /// <summary>Picking a card in the dialog puts it on the side being chosen.</summary>
     public CardSave? ComparePickerSelected
@@ -190,8 +199,7 @@ public sealed partial class ToolsViewModel
     private static bool HasDump(CardSave card) =>
         (card.Tag.IsMifareClassic() || card.Tag.IsUltralight()) && card.Data.Any(d => d.Length > 0);
 
-    private bool Fits(CardSave card, CardSave? other) =>
-        HasDump(card) && (other is null || card.Id != other.Id && DumpComparison.CanCompare(card, other));
+    private static bool Fits(CardSave card, CardSave? other) => HasDump(card) && (other is null || card.Id != other.Id);
 
     private void OpenComparePicker(CompareSide side)
     {
@@ -218,8 +226,14 @@ public sealed partial class ToolsViewModel
             if (Fits(card, other)) ComparePickerCards.Add(card);
     }
 
+    /// <summary>Puts the card on the side; the other side goes if its kind of memory differs.</summary>
     private void SetSide(CompareSide side, CardSave card)
     {
+        if (OtherSide(side) is { } other && !DumpComparison.CanCompare(card, other))
+        {
+            if (side == CompareSide.A) CompareB = null;
+            else CompareA = null;
+        }
         if (side == CompareSide.A) CompareA = card;
         else CompareB = card;
     }
@@ -247,10 +261,12 @@ public sealed partial class ToolsViewModel
         IReadOnlyList<CardSave> cards;
         try { cards = CardFormats.Import(file.Name, file.Data); }
         catch (Exception ex) { throw new FormatException(string.Format(Strings.Cards_UnsupportedFile, file.Name, ex.Message)); }
+        // A card with the other side's kind of memory first; else any, which clears the other side.
         var other = OtherSide(side);
-        var card = cards.FirstOrDefault(c => HasDump(c) && (other is null || DumpComparison.CanCompare(c, other)))
-            ?? throw new FormatException(string.Format(
-                other is null ? Strings.Compare_FileHasNoDump : Strings.Compare_FileHasNoMatch, file.Name));
+        var dumps = cards.Where(HasDump).ToList();
+        var card = dumps.FirstOrDefault(c => other is not null && DumpComparison.CanCompare(c, other))
+            ?? dumps.FirstOrDefault()
+            ?? throw new FormatException(string.Format(Strings.Compare_FileHasNoDump, file.Name));
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -272,6 +288,7 @@ public sealed partial class ToolsViewModel
         this.RaisePropertyChanged(nameof(CompareItemB));
         this.RaisePropertyChanged(nameof(HasCompareA));
         this.RaisePropertyChanged(nameof(HasCompareB));
+        this.RaisePropertyChanged(nameof(HasCompareSide));
         _comparison = CompareA is { } a && CompareB is { } b && DumpComparison.CanCompare(a, b)
             ? DumpComparison.Compare(a, b)
             : null;

@@ -3878,7 +3878,7 @@
     <value>이 기기에서는 QR 스캐너를 사용할 수 없습니다(Google Play 서비스 필요). 대신 코드의 스크린샷이나 사진을 여세요.</value>
   </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>저장된 카드나 덤프 파일 두 개를 선택하세요. 다른 바이트가 강조 표시됩니다.</value>
+    <value>저장된 카드나 덤프 파일 두 개를 선택하세요. 다른 바이트가 강조 표시됩니다. 다른 종류의 메모리를 가진 카드를 고르면 다른 쪽은 비워집니다.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>파일</value>
@@ -3888,9 +3888,6 @@
   </data>
   <data name="Compare_OpenFileTitle" xml:space="preserve">
     <value>비교할 덤프 열기</value>
-  </data>
-  <data name="Compare_NoCards" xml:space="preserve">
-    <value>이런 종류의 메모리를 가진 다른 저장된 카드가 없습니다. 대신 덤프 파일을 여세요.</value>
   </data>
   <data name="Compare_Identical" xml:space="preserve">
     <value>두 카드가 동일합니다.</value>
@@ -3906,9 +3903,6 @@
   </data>
   <data name="Compare_NotRead" xml:space="preserve">
     <value>읽지 않음</value>
-  </data>
-  <data name="Compare_FileHasNoMatch" xml:space="preserve">
-    <value>{0}에 이런 종류의 메모리를 가진 카드가 없습니다.</value>
   </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>덤프 비교</value>
@@ -3927,6 +3921,12 @@
   </data>
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0}에 MIFARE Classic 또는 Ultralight / NTAG 덤프가 없습니다.</value>
+  </data>
+  <data name="Compare_StartOver" xml:space="preserve">
+    <value>다시 시작</value>
+  </data>
+  <data name="Compare_StartOverTip" xml:space="preserve">
+    <value>두 카드 모두 비우기</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>{0}(으)로 돌아가기</value>

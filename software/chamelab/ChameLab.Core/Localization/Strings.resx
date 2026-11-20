@@ -3895,7 +3895,7 @@
     <value>The QR scanner is not available on this device (it needs Google Play services). Open a screenshot or photo of the code instead.</value>
   </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Choose two saved cards or dump files. Bytes that differ are highlighted.</value>
+    <value>Choose two saved cards or dump files. Bytes that differ are highlighted. Choosing a card with another kind of memory clears the other side.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>File</value>
@@ -3905,9 +3905,6 @@
   </data>
   <data name="Compare_OpenFileTitle" xml:space="preserve">
     <value>Open a dump to compare with</value>
-  </data>
-  <data name="Compare_NoCards" xml:space="preserve">
-    <value>No other saved card has this kind of memory. Open a dump file instead.</value>
   </data>
   <data name="Compare_Identical" xml:space="preserve">
     <value>The cards are identical.</value>
@@ -3923,9 +3920,6 @@
   </data>
   <data name="Compare_NotRead" xml:space="preserve">
     <value>not read</value>
-  </data>
-  <data name="Compare_FileHasNoMatch" xml:space="preserve">
-    <value>{0} has no card with this kind of memory.</value>
   </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>Compare dumps</value>
@@ -3944,6 +3938,12 @@
   </data>
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} has no MIFARE Classic or Ultralight / NTAG dump.</value>
+  </data>
+  <data name="Compare_StartOver" xml:space="preserve">
+    <value>Start over</value>
+  </data>
+  <data name="Compare_StartOverTip" xml:space="preserve">
+    <value>Clear both cards</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Back to {0}</value>

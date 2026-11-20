@@ -3878,7 +3878,7 @@
     <value>Le lecteur de QR codes n'est pas disponible sur cet appareil (il nécessite les services Google Play). Ouvrez plutôt une capture d'écran ou une photo du code.</value>
   </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Choisissez deux cartes enregistrées ou fichiers de dump. Les octets qui diffèrent sont mis en évidence.</value>
+    <value>Choisissez deux cartes enregistrées ou fichiers de dump. Les octets qui diffèrent sont mis en évidence. Choisir une carte avec un autre type de mémoire vide l’autre côté.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>Fichier</value>
@@ -3888,9 +3888,6 @@
   </data>
   <data name="Compare_OpenFileTitle" xml:space="preserve">
     <value>Ouvrir un dump à comparer</value>
-  </data>
-  <data name="Compare_NoCards" xml:space="preserve">
-    <value>Aucune autre carte enregistrée n'a ce type de mémoire. Ouvrez plutôt un fichier de dump.</value>
   </data>
   <data name="Compare_Identical" xml:space="preserve">
     <value>Les cartes sont identiques.</value>
@@ -3906,9 +3903,6 @@
   </data>
   <data name="Compare_NotRead" xml:space="preserve">
     <value>non lu</value>
-  </data>
-  <data name="Compare_FileHasNoMatch" xml:space="preserve">
-    <value>{0} ne contient aucune carte avec ce type de mémoire.</value>
   </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>Comparer des dumps</value>
@@ -3927,6 +3921,12 @@
   </data>
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} ne contient aucun dump MIFARE Classic ou Ultralight / NTAG.</value>
+  </data>
+  <data name="Compare_StartOver" xml:space="preserve">
+    <value>Recommencer</value>
+  </data>
+  <data name="Compare_StartOverTip" xml:space="preserve">
+    <value>Retirer les deux cartes</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Retour à {0}</value>

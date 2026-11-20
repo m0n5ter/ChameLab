@@ -3878,7 +3878,7 @@
     <value>Der QR-Scanner ist auf diesem Gerät nicht verfügbar (er braucht die Google-Play-Dienste). Öffne stattdessen einen Screenshot oder ein Foto des Codes.</value>
   </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Wähle zwei gespeicherte Karten oder Dump-Dateien. Abweichende Bytes werden hervorgehoben.</value>
+    <value>Wähle zwei gespeicherte Karten oder Dump-Dateien. Abweichende Bytes werden hervorgehoben. Eine Karte mit anderer Speicherart leert die andere Seite.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>Datei</value>
@@ -3888,9 +3888,6 @@
   </data>
   <data name="Compare_OpenFileTitle" xml:space="preserve">
     <value>Dump zum Vergleichen öffnen</value>
-  </data>
-  <data name="Compare_NoCards" xml:space="preserve">
-    <value>Keine andere gespeicherte Karte hat diese Art von Speicher. Öffne stattdessen eine Dump-Datei.</value>
   </data>
   <data name="Compare_Identical" xml:space="preserve">
     <value>Die Karten sind identisch.</value>
@@ -3906,9 +3903,6 @@
   </data>
   <data name="Compare_NotRead" xml:space="preserve">
     <value>nicht gelesen</value>
-  </data>
-  <data name="Compare_FileHasNoMatch" xml:space="preserve">
-    <value>{0} enthält keine Karte mit dieser Art von Speicher.</value>
   </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>Dumps vergleichen</value>
@@ -3927,6 +3921,12 @@
   </data>
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} enthält keinen MIFARE-Classic- oder Ultralight-/NTAG-Dump.</value>
+  </data>
+  <data name="Compare_StartOver" xml:space="preserve">
+    <value>Neu beginnen</value>
+  </data>
+  <data name="Compare_StartOverTip" xml:space="preserve">
+    <value>Beide Karten leeren</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Zurück zu {0}</value>

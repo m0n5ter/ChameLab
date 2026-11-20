@@ -3878,7 +3878,7 @@
     <value>このデバイスでは QR スキャナーを使用できません（Google Play 開発者サービスが必要です）。代わりにコードのスクリーンショットや写真を開いてください。</value>
   </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>保存済みのカードまたはダンプファイルを2つ選んでください。異なるバイトが強調表示されます。</value>
+    <value>保存済みのカードまたはダンプファイルを2つ選んでください。異なるバイトが強調表示されます。別の種類のメモリのカードを選ぶと、もう一方は解除されます。</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>ファイル</value>
@@ -3888,9 +3888,6 @@
   </data>
   <data name="Compare_OpenFileTitle" xml:space="preserve">
     <value>比較するダンプを開く</value>
-  </data>
-  <data name="Compare_NoCards" xml:space="preserve">
-    <value>この種類のメモリを持つ保存済みカードは他にありません。代わりにダンプファイルを開いてください。</value>
   </data>
   <data name="Compare_Identical" xml:space="preserve">
     <value>2 枚のカードは同一です。</value>
@@ -3906,9 +3903,6 @@
   </data>
   <data name="Compare_NotRead" xml:space="preserve">
     <value>未読み取り</value>
-  </data>
-  <data name="Compare_FileHasNoMatch" xml:space="preserve">
-    <value>{0} にはこの種類のメモリを持つカードがありません。</value>
   </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>ダンプの比較</value>
@@ -3927,6 +3921,12 @@
   </data>
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} には MIFARE Classic または Ultralight / NTAG のダンプがありません。</value>
+  </data>
+  <data name="Compare_StartOver" xml:space="preserve">
+    <value>最初からやり直す</value>
+  </data>
+  <data name="Compare_StartOverTip" xml:space="preserve">
+    <value>両方のカードを解除</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>{0} に戻る</value>

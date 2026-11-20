@@ -287,7 +287,17 @@
 
       <!-- Compare dumps: the two cards -->
       <StackPanel Spacing="10" IsVisible="{Binding IsCompare}">
-        <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Compare_Hint}" />
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Compare_Hint}"
+                     VerticalAlignment="Center" />
+          <Button Grid.Column="1" Command="{Binding CompareStartOverCommand}" IsVisible="{Binding HasCompareSide}"
+                  VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Compare_StartOverTip}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="{StaticResource Icon.refresh}" />
+              <TextBlock Text="{x:Static loc:Strings.Compare_StartOver}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </Grid>
         <!-- Side by side while both fit, else one under the other. -->
         <c:FitGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
           <Button Classes="compareside" Command="{Binding ChooseCompareACommand}">

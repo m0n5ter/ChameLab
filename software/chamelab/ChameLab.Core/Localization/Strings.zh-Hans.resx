@@ -3878,7 +3878,7 @@
     <value>此设备上无法使用二维码扫描器（需要 Google Play 服务）。请改为打开二维码的截图或照片。</value>
   </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>选择两张已保存的卡片或转储文件。不同的字节会高亮显示。</value>
+    <value>选择两张已保存的卡片或转储文件。不同的字节会高亮显示。选择另一种内存的卡片会清空另一侧。</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>文件</value>
@@ -3888,9 +3888,6 @@
   </data>
   <data name="Compare_OpenFileTitle" xml:space="preserve">
     <value>打开要比较的转储</value>
-  </data>
-  <data name="Compare_NoCards" xml:space="preserve">
-    <value>没有其他已保存的卡片具有这种内存。请改为打开转储文件。</value>
   </data>
   <data name="Compare_Identical" xml:space="preserve">
     <value>两张卡片完全相同。</value>
@@ -3906,9 +3903,6 @@
   </data>
   <data name="Compare_NotRead" xml:space="preserve">
     <value>未读取</value>
-  </data>
-  <data name="Compare_FileHasNoMatch" xml:space="preserve">
-    <value>{0} 中没有具有这种内存的卡片。</value>
   </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>比较转储</value>
@@ -3927,6 +3921,12 @@
   </data>
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} 中没有 MIFARE Classic 或 Ultralight / NTAG 转储。</value>
+  </data>
+  <data name="Compare_StartOver" xml:space="preserve">
+    <value>重新开始</value>
+  </data>
+  <data name="Compare_StartOverTip" xml:space="preserve">
+    <value>清除两张卡片</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>返回 {0}</value>
