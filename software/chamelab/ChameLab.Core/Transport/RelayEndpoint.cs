@@ -115,6 +115,10 @@ public static class RelayEndpoint
                ?? throw new IOException(Strings.Relay_NoServers);
     }
 
+    /// <summary>Whether the relay answers its health check.</summary>
+    public static async Task<bool> IsUpAsync(RelayServer server, CancellationToken ct = default) =>
+        await PingAsync(server, ct) is not null;
+
     private static async Task<TimeSpan?> PingAsync(RelayServer server, CancellationToken ct)
     {
         var url = Health(server.Url);

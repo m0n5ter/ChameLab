@@ -4042,4 +4042,22 @@
   <data name="Cards_NoCardLinkInClipboard" xml:space="preserve">
     <value>A área de transferência não contém um link de cartão do ChameLab.</value>
   </data>
+  <data name="Sync_AlreadyInGroup" xml:space="preserve">
+    <value>This device is already in a sync group.</value>
+  </data>
+  <data name="Sync_NotACode" xml:space="preserve">
+    <value>That is not a ChameLab code. Type the code shown on the other device (like DE1-ABCD-1234) or scan its QR code.</value>
+  </data>
+  <data name="Sync_Refused" xml:space="preserve">
+    <value>The other device declined.</value>
+  </data>
+  <data name="Sync_PairingFailed" xml:space="preserve">
+    <value>The other device did not answer as expected.</value>
+  </data>
+  <data name="Sync_DeviceNotReachable" xml:space="preserve">
+    <value>The other device could not be reached.</value>
+  </data>
+  <data name="Sync_WrongDevice" xml:space="preserve">
+    <value>The device that answered is not the one whose QR code was scanned.</value>
+  </data>
 </root>

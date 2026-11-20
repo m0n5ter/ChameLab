@@ -7,6 +7,26 @@ using ChameLab.Services;
 
 namespace ChameLab.Sync;
 
+/// <summary>Which capture this is.</summary>
+public enum CaptureMode
+{
+    /// <summary>Everything edited since the last capture, deletions included.</summary>
+    Normal,
+
+    /// <summary>
+    /// This device just joined a group: items the group already has keep the group's version,
+    /// folders the group has under the same path are the same folders, nothing is deleted.
+    /// </summary>
+    Joining,
+
+    /// <summary>
+    /// The app started: the library is compared with the saved document, so edits that did not make
+    /// it into the document before the app closed are caught; nothing is deleted (what the document
+    /// has and the library lacks comes back with the next materialize).
+    /// </summary>
+    Startup,
+}
+
 /// <summary>What sync needs from a library of items filed in folders (cards, key dictionaries).</summary>
 public interface ISyncedLibrary
 {
@@ -135,15 +155,17 @@ public sealed class LibrarySync
     }
 
     /// <summary>
-    /// Turns what changed in the library since the last call into operations.
-    /// <paramref name="joining"/>: this device just joined a group: items the group already has
-    /// keep the group's version, and folders the group has under the same path are the same folders.
+    /// Turns what changed in the library since the last call into operations. See
+    /// <see cref="CaptureMode"/> for the first capture after joining a group or starting the app.
     /// </summary>
-    public List<SyncOp> Capture(SyncDocument doc, bool joining = false)
+    public List<SyncOp> Capture(SyncDocument doc, CaptureMode mode = CaptureMode.Normal)
     {
         var ops = new List<SyncOp>();
         if (!_library.IsLoaded) return ops;
-        if (joining) MapFolders(doc);
+        var joining = mode == CaptureMode.Joining;
+        var deletes = mode == CaptureMode.Normal;
+        if (mode != CaptureMode.Normal) MapFolders(doc);
+        if (mode == CaptureMode.Startup) Build(doc);
 
         // Folders, parents before the folders in them.
         var folders = _library.Folders.ToList();
@@ -163,21 +185,26 @@ public sealed class LibrarySync
         foreach (var (path, id) in _folderIds.Where(p => !live.Contains(p.Key)).ToList())
         {
             _folderIds.Remove(path);
-            if (_folderBaseline.Remove(id)) Add(ops, doc.Delete(_library.FolderType, id));
+            if (_folderBaseline.Remove(id) && deletes) Add(ops, doc.Delete(_library.FolderType, id));
         }
 
-        // Items.
-        var items = _library.Items().ToList();
+        // Items. One deleted elsewhere and not edited here waits for the next materialize to go.
         var known = joining
             ? doc.View(_library.ItemType).Select(v => v.Id).ToHashSet(StringComparer.Ordinal)
             : new HashSet<string>(StringComparer.Ordinal);
-        var orders = Orders(doc, items.Select(i => i.Id).Where(id => !known.Contains(id)).ToList());
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (id, folder, json) in items)
+        var items = new List<(string Id, JsonObject Fields, Dictionary<string, JsonNode?> Change)>();
+        foreach (var (id, folder, json) in _library.Items())
         {
             if (!seen.Add(id) || known.Contains(id)) continue;
             var fields = Fields(json, folder);
             var change = Changed(_baseline.GetValueOrDefault(id), fields);
+            if (change.Count == 0 && doc.Find(_library.ItemType, id) is { IsDeleted: true }) continue;
+            items.Add((id, fields, change));
+        }
+        var orders = Orders(doc, items.Select(i => i.Id).ToList());
+        foreach (var (id, fields, change) in items)
+        {
             if (orders.TryGetValue(id, out var order)) change[OrderField] = order;
             Add(ops, doc.Change(_library.ItemType, id, change));
             _baseline[id] = fields;
@@ -185,10 +212,14 @@ public sealed class LibrarySync
         foreach (var id in _baseline.Keys.Where(id => !seen.Contains(id)).ToList())
         {
             _baseline.Remove(id);
-            Add(ops, doc.Delete(_library.ItemType, id));
+            if (deletes) Add(ops, doc.Delete(_library.ItemType, id));
         }
+        _order = items.Select(i => i.Id).ToList();
         return ops;
     }
+
+    /// <summary>The items in library order as of the last capture or materialize: tells a reorder made here.</summary>
+    private List<string> _order = new();
 
     private static void Add(List<SyncOp> ops, SyncOp? op)
     {
@@ -223,6 +254,22 @@ public sealed class LibrarySync
     {
         var keys = ids.Select(id => doc.Find(_library.ItemType, id) is { IsDeleted: false } e
                                     && (string?)e.Value(OrderField) is { } k && FractionalIndex.IsValid(k) ? k : null).ToList();
+        // Not reordered here: only new items need keys, after every other (the library adds at the
+        // end). Comparing with the document's keys instead would undo a reorder made elsewhere that
+        // is not in the library yet.
+        var before = _order.ToHashSet(StringComparer.Ordinal);
+        var now = ids.Where(before.Contains).ToList();
+        var still = now.ToHashSet(StringComparer.Ordinal);
+        if (now.SequenceEqual(_order.Where(still.Contains)))
+        {
+            var appended = new Dictionary<string, JsonNode?>();
+            var last = doc.View(_library.ItemType).Select(v => (string?)v.Fields[OrderField])
+                .Where(k => k is not null && FractionalIndex.IsValid(k)).DefaultIfEmpty(null)
+                .Max(StringComparer.Ordinal);
+            for (var i = 0; i < ids.Count; i++)
+                if (keys[i] is null) appended[ids[i]] = last = FractionalIndex.Between(last, null);
+            return appended;
+        }
         var keep = LongestIncreasing(ids, keys);
         var result = new Dictionary<string, JsonNode?>();
         string? previous = null;
@@ -281,6 +328,14 @@ public sealed class LibrarySync
     public void Materialize(SyncDocument doc)
     {
         if (!_library.IsLoaded) return;
+        var (items, folders) = Build(doc);
+        _library.Replace(items, folders, id => _unreadable.Add(id));
+        foreach (var id in _unreadable) _baseline.Remove(id);
+    }
+
+    /// <summary>The library the document describes (items, folder paths), and the baselines to match it.</summary>
+    private (List<JsonObject> Items, List<string> Folders) Build(SyncDocument doc)
+    {
         var paths = FolderPaths(doc);
         _folderIds.Clear();
         _folderBaseline.Clear();
@@ -310,8 +365,8 @@ public sealed class LibrarySync
             if (path.Length == 0) fields[FolderField] = "";
             _baseline[view.Id] = fields;
         }
-        _library.Replace(items, paths.Values.OrderBy(p => p, FolderPath.TreeOrder).ToList(), id => _unreadable.Add(id));
-        foreach (var id in _unreadable) _baseline.Remove(id);
+        _order = views.Select(v => v.Id).Where(id => !_unreadable.Contains(id)).ToList();
+        return (items, paths.Values.OrderBy(p => p, FolderPath.TreeOrder).ToList());
     }
 
     /// <summary>Folder id → path, from the folder entities.</summary>

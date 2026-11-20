@@ -125,7 +125,7 @@ public class LibrarySyncTests
         b.Cards.Add(Card("c1", "Office (old name)", "Work"));
         b.Cards.Add(Card("c9", "Home", "Work"));
         foreach (var op in a.Doc.MissingFor(b.Doc.Vector)!) b.Doc.Apply(op);
-        b.Sync.Capture(b.Doc, joining: true);
+        b.Sync.Capture(b.Doc, CaptureMode.Joining);
         b.Sync.Materialize(b.Doc);
         a.Receive(b);
 
