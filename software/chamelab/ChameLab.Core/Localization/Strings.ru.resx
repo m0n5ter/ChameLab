@@ -3891,20 +3891,8 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>QR-сканер недоступен на этом устройстве (нужны сервисы Google Play). Откройте вместо этого скриншот или фото кода.</value>
   </data>
-  <data name="Compare_Button" xml:space="preserve">
-    <value>Сравнить</value>
-  </data>
-  <data name="Compare_Tip" xml:space="preserve">
-    <value>Сравнить память этой карты с другой сохранённой картой или файлом дампа</value>
-  </data>
-  <data name="Compare_Header" xml:space="preserve">
-    <value>СРАВНЕНИЕ ДАМПОВ</value>
-  </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Выберите сохранённую карту или откройте файл дампа. Отличающиеся байты подсвечены; правки этой карты видны сразу.</value>
-  </data>
-  <data name="Compare_PickCard" xml:space="preserve">
-    <value>Сохранённая карта для сравнения</value>
+    <value>Выберите две сохранённые карты или файлы дампов. Отличающиеся байты подсвечены.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>Файл</value>
@@ -3935,6 +3923,24 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>В {0} нет карты с такой памятью.</value>
+  </data>
+  <data name="Compare_Title" xml:space="preserve">
+    <value>Сравнение дампов</value>
+  </data>
+  <data name="Compare_TileHint" xml:space="preserve">
+    <value>MIFARE Classic, Ultralight / NTAG</value>
+  </data>
+  <data name="Compare_ChooseA" xml:space="preserve">
+    <value>Выбрать карту A</value>
+  </data>
+  <data name="Compare_ChooseB" xml:space="preserve">
+    <value>Выбрать карту B</value>
+  </data>
+  <data name="Compare_NoDumps" xml:space="preserve">
+    <value>Нет сохранённых карт с дампом MIFARE Classic или Ultralight / NTAG. Откройте файл дампа.</value>
+  </data>
+  <data name="Compare_FileHasNoDump" xml:space="preserve">
+    <value>В {0} нет дампа MIFARE Classic или Ultralight / NTAG.</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Назад в «{0}»</value>

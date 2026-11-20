@@ -3877,20 +3877,8 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>此设备上无法使用二维码扫描器（需要 Google Play 服务）。请改为打开二维码的截图或照片。</value>
   </data>
-  <data name="Compare_Button" xml:space="preserve">
-    <value>比较</value>
-  </data>
-  <data name="Compare_Tip" xml:space="preserve">
-    <value>将这张卡片的内存与另一张已保存的卡片或转储文件进行比较</value>
-  </data>
-  <data name="Compare_Header" xml:space="preserve">
-    <value>比较转储</value>
-  </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>选择一张已保存的卡片或打开转储文件。不同的字节会高亮显示；对这张卡片的修改会立即体现。</value>
-  </data>
-  <data name="Compare_PickCard" xml:space="preserve">
-    <value>要比较的已保存卡片</value>
+    <value>选择两张已保存的卡片或转储文件。不同的字节会高亮显示。</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>文件</value>
@@ -3921,6 +3909,24 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} 中没有具有这种内存的卡片。</value>
+  </data>
+  <data name="Compare_Title" xml:space="preserve">
+    <value>比较转储</value>
+  </data>
+  <data name="Compare_TileHint" xml:space="preserve">
+    <value>MIFARE Classic、Ultralight / NTAG</value>
+  </data>
+  <data name="Compare_ChooseA" xml:space="preserve">
+    <value>选择卡片 A</value>
+  </data>
+  <data name="Compare_ChooseB" xml:space="preserve">
+    <value>选择卡片 B</value>
+  </data>
+  <data name="Compare_NoDumps" xml:space="preserve">
+    <value>没有已保存的卡片带有 MIFARE Classic 或 Ultralight / NTAG 转储。请改为打开转储文件。</value>
+  </data>
+  <data name="Compare_FileHasNoDump" xml:space="preserve">
+    <value>{0} 中没有 MIFARE Classic 或 Ultralight / NTAG 转储。</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>返回 {0}</value>

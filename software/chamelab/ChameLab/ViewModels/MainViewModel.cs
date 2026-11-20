@@ -30,7 +30,7 @@ public sealed class MainViewModel : ViewModelBase
         Slots = new SlotsViewModel(device, cards, dictionaries);
         Cards = new CardsViewModel(device, cards, dictionaries);
         Dictionaries = new DictionariesViewModel(dictionaries, cards);
-        Tools = new ToolsViewModel(device, dictionaries);
+        Tools = new ToolsViewModel(device, dictionaries, cards);
         AppUpdate = new AppUpdateViewModel();
         Settings = new SettingsViewModel(cards, dictionaries, AppUpdate);
 

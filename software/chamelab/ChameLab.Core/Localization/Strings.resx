@@ -3894,20 +3894,8 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>The QR scanner is not available on this device (it needs Google Play services). Open a screenshot or photo of the code instead.</value>
   </data>
-  <data name="Compare_Button" xml:space="preserve">
-    <value>Compare</value>
-  </data>
-  <data name="Compare_Tip" xml:space="preserve">
-    <value>Compare this card's memory with another saved card or a dump file</value>
-  </data>
-  <data name="Compare_Header" xml:space="preserve">
-    <value>COMPARE DUMPS</value>
-  </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Pick a saved card or open a dump file. Bytes that differ are highlighted; edits to this card show up right away.</value>
-  </data>
-  <data name="Compare_PickCard" xml:space="preserve">
-    <value>Saved card to compare with</value>
+    <value>Choose two saved cards or dump files. Bytes that differ are highlighted.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>File</value>
@@ -3938,6 +3926,24 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} has no card with this kind of memory.</value>
+  </data>
+  <data name="Compare_Title" xml:space="preserve">
+    <value>Compare dumps</value>
+  </data>
+  <data name="Compare_TileHint" xml:space="preserve">
+    <value>MIFARE Classic, Ultralight / NTAG</value>
+  </data>
+  <data name="Compare_ChooseA" xml:space="preserve">
+    <value>Choose card A</value>
+  </data>
+  <data name="Compare_ChooseB" xml:space="preserve">
+    <value>Choose card B</value>
+  </data>
+  <data name="Compare_NoDumps" xml:space="preserve">
+    <value>No saved card has a MIFARE Classic or Ultralight / NTAG dump. Open a dump file instead.</value>
+  </data>
+  <data name="Compare_FileHasNoDump" xml:space="preserve">
+    <value>{0} has no MIFARE Classic or Ultralight / NTAG dump.</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Back to {0}</value>

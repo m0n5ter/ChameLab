@@ -34,7 +34,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     private int _cursorIndex = -1;
     private SniffTool _tool;
 
-    public ToolsViewModel(DeviceService device, DictionaryLibrary? dictionaries = null) : base(() => Strings.Tools_Tools, "tools")
+    public ToolsViewModel(DeviceService device, DictionaryLibrary? dictionaries = null, CardLibrary? cards = null) : base(() => Strings.Tools_Tools, "tools")
     {
         _device = device;
         var idle = this.WhenAnyValue(x => x.IsBusy, busy => !busy);
@@ -47,6 +47,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         InitHf(idle);
         InitT55xx(dictionaries ?? AppServices.Dictionaries, idle);
         InitConsole();
+        InitCompare(cards ?? AppServices.Cards);
         OpenHfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Hf; });
         OpenLfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Lf; });
         BackCommand = ReactiveCommand.Create(() => { Tool = SniffTool.None; }, idle);
@@ -92,6 +93,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             this.RaisePropertyChanged(nameof(IsLf));
             this.RaisePropertyChanged(nameof(IsT55xx));
             this.RaisePropertyChanged(nameof(IsConsole));
+            this.RaisePropertyChanged(nameof(IsCompare));
             this.RaisePropertyChanged(nameof(CurrentToolTitle));
         }
     }
@@ -105,6 +107,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         SniffTool.Hf => Strings.Tools_SniffHF,
         SniffTool.T55xx => Strings.Tools_T55xxPassword,
         SniffTool.Console => Strings.Tools_Console,
+        SniffTool.Compare => Strings.Compare_Title,
         _ => Strings.Tools_SniffLF,
     };
 
@@ -336,4 +339,4 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         };
 }
 
-public enum SniffTool { None, Hf, Lf, T55xx, Console }
+public enum SniffTool { None, Hf, Lf, T55xx, Console, Compare }

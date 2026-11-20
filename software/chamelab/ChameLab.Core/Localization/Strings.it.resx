@@ -3877,20 +3877,8 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>Lo scanner QR non è disponibile su questo dispositivo (richiede i servizi Google Play). Apri invece uno screenshot o una foto del codice.</value>
   </data>
-  <data name="Compare_Button" xml:space="preserve">
-    <value>Confronta</value>
-  </data>
-  <data name="Compare_Tip" xml:space="preserve">
-    <value>Confronta la memoria di questa carta con un'altra carta salvata o un file di dump</value>
-  </data>
-  <data name="Compare_Header" xml:space="preserve">
-    <value>CONFRONTA DUMP</value>
-  </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Scegli una carta salvata o apri un file di dump. I byte diversi sono evidenziati; le modifiche a questa carta compaiono subito.</value>
-  </data>
-  <data name="Compare_PickCard" xml:space="preserve">
-    <value>Carta salvata da confrontare</value>
+    <value>Scegli due carte salvate o file di dump. I byte diversi sono evidenziati.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>File</value>
@@ -3921,6 +3909,24 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} non contiene carte con questo tipo di memoria.</value>
+  </data>
+  <data name="Compare_Title" xml:space="preserve">
+    <value>Confronta dump</value>
+  </data>
+  <data name="Compare_TileHint" xml:space="preserve">
+    <value>MIFARE Classic, Ultralight / NTAG</value>
+  </data>
+  <data name="Compare_ChooseA" xml:space="preserve">
+    <value>Scegli la carta A</value>
+  </data>
+  <data name="Compare_ChooseB" xml:space="preserve">
+    <value>Scegli la carta B</value>
+  </data>
+  <data name="Compare_NoDumps" xml:space="preserve">
+    <value>Nessuna carta salvata ha un dump MIFARE Classic o Ultralight / NTAG. Apri invece un file di dump.</value>
+  </data>
+  <data name="Compare_FileHasNoDump" xml:space="preserve">
+    <value>{0} non contiene dump MIFARE Classic o Ultralight / NTAG.</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Torna a {0}</value>

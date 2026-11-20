@@ -3877,20 +3877,8 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>El escáner QR no está disponible en este dispositivo (necesita los servicios de Google Play). Abre una captura o foto del código.</value>
   </data>
-  <data name="Compare_Button" xml:space="preserve">
-    <value>Comparar</value>
-  </data>
-  <data name="Compare_Tip" xml:space="preserve">
-    <value>Comparar la memoria de esta tarjeta con otra tarjeta guardada o un archivo de volcado</value>
-  </data>
-  <data name="Compare_Header" xml:space="preserve">
-    <value>COMPARAR VOLCADOS</value>
-  </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Elige una tarjeta guardada o abre un archivo de volcado. Los bytes distintos se resaltan; los cambios en esta tarjeta se ven al instante.</value>
-  </data>
-  <data name="Compare_PickCard" xml:space="preserve">
-    <value>Tarjeta guardada para comparar</value>
+    <value>Elige dos tarjetas guardadas o archivos de volcado. Los bytes que difieren se resaltan.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>Archivo</value>
@@ -3921,6 +3909,24 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} no contiene ninguna tarjeta con este tipo de memoria.</value>
+  </data>
+  <data name="Compare_Title" xml:space="preserve">
+    <value>Comparar volcados</value>
+  </data>
+  <data name="Compare_TileHint" xml:space="preserve">
+    <value>MIFARE Classic, Ultralight / NTAG</value>
+  </data>
+  <data name="Compare_ChooseA" xml:space="preserve">
+    <value>Elegir tarjeta A</value>
+  </data>
+  <data name="Compare_ChooseB" xml:space="preserve">
+    <value>Elegir tarjeta B</value>
+  </data>
+  <data name="Compare_NoDumps" xml:space="preserve">
+    <value>Ninguna tarjeta guardada tiene un volcado MIFARE Classic o Ultralight / NTAG. Abre un archivo de volcado.</value>
+  </data>
+  <data name="Compare_FileHasNoDump" xml:space="preserve">
+    <value>{0} no contiene ningún volcado MIFARE Classic o Ultralight / NTAG.</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Volver a {0}</value>

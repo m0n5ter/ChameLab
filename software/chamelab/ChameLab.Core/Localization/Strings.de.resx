@@ -3877,20 +3877,8 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>Der QR-Scanner ist auf diesem Gerät nicht verfügbar (er braucht die Google-Play-Dienste). Öffne stattdessen einen Screenshot oder ein Foto des Codes.</value>
   </data>
-  <data name="Compare_Button" xml:space="preserve">
-    <value>Vergleichen</value>
-  </data>
-  <data name="Compare_Tip" xml:space="preserve">
-    <value>Den Speicher dieser Karte mit einer anderen gespeicherten Karte oder einer Dump-Datei vergleichen</value>
-  </data>
-  <data name="Compare_Header" xml:space="preserve">
-    <value>DUMPS VERGLEICHEN</value>
-  </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>Wähle eine gespeicherte Karte oder öffne eine Dump-Datei. Abweichende Bytes sind hervorgehoben; Änderungen an dieser Karte erscheinen sofort.</value>
-  </data>
-  <data name="Compare_PickCard" xml:space="preserve">
-    <value>Gespeicherte Karte zum Vergleich</value>
+    <value>Wähle zwei gespeicherte Karten oder Dump-Dateien. Abweichende Bytes werden hervorgehoben.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>Datei</value>
@@ -3921,6 +3909,24 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0} enthält keine Karte mit dieser Art von Speicher.</value>
+  </data>
+  <data name="Compare_Title" xml:space="preserve">
+    <value>Dumps vergleichen</value>
+  </data>
+  <data name="Compare_TileHint" xml:space="preserve">
+    <value>MIFARE Classic, Ultralight / NTAG</value>
+  </data>
+  <data name="Compare_ChooseA" xml:space="preserve">
+    <value>Karte A wählen</value>
+  </data>
+  <data name="Compare_ChooseB" xml:space="preserve">
+    <value>Karte B wählen</value>
+  </data>
+  <data name="Compare_NoDumps" xml:space="preserve">
+    <value>Keine gespeicherte Karte hat einen MIFARE-Classic- oder Ultralight-/NTAG-Dump. Öffne stattdessen eine Dump-Datei.</value>
+  </data>
+  <data name="Compare_FileHasNoDump" xml:space="preserve">
+    <value>{0} enthält keinen MIFARE-Classic- oder Ultralight-/NTAG-Dump.</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>Zurück zu {0}</value>

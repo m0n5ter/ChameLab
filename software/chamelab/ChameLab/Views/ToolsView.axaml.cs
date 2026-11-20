@@ -25,6 +25,12 @@ public partial class ToolsView : UserControl
             ? Strings.Tools_FramesHintTouch
             : Strings.Tools_FramesHintMouse;
         UpdateCopyLabel();
+        // The card picker opens ready to search.
+        ComparePickerDialog.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == IsVisibleProperty && ComparePickerDialog.IsVisible)
+                ComparePicker.FocusFilter();
+        };
         // The typed lines' color comes from the theme.
         ActualThemeVariantChanged += (_, _) => { if (_vm is not null) ShowConsoleOutput(_vm.ConsoleText); };
         // Tunnel: Tab would move focus and Up/Down move the caret before the box sees them.

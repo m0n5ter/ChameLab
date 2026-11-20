@@ -3877,20 +3877,8 @@
   <data name="Qr_ScannerUnavailable" xml:space="preserve">
     <value>이 기기에서는 QR 스캐너를 사용할 수 없습니다(Google Play 서비스 필요). 대신 코드의 스크린샷이나 사진을 여세요.</value>
   </data>
-  <data name="Compare_Button" xml:space="preserve">
-    <value>비교</value>
-  </data>
-  <data name="Compare_Tip" xml:space="preserve">
-    <value>이 카드의 메모리를 저장된 다른 카드나 덤프 파일과 비교합니다</value>
-  </data>
-  <data name="Compare_Header" xml:space="preserve">
-    <value>덤프 비교</value>
-  </data>
   <data name="Compare_Hint" xml:space="preserve">
-    <value>저장된 카드를 고르거나 덤프 파일을 여세요. 다른 바이트는 강조 표시되며, 이 카드의 수정 내용은 바로 반영됩니다.</value>
-  </data>
-  <data name="Compare_PickCard" xml:space="preserve">
-    <value>비교할 저장된 카드</value>
+    <value>저장된 카드나 덤프 파일 두 개를 선택하세요. 다른 바이트가 강조 표시됩니다.</value>
   </data>
   <data name="Compare_OpenFile" xml:space="preserve">
     <value>파일</value>
@@ -3921,6 +3909,24 @@
   </data>
   <data name="Compare_FileHasNoMatch" xml:space="preserve">
     <value>{0}에 이런 종류의 메모리를 가진 카드가 없습니다.</value>
+  </data>
+  <data name="Compare_Title" xml:space="preserve">
+    <value>덤프 비교</value>
+  </data>
+  <data name="Compare_TileHint" xml:space="preserve">
+    <value>MIFARE Classic, Ultralight / NTAG</value>
+  </data>
+  <data name="Compare_ChooseA" xml:space="preserve">
+    <value>카드 A 선택</value>
+  </data>
+  <data name="Compare_ChooseB" xml:space="preserve">
+    <value>카드 B 선택</value>
+  </data>
+  <data name="Compare_NoDumps" xml:space="preserve">
+    <value>MIFARE Classic 또는 Ultralight / NTAG 덤프가 있는 저장된 카드가 없습니다. 대신 덤프 파일을 여세요.</value>
+  </data>
+  <data name="Compare_FileHasNoDump" xml:space="preserve">
+    <value>{0}에 MIFARE Classic 또는 Ultralight / NTAG 덤프가 없습니다.</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
     <value>{0}(으)로 돌아가기</value>

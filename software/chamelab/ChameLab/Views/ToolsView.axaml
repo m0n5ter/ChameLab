@@ -159,6 +159,31 @@
     <Style Selector="Grid.page.tools.fullwidth">
       <Setter Property="MaxWidth" Value="Infinity" />
     </Style>
+    <!-- Dump comparison: a side's card, as a tile with the side's letter in a badge. -->
+    <Style Selector="Button.compareside">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Height" Value="NaN" />
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style Selector="Border.sidebadge">
+      <Setter Property="Width" Value="28" />
+      <Setter Property="Height" Value="28" />
+      <Setter Property="CornerRadius" Value="14" />
+      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+    </Style>
+    <Style Selector="Border.sidebadge > TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- The card picker lists one card per row and is wider than the save questions. -->
+    <Style Selector="Border.savebar.dialog.picker">
+      <Setter Property="MaxWidth" Value="420" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
   </UserControl.Styles>
 
   <Grid Classes="page tools" Classes.fullwidth="{Binding IsConsole}" RowDefinitions="Auto,*">
@@ -223,6 +248,19 @@
             </StackPanel>
           </Grid>
         </Button>
+        <Button Classes="tile source" Command="{Binding OpenCompareCommand}"
+                ToolTip.Tip="{x:Static loc:Strings.Compare_Hint}">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Border Classes="iconwell blue" VerticalAlignment="Center">
+              <PathIcon Data="{StaticResource Icon.compare}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="{x:Static loc:Strings.Compare_Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{x:Static loc:Strings.Compare_TileHint}" Classes="caption" TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Grid>
+        </Button>
       </c:FitGrid>
 
       <!-- A tool: Back to the list, as in Add card. -->
@@ -238,6 +276,7 @@
             <PathIcon Data="{StaticResource Icon.sniff}" IsVisible="{Binding IsLf}" />
             <PathIcon Data="{StaticResource Icon.key}" IsVisible="{Binding IsT55xx}" />
             <PathIcon Data="{StaticResource Icon.console}" IsVisible="{Binding IsConsole}" />
+            <PathIcon Data="{StaticResource Icon.compare}" IsVisible="{Binding IsCompare}" />
           </Panel>
         </Border>
         <!-- One line; short of width (long titles in some languages), it scales down to fit. -->
@@ -245,6 +284,40 @@
           <TextBlock Classes="h1" Text="{Binding CurrentToolTitle}" />
         </Viewbox>
       </Grid>
+
+      <!-- Compare dumps: the two cards -->
+      <StackPanel Spacing="10" IsVisible="{Binding IsCompare}">
+        <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Compare_Hint}" />
+        <!-- Side by side while both fit, else one under the other. -->
+        <c:FitGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
+          <Button Classes="compareside" Command="{Binding ChooseCompareACommand}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <Border Classes="sidebadge" VerticalAlignment="Center">
+                <TextBlock Text="A" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding HasCompareA}">
+                <c:Marquee><TextBlock Text="{Binding CompareItemA.Name}" FontWeight="SemiBold" /></c:Marquee>
+                <c:Marquee><TextBlock Text="{Binding CompareItemA.Summary}" Classes="caption" /></c:Marquee>
+              </StackPanel>
+              <TextBlock Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding !HasCompareA}"
+                         Text="{x:Static loc:Strings.Compare_ChooseA}" TextTrimming="CharacterEllipsis" />
+            </Grid>
+          </Button>
+          <Button Classes="compareside" Command="{Binding ChooseCompareBCommand}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <Border Classes="sidebadge" VerticalAlignment="Center">
+                <TextBlock Text="B" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding HasCompareB}">
+                <c:Marquee><TextBlock Text="{Binding CompareItemB.Name}" FontWeight="SemiBold" /></c:Marquee>
+                <c:Marquee><TextBlock Text="{Binding CompareItemB.Summary}" Classes="caption" /></c:Marquee>
+              </StackPanel>
+              <TextBlock Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding !HasCompareB}"
+                         Text="{x:Static loc:Strings.Compare_ChooseB}" TextTrimming="CharacterEllipsis" />
+            </Grid>
+          </Button>
+        </c:FitGrid>
+      </StackPanel>
 
       <!-- Console -->
       <StackPanel Spacing="2" IsVisible="{Binding IsConsole}">
@@ -579,6 +652,56 @@
           </Border>
         </StackPanel>
 
+        <!-- ========== Compare dumps ========== -->
+        <Border Classes="card">
+          <Border.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding Path="IsCompare" />
+              <Binding Path="HasComparison" />
+            </MultiBinding>
+          </Border.IsVisible>
+          <StackPanel Spacing="10">
+            <TextBlock Text="{Binding CompareSummary}" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding CompareFields}" IsVisible="{Binding HasCompareFields}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CompareFieldRow">
+                  <Grid ColumnDefinitions="56,16,*" RowDefinitions="Auto,Auto" Margin="0,2">
+                    <TextBlock Grid.RowSpan="2" Text="{Binding Label}" Classes="caption" />
+                    <TextBlock Grid.Column="1" Text="A" Classes="caption" VerticalAlignment="Center" />
+                    <SelectableTextBlock Grid.Column="2" Text="{Binding A}" FontFamily="{x:Static c:AppFonts.Mono}"
+                                         TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="B" Classes="caption" VerticalAlignment="Center" />
+                    <SelectableTextBlock Grid.Row="1" Grid.Column="2" Text="{Binding B}"
+                                         FontFamily="{x:Static c:AppFonts.Mono}" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <CheckBox Content="{x:Static loc:Strings.Compare_OnlyDifferences}" IsChecked="{Binding CompareOnlyDifferences}" />
+            <ItemsControl ItemsSource="{Binding CompareRows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CompareBlockRow">
+                  <StackPanel Spacing="2" Margin="0,4">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Sector}" Classes="caption" VerticalAlignment="Center"
+                                 IsVisible="{Binding Sector, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                    <Grid ColumnDefinitions="16,*" RowDefinitions="Auto,Auto">
+                      <TextBlock Text="A" Classes="caption" VerticalAlignment="Center" />
+                      <c:HexDiffText Grid.Column="1" Bytes="{Binding A}" Other="{Binding B}"
+                                     MissingText="{x:Static loc:Strings.Compare_NotRead}" />
+                      <TextBlock Grid.Row="1" Text="B" Classes="caption" VerticalAlignment="Center" />
+                      <c:HexDiffText Grid.Row="1" Grid.Column="1" Bytes="{Binding B}" Other="{Binding A}"
+                                     MissingText="{x:Static loc:Strings.Compare_NotRead}" />
+                    </Grid>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
         <!-- ========== Console ========== -->
         <!-- As tall as the window allows: the folder and options, the output, a hint line, the command line. -->
         <Border Classes="card" IsVisible="{Binding IsConsole}" c:FillStack.Fill="True" MinHeight="300">
@@ -806,5 +929,29 @@
         </StackPanel>
       </c:FillStack>
     </ScrollViewer>
+    <!-- Choosing the card of one side: search, then click one, or open a dump file. -->
+    <Border Grid.Row="0" Grid.RowSpan="2" Classes="lightbox" Classes.on="{Binding IsComparePicking}" CornerRadius="12" />
+    <Border Grid.Row="0" Grid.RowSpan="2" Name="ComparePickerDialog" Classes="savebar dialog picker"
+            IsVisible="{Binding IsComparePicking}">
+      <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding ComparePickerTitle}" FontWeight="SemiBold" VerticalAlignment="Center"
+                     TextTrimming="CharacterEllipsis" />
+          <Button Grid.Column="1" Classes="icon small" Command="{Binding CloseComparePickerCommand}"
+                  b:DialogKeys.IsCancel="True" ToolTip.Tip="{x:Static loc:Strings.Common_Close}">
+            <PathIcon Data="{StaticResource Icon.close}" />
+          </Button>
+        </Grid>
+        <c:CardPicker Grid.Row="1" Name="ComparePicker" ItemsSource="{Binding ComparePickerCards}"
+                      SelectedCard="{Binding ComparePickerSelected}" EmptyText="{Binding ComparePickerEmptyText}" />
+        <Button Grid.Row="2" Command="{Binding CompareFileCommand}" IsEnabled="{Binding CanUseFiles}"
+                HorizontalAlignment="Left" ToolTip.Tip="{x:Static loc:Strings.Compare_OpenFileTip}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <PathIcon Data="{StaticResource Icon.import}" />
+            <TextBlock Text="{x:Static loc:Strings.Compare_OpenFile}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
   </Grid>
 </UserControl>
