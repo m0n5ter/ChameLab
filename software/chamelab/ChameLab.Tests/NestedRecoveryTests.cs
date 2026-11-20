@@ -22,7 +22,7 @@ public class NestedRecoveryTests
     private static (uint NtEnc, uint Ks1) Encrypt(uint ntp)
     {
         var state = new Crypto1State(Key);
-        var ks1 = Crypto1.Crypto1Word(ref state, Uid ^ ntp, false);
+        var ks1 = Crypto1.Crypto1Word(ref state, Uid ^ ntp);
         return (ntp ^ ks1, ks1);
     }
 

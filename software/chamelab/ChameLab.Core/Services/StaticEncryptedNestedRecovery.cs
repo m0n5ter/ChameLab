@@ -15,8 +15,8 @@ public static class StaticEncryptedNestedRecovery
     public static bool Matches(uint uid, NestedNonce nonce, ulong key)
     {
         var state = new Crypto1State(key);
-        if ((nonce.Nt ^ state.Crypto1Word(uid ^ nonce.Nt, false)) != nonce.NtEnc) return false;
-        var stream = (state.Crypto1Word(0, false) >> 24) & 1;
+        if ((nonce.Nt ^ state.Crypto1Word(uid ^ nonce.Nt)) != nonce.NtEnc) return false;
+        var stream = (state.Crypto1Word() >> 24) & 1;
         return (Crypto1.OddParity8((byte)nonce.Nt) ^ Crypto1.OddParity8((byte)nonce.NtEnc) ^ stream) == (nonce.Parity & 1);
     }
 

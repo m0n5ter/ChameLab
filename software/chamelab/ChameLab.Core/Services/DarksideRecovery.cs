@@ -73,7 +73,7 @@ public static class DarksideRecovery
             {
                 var state = component < 3 ? new Crypto1State(1u << (8 * component + bit), 0)
                     : new Crypto1State(0, 1u << (8 * (component - 3) + bit));
-                for (var step = 0; step < 35; step++) state.LfsrRollbackBit(0, false);
+                for (var step = 0; step < 35; step++) state.LfsrRollbackBit();
                 table[1 << bit] = state.Odd | ((ulong)state.Even << 24);
             }
             for (var value = 1; value < 256; value++)
@@ -231,21 +231,21 @@ public static class DarksideRecovery
             sl.Odd = odd ^ FastFwd[1][c];
             sl.Even = even ^ FastFwd[0][c];
 
-            sl.LfsrRollbackBit(0, false);
-            sl.LfsrRollbackBit(0, false);
+            sl.LfsrRollbackBit();
+            sl.LfsrRollbackBit();
 
-            var ks3 = sl.LfsrRollbackBit(0, false);
+            var ks3 = sl.LfsrRollbackBit();
             var reader = prefix | (c << 5);
             // Rollback reconstructs the low byte first. Reject as soon as each
             // response parity is available, before doing the remaining rollback.
             var bits = par[c];
-            var b0 = sl.LfsrRollbackByte(0, false);
+            var b0 = sl.LfsrRollbackByte();
             if ((Crypto1.EvenParity32((byte)(b0 ^ rResp)) ^ (uint)(bits >> 7) ^ ks3) == 0) return null;
-            var b1 = sl.LfsrRollbackByte(0, false);
+            var b1 = sl.LfsrRollbackByte();
             if (((Crypto1.EvenParity32((byte)(b1 ^ (rResp >> 8))) ^ (uint)(bits >> 6) ^ b0) & 1) == 0) return null;
-            var b2 = sl.LfsrRollbackByte(0, false);
+            var b2 = sl.LfsrRollbackByte();
             if (((Crypto1.EvenParity32((byte)(b2 ^ (rResp >> 16))) ^ (uint)(bits >> 5) ^ b1) & 1) == 0) return null;
-            var b3 = sl.LfsrRollbackByte(0, false);
+            var b3 = sl.LfsrRollbackByte();
             if (((Crypto1.EvenParity32((byte)(b3 ^ (rResp >> 24))) ^ (uint)(bits >> 4) ^ b2) & 1) == 0) return null;
 
             var nr0 = sl.LfsrRollbackByte((byte)reader, true);

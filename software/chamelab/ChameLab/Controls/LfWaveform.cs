@@ -226,7 +226,7 @@ public class LfWaveform : Control
             var (min, max) = Range(samples, from, to);
             var top = Y(max);
             lows[px] = Math.Max(Y(min), top + 1.2);
-            if (!started) { g.BeginFigure(new Point(px, top), true); started = true; }
+            if (!started) { g.BeginFigure(new Point(px, top)); started = true; }
             g.LineTo(new Point(px, top));
             g.LineTo(new Point(px + 1, top));
         }
@@ -251,7 +251,7 @@ public class LfWaveform : Control
         using var g = geometry.Open();
         var columns = (int)Math.Ceiling(width);
         var lows = new double[columns];
-        g.BeginFigure(new Point(0, Oy(samples[0])), true);
+        g.BeginFigure(new Point(0, Oy(samples[0])));
         for (var px = 0; px < columns; px++)
         {
             var from = Math.Min(samples.Length - 1, (int)(px * perPixel));
@@ -321,7 +321,7 @@ public class LfWaveform : Control
                 var x = X(CursorIndex + 0.5);
                 if (x >= 0 && x <= width)
                 {
-                    context.DrawLine(new Pen(cb, 1), new Point(x, 0), new Point(x, PlotHeight));
+                    context.DrawLine(new Pen(cb), new Point(x, 0), new Point(x, PlotHeight));
                     context.DrawEllipse(cb, null, new Point(x, Y(samples[CursorIndex])), 3.5, 3.5);
                 }
             }

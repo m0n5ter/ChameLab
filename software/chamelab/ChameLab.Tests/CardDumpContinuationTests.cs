@@ -177,7 +177,7 @@ public class CardDumpContinuationTests
     [Fact]
     public void EditingUnreadRowStartsFromBlankCardDefaults()
     {
-        var editor = new CardEditorViewModel(Card(TagSpecificType.Mifare1024));
+        var editor = new CardEditorViewModel(Card());
         var memory = editor.Memory!;
         // A trailer shows the default keys and access bits without being read.
         Assert.False(memory.IsRead(3));

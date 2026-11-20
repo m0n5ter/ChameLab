@@ -35,8 +35,8 @@ internal sealed class Waveform(byte[] samples, int offset) : Control
     private double _visible = Math.Max(1, samples.Length);
     private Point? _drag;
     private double _dragLeft;
-    private readonly Pen _signal = new(Brushes.LimeGreen, 1);
-    private readonly Pen _grid = new(new SolidColorBrush(Color.Parse("#374151")), 1);
+    private readonly Pen _signal = new(Brushes.LimeGreen);
+    private readonly Pen _grid = new(new SolidColorBrush(Color.Parse("#374151")));
     public override void Render(DrawingContext context)
     {
         base.Render(context);

@@ -177,7 +177,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         try
         {
             if (mode != DeviceMode.Reader) await client.SetDeviceModeAsync(DeviceMode.Reader);
-            samples = await client.LfSniffAsync(CaptureTimeoutMs);
+            samples = await client.LfSniffAsync();
         }
         finally
         {

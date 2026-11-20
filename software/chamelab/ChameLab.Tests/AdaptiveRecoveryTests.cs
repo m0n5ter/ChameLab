@@ -187,8 +187,8 @@ public partial class MifareWorkflowTests
     {
         const uint nt = 0xD14191B3;
         var cipher = new Crypto1State(key);
-        var enc = nt ^ cipher.Crypto1Word(uid ^ nt, false);
-        var stream = (cipher.Crypto1Word(0, false) >> 24) & 1;
+        var enc = nt ^ cipher.Crypto1Word(uid ^ nt);
+        var stream = (cipher.Crypto1Word() >> 24) & 1;
         var parity = (byte)(Crypto1.OddParity8((byte)(nt & 255)) ^ Crypto1.OddParity8((byte)enc) ^ stream);
         var data = new byte[4 + 5 * 14];
         BinaryPrimitives.WriteUInt32BigEndian(data, uid);

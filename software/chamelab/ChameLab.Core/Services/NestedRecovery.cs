@@ -250,7 +250,7 @@ internal static class NestedKeyTransform
                 if (component < 3) state.Odd = 1u << (component * 8 + bit);
                 else if (component < 6) state.Even = 1u << ((component - 3) * 8 + bit);
                 else input = 1u << ((component - 6) * 8 + bit);
-                state.LfsrRollbackWord(input, false);
+                state.LfsrRollbackWord(input);
                 basis[bit] = state.Lfsr;
             }
             var table = tables[component] = new ulong[256];

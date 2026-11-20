@@ -71,7 +71,7 @@ public class NestedOptimizationTests
     private static void CheckRollback(Crypto1State state, uint input)
     {
         var expected = state;
-        expected.LfsrRollbackWord(input, false);
+        expected.LfsrRollbackWord(input);
         Assert.Equal(expected.Lfsr,
             NestedKeyTransform.GetKey(state, NestedKeyTransform.GetInputContribution(input)));
     }

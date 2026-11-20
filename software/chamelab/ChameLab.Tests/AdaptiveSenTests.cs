@@ -236,8 +236,8 @@ public class SenPlannerTests
     {
         const uint uid = 0xA13E4902, nt = 0xD14191B3;
         var state = new ChameLab.Crypto.Crypto1State(key);
-        var enc = nt ^ ChameLab.Crypto.Crypto1.Crypto1Word(ref state, uid ^ nt, false);
-        var stream = (ChameLab.Crypto.Crypto1.Crypto1Word(ref state, 0, false) >> 24) & 1;
+        var enc = nt ^ ChameLab.Crypto.Crypto1.Crypto1Word(ref state, uid ^ nt);
+        var stream = (ChameLab.Crypto.Crypto1.Crypto1Word(ref state) >> 24) & 1;
         var parity = (byte)(ChameLab.Crypto.Crypto1.OddParity8((byte)(nt & 255)) ^ ChameLab.Crypto.Crypto1.OddParity8((byte)enc) ^ stream);
         var nonce = new NestedNonce(nt, enc, parity);
         Assert.True(StaticEncryptedNestedRecovery.Matches(uid, nonce, key));

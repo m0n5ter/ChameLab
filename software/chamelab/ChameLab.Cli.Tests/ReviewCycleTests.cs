@@ -48,7 +48,7 @@ public class ReviewCycleTests
     [Fact]
     public async Task FreezeLabelsOnlyReadyPulls()
     {
-        var api = new Api(new JsonArray(Pull(false, "close soon"), Pull(true)), []);
+        var api = new Api(new JsonArray(Pull(false, "close soon"), Pull()), []);
         await Cycle(api).Run("start-feature-freeze");
         Assert.Equal(2, api.Mutations.Count);
         Assert.Equal("feature freeze", api.Mutations[0].Body!["labels"]![0]!.GetValue<string>());

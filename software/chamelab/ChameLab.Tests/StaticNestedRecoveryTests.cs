@@ -43,7 +43,7 @@ public class StaticNestedRecoveryTests
         {
             var ntp = Crypto1.PrngSuccessor(nonce, offset);
             var state = new Crypto1State(key);
-            return ntp ^ Crypto1.Crypto1Word(ref state, uid ^ ntp, false);
+            return ntp ^ Crypto1.Crypto1Word(ref state, uid ^ ntp);
         }
 
         var keys = StaticNestedRecovery.Recover(uid, type,

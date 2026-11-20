@@ -47,10 +47,10 @@ public class HfSniffTests
     private static (uint NrEnc, uint ArEnc, uint AtEnc) Authenticate(uint nt, uint nr)
     {
         var s = new Crypto1State(Key);
-        Crypto1.Crypto1Word(ref s, Uid ^ nt, false);
-        var nrEnc = nr ^ Crypto1.Crypto1Word(ref s, nr, false);
-        var arEnc = Crypto1.PrngSuccessor(nt, 64) ^ Crypto1.Crypto1Word(ref s, 0, false);
-        var atEnc = Crypto1.PrngSuccessor(nt, 96) ^ Crypto1.Crypto1Word(ref s, 0, false);
+        Crypto1.Crypto1Word(ref s, Uid ^ nt);
+        var nrEnc = nr ^ Crypto1.Crypto1Word(ref s, nr);
+        var arEnc = Crypto1.PrngSuccessor(nt, 64) ^ Crypto1.Crypto1Word(ref s);
+        var atEnc = Crypto1.PrngSuccessor(nt, 96) ^ Crypto1.Crypto1Word(ref s);
         return (nrEnc, arEnc, atEnc);
     }
 

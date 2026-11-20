@@ -40,8 +40,8 @@ public class StaticEncryptedNestedRecoveryTests
     {
         const uint uid = 0xA13E4902, nt = 0xD14191B3;
         var state = new Crypto1State(key);
-        var enc = nt ^ Crypto1.Crypto1Word(ref state, uid ^ nt, false);
-        var stream = (Crypto1.Crypto1Word(ref state, 0, false) >> 24) & 1;
+        var enc = nt ^ Crypto1.Crypto1Word(ref state, uid ^ nt);
+        var stream = (Crypto1.Crypto1Word(ref state) >> 24) & 1;
         var error = (byte)(Crypto1.OddParity8((byte)(nt & 255)) ^ Crypto1.OddParity8((byte)enc) ^ stream);
         var keys = StaticEncryptedNestedRecovery.Recover(uid, new NestedNonce(nt, enc, error));
         Assert.Contains(key, keys);
@@ -51,7 +51,7 @@ public class StaticEncryptedNestedRecoveryTests
         Assert.All(keys, candidate =>
         {
             var check = new Crypto1State(candidate);
-            Assert.Equal(enc, nt ^ Crypto1.Crypto1Word(ref check, uid ^ nt, false));
+            Assert.Equal(enc, nt ^ Crypto1.Crypto1Word(ref check, uid ^ nt));
         });
     }
 
@@ -79,9 +79,9 @@ public class StaticEncryptedNestedRecoveryTests
             var state = recovered;
             if (state is { Odd: 0, Even: 0 }) continue;
             var next = state;
-            var stream = (next.Crypto1Word(0, false) >> 24) & 1;
+            var stream = (next.Crypto1Word() >> 24) & 1;
             if (Crypto1.OddParity8((byte)nonce.Nt) != (parity ^ stream)) continue;
-            state.LfsrRollbackWord(input, false);
+            state.LfsrRollbackWord(input);
             result.Add(state.Lfsr);
         }
         return result.Order();

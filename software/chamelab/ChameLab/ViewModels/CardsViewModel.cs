@@ -444,7 +444,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             {
                 LeaveThen(() => SetSelected(value));
                 // The list has already moved its highlight; put it back on the open card.
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => this.RaisePropertyChanged(nameof(Selected)));
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => this.RaisePropertyChanged());
                 return;
             }
             SetSelected(value);

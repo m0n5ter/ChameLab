@@ -141,7 +141,7 @@ public sealed class HostTests
         {
             foreach (var request in _parser.Push(data))
             {
-                var reply = FrameCodec.Encode(request.Command, [], 0);
+                var reply = FrameCodec.Encode(request.Command, []);
                 if (request.Command == held) { _heldReply = reply; Held.TrySetResult(); }
                 else _incoming.Writer.TryWrite(reply);
             }

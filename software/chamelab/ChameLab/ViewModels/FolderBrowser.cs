@@ -359,7 +359,7 @@ public sealed class FolderBrowser : ViewModelBase
             if (_library.FindFolder(to) is { } taken)
             {
                 _reportError(string.Format(Strings.Cards_FolderExists, FolderPath.Name(taken)));
-                this.RaisePropertyChanged(nameof(MoveTarget));
+                this.RaisePropertyChanged();
                 return;
             }
             Relocate(old, to);
