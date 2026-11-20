@@ -36,6 +36,17 @@ jobs:
           rm _site/i18n/check.py
           # The download page shows each release's part of it
           cp CHANGELOG.md CHANGELOG.ru.md _site/
+      - name: Add the release manifest
+        # version.json feeds the apps' update checks: reading it from Pages costs no GitHub API
+        # rate limit (60 requests/hour per address without a token), which users behind a shared
+        # mobile or office address exhaust. The shape mirrors the GitHub release JSON.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pick='{tag_name,name,body,html_url,assets:[.assets[]|{name,browser_download_url,size}]}'
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq "$pick" || echo null)
+          dev=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/dev" --jq "$pick" || echo null)
+          jq -n --argjson latest "$latest" --argjson dev "$dev" '{latest:$latest,dev:$dev}' > _site/version.json
       - name: Add the web apps
         env:
           GH_TOKEN: ${{ github.token }}

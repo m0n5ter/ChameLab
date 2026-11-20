@@ -1,5 +1,4 @@
 using System;
-using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -29,15 +28,15 @@ public sealed record AppRelease(Version Version, int DevBuild, string Tag, strin
 }
 
 /// <summary>
-/// Checks GitHub releases for a newer version of the app itself. Release tags carry
+/// Checks the published releases for a newer version of the app itself. Release tags carry
 /// the app version; builds between releases are <c>1.0.7-dev.N</c>, published as the
 /// <c>dev</c> pre-release, and count as newer than v1.0.7 and older than v1.0.8.
+/// The releases come from the website's manifest (see <see cref="ReleaseFeed"/>), not from
+/// the rate-limited GitHub API.
 /// </summary>
 public static partial class AppUpdateService
 {
     private const string ChannelSetting = "updateChannel";
-
-    private static readonly HttpClient Http = CreateHttp();
 
     /// <summary><c>v1.0.7</c>, <c>1.0.7-dev.3</c>, <c>1.0</c>: the numeric part and the dev build number, any other suffix is ignored.</summary>
     [GeneratedRegex(@"^v?(\d+)\.(\d+)(?:\.(\d+))?(?:-dev\.(\d+))?(?:[-+]\S*)?$")]
@@ -86,7 +85,7 @@ public static partial class AppUpdateService
         var stable = await GetReleaseAsync("latest", ct);
         if (channel != UpdateChannel.Dev) return stable ?? throw new InvalidOperationException(Strings.Update_NoRelease);
 
-        var dev = await GetReleaseAsync("tags/dev", ct);
+        var dev = await GetReleaseAsync("dev", ct);
         if (stable is null || dev is null) return dev ?? stable ?? throw new InvalidOperationException(Strings.Update_NoRelease);
         return Compare(dev.Version, dev.DevBuild, stable.Version, stable.DevBuild) > 0 ? dev : stable;
     }
@@ -104,12 +103,8 @@ public static partial class AppUpdateService
     /// <summary>Reads a release (null when there is none) and its version from the tag, or for the dev release from its name.</summary>
     private static async Task<AppRelease?> GetReleaseAsync(string which, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{FirmwareUpdateService.Repository}/releases/{which}");
-        request.Headers.Accept.ParseAdd("application/vnd.github+json");
-        using var response = await Http.SendAsync(request, ct);
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
-        response.EnsureSuccessStatusCode();
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+        using var doc = await ReleaseFeed.GetReleaseAsync(which, ct);
+        if (doc is null) return null;
         var root = doc.RootElement;
 
         var tag = root.GetProperty("tag_name").GetString() ?? "";
@@ -136,15 +131,5 @@ public static partial class AppUpdateService
             : new Version();
         devBuild = m.Success && m.Groups[4].Success ? int.Parse(m.Groups[4].Value) : 0;
         return m.Success;
-    }
-
-    private static HttpClient CreateHttp()
-    {
-        var http = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
-        // A browser sends its own; a set one makes Safari ask GitHub (which refuses) whether it may, and the
-        // download fails with "Load failed".
-        if (!OperatingSystem.IsBrowser())
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("ChameLab");
-        return http;
     }
 }

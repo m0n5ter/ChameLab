@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,8 +25,9 @@ public enum FirmwareUpdateStep { Downloading, Restarting, WaitingForBootloader, 
 public readonly record struct FirmwareUpdateProgress(FirmwareUpdateStep Step, double Fraction = 0);
 
 /// <summary>
-/// Checks GitHub releases for newer firmware and installs a DFU package: restarts
-/// the device into its bootloader, flashes it over USB serial or BLE and reconnects.
+/// Checks the published releases (via <see cref="ReleaseFeed"/>) for newer firmware and installs
+/// a DFU package: restarts the device into its bootloader, flashes it over USB serial or BLE and
+/// reconnects.
 /// </summary>
 public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnlyList<IDfuLocator> locators)
 {
@@ -56,13 +56,8 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
     /// <summary>The latest (non pre-release) release, with the package for <paramref name="model"/>.</summary>
     public async Task<FirmwareRelease> GetLatestAsync(DeviceModel model, CancellationToken ct = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{Repository}/releases/latest");
-        request.Headers.Accept.ParseAdd("application/vnd.github+json");
-        using var response = await Http.SendAsync(request, ct);
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            throw new InvalidOperationException(Strings.Firmware_NoRelease);
-        response.EnsureSuccessStatusCode();
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+        using var doc = await ReleaseFeed.GetReleaseAsync("latest", ct)
+            ?? throw new InvalidOperationException(Strings.Firmware_NoRelease);
         var root = doc.RootElement;
 
         var tag = root.GetProperty("tag_name").GetString() ?? "";
