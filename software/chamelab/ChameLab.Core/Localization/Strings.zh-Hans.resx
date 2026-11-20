@@ -4015,4 +4015,16 @@
   <data name="Cards_JsonFile" xml:space="preserve">
     <value>JSON 文件</value>
   </data>
+  <data name="Cards_PasteLink" xml:space="preserve">
+    <value>粘贴链接</value>
+  </data>
+  <data name="Cards_PasteLinkCaption" xml:space="preserve">
+    <value>从剪贴板</value>
+  </data>
+  <data name="Cards_PasteLinkTip" xml:space="preserve">
+    <value>打开通过 导出 → 复制到剪贴板 复制的卡片链接</value>
+  </data>
+  <data name="Cards_NoCardLinkInClipboard" xml:space="preserve">
+    <value>剪贴板中没有 ChameLab 卡片链接。</value>
+  </data>
 </root>

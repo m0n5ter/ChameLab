@@ -4029,4 +4029,16 @@
   <data name="Cards_JsonFile" xml:space="preserve">
     <value>Файл JSON</value>
   </data>
+  <data name="Cards_PasteLink" xml:space="preserve">
+    <value>Вставить ссылку</value>
+  </data>
+  <data name="Cards_PasteLinkCaption" xml:space="preserve">
+    <value>Из буфера обмена</value>
+  </data>
+  <data name="Cards_PasteLinkTip" xml:space="preserve">
+    <value>Открыть ссылку на карту, скопированную через Экспорт → Копировать в буфер обмена</value>
+  </data>
+  <data name="Cards_NoCardLinkInClipboard" xml:space="preserve">
+    <value>В буфере обмена нет ссылки на карту ChameLab.</value>
+  </data>
 </root>

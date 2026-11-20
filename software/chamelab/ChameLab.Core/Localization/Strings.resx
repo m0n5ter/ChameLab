@@ -4032,4 +4032,16 @@
   <data name="Cards_JsonFile" xml:space="preserve">
     <value>JSON file</value>
   </data>
+  <data name="Cards_PasteLink" xml:space="preserve">
+    <value>Paste link</value>
+  </data>
+  <data name="Cards_PasteLinkCaption" xml:space="preserve">
+    <value>From the clipboard</value>
+  </data>
+  <data name="Cards_PasteLinkTip" xml:space="preserve">
+    <value>Open a card link copied with Export → Copy to clipboard</value>
+  </data>
+  <data name="Cards_NoCardLinkInClipboard" xml:space="preserve">
+    <value>The clipboard has no ChameLab card link.</value>
+  </data>
 </root>

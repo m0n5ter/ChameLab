@@ -4015,4 +4015,16 @@
   <data name="Cards_JsonFile" xml:space="preserve">
     <value>Archivo JSON</value>
   </data>
+  <data name="Cards_PasteLink" xml:space="preserve">
+    <value>Pegar enlace</value>
+  </data>
+  <data name="Cards_PasteLinkCaption" xml:space="preserve">
+    <value>Desde el portapapeles</value>
+  </data>
+  <data name="Cards_PasteLinkTip" xml:space="preserve">
+    <value>Abrir un enlace de tarjeta copiado con Exportar → Copiar al portapapeles</value>
+  </data>
+  <data name="Cards_NoCardLinkInClipboard" xml:space="preserve">
+    <value>El portapapeles no contiene un enlace de tarjeta de ChameLab.</value>
+  </data>
 </root>

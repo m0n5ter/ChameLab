@@ -4015,4 +4015,16 @@
   <data name="Cards_JsonFile" xml:space="preserve">
     <value>File JSON</value>
   </data>
+  <data name="Cards_PasteLink" xml:space="preserve">
+    <value>Incolla link</value>
+  </data>
+  <data name="Cards_PasteLinkCaption" xml:space="preserve">
+    <value>Dagli appunti</value>
+  </data>
+  <data name="Cards_PasteLinkTip" xml:space="preserve">
+    <value>Apri un link di scheda copiato con Esporta → Copia negli appunti</value>
+  </data>
+  <data name="Cards_NoCardLinkInClipboard" xml:space="preserve">
+    <value>Gli appunti non contengono un link di scheda ChameLab.</value>
+  </data>
 </root>

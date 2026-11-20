@@ -58,6 +58,20 @@ public sealed class CardQrTests
     }
 
     [Fact]
+    public void Link_CarriesA4KCardInOnePart()
+    {
+        var card = Classic(40);
+        Assert.True(CardQr.Encode(card).Count > 1);
+
+        var link = CardQr.Link(card);
+
+        Assert.StartsWith(CardQr.WebAppUrl + "#card=1.1.1.", link);
+        var back = Assemble(new[] { link });
+        Assert.Equal(card.Uid, back.Uid);
+        Assert.Equal(card.Data.Count, back.Data.Count);
+    }
+
+    [Fact]
     public void Classic1K_RoundTripsEveryField_ButIdAndFolder()
     {
         var card = Classic(16);

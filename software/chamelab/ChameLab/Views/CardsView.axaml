@@ -704,6 +704,18 @@
                     </StackPanel>
                   </Grid>
                 </Button>
+                <!-- A card link copied from Export → Copy to clipboard (or the text of a QR code). -->
+                <Button Classes="tile source" Click="OnPasteCardLink" ToolTip.Tip="{x:Static loc:Strings.Cards_PasteLinkTip}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.paste}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Static loc:Strings.Cards_PasteLink}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{x:Static loc:Strings.Cards_PasteLinkCaption}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
               </c:FitGrid>
 
               <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding QrScanStatus}"

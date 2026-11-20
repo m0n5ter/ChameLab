@@ -4015,4 +4015,16 @@
   <data name="Cards_JsonFile" xml:space="preserve">
     <value>JSON-Datei</value>
   </data>
+  <data name="Cards_PasteLink" xml:space="preserve">
+    <value>Link einfügen</value>
+  </data>
+  <data name="Cards_PasteLinkCaption" xml:space="preserve">
+    <value>Aus der Zwischenablage</value>
+  </data>
+  <data name="Cards_PasteLinkTip" xml:space="preserve">
+    <value>Einen mit Exportieren → In die Zwischenablage kopieren kopierten Kartenlink öffnen</value>
+  </data>
+  <data name="Cards_NoCardLinkInClipboard" xml:space="preserve">
+    <value>Die Zwischenablage enthält keinen ChameLab-Kartenlink.</value>
+  </data>
 </root>

@@ -121,6 +121,19 @@ public partial class CardsView : UserControl
         vm.NotifyLinkCopied();
     }
 
+    // Add a card → paste: a card link from the clipboard, opened like a scanned code.
+    private async void OnPasteCardLink(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not CardsViewModel vm) return;
+        string? text = null;
+        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        {
+            try { text = await clipboard.TryGetTextAsync(); }
+            catch { /* clipboard unavailable (browser without permission): reported as empty */ }
+        }
+        vm.PasteCardLink(text);
+    }
+
     // The shared QR code closes its dialog when clicked.
     private void OnQrTapped(object? sender, TappedEventArgs e)
     {

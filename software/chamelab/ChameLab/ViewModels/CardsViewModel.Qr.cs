@@ -162,6 +162,19 @@ public sealed partial class CardsViewModel
         });
     }
 
+    /// <summary>A card link pasted in the add pane (Export → Copy to clipboard, or a code's text).</summary>
+    public void PasteCardLink(string? text)
+    {
+        text = text?.Trim();
+        if (!CardQr.TryParse(text, out _))
+        {
+            ReportError(Strings.Cards_NoCardLinkInClipboard);
+            return;
+        }
+        try { AddQrCode(text!, fromCamera: false); }
+        catch (FormatException ex) { ReportError(ex.Message); }
+    }
+
     /// <summary>Adds a scanned code; called on the scanner's thread, so the UI is updated through the dispatcher.</summary>
     private QrScanStep AddQrCode(string text, bool fromCamera)
     {
