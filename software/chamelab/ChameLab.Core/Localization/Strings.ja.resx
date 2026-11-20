@@ -4028,21 +4028,264 @@
     <value>クリップボードに ChameLab のカードリンクがありません。</value>
   </data>
   <data name="Sync_AlreadyInGroup" xml:space="preserve">
-    <value>This device is already in a sync group.</value>
+    <value>このデバイスはすでに同期グループに参加しています。</value>
   </data>
   <data name="Sync_NotACode" xml:space="preserve">
-    <value>That is not a ChameLab code. Type the code shown on the other device (like DE1-ABCD-1234) or scan its QR code.</value>
+    <value>ChameLab のコードではありません。もう一方のデバイスに表示されたコード（例: DE1-ABCD-1234）を入力するか、その QR コードをスキャンしてください。</value>
   </data>
   <data name="Sync_Refused" xml:space="preserve">
-    <value>The other device declined.</value>
+    <value>もう一方のデバイスが拒否しました。</value>
   </data>
   <data name="Sync_PairingFailed" xml:space="preserve">
-    <value>The other device did not answer as expected.</value>
+    <value>もう一方のデバイスから想定どおりの応答がありませんでした。</value>
   </data>
   <data name="Sync_DeviceNotReachable" xml:space="preserve">
-    <value>The other device could not be reached.</value>
+    <value>もう一方のデバイスに接続できませんでした。</value>
   </data>
   <data name="Sync_WrongDevice" xml:space="preserve">
-    <value>The device that answered is not the one whose QR code was scanned.</value>
+    <value>応答したデバイスは、スキャンした QR コードのデバイスではありません。</value>
+  </data>
+  <data name="Plural_SyncDevicesConnected" xml:space="preserve">
+    <value>オンライン · {0} 台のデバイスが接続中</value>
+  </data>
+  <data name="Sync_Title" xml:space="preserve">
+    <value>デバイス同期</value>
+  </data>
+  <data name="Sync_Caption" xml:space="preserve">
+    <value>すべてのデバイスでカードと辞書を同じに保ちます。データは自分のデバイスにだけ保存され、リレーは接続するだけで、通信はすべて暗号化されます。</value>
+  </data>
+  <data name="Sync_DeviceName" xml:space="preserve">
+    <value>デバイス名</value>
+  </data>
+  <data name="Sync_Start" xml:space="preserve">
+    <value>同期を開始</value>
+  </data>
+  <data name="Sync_StartTip" xml:space="preserve">
+    <value>このデバイスで同期グループを作成し、後から他のデバイスを追加します</value>
+  </data>
+  <data name="Sync_Join" xml:space="preserve">
+    <value>他のデバイスに参加</value>
+  </data>
+  <data name="Sync_JoinTip" xml:space="preserve">
+    <value>すでに同期しているデバイスの同期グループに参加します</value>
+  </data>
+  <data name="Sync_JoinHint" xml:space="preserve">
+    <value>もう一方のデバイスで「設定 → デバイス同期 → デバイスを追加」を開き、QR コードをスキャンするか表示されたコードを入力します。このデバイスのカードはグループに追加されます。</value>
+  </data>
+  <data name="Sync_Connect" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Sync_ScanQr" xml:space="preserve">
+    <value>QR コードをスキャン</value>
+  </data>
+  <data name="Sync_ScanTheOtherDevice" xml:space="preserve">
+    <value>もう一方のデバイスの QR コードに向けてください</value>
+  </data>
+  <data name="Sync_NotASyncQr" xml:space="preserve">
+    <value>ChameLab の同期コードではありません</value>
+  </data>
+  <data name="Sync_Connecting" xml:space="preserve">
+    <value>接続中…</value>
+  </data>
+  <data name="Sync_CompareDigitsJoin" xml:space="preserve">
+    <value>もう一方のデバイスに {0} と表示されていることを確認し、そちらで承認してください。</value>
+  </data>
+  <data name="Sync_Joined" xml:space="preserve">
+    <value>参加しました。カードを同期しています。</value>
+  </data>
+  <data name="Sync_GroupCreated" xml:space="preserve">
+    <value>同期がオンになりました。他のデバイスを追加してください。</value>
+  </data>
+  <data name="Sync_StatusPaused" xml:space="preserve">
+    <value>一時停止中</value>
+  </data>
+  <data name="Sync_StatusConnecting" xml:space="preserve">
+    <value>接続中…</value>
+  </data>
+  <data name="Sync_StatusOnlineAlone" xml:space="preserve">
+    <value>オンライン · 現在接続中の他のデバイスはありません</value>
+  </data>
+  <data name="Sync_StatusOffline" xml:space="preserve">
+    <value>リレーに接続できません。同じネットワーク内のデバイスとは同期できます</value>
+  </data>
+  <data name="Sync_Devices" xml:space="preserve">
+    <value>デバイス</value>
+  </data>
+  <data name="Sync_ThisDevice" xml:space="preserve">
+    <value>このデバイス</value>
+  </data>
+  <data name="Sync_ConnectedLan" xml:space="preserve">
+    <value>接続中 · ローカルネットワーク</value>
+  </data>
+  <data name="Sync_ConnectedRelay" xml:space="preserve">
+    <value>接続中 · インターネット</value>
+  </data>
+  <data name="Sync_LastSeen" xml:space="preserve">
+    <value>最終接続: {0}</value>
+  </data>
+  <data name="Sync_NotSeenYet" xml:space="preserve">
+    <value>まだ接続していません</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>{0} 分前</value>
+  </data>
+  <data name="Sync_HoursAgo" xml:space="preserve">
+    <value>{0} 時間前</value>
+  </data>
+  <data name="Sync_RemoveDevice" xml:space="preserve">
+    <value>デバイスを削除</value>
+  </data>
+  <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
+    <value>このデバイスには以後の変更が届かず、グループはこのデバイスが見つけられない新しいルームに移ります。すでにある内容はそのデバイスに残ります。戻すには再度ペアリングが必要です。</value>
+  </data>
+  <data name="Sync_DeviceRemoved" xml:space="preserve">
+    <value>デバイスを削除しました</value>
+  </data>
+  <data name="Sync_AddDevice" xml:space="preserve">
+    <value>デバイスを追加</value>
+  </data>
+  <data name="Sync_AddDeviceTip" xml:space="preserve">
+    <value>他のデバイスがこのグループに参加するための QR コードとコードを表示します</value>
+  </data>
+  <data name="Sync_InviteHint" xml:space="preserve">
+    <value>新しいデバイスで「設定 → デバイス同期 → 他のデバイスに参加」を開き、この QR コードをスキャンする（同じネットワークならインターネット不要）か、コードを入力します。</value>
+  </data>
+  <data name="Sync_InviteWaiting" xml:space="preserve">
+    <value>もう一方のデバイスを待っています…</value>
+  </data>
+  <data name="Sync_DeviceWantsToJoin" xml:space="preserve">
+    <value>{0} が参加しようとしています。</value>
+  </data>
+  <data name="Sync_CompareDigitsInvite" xml:space="preserve">
+    <value>{0} が参加しようとしています。{1} と表示されている場合のみ追加してください。</value>
+  </data>
+  <data name="Sync_Accept" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="Sync_Decline" xml:space="preserve">
+    <value>拒否</value>
+  </data>
+  <data name="Sync_DeviceAdded" xml:space="preserve">
+    <value>{0} を追加しました</value>
+  </data>
+  <data name="Sync_Background" xml:space="preserve">
+    <value>バックグラウンドで同期</value>
+  </data>
+  <data name="Sync_BackgroundCaption" xml:space="preserve">
+    <value>ウィンドウを閉じても ChameLab はトレイに残り、スマートフォンがこのコンピューターを見つけられます</value>
+  </data>
+  <data name="Sync_StartWithSystem" xml:space="preserve">
+    <value>システムと同時に起動</value>
+  </data>
+  <data name="Sync_StartWithSystemCaption" xml:space="preserve">
+    <value>サインイン時にトレイで起動します</value>
+  </data>
+  <data name="Sync_RecentlyDeleted" xml:space="preserve">
+    <value>最近削除した項目</value>
+  </data>
+  <data name="Sync_Restore" xml:space="preserve">
+    <value>復元</value>
+  </data>
+  <data name="Sync_Restored" xml:space="preserve">
+    <value>復元しました</value>
+  </data>
+  <data name="Sync_Leave" xml:space="preserve">
+    <value>同期を停止</value>
+  </data>
+  <data name="Sync_LeaveTip" xml:space="preserve">
+    <value>このデバイスでグループから抜けます。カードは残ります</value>
+  </data>
+  <data name="Sync_LeaveConfirm" xml:space="preserve">
+    <value>このデバイスはグループから抜け、履歴を削除します。カードと辞書はそのまま残り、他のデバイスは同期を続けます。</value>
+  </data>
+  <data name="Sync_Left" xml:space="preserve">
+    <value>このデバイスの同期をオフにしました</value>
+  </data>
+  <data name="Sync_ConflictSuffix" xml:space="preserve">
+    <value>（競合）</value>
+  </data>
+  <data name="Sync_SendToDevice" xml:space="preserve">
+    <value>他のデバイスに送信</value>
+  </data>
+  <data name="Sync_SendToDeviceTip" xml:space="preserve">
+    <value>このカードを QR コードまたはコードで任意の ChameLab（自分または他人）に送信します</value>
+  </data>
+  <data name="Sync_SendHint" xml:space="preserve">
+    <value>もう一方のデバイスで「カード → 追加」からこの QR コードをスキャンするか、「デバイスから受信」でコードを入力します。</value>
+  </data>
+  <data name="Sync_SendWaiting" xml:space="preserve">
+    <value>もう一方のデバイスを待っています…</value>
+  </data>
+  <data name="Sync_CompareDigitsSend" xml:space="preserve">
+    <value>{0} に {1} と表示されている場合のみ送信してください。</value>
+  </data>
+  <data name="Sync_Send" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="Sync_Sending" xml:space="preserve">
+    <value>送信中…</value>
+  </data>
+  <data name="Sync_CardSent" xml:space="preserve">
+    <value>カードを {0} に送信しました</value>
+  </data>
+  <data name="Sync_History" xml:space="preserve">
+    <value>履歴</value>
+  </data>
+  <data name="Sync_HistoryTip" xml:space="preserve">
+    <value>すべてのデバイスでのこのカードの以前のバージョン</value>
+  </data>
+  <data name="Sync_HistoryHint" xml:space="preserve">
+    <value>復元すると、その変更直後の状態にすべてのデバイスでカードが戻ります。</value>
+  </data>
+  <data name="Sync_NoHistory" xml:space="preserve">
+    <value>以前のバージョンはまだありません。</value>
+  </data>
+  <data name="Sync_HistoryDeleted" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Sync_FieldName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="Sync_FieldColor" xml:space="preserve">
+    <value>色</value>
+  </data>
+  <data name="Sync_FieldFolder" xml:space="preserve">
+    <value>フォルダー</value>
+  </data>
+  <data name="Sync_FieldData" xml:space="preserve">
+    <value>ダンプ</value>
+  </data>
+  <data name="Sync_FieldIdentity" xml:space="preserve">
+    <value>種類と UID</value>
+  </data>
+  <data name="Sync_Receive" xml:space="preserve">
+    <value>デバイスから受信</value>
+  </data>
+  <data name="Sync_ReceiveCaption" xml:space="preserve">
+    <value>他の ChameLab から送られたカード</value>
+  </data>
+  <data name="Sync_ReceiveTip" xml:space="preserve">
+    <value>他の ChameLab の「エクスポート → 他のデバイスに送信」に表示されたコードを入力します（または QR コードをスキャン）</value>
+  </data>
+  <data name="Sync_ReceiveHint" xml:space="preserve">
+    <value>もう一方のデバイスに表示されたコードを入力します。カードは表示中のフォルダーに入ります。</value>
+  </data>
+  <data name="Sync_CompareDigitsReceive" xml:space="preserve">
+    <value>送信側のデバイスに {0} と表示されていることを確認してください。そちらで承認すると送信されます。</value>
+  </data>
+  <data name="Sync_CardsReceived" xml:space="preserve">
+    <value>{0} を受信しました</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>ChameLab を開く</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="Tray_Tooltip" xml:space="preserve">
+    <value>ChameLab · バックグラウンドで同期中</value>
   </data>
 </root>

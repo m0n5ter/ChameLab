@@ -4042,21 +4042,264 @@
     <value>В буфере обмена нет ссылки на карту ChameLab.</value>
   </data>
   <data name="Sync_AlreadyInGroup" xml:space="preserve">
-    <value>This device is already in a sync group.</value>
+    <value>Это устройство уже в группе синхронизации.</value>
   </data>
   <data name="Sync_NotACode" xml:space="preserve">
-    <value>That is not a ChameLab code. Type the code shown on the other device (like DE1-ABCD-1234) or scan its QR code.</value>
+    <value>Это не код ChameLab. Введите код с другого устройства (например, DE1-ABCD-1234) или отсканируйте его QR-код.</value>
   </data>
   <data name="Sync_Refused" xml:space="preserve">
-    <value>The other device declined.</value>
+    <value>Другое устройство отказало.</value>
   </data>
   <data name="Sync_PairingFailed" xml:space="preserve">
-    <value>The other device did not answer as expected.</value>
+    <value>Другое устройство ответило не так, как ожидалось.</value>
   </data>
   <data name="Sync_DeviceNotReachable" xml:space="preserve">
-    <value>The other device could not be reached.</value>
+    <value>Не удалось связаться с другим устройством.</value>
   </data>
   <data name="Sync_WrongDevice" xml:space="preserve">
-    <value>The device that answered is not the one whose QR code was scanned.</value>
+    <value>Ответило не то устройство, чей QR-код отсканирован.</value>
+  </data>
+  <data name="Plural_SyncDevicesConnected" xml:space="preserve">
+    <value>В сети · подключено {0} устройство|В сети · подключено {0} устройства|В сети · подключено {0} устройств</value>
+  </data>
+  <data name="Sync_Title" xml:space="preserve">
+    <value>Синхронизация устройств</value>
+  </data>
+  <data name="Sync_Caption" xml:space="preserve">
+    <value>Одинаковые карты и словари на всех ваших устройствах. Данные хранятся только на ваших устройствах: relay лишь соединяют их, а всё между ними зашифровано.</value>
+  </data>
+  <data name="Sync_DeviceName" xml:space="preserve">
+    <value>Имя устройства</value>
+  </data>
+  <data name="Sync_Start" xml:space="preserve">
+    <value>Включить синхронизацию</value>
+  </data>
+  <data name="Sync_StartTip" xml:space="preserve">
+    <value>Создать группу синхронизации с этим устройством; остальные устройства добавите потом</value>
+  </data>
+  <data name="Sync_Join" xml:space="preserve">
+    <value>Подключиться к другому устройству</value>
+  </data>
+  <data name="Sync_JoinTip" xml:space="preserve">
+    <value>Войти в группу синхронизации устройства, которое уже синхронизируется</value>
+  </data>
+  <data name="Sync_JoinHint" xml:space="preserve">
+    <value>На другом устройстве: Настройки → Синхронизация устройств → Добавить устройство. Отсканируйте его QR-код или введите показанный код. Карты этого устройства добавятся в группу.</value>
+  </data>
+  <data name="Sync_Connect" xml:space="preserve">
+    <value>Подключиться</value>
+  </data>
+  <data name="Sync_ScanQr" xml:space="preserve">
+    <value>Сканировать QR-код</value>
+  </data>
+  <data name="Sync_ScanTheOtherDevice" xml:space="preserve">
+    <value>Наведите на QR-код другого устройства</value>
+  </data>
+  <data name="Sync_NotASyncQr" xml:space="preserve">
+    <value>Это не код синхронизации ChameLab</value>
+  </data>
+  <data name="Sync_Connecting" xml:space="preserve">
+    <value>Подключение…</value>
+  </data>
+  <data name="Sync_CompareDigitsJoin" xml:space="preserve">
+    <value>Убедитесь, что другое устройство показывает {0}, и подтвердите на нём.</value>
+  </data>
+  <data name="Sync_Joined" xml:space="preserve">
+    <value>Готово. Карты синхронизируются.</value>
+  </data>
+  <data name="Sync_GroupCreated" xml:space="preserve">
+    <value>Синхронизация включена. Добавьте другие устройства.</value>
+  </data>
+  <data name="Sync_StatusPaused" xml:space="preserve">
+    <value>Приостановлено</value>
+  </data>
+  <data name="Sync_StatusConnecting" xml:space="preserve">
+    <value>Подключение…</value>
+  </data>
+  <data name="Sync_StatusOnlineAlone" xml:space="preserve">
+    <value>В сети · других устройств сейчас нет</value>
+  </data>
+  <data name="Sync_StatusOffline" xml:space="preserve">
+    <value>Relay недоступны; устройства в этой сети всё равно синхронизируются</value>
+  </data>
+  <data name="Sync_Devices" xml:space="preserve">
+    <value>Устройства</value>
+  </data>
+  <data name="Sync_ThisDevice" xml:space="preserve">
+    <value>Это устройство</value>
+  </data>
+  <data name="Sync_ConnectedLan" xml:space="preserve">
+    <value>Подключено · локальная сеть</value>
+  </data>
+  <data name="Sync_ConnectedRelay" xml:space="preserve">
+    <value>Подключено · интернет</value>
+  </data>
+  <data name="Sync_LastSeen" xml:space="preserve">
+    <value>Был в сети {0}</value>
+  </data>
+  <data name="Sync_NotSeenYet" xml:space="preserve">
+    <value>Ещё не подключалось</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>только что</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>{0} мин назад</value>
+  </data>
+  <data name="Sync_HoursAgo" xml:space="preserve">
+    <value>{0} ч назад</value>
+  </data>
+  <data name="Sync_RemoveDevice" xml:space="preserve">
+    <value>Удалить устройство</value>
+  </data>
+  <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
+    <value>Оно больше не получит изменений, а группа переедет в новую комнату, которую оно не найдёт. То, что уже на нём, останется. Чтобы вернуть его, нужно добавить его заново.</value>
+  </data>
+  <data name="Sync_DeviceRemoved" xml:space="preserve">
+    <value>Устройство удалено</value>
+  </data>
+  <data name="Sync_AddDevice" xml:space="preserve">
+    <value>Добавить устройство</value>
+  </data>
+  <data name="Sync_AddDeviceTip" xml:space="preserve">
+    <value>Показать QR-код и код, чтобы другое устройство вошло в группу</value>
+  </data>
+  <data name="Sync_InviteHint" xml:space="preserve">
+    <value>На новом устройстве: Настройки → Синхронизация устройств → Подключиться к другому устройству. Отсканируйте этот QR-код (в одной сети работает и без интернета) или введите код.</value>
+  </data>
+  <data name="Sync_InviteWaiting" xml:space="preserve">
+    <value>Ожидание другого устройства…</value>
+  </data>
+  <data name="Sync_DeviceWantsToJoin" xml:space="preserve">
+    <value>«{0}» хочет присоединиться.</value>
+  </data>
+  <data name="Sync_CompareDigitsInvite" xml:space="preserve">
+    <value>«{0}» хочет присоединиться. Добавляйте, только если на нём {1}.</value>
+  </data>
+  <data name="Sync_Accept" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="Sync_Decline" xml:space="preserve">
+    <value>Отклонить</value>
+  </data>
+  <data name="Sync_DeviceAdded" xml:space="preserve">
+    <value>«{0}» добавлено</value>
+  </data>
+  <data name="Sync_Background" xml:space="preserve">
+    <value>Синхронизация в фоне</value>
+  </data>
+  <data name="Sync_BackgroundCaption" xml:space="preserve">
+    <value>При закрытии окна ChameLab остаётся в трее, и телефон находит этот компьютер</value>
+  </data>
+  <data name="Sync_StartWithSystem" xml:space="preserve">
+    <value>Запускать вместе с системой</value>
+  </data>
+  <data name="Sync_StartWithSystemCaption" xml:space="preserve">
+    <value>Запускается в трее при входе в систему</value>
+  </data>
+  <data name="Sync_RecentlyDeleted" xml:space="preserve">
+    <value>Недавно удалённые</value>
+  </data>
+  <data name="Sync_Restore" xml:space="preserve">
+    <value>Восстановить</value>
+  </data>
+  <data name="Sync_Restored" xml:space="preserve">
+    <value>Восстановлено</value>
+  </data>
+  <data name="Sync_Leave" xml:space="preserve">
+    <value>Отключить синхронизацию</value>
+  </data>
+  <data name="Sync_LeaveTip" xml:space="preserve">
+    <value>Выйти из группы на этом устройстве; карты останутся</value>
+  </data>
+  <data name="Sync_LeaveConfirm" xml:space="preserve">
+    <value>Устройство выйдет из группы и забудет историю. Карты и словари останутся как есть; остальные устройства продолжат синхронизироваться.</value>
+  </data>
+  <data name="Sync_Left" xml:space="preserve">
+    <value>Синхронизация на этом устройстве отключена</value>
+  </data>
+  <data name="Sync_ConflictSuffix" xml:space="preserve">
+    <value> (конфликт)</value>
+  </data>
+  <data name="Sync_SendToDevice" xml:space="preserve">
+    <value>Отправить на другое устройство</value>
+  </data>
+  <data name="Sync_SendToDeviceTip" xml:space="preserve">
+    <value>Отправить карту в любой ChameLab — свой или чужой — по QR-коду или коду</value>
+  </data>
+  <data name="Sync_SendHint" xml:space="preserve">
+    <value>На другом устройстве: Карты → Добавить → отсканируйте этот QR-код или выберите «Получить с устройства» и введите код.</value>
+  </data>
+  <data name="Sync_SendWaiting" xml:space="preserve">
+    <value>Ожидание другого устройства…</value>
+  </data>
+  <data name="Sync_CompareDigitsSend" xml:space="preserve">
+    <value>Отправляйте, только если на «{0}» показано {1}.</value>
+  </data>
+  <data name="Sync_Send" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="Sync_Sending" xml:space="preserve">
+    <value>Отправка…</value>
+  </data>
+  <data name="Sync_CardSent" xml:space="preserve">
+    <value>Карта отправлена на «{0}»</value>
+  </data>
+  <data name="Sync_History" xml:space="preserve">
+    <value>История</value>
+  </data>
+  <data name="Sync_HistoryTip" xml:space="preserve">
+    <value>Прежние версии карты со всех ваших устройств</value>
+  </data>
+  <data name="Sync_HistoryHint" xml:space="preserve">
+    <value>«Восстановить» вернёт карту к состоянию сразу после этого изменения на всех устройствах.</value>
+  </data>
+  <data name="Sync_NoHistory" xml:space="preserve">
+    <value>Прежних версий пока нет.</value>
+  </data>
+  <data name="Sync_HistoryDeleted" xml:space="preserve">
+    <value>удалена</value>
+  </data>
+  <data name="Sync_FieldName" xml:space="preserve">
+    <value>имя</value>
+  </data>
+  <data name="Sync_FieldColor" xml:space="preserve">
+    <value>цвет</value>
+  </data>
+  <data name="Sync_FieldFolder" xml:space="preserve">
+    <value>папка</value>
+  </data>
+  <data name="Sync_FieldData" xml:space="preserve">
+    <value>дамп</value>
+  </data>
+  <data name="Sync_FieldIdentity" xml:space="preserve">
+    <value>тип и UID</value>
+  </data>
+  <data name="Sync_Receive" xml:space="preserve">
+    <value>Получить с устройства</value>
+  </data>
+  <data name="Sync_ReceiveCaption" xml:space="preserve">
+    <value>Карты, которые отправляет другой ChameLab</value>
+  </data>
+  <data name="Sync_ReceiveTip" xml:space="preserve">
+    <value>Введите код, который показывает другой ChameLab в Экспорт → Отправить на другое устройство (или отсканируйте его QR-код через «Сканировать QR-код»)</value>
+  </data>
+  <data name="Sync_ReceiveHint" xml:space="preserve">
+    <value>Введите код, который показывает другое устройство. Карты попадут в открытую папку.</value>
+  </data>
+  <data name="Sync_CompareDigitsReceive" xml:space="preserve">
+    <value>Убедитесь, что отправляющее устройство показывает {0}; оно отправит после подтверждения.</value>
+  </data>
+  <data name="Sync_CardsReceived" xml:space="preserve">
+    <value>Получено: {0}</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>Открыть ChameLab</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="Tray_Tooltip" xml:space="preserve">
+    <value>ChameLab · синхронизация в фоне</value>
   </data>
 </root>

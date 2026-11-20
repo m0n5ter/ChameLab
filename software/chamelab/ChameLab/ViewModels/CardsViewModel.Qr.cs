@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using ChameLab.Localization;
 using ChameLab.Models;
 using ChameLab.Services;
+using ChameLab.Sync;
 using ReactiveUI;
 
 namespace ChameLab.ViewModels;
@@ -144,7 +145,7 @@ public sealed partial class CardsViewModel
         if (picked is not { } file) return;
         var text = await Task.Run(() => QrImage.Decode(file.Data));
         if (text is null) throw new FormatException(string.Format(Strings.Qr_NoCodeInImage, file.Name));
-        if (!CardQr.TryParse(text, out _)) throw new FormatException(Strings.Qr_NotACardCode);
+        if (!CardQr.TryParse(text, out _) && PairingCode.Parse(text) is null) throw new FormatException(Strings.Qr_NotACardCode);
         AddQrCode(text, fromCamera: false);
     }
 
@@ -178,6 +179,8 @@ public sealed partial class CardsViewModel
     /// <summary>Adds a scanned code; called on the scanner's thread, so the UI is updated through the dispatcher.</summary>
     private QrScanStep AddQrCode(string text, bool fromCamera)
     {
+        // Another device showing cards to send.
+        if (TryReceiveScanned(text)) return new QrScanStep(true, Strings.Sync_Connecting);
         CardQrScan result;
         CardSave? card;
         string status;

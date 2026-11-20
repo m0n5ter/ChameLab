@@ -4028,21 +4028,264 @@
     <value>클립보드에 ChameLab 카드 링크가 없습니다.</value>
   </data>
   <data name="Sync_AlreadyInGroup" xml:space="preserve">
-    <value>This device is already in a sync group.</value>
+    <value>이 기기는 이미 동기화 그룹에 있습니다.</value>
   </data>
   <data name="Sync_NotACode" xml:space="preserve">
-    <value>That is not a ChameLab code. Type the code shown on the other device (like DE1-ABCD-1234) or scan its QR code.</value>
+    <value>ChameLab 코드가 아닙니다. 다른 기기에 표시된 코드(예: DE1-ABCD-1234)를 입력하거나 QR 코드를 스캔하세요.</value>
   </data>
   <data name="Sync_Refused" xml:space="preserve">
-    <value>The other device declined.</value>
+    <value>다른 기기가 거절했습니다.</value>
   </data>
   <data name="Sync_PairingFailed" xml:space="preserve">
-    <value>The other device did not answer as expected.</value>
+    <value>다른 기기가 예상대로 응답하지 않았습니다.</value>
   </data>
   <data name="Sync_DeviceNotReachable" xml:space="preserve">
-    <value>The other device could not be reached.</value>
+    <value>다른 기기에 연결할 수 없습니다.</value>
   </data>
   <data name="Sync_WrongDevice" xml:space="preserve">
-    <value>The device that answered is not the one whose QR code was scanned.</value>
+    <value>응답한 기기는 스캔한 QR 코드의 기기가 아닙니다.</value>
+  </data>
+  <data name="Plural_SyncDevicesConnected" xml:space="preserve">
+    <value>온라인 · 기기 {0}대 연결됨</value>
+  </data>
+  <data name="Sync_Title" xml:space="preserve">
+    <value>기기 동기화</value>
+  </data>
+  <data name="Sync_Caption" xml:space="preserve">
+    <value>모든 기기에서 카드와 사전을 동일하게 유지합니다. 데이터는 내 기기에만 저장되며, 릴레이는 연결만 하고 기기 간 통신은 모두 암호화됩니다.</value>
+  </data>
+  <data name="Sync_DeviceName" xml:space="preserve">
+    <value>기기 이름</value>
+  </data>
+  <data name="Sync_Start" xml:space="preserve">
+    <value>동기화 시작</value>
+  </data>
+  <data name="Sync_StartTip" xml:space="preserve">
+    <value>이 기기로 동기화 그룹을 만들고 나중에 다른 기기를 추가합니다</value>
+  </data>
+  <data name="Sync_Join" xml:space="preserve">
+    <value>다른 기기에 참여</value>
+  </data>
+  <data name="Sync_JoinTip" xml:space="preserve">
+    <value>이미 동기화 중인 기기의 그룹에 참여합니다</value>
+  </data>
+  <data name="Sync_JoinHint" xml:space="preserve">
+    <value>다른 기기에서 설정 → 기기 동기화 → 기기 추가를 엽니다. QR 코드를 스캔하거나 표시된 코드를 입력하세요. 이 기기의 카드가 그룹에 추가됩니다.</value>
+  </data>
+  <data name="Sync_Connect" xml:space="preserve">
+    <value>연결</value>
+  </data>
+  <data name="Sync_ScanQr" xml:space="preserve">
+    <value>QR 코드 스캔</value>
+  </data>
+  <data name="Sync_ScanTheOtherDevice" xml:space="preserve">
+    <value>다른 기기의 QR 코드를 비추세요</value>
+  </data>
+  <data name="Sync_NotASyncQr" xml:space="preserve">
+    <value>ChameLab 동기화 코드가 아닙니다</value>
+  </data>
+  <data name="Sync_Connecting" xml:space="preserve">
+    <value>연결 중…</value>
+  </data>
+  <data name="Sync_CompareDigitsJoin" xml:space="preserve">
+    <value>다른 기기에 {0}이(가) 표시되는지 확인하고 그 기기에서 승인하세요.</value>
+  </data>
+  <data name="Sync_Joined" xml:space="preserve">
+    <value>참여했습니다. 카드를 동기화하는 중입니다.</value>
+  </data>
+  <data name="Sync_GroupCreated" xml:space="preserve">
+    <value>동기화가 켜졌습니다. 다른 기기를 추가하세요.</value>
+  </data>
+  <data name="Sync_StatusPaused" xml:space="preserve">
+    <value>일시 중지됨</value>
+  </data>
+  <data name="Sync_StatusConnecting" xml:space="preserve">
+    <value>연결 중…</value>
+  </data>
+  <data name="Sync_StatusOnlineAlone" xml:space="preserve">
+    <value>온라인 · 지금 연결된 다른 기기가 없습니다</value>
+  </data>
+  <data name="Sync_StatusOffline" xml:space="preserve">
+    <value>릴레이에 연결할 수 없습니다. 같은 네트워크의 기기와는 계속 동기화됩니다</value>
+  </data>
+  <data name="Sync_Devices" xml:space="preserve">
+    <value>기기</value>
+  </data>
+  <data name="Sync_ThisDevice" xml:space="preserve">
+    <value>이 기기</value>
+  </data>
+  <data name="Sync_ConnectedLan" xml:space="preserve">
+    <value>연결됨 · 로컬 네트워크</value>
+  </data>
+  <data name="Sync_ConnectedRelay" xml:space="preserve">
+    <value>연결됨 · 인터넷</value>
+  </data>
+  <data name="Sync_LastSeen" xml:space="preserve">
+    <value>마지막 연결: {0}</value>
+  </data>
+  <data name="Sync_NotSeenYet" xml:space="preserve">
+    <value>아직 연결되지 않음</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>방금</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>{0}분 전</value>
+  </data>
+  <data name="Sync_HoursAgo" xml:space="preserve">
+    <value>{0}시간 전</value>
+  </data>
+  <data name="Sync_RemoveDevice" xml:space="preserve">
+    <value>기기 제거</value>
+  </data>
+  <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
+    <value>이 기기는 더 이상 변경 사항을 받지 않으며, 그룹은 이 기기가 찾을 수 없는 새 방으로 옮겨갑니다. 이미 가진 데이터는 그대로 남습니다. 다시 추가하려면 새로 페어링해야 합니다.</value>
+  </data>
+  <data name="Sync_DeviceRemoved" xml:space="preserve">
+    <value>기기를 제거했습니다</value>
+  </data>
+  <data name="Sync_AddDevice" xml:space="preserve">
+    <value>기기 추가</value>
+  </data>
+  <data name="Sync_AddDeviceTip" xml:space="preserve">
+    <value>다른 기기가 이 그룹에 참여할 QR 코드와 코드를 표시합니다</value>
+  </data>
+  <data name="Sync_InviteHint" xml:space="preserve">
+    <value>새 기기에서 설정 → 기기 동기화 → 다른 기기에 참여를 엽니다. 이 QR 코드를 스캔하거나(같은 네트워크에서는 인터넷 없이도 작동) 코드를 입력하세요.</value>
+  </data>
+  <data name="Sync_InviteWaiting" xml:space="preserve">
+    <value>다른 기기를 기다리는 중…</value>
+  </data>
+  <data name="Sync_DeviceWantsToJoin" xml:space="preserve">
+    <value>{0}이(가) 참여하려고 합니다.</value>
+  </data>
+  <data name="Sync_CompareDigitsInvite" xml:space="preserve">
+    <value>{0}이(가) 참여하려고 합니다. {1}이(가) 표시될 때만 추가하세요.</value>
+  </data>
+  <data name="Sync_Accept" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="Sync_Decline" xml:space="preserve">
+    <value>거절</value>
+  </data>
+  <data name="Sync_DeviceAdded" xml:space="preserve">
+    <value>{0}을(를) 추가했습니다</value>
+  </data>
+  <data name="Sync_Background" xml:space="preserve">
+    <value>백그라운드에서 동기화</value>
+  </data>
+  <data name="Sync_BackgroundCaption" xml:space="preserve">
+    <value>창을 닫아도 ChameLab이 트레이에 남아 휴대폰이 이 컴퓨터를 찾을 수 있습니다</value>
+  </data>
+  <data name="Sync_StartWithSystem" xml:space="preserve">
+    <value>시스템과 함께 시작</value>
+  </data>
+  <data name="Sync_StartWithSystemCaption" xml:space="preserve">
+    <value>로그인할 때 트레이에서 시작됩니다</value>
+  </data>
+  <data name="Sync_RecentlyDeleted" xml:space="preserve">
+    <value>최근 삭제됨</value>
+  </data>
+  <data name="Sync_Restore" xml:space="preserve">
+    <value>복원</value>
+  </data>
+  <data name="Sync_Restored" xml:space="preserve">
+    <value>복원했습니다</value>
+  </data>
+  <data name="Sync_Leave" xml:space="preserve">
+    <value>동기화 중지</value>
+  </data>
+  <data name="Sync_LeaveTip" xml:space="preserve">
+    <value>이 기기에서 그룹을 나갑니다. 카드는 유지됩니다</value>
+  </data>
+  <data name="Sync_LeaveConfirm" xml:space="preserve">
+    <value>이 기기는 그룹을 나가고 기록을 지웁니다. 카드와 사전은 그대로 남고 다른 기기는 계속 동기화합니다.</value>
+  </data>
+  <data name="Sync_Left" xml:space="preserve">
+    <value>이 기기의 동기화가 꺼졌습니다</value>
+  </data>
+  <data name="Sync_ConflictSuffix" xml:space="preserve">
+    <value> (충돌)</value>
+  </data>
+  <data name="Sync_SendToDevice" xml:space="preserve">
+    <value>다른 기기로 보내기</value>
+  </data>
+  <data name="Sync_SendToDeviceTip" xml:space="preserve">
+    <value>QR 코드나 코드로 이 카드를 내 것이든 다른 사람 것이든 모든 ChameLab에 보냅니다</value>
+  </data>
+  <data name="Sync_SendHint" xml:space="preserve">
+    <value>다른 기기에서 카드 → 추가 → 이 QR 코드를 스캔하거나, 기기에서 받기를 눌러 코드를 입력하세요.</value>
+  </data>
+  <data name="Sync_SendWaiting" xml:space="preserve">
+    <value>다른 기기를 기다리는 중…</value>
+  </data>
+  <data name="Sync_CompareDigitsSend" xml:space="preserve">
+    <value>{0}에 {1}이(가) 표시될 때만 보내세요.</value>
+  </data>
+  <data name="Sync_Send" xml:space="preserve">
+    <value>보내기</value>
+  </data>
+  <data name="Sync_Sending" xml:space="preserve">
+    <value>보내는 중…</value>
+  </data>
+  <data name="Sync_CardSent" xml:space="preserve">
+    <value>카드를 {0}(으)로 보냈습니다</value>
+  </data>
+  <data name="Sync_History" xml:space="preserve">
+    <value>기록</value>
+  </data>
+  <data name="Sync_HistoryTip" xml:space="preserve">
+    <value>모든 기기에서의 이 카드 이전 버전</value>
+  </data>
+  <data name="Sync_HistoryHint" xml:space="preserve">
+    <value>복원하면 모든 기기에서 카드가 해당 변경 직후 상태로 돌아갑니다.</value>
+  </data>
+  <data name="Sync_NoHistory" xml:space="preserve">
+    <value>아직 이전 버전이 없습니다.</value>
+  </data>
+  <data name="Sync_HistoryDeleted" xml:space="preserve">
+    <value>삭제됨</value>
+  </data>
+  <data name="Sync_FieldName" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="Sync_FieldColor" xml:space="preserve">
+    <value>색상</value>
+  </data>
+  <data name="Sync_FieldFolder" xml:space="preserve">
+    <value>폴더</value>
+  </data>
+  <data name="Sync_FieldData" xml:space="preserve">
+    <value>덤프</value>
+  </data>
+  <data name="Sync_FieldIdentity" xml:space="preserve">
+    <value>유형 및 UID</value>
+  </data>
+  <data name="Sync_Receive" xml:space="preserve">
+    <value>기기에서 받기</value>
+  </data>
+  <data name="Sync_ReceiveCaption" xml:space="preserve">
+    <value>다른 ChameLab이 보낸 카드</value>
+  </data>
+  <data name="Sync_ReceiveTip" xml:space="preserve">
+    <value>다른 ChameLab의 내보내기 → 다른 기기로 보내기에 표시된 코드를 입력하세요(또는 QR 코드 스캔)</value>
+  </data>
+  <data name="Sync_ReceiveHint" xml:space="preserve">
+    <value>다른 기기에 표시된 코드를 입력하세요. 카드는 현재 폴더에 들어갑니다.</value>
+  </data>
+  <data name="Sync_CompareDigitsReceive" xml:space="preserve">
+    <value>보내는 기기에 {0}이(가) 표시되는지 확인하세요. 그 기기에서 승인하면 전송됩니다.</value>
+  </data>
+  <data name="Sync_CardsReceived" xml:space="preserve">
+    <value>{0}을(를) 받았습니다</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>ChameLab 열기</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>종료</value>
+  </data>
+  <data name="Tray_Tooltip" xml:space="preserve">
+    <value>ChameLab · 백그라운드에서 동기화 중</value>
   </data>
 </root>

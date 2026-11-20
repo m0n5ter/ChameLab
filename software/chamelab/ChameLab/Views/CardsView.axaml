@@ -447,6 +447,14 @@
                             ToolTip.Tip="{x:Static loc:Strings.Qr_ShareTip}">
                     <MenuItem.Icon><PathIcon Data="{StaticResource Icon.qrcode}" /></MenuItem.Icon>
                   </MenuItem>
+                  <MenuItem Header="{x:Static loc:Strings.Sync_SendToDevice}" Command="{Binding SendCommand}"
+                            ToolTip.Tip="{x:Static loc:Strings.Sync_SendToDeviceTip}">
+                    <MenuItem.Icon><PathIcon Data="{StaticResource Icon.send}" /></MenuItem.Icon>
+                  </MenuItem>
+                  <MenuItem Header="{x:Static loc:Strings.Sync_History}" Command="{Binding HistoryCommand}"
+                            IsVisible="{Binding CanShowHistory}" ToolTip.Tip="{x:Static loc:Strings.Sync_HistoryTip}">
+                    <MenuItem.Icon><PathIcon Data="{StaticResource Icon.history}" /></MenuItem.Icon>
+                  </MenuItem>
                   <Separator />
                   <MenuItem Header="{x:Static loc:Strings.Cards_CardToClipboard}" Click="OnCopyCardLink"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_CardToClipboardTip}">
@@ -704,6 +712,18 @@
                     </StackPanel>
                   </Grid>
                 </Button>
+                <!-- Cards another device sends (Export → Send to another device), by its code. -->
+                <Button Classes="tile source" Command="{Binding ShowReceiveCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_ReceiveTip}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <Border Classes="iconwell" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource Icon.download}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Static loc:Strings.Sync_Receive}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{x:Static loc:Strings.Sync_ReceiveCaption}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
                 <!-- A card link copied from Export → Copy to clipboard (or the text of a QR code). -->
                 <Button Classes="tile source" Click="OnPasteCardLink" ToolTip.Tip="{x:Static loc:Strings.Cards_PasteLinkTip}">
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
@@ -717,6 +737,17 @@
                   </Grid>
                 </Button>
               </c:FitGrid>
+
+              <StackPanel Spacing="8" IsVisible="{Binding IsReceiveOpen}" b:BringIntoViewOnShow.IsEnabled="True">
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_ReceiveHint}" />
+                <WrapPanel ItemSpacing="8" LineSpacing="8">
+                  <TextBox Text="{Binding ReceiveCode}" PlaceholderText="DE1-ABCD-1234" MinWidth="200" IsEnabled="{Binding !IsReceiving}" />
+                  <Button Classes="accent" Content="{x:Static loc:Strings.Sync_Receive}" Command="{Binding ReceiveCommand}" />
+                  <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelReceiveCommand}" IsVisible="{Binding IsReceiving}" />
+                </WrapPanel>
+                <TextBlock Classes="caption" TextWrapping="Wrap" FontWeight="SemiBold" Text="{Binding ReceiveStatus}"
+                           IsVisible="{Binding ReceiveStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              </StackPanel>
 
               <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding QrScanStatus}"
                          IsVisible="{Binding QrScanStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -1708,6 +1739,70 @@
                        IsVisible="{Binding ProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
           </StackPanel>
         </ScrollViewer>
+      </Border>
+      <!-- Send to another device: its QR code and the code to type, then the digits to compare. -->
+      <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsSendOpen}">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <StackPanel Spacing="2">
+              <TextBlock Text="{x:Static loc:Strings.Sync_SendToDevice}" Classes="overline" />
+              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_SendHint}" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="icon small" Command="{Binding CloseActionCommand}"
+                    b:DialogKeys.IsCancel="True" ToolTip.Tip="{x:Static loc:Strings.Common_Close}" VerticalAlignment="Top">
+              <PathIcon Data="{StaticResource Icon.close}" />
+            </Button>
+          </Grid>
+          <c:QrCodeView Grid.Row="1" Text="{Binding SendQr}" HorizontalAlignment="Center"
+                        IsVisible="{Binding SendQr, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          <StackPanel Grid.Row="2" Spacing="8" HorizontalAlignment="Center">
+            <SelectableTextBlock Text="{Binding SendCode}" HorizontalAlignment="Center" FontSize="22" FontWeight="SemiBold"
+                                 FontFamily="{x:Static c:AppFonts.Mono}"
+                                 IsVisible="{Binding SendCode, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <TextBlock Text="{Binding SendStatus}" TextWrapping="Wrap" TextAlignment="Center" />
+            <Button Classes="accent" HorizontalAlignment="Center" Content="{x:Static loc:Strings.Sync_Send}"
+                    Command="{Binding ConfirmSendCommand}" IsVisible="{Binding IsSendConfirming}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <!-- The open card's history (sync keeps it): restore an earlier version. -->
+      <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsHistoryOpen}">
+        <Grid RowDefinitions="Auto,*" RowSpacing="10">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <StackPanel Spacing="2">
+              <TextBlock Text="{x:Static loc:Strings.Sync_History}" Classes="overline" />
+              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_HistoryHint}" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="icon small" Command="{Binding CloseActionCommand}"
+                    b:DialogKeys.IsCancel="True" ToolTip.Tip="{x:Static loc:Strings.Common_Close}" VerticalAlignment="Top">
+              <PathIcon Data="{StaticResource Icon.close}" />
+            </Button>
+          </Grid>
+          <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="caption" Text="{x:Static loc:Strings.Sync_NoHistory}" IsVisible="{Binding !HasHistory}" />
+              <ItemsControl ItemsSource="{Binding HistoryItems}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="6" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CardHistoryItemViewModel">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                      <StackPanel>
+                        <TextBlock Text="{Binding When}" FontWeight="SemiBold" />
+                        <TextBlock Classes="caption" TextWrapping="Wrap">
+                          <Run Text="{Binding Device}" /><Run Text=" · " /><Run Text="{Binding What}" />
+                        </TextBlock>
+                      </StackPanel>
+                      <Button Grid.Column="1" VerticalAlignment="Center" Content="{x:Static loc:Strings.Sync_Restore}"
+                              Command="{Binding RestoreCommand}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
       </Border>
       <!-- Share as QR code: one code, or a series that changes by itself. A click on the code closes it. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsQrOpen}">

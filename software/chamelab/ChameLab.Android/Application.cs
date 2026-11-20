@@ -24,6 +24,8 @@ namespace ChameLab.Android
                 dfu: new IDfuLocator[] { new UsbCdcDfuLocator(usb), new BleDfuLocator() },
                 feedback: new AndroidFeedbackPlayer(), hardnested: new ManagedHardnestedEngine(),
                 wakeLock: new WakeLockService(AndroidWakeLock.AcquireAsync), qrCamera: new AndroidQrCamera());
+            Sync.SyncService.MulticastLock = AndroidMulticast.Set;
+            Sync.SyncService.DefaultDeviceName = global::Android.OS.Build.Model ?? "Android";
             return base.CustomizeAppBuilder(builder)
             .WithInterFont()
             .UseReactiveUI(_ => { });

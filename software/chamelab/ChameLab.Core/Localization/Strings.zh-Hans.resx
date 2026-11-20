@@ -4028,21 +4028,264 @@
     <value>剪贴板中没有 ChameLab 卡片链接。</value>
   </data>
   <data name="Sync_AlreadyInGroup" xml:space="preserve">
-    <value>This device is already in a sync group.</value>
+    <value>此设备已在同步组中。</value>
   </data>
   <data name="Sync_NotACode" xml:space="preserve">
-    <value>That is not a ChameLab code. Type the code shown on the other device (like DE1-ABCD-1234) or scan its QR code.</value>
+    <value>这不是 ChameLab 代码。请输入另一台设备上显示的代码（如 DE1-ABCD-1234）或扫描其二维码。</value>
   </data>
   <data name="Sync_Refused" xml:space="preserve">
-    <value>The other device declined.</value>
+    <value>另一台设备拒绝了。</value>
   </data>
   <data name="Sync_PairingFailed" xml:space="preserve">
-    <value>The other device did not answer as expected.</value>
+    <value>另一台设备的应答不符合预期。</value>
   </data>
   <data name="Sync_DeviceNotReachable" xml:space="preserve">
-    <value>The other device could not be reached.</value>
+    <value>无法连接到另一台设备。</value>
   </data>
   <data name="Sync_WrongDevice" xml:space="preserve">
-    <value>The device that answered is not the one whose QR code was scanned.</value>
+    <value>应答的设备不是所扫描二维码对应的设备。</value>
+  </data>
+  <data name="Plural_SyncDevicesConnected" xml:space="preserve">
+    <value>在线 · 已连接 {0} 台设备</value>
+  </data>
+  <data name="Sync_Title" xml:space="preserve">
+    <value>设备同步</value>
+  </data>
+  <data name="Sync_Caption" xml:space="preserve">
+    <value>让所有设备上的卡片和字典保持一致。数据只保存在您的设备上：中继服务器仅负责连接，设备之间的一切都经过加密。</value>
+  </data>
+  <data name="Sync_DeviceName" xml:space="preserve">
+    <value>设备名称</value>
+  </data>
+  <data name="Sync_Start" xml:space="preserve">
+    <value>开始同步</value>
+  </data>
+  <data name="Sync_StartTip" xml:space="preserve">
+    <value>用此设备创建同步组，之后再添加其他设备</value>
+  </data>
+  <data name="Sync_Join" xml:space="preserve">
+    <value>加入另一台设备</value>
+  </data>
+  <data name="Sync_JoinTip" xml:space="preserve">
+    <value>加入已在同步的设备所在的同步组</value>
+  </data>
+  <data name="Sync_JoinHint" xml:space="preserve">
+    <value>在另一台设备上：设置 → 设备同步 → 添加设备。扫描其二维码或输入显示的代码。此设备的卡片会加入该组。</value>
+  </data>
+  <data name="Sync_Connect" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Sync_ScanQr" xml:space="preserve">
+    <value>扫描二维码</value>
+  </data>
+  <data name="Sync_ScanTheOtherDevice" xml:space="preserve">
+    <value>对准另一台设备上的二维码</value>
+  </data>
+  <data name="Sync_NotASyncQr" xml:space="preserve">
+    <value>不是 ChameLab 同步代码</value>
+  </data>
+  <data name="Sync_Connecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="Sync_CompareDigitsJoin" xml:space="preserve">
+    <value>请确认另一台设备显示 {0}，并在该设备上确认。</value>
+  </data>
+  <data name="Sync_Joined" xml:space="preserve">
+    <value>已加入，卡片正在同步。</value>
+  </data>
+  <data name="Sync_GroupCreated" xml:space="preserve">
+    <value>同步已开启，请添加其他设备。</value>
+  </data>
+  <data name="Sync_StatusPaused" xml:space="preserve">
+    <value>已暂停</value>
+  </data>
+  <data name="Sync_StatusConnecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="Sync_StatusOnlineAlone" xml:space="preserve">
+    <value>在线 · 目前没有其他设备连接</value>
+  </data>
+  <data name="Sync_StatusOffline" xml:space="preserve">
+    <value>无法连接中继；同一网络中的设备仍可同步</value>
+  </data>
+  <data name="Sync_Devices" xml:space="preserve">
+    <value>设备</value>
+  </data>
+  <data name="Sync_ThisDevice" xml:space="preserve">
+    <value>本设备</value>
+  </data>
+  <data name="Sync_ConnectedLan" xml:space="preserve">
+    <value>已连接 · 局域网</value>
+  </data>
+  <data name="Sync_ConnectedRelay" xml:space="preserve">
+    <value>已连接 · 互联网</value>
+  </data>
+  <data name="Sync_LastSeen" xml:space="preserve">
+    <value>上次在线：{0}</value>
+  </data>
+  <data name="Sync_NotSeenYet" xml:space="preserve">
+    <value>尚未连接</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>刚刚</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>{0} 分钟前</value>
+  </data>
+  <data name="Sync_HoursAgo" xml:space="preserve">
+    <value>{0} 小时前</value>
+  </data>
+  <data name="Sync_RemoveDevice" xml:space="preserve">
+    <value>移除设备</value>
+  </data>
+  <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
+    <value>该设备将不再收到更改，同步组会转到它找不到的新房间。它已有的数据仍保留在其上。重新加入需要再次配对。</value>
+  </data>
+  <data name="Sync_DeviceRemoved" xml:space="preserve">
+    <value>设备已移除</value>
+  </data>
+  <data name="Sync_AddDevice" xml:space="preserve">
+    <value>添加设备</value>
+  </data>
+  <data name="Sync_AddDeviceTip" xml:space="preserve">
+    <value>显示二维码和代码，供另一台设备加入此组</value>
+  </data>
+  <data name="Sync_InviteHint" xml:space="preserve">
+    <value>在新设备上：设置 → 设备同步 → 加入另一台设备。扫描此二维码（同一网络下无需互联网）或输入代码。</value>
+  </data>
+  <data name="Sync_InviteWaiting" xml:space="preserve">
+    <value>正在等待另一台设备…</value>
+  </data>
+  <data name="Sync_DeviceWantsToJoin" xml:space="preserve">
+    <value>{0} 请求加入。</value>
+  </data>
+  <data name="Sync_CompareDigitsInvite" xml:space="preserve">
+    <value>{0} 请求加入。仅当其显示 {1} 时才添加。</value>
+  </data>
+  <data name="Sync_Accept" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="Sync_Decline" xml:space="preserve">
+    <value>拒绝</value>
+  </data>
+  <data name="Sync_DeviceAdded" xml:space="preserve">
+    <value>已添加 {0}</value>
+  </data>
+  <data name="Sync_Background" xml:space="preserve">
+    <value>后台同步</value>
+  </data>
+  <data name="Sync_BackgroundCaption" xml:space="preserve">
+    <value>关闭窗口后 ChameLab 仍留在托盘中，以便手机找到此电脑</value>
+  </data>
+  <data name="Sync_StartWithSystem" xml:space="preserve">
+    <value>随系统启动</value>
+  </data>
+  <data name="Sync_StartWithSystemCaption" xml:space="preserve">
+    <value>登录时在托盘中启动</value>
+  </data>
+  <data name="Sync_RecentlyDeleted" xml:space="preserve">
+    <value>最近删除</value>
+  </data>
+  <data name="Sync_Restore" xml:space="preserve">
+    <value>恢复</value>
+  </data>
+  <data name="Sync_Restored" xml:space="preserve">
+    <value>已恢复</value>
+  </data>
+  <data name="Sync_Leave" xml:space="preserve">
+    <value>停止同步</value>
+  </data>
+  <data name="Sync_LeaveTip" xml:space="preserve">
+    <value>在此设备上退出同步组；卡片会保留</value>
+  </data>
+  <data name="Sync_LeaveConfirm" xml:space="preserve">
+    <value>此设备将退出同步组并清除历史记录。卡片和字典保持不变，其他设备继续同步。</value>
+  </data>
+  <data name="Sync_Left" xml:space="preserve">
+    <value>此设备已关闭同步</value>
+  </data>
+  <data name="Sync_ConflictSuffix" xml:space="preserve">
+    <value>（冲突）</value>
+  </data>
+  <data name="Sync_SendToDevice" xml:space="preserve">
+    <value>发送到另一台设备</value>
+  </data>
+  <data name="Sync_SendToDeviceTip" xml:space="preserve">
+    <value>通过二维码或代码将此卡片发送到任意 ChameLab（自己的或他人的）</value>
+  </data>
+  <data name="Sync_SendHint" xml:space="preserve">
+    <value>在另一台设备上：卡片 → 添加 → 扫描此二维码，或选择“从设备接收”并输入代码。</value>
+  </data>
+  <data name="Sync_SendWaiting" xml:space="preserve">
+    <value>正在等待另一台设备…</value>
+  </data>
+  <data name="Sync_CompareDigitsSend" xml:space="preserve">
+    <value>仅当 {0} 显示 {1} 时才发送。</value>
+  </data>
+  <data name="Sync_Send" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="Sync_Sending" xml:space="preserve">
+    <value>正在发送…</value>
+  </data>
+  <data name="Sync_CardSent" xml:space="preserve">
+    <value>卡片已发送到 {0}</value>
+  </data>
+  <data name="Sync_History" xml:space="preserve">
+    <value>历史记录</value>
+  </data>
+  <data name="Sync_HistoryTip" xml:space="preserve">
+    <value>来自所有设备的此卡片的早期版本</value>
+  </data>
+  <data name="Sync_HistoryHint" xml:space="preserve">
+    <value>恢复会在所有设备上将卡片还原为该次更改后的状态。</value>
+  </data>
+  <data name="Sync_NoHistory" xml:space="preserve">
+    <value>暂无早期版本。</value>
+  </data>
+  <data name="Sync_HistoryDeleted" xml:space="preserve">
+    <value>已删除</value>
+  </data>
+  <data name="Sync_FieldName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Sync_FieldColor" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="Sync_FieldFolder" xml:space="preserve">
+    <value>文件夹</value>
+  </data>
+  <data name="Sync_FieldData" xml:space="preserve">
+    <value>转储</value>
+  </data>
+  <data name="Sync_FieldIdentity" xml:space="preserve">
+    <value>类型和 UID</value>
+  </data>
+  <data name="Sync_Receive" xml:space="preserve">
+    <value>从设备接收</value>
+  </data>
+  <data name="Sync_ReceiveCaption" xml:space="preserve">
+    <value>另一台 ChameLab 发送的卡片</value>
+  </data>
+  <data name="Sync_ReceiveTip" xml:space="preserve">
+    <value>输入另一台 ChameLab 在“导出 → 发送到另一台设备”中显示的代码（或扫描其二维码）</value>
+  </data>
+  <data name="Sync_ReceiveHint" xml:space="preserve">
+    <value>输入另一台设备显示的代码。卡片会放入当前文件夹。</value>
+  </data>
+  <data name="Sync_CompareDigitsReceive" xml:space="preserve">
+    <value>请确认发送设备显示 {0}；在该设备上确认后即会发送。</value>
+  </data>
+  <data name="Sync_CardsReceived" xml:space="preserve">
+    <value>已接收 {0}</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>打开 ChameLab</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="Tray_Tooltip" xml:space="preserve">
+    <value>ChameLab · 正在后台同步</value>
   </data>
 </root>
