@@ -172,6 +172,26 @@ Removing the current device leaves the group and deletes its sync files (the lib
 covers that; the background node can also export the library to a folder of the user's choice
 on a schedule (for example a folder another cloud already syncs).
 
+## Local network
+
+Devices on the same network also sync without the internet:
+
+- A node that can accept connections (desktop, Android and iOS while open, the headless node)
+  listens on a TCP port and announces itself over mDNS / DNS-SD as `_chamelab-sync._tcp`. The
+  announcement carries `HMAC(room secret, nonce)` and the nonce, not the room id, so members
+  recognise their group while other people on the network cannot tell announcements of one
+  group apart.
+- The channel is the same Noise `IK` with the member keys and the same exchange as through the
+  relay; the local network is not trusted more than the relay.
+- A device reachable both ways keeps one link: links to the same member are deduplicated by
+  device id, the local one preferred.
+- Adding a device without the internet: the QR also carries the inviter's local addresses and
+  port, so the new device can connect directly. A typed code still goes through the relay.
+- Platforms: Windows asks for the firewall once (MSIX needs the `privateNetworkClientServer`
+  capability); Android takes a `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`); iOS announces
+  and browses through the system Bonjour (`NSLocalNetworkUsageDescription`,
+  `NSBonjourServices`) and only while in the foreground; the browser build cannot do it.
+
 ## Background node (desktop)
 
 - Tray icon (Avalonia `TrayIcon`); closing the window keeps sync running when background mode
@@ -214,15 +234,16 @@ Each phase ends with its tests; nothing user-visible ships before phase 6.
 6. **Sync sessions and membership**: per-peer Noise channel through the room, vector exchange,
    catch-up and live push, reconnects; create group, add device, revoke. End-to-end tests with
    several in-process nodes and a local relay.
-7. **UI**: Settings → Sync (on/off, devices with last seen, add device QR/code, remove), sync
+7. **Local network**: TCP listener and connector, mDNS / DNS-SD announce and browse, the
+   iOS Bonjour and Android multicast pieces, local addresses in the pairing QR.
+8. **UI**: Settings → Sync (on/off, devices with last seen, add device QR/code, remove), sync
    status in the toolbar, card / dictionary history with restore, Send card / folder and the
    receive dialog. Localized strings for every language.
-8. **Desktop background node**: tray, close to tray, autostart per OS, scheduled export.
-9. **Headless node**: `chamelab sync serve`, Docker image and its docs.
-10. **Release**: user docs, website, `CHANGELOG.md` and `CHANGELOG.ru.md`.
+9. **Desktop background node**: tray, close to tray, autostart per OS, scheduled export.
+10. **Headless node**: `chamelab sync serve`, Docker image and its docs.
+11. **Release**: user docs, website, `CHANGELOG.md` and `CHANGELOG.ru.md`.
 
-Later: browser build (a relay the browser can trust), direct connections on the local network
-(mDNS) bypassing the relay, syncing selected settings.
+Later: browser build (a relay the browser can trust), syncing selected settings.
 
 ## Open questions
 
