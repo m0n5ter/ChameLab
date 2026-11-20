@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: an unsigned iOS build, `chamelab-<version>-ios.ipa`, comes with every release and is on the download page. It installs on an iPhone or iPad with AltStore, SideStore or Sideloadly, which sign it with your Apple ID (a free Apple ID keeps it working for 7 days, then it is signed again)
 
 ## [v1.7.54][2026-11-20] · firmware v2.3.21-cl
 ### Summary

@@ -267,13 +267,47 @@ jobs:
       - name: Install the iOS workload
         run: dotnet workload install ios --version "$IOS_WORKLOAD_VERSION"
       - name: Build the app with the managed hardnested engine
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          CODE: ${{ needs.version.outputs.code }}
+        # CFBundleShortVersionString takes numbers only, so a dev build shows its release (1.7.54)
+        # and tells itself apart by the bundle version (the Android versionCode)
         run: >
           dotnet build software/chamelab/ChameLab.iOS/ChameLab.iOS.csproj
           -c Release -r ${{ matrix.rid }}
-          -p:Version=${{ needs.version.outputs.version }}
+          -p:Version="$VERSION"
+          -p:ApplicationDisplayVersion="${VERSION%%-*}"
+          -p:ApplicationVersion="$CODE"
           -p:EnableCodeSigning=false
       - name: Upload the unsigned app
         uses: actions/upload-artifact@v7
         with:
           name: gui-${{ matrix.rid }}-unsigned
           path: software/chamelab/ChameLab.iOS/bin/Release/net10.0-ios/${{ matrix.rid }}/*.app
+      - name: Package the .ipa for sideloading
+        if: matrix.rid == 'ios-arm64'
+        # A packaging problem leaves the release without the .ipa instead of holding it up
+        continue-on-error: true
+        # Apple only installs apps signed for the device, so the .ipa is ad-hoc signed: a
+        # well-formed placeholder that AltStore, SideStore or Sideloadly re-sign with the
+        # user's own Apple ID. Nested code is signed first, the app bundle last.
+        run: |
+          app=$(echo software/chamelab/ChameLab.iOS/bin/Release/net10.0-ios/ios-arm64/*.app)
+          if [[ -d $app/Frameworks ]]; then
+            find "$app/Frameworks" \( -name '*.dylib' -o -name '*.framework' \) -prune -print0 |
+              xargs -0 -r -n1 codesign --force --sign - --timestamp=none
+          fi
+          codesign --force --sign - --timestamp=none \
+            --entitlements software/chamelab/ChameLab.iOS/Entitlements.plist "$app"
+          codesign --verify --deep --strict "$app"
+          mkdir -p ipa/Payload
+          cp -R "$app" ipa/Payload/
+          # ditto keeps the symlinks and permissions a plain zip may lose
+          (cd ipa && ditto -c -k --norsrc --keepParent Payload "$GITHUB_WORKSPACE/chamelab-ios.ipa")
+          unzip -l chamelab-ios.ipa | tail -1
+      - name: Upload release artifacts
+        if: matrix.rid == 'ios-arm64'
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-artifacts-gui-ios
+          path: chamelab-ios.ipa
