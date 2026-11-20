@@ -748,7 +748,8 @@ public sealed class HexEditor : Control
             var b = read ? buf[offset] : template ?? 0;
             var known = !read && buf.IsTemplateKnown(offset);
             var brush = !read && !known ? dim
-                : buf.IsChanged(offset) ? changed : KindBrush(buf.Classify(buf.RowAt(offset), buf.ColumnAt(offset)), fg);
+                : buf.IsChanged(offset) || buf.Marked(buf.RowAt(offset), buf.ColumnAt(offset)) ? changed
+                : KindBrush(buf.Classify(buf.RowAt(offset), buf.ColumnAt(offset)), fg);
             Add(read || template is not null ? HexBytes[b] : "--", brush, ByteX(col) + _digitW);
             if (_showAscii)
                 Add(read || template is not null ? AsciiBytes[b] : "·", read && AsciiBytes[b] != "·" ? brush : dim, AsciiX(col) + _digitW / 2);

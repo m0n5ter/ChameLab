@@ -3901,9 +3901,6 @@
   <data name="Compare_OnlyDifferences" xml:space="preserve">
     <value>仅显示差异</value>
   </data>
-  <data name="Compare_NotRead" xml:space="preserve">
-    <value>未读取</value>
-  </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>比较转储</value>
   </data>

@@ -3901,9 +3901,6 @@
   <data name="Compare_OnlyDifferences" xml:space="preserve">
     <value>Só diferenças</value>
   </data>
-  <data name="Compare_NotRead" xml:space="preserve">
-    <value>não lido</value>
-  </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>Comparar dumps</value>
   </data>

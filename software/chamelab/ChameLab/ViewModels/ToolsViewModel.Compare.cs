@@ -16,13 +16,6 @@ namespace ChameLab.ViewModels;
 /// <summary>An identity field that differs, as shown above the blocks.</summary>
 public sealed record CompareFieldRow(string Label, string A, string B);
 
-/// <summary>One block (or page) of the comparison: both sides, with the differing bytes marked by the view.</summary>
-public sealed record CompareBlockRow(string Label, string? Sector, byte[]? A, byte[]? B, bool Differs)
-{
-    public bool HasA => A is not null;
-    public bool HasB => B is not null;
-}
-
 /// <summary>The side of the dump comparison a card is chosen for.</summary>
 public enum CompareSide { None, A, B }
 
@@ -129,26 +122,60 @@ public sealed partial class ToolsViewModel
 
     public bool HasCompareFields => _comparison?.Fields.Count > 0;
 
-    public IReadOnlyList<CompareBlockRow> CompareRows
+    /// <summary>
+    /// Both dumps in one read-only hex view: each block (page) as a row of A over a row of B, labeled by
+    /// its number and side, the bytes that differ marked; MIFARE Classic sectors under their headings.
+    /// </summary>
+    public Controls.HexBuffer? CompareMemory
     {
-        get
+        get;
+        private set
         {
-            if (_comparison is not { } c) return Array.Empty<CompareBlockRow>();
-            var classic = CompareA?.Tag.IsMifareClassic() == true;
-            var unit = classic ? Strings.Common_Block : Strings.Common_Page;
-            return c.Blocks
-                .Where(b => !CompareOnlyDifferences || b.Differs)
-                .Select(b => new CompareBlockRow(
-                    $"{unit} {b.Index}",
-                    // The sector by its first block, so a run of blocks reads as one sector.
-                    classic && (MifareClassic.SectorFirstBlock(MifareClassic.SectorOfBlock(b.Index)) == b.Index
-                        || CompareOnlyDifferences)
-                        ? string.Format(Strings.Common_SectorN, MifareClassic.SectorOfBlock(b.Index))
-                        : null,
-                    b.A, b.B, b.Differs))
-                .ToList();
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(HasCompareMemory));
         }
     }
+
+    public bool HasCompareMemory => CompareMemory is not null;
+
+    private Controls.HexBuffer? BuildCompareMemory()
+    {
+        if (_comparison is not { } c) return null;
+        var classic = CompareA?.Tag.IsMifareClassic() == true;
+        var length = classic ? 16 : 4;
+        var blocks = c.Blocks.Where(b => !CompareOnlyDifferences || b.Differs).ToList();
+        if (blocks.Count == 0) return null;
+        var rows = new List<byte[]>(blocks.Count * 2);
+        foreach (var b in blocks)
+        {
+            rows.Add(Fit(b.A, length));
+            rows.Add(Fit(b.B, length));
+        }
+        int Sector(int row) => MifareClassic.SectorOfBlock(blocks[row / 2].Index);
+        // A sector starts at its first block, or (only differences shown) at the first block listed in it.
+        bool StartsSector(int row) => classic && row % 2 == 0 && (row == 0 || Sector(row) != Sector(row - 2));
+        return new Controls.HexBuffer(rows, length)
+        {
+            IsReadOnly = true,
+            RowLabel = row => $"{blocks[row / 2].Index:D3} {(row % 2 == 0 ? 'A' : 'B')}",
+            StartsGroup = row => classic ? StartsSector(row) : row % 2 == 0 && row > 0,
+            GroupHeader = row =>
+            {
+                if (!StartsSector(row)) return null;
+                var sector = Sector(row);
+                var first = MifareClassic.SectorFirstBlock(sector);
+                return (string.Format(Strings.Common_SectorN, sector),
+                    string.Format(Strings.Cards_BlocksRange, first, first + MifareClassic.BlocksInSector(sector) - 1));
+            },
+            Marked = (row, col) => blocks[row / 2].ByteDiffers(col),
+        };
+    }
+
+    /// <summary>A block as a row of the hex view: empty (unread) stays empty, others padded or cut to the row length.</summary>
+    private static byte[] Fit(byte[]? block, int length) =>
+        block is not { Length: > 0 } ? Array.Empty<byte>()
+        : block.Length == length ? block
+        : block.Concat(new byte[Math.Max(0, length - block.Length)]).Take(length).ToArray();
 
     // ---- Choosing a card -------------------------------------------------
 
@@ -311,6 +338,6 @@ public sealed partial class ToolsViewModel
         this.RaisePropertyChanged(nameof(CompareSummary));
         this.RaisePropertyChanged(nameof(CompareFields));
         this.RaisePropertyChanged(nameof(HasCompareFields));
-        this.RaisePropertyChanged(nameof(CompareRows));
+        CompareMemory = BuildCompareMemory();
     }
 }

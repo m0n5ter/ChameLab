@@ -3915,9 +3915,6 @@
   <data name="Compare_OnlyDifferences" xml:space="preserve">
     <value>Только отличия</value>
   </data>
-  <data name="Compare_NotRead" xml:space="preserve">
-    <value>не прочитан</value>
-  </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>Сравнение дампов</value>
   </data>

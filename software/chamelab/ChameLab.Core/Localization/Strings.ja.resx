@@ -3901,9 +3901,6 @@
   <data name="Compare_OnlyDifferences" xml:space="preserve">
     <value>差分のみ</value>
   </data>
-  <data name="Compare_NotRead" xml:space="preserve">
-    <value>未読み取り</value>
-  </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>ダンプの比較</value>
   </data>

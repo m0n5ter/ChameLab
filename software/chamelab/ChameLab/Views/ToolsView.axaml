@@ -658,16 +658,17 @@
         </StackPanel>
 
         <!-- ========== Compare dumps ========== -->
-        <Border Classes="card">
+        <!-- As tall as the window allows: the summary and differing fields, then both dumps in one hex view. -->
+        <Border Classes="card" c:FillStack.Fill="True" MinHeight="300">
           <Border.IsVisible>
             <MultiBinding Converter="{x:Static BoolConverters.And}">
               <Binding Path="IsCompare" />
               <Binding Path="HasComparison" />
             </MultiBinding>
           </Border.IsVisible>
-          <StackPanel Spacing="10">
+          <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="10">
             <TextBlock Text="{Binding CompareSummary}" FontWeight="SemiBold" TextWrapping="Wrap" />
-            <ItemsControl ItemsSource="{Binding CompareFields}" IsVisible="{Binding HasCompareFields}">
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding CompareFields}" IsVisible="{Binding HasCompareFields}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:CompareFieldRow">
                   <Grid ColumnDefinitions="56,16,*" RowDefinitions="Auto,Auto" Margin="0,2">
@@ -682,29 +683,12 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <CheckBox Content="{x:Static loc:Strings.Compare_OnlyDifferences}" IsChecked="{Binding CompareOnlyDifferences}" />
-            <ItemsControl ItemsSource="{Binding CompareRows}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:CompareBlockRow">
-                  <StackPanel Spacing="2" Margin="0,4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
-                      <TextBlock Text="{Binding Sector}" Classes="caption" VerticalAlignment="Center"
-                                 IsVisible="{Binding Sector, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                    </StackPanel>
-                    <Grid ColumnDefinitions="16,*" RowDefinitions="Auto,Auto">
-                      <TextBlock Text="A" Classes="caption" VerticalAlignment="Center" />
-                      <c:HexDiffText Grid.Column="1" Bytes="{Binding A}" Other="{Binding B}"
-                                     MissingText="{x:Static loc:Strings.Compare_NotRead}" />
-                      <TextBlock Grid.Row="1" Text="B" Classes="caption" VerticalAlignment="Center" />
-                      <c:HexDiffText Grid.Row="1" Grid.Column="1" Bytes="{Binding B}" Other="{Binding A}"
-                                     MissingText="{x:Static loc:Strings.Compare_NotRead}" />
-                    </Grid>
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </StackPanel>
+            <CheckBox Grid.Row="2" Content="{x:Static loc:Strings.Compare_OnlyDifferences}"
+                      IsChecked="{Binding CompareOnlyDifferences}" />
+            <ScrollViewer Grid.Row="3" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding HasCompareMemory}">
+              <c:HexEditor Buffer="{Binding CompareMemory}" />
+            </ScrollViewer>
+          </Grid>
         </Border>
 
         <!-- ========== Console ========== -->

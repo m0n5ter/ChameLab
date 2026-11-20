@@ -3901,9 +3901,6 @@
   <data name="Compare_OnlyDifferences" xml:space="preserve">
     <value>차이만</value>
   </data>
-  <data name="Compare_NotRead" xml:space="preserve">
-    <value>읽지 않음</value>
-  </data>
   <data name="Compare_Title" xml:space="preserve">
     <value>덤프 비교</value>
   </data>

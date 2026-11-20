@@ -50,6 +50,7 @@ public sealed class HexBuffer
         Describe = (row, col) => parent.Describe(firstRow + row, col);
         Template = row => parent.Template(firstRow + row);
         TemplateKnown = (row, col) => parent.TemplateKnown(firstRow + row, col);
+        Marked = (row, col) => parent.Marked(firstRow + row, col);
         RowsPerLine = parent.RowsPerLine;
     }
 
@@ -198,6 +199,9 @@ public sealed class HexBuffer
     /// although it doesn't read block 0): drawn like data, while the row stays unread.
     /// </summary>
     public Func<int, int, bool> TemplateKnown { get; init; } = (_, _) => false;
+
+    /// <summary>A byte drawn in the changed color although not edited (e.g. one that differs in a comparison).</summary>
+    public Func<int, int, bool> Marked { get; init; } = (_, _) => false;
 
     /// <summary>The byte is unread but known from the <see cref="Template"/>.</summary>
     public bool IsTemplateKnown(long offset) =>
