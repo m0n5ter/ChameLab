@@ -236,6 +236,17 @@ public partial class MainView : UserControl
         if (shrank && _topLevel?.FocusManager?.GetFocusedElement() is TextBox or HexEditor) RevealFocused();
     }
 
+    /// <summary>
+    /// Picks the layout from the width offered, before the shell is measured. On the first pass
+    /// the shell has no template yet, so a narrow start comes up with the pane already closed;
+    /// adapting only from the bounds, after layout, would show the open pane sliding shut.
+    /// </summary>
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (double.IsFinite(availableSize.Width)) Adapt(new Rect(availableSize));
+        return base.MeasureOverride(availableSize);
+    }
+
     // Pages differ in how much room they need, so the pane may dock or overlay on navigation.
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
