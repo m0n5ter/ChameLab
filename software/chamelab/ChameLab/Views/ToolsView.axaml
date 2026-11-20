@@ -301,8 +301,8 @@
                 <TextBlock Text="A" />
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding HasCompareA}">
-                <c:Marquee><TextBlock Text="{Binding CompareItemA.Name}" FontWeight="SemiBold" /></c:Marquee>
-                <c:Marquee><TextBlock Text="{Binding CompareItemA.Summary}" Classes="caption" /></c:Marquee>
+                <c:Marquee><TextBlock Text="{Binding CompareItemA?.Name}" FontWeight="SemiBold" /></c:Marquee>
+                <c:Marquee><TextBlock Text="{Binding CompareItemA?.Summary}" Classes="caption" /></c:Marquee>
               </StackPanel>
               <TextBlock Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding !HasCompareA}"
                          Text="{x:Static loc:Strings.Compare_ChooseA}" TextTrimming="CharacterEllipsis" />
@@ -314,8 +314,8 @@
                 <TextBlock Text="B" />
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding HasCompareB}">
-                <c:Marquee><TextBlock Text="{Binding CompareItemB.Name}" FontWeight="SemiBold" /></c:Marquee>
-                <c:Marquee><TextBlock Text="{Binding CompareItemB.Summary}" Classes="caption" /></c:Marquee>
+                <c:Marquee><TextBlock Text="{Binding CompareItemB?.Name}" FontWeight="SemiBold" /></c:Marquee>
+                <c:Marquee><TextBlock Text="{Binding CompareItemB?.Summary}" Classes="caption" /></c:Marquee>
               </StackPanel>
               <TextBlock Grid.Column="1" VerticalAlignment="Center" IsVisible="{Binding !HasCompareB}"
                          Text="{x:Static loc:Strings.Compare_ChooseB}" TextTrimming="CharacterEllipsis" />
