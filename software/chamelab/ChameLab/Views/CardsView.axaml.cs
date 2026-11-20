@@ -111,6 +111,16 @@ public partial class CardsView : UserControl
     }
 
     // Picking a swatch (or a folder) closes the flyout it lives in.
+    // Export → clipboard: a link that opens the card in ChameLab; the page notice confirms.
+    private async void OnCopyCardLink(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not CardsViewModel vm || vm.CardLinkText() is not { } text
+            || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        try { await clipboard.SetTextAsync(text); }
+        catch { return; /* clipboard unavailable (browser without permission) */ }
+        vm.NotifyLinkCopied();
+    }
+
     // The shared QR code closes its dialog when clicked.
     private void OnQrTapped(object? sender, TappedEventArgs e)
     {

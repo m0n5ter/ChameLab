@@ -4014,4 +4014,19 @@
   <data name="Slots_PasswordCount" xml:space="preserve">
     <value>Собрано паролей</value>
   </data>
+  <data name="Cards_ExportTip" xml:space="preserve">
+    <value>Дублировать, поделиться или сохранить карту</value>
+  </data>
+  <data name="Cards_CardToClipboard" xml:space="preserve">
+    <value>Копировать в буфер обмена</value>
+  </data>
+  <data name="Cards_CardToClipboardTip" xml:space="preserve">
+    <value>Скопировать ссылку, которая открывает карту в ChameLab</value>
+  </data>
+  <data name="Cards_LinkCopied" xml:space="preserve">
+    <value>Ссылка на {0} скопирована в буфер обмена.</value>
+  </data>
+  <data name="Cards_JsonFile" xml:space="preserve">
+    <value>Файл JSON</value>
+  </data>
 </root>

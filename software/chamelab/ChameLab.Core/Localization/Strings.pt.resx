@@ -4000,4 +4000,19 @@
   <data name="Slots_PasswordCount" xml:space="preserve">
     <value>Senhas coletadas</value>
   </data>
+  <data name="Cards_ExportTip" xml:space="preserve">
+    <value>Duplicar, compartilhar ou salvar o cartão</value>
+  </data>
+  <data name="Cards_CardToClipboard" xml:space="preserve">
+    <value>Copiar para a área de transferência</value>
+  </data>
+  <data name="Cards_CardToClipboardTip" xml:space="preserve">
+    <value>Copiar um link que abre o cartão no ChameLab</value>
+  </data>
+  <data name="Cards_LinkCopied" xml:space="preserve">
+    <value>Link para {0} copiado para a área de transferência.</value>
+  </data>
+  <data name="Cards_JsonFile" xml:space="preserve">
+    <value>Arquivo JSON</value>
+  </data>
 </root>

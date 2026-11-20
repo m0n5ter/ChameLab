@@ -4000,4 +4000,19 @@
   <data name="Slots_PasswordCount" xml:space="preserve">
     <value>Mots de passe collectés</value>
   </data>
+  <data name="Cards_ExportTip" xml:space="preserve">
+    <value>Dupliquer, partager ou enregistrer la carte</value>
+  </data>
+  <data name="Cards_CardToClipboard" xml:space="preserve">
+    <value>Copier dans le presse-papiers</value>
+  </data>
+  <data name="Cards_CardToClipboardTip" xml:space="preserve">
+    <value>Copier un lien qui ouvre la carte dans ChameLab</value>
+  </data>
+  <data name="Cards_LinkCopied" xml:space="preserve">
+    <value>Lien vers {0} copié dans le presse-papiers.</value>
+  </data>
+  <data name="Cards_JsonFile" xml:space="preserve">
+    <value>Fichier JSON</value>
+  </data>
 </root>

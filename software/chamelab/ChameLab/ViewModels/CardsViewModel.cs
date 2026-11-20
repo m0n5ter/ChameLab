@@ -2676,6 +2676,17 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>The open card's keys, one hex key per line, for the clipboard; null when it has none.</summary>
     public string? CardKeysText() => ActionKeys() is { Count: > 0 } keys ? KeysText(keys) : null;
 
+    /// <summary>A link that opens the card in ChameLab (the web app, or the app via a pasted link); null without a card.</summary>
+    public string? CardLinkText()
+    {
+        if (ActionCard() is not { } card) return null;
+        try { return CardQr.Link(card); }
+        catch (FormatException ex) { ReportError(ex.Message); return null; }
+    }
+
+    /// <summary>Confirms that the view put the card's link on the clipboard.</summary>
+    public void NotifyLinkCopied() => Notify(string.Format(Strings.Cards_LinkCopied, ActionCard()?.Name));
+
     /// <summary>Confirms that the view put <paramref name="count"/> keys on the clipboard.</summary>
     public void NotifyKeysCopied(int count) => Notify(string.Format(Strings.Cards_KeysCopied, Loc.Plural(Strings.Plural_Keys, count)));
 

@@ -427,48 +427,46 @@
             </StackPanel>
           </Grid>
 
-          <!-- One line; when it gets tight, Delete, Folder, Save keys and Duplicate drop their labels first, then Export,
+          <!-- One line; when it gets tight, Delete, Folder and Save keys drop their labels first, then Export,
                then Assign / Write (tooltips name them). -->
           <c:ActionRow IsVisible="{Binding !IsWriteOpen}">
-            <Button Command="{Binding DuplicateCommand}" IsVisible="{Binding IsCardOpen}"
-                    ToolTip.Tip="{x:Static loc:Strings.Cards_SaveACopyOfThisCard}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.copy}" />
-                <TextBlock Text="{x:Static loc:Strings.Common_Duplicate}" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
-            <!-- JSON only: a plain button; with a MIFARE Classic dump the dump formats join a menu. -->
-            <Button Command="{Binding ExportCommand}" IsEnabled="{Binding CanUseFiles}"
-                    IsVisible="{Binding !CanExportDump}" c:ActionRow.Priority="1"
-                    ToolTip.Tip="{x:Static loc:Strings.Cards_SaveAsJSONCompatibleWithThe}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.export}" />
-                <TextBlock Text="{x:Static loc:Strings.Common_Export}" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
-            <DropDownButton IsEnabled="{Binding CanUseFiles}" IsVisible="{Binding CanExportDump}"
-                            c:ActionRow.Priority="1" ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardToAFile}">
+            <!-- Every way the card leaves the editor: a copy, a QR code, the clipboard, a file. -->
+            <DropDownButton c:ActionRow.Priority="1" ToolTip.Tip="{x:Static loc:Strings.Cards_ExportTip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.export}" />
                 <TextBlock Text="{x:Static loc:Strings.Common_Export}" VerticalAlignment="Center" />
               </StackPanel>
               <DropDownButton.Flyout>
                 <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                  <MenuItem Header="JSON" Command="{Binding ExportCommand}"
-                            ToolTip.Tip="{x:Static loc:Strings.Cards_CardFileCompatibleWithChameleonUltraGui}" />
+                  <MenuItem Header="{x:Static loc:Strings.Common_Duplicate}" Command="{Binding DuplicateCommand}"
+                            IsVisible="{Binding IsCardOpen}" ToolTip.Tip="{x:Static loc:Strings.Cards_SaveACopyOfThisCard}">
+                    <MenuItem.Icon><PathIcon Data="{StaticResource Icon.copy}" /></MenuItem.Icon>
+                  </MenuItem>
+                  <Separator IsVisible="{Binding IsCardOpen}" />
+                  <MenuItem Header="{x:Static loc:Strings.Qr_Share}" Command="{Binding ShareQrCommand}"
+                            ToolTip.Tip="{x:Static loc:Strings.Qr_ShareTip}">
+                    <MenuItem.Icon><PathIcon Data="{StaticResource Icon.qrcode}" /></MenuItem.Icon>
+                  </MenuItem>
+                  <Separator />
+                  <MenuItem Header="{x:Static loc:Strings.Cards_CardToClipboard}" Click="OnCopyCardLink"
+                            ToolTip.Tip="{x:Static loc:Strings.Cards_CardToClipboardTip}">
+                    <MenuItem.Icon><PathIcon Data="{StaticResource Icon.copy}" /></MenuItem.Icon>
+                  </MenuItem>
+                  <Separator />
+                  <MenuItem Header="{x:Static loc:Strings.Cards_JsonFile}" Command="{Binding ExportCommand}"
+                            IsEnabled="{Binding CanUseFiles}"
+                            ToolTip.Tip="{x:Static loc:Strings.Cards_CardFileCompatibleWithChameleonUltraGui}">
+                    <MenuItem.Icon><PathIcon Data="{StaticResource Icon.export}" /></MenuItem.Icon>
+                  </MenuItem>
                   <MenuItem Header="{x:Static loc:Strings.Cards_BinDump}" Command="{Binding ExportBinCommand}"
+                            IsEnabled="{Binding CanUseFiles}" IsVisible="{Binding CanExportDump}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_RawMemoryDumpReadableByMost}" />
                   <MenuItem Header="{x:Static loc:Strings.Cards_EmlDump}" Command="{Binding ExportEmlCommand}"
+                            IsEnabled="{Binding CanUseFiles}" IsVisible="{Binding CanExportDump}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_Proxmark3EmlDumpHexText}" />
                 </MenuFlyout>
               </DropDownButton.Flyout>
             </DropDownButton>
-            <Button Command="{Binding ShareQrCommand}" c:ActionRow.Priority="1" ToolTip.Tip="{x:Static loc:Strings.Qr_ShareTip}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.qrcode}" />
-                <TextBlock Text="{x:Static loc:Strings.Qr_Share}" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
             <!-- The card's known keys (MIFARE Classic A/B, Ultralight EV1 / NTAG password). -->
             <DropDownButton IsVisible="{Binding CanSaveKeys}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_SaveTheCardsKeys}">

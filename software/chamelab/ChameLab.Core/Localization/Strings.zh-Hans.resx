@@ -4000,4 +4000,19 @@
   <data name="Slots_PasswordCount" xml:space="preserve">
     <value>已收集密码</value>
   </data>
+  <data name="Cards_ExportTip" xml:space="preserve">
+    <value>复制、分享或保存卡片</value>
+  </data>
+  <data name="Cards_CardToClipboard" xml:space="preserve">
+    <value>复制到剪贴板</value>
+  </data>
+  <data name="Cards_CardToClipboardTip" xml:space="preserve">
+    <value>复制在 ChameLab 中打开卡片的链接</value>
+  </data>
+  <data name="Cards_LinkCopied" xml:space="preserve">
+    <value>已将 {0} 的链接复制到剪贴板。</value>
+  </data>
+  <data name="Cards_JsonFile" xml:space="preserve">
+    <value>JSON 文件</value>
+  </data>
 </root>

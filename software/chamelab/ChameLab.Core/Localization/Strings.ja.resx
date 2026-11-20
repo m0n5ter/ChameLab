@@ -4000,4 +4000,19 @@
   <data name="Slots_PasswordCount" xml:space="preserve">
     <value>収集したパスワード</value>
   </data>
+  <data name="Cards_ExportTip" xml:space="preserve">
+    <value>カードを複製、共有、または保存</value>
+  </data>
+  <data name="Cards_CardToClipboard" xml:space="preserve">
+    <value>クリップボードにコピー</value>
+  </data>
+  <data name="Cards_CardToClipboardTip" xml:space="preserve">
+    <value>ChameLab でカードを開くリンクをコピー</value>
+  </data>
+  <data name="Cards_LinkCopied" xml:space="preserve">
+    <value>{0} へのリンクをクリップボードにコピーしました。</value>
+  </data>
+  <data name="Cards_JsonFile" xml:space="preserve">
+    <value>JSON ファイル</value>
+  </data>
 </root>

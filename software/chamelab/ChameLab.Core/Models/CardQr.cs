@@ -52,6 +52,9 @@ public static class CardQr
         return parts;
     }
 
+    /// <summary>One link that carries the whole card, however long: for the clipboard rather than a code.</summary>
+    public static string Link(CardSave card, string baseUrl = WebAppUrl) => Encode(card, baseUrl, int.MaxValue / 2)[0];
+
     /// <summary>
     /// Reads a scanned code (or a pasted link / fragment): any text with <c>card=</c> in its fragment,
     /// whatever the host, so links to a development build work too.
