@@ -111,6 +111,12 @@ public partial class CardsView : UserControl
     }
 
     // Picking a swatch (or a folder) closes the flyout it lives in.
+    // The shared QR code closes its dialog when clicked.
+    private void OnQrTapped(object? sender, TappedEventArgs e)
+    {
+        if (DataContext is CardsViewModel vm) vm.CloseActionCommand.Execute(null);
+    }
+
     private void OnFlyoutPickTapped(object? sender, TappedEventArgs e)
     {
         // The flyout's popup is logically parented to the button that opened it.

@@ -525,8 +525,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>Asking whether to save before switching card, closing or starting a new one.</summary>
     public bool IsConfirmingLeave => _pendingLeave is not null;
 
-    /// <summary>A question waits for an answer; the editor is dimmed until then.</summary>
-    public bool IsAsking => IsConfirmingLeave || IsConfirmingDelete || IsAskingSlotUpdate;
+    /// <summary>A question or the QR dialog waits for an answer; the editor is dimmed until then.</summary>
+    public bool IsAsking => IsConfirmingLeave || IsConfirmingDelete || IsAskingSlotUpdate || IsQrOpen;
 
     public string LeaveText => _pane == CardsPane.Add
         ? Strings.Cards_SaveNewBeforeLeaving
