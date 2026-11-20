@@ -3936,10 +3936,13 @@
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>В {0} нет дампа MIFARE Classic или Ultralight / NTAG.</value>
   </data>
-  <data name="Compare_StartOver" xml:space="preserve">
-    <value>Начать заново</value>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>У других сохранённых карт нет такой памяти. Откройте файл дампа.</value>
   </data>
-  <data name="Compare_StartOverTip" xml:space="preserve">
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>В {0} нет карты с такой памятью.</value>
+  </data>
+  <data name="Compare_ClearTip" xml:space="preserve">
     <value>Очистить обе карты</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">

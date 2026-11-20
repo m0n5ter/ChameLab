@@ -3922,10 +3922,13 @@
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} no contiene ningún volcado MIFARE Classic o Ultralight / NTAG.</value>
   </data>
-  <data name="Compare_StartOver" xml:space="preserve">
-    <value>Empezar de nuevo</value>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>Ninguna otra tarjeta guardada tiene este tipo de memoria. Abre un archivo de volcado.</value>
   </data>
-  <data name="Compare_StartOverTip" xml:space="preserve">
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} no contiene ninguna tarjeta con este tipo de memoria.</value>
+  </data>
+  <data name="Compare_ClearTip" xml:space="preserve">
     <value>Quitar ambas tarjetas</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">

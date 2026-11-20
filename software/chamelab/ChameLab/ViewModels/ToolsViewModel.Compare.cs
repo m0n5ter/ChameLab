@@ -43,7 +43,7 @@ public sealed partial class ToolsViewModel
     public ICommand ChooseCompareBCommand { get; private set; } = null!;
     public ICommand CloseComparePickerCommand { get; private set; } = null!;
     public ICommand CompareFileCommand { get; private set; } = null!;
-    public ICommand CompareStartOverCommand { get; private set; } = null!;
+    public ICommand CompareClearCommand { get; private set; } = null!;
 
     private void InitCompare(CardLibrary cards)
     {
@@ -53,7 +53,7 @@ public sealed partial class ToolsViewModel
         ChooseCompareBCommand = ReactiveCommand.Create(() => OpenComparePicker(CompareSide.B));
         CloseComparePickerCommand = ReactiveCommand.Create(CloseComparePicker);
         CompareFileCommand = ReactiveCommand.CreateFromTask(CompareFileAsync);
-        CompareStartOverCommand = ReactiveCommand.Create(() =>
+        CompareClearCommand = ReactiveCommand.Create(() =>
         {
             CompareA = null;
             CompareB = null;
@@ -158,9 +158,8 @@ public sealed partial class ToolsViewModel
     public string ComparePickerTitle => _pickingSide == CompareSide.B ? Strings.Compare_ChooseB : Strings.Compare_ChooseA;
 
     /// <summary>
-    /// The saved cards with a dump, but the other side's card: any kind of memory, so a side can change
-    /// to another kind (the other side is then cleared). A new list each time the dialog opens, so its
-    /// search starts over.
+    /// The saved cards with a dump the side can take (see <see cref="PickerKind"/>), but the other side's
+    /// card. A new list each time the dialog opens, so its search starts over.
     /// </summary>
     public ObservableCollection<CardSave> ComparePickerCards
     {
@@ -168,7 +167,7 @@ public sealed partial class ToolsViewModel
         private set => this.RaiseAndSetIfChanged(ref field, value);
     } = new();
 
-    public string ComparePickerEmptyText => Strings.Compare_NoDumps;
+    public string ComparePickerEmptyText => PickerKind() is null ? Strings.Compare_NoDumps : Strings.Compare_NoCards;
 
     /// <summary>Picking a card in the dialog puts it on the side being chosen.</summary>
     public CardSave? ComparePickerSelected
@@ -199,7 +198,16 @@ public sealed partial class ToolsViewModel
     private static bool HasDump(CardSave card) =>
         (card.Tag.IsMifareClassic() || card.Tag.IsUltralight()) && card.Data.Any(d => d.Length > 0);
 
-    private static bool Fits(CardSave card, CardSave? other) => HasDump(card) && (other is null || card.Id != other.Id);
+    /// <summary>
+    /// The card the side being chosen must match: the other side's while only that one is chosen. With
+    /// both or neither chosen, any dump fits (a card of another kind then clears the other side).
+    /// </summary>
+    private CardSave? PickerKind() =>
+        (_pickingSide == CompareSide.A ? CompareA : CompareB) is null ? OtherSide(_pickingSide) : null;
+
+    private bool Fits(CardSave card) =>
+        HasDump(card) && OtherSide(_pickingSide)?.Id != card.Id
+        && (PickerKind() is not { } kind || DumpComparison.CanCompare(card, kind));
 
     private void OpenComparePicker(CompareSide side)
     {
@@ -221,9 +229,8 @@ public sealed partial class ToolsViewModel
     private void RebuildComparePicker()
     {
         ComparePickerCards.Clear();
-        var other = OtherSide(_pickingSide);
         foreach (var card in _cards.Cards)
-            if (Fits(card, other)) ComparePickerCards.Add(card);
+            if (Fits(card)) ComparePickerCards.Add(card);
     }
 
     /// <summary>Puts the card on the side; the other side goes if its kind of memory differs.</summary>
@@ -261,12 +268,15 @@ public sealed partial class ToolsViewModel
         IReadOnlyList<CardSave> cards;
         try { cards = CardFormats.Import(file.Name, file.Data); }
         catch (Exception ex) { throw new FormatException(string.Format(Strings.Cards_UnsupportedFile, file.Name, ex.Message)); }
-        // A card with the other side's kind of memory first; else any, which clears the other side.
+        // A card with the other side's kind of memory first; else, unless only the other side is chosen,
+        // any, which clears the other side.
         var other = OtherSide(side);
+        var kind = PickerKind();
         var dumps = cards.Where(HasDump).ToList();
         var card = dumps.FirstOrDefault(c => other is not null && DumpComparison.CanCompare(c, other))
-            ?? dumps.FirstOrDefault()
-            ?? throw new FormatException(string.Format(Strings.Compare_FileHasNoDump, file.Name));
+            ?? (kind is null ? dumps.FirstOrDefault() : null)
+            ?? throw new FormatException(string.Format(
+                kind is null ? Strings.Compare_FileHasNoDump : Strings.Compare_FileHasNoMatch, file.Name));
 
         Dispatcher.UIThread.Post(() =>
         {

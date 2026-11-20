@@ -3922,10 +3922,13 @@
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} non contiene dump MIFARE Classic o Ultralight / NTAG.</value>
   </data>
-  <data name="Compare_StartOver" xml:space="preserve">
-    <value>Ricomincia</value>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>Nessun'altra carta salvata ha questo tipo di memoria. Apri invece un file di dump.</value>
   </data>
-  <data name="Compare_StartOverTip" xml:space="preserve">
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} non contiene carte con questo tipo di memoria.</value>
+  </data>
+  <data name="Compare_ClearTip" xml:space="preserve">
     <value>Rimuovi entrambe le carte</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">

@@ -290,11 +290,11 @@
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
           <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Compare_Hint}"
                      VerticalAlignment="Center" />
-          <Button Grid.Column="1" Command="{Binding CompareStartOverCommand}" IsVisible="{Binding HasCompareSide}"
-                  VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Compare_StartOverTip}">
+          <Button Grid.Column="1" Command="{Binding CompareClearCommand}" IsVisible="{Binding HasCompareSide}"
+                  VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:Strings.Compare_ClearTip}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <PathIcon Data="{StaticResource Icon.refresh}" />
-              <TextBlock Text="{x:Static loc:Strings.Compare_StartOver}" VerticalAlignment="Center" />
+              <PathIcon Data="{StaticResource Icon.close}" />
+              <TextBlock Text="{x:Static loc:Strings.Common_Clear}" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </Grid>

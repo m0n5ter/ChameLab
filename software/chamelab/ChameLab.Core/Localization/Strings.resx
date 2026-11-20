@@ -3939,10 +3939,13 @@
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} has no MIFARE Classic or Ultralight / NTAG dump.</value>
   </data>
-  <data name="Compare_StartOver" xml:space="preserve">
-    <value>Start over</value>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>No other saved card has this kind of memory. Open a dump file instead.</value>
   </data>
-  <data name="Compare_StartOverTip" xml:space="preserve">
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} has no card with this kind of memory.</value>
+  </data>
+  <data name="Compare_ClearTip" xml:space="preserve">
     <value>Clear both cards</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">

@@ -3922,10 +3922,13 @@
   <data name="Compare_FileHasNoDump" xml:space="preserve">
     <value>{0} 中没有 MIFARE Classic 或 Ultralight / NTAG 转储。</value>
   </data>
-  <data name="Compare_StartOver" xml:space="preserve">
-    <value>重新开始</value>
+  <data name="Compare_NoCards" xml:space="preserve">
+    <value>没有其他已保存的卡片具有这种内存。请改为打开转储文件。</value>
   </data>
-  <data name="Compare_StartOverTip" xml:space="preserve">
+  <data name="Compare_FileHasNoMatch" xml:space="preserve">
+    <value>{0} 中没有具有这种内存的卡片。</value>
+  </data>
+  <data name="Compare_ClearTip" xml:space="preserve">
     <value>清除两张卡片</value>
   </data>
   <data name="Common_BackTo" xml:space="preserve">
