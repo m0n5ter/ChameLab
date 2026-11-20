@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,8 +33,9 @@ public sealed class CardPickerCard(CardSave card)
 /// <summary>
 /// Choosing one of the saved cards: a search line over a dense list of cards (color, name, type and UID),
 /// those in folders listed under their folders (in tree order, after those in none), as in the
-/// dictionary selector. The search keeps the folders that still hold a match, and starts over when
-/// <see cref="ItemsSource"/> is set to another list (changes to the same list keep it).
+/// dictionary selector. The search finds cards by name, type or UID and folders by name (a matching
+/// folder is listed whole, its folders included), and starts over when <see cref="ItemsSource"/> is
+/// set to another list (changes to the same list keep it).
 /// </summary>
 public partial class CardPicker : UserControl
 {
@@ -150,7 +152,9 @@ public partial class CardPicker : UserControl
 
         _syncing = true;
         Rows.Clear();
-        var matching = cards.Select(c => new CardPickerCard(c)).Where(c => c.Item.Matches(_filter)).ToList();
+        // A folder whose name matches brings everything in it, its folders included.
+        var matching = cards.Select(c => new CardPickerCard(c))
+            .Where(c => c.Item.Matches(_filter) || InMatchingFolder(c.Card.Folder, _filter)).ToList();
         // Those in no folder keep their order; folders follow in tree order.
         var ordered = matching.OrderBy(c => c.Card.Folder.Length == 0 ? 0 : 1)
             .ThenBy(c => c.Card.Folder, FolderPath.TreeOrder);
@@ -165,6 +169,10 @@ public partial class CardPicker : UserControl
         SyncSelection();
         UpdateEmptyMessage();
     }
+
+    private static bool InMatchingFolder(string folder, string? filter) =>
+        !string.IsNullOrWhiteSpace(filter) && folder.Length > 0
+        && FolderPath.SelfAndAncestors(folder).Any(f => FolderPath.Name(f).Contains(filter.Trim(), StringComparison.OrdinalIgnoreCase));
 
     private void UpdateEmptyMessage() => EmptyMessage = Rows.Count > 0 ? null
         : Cards.Count == 0 ? EmptyText : Strings.Dictionaries_NoCardsMatchTheSearch;
