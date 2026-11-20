@@ -14,8 +14,24 @@ public interface IKeyValueStore
     void Write(string key, string value);
 }
 
+/// <summary>A store that can add to the end of an entry without rewriting it (an append-only log).</summary>
+public interface IAppendableStore : IKeyValueStore
+{
+    void Append(string key, string text);
+}
+
+public static class KeyValueStoreExtensions
+{
+    /// <summary>Adds to the end of an entry: in place where the store can, else by rewriting it.</summary>
+    public static void Append(this IKeyValueStore store, string key, string text)
+    {
+        if (store is IAppendableStore appendable) appendable.Append(key, text);
+        else store.Write(key, (store.Read(key) ?? string.Empty) + text);
+    }
+}
+
 /// <summary>Stores each key as a file under the per-user application data folder.</summary>
-public sealed class FileKeyValueStore(string? root = null) : IKeyValueStore
+public sealed class FileKeyValueStore(string? root = null) : IAppendableStore
 {
     private readonly string _root = root ?? Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -31,12 +47,19 @@ public sealed class FileKeyValueStore(string? root = null) : IKeyValueStore
 
     public void Write(string key, string value)
     {
-        Directory.CreateDirectory(_root);
         // Write-then-rename so a crash mid-save never truncates the library.
         var path = PathFor(key);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var tmp = path + ".tmp";
         File.WriteAllText(tmp, value);
         File.Move(tmp, path, overwrite: true);
+    }
+
+    public void Append(string key, string text)
+    {
+        var path = PathFor(key);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.AppendAllText(path, text);
     }
 }
 

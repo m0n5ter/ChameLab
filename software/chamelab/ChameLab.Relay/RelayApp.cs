@@ -15,6 +15,18 @@ public sealed class RelayOptions
 
     /// <summary>How often idle connections are pinged so a dead one is noticed and dropped.</summary>
     public TimeSpan KeepAlive { get; init; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>Devices of one sync group in its room at once.</summary>
+    public int MaxRoomPeers { get; init; } = 16;
+
+    /// <summary>Sync sockets across all rooms; background nodes keep theirs open all day.</summary>
+    public int MaxRoomSockets { get; init; } = 5000;
+
+    /// <summary>Largest sync frame (a Noise message is at most 64 KiB).</summary>
+    public int MaxRoomFrame { get; init; } = 128 * 1024;
+
+    /// <summary>Room connections per client IP per minute.</summary>
+    public int RoomsPerMinute { get; init; } = 30;
 }
 
 /// <summary>
@@ -26,6 +38,7 @@ public sealed class RelayOptions
 /// <item><c>/join/{code}</c>: a WebSocket for the ChameLab that connects. On success the relay
 /// sends <c>{"type":"joined"}</c>; otherwise it closes with the reason <c>invalid-code</c> or
 /// <c>busy</c>, and with <c>host-left</c> when the sharing side goes away.</item>
+/// <item><c>/room/{id}</c>: a sync room (see <see cref="RelayRooms"/>).</item>
 /// <item><c>/healthz</c>: for monitoring.</item>
 /// </list>
 /// </summary>
@@ -36,6 +49,7 @@ public static class RelayApp
         options ??= new RelayOptions();
         builder.Services.AddSingleton(options);
         builder.Services.AddSingleton<RelaySessions>();
+        builder.Services.AddSingleton<RelayRooms>();
         builder.Services.AddRateLimiter(limiter =>
         {
             limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -44,6 +58,13 @@ public static class RelayApp
                 _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = options.JoinsPerMinute,
+                    Window = TimeSpan.FromMinutes(1),
+                }));
+            limiter.AddPolicy("room", ctx => RateLimitPartition.GetFixedWindowLimiter(
+                ctx.Connection.RemoteIpAddress?.ToString() ?? "",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = options.RoomsPerMinute,
                     Window = TimeSpan.FromMinutes(1),
                 }));
         });
@@ -60,6 +81,7 @@ public static class RelayApp
         app.Map("/healthz", ctx => ctx.Response.WriteAsync("ok"));
         app.Map("/share", sessions.ShareAsync);
         app.Map("/join/{code}", sessions.JoinAsync).RequireRateLimiting("join");
+        app.Map("/room/{id}", app.Services.GetRequiredService<RelayRooms>().RoomAsync).RequireRateLimiting("room");
         return app;
     }
 }
