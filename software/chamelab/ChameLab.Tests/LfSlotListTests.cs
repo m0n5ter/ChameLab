@@ -291,7 +291,7 @@ public class LfSlotListTests
         Assert.True(editor.IsPicking);
         Assert.Equal("Choose a saved LF card", editor.PickerTitle);
         Assert.Equal(2, editor.PickerCards.Count);
-        Assert.Contains(editor.PickerCards, c => c.Card.Id == first.Id);
+        Assert.Contains(editor.PickerCards, c => c.Id == first.Id);
         editor.PickSavedCard(editor.Lf, second);
         Assert.Equal(TagSpecificType.Viking, editor.Lf.Type);
         Assert.Equal(second.Uid, editor.Lf.CurrentCard().Uid);

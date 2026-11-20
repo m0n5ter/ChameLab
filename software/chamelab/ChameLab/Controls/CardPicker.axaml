@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:ChameLab.Localization"
+             xmlns:c="using:ChameLab.Controls"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             x:Class="ChameLab.Controls.CardPicker"
+             x:Name="Root" x:DataType="c:CardPicker">
+  <UserControl.Styles>
+    <!-- Dense rows without a frame: the list's own hover and selection show which one. -->
+    <Style Selector="ListBox.cardpicker">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    </Style>
+    <Style Selector="ListBox.cardpicker ListBoxItem">
+      <Setter Property="Padding" Value="6,3" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <!-- Folder headings are not choices. -->
+    <Style Selector="ListBox.cardpicker ListBoxItem.folder">
+      <Setter Property="Cursor" Value="Arrow" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+    <Style Selector="Border.cardswatch">
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="CornerRadius" Value="3" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*" RowSpacing="8">
+    <TextBox Name="FilterBox" Text="{Binding #Root.Filter}"
+             PlaceholderText="{x:Static loc:Strings.Common_SearchByNameTypeOrUID}">
+      <TextBox.InnerLeftContent>
+        <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
+      </TextBox.InnerLeftContent>
+    </TextBox>
+    <TextBlock Grid.Row="1" Classes="caption" TextWrapping="Wrap" Text="{Binding #Root.EmptyMessage}"
+               IsVisible="{Binding #Root.EmptyMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <ListBox Grid.Row="2" Name="List" Classes="cardpicker" ItemsSource="{Binding #Root.Rows}"
+             MaxHeight="{Binding #Root.MaxListHeight}">
+      <ListBox.DataTemplates>
+        <!-- A card: its color, the name above the type and UID. -->
+        <DataTemplate DataType="c:CardPickerCard">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="{Binding Indent}">
+            <Border Classes="cardswatch" Background="{Binding Item.ColorBrush}" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1">
+              <c:Marquee><TextBlock Text="{Binding Item.Name}" FontWeight="SemiBold" /></c:Marquee>
+              <c:Marquee><TextBlock Text="{Binding Item.Summary}" Classes="caption" /></c:Marquee>
+            </StackPanel>
+          </Grid>
+        </DataTemplate>
+        <!-- A folder: a heading over the cards in it, as in the dictionary selector. -->
+        <DataTemplate DataType="c:CardPickerFolder">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Margin="{Binding Indent}" ToolTip.Tip="{Binding Path}">
+            <PathIcon Data="{StaticResource Icon.folder}" Width="15" Height="15" Opacity="0.75"
+                      VerticalAlignment="Center" />
+            <c:Marquee Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+            </c:Marquee>
+          </Grid>
+        </DataTemplate>
+      </ListBox.DataTemplates>
+    </ListBox>
+  </Grid>
+</UserControl>

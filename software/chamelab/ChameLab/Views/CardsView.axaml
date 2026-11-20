@@ -781,29 +781,15 @@
                     <PathIcon Data="{StaticResource Icon.close}" />
                   </Button>
                 </Grid>
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CompareTargets}"
-                            SelectedItem="{Binding CompareTarget}" IsEnabled="{Binding HasCompareTargets}"
-                            PlaceholderText="{x:Static loc:Strings.Compare_PickCard}">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate x:DataType="vm:CompareTargetViewModel">
-                        <StackPanel>
-                          <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
-                          <TextBlock Text="{Binding Detail}" Classes="caption" TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                  <Button Grid.Column="1" Command="{Binding CompareFileCommand}" IsEnabled="{Binding CanUseFiles}"
-                          ToolTip.Tip="{x:Static loc:Strings.Compare_OpenFileTip}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <PathIcon Data="{StaticResource Icon.import}" />
-                      <TextBlock Text="{x:Static loc:Strings.Compare_OpenFile}" VerticalAlignment="Center" />
-                    </StackPanel>
-                  </Button>
-                </Grid>
-                <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !HasCompareTargets}"
-                           Text="{x:Static loc:Strings.Compare_NoCards}" />
+                <c:CardPicker ItemsSource="{Binding CompareTargets}" SelectedCard="{Binding CompareTarget}"
+                              EmptyText="{x:Static loc:Strings.Compare_NoCards}" MaxListHeight="260" />
+                <Button Command="{Binding CompareFileCommand}" IsEnabled="{Binding CanUseFiles}"
+                        HorizontalAlignment="Left" ToolTip.Tip="{x:Static loc:Strings.Compare_OpenFileTip}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.import}" />
+                    <TextBlock Text="{x:Static loc:Strings.Compare_OpenFile}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
 
                 <StackPanel Spacing="10" IsVisible="{Binding HasComparison}">
                   <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8">

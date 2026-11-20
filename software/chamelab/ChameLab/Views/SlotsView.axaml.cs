@@ -27,7 +27,7 @@ public partial class SlotsView : UserControl
         PickerDialog.PropertyChanged += (_, e) =>
         {
             if (e.Property == IsVisibleProperty && PickerDialog.IsVisible)
-                Dispatcher.UIThread.Post(() => PickerSearch.Focus(), DispatcherPriority.Background);
+                Picker.FocusFilter();
         };
         // The page only opens a slot by itself while the list and the details fit side by side.
         Split.Classes.CollectionChanged += (_, _) => SyncSinglePane();

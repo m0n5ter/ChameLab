@@ -13,9 +13,6 @@ using ReactiveUI;
 
 namespace ChameLab.ViewModels;
 
-/// <summary>A card the open card can be compared with: a saved card or one read from a file.</summary>
-public sealed record CompareTargetViewModel(CardSave Card, string Name, string Detail);
-
 /// <summary>An identity field that differs, as shown above the blocks.</summary>
 public sealed record CompareFieldRow(string Label, string A, string B);
 
@@ -47,12 +44,17 @@ public sealed partial class CardsViewModel
     public bool CanCompareDump => _pane is CardsPane.Card or CardsPane.Add
         && _form is { } form && (form.IsMifareClassic || form.IsUltralight);
 
-    /// <summary>Saved cards with the same kind of memory, and a file opened for this comparison (first).</summary>
-    public ObservableCollection<CompareTargetViewModel> CompareTargets { get; } = new();
+    /// <summary>
+    /// Saved cards with the same kind of memory, and a file opened for this comparison (first, named
+    /// after the file). A new list each time the panel opens, so the picker's search starts over.
+    /// </summary>
+    public ObservableCollection<CardSave> CompareTargets
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = new();
 
-    public bool HasCompareTargets => CompareTargets.Count > 0;
-
-    public CompareTargetViewModel? CompareTarget
+    public CardSave? CompareTarget
     {
         get;
         set
@@ -79,7 +81,7 @@ public sealed partial class CardsViewModel
     public string CompareNameA => _compareSelf is { Name: { Length: > 0 } name } ? name : Strings.Common_NoName;
 
     /// <summary>The other card's name (side B).</summary>
-    public string? CompareNameB => CompareTarget?.Name;
+    public string? CompareNameB => CompareTarget is { } target ? new CardItemViewModel(target).Name : null;
 
     public string? CompareSummary
     {
@@ -129,26 +131,21 @@ public sealed partial class CardsViewModel
     /// <summary>Builds the list of cards to compare with when the panel opens; forgets the comparison when it closes.</summary>
     private void OnCompareActionChanged()
     {
-        CompareTargets.Clear();
         CompareTarget = null;
-        if (_action != CardAction.Compare) return;
-        if (_form?.Draft() is not { } self) return;
-        foreach (var card in _library.Cards)
-            if (card.Id != self.Id && card.Data.Any(d => d.Length > 0) && DumpComparison.CanCompare(self, card))
-                CompareTargets.Add(Target(card, card.Name));
-        this.RaisePropertyChanged(nameof(HasCompareTargets));
+        var targets = new ObservableCollection<CardSave>();
+        if (_action == CardAction.Compare && _form?.Draft() is { } self)
+            foreach (var card in _library.Cards)
+                if (card.Id != self.Id && card.Data.Any(d => d.Length > 0) && DumpComparison.CanCompare(self, card))
+                    targets.Add(card);
+        CompareTargets = targets;
     }
-
-    private static CompareTargetViewModel Target(CardSave card, string name) => new(card,
-        string.IsNullOrWhiteSpace(name) ? Strings.Common_NoName : name,
-        $"{card.Tag.DisplayName()} · {card.UidHex}");
 
     /// <summary>Compares again, e.g. after an edit of the open card's memory or identity.</summary>
     private void RefreshComparison()
     {
         _compareSelf = IsCompareOpen ? _form?.Draft() : null;
-        _comparison = _compareSelf is { } self && CompareTarget is { } other && DumpComparison.CanCompare(self, other.Card)
-            ? DumpComparison.Compare(self, other.Card)
+        _comparison = _compareSelf is { } self && CompareTarget is { } other && DumpComparison.CanCompare(self, other)
+            ? DumpComparison.Compare(self, other)
             : null;
         RaiseComparison();
     }
@@ -179,10 +176,11 @@ public sealed partial class CardsViewModel
         Dispatcher.UIThread.Post(() =>
         {
             if (!IsCompareOpen) return;
-            var target = Target(card, file.Name);
-            CompareTargets.Insert(0, target);
-            this.RaisePropertyChanged(nameof(HasCompareTargets));
-            CompareTarget = target;
+            // Listed by the file's name, above the saved cards (in no folder).
+            card.Name = file.Name;
+            card.Folder = string.Empty;
+            CompareTargets.Insert(0, card);
+            CompareTarget = card;
         });
     });
 }

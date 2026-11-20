@@ -54,27 +54,9 @@
       <Setter Property="MaxWidth" Value="420" />
       <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
-    <Style Selector="ListBox.cards.picker">
-      <Setter Property="ItemsPanel">
-        <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
-      </Setter>
-    </Style>
   </UserControl.Styles>
 
   <UserControl.Resources>
-    <!-- Content of a saved card row, as in the Cards list. -->
-    <DataTemplate x:Key="CardTile" x:DataType="vm:CardItemViewModel">
-      <Border Classes="cardrow"><Border Classes="cardclip">
-        <Grid ColumnDefinitions="8,*" ColumnSpacing="14">
-          <Border Grid.Column="0" Background="{Binding ColorBrush}" />
-          <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-            <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
-            <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-          </StackPanel>
-        </Grid>
-      </Border></Border>
-    </DataTemplate>
-
     <!-- A slot: its number, then the HF card above the LF card (name, type below), a line between them.
          An LF side that cycles through several cards lists all their names on its line.
          The list rows and the editor header. An empty frequency keeps its two lines, hidden, so every
@@ -587,7 +569,7 @@
       <!-- Choosing a saved card for a frequency: search, then click one. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Name="PickerDialog" Classes="savebar dialog picker"
               DataContext="{Binding Editor}" x:DataType="vm:SlotEditorViewModel" IsVisible="{Binding IsPicking}">
-        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
+        <Grid RowDefinitions="Auto,*" RowSpacing="10">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="{Binding PickerTitle}" FontWeight="SemiBold" VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis" />
@@ -596,24 +578,8 @@
               <PathIcon Data="{StaticResource Icon.close}" />
             </Button>
           </Grid>
-          <TextBox Grid.Row="1" Text="{Binding PickerFilter}" Name="PickerSearch"
-                   PlaceholderText="{x:Static loc:Strings.Common_SearchByNameTypeOrUID}">
-            <TextBox.InnerLeftContent>
-              <PathIcon Data="{StaticResource Icon.search}" Width="16" Height="16" Margin="10,0,2,0" Opacity="0.6" />
-            </TextBox.InnerLeftContent>
-          </TextBox>
-          <TextBlock Grid.Row="2" Classes="caption" Text="{Binding PickerEmptyText}"
-                     IsVisible="{Binding PickerHasNoCards}" />
-          <ScrollViewer Grid.Row="2" MaxHeight="360" Margin="-4,0,-4,0">
-            <ListBox Classes="cards picker" ItemsSource="{Binding PickerCards}" Padding="0"
-                     SelectedItem="{Binding PickerSelected}">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:CardItemViewModel">
-                  <ContentControl Content="{Binding}" ContentTemplate="{StaticResource CardTile}" />
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </ScrollViewer>
+          <c:CardPicker Grid.Row="1" Name="Picker" ItemsSource="{Binding PickerCards}"
+                        SelectedCard="{Binding PickerSelected}" EmptyText="{Binding PickerEmptyText}" />
         </Grid>
       </Border>
     </Grid>

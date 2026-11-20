@@ -54,7 +54,6 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private EmulatorWriteMode _ulWriteMode;
 
     private SlotSideViewModel? _pickerSide;
-    private string? _pickerFilter;
     private bool _supportsLfCycle, _supportsCycleMode;
     // The cycle the LF cards were loaded with while multi-LF is supported, else null.
     private LfCardCycle? _shownCycle;
@@ -521,26 +520,20 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     public string PickerTitle => SupportsMultiLf && _pickerSide == Lf && LfCards.HasCards
         ? Strings.Slots_AddSavedLf : string.Format(Strings.Slots_ChooseSavedSide, _pickerSide?.Label);
 
-    public string? PickerFilter
+    /// <summary>
+    /// The saved cards the frequency can take (the picker searches them itself). A new list each time
+    /// the picker opens, so its search starts over; a library change updates it in place.
+    /// </summary>
+    public ObservableCollection<CardSave> PickerCards
     {
-        get => _pickerFilter;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _pickerFilter, value);
-            RebuildPicker();
-        }
-    }
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    } = new();
 
-    public ObservableCollection<CardItemViewModel> PickerCards { get; } = new();
-
-    public bool PickerHasNoCards => IsPicking && PickerCards.Count == 0;
-
-    public string PickerEmptyText => _library.Cards.Any(c => c.Sense == _pickerSide?.Sense)
-        ? Strings.Dictionaries_NoCardsMatchTheSearch
-        : string.Format(Strings.Slots_NoSavedSide, _pickerSide?.Label);
+    public string PickerEmptyText => string.Format(Strings.Slots_NoSavedSide, _pickerSide?.Label);
 
     /// <summary>Picking a card in the dialog puts it into the frequency.</summary>
-    public CardItemViewModel? PickerSelected
+    public CardSave? PickerSelected
     {
         get => null;
         set
@@ -551,7 +544,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             {
                 if (!ReferenceEquals(_pickerSide, side)) return;
                 ClosePicker();
-                PickSavedCard(side, value.Card);
+                PickSavedCard(side, value);
             });
         }
     }
@@ -568,9 +561,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     {
         if (side == Lf && SupportsMultiLf && !LfCards.CanAdd) return;
         _pickerSide = side;
-        _pickerFilter = null;
-        this.RaisePropertyChanged(nameof(PickerFilter));
+        PickerCards = new ObservableCollection<CardSave>();
         this.RaisePropertyChanged(nameof(PickerTitle));
+        this.RaisePropertyChanged(nameof(PickerEmptyText));
         RebuildPicker();
         this.RaisePropertyChanged(nameof(IsPicking));
     }
@@ -580,17 +573,13 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         _pickerSide = null;
         PickerCards.Clear();
         this.RaisePropertyChanged(nameof(IsPicking));
-        this.RaisePropertyChanged(nameof(PickerHasNoCards));
     }
 
     private void RebuildPicker()
     {
         PickerCards.Clear();
         if (_pickerSide is not { } side) return;
-        foreach (var card in _library.Cards.Where(c => c.Sense == side.Sense).Select(c => new CardItemViewModel(c)))
-            if ((side != Lf || !SupportsMultiLf || LfCards.CanChoose(card.Card))
-                && card.Matches(_pickerFilter)) PickerCards.Add(card);
-        this.RaisePropertyChanged(nameof(PickerHasNoCards));
-        this.RaisePropertyChanged(nameof(PickerEmptyText));
+        foreach (var card in _library.Cards.Where(c => c.Sense == side.Sense))
+            if (side != Lf || !SupportsMultiLf || LfCards.CanChoose(card)) PickerCards.Add(card);
     }
 }
