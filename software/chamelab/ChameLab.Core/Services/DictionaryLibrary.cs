@@ -27,6 +27,7 @@ public sealed class DictionaryLibrary : IFolderLibrary
         _folders = new FolderList<KeyDictionary>(_dicts, d => d.Folder, (d, f) => d.Folder = f);
         KnownKeys = new KnownCardKeys(store);
         KnownKeys.Changed += () => Changed?.Invoke();
+        _folders.Relocated += (from, to) => FolderRelocated?.Invoke(from, to);
         Load();
     }
 
@@ -41,6 +42,27 @@ public sealed class DictionaryLibrary : IFolderLibrary
     public string? LoadError { get; private set; }
 
     public event Action? Changed;
+
+    /// <summary>A folder moved or was renamed (old path, new path), raised before <see cref="Changed"/>.</summary>
+    public event Action<string, string>? FolderRelocated;
+
+    /// <summary>
+    /// Puts exactly these dictionaries and folders in the library, in this order (sync applying other
+    /// devices' changes). Entries that did not change keep their objects, so open pages keep them.
+    /// </summary>
+    public void ReplaceFromSync(IReadOnlyList<KeyDictionary> items, IEnumerable<string> folders)
+    {
+        if (LoadError is not null) return;
+        var current = _dicts.GroupBy(i => i.Id).ToDictionary(g => g.Key, g => g.First());
+        var next = new List<KeyDictionary>(items.Count);
+        foreach (var item in items)
+            next.Add(current.TryGetValue(item.Id, out var old) && JsonNode.DeepEquals(old.ToJson(), item.ToJson()) ? old : item);
+        _dicts.Clear();
+        _dicts.AddRange(next);
+        _folders.ReplaceAll(folders);
+        foreach (var item in _dicts) _folders.File(item, item.Folder);
+        Save();
+    }
 
     private void Load()
     {
