@@ -9,6 +9,21 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.7.54][2026-11-20] · firmware v2.3.21-cl
+### Summary
+ - ChameLab: **Compare dumps** moves to Tools: pick card A and card B from the saved cards or dump files and see both dumps in one hex view, the differing bytes highlighted
+ - ChameLab: the card page has one **Export** menu: Duplicate, QR code, Copy to clipboard and the JSON, .bin and .eml files. The copied link adds the card on another device with the new **Paste link** tile
+ - ChameLab: choosing a saved card (for a slot or a comparison) lists the cards by folder, with a search that matches names, UIDs and folders
+
+### Details
+ - ChameLab: **Compare dumps** is a tile in Tools instead of an action on the card page. **Card A** and **Card B** are each chosen from the saved cards with a MIFARE Classic or Ultralight / NTAG dump, or from a dump file; once one side is chosen, the other offers only cards with the same kind of memory, and **Clear** starts over. Both dumps are shown in one read-only hex view, each block (page) as a row of card A over a row of card B, MIFARE Classic sectors under their headings, the differing bytes in the accent color
+ - ChameLab: a shared card picker: a search line over a compact list of the saved cards (color, name, type and UID), cards in folders under folder headings. A search for a folder's name lists the whole folder. Used by **Choose a saved card** on the slot page and by Compare dumps; the picker dialogs take the full height, so they don't shrink and grow while the search filters the list
+ - ChameLab: on the card page, **Duplicate**, **Export** and **QR code** are one **Export** menu: Duplicate, QR code, Copy to clipboard, then JSON file, .bin dump and .eml dump. **Copy to clipboard** copies one link that carries the whole card (also one too big for a single QR code); opened in a browser, it loads the card into the web app
+ - ChameLab: **Paste link** on the Add a card page opens a card link from the clipboard for review, like a scanned QR code, in every version of the app
+ - ChameLab: the QR code and **Assign to slot** open as dialogs over the dimmed card instead of a panel under its header; a click on the QR code closes it, as do the close button and Esc
+ - ChameLab: on Android, saved files no longer get their extension twice (“t55xx-key.dic.dic”)
+ - ChameLab: the navigation pane no longer flashes open when the app starts in a narrow window
+
 ## [v1.7.53][2026-11-18] · firmware v2.3.21-cl
 ### Summary
  - ChameLab: the slot page shows the MIFARE Classic nonces and Ultralight / NTAG passwords the emulator collects as they come in, recovers the MIFARE keys from the nonces itself and saves them to a dictionary or a file
