@@ -1666,7 +1666,7 @@
           <StackPanel Spacing="10">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
               <StackPanel Spacing="2">
-                <TextBlock Text="{x:Static loc:Strings.Cards_AssignToSlotHeader}" FontWeight="SemiBold" />
+                <TextBlock Text="{x:Static loc:Strings.Cards_AssignToSlotHeader}" Classes="overline" />
                 <TextBlock Classes="caption" TextWrapping="Wrap"
                            Text="{x:Static loc:Strings.Cards_TheCardReplacesTheSlotsCurrent}" />
               </StackPanel>
@@ -1714,7 +1714,7 @@
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <StackPanel Spacing="2">
-              <TextBlock Text="{x:Static loc:Strings.Qr_ShareHeader}" FontWeight="SemiBold" />
+              <TextBlock Text="{x:Static loc:Strings.Qr_ShareHeader}" Classes="overline" />
               <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding QrHint}" />
             </StackPanel>
             <Button Grid.Column="1" Classes="icon small" Command="{Binding CloseActionCommand}"
