@@ -9,20 +9,19 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  deploy:
-    name: Deploy to GitHub Pages
+  build:
+    name: Prepare the website
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    concurrency:
-      group: pages
-      cancel-in-progress: false
+    outputs:
+      # Preserve the producing attempt's name when only the deploy job is re-run.
+      artifact-name: github-pages-${{ github.run_attempt }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v7
@@ -55,6 +54,23 @@ jobs:
           fi
       - name: Upload the site
         uses: actions/upload-pages-artifact@v5
+        with:
+          # Re-running all jobs must not leave several artifacts with the same name.
+          name: github-pages-${{ github.run_attempt }}
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: ${{ needs.build.outputs.artifact-name }}
