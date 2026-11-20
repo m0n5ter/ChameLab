@@ -721,57 +721,9 @@
             </StackPanel>
           </Border>
 
-          <!-- ===================== Assign to slot / write (below the fixed header) ===================== -->
-          <Border Classes="card">
-            <Border.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                <Binding Path="IsSlotsOpen" />
-                <Binding Path="IsWriteOpen" />
-              </MultiBinding>
-            </Border.IsVisible>
+          <!-- ===================== Write (below the fixed header) ===================== -->
+          <Border Classes="card" IsVisible="{Binding IsWriteOpen}">
             <StackPanel>
-              <!-- Assign to slot -->
-              <StackPanel Spacing="10" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding IsSlotsOpen}">
-                <Grid ColumnDefinitions="*,Auto">
-                  <StackPanel Spacing="2">
-                    <TextBlock Text="{x:Static loc:Strings.Cards_AssignToSlotHeader}" Classes="overline" />
-                    <TextBlock Classes="caption" TextWrapping="Wrap"
-                               Text="{x:Static loc:Strings.Cards_TheCardReplacesTheSlotsCurrent}" />
-                  </StackPanel>
-                  <Button Grid.Column="1" Classes="icon" Command="{Binding RefreshSlotsCommand}"
-                          IsVisible="{Binding IsConnected}" ToolTip.Tip="{x:Static loc:Strings.Cards_ReloadSlots}" VerticalAlignment="Top">
-                    <PathIcon Data="{StaticResource Icon.refresh}" />
-                  </Button>
-                </Grid>
-                <TextBlock Classes="caption" IsVisible="{Binding !IsConnected}"
-                           Text="{x:Static loc:Strings.Cards_ConnectAChameleonToLoadThis}" />
-                <TextBlock Classes="caption" IsVisible="{Binding Selected?.IsUnknownType, TargetNullValue=False}" TextWrapping="Wrap"
-                           Text="{x:Static loc:Strings.Cards_ThisCardHasNoTagType}" />
-                <ItemsControl ItemsSource="{Binding SlotTargets}" IsVisible="{Binding IsConnected}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate><UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8" /></ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:SlotTargetViewModel">
-                      <Button Classes="slottarget"
-                              Command="{Binding $parent[ItemsControl].((vm:CardsViewModel)DataContext).LoadToSlotCommand}"
-                              CommandParameter="{Binding}">
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                          <Border Classes="slotnum" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14">
-                            <TextBlock Text="{Binding Index}" FontWeight="Bold"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-                          </Border>
-                          <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
-                                     TextTrimming="CharacterEllipsis" Classes.dim="{Binding IsEmpty}" />
-                        </Grid>
-                      </Button>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <TextBlock Classes="caption" Text="{Binding ProgressText}"
-                           b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding ProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-              </StackPanel>
-
               <!-- Write to a physical tag (replaces the editor; the list is locked) -->
               <StackPanel Spacing="12" b:BringIntoViewOnShow.IsEnabled="True" IsVisible="{Binding IsWriteOpen}">
                 <TextBlock Text="{Binding WriteKind}" FontWeight="SemiBold" />
@@ -1696,6 +1648,56 @@
             </StackPanel>
           </Button>
         </c:ActionBar>
+      </Border>
+      <!-- Assign to slot: the card replaces the chosen slot's current card. -->
+      <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" HorizontalAlignment="Stretch"
+              IsVisible="{Binding IsSlotsOpen}">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{x:Static loc:Strings.Cards_AssignToSlotHeader}" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" TextWrapping="Wrap"
+                           Text="{x:Static loc:Strings.Cards_TheCardReplacesTheSlotsCurrent}" />
+              </StackPanel>
+              <Button Grid.Column="1" Classes="icon small" Command="{Binding RefreshSlotsCommand}"
+                      IsVisible="{Binding IsConnected}" ToolTip.Tip="{x:Static loc:Strings.Cards_ReloadSlots}" VerticalAlignment="Top">
+                <PathIcon Data="{StaticResource Icon.refresh}" />
+              </Button>
+              <Button Grid.Column="2" Classes="icon small" Command="{Binding CloseActionCommand}"
+                      b:DialogKeys.IsCancel="True" ToolTip.Tip="{x:Static loc:Strings.Common_Close}" VerticalAlignment="Top">
+                <PathIcon Data="{StaticResource Icon.close}" />
+              </Button>
+            </Grid>
+            <TextBlock Classes="caption" IsVisible="{Binding !IsConnected}" TextWrapping="Wrap"
+                       Text="{x:Static loc:Strings.Cards_ConnectAChameleonToLoadThis}" />
+            <TextBlock Classes="caption" IsVisible="{Binding Selected?.IsUnknownType, TargetNullValue=False}" TextWrapping="Wrap"
+                       Text="{x:Static loc:Strings.Cards_ThisCardHasNoTagType}" />
+            <ItemsControl ItemsSource="{Binding SlotTargets}" IsVisible="{Binding IsConnected}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SlotTargetViewModel">
+                  <Button Classes="slottarget"
+                          Command="{Binding $parent[ItemsControl].((vm:CardsViewModel)DataContext).LoadToSlotCommand}"
+                          CommandParameter="{Binding}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                      <Border Classes="slotnum" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14">
+                        <TextBlock Text="{Binding Index}" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+                      <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                                 TextTrimming="CharacterEllipsis" Classes.dim="{Binding IsEmpty}" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Classes="caption" Text="{Binding ProgressText}"
+                       IsVisible="{Binding ProgressText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </StackPanel>
+        </ScrollViewer>
       </Border>
       <!-- Share as QR code: one code, or a series that changes by itself. A click on the code closes it. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsQrOpen}">
