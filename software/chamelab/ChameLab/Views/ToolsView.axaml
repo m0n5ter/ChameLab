@@ -179,11 +179,6 @@
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <!-- The card picker lists one card per row and is wider than the save questions. -->
-    <Style Selector="Border.savebar.dialog.picker">
-      <Setter Property="MaxWidth" Value="420" />
-      <Setter Property="HorizontalAlignment" Value="Stretch" />
-    </Style>
   </UserControl.Styles>
 
   <Grid Classes="page tools" Classes.fullwidth="{Binding IsConsole}" RowDefinitions="Auto,*">

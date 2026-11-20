@@ -49,11 +49,6 @@
       <Setter Property="Height" Value="1" />
       <Setter Property="Background" Value="{actipro:ThemeResource Container1BorderBrush}" />
     </Style>
-    <!-- The picker lists one card per row and is wider than the save questions. -->
-    <Style Selector="Border.savebar.dialog.picker">
-      <Setter Property="MaxWidth" Value="420" />
-      <Setter Property="HorizontalAlignment" Value="Stretch" />
-    </Style>
   </UserControl.Styles>
 
   <UserControl.Resources>

@@ -1461,4 +1461,15 @@
     <Setter Property="Padding" Value="18,10" />
   </Style>
 
+  <!-- A dialog choosing a card: wider than the save questions (one card per row), and as tall as the
+       page allows, so it keeps its size while a search shortens the list. -->
+  <Style Selector="Border.savebar.dialog.picker">
+    <Setter Property="MaxWidth" Value="420" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Border.savebar.dialog.picker c|CardPicker">
+    <Setter Property="MaxListHeight" Value="Infinity" />
+  </Style>
+
 </Styles>
