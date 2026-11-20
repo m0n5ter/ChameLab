@@ -27,6 +27,7 @@ public sealed class CardLibrary : IFolderLibrary
     {
         _store = store;
         _folders = new FolderList<CardSave>(_cards, c => c.Folder, (c, f) => c.Folder = f);
+        _folders.Relocated += (from, to) => FolderRelocated?.Invoke(from, to);
         Load();
     }
 
@@ -41,6 +42,27 @@ public sealed class CardLibrary : IFolderLibrary
     public string? LoadError { get; private set; }
 
     public event Action? Changed;
+
+    /// <summary>A folder moved or was renamed (old path, new path), raised before <see cref="Changed"/>.</summary>
+    public event Action<string, string>? FolderRelocated;
+
+    /// <summary>
+    /// Puts exactly these cards and folders in the library, in this order (sync applying other
+    /// devices' changes). Entries that did not change keep their objects, so open pages keep them.
+    /// </summary>
+    public void ReplaceFromSync(IReadOnlyList<CardSave> items, IEnumerable<string> folders)
+    {
+        if (LoadError is not null) return;
+        var current = _cards.GroupBy(i => i.Id).ToDictionary(g => g.Key, g => g.First());
+        var next = new List<CardSave>(items.Count);
+        foreach (var item in items)
+            next.Add(current.TryGetValue(item.Id, out var old) && JsonNode.DeepEquals(old.ToJson(), item.ToJson()) ? old : item);
+        _cards.Clear();
+        _cards.AddRange(next);
+        _folders.ReplaceAll(folders);
+        foreach (var item in _cards) _folders.File(item, item.Folder);
+        Save();
+    }
 
     private void Load()
     {

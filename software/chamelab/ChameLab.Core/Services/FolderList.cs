@@ -46,6 +46,16 @@ public sealed class FolderList<T>(List<T> items, Func<T, string> getFolder, Acti
 
     public IReadOnlyList<string> Paths => _paths;
 
+    /// <summary>A folder moved or was renamed (old path, new path); raised before the owner saves.</summary>
+    public event Action<string, string>? Relocated;
+
+    /// <summary>Puts exactly these folders in place of the current ones (sync applying another device's changes).</summary>
+    public void ReplaceAll(IEnumerable<string> paths)
+    {
+        _paths.Clear();
+        foreach (var path in paths) Add(path);
+    }
+
     public IEnumerable<string> ItemFolders => items.Select(getFolder);
 
     public string? Find(string? path)
@@ -119,6 +129,7 @@ public sealed class FolderList<T>(List<T> items, Func<T, string> getFolder, Acti
         foreach (var p in moved) Insert(FolderPath.Rebase(p, old, to));
         foreach (var item in items.Where(i => FolderPath.IsWithin(getFolder(i), old)))
             setFolder(item, FolderPath.Rebase(getFolder(item), old, to));
+        Relocated?.Invoke(old, to);
         return to;
     }
 
