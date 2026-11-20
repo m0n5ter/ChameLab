@@ -15,9 +15,10 @@ public static class Program
         }
         Console.OutputEncoding = Encoding.UTF8;
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+        if (args.Length >= 1 && args[0] == "sync") return await SyncCommand.RunAsync(args);
         if (args.Length == 1 && args[0] is "-h" or "--help")
         {
-            Console.WriteLine("ChameLab CLI\nchamelab [-c|--command \"COMMAND\"]...\nWithout -c, starts an interactive console. Ctrl+C cancels the current operation.\nUse dump_help to list commands; COMMAND --help lists its options.");
+            Console.WriteLine("ChameLab CLI\nchamelab [-c|--command \"COMMAND\"]...\nWithout -c, starts an interactive console. Ctrl+C cancels the current operation.\nUse dump_help to list commands; COMMAND --help lists its options.\nchamelab sync --help: the headless device sync node.");
             return 0;
         }
         var commands = new List<string>();

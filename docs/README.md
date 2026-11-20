@@ -4,4 +4,4 @@ The overview, firmware updates and downloads are in the [main README](../README.
 on the [website](https://m0n5ter.github.io/ChameLab/).
 
 - [HF sniff timing and Proxmark3 trace compatibility](hf-sniff-timing.md)
-- [Device sync: design and plan](sync-plan.md) (proposal)
+- [Device sync: design and plan](sync-plan.md) and [its protocol](sync-protocol.md)

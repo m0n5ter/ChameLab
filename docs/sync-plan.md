@@ -1,6 +1,6 @@
 # Device sync: design and plan
 
-Status: proposal, nothing implemented yet.
+Status: implemented on the `VK_Sync` branch; the wire formats are in [sync-protocol.md](sync-protocol.md).
 
 ChameLab keeps the card library, its folders and the key dictionaries in step across a user's
 devices and lets people send cards to each other. The data and its history live **only on the
@@ -55,7 +55,7 @@ platform including WebAssembly.
 
 | Use | Primitive |
 | --- | --- |
-| Channel | Noise `XX` (pairing, card sending) and `IK` (members who know each other), `25519_ChaChaPoly_SHA256` |
+| Channel | Noise `XX_25519_ChaChaPoly_SHA256` for every connection; members check each other's static key against the member list |
 | Device identity | X25519 static key per device, generated locally, never leaves it |
 | Derivation | HKDF-SHA256 |
 
@@ -77,9 +77,10 @@ set of fields; an operation changes some fields of one entity, or deletes it.
 | `dictionary` | `name`, `color`, `folder`, `type`, `keys` |
 | `dictionaryFolder` | `name`, `parent`, `order` |
 
-- **Folders become entities with ids.** Today a folder is a name stored on each card, so a
-  rename rewrites every card in it and races with a move made on another device. The library
-  gets folder ids; the UI stays the same. Nesting (`parent`) is supported by the format, so
+- **Folders are entities with ids** in the sync data. A folder in the library is a path stored
+  on each card, so a rename rewrites every card in it and would race with a move made on
+  another device; in sync a rename is one operation on the folder. The library keeps its paths
+  and the UI stays the same: sync maps paths to folder ids (`LibrarySync`). Nesting (`parent`) is supported by the format, so
   Chameleon Ultra GUI's nested folders can be kept later without another migration.
 - **Order** is a fractional index string (sorts between its neighbours), so a reorder changes
   one card, not the whole list.
@@ -123,7 +124,7 @@ Plain JSON files under the existing per-user data folder (`IKeyValueStore`):
 | File | Contents |
 | --- | --- |
 | `cards`, `dictionaries`, … | the library, as today (with folder ids and order added) |
-| `sync/log.jsonl` | the operation log, one op per line, appended; a torn last line after a crash is dropped |
+| `sync/log.json` | the operation log, one op per line (JSON Lines), appended; a torn last line after a crash is dropped |
 | `sync/snapshot.json` | the compacted state the log continues from |
 | `sync/state.json` | own device id and keys, room secret, members, vectors seen from others |
 
@@ -181,7 +182,7 @@ Devices on the same network also sync without the internet:
   announcement carries `HMAC(room secret, nonce)` and the nonce, not the room id, so members
   recognise their group while other people on the network cannot tell announcements of one
   group apart.
-- The channel is the same Noise `IK` with the member keys and the same exchange as through the
+- The channel is the same Noise `XX` with the member keys and the same exchange as through the
   relay; the local network is not trusted more than the relay.
 - A device reachable both ways keeps one link: links to the same member are deduplicated by
   device id, the local one preferred.
@@ -219,7 +220,7 @@ Each phase ends with its tests; nothing user-visible ships before phase 6.
 
 1. **Protocol spec**: `docs/sync-protocol.md` with the wire formats above, written before
    code and kept as the contract.
-2. **Crypto** (`ChameLab.Core/Sync/Crypto`): X25519, HKDF, Noise `XX`/`IK` on BouncyCastle.
+2. **Crypto** (`ChameLab.Core/Sync`): X25519, HKDF, Noise `XX` on BouncyCastle.
    Tests against published vectors (RFC 7748, RFC 5869, Noise cacophony vectors).
 3. **Log and merge engine** (`ChameLab.Core/Sync`), in memory: ops, vectors, per-field merge,
    conflict copies, tombstones, membership, compaction and snapshots. Randomized tests: many

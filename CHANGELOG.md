@@ -8,6 +8,10 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: **Device sync** (Settings → Device sync) keeps the saved cards, their folders and the key dictionaries the same on all of a user's devices, without an account. The data and its history stay only on the devices: the relays just bring devices together while they are online and pass on what they cannot read (Noise XX, end to end), and devices on the same network sync directly, without the internet. **Start sync** on one device, then **Add device** shows a QR code (no digits to compare, and it works without the internet) and a code to type (both screens then show six digits to compare). Edits merge per field, concurrent edits of one dump keep both versions (the second as a "(conflict)" copy), a deleted card can be restored, and the devices list shows which devices are connected and how
+ - ChameLab: the desktop app can keep syncing with its window closed (a tray icon) and start with the system, so a phone opened later finds a device that has everything; `chamelab sync serve` runs the same node without a UI (Docker recipe in `ChameLab.Cli/deploy`)
+ - ChameLab: **Export → Send to another device** sends the card to any ChameLab, also someone else's, by QR code or code; it arrives through **Receive from a device** on the Add a card page (or by scanning the QR code there). **Export → History** lists the card's earlier versions from all devices and restores one
+ - Relay: `/room/{id}` for sync rooms (the relays need redeploying before sync works over the internet)
 
 ## [v1.7.54][2026-11-20] · firmware v2.3.21-cl
 ### Summary
