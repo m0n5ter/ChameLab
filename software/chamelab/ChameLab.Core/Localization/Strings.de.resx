@@ -4043,21 +4043,264 @@
     <value>Die Zwischenablage enthält keinen ChameLab-Kartenlink.</value>
   </data>
   <data name="Sync_AlreadyInGroup" xml:space="preserve">
-    <value>This device is already in a sync group.</value>
+    <value>Dieses Gerät ist bereits in einer Sync-Gruppe.</value>
   </data>
   <data name="Sync_NotACode" xml:space="preserve">
-    <value>That is not a ChameLab code. Type the code shown on the other device (like DE1-ABCD-1234) or scan its QR code.</value>
+    <value>Das ist kein ChameLab-Code. Gib den Code vom anderen Gerät ein (z. B. DE1-ABCD-1234) oder scanne seinen QR-Code.</value>
   </data>
   <data name="Sync_Refused" xml:space="preserve">
-    <value>The other device declined.</value>
+    <value>Das andere Gerät hat abgelehnt.</value>
   </data>
   <data name="Sync_PairingFailed" xml:space="preserve">
-    <value>The other device did not answer as expected.</value>
+    <value>Das andere Gerät hat nicht wie erwartet geantwortet.</value>
   </data>
   <data name="Sync_DeviceNotReachable" xml:space="preserve">
-    <value>The other device could not be reached.</value>
+    <value>Das andere Gerät ist nicht erreichbar.</value>
   </data>
   <data name="Sync_WrongDevice" xml:space="preserve">
-    <value>The device that answered is not the one whose QR code was scanned.</value>
+    <value>Das antwortende Gerät ist nicht das, dessen QR-Code gescannt wurde.</value>
+  </data>
+  <data name="Plural_SyncDevicesConnected" xml:space="preserve">
+    <value>Online · {0} Gerät verbunden|Online · {0} Geräte verbunden</value>
+  </data>
+  <data name="Sync_Title" xml:space="preserve">
+    <value>Gerätesynchronisierung</value>
+  </data>
+  <data name="Sync_Caption" xml:space="preserve">
+    <value>Gleiche Karten und Wörterbücher auf allen deinen Geräten. Sie bleiben nur auf deinen Geräten: Relays verbinden sie nur, und alles dazwischen ist verschlüsselt.</value>
+  </data>
+  <data name="Sync_DeviceName" xml:space="preserve">
+    <value>Gerätename</value>
+  </data>
+  <data name="Sync_Start" xml:space="preserve">
+    <value>Sync starten</value>
+  </data>
+  <data name="Sync_StartTip" xml:space="preserve">
+    <value>Eine Sync-Gruppe mit diesem Gerät starten; die anderen Geräte danach hinzufügen</value>
+  </data>
+  <data name="Sync_Join" xml:space="preserve">
+    <value>Anderem Gerät beitreten</value>
+  </data>
+  <data name="Sync_JoinTip" xml:space="preserve">
+    <value>Der Sync-Gruppe eines Geräts beitreten, das bereits synchronisiert</value>
+  </data>
+  <data name="Sync_JoinHint" xml:space="preserve">
+    <value>Auf dem anderen Gerät: Einstellungen → Gerätesynchronisierung → Gerät hinzufügen. Scanne den QR-Code oder gib den angezeigten Code ein. Die Karten dieses Geräts kommen in die Gruppe.</value>
+  </data>
+  <data name="Sync_Connect" xml:space="preserve">
+    <value>Verbinden</value>
+  </data>
+  <data name="Sync_ScanQr" xml:space="preserve">
+    <value>QR-Code scannen</value>
+  </data>
+  <data name="Sync_ScanTheOtherDevice" xml:space="preserve">
+    <value>Auf den QR-Code des anderen Geräts richten</value>
+  </data>
+  <data name="Sync_NotASyncQr" xml:space="preserve">
+    <value>Kein ChameLab-Sync-Code</value>
+  </data>
+  <data name="Sync_Connecting" xml:space="preserve">
+    <value>Verbinde…</value>
+  </data>
+  <data name="Sync_CompareDigitsJoin" xml:space="preserve">
+    <value>Prüfe, dass das andere Gerät {0} zeigt, und bestätige dort.</value>
+  </data>
+  <data name="Sync_Joined" xml:space="preserve">
+    <value>Beigetreten. Deine Karten werden synchronisiert.</value>
+  </data>
+  <data name="Sync_GroupCreated" xml:space="preserve">
+    <value>Sync ist an. Füge deine anderen Geräte hinzu.</value>
+  </data>
+  <data name="Sync_StatusPaused" xml:space="preserve">
+    <value>Pausiert</value>
+  </data>
+  <data name="Sync_StatusConnecting" xml:space="preserve">
+    <value>Verbinde…</value>
+  </data>
+  <data name="Sync_StatusOnlineAlone" xml:space="preserve">
+    <value>Online · gerade kein anderes Gerät verbunden</value>
+  </data>
+  <data name="Sync_StatusOffline" xml:space="preserve">
+    <value>Kein Relay erreichbar; Geräte in diesem Netz synchronisieren trotzdem</value>
+  </data>
+  <data name="Sync_Devices" xml:space="preserve">
+    <value>Geräte</value>
+  </data>
+  <data name="Sync_ThisDevice" xml:space="preserve">
+    <value>Dieses Gerät</value>
+  </data>
+  <data name="Sync_ConnectedLan" xml:space="preserve">
+    <value>Verbunden · lokales Netz</value>
+  </data>
+  <data name="Sync_ConnectedRelay" xml:space="preserve">
+    <value>Verbunden · Internet</value>
+  </data>
+  <data name="Sync_LastSeen" xml:space="preserve">
+    <value>Zuletzt gesehen {0}</value>
+  </data>
+  <data name="Sync_NotSeenYet" xml:space="preserve">
+    <value>Noch nicht verbunden</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>gerade eben</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>vor {0} Min.</value>
+  </data>
+  <data name="Sync_HoursAgo" xml:space="preserve">
+    <value>vor {0} Std.</value>
+  </data>
+  <data name="Sync_RemoveDevice" xml:space="preserve">
+    <value>Gerät entfernen</value>
+  </data>
+  <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
+    <value>Es erhält keine Änderungen mehr, und die Gruppe zieht in einen neuen Raum, den es nicht findet. Was es schon hat, bleibt darauf. Zum Zurückholen muss es neu gekoppelt werden.</value>
+  </data>
+  <data name="Sync_DeviceRemoved" xml:space="preserve">
+    <value>Gerät entfernt</value>
+  </data>
+  <data name="Sync_AddDevice" xml:space="preserve">
+    <value>Gerät hinzufügen</value>
+  </data>
+  <data name="Sync_AddDeviceTip" xml:space="preserve">
+    <value>QR-Code und Code anzeigen, damit ein anderes Gerät der Gruppe beitritt</value>
+  </data>
+  <data name="Sync_InviteHint" xml:space="preserve">
+    <value>Auf dem neuen Gerät: Einstellungen → Gerätesynchronisierung → Anderem Gerät beitreten. Scanne diesen QR-Code (im selben Netz auch ohne Internet) oder gib den Code ein.</value>
+  </data>
+  <data name="Sync_InviteWaiting" xml:space="preserve">
+    <value>Warte auf das andere Gerät…</value>
+  </data>
+  <data name="Sync_DeviceWantsToJoin" xml:space="preserve">
+    <value>{0} möchte beitreten.</value>
+  </data>
+  <data name="Sync_CompareDigitsInvite" xml:space="preserve">
+    <value>{0} möchte beitreten. Nur hinzufügen, wenn es {1} zeigt.</value>
+  </data>
+  <data name="Sync_Accept" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="Sync_Decline" xml:space="preserve">
+    <value>Ablehnen</value>
+  </data>
+  <data name="Sync_DeviceAdded" xml:space="preserve">
+    <value>{0} hinzugefügt</value>
+  </data>
+  <data name="Sync_Background" xml:space="preserve">
+    <value>Im Hintergrund synchronisieren</value>
+  </data>
+  <data name="Sync_BackgroundCaption" xml:space="preserve">
+    <value>Beim Schließen bleibt ChameLab im Infobereich, damit dein Handy diesen Computer findet</value>
+  </data>
+  <data name="Sync_StartWithSystem" xml:space="preserve">
+    <value>Mit dem System starten</value>
+  </data>
+  <data name="Sync_StartWithSystemCaption" xml:space="preserve">
+    <value>Startet beim Anmelden im Infobereich</value>
+  </data>
+  <data name="Sync_RecentlyDeleted" xml:space="preserve">
+    <value>Kürzlich gelöscht</value>
+  </data>
+  <data name="Sync_Restore" xml:space="preserve">
+    <value>Wiederherstellen</value>
+  </data>
+  <data name="Sync_Restored" xml:space="preserve">
+    <value>Wiederhergestellt</value>
+  </data>
+  <data name="Sync_Leave" xml:space="preserve">
+    <value>Synchronisierung beenden</value>
+  </data>
+  <data name="Sync_LeaveTip" xml:space="preserve">
+    <value>Gruppe auf diesem Gerät verlassen; die Karten bleiben</value>
+  </data>
+  <data name="Sync_LeaveConfirm" xml:space="preserve">
+    <value>Dieses Gerät verlässt die Gruppe und vergisst den Verlauf. Karten und Wörterbücher bleiben; die anderen Geräte synchronisieren weiter.</value>
+  </data>
+  <data name="Sync_Left" xml:space="preserve">
+    <value>Sync ist auf diesem Gerät aus</value>
+  </data>
+  <data name="Sync_ConflictSuffix" xml:space="preserve">
+    <value> (Konflikt)</value>
+  </data>
+  <data name="Sync_SendToDevice" xml:space="preserve">
+    <value>An anderes Gerät senden</value>
+  </data>
+  <data name="Sync_SendToDeviceTip" xml:space="preserve">
+    <value>Diese Karte per QR-Code oder Code an ein beliebiges ChameLab senden, deines oder ein fremdes</value>
+  </data>
+  <data name="Sync_SendHint" xml:space="preserve">
+    <value>Auf dem anderen Gerät: Karten → Hinzufügen → diesen QR-Code scannen, oder „Von Gerät empfangen“ und den Code eingeben.</value>
+  </data>
+  <data name="Sync_SendWaiting" xml:space="preserve">
+    <value>Warte auf das andere Gerät…</value>
+  </data>
+  <data name="Sync_CompareDigitsSend" xml:space="preserve">
+    <value>Nur senden, wenn {0} {1} zeigt.</value>
+  </data>
+  <data name="Sync_Send" xml:space="preserve">
+    <value>Senden</value>
+  </data>
+  <data name="Sync_Sending" xml:space="preserve">
+    <value>Sende…</value>
+  </data>
+  <data name="Sync_CardSent" xml:space="preserve">
+    <value>Karte an {0} gesendet</value>
+  </data>
+  <data name="Sync_History" xml:space="preserve">
+    <value>Verlauf</value>
+  </data>
+  <data name="Sync_HistoryTip" xml:space="preserve">
+    <value>Frühere Versionen dieser Karte von all deinen Geräten</value>
+  </data>
+  <data name="Sync_HistoryHint" xml:space="preserve">
+    <value>Wiederherstellen setzt die Karte auf allen Geräten auf den Stand direkt nach dieser Änderung zurück.</value>
+  </data>
+  <data name="Sync_NoHistory" xml:space="preserve">
+    <value>Noch keine früheren Versionen.</value>
+  </data>
+  <data name="Sync_HistoryDeleted" xml:space="preserve">
+    <value>gelöscht</value>
+  </data>
+  <data name="Sync_FieldName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Sync_FieldColor" xml:space="preserve">
+    <value>Farbe</value>
+  </data>
+  <data name="Sync_FieldFolder" xml:space="preserve">
+    <value>Ordner</value>
+  </data>
+  <data name="Sync_FieldData" xml:space="preserve">
+    <value>Dump</value>
+  </data>
+  <data name="Sync_FieldIdentity" xml:space="preserve">
+    <value>Typ und UID</value>
+  </data>
+  <data name="Sync_Receive" xml:space="preserve">
+    <value>Von Gerät empfangen</value>
+  </data>
+  <data name="Sync_ReceiveCaption" xml:space="preserve">
+    <value>Karten, die ein anderes ChameLab sendet</value>
+  </data>
+  <data name="Sync_ReceiveTip" xml:space="preserve">
+    <value>Den Code eingeben, den ein anderes ChameLab unter Exportieren → An anderes Gerät senden zeigt (oder seinen QR-Code scannen)</value>
+  </data>
+  <data name="Sync_ReceiveHint" xml:space="preserve">
+    <value>Gib den Code ein, den das andere Gerät zeigt. Die Karten kommen in den angezeigten Ordner.</value>
+  </data>
+  <data name="Sync_CompareDigitsReceive" xml:space="preserve">
+    <value>Prüfe, dass das sendende Gerät {0} zeigt; es sendet nach der Bestätigung dort.</value>
+  </data>
+  <data name="Sync_CardsReceived" xml:space="preserve">
+    <value>{0} empfangen</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>ChameLab öffnen</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>Beenden</value>
+  </data>
+  <data name="Tray_Tooltip" xml:space="preserve">
+    <value>ChameLab · synchronisiert im Hintergrund</value>
   </data>
 </root>

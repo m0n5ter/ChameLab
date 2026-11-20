@@ -27,7 +27,11 @@ public sealed class SettingsViewModel : PageViewModelBase
         ImportBackupCommand = ReactiveCommand.CreateFromTask(ImportBackupAsync);
         OpenLinkCommand = ReactiveCommand.CreateFromTask<string>(OpenLinkAsync);
         LocalizationService.LanguageChanged += OnLanguageChanged;
+        Sync = new SyncViewModel(AppServices.Sync, ReportError, Notify);
     }
+
+    /// <summary>The Device sync card.</summary>
+    public SyncViewModel Sync { get; }
 
     /// <summary>
     /// The list is rebuilt in the new language and the choice moves to its new entry. Nothing is

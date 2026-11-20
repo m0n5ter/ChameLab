@@ -39,7 +39,17 @@ public partial class MainWindow : Window
             if (e.Property == WindowStateProperty && WindowState != WindowState.Minimized)
                 _maximized = WindowState == WindowState.Maximized;
         };
-        Closing += (_, _) => Save();
+        Closing += (_, e) =>
+        {
+            Save();
+            // Syncing in the background: closing the window hides it; the tray icon brings it back.
+            if (Application.Current is App { KeepsRunning: true, IsQuitting: false }
+                && e.CloseReason is WindowCloseReason.WindowClosing && !e.IsProgrammatic)
+            {
+                e.Cancel = true;
+                Hide();
+            }
+        };
     }
 
     /// <summary>Puts the window back where it was last closed, if that spot is still on a screen.</summary>

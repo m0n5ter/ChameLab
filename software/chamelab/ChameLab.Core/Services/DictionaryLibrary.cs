@@ -60,9 +60,17 @@ public sealed class DictionaryLibrary : IFolderLibrary
         _dicts.Clear();
         _dicts.AddRange(next);
         _folders.ReplaceAll(folders);
-        foreach (var item in _dicts) _folders.File(item, item.Folder);
-        Save();
+        IsApplyingSync = true;
+        try
+        {
+            foreach (var item in _dicts) _folders.File(item, item.Folder);
+            Save();
+        }
+        finally { IsApplyingSync = false; }
     }
+
+    /// <summary>True while <see cref="Changed"/> reports changes made on another device.</summary>
+    public bool IsApplyingSync { get; private set; }
 
     private void Load()
     {

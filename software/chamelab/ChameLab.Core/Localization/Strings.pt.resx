@@ -4043,21 +4043,264 @@
     <value>A área de transferência não contém um link de cartão do ChameLab.</value>
   </data>
   <data name="Sync_AlreadyInGroup" xml:space="preserve">
-    <value>This device is already in a sync group.</value>
+    <value>Este dispositivo já está num grupo de sincronização.</value>
   </data>
   <data name="Sync_NotACode" xml:space="preserve">
-    <value>That is not a ChameLab code. Type the code shown on the other device (like DE1-ABCD-1234) or scan its QR code.</value>
+    <value>Não é um código ChameLab. Digite o código mostrado no outro dispositivo (como DE1-ABCD-1234) ou leia o seu código QR.</value>
   </data>
   <data name="Sync_Refused" xml:space="preserve">
-    <value>The other device declined.</value>
+    <value>O outro dispositivo recusou.</value>
   </data>
   <data name="Sync_PairingFailed" xml:space="preserve">
-    <value>The other device did not answer as expected.</value>
+    <value>O outro dispositivo não respondeu como esperado.</value>
   </data>
   <data name="Sync_DeviceNotReachable" xml:space="preserve">
-    <value>The other device could not be reached.</value>
+    <value>Não foi possível contactar o outro dispositivo.</value>
   </data>
   <data name="Sync_WrongDevice" xml:space="preserve">
-    <value>The device that answered is not the one whose QR code was scanned.</value>
+    <value>O dispositivo que respondeu não é o do código QR lido.</value>
+  </data>
+  <data name="Plural_SyncDevicesConnected" xml:space="preserve">
+    <value>Online · {0} dispositivo ligado|Online · {0} dispositivos ligados</value>
+  </data>
+  <data name="Sync_Title" xml:space="preserve">
+    <value>Sincronização de dispositivos</value>
+  </data>
+  <data name="Sync_Caption" xml:space="preserve">
+    <value>Os mesmos cartões e dicionários em todos os seus dispositivos. Ficam apenas nos seus dispositivos: os relays só os ligam e tudo entre eles é cifrado.</value>
+  </data>
+  <data name="Sync_DeviceName" xml:space="preserve">
+    <value>Nome do dispositivo</value>
+  </data>
+  <data name="Sync_Start" xml:space="preserve">
+    <value>Iniciar sincronização</value>
+  </data>
+  <data name="Sync_StartTip" xml:space="preserve">
+    <value>Criar um grupo de sincronização com este dispositivo; adicione os outros depois</value>
+  </data>
+  <data name="Sync_Join" xml:space="preserve">
+    <value>Juntar-se a outro dispositivo</value>
+  </data>
+  <data name="Sync_JoinTip" xml:space="preserve">
+    <value>Juntar-se ao grupo de um dispositivo que já sincroniza</value>
+  </data>
+  <data name="Sync_JoinHint" xml:space="preserve">
+    <value>No outro dispositivo: Definições → Sincronização de dispositivos → Adicionar dispositivo. Leia o código QR ou digite o código mostrado. Os cartões deste dispositivo são adicionados ao grupo.</value>
+  </data>
+  <data name="Sync_Connect" xml:space="preserve">
+    <value>Ligar</value>
+  </data>
+  <data name="Sync_ScanQr" xml:space="preserve">
+    <value>Ler código QR</value>
+  </data>
+  <data name="Sync_ScanTheOtherDevice" xml:space="preserve">
+    <value>Aponte para o código QR do outro dispositivo</value>
+  </data>
+  <data name="Sync_NotASyncQr" xml:space="preserve">
+    <value>Não é um código de sincronização ChameLab</value>
+  </data>
+  <data name="Sync_Connecting" xml:space="preserve">
+    <value>A ligar…</value>
+  </data>
+  <data name="Sync_CompareDigitsJoin" xml:space="preserve">
+    <value>Confirme que o outro dispositivo mostra {0} e aprove lá.</value>
+  </data>
+  <data name="Sync_Joined" xml:space="preserve">
+    <value>Concluído. Os seus cartões estão a sincronizar.</value>
+  </data>
+  <data name="Sync_GroupCreated" xml:space="preserve">
+    <value>Sincronização ativada. Adicione os outros dispositivos.</value>
+  </data>
+  <data name="Sync_StatusPaused" xml:space="preserve">
+    <value>Em pausa</value>
+  </data>
+  <data name="Sync_StatusConnecting" xml:space="preserve">
+    <value>A ligar…</value>
+  </data>
+  <data name="Sync_StatusOnlineAlone" xml:space="preserve">
+    <value>Online · nenhum outro dispositivo ligado agora</value>
+  </data>
+  <data name="Sync_StatusOffline" xml:space="preserve">
+    <value>Nenhum relay acessível; dispositivos nesta rede continuam a sincronizar</value>
+  </data>
+  <data name="Sync_Devices" xml:space="preserve">
+    <value>Dispositivos</value>
+  </data>
+  <data name="Sync_ThisDevice" xml:space="preserve">
+    <value>Este dispositivo</value>
+  </data>
+  <data name="Sync_ConnectedLan" xml:space="preserve">
+    <value>Ligado · rede local</value>
+  </data>
+  <data name="Sync_ConnectedRelay" xml:space="preserve">
+    <value>Ligado · internet</value>
+  </data>
+  <data name="Sync_LastSeen" xml:space="preserve">
+    <value>Visto pela última vez {0}</value>
+  </data>
+  <data name="Sync_NotSeenYet" xml:space="preserve">
+    <value>Ainda não ligado</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>agora mesmo</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>há {0} min</value>
+  </data>
+  <data name="Sync_HoursAgo" xml:space="preserve">
+    <value>há {0} h</value>
+  </data>
+  <data name="Sync_RemoveDevice" xml:space="preserve">
+    <value>Remover dispositivo</value>
+  </data>
+  <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
+    <value>Deixa de receber alterações e o grupo muda para uma sala nova que ele não consegue encontrar. O que já tem continua nele. Para o voltar a adicionar é preciso emparelhar de novo.</value>
+  </data>
+  <data name="Sync_DeviceRemoved" xml:space="preserve">
+    <value>Dispositivo removido</value>
+  </data>
+  <data name="Sync_AddDevice" xml:space="preserve">
+    <value>Adicionar dispositivo</value>
+  </data>
+  <data name="Sync_AddDeviceTip" xml:space="preserve">
+    <value>Mostrar um código QR e um código para outro dispositivo entrar no grupo</value>
+  </data>
+  <data name="Sync_InviteHint" xml:space="preserve">
+    <value>No novo dispositivo: Definições → Sincronização de dispositivos → Juntar-se a outro dispositivo. Leia este código QR (na mesma rede funciona sem internet) ou digite o código.</value>
+  </data>
+  <data name="Sync_InviteWaiting" xml:space="preserve">
+    <value>À espera do outro dispositivo…</value>
+  </data>
+  <data name="Sync_DeviceWantsToJoin" xml:space="preserve">
+    <value>{0} quer juntar-se.</value>
+  </data>
+  <data name="Sync_CompareDigitsInvite" xml:space="preserve">
+    <value>{0} quer juntar-se. Adicione-o só se mostrar {1}.</value>
+  </data>
+  <data name="Sync_Accept" xml:space="preserve">
+    <value>Adicionar</value>
+  </data>
+  <data name="Sync_Decline" xml:space="preserve">
+    <value>Recusar</value>
+  </data>
+  <data name="Sync_DeviceAdded" xml:space="preserve">
+    <value>{0} adicionado</value>
+  </data>
+  <data name="Sync_Background" xml:space="preserve">
+    <value>Sincronizar em segundo plano</value>
+  </data>
+  <data name="Sync_BackgroundCaption" xml:space="preserve">
+    <value>Fechar a janela mantém o ChameLab na bandeja, para o telemóvel encontrar este computador</value>
+  </data>
+  <data name="Sync_StartWithSystem" xml:space="preserve">
+    <value>Iniciar com o sistema</value>
+  </data>
+  <data name="Sync_StartWithSystemCaption" xml:space="preserve">
+    <value>Inicia na bandeja quando inicia sessão</value>
+  </data>
+  <data name="Sync_RecentlyDeleted" xml:space="preserve">
+    <value>Eliminados recentemente</value>
+  </data>
+  <data name="Sync_Restore" xml:space="preserve">
+    <value>Restaurar</value>
+  </data>
+  <data name="Sync_Restored" xml:space="preserve">
+    <value>Restaurado</value>
+  </data>
+  <data name="Sync_Leave" xml:space="preserve">
+    <value>Parar de sincronizar</value>
+  </data>
+  <data name="Sync_LeaveTip" xml:space="preserve">
+    <value>Sair do grupo neste dispositivo; os cartões ficam</value>
+  </data>
+  <data name="Sync_LeaveConfirm" xml:space="preserve">
+    <value>Este dispositivo sai do grupo e esquece o histórico. Os cartões e dicionários ficam como estão; os outros continuam a sincronizar.</value>
+  </data>
+  <data name="Sync_Left" xml:space="preserve">
+    <value>Sincronização desativada neste dispositivo</value>
+  </data>
+  <data name="Sync_ConflictSuffix" xml:space="preserve">
+    <value> (conflito)</value>
+  </data>
+  <data name="Sync_SendToDevice" xml:space="preserve">
+    <value>Enviar para outro dispositivo</value>
+  </data>
+  <data name="Sync_SendToDeviceTip" xml:space="preserve">
+    <value>Enviar este cartão para qualquer ChameLab, seu ou de outra pessoa, por código QR ou código</value>
+  </data>
+  <data name="Sync_SendHint" xml:space="preserve">
+    <value>No outro dispositivo: Cartões → Adicionar → leia este código QR, ou Receber de um dispositivo e digite o código.</value>
+  </data>
+  <data name="Sync_SendWaiting" xml:space="preserve">
+    <value>À espera do outro dispositivo…</value>
+  </data>
+  <data name="Sync_CompareDigitsSend" xml:space="preserve">
+    <value>Envie só se {0} mostrar {1}.</value>
+  </data>
+  <data name="Sync_Send" xml:space="preserve">
+    <value>Enviar</value>
+  </data>
+  <data name="Sync_Sending" xml:space="preserve">
+    <value>A enviar…</value>
+  </data>
+  <data name="Sync_CardSent" xml:space="preserve">
+    <value>Cartão enviado para {0}</value>
+  </data>
+  <data name="Sync_History" xml:space="preserve">
+    <value>Histórico</value>
+  </data>
+  <data name="Sync_HistoryTip" xml:space="preserve">
+    <value>Versões anteriores deste cartão, de todos os seus dispositivos</value>
+  </data>
+  <data name="Sync_HistoryHint" xml:space="preserve">
+    <value>Restaurar repõe o cartão como estava logo após essa alteração, em todos os dispositivos.</value>
+  </data>
+  <data name="Sync_NoHistory" xml:space="preserve">
+    <value>Ainda não há versões anteriores.</value>
+  </data>
+  <data name="Sync_HistoryDeleted" xml:space="preserve">
+    <value>eliminado</value>
+  </data>
+  <data name="Sync_FieldName" xml:space="preserve">
+    <value>nome</value>
+  </data>
+  <data name="Sync_FieldColor" xml:space="preserve">
+    <value>cor</value>
+  </data>
+  <data name="Sync_FieldFolder" xml:space="preserve">
+    <value>pasta</value>
+  </data>
+  <data name="Sync_FieldData" xml:space="preserve">
+    <value>dump</value>
+  </data>
+  <data name="Sync_FieldIdentity" xml:space="preserve">
+    <value>tipo e UID</value>
+  </data>
+  <data name="Sync_Receive" xml:space="preserve">
+    <value>Receber de um dispositivo</value>
+  </data>
+  <data name="Sync_ReceiveCaption" xml:space="preserve">
+    <value>Cartões enviados por outro ChameLab</value>
+  </data>
+  <data name="Sync_ReceiveTip" xml:space="preserve">
+    <value>Digite o código que outro ChameLab mostra em Exportar → Enviar para outro dispositivo (ou leia o seu código QR)</value>
+  </data>
+  <data name="Sync_ReceiveHint" xml:space="preserve">
+    <value>Digite o código que o outro dispositivo mostra. Os cartões vão para a pasta aberta.</value>
+  </data>
+  <data name="Sync_CompareDigitsReceive" xml:space="preserve">
+    <value>Confirme que o dispositivo que envia mostra {0}; envia depois de aprovado lá.</value>
+  </data>
+  <data name="Sync_CardsReceived" xml:space="preserve">
+    <value>Recebido: {0}</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>Abrir ChameLab</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>Sair</value>
+  </data>
+  <data name="Tray_Tooltip" xml:space="preserve">
+    <value>ChameLab · a sincronizar em segundo plano</value>
   </data>
 </root>

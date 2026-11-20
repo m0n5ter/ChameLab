@@ -21,6 +21,8 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
         AppServices.Register(new ITransportScanner[] { new BleScanner() }, dfu: new IDfuLocator[] { new BleDfuLocator() },
             feedback: new IosFeedbackPlayer(), hardnested: new ManagedHardnestedEngine(),
             wakeLock: new WakeLockService(IosWakeLock.AcquireAsync), qrCamera: new IosQrCamera());
+        Sync.SyncService.LanDiscovery = () => new IosLanDiscovery();
+        Sync.SyncService.DefaultDeviceName = UIKit.UIDevice.CurrentDevice.Name;
         return base.CustomizeAppBuilder(builder)
             .WithInterFont()
             .UseReactiveUI(_ => { });

@@ -6,6 +6,12 @@
 	<string>ChameLab</string>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/AppIcon</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>ChameLab finds your other devices on this network to sync cards without the internet.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_chamelab-sync._tcp</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan QR codes of cards shared from ChameLab.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>

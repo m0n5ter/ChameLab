@@ -48,7 +48,7 @@ public sealed record CardTypeOption(TagSpecificType? Tag)
 }
 
 /// <summary>Which action panel is open under a saved card.</summary>
-public enum CardAction { None, Slots, Write, Delete, Qr }
+public enum CardAction { None, Slots, Write, Delete, Qr, Send, History }
 
 /// <summary>
 /// A saved dictionary in the Save keys menu, shown like its row in the dictionary list: choosing
@@ -215,6 +215,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         CancelDumpCommand = ReactiveCommand.Create(CancelDump);
         SkipSectorCommand = ReactiveCommand.Create(SkipSector, this.WhenAnyValue(x => x.ShowSkipSector));
         InitQr();
+        InitSync();
         ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
         ManualCommand = ReactiveCommand.Create(BeginManual);
         CancelAddCommand = ReactiveCommand.Create(CancelAdd);
@@ -904,7 +905,14 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var reselect = selectedId is null ? null
             : Cards.FirstOrDefault(c => c.Card.Id == selectedId)
                 ?? (_library.Cards.Any(c => c.Id == selectedId) ? _selected : null);
-        if (reselect is not null && _form is not null && _pane == CardsPane.Card)
+        if (reselect is not null && _form is not null && _pane == CardsPane.Card
+            && _library.IsApplyingSync && !_form.IsDirty && !ReferenceEquals(reselect.Card, _selected?.Card))
+        {
+            // Another device changed the open card: show its new state (nothing was edited here).
+            _selected = null;
+            SetSelected(reselect);
+        }
+        else if (reselect is not null && _form is not null && _pane == CardsPane.Card)
         {
             // Same card, new list item: keep the editor (and any unsaved edits) as they are.
             _selected = reselect;
@@ -2227,6 +2235,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             this.RaisePropertyChanged(nameof(ShowEditor));
             this.RaisePropertyChanged(nameof(ShowMemoryEditor));
             OnQrActionChanged();
+            OnSyncActionChanged();
         }
     }
 

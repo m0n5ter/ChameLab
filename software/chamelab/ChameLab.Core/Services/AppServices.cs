@@ -33,6 +33,9 @@ public static class AppServices
 
     public static DictionaryLibrary Dictionaries => field ??= new DictionaryLibrary(Store);
 
+    /// <summary>Device sync of the libraries (set <see cref="Sync.SyncService.Ui"/> before the first use).</summary>
+    public static Sync.SyncService Sync => field ??= new Sync.SyncService(Store, Cards, Dictionaries);
+
     /// <summary>Sharing a local device over the internet through the relay.</summary>
     public static DeviceSharingService Sharing => field ??= new DeviceSharingService(Device, WakeLock);
 

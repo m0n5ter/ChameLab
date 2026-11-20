@@ -4077,4 +4077,247 @@
   <data name="Sync_WrongDevice" xml:space="preserve">
     <value>The device that answered is not the one whose QR code was scanned.</value>
   </data>
+  <data name="Plural_SyncDevicesConnected" xml:space="preserve">
+    <value>Online · {0} device connected|Online · {0} devices connected</value>
+  </data>
+  <data name="Sync_Title" xml:space="preserve">
+    <value>Device sync</value>
+  </data>
+  <data name="Sync_Caption" xml:space="preserve">
+    <value>Keep your cards and dictionaries the same on all your devices. They stay only on your devices: relays just connect them, and everything between them is encrypted.</value>
+  </data>
+  <data name="Sync_DeviceName" xml:space="preserve">
+    <value>Device name</value>
+  </data>
+  <data name="Sync_Start" xml:space="preserve">
+    <value>Start sync</value>
+  </data>
+  <data name="Sync_StartTip" xml:space="preserve">
+    <value>Start a sync group with this device; add your other devices to it afterwards</value>
+  </data>
+  <data name="Sync_Join" xml:space="preserve">
+    <value>Join another device</value>
+  </data>
+  <data name="Sync_JoinTip" xml:space="preserve">
+    <value>Join the sync group of a device that already syncs</value>
+  </data>
+  <data name="Sync_JoinHint" xml:space="preserve">
+    <value>On the other device: Settings → Device sync → Add device. Scan its QR code, or type the code it shows. This device's cards are added to the group.</value>
+  </data>
+  <data name="Sync_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Sync_ScanQr" xml:space="preserve">
+    <value>Scan QR code</value>
+  </data>
+  <data name="Sync_ScanTheOtherDevice" xml:space="preserve">
+    <value>Point at the QR code on the other device</value>
+  </data>
+  <data name="Sync_NotASyncQr" xml:space="preserve">
+    <value>Not a ChameLab sync code</value>
+  </data>
+  <data name="Sync_Connecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="Sync_CompareDigitsJoin" xml:space="preserve">
+    <value>Check that the other device shows {0}, and confirm there.</value>
+  </data>
+  <data name="Sync_Joined" xml:space="preserve">
+    <value>Joined. Your cards are syncing.</value>
+  </data>
+  <data name="Sync_GroupCreated" xml:space="preserve">
+    <value>Sync is on. Add your other devices.</value>
+  </data>
+  <data name="Sync_StatusPaused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="Sync_StatusConnecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="Sync_StatusOnlineAlone" xml:space="preserve">
+    <value>Online · no other device connected right now</value>
+  </data>
+  <data name="Sync_StatusOffline" xml:space="preserve">
+    <value>No relay reachable; devices on this network still sync</value>
+  </data>
+  <data name="Sync_Devices" xml:space="preserve">
+    <value>Devices</value>
+  </data>
+  <data name="Sync_ThisDevice" xml:space="preserve">
+    <value>This device</value>
+  </data>
+  <data name="Sync_ConnectedLan" xml:space="preserve">
+    <value>Connected · local network</value>
+  </data>
+  <data name="Sync_ConnectedRelay" xml:space="preserve">
+    <value>Connected · internet</value>
+  </data>
+  <data name="Sync_LastSeen" xml:space="preserve">
+    <value>Last seen {0}</value>
+  </data>
+  <data name="Sync_NotSeenYet" xml:space="preserve">
+    <value>Not connected yet</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>just now</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>{0} min ago</value>
+  </data>
+  <data name="Sync_HoursAgo" xml:space="preserve">
+    <value>{0} h ago</value>
+  </data>
+  <data name="Sync_RemoveDevice" xml:space="preserve">
+    <value>Remove device</value>
+  </data>
+  <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
+    <value>It gets no further changes, and the group moves to a new room it cannot find. What it already has stays on it. Adding it back needs a new pairing.</value>
+  </data>
+  <data name="Sync_DeviceRemoved" xml:space="preserve">
+    <value>Device removed</value>
+  </data>
+  <data name="Sync_AddDevice" xml:space="preserve">
+    <value>Add device</value>
+  </data>
+  <data name="Sync_AddDeviceTip" xml:space="preserve">
+    <value>Show a QR code and a code for another device to join this group</value>
+  </data>
+  <data name="Sync_InviteHint" xml:space="preserve">
+    <value>On the new device: Settings → Device sync → Join another device. Scan this QR code (it works without the internet on the same network), or type the code.</value>
+  </data>
+  <data name="Sync_InviteWaiting" xml:space="preserve">
+    <value>Waiting for the other device…</value>
+  </data>
+  <data name="Sync_DeviceWantsToJoin" xml:space="preserve">
+    <value>{0} wants to join.</value>
+  </data>
+  <data name="Sync_CompareDigitsInvite" xml:space="preserve">
+    <value>{0} wants to join. Add it only if it shows {1}.</value>
+  </data>
+  <data name="Sync_Accept" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Sync_Decline" xml:space="preserve">
+    <value>Decline</value>
+  </data>
+  <data name="Sync_DeviceAdded" xml:space="preserve">
+    <value>{0} added</value>
+  </data>
+  <data name="Sync_Background" xml:space="preserve">
+    <value>Sync in the background</value>
+  </data>
+  <data name="Sync_BackgroundCaption" xml:space="preserve">
+    <value>Closing the window keeps ChameLab in the tray, so your phone finds this computer</value>
+  </data>
+  <data name="Sync_StartWithSystem" xml:space="preserve">
+    <value>Start with the system</value>
+  </data>
+  <data name="Sync_StartWithSystemCaption" xml:space="preserve">
+    <value>Starts in the tray when you sign in</value>
+  </data>
+  <data name="Sync_RecentlyDeleted" xml:space="preserve">
+    <value>Recently deleted</value>
+  </data>
+  <data name="Sync_Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Sync_Restored" xml:space="preserve">
+    <value>Restored</value>
+  </data>
+  <data name="Sync_Leave" xml:space="preserve">
+    <value>Stop syncing</value>
+  </data>
+  <data name="Sync_LeaveTip" xml:space="preserve">
+    <value>Leave the group on this device; the cards stay</value>
+  </data>
+  <data name="Sync_LeaveConfirm" xml:space="preserve">
+    <value>This device leaves the group and forgets its history. Its cards and dictionaries stay as they are; the other devices keep syncing.</value>
+  </data>
+  <data name="Sync_Left" xml:space="preserve">
+    <value>Sync is off on this device</value>
+  </data>
+  <data name="Sync_ConflictSuffix" xml:space="preserve">
+    <value> (conflict)</value>
+  </data>
+  <data name="Sync_SendToDevice" xml:space="preserve">
+    <value>Send to another device</value>
+  </data>
+  <data name="Sync_SendToDeviceTip" xml:space="preserve">
+    <value>Send this card to any ChameLab, yours or someone else's, by QR code or code</value>
+  </data>
+  <data name="Sync_SendHint" xml:space="preserve">
+    <value>On the other device: Cards → Add → scan this QR code, or Receive from a device and type the code.</value>
+  </data>
+  <data name="Sync_SendWaiting" xml:space="preserve">
+    <value>Waiting for the other device…</value>
+  </data>
+  <data name="Sync_CompareDigitsSend" xml:space="preserve">
+    <value>Send only if {0} shows {1}.</value>
+  </data>
+  <data name="Sync_Send" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="Sync_Sending" xml:space="preserve">
+    <value>Sending…</value>
+  </data>
+  <data name="Sync_CardSent" xml:space="preserve">
+    <value>Card sent to {0}</value>
+  </data>
+  <data name="Sync_History" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="Sync_HistoryTip" xml:space="preserve">
+    <value>Earlier versions of this card, from all your devices</value>
+  </data>
+  <data name="Sync_HistoryHint" xml:space="preserve">
+    <value>Restore puts the card back as it was right after that change, on every device.</value>
+  </data>
+  <data name="Sync_NoHistory" xml:space="preserve">
+    <value>No earlier versions yet.</value>
+  </data>
+  <data name="Sync_HistoryDeleted" xml:space="preserve">
+    <value>deleted</value>
+  </data>
+  <data name="Sync_FieldName" xml:space="preserve">
+    <value>name</value>
+  </data>
+  <data name="Sync_FieldColor" xml:space="preserve">
+    <value>color</value>
+  </data>
+  <data name="Sync_FieldFolder" xml:space="preserve">
+    <value>folder</value>
+  </data>
+  <data name="Sync_FieldData" xml:space="preserve">
+    <value>dump</value>
+  </data>
+  <data name="Sync_FieldIdentity" xml:space="preserve">
+    <value>type and UID</value>
+  </data>
+  <data name="Sync_Receive" xml:space="preserve">
+    <value>Receive from a device</value>
+  </data>
+  <data name="Sync_ReceiveCaption" xml:space="preserve">
+    <value>Cards another ChameLab sends</value>
+  </data>
+  <data name="Sync_ReceiveTip" xml:space="preserve">
+    <value>Type the code another ChameLab shows under Export → Send to another device (or scan its QR code with Scan QR code)</value>
+  </data>
+  <data name="Sync_ReceiveHint" xml:space="preserve">
+    <value>Type the code the other device shows. Cards go into the folder shown.</value>
+  </data>
+  <data name="Sync_CompareDigitsReceive" xml:space="preserve">
+    <value>Check that the sending device shows {0}; it sends once confirmed there.</value>
+  </data>
+  <data name="Sync_CardsReceived" xml:space="preserve">
+    <value>Received {0}</value>
+  </data>
+  <data name="Tray_Open" xml:space="preserve">
+    <value>Open ChameLab</value>
+  </data>
+  <data name="Tray_Quit" xml:space="preserve">
+    <value>Quit</value>
+  </data>
+  <data name="Tray_Tooltip" xml:space="preserve">
+    <value>ChameLab · syncing in the background</value>
+  </data>
 </root>
