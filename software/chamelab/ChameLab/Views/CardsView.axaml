@@ -9,6 +9,38 @@
              x:Class="ChameLab.Views.CardsView"
              x:DataType="vm:CardsViewModel">
 
+  <UserControl.Resources>
+    <DataTemplate x:Key="CardListItemTemplate" x:DataType="vm:CardItemViewModel">
+      <Panel>
+        <Border Classes="cardrow"><Border Classes="cardclip">
+          <Grid ColumnDefinitions="8,*,Auto,Auto" ColumnSpacing="14">
+            <Border Grid.Column="0" Background="{Binding ColorBrush}" />
+            <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
+              <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
+              <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <Panel Grid.Column="2" VerticalAlignment="Center">
+              <Border Classes="chip hf" IsVisible="{Binding IsHf}"><TextBlock Text="HF" /></Border>
+              <Border Classes="chip lf" IsVisible="{Binding IsLf}"><TextBlock Text="LF" /></Border>
+              <Border Classes="chip" IsVisible="{Binding IsUnknownType}"
+                      Background="{actipro:ThemeResource Container3BackgroundBrush}">
+                <TextBlock Text="?" />
+              </Border>
+            </Panel>
+            <Button Grid.Column="3" Classes="icon small" IsVisible="{Binding IsSavedMatch}"
+                    Command="{Binding $parent[UserControl].((vm:CardsViewModel)DataContext).OpenContinuousCardCommand}"
+                    CommandParameter="{Binding}" ToolTip.Tip="{x:Static loc:Strings.Cards_OpenTheSavedCard}"
+                    AutomationProperties.Name="{x:Static loc:Strings.Cards_OpenTheSavedCard}">
+              <PathIcon Data="{StaticResource Icon.edit}" Width="16" Height="16" />
+            </Button>
+          </Grid>
+        </Border></Border>
+        <Border Classes="dragframe" />
+      </Panel>
+    </DataTemplate>
+  </UserControl.Resources>
+
   <UserControl.Styles>
     <!-- Wide: list on the left, add / edit pane on the right (SplitLayout sizes the column).
          Narrow ("single"): one at a time. -->
@@ -40,12 +72,44 @@
       <Setter Property="Padding" Value="14" />
       <Setter Property="CornerRadius" Value="10" />
     </Style>
-    <Style Selector="Button.tile.source Border.iconwell">
+    <Style Selector="Border.scan-source">
+      <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style Selector="Button.scanpart">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Height" Value="58" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.scan-main">
+      <Setter Property="Padding" Value="14" />
+      <Setter Property="CornerRadius" Value="9,0,0,9" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.scan-continuous">
+      <Setter Property="Width" Value="52" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="0,9,9,0" />
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1,0,0,0" />
+    </Style>
+    <Style Selector="Button.scanpart:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
+    </Style>
+    <Style Selector="Button.scan-continuous:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{actipro:ThemeResource ControlBackgroundBrushSoftAccent}" />
+      <Setter Property="Foreground" Value="{actipro:ThemeResource ControlForegroundBrushSoftAccent}" />
+    </Style>
+    <Style Selector="Border.scan-source Border.iconwell">
       <Setter Property="Width" Value="32" />
       <Setter Property="Height" Value="32" />
       <Setter Property="CornerRadius" Value="8" />
     </Style>
-    <Style Selector="Button.tile.source Border.iconwell > PathIcon">
+    <Style Selector="Button.tile.source Border.iconwell > PathIcon, Border.scan-source Border.iconwell > PathIcon">
       <Setter Property="Width" Value="16" />
       <Setter Property="Height" Value="16" />
     </Style>
@@ -317,33 +381,7 @@
               <TextBlock Classes="caption" Margin="12,0,12,8" TextWrapping="Wrap" IsVisible="{Binding IsFolderEmpty}"
                          Text="{x:Static loc:Strings.Cards_NoCardsInThisFolderYet}" />
               <ListBox Name="CardList" Classes="cards" ItemsSource="{Binding Cards}" Padding="8,0,8,12"
-                       SelectedItem="{Binding Selected}">
-                <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="vm:CardItemViewModel">
-                    <Panel>
-                      <Border Classes="cardrow"><Border Classes="cardclip">
-                        <Grid ColumnDefinitions="8,*,Auto" ColumnSpacing="14">
-                          <Border Grid.Column="0" Background="{Binding ColorBrush}" />
-                          <StackPanel Grid.Column="1" Margin="0,10" Spacing="0">
-                            <c:Marquee><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" /></c:Marquee>
-                            <TextBlock Text="{Binding Summary}" Classes="caption" TextWrapping="NoWrap"
-                                       TextTrimming="CharacterEllipsis" />
-                          </StackPanel>
-                          <Panel Grid.Column="2" VerticalAlignment="Center">
-                            <Border Classes="chip hf" IsVisible="{Binding IsHf}"><TextBlock Text="HF" /></Border>
-                            <Border Classes="chip lf" IsVisible="{Binding IsLf}"><TextBlock Text="LF" /></Border>
-                            <Border Classes="chip" IsVisible="{Binding IsUnknownType}"
-                                    Background="{actipro:ThemeResource Container3BackgroundBrush}">
-                              <TextBlock Text="?" />
-                            </Border>
-                          </Panel>
-                        </Grid>
-                      </Border></Border>
-                      <Border Classes="dragframe" />
-                    </Panel>
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
+                       SelectedItem="{Binding Selected}" ItemTemplate="{StaticResource CardListItemTemplate}" />
 
               <!-- The folders in the one shown (or in Cards), after its own cards. A tile opens its folder, and
                    cards are dragged onto it like onto a folder in the navigation pane (see ListReorder). -->
@@ -621,30 +659,48 @@
               </Grid>
 
               <c:FitGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
-                <Button Classes="tile source" Command="{Binding ScanHfCommand}" IsVisible="{Binding IsConnected}"
-                        ToolTip.Tip="{x:Static loc:Strings.Cards_ScanAnISO14443ATagThe}">
-                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                    <Border Classes="iconwell blue" VerticalAlignment="Center">
-                      <PathIcon Data="{StaticResource Icon.scan}" />
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                      <TextBlock Text="{x:Static loc:Strings.Cards_ScanHF}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{x:Static loc:Strings.Cards_1356MHz}" Classes="caption" TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
+                <Border Classes="scan-source" IsVisible="{Binding IsConnected}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <Button Grid.Column="0" Classes="scanpart scan-main" Command="{Binding ScanHfCommand}"
+                            ToolTip.Tip="{x:Static loc:Strings.Cards_ScanAnISO14443ATagThe}">
+                      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Border Classes="iconwell blue" VerticalAlignment="Center">
+                          <PathIcon Data="{StaticResource Icon.scan}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                          <TextBlock Text="{x:Static loc:Strings.Cards_ScanHF}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{x:Static loc:Strings.Cards_1356MHz}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </Grid>
+                    </Button>
+                    <Button Grid.Column="1" Classes="scanpart scan-continuous" Command="{Binding OpenHfContinuousScanCommand}"
+                            ToolTip.Tip="{x:Static loc:Strings.Cards_ContinuousScanTip}"
+                            AutomationProperties.Name="{x:Static loc:Strings.Cards_ContinuousScanTip}">
+                      <PathIcon Data="{StaticResource Icon.refresh}" Width="18" Height="18" />
+                    </Button>
                   </Grid>
-                </Button>
-                <Button Classes="tile source" Command="{Binding ScanLfCommand}" IsVisible="{Binding IsConnected}"
-                        ToolTip.Tip="{x:Static loc:Strings.Cards_ScanA125KHzTagOf}">
-                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                    <Border Classes="iconwell amber" VerticalAlignment="Center">
-                      <PathIcon Data="{StaticResource Icon.scan}" />
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                      <TextBlock Text="{x:Static loc:Strings.Cards_ScanLF}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Text="{x:Static loc:Strings.Common_125KHz}" Classes="caption" TextTrimming="CharacterEllipsis" />
-                    </StackPanel>
+                </Border>
+                <Border Classes="scan-source" IsVisible="{Binding IsConnected}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <Button Grid.Column="0" Classes="scanpart scan-main" Command="{Binding ScanLfCommand}"
+                            ToolTip.Tip="{x:Static loc:Strings.Cards_ScanA125KHzTagOf}">
+                      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Border Classes="iconwell amber" VerticalAlignment="Center">
+                          <PathIcon Data="{StaticResource Icon.scan}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                          <TextBlock Text="{x:Static loc:Strings.Cards_ScanLF}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{x:Static loc:Strings.Common_125KHz}" Classes="caption" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </Grid>
+                    </Button>
+                    <Button Grid.Column="1" Classes="scanpart scan-continuous" Command="{Binding OpenLfContinuousScanCommand}"
+                            ToolTip.Tip="{x:Static loc:Strings.Cards_ContinuousScanTip}"
+                            AutomationProperties.Name="{x:Static loc:Strings.Cards_ContinuousScanTip}">
+                      <PathIcon Data="{StaticResource Icon.refresh}" Width="18" Height="18" />
+                    </Button>
                   </Grid>
-                </Button>
+                </Border>
                 <Button Classes="tile source" Command="{Binding ImportCommand}" IsEnabled="{Binding CanUseFiles}"
                         ToolTip.Tip="{x:Static loc:Strings.Cards_ImportJSONFlipperNfcRfidProxmark3}">
                   <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
@@ -728,6 +784,36 @@
               <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
                          Text="{x:Static loc:Strings.Cards_ConnectAChameleonToScanTags}" />
 
+            </StackPanel>
+          </Border>
+
+          <!-- ===================== Continuous scan ===================== -->
+          <Border Classes="card" IsVisible="{Binding IsContinuousScan}">
+            <StackPanel Spacing="14">
+              <Grid ColumnDefinitions="Auto,*">
+                <Button Grid.Column="0" Classes="icon" Margin="-8,0,6,0" VerticalAlignment="Top"
+                        Command="{Binding CloseContinuousScanCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
+                        b:DialogKeys.IsBack="True">
+                  <PathIcon Data="{StaticResource Icon.back}" />
+                </Button>
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding ContinuousScan.Title}" Classes="h2" />
+                  <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ContinuousScan.IsRunning}">
+                    <PathIcon Data="{StaticResource Icon.scan}" Width="15" Height="15"
+                              Foreground="{actipro:ThemeResource ControlForegroundBrushOutlineAccent}"
+                              b:Pulse.IsActive="{Binding ContinuousScan.IsRunning}" />
+                    <TextBlock Text="{x:Static loc:Strings.Cards_ContinuousScanning}" Classes="caption" VerticalAlignment="Center" />
+                  </StackPanel>
+                </StackPanel>
+              </Grid>
+
+              <TextBlock Text="{Binding ContinuousScan.Instruction}" TextWrapping="Wrap" Classes="caption hint" />
+              <TextBlock Text="{x:Static loc:Strings.Cards_ContinuousScanEmpty}" Classes="caption" TextWrapping="Wrap"
+                         HorizontalAlignment="Center" Margin="12" IsVisible="{Binding !ContinuousScan.HasCards}" />
+
+              <ListBox Classes="cards" ItemsSource="{Binding ContinuousScan.Cards}" Padding="8,0,8,12"
+                       SelectedItem="{Binding ContinuousScan.Selected}" ItemTemplate="{StaticResource CardListItemTemplate}"
+                       Tapped="OnContinuousCardTapped" />
             </StackPanel>
           </Border>
 

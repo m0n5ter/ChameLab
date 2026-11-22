@@ -735,6 +735,21 @@
   <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
     <value>扫描 ISO14443-A 标签；设备会切换到读卡器模式</value>
   </data>
+  <data name="Cards_ContinuousScanEmpty" xml:space="preserve">
+    <value>尚未找到卡片。</value>
+  </data>
+  <data name="Cards_ContinuousScanInstruction" xml:space="preserve">
+    <value>将卡片靠近设备。每张卡片只添加一次；再次检测到同一卡片时会将其高亮。点按卡片即可编辑。</value>
+  </data>
+  <data name="Cards_ContinuousScanning" xml:space="preserve">
+    <value>正在扫描…</value>
+  </data>
+  <data name="Cards_ContinuousScanTip" xml:space="preserve">
+    <value>连续扫描并收集找到的所有卡片</value>
+  </data>
+  <data name="Cards_ContinuousScanTitle" xml:space="preserve">
+    <value>连续扫描 {0}</value>
+  </data>
   <data name="Cards_ScanHF" xml:space="preserve">
     <value>扫描 HF</value>
   </data>

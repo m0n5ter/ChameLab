@@ -26,6 +26,13 @@ public partial class CardsView : UserControl
         _ = new ListReorder(NdefList, PaneScroll);
     }
 
+    private void OnContinuousCardTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is not Control { DataContext: CardItemViewModel row } || DataContext is not CardsViewModel vm) return;
+        if (vm.OpenContinuousCardCommand.CanExecute(row)) vm.OpenContinuousCardCommand.Execute(row);
+        e.Handled = true;
+    }
+
     // ---- Memory editor ---------------------------------------------------------
 
     /// <summary>

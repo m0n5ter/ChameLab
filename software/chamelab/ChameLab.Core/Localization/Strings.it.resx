@@ -735,6 +735,21 @@
   <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
     <value>Leggi un tag ISO14443-A; il dispositivo passa in modalità lettore</value>
   </data>
+  <data name="Cards_ContinuousScanEmpty" xml:space="preserve">
+    <value>Nessuna carta trovata.</value>
+  </data>
+  <data name="Cards_ContinuousScanInstruction" xml:space="preserve">
+    <value>Avvicina le carte al dispositivo. Ogni carta viene aggiunta una sola volta; se viene rilevata di nuovo, viene evidenziata. Tocca una carta per modificarla.</value>
+  </data>
+  <data name="Cards_ContinuousScanning" xml:space="preserve">
+    <value>Scansione in corso…</value>
+  </data>
+  <data name="Cards_ContinuousScanTip" xml:space="preserve">
+    <value>Scansione continua e raccolta di tutte le carte trovate</value>
+  </data>
+  <data name="Cards_ContinuousScanTitle" xml:space="preserve">
+    <value>Scansione {0} continua</value>
+  </data>
   <data name="Cards_ScanHF" xml:space="preserve">
     <value>Leggi HF</value>
   </data>

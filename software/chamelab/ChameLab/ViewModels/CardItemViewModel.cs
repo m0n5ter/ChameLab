@@ -12,6 +12,7 @@ namespace ChameLab.ViewModels;
 public sealed class CardItemViewModel(CardSave card) : ViewModelBase
 {
     public CardSave Card { get; } = card;
+    public bool IsSavedMatch { get; init; }
 
     public string Name => string.IsNullOrWhiteSpace(Card.Name) ? Strings.Common_NoName : Card.Name;
     public string TypeLabel => Card.Tag.DisplayName();

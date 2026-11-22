@@ -190,6 +190,7 @@ public sealed partial class CardsViewModel
 
     public override async Task OnDeactivatedAsync()
     {
+        await ContinuousScan.StopAsync();
         WriteRecovery.Cancel();
         if (WriteRecovery.RunningTask is { IsCompleted: false } recovery) await recovery;
         CancelWrite();

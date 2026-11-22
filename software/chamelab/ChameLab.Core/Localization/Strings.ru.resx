@@ -366,6 +366,21 @@
   <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
     <value>Сканировать метку ISO14443-A; устройство перейдёт в режим считывателя</value>
   </data>
+  <data name="Cards_ContinuousScanEmpty" xml:space="preserve">
+    <value>Карты пока не найдены.</value>
+  </data>
+  <data name="Cards_ContinuousScanInstruction" xml:space="preserve">
+    <value>Подносите карты к устройству. Каждая карта добавляется только один раз; повторное обнаружение выделяет её в списке. Нажмите на карту, чтобы открыть редактирование.</value>
+  </data>
+  <data name="Cards_ContinuousScanning" xml:space="preserve">
+    <value>Сканирование…</value>
+  </data>
+  <data name="Cards_ContinuousScanTip" xml:space="preserve">
+    <value>Постоянно сканировать и собирать все найденные карты</value>
+  </data>
+  <data name="Cards_ContinuousScanTitle" xml:space="preserve">
+    <value>Постоянное сканирование {0}</value>
+  </data>
   <data name="Cards_ScanHF" xml:space="preserve">
     <value>Сканировать HF</value>
   </data>

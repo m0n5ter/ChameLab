@@ -20,7 +20,7 @@ namespace ChameLab.ViewModels;
 public sealed record ScanResultRow(string Field, string Value);
 
 /// <summary>What the right-hand pane of the Cards page shows.</summary>
-public enum CardsPane { None, Add, Card }
+public enum CardsPane { None, Add, Scan, Card }
 
 /// <summary>Order of the card list; <see cref="Manual"/> is the library's own order, changed by dragging.</summary>
 public enum CardSort { Manual, Name, NameDesc, Type, TypeDesc }
@@ -135,6 +135,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _device = device;
         _library = library;
         _dictionaries = dictionaries;
+        ContinuousScan = new ContinuousScanViewModel(device, FindScanMatch, ReportError);
         FolderTree = new FolderBrowser(library, "cardFoldersExpanded", () => Strings.Nav_Cards,
             n => Loc.Plural(Strings.Plural_Cards, n),
             (n, name, to) => Loc.Plural(Strings.Plural_DeletedFolderCards, n, name, to),
@@ -180,6 +181,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         ScanHfCommand = ReactiveCommand.CreateFromTask(ScanHfAsync, connected);
         ScanLfCommand = ReactiveCommand.CreateFromTask(ScanLfAsync, connected);
+        var canStartContinuous = connected.CombineLatest(this.WhenAnyValue(x => x.IsBusy), (online, busy) => online && !busy);
+        OpenHfContinuousScanCommand = ReactiveCommand.CreateFromTask(() => StartContinuousScanAsync(CardBand.Hf), canStartContinuous);
+        OpenLfContinuousScanCommand = ReactiveCommand.CreateFromTask(() => StartContinuousScanAsync(CardBand.Lf), canStartContinuous);
+        CloseContinuousScanCommand = ReactiveCommand.CreateFromTask(CloseContinuousScanAsync);
+        OpenContinuousCardCommand = ReactiveCommand.CreateFromTask<CardItemViewModel>(OpenContinuousCardAsync);
         DumpCommand = ReactiveCommand.CreateFromTask(DumpAsync,
             this.WhenAnyValue(x => x.CanDump, x => x.IsConnected, x => x.DumpKeyCount, x => x.IsUltralightDump,
                     x => x.DumpPasswordError, x => x.IsBusy,
@@ -263,6 +269,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             if (IsConnected) _ = RefreshSlotsAsync();
             if (!IsConnected)
             {
+                _ = ContinuousScan.StopAsync();
                 if (_mfkey32Running) CancelDump();
                 _slotInfos = Array.Empty<SlotInfo>();
                 RebuildTargets();
@@ -611,8 +618,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         get => _pane;
         private set
         {
+            if (_pane == CardsPane.Scan && value != CardsPane.Scan) _ = ContinuousScan.StopAsync();
             this.RaiseAndSetIfChanged(ref _pane, value);
             this.RaisePropertyChanged(nameof(IsAdding));
+            this.RaisePropertyChanged(nameof(IsContinuousScan));
             this.RaisePropertyChanged(nameof(ShowMfkey32));
             this.RaisePropertyChanged(nameof(IsCardOpen));
             this.RaisePropertyChanged(nameof(HasPane));
@@ -629,6 +638,8 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     public bool ShowCardHeader => IsCardOpen || IsEditingNew;
 
     public bool IsAdding => _pane == CardsPane.Add;
+
+    public bool IsContinuousScan => _pane == CardsPane.Scan;
 
     /// <summary>Adding, nothing scanned or imported yet: the source buttons are offered.</summary>
     public bool IsPickingSource => _pane == CardsPane.Add && _form is null;
@@ -1012,6 +1023,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     public ICommand ScanHfCommand { get; }
     public ICommand ScanLfCommand { get; }
+    public ICommand OpenHfContinuousScanCommand { get; }
+    public ICommand OpenLfContinuousScanCommand { get; }
+    public ICommand CloseContinuousScanCommand { get; }
+    public ICommand OpenContinuousCardCommand { get; }
+    public ContinuousScanViewModel ContinuousScan { get; }
     public ICommand DumpCommand { get; }
     public ICommand AutoRecoveryCommand { get; }
     public ICommand DarksideCommand { get; }
@@ -1363,17 +1379,22 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         ScanMatches.Clear();
         _scanMatchesChecked = scanned is not null;
         _scanMatchesByDump = scanned is not null && scanned.Data.Any(d => d.Length > 0);
-        if (scanned is { Uid.Length: > 0 } || _scanMatchesByDump)
-            foreach (var card in _library.Cards.Where(c => c.Sense == scanned!.Sense
-                         && (_scanMatchesByDump
-                             ? SameMemory(c.Data, scanned.Data)
-                             : (c.Sense != TagSenseType.Lf || SameLfProtocol(c.Tag, scanned.Tag))
-                               && c.Uid.AsSpan().SequenceEqual(scanned.Uid))).Take(1))
-                ScanMatches.Add(new CardItemViewModel(card));
+        if (scanned is not null)
+        {
+            if (_scanMatchesByDump)
+                foreach (var card in _library.Cards.Where(c => c.Sense == scanned.Sense && SameMemory(c.Data, scanned.Data)).Take(1))
+                    ScanMatches.Add(new CardItemViewModel(card));
+            else if (FindScanMatch(scanned) is { } card) ScanMatches.Add(new CardItemViewModel(card));
+        }
         this.RaisePropertyChanged(nameof(HasScanMatches));
         this.RaisePropertyChanged(nameof(IsNewCardUnsaved));
         this.RaisePropertyChanged(nameof(ScanMatchText));
     }
+
+    private CardSave? FindScanMatch(CardSave scanned) => scanned.Uid.Length == 0 ? null
+        : _library.Cards.FirstOrDefault(c => c.Sense == scanned.Sense
+            && (c.Sense != TagSenseType.Lf || SameLfProtocol(c.Tag, scanned.Tag))
+            && c.Uid.AsSpan().SequenceEqual(scanned.Uid));
 
     /// <summary>
     /// A scan reports the EM410x bit rate (EM410X / 64…) while a card saved from a slot has the
@@ -1423,6 +1444,44 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (card.Tag.DefaultSakAtqa(sevenByteUid: false) is { } id) { card.Sak = id.Sak; card.Atqa = id.Atqa; }
         Form = new CardEditorViewModel(card, blankMemory: true);
         FormSource = Strings.Cards_ManualEntry;
+    }
+
+    private async Task StartContinuousScanAsync(CardBand band)
+    {
+        BeginAdd();
+        Pane = CardsPane.Scan;
+        await ContinuousScan.StartAsync(band);
+    }
+
+    private async Task CloseContinuousScanAsync()
+    {
+        await ContinuousScan.StopAsync();
+        if (Pane != CardsPane.Scan) return;
+        ResetAddState();
+        Form = null;
+        Pane = CardsPane.Add;
+    }
+
+    private async Task OpenContinuousCardAsync(CardItemViewModel row)
+    {
+        if (Pane != CardsPane.Scan) return;
+        var card = row.Card;
+        var band = ContinuousScan.Band;
+        await ContinuousScan.StopAsync();
+        if (Pane != CardsPane.Scan) return;
+        if (row.IsSavedMatch)
+        {
+            OpenCard(row.Card.Id);
+            return;
+        }
+        ResetAddState();
+        Pane = CardsPane.Add;
+        _scannedAts = card.Ats;
+        Form = new CardEditorViewModel(card, sameFrequency: true);
+        SetScanMatches(card);
+        FormSource = band == CardBand.Hf
+            ? string.Format(Strings.Cards_SourceTypeUid, card.Tag.DisplayName(), Convert.ToHexString(card.Uid))
+            : string.Format(Strings.Cards_SourceTag, card.Tag.DisplayName());
     }
 
     private Task ScanHfAsync() => RunAsync(async () =>

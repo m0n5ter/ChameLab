@@ -735,6 +735,21 @@
   <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
     <value>ISO14443-A タグをスキャンします。デバイスはリーダーモードに切り替わります</value>
   </data>
+  <data name="Cards_ContinuousScanEmpty" xml:space="preserve">
+    <value>カードはまだ見つかっていません。</value>
+  </data>
+  <data name="Cards_ContinuousScanInstruction" xml:space="preserve">
+    <value>カードをデバイスに近づけてください。各カードは一度だけ追加され、同じカードを再検出すると強調表示されます。カードをタップすると編集できます。</value>
+  </data>
+  <data name="Cards_ContinuousScanning" xml:space="preserve">
+    <value>スキャン中…</value>
+  </data>
+  <data name="Cards_ContinuousScanTip" xml:space="preserve">
+    <value>連続スキャンして見つかったすべてのカードを収集</value>
+  </data>
+  <data name="Cards_ContinuousScanTitle" xml:space="preserve">
+    <value>{0} の連続スキャン</value>
+  </data>
   <data name="Cards_ScanHF" xml:space="preserve">
     <value>HF をスキャン</value>
   </data>

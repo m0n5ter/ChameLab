@@ -735,6 +735,21 @@
   <data name="Cards_ScanAnISO14443ATagThe" xml:space="preserve">
     <value>ISO14443-A 태그를 스캔합니다. 장치가 리더기 모드로 전환됩니다</value>
   </data>
+  <data name="Cards_ContinuousScanEmpty" xml:space="preserve">
+    <value>아직 찾은 카드가 없습니다.</value>
+  </data>
+  <data name="Cards_ContinuousScanInstruction" xml:space="preserve">
+    <value>카드를 기기에 가까이 대세요. 각 카드는 한 번만 추가되며 같은 카드가 다시 감지되면 강조 표시됩니다. 카드를 탭하면 편집할 수 있습니다.</value>
+  </data>
+  <data name="Cards_ContinuousScanning" xml:space="preserve">
+    <value>스캔 중…</value>
+  </data>
+  <data name="Cards_ContinuousScanTip" xml:space="preserve">
+    <value>연속 스캔하여 찾은 모든 카드 수집</value>
+  </data>
+  <data name="Cards_ContinuousScanTitle" xml:space="preserve">
+    <value>{0} 연속 스캔</value>
+  </data>
   <data name="Cards_ScanHF" xml:space="preserve">
     <value>HF 스캔</value>
   </data>
