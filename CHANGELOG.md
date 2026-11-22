@@ -9,6 +9,17 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.7.56][2026-11-22] · firmware v2.3.22-cl
+### Summary
+ - Firmware v2.3.22-cl: Electra cards read reliably over Bluetooth with their full 13-byte identifier
+ - Firmware v2.3.22-cl: buttons A and B are debounced independently, so pressing them close together no longer loses a button event
+ - ChameLab: the iOS build has the app icon and a branded launch screen
+
+### Details
+ - Firmware v2.3.22-cl: Electra cards no longer intermittently appear as ordinary 5-byte EM410x cards over Bluetooth. Hardware edge timestamps and a DMA capture fallback recover the full signal despite interrupt delays and comparator noise; matching complete frames confirm all 13 identifier bytes before accepting an Electra read. Difficult reads can take longer while the identifier is confirmed. Tested with 300 consecutive Bluetooth reads of the same card, with identical full identifiers
+ - Firmware v2.3.22-cl: buttons A and B have separate debounce timers and event storage, so one button no longer overwrites the other's pending press
+ - ChameLab: the iOS build includes the app icon at the required sizes and shows the ChameLab artwork on its launch screen
+
 ## [v1.7.55][2026-11-22] · firmware v2.3.21-cl
 ### Summary
  - ChameLab: continuous HF and LF scanning collects every card found, without duplicates; a repeated card is highlighted, and a tap opens it for editing
