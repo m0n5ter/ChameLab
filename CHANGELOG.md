@@ -8,7 +8,18 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.7.55][2026-11-22] · firmware v2.3.21-cl
+### Summary
+ - ChameLab: continuous HF and LF scanning collects every card found, without duplicates; a repeated card is highlighted, and a tap opens it for editing
+ - ChameLab: every release includes an unsigned iOS build for installation with AltStore, SideStore or Sideloadly
+ - ChameLab: app and firmware update checks use the website instead of the rate-limited GitHub API
+
+### Details
+ - ChameLab: **Scan HF** and **Scan LF** have a continuous scan button that collects every card found. Each card is added only once, finding it again highlights it, and saved cards appear under their saved names; tapping a card stops the scan and opens it for editing
  - ChameLab: an unsigned iOS build, `chamelab-<version>-ios.ipa`, comes with every release and is on the download page. It installs on an iPhone or iPad with AltStore, SideStore or Sideloadly, which sign it with your Apple ID (a free Apple ID keeps it working for 7 days, then it is signed again)
+ - ChameLab: app and firmware update checks read the release manifest on the website instead of the rate-limited GitHub API, so they no longer stop working when a shared mobile or office address exhausts the API limit; GitHub remains the fallback if the website cannot be reached
+ - ChameLab: the byte count at the right of a hex field is no longer clipped by the text box's inner content area
 
 ## [v1.7.54][2026-11-20] · firmware v2.3.21-cl
 ### Summary
