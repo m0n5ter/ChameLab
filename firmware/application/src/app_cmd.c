@@ -851,8 +851,33 @@ static data_frame_tx_t *cmd_processor_mf1_manipulate_value_block(uint16_t cmd, u
 }
 
 static data_frame_tx_t *cmd_processor_lf_edge_capture(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
-    if (length != 0) return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     static uint16_t intervals[1024];
+    if (length == 1 && data[0] == 4) {
+        extern uint32_t em410x_capture_diagnostics[8];
+        uint32_t diagnostic[8];
+        for (size_t i = 0; i < ARRAY_SIZE(diagnostic); i++)
+            diagnostic[i] = U32HTONL(em410x_capture_diagnostics[i]);
+        return data_frame_make(cmd, STATUS_LF_TAG_OK, sizeof(diagnostic), (uint8_t *)diagnostic);
+    }
+    if (length == 1 && (data[0] == 2 || data[0] == 3)) {
+        em410x_copy_last_capture((uint8_t *)intervals, (data[0] - 2) * sizeof(intervals), sizeof(intervals));
+        return data_frame_make(cmd, STATUS_LF_TAG_OK, sizeof(intervals), (uint8_t *)intervals);
+    }
+    if (length == 1 && data[0] == 1) {
+        start_lf_125khz_radio();
+        bool captured = lf_125khz_radio_capture_bits((uint8_t *)intervals, sizeof(intervals), 180);
+        stop_lf_125khz_radio();
+        if (!captured) {
+            uint32_t diagnostic[] = {0x53504932, NRF_SPIM2->EVENTS_STARTED, NRF_SPIM2->EVENTS_END,
+                NRF_SPIM2->EVENTS_STOPPED, NRF_SPIM2->RXD.AMOUNT, NRF_SPIM2->TXD.AMOUNT,
+                NRF_SPIM2->RXD.MAXCNT, NRF_SPIM2->TXD.MAXCNT, NRF_SPIM2->FREQUENCY};
+            for (size_t i = 0; i < ARRAY_SIZE(diagnostic); i++) diagnostic[i] = U32HTONL(diagnostic[i]);
+            memcpy(intervals, diagnostic, sizeof(diagnostic));
+        }
+        return data_frame_make(cmd, captured ? STATUS_LF_TAG_OK : STATUS_LF_TAG_NO_FOUND,
+                               sizeof(intervals), (uint8_t *)intervals);
+    }
+    if (length != 0) return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     size_t count;
     bool captured = em410x_capture_intervals(intervals, 1024, 350, &count);
     if (!captured)

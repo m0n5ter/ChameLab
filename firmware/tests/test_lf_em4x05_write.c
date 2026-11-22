@@ -233,6 +233,12 @@ void unregister_rio_callback(void) {}
 uint32_t get_lf_counter_value(void) { return 0; }
 void clear_lf_counter_value(void) {}
 void lf_125khz_radio_gpiote_enable(void) {}
+void lf_125khz_radio_gpiote_capture_enable(void) {}
+uint32_t lf_125khz_radio_edge_interval(void) { return 0; }
+bool lf_125khz_radio_capture_bits(uint8_t *data, size_t size, uint32_t timeout_ms) {
+    (void)data; (void)size; (void)timeout_ms;
+    return false;
+}
 void lf_125khz_radio_gpiote_disable(void) {}
 
 /* ---------------------------------------------------------------- tests */

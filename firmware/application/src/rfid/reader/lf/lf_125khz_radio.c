@@ -1,7 +1,10 @@
 #include "lf_125khz_radio.h"
 
 #include "lf_reader_data.h"
+#include "bsp_time.h"
+#include "bsp_delay.h"
 #include "nrf_gpio.h"
+#include "nrf_spim.h"
 #include "nrfx_clock.h"
 #include "nrfx_gpiote.h"
 #include "nrfx_ppi.h"
@@ -15,6 +18,9 @@ nrfx_pwm_t m_pwm = NRFX_PWM_INSTANCE(0);
 nrfx_timer_t m_pwm_timer_counter = NRFX_TIMER_INSTANCE(2);
 nrf_ppi_channel_t m_pwm_saadc_sample_ppi_channel;
 nrf_ppi_channel_t m_pwm_timer_count_ppi_channel;
+static nrf_ppi_channel_t m_edge_capture_ppi_channel;
+static bool m_edge_capture_enabled;
+static uint32_t m_last_edge_count;
 
 // At present, only channel 1 is used, so only one channel can be configured
 static nrf_pwm_values_individual_t m_lf_125khz_pwm_seq_val[] = {
@@ -38,10 +44,10 @@ static void lf_125khz_gpio_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t 
 
 // The LF collection decline is interrupted, and the GPIO is pulled down
 // by default. The trigger method is triggering
-static void gpiote_init(void) {
+static void gpiote_init(bool high_accuracy) {
     nrfx_err_t err_code;
 
-    nrfx_gpiote_in_config_t cfg = NRFX_GPIOTE_CONFIG_IN_SENSE_LOTOHI(false);
+    nrfx_gpiote_in_config_t cfg = NRFX_GPIOTE_CONFIG_IN_SENSE_LOTOHI(high_accuracy);
     err_code = nrfx_gpiote_in_init(LF_OA_OUT, &cfg, lf_125khz_gpio_handler);
     APP_ERROR_CHECK(err_code);
 }
@@ -84,6 +90,7 @@ static void pwm_timer_counter_init(void) {
 
     nrfx_timer_config_t timer_cfg = NRFX_TIMER_DEFAULT_CONFIG;
     timer_cfg.mode = NRF_TIMER_MODE_COUNTER;
+    timer_cfg.bit_width = NRF_TIMER_BIT_WIDTH_32;
 
     err_code = nrfx_timer_init(&m_pwm_timer_counter, &timer_cfg, NULL);
     APP_ERROR_CHECK(err_code);
@@ -138,13 +145,82 @@ void lf_125khz_radio_gpiote_enable(void) {
     err_code = nrfx_ppi_channel_enable(m_pwm_timer_count_ppi_channel);
     APP_ERROR_CHECK(err_code);
 
-    gpiote_init();
+    gpiote_init(false);
     nrfx_timer_enable(&m_pwm_timer_counter);
     nrfx_gpiote_in_event_enable(LF_OA_OUT, true);
 }
 
+void lf_125khz_radio_gpiote_capture_enable(void) {
+    // A dedicated IN event latches the carrier count at the edge, even while
+    // the SoftDevice is delaying the GPIO ISR. PORT/SENSE cannot do this.
+    gpiote_init(true);
+    nrfx_err_t err_code = nrfx_ppi_channel_alloc(&m_edge_capture_ppi_channel);
+    APP_ERROR_CHECK(err_code);
+    err_code = nrfx_ppi_channel_assign(
+                   m_edge_capture_ppi_channel,
+                   nrfx_gpiote_in_event_addr_get(LF_OA_OUT),
+                   nrfx_timer_task_address_get(&m_pwm_timer_counter, NRF_TIMER_TASK_CAPTURE0));
+    APP_ERROR_CHECK(err_code);
+    nrfx_timer_clear(&m_pwm_timer_counter);
+    m_last_edge_count = 0;
+    m_edge_capture_enabled = true;
+    err_code = nrfx_ppi_channel_enable(m_edge_capture_ppi_channel);
+    APP_ERROR_CHECK(err_code);
+    err_code = nrfx_ppi_channel_enable(m_pwm_timer_count_ppi_channel);
+    APP_ERROR_CHECK(err_code);
+    nrfx_timer_enable(&m_pwm_timer_counter);
+    nrfx_gpiote_in_event_enable(LF_OA_OUT, true);
+}
+
+uint32_t lf_125khz_radio_edge_interval(void) {
+    uint32_t count = nrfx_timer_capture_get(&m_pwm_timer_counter, NRF_TIMER_CC_CHANNEL0);
+    // Unsigned subtraction handles counter wrap; never clear it in the ISR.
+    uint32_t interval = count - m_last_edge_count;
+    m_last_edge_count = count;
+    return interval;
+}
+
+bool lf_125khz_radio_capture_bits(uint8_t *buffer, size_t size, uint32_t timeout_ms) {
+    // SPIM2 is unused by the reader (RC522 uses SPI0). Sample the comparator
+    // into EasyDMA at one bit per carrier cycle. MOSI is disconnected;
+    // the field indicator LED temporarily carries SCK (no RF signal is driven).
+    // Unlike GPIOTE, DMA retains every sample across long BLE interrupts.
+    NRF_SPIM_Type *spim = NRF_SPIM2;
+    nrf_spim_disable(spim);
+    nrf_spim_pins_set(spim, LED_FIELD, NRF_SPIM_PIN_NOT_CONNECTED, LF_OA_OUT);
+    nrf_gpio_cfg_input(LF_OA_OUT, NRF_GPIO_PIN_NOPULL);
+    nrf_spim_configure(spim, NRF_SPIM_MODE_0, NRF_SPIM_BIT_ORDER_MSB_FIRST);
+    nrf_spim_frequency_set(spim, NRF_SPIM_FREQ_125K);
+    nrf_spim_rx_buffer_set(spim, buffer, size);
+    nrf_spim_tx_buffer_set(spim, buffer, size);
+    nrf_spim_event_clear(spim, NRF_SPIM_EVENT_END);
+    nrf_spim_event_clear(spim, NRF_SPIM_EVENT_STOPPED);
+    nrf_spim_enable(spim);
+    autotimer *timer = bsp_obtain_timer(0);
+    nrf_spim_task_trigger(spim, NRF_SPIM_TASK_START);
+    while (!nrf_spim_event_check(spim, NRF_SPIM_EVENT_END) && NO_TIMEOUT_1MS(timer, timeout_ms)) {}
+    bool complete = nrf_spim_event_check(spim, NRF_SPIM_EVENT_END);
+    if (!complete) {
+        nrf_spim_task_trigger(spim, NRF_SPIM_TASK_STOP);
+        for (unsigned wait = 0; wait < 1000 && !nrf_spim_event_check(spim, NRF_SPIM_EVENT_STOPPED); wait++)
+            bsp_delay_us(1);
+    }
+    bsp_return_timer(timer);
+    nrf_spim_disable(spim);
+    nrf_spim_pins_set(spim, NRF_SPIM_PIN_NOT_CONNECTED, NRF_SPIM_PIN_NOT_CONNECTED, NRF_SPIM_PIN_NOT_CONNECTED);
+    TAG_FIELD_LED_ON();
+    return complete;
+}
+
 void lf_125khz_radio_gpiote_disable(void) {
     nrfx_gpiote_in_event_disable(LF_OA_OUT);
+    if (m_edge_capture_enabled) {
+        nrfx_err_t err_code = nrfx_ppi_channel_disable(m_edge_capture_ppi_channel);
+        APP_ERROR_CHECK(err_code);
+        err_code = nrfx_ppi_channel_free(m_edge_capture_ppi_channel);
+        APP_ERROR_CHECK(err_code);
+        m_edge_capture_enabled = false;
+    }
     nrfx_gpiote_in_uninit(LF_OA_OUT);
     nrfx_timer_disable(&m_pwm_timer_counter);
 

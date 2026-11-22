@@ -5,6 +5,7 @@ Usage: python3 firmware/tests/test_lf_em410x_read.py (requires gcc).
 from pathlib import Path
 import subprocess
 import tempfile
+import sys
 
 
 def main():
@@ -27,9 +28,15 @@ typedef struct { union { const nrf_pwm_values_wave_form_t *p_wave_form; } values
         "nrf_gpio.h": "#pragma once\n",
         "lf_125khz_radio.h": """
 #pragma once
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 void start_lf_125khz_radio(void);
 void stop_lf_125khz_radio(void);
 void lf_125khz_radio_gpiote_enable(void);
+void lf_125khz_radio_gpiote_capture_enable(void);
+uint32_t lf_125khz_radio_edge_interval(void);
+bool lf_125khz_radio_capture_bits(uint8_t *, size_t, uint32_t);
 void lf_125khz_radio_gpiote_disable(void);
 """,
     }
@@ -49,7 +56,9 @@ void lf_125khz_radio_gpiote_disable(void);
                    src / "rfid/parity.c"]
         subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter",
                         "-O2", *[f"-I{p}" for p in includes], *map(str, sources), "-o", str(binary)], check=True)
-        subprocess.run([str(binary)], check=True)
+        subprocess.run([str(binary), *sys.argv[1:]], check=True)
+        if len(sys.argv) > 1:
+            return
         writer = temp / "lf_t55xx_data.c"
         writer.write_bytes((src / "rfid/reader/lf/lf_t55xx_data.c").read_bytes())
         subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-O2",

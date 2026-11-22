@@ -18,8 +18,16 @@ public sealed class MainActivity : Activity
         {
             var address = Intent?.GetStringExtra("address") ?? throw new ArgumentException("Supply --es address MAC");
             var id = new Guid("00000000-0000-0000-0000-" + address.Replace(":", ""));
-            await Runner.Run(new BleTransport(id, "Android BLE " + address), Path.Combine(FilesDir!.AbsolutePath, "ble.json"),
-                Intent?.GetIntExtra("repetitions", 3) ?? 3, caseFilter: Intent?.GetStringExtra("cases"));
+            if (Intent?.GetStringExtra("probe") == "dfu")
+                await LfProbe.Flash(id, Path.Combine(FilesDir!.AbsolutePath, "firmware.zip"),
+                    Intent.GetBooleanExtra("bootloader", false));
+            else if (Intent?.GetStringExtra("probe") is "lf" or "lfraw")
+                await LfProbe.Run(new BleTransport(id, "Android BLE " + address),
+                    Path.Combine(FilesDir!.AbsolutePath, "lf.json"),
+                    Intent.GetStringExtra("probe") == "lfraw" ? 0 : Intent.GetIntExtra("repetitions", 100));
+            else
+                await Runner.Run(new BleTransport(id, "Android BLE " + address), Path.Combine(FilesDir!.AbsolutePath, "ble.json"),
+                    Intent?.GetIntExtra("repetitions", 3) ?? 3, caseFilter: Intent?.GetStringExtra("cases"));
             label.Text = "Benchmark complete. Results: ble.json";
             Console.WriteLine("BENCHMARK_COMPLETE");
         }
