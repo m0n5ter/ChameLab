@@ -48,7 +48,8 @@ NRF_LOG_MODULE_REGISTER();
 #endif
 
 // Defining soft timers
-APP_TIMER_DEF(m_button_check_timer); // Timer for button debounce
+APP_TIMER_DEF(m_button_b_check_timer); // Timer for button B debounce
+APP_TIMER_DEF(m_button_a_check_timer); // Timer for button A debounce
 #define BATTERY_STATUS_DISPLAY_DURATION_MS  5000U
 
 static uint32_t m_last_btn_press = 0;
@@ -199,9 +200,16 @@ static void button_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t a
     // Accept edges in every mode, including DEVICE_MODE_NONE during the boot animation:
     // dropping them there lost a press made right after a button wake-up.
     // The resulting flags are handled by the main loop once tag mode is entered.
-    static nrf_drv_gpiote_pin_t pin_static;                                  // Use static internal variables to store the GPIO where the current event occurred
-    pin_static = pin;                                                        // Cache the button that currently triggers the event into an internal variable
-    app_timer_start(m_button_check_timer, APP_TIMER_TICKS(50), &pin_static); // Start timer anti-shake
+    static nrf_drv_gpiote_pin_t b_pin_static;
+    static nrf_drv_gpiote_pin_t a_pin_static;
+
+    if (pin == BUTTON_1) {
+        b_pin_static = pin;
+        app_timer_start(m_button_b_check_timer, APP_TIMER_TICKS(50), &b_pin_static);
+    } else if (pin == BUTTON_2) {
+        a_pin_static = pin;
+        app_timer_start(m_button_a_check_timer, APP_TIMER_TICKS(50), &a_pin_static);
+    }
 }
 
 /** @brief Button anti-shake timer
@@ -276,8 +284,10 @@ static void timer_button_event_handle(void *arg) {
 static void button_init(void) {
     ret_code_t err_code;
 
-    // Non-exact timer for initializing button anti-shake
-    err_code = app_timer_create(&m_button_check_timer, APP_TIMER_MODE_SINGLE_SHOT, timer_button_event_handle);
+    // Independent timers keep one button from overwriting the other's debounce event.
+    err_code = app_timer_create(&m_button_b_check_timer, APP_TIMER_MODE_SINGLE_SHOT, timer_button_event_handle);
+    APP_ERROR_CHECK(err_code);
+    err_code = app_timer_create(&m_button_a_check_timer, APP_TIMER_MODE_SINGLE_SHOT, timer_button_event_handle);
     APP_ERROR_CHECK(err_code);
 
     // Configure SENSE mode, select false for sense configuration
