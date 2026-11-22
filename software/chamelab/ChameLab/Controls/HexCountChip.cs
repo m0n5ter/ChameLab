@@ -33,6 +33,16 @@ public class HexCountChip : Decorator
     /// </summary>
     private void FitToBox()
     {
+        if (this.FindAncestorOfType<TextBox>() is not { } box) return;
+
+        // InnerRightContent is clipped to its layout slot by the text box template. The chip
+        // deliberately paints beyond that slot, up to the edges of the box.
+        for (Visual? visual = this.GetVisualParent(); visual is not null && visual != box; visual = visual.GetVisualParent())
+        {
+            visual.ClipToBounds = false;
+            visual.Clip = null;
+        }
+
         if (Child is { } child && PaintedRect() is { } rect)
         {
             var dx = Math.Round((rect.Width - child.Bounds.Width) / 2 - child.Bounds.X);
