@@ -55,7 +55,8 @@ internal sealed class IosLanDiscovery : ILanDiscovery
             if (endpoints.Count == 0 || service.TxtRecordData is not { } data) return;
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var (key, value) in NSNetService.DictionaryFromTxtRecord(data))
-                if (value is NSData bytes) values[key.ToString()] = Encoding.UTF8.GetString(bytes.ToArray());
+                if (value is NSData bytes && key.ToString() is { } name)
+                    values[name] = Encoding.UTF8.GetString(bytes.ToArray());
             Found?.Invoke(new LanAnnouncement(endpoints, values));
         };
         service.ResolveFailure += (_, _) => _resolving.Remove(service);

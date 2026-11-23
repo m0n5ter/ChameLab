@@ -9,23 +9,25 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
-## [v1.8.57][2026-11-24] · firmware v2.4.23-cl
+## [v1.8.57][2026-11-24] · firmware v2.4.24-cl
 ### Summary
  - ChameLab: **Device sync** keeps saved cards, folders and key dictionaries in sync across all your devices without an account, with end-to-end encryption, card history, and direct card sharing
- - Firmware v2.4.23-cl: IDTECK PSK1 reading, reliable PAC and LF reads over USB and Bluetooth, and fixed HF tag emulation timing
+ - Firmware v2.4.24-cl: IDTECK PSK1 reading, reliable PAC and LF reads over USB and Bluetooth, and fixed HF tag emulation timing
  - ChameLab: reliable iOS Bluetooth firmware updates, single-instance desktop background sync in the tray, and redesigned Settings
 
 ### Details
+ - ChameLab: fixed iOS and trimmed browser builds of device sync
+ - Firmware v2.4.24-cl: fixed LF host test compilation with newer GCC versions
  - ChameLab: **Device sync** (Settings → Device sync) keeps the saved cards, their folders and the key dictionaries the same on all of a user's devices, without an account. The data and its history stay only on the devices: the relays just bring devices together while they are online and pass on what they cannot read (Noise XX, end to end), and devices on the same network sync directly, without the internet. **Start sync** on one device, then **Add device** shows a QR code (no digits to compare, and it works without the internet) and a code to type (both screens then show six digits to compare). Edits merge per field, concurrent edits of one dump keep both versions (the second as a "(conflict)" copy), a deleted card can be restored, device cards show platform and connection status, and the current device can be renamed inline
  - ChameLab: the desktop app enforces a single instance (bringing the existing window to the front), can keep syncing in the background from a tray icon with a first-time notification when closed, and can start with the system so a phone opened later finds a device that has everything; `chamelab sync serve` runs the same node without a UI (Docker recipe in `ChameLab.Cli/deploy`)
  - ChameLab: **Export → Send to another device** sends a card to any ChameLab, including someone else's, by QR code or code; it arrives through **Receive from a device** on the Add a card page (or by scanning the QR code there). **Export → History** lists the card's earlier versions from all devices and restores any of them
  - Relay: `/room/{id}` for sync rooms (the relays need redeploying before sync works over the internet)
  - ChameLab: fixed Bluetooth firmware updates on iOS (MTU payload alignment, DFU service UUID handling, and keeping the device awake during transfer)
  - ChameLab: redesigned Settings with grouped preferences, moved the theme picker from the app bar into Settings, and pinned the website and community links bar; the left navigation pane keeps only Cards and Dictionaries scrollable; device scanning and connecting run off the UI thread so the interface stays responsive; improved continuous scan icons
- - Firmware v2.4.23-cl / CLI: read IDTECK PSK1 cards with two-frame confirmation, including LF auto detection, T5577 write verification, and `lf idteck read` in the CLI
- - Firmware v2.4.23-cl: reliable PAC reading over USB and Bluetooth — resets tag power before repeated reads, captures three complete frame periods in one contiguous EasyDMA buffer (avoiding sample gaps when BLE delays streaming ADC interrupts), combines the periods with a coherent median filter to reject nonrepeating interference, filters short LC ringing, retains fractional symbol time across 32 clock phases with parallel clipped and full-range NRZ hysteresis decoders, and gives PAC the same 500 ms acquisition budget in LF auto detection as a direct scan
- - Firmware v2.4.23-cl / CLI: negative ADC samples no longer wrap into large spikes in Pyramid, HID Prox and ioProx readers or LF captures, preventing missed reads and failed T5577 write verification near the antenna; improved EM410x/Electra DMA decoding and slot switching, LPCOMP state tracking, burst frame sizing, and SAADC circular buffer teardown; `lf em410x econfig` in the CLI handles 13-byte Electra IDs
- - Firmware v2.4.23-cl: fixed HF tag emulation ISO14443-A FDT timing (skips System ON sleep while emulating, holds the 64 MHz HFXO clock across HF field presence, and raises NFCT IRQ priority), improved NFCT recovery on field loss or incomplete transmissions, prevented changing an inactive slot type from overwriting the active slot RAM buffer, and added nested capture timing retries with TIMER2 IRQ recovery in `mf1_toolbox`
+ - Firmware v2.4.24-cl / CLI: read IDTECK PSK1 cards with two-frame confirmation, including LF auto detection, T5577 write verification, and `lf idteck read` in the CLI
+ - Firmware v2.4.24-cl: reliable PAC reading over USB and Bluetooth — resets tag power before repeated reads, captures three complete frame periods in one contiguous EasyDMA buffer (avoiding sample gaps when BLE delays streaming ADC interrupts), combines the periods with a coherent median filter to reject nonrepeating interference, filters short LC ringing, retains fractional symbol time across 32 clock phases with parallel clipped and full-range NRZ hysteresis decoders, and gives PAC the same 500 ms acquisition budget in LF auto detection as a direct scan
+ - Firmware v2.4.24-cl / CLI: negative ADC samples no longer wrap into large spikes in Pyramid, HID Prox and ioProx readers or LF captures, preventing missed reads and failed T5577 write verification near the antenna; improved EM410x/Electra DMA decoding and slot switching, LPCOMP state tracking, burst frame sizing, and SAADC circular buffer teardown; `lf em410x econfig` in the CLI handles 13-byte Electra IDs
+ - Firmware v2.4.24-cl: fixed HF tag emulation ISO14443-A FDT timing (skips System ON sleep while emulating, holds the 64 MHz HFXO clock across HF field presence, and raises NFCT IRQ priority), improved NFCT recovery on field loss or incomplete transmissions, prevented changing an inactive slot type from overwriting the active slot RAM buffer, and added nested capture timing retries with TIMER2 IRQ recovery in `mf1_toolbox`
 
 ## [v1.7.56][2026-11-22] · firmware v2.3.22-cl
 ### Summary

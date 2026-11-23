@@ -5,7 +5,7 @@
 #include <string.h>
 #include "protocols/pac.h"
 
-static const uint8_t id[8] = "1234AB00";
+static const uint8_t id[8] = {'1', '2', '3', '4', 'A', 'B', '0', '0'};
 
 static bool read_expected(const int16_t *samples, unsigned size, unsigned start, uint8_t mode, const uint8_t *expected) {
     void *d = pac.alloc();

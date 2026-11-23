@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
     assert(memcmp(actual, idteck_id, sizeof(idteck_id)) == 0);
     assert(negatives > 0); // Signed PSK phase samples must survive the queue.
 
-    const uint8_t pac_id[8] = "1234AB00";
+    const uint8_t pac_id[8] = {'1', '2', '3', '4', 'A', 'B', '0', '0'};
     uint32_t pac_blocks[5];
     assert(pac_t55xx_writer((uint8_t *)pac_id, pac_blocks) == 5);
     signal_length = 32 * 128 * 4;

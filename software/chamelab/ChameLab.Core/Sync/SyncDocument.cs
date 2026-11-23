@@ -345,7 +345,7 @@ public sealed class SyncDocument
                     ["time"] = d.Time.ToString(),
                     ["base"] = new JsonObject(d.Base.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value.ToString()))),
                 };
-            entities.Add(e);
+            entities.Add((JsonNode)e);
         }
         return new JsonObject
         {
