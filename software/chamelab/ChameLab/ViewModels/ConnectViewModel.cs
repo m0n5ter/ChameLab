@@ -248,7 +248,7 @@ public sealed class ConnectViewModel : PageViewModelBase
 
     private Task ScanAsync() => RunAsync(async () =>
     {
-        var found = await _device.ScanAsync();
+        var found = await Task.Run(() => _device.ScanAsync());
         Dispatcher.UIThread.Post(() => Apply(found, ScannedKinds(AutoScan.Never)));
         Notify(found.Count == 0
             ? Strings.Connect_NoneFound
@@ -294,10 +294,11 @@ public sealed class ConnectViewModel : PageViewModelBase
 
     private Task ConnectAsync() => RunAsync(async () =>
     {
-        if (Selected is null) { ReportError(Strings.Connect_SelectFirst); return; }
+        if (Selected is not { } selected) { ReportError(Strings.Connect_SelectFirst); return; }
         // A BLE connection attempt made while the adapter is scanning may stall or fail.
         StopWatchers();
-        try { await _device.ConnectAsync(Selected); }
+        // Off the UI thread: opening a serial port blocks, sometimes for seconds.
+        try { await Task.Run(() => _device.ConnectAsync(selected)); }
         finally
         {
             if (_pollTimer is not null && _device.State != ConnectionState.Connected) StartWatchers();
@@ -307,13 +308,13 @@ public sealed class ConnectViewModel : PageViewModelBase
     private Task ConnectManualAsync() => RunAsync(async () =>
     {
         var candidate = TcpScanner.Candidate(ManualEndpoint);
-        await _device.ConnectAsync(candidate);
+        await Task.Run(() => _device.ConnectAsync(candidate));
     });
 
     private Task ConnectSharedAsync() => RunAsync(async () =>
     {
         var candidate = RelayScanner.Candidate(SharedCode);
-        await _device.ConnectAsync(candidate);
+        await Task.Run(() => _device.ConnectAsync(candidate));
     });
 
     private Task ShareAsync() => RunAsync(async () =>
