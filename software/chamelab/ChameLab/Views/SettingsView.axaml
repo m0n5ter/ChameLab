@@ -63,6 +63,23 @@
     <Style Selector="Border.cardrow.devicecard">
       <Setter Property="Background" Value="{actipro:ThemeResource Container2BackgroundBrush}" />
     </Style>
+    <Style Selector="Border.cardrow.devicecard.editable:not(.editing)">
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.cardrow.devicecard.editable:not(.editing):pointerover">
+      <Setter Property="BorderBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    </Style>
+    <Style Selector="Panel.renaming > c|Marquee">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+    <Style Selector="TextBox.titlebox.devicename">
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding" Value="6,1" />
+      <Setter Property="Margin" Value="-7,-3,0,-3" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
   </UserControl.Styles>
 
   <ScrollViewer IsEnabled="{Binding !Sync.IsDialogOpen}">
@@ -146,12 +163,24 @@
       <Border Classes="card" DataContext="{Binding Sync}" x:DataType="vm:SyncViewModel">
         <StackPanel Spacing="12">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-            <Border Classes="iconwell green"><PathIcon Data="{StaticResource Icon.sync}" /></Border>
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-              <TextBlock Text="{x:Static loc:Strings.Sync_Title}" FontWeight="SemiBold" />
-              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_Caption}" IsVisible="{Binding IsOff}" />
-              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding StatusText}" IsVisible="{Binding IsEnabled}" />
-            </StackPanel>
+            <Border Classes="iconwell green" VerticalAlignment="Center"><PathIcon Data="{StaticResource Icon.sync}" /></Border>
+            <c:TitleRow Grid.Column="1">
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="{x:Static loc:Strings.Sync_Title}" FontWeight="SemiBold" />
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_Caption}" IsVisible="{Binding IsOff}" />
+                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding StatusText}" IsVisible="{Binding IsEnabled}" />
+              </StackPanel>
+              <c:ActionRow IsVisible="{Binding IsEnabled}">
+                <Button Classes="accent" Command="{Binding AddDeviceCommand}"
+                        ToolTip.Tip="{x:Static loc:Strings.Sync_AddDeviceTip}"
+                        AutomationProperties.Name="{x:Static loc:Strings.Sync_AddDevice}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.add}" />
+                    <TextBlock Text="{x:Static loc:Strings.Sync_AddDevice}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </c:ActionRow>
+            </c:TitleRow>
           </Grid>
 
           <!-- Not in a group: start one, or join the group of another device. -->
@@ -201,7 +230,10 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:SyncMemberViewModel">
-                  <Border Classes="cardrow devicecard">
+                  <Border Classes="cardrow devicecard"
+                          Classes.editable="{Binding IsThis}"
+                          Classes.editing="{Binding IsEditing}"
+                          Tapped="OnDeviceCardTapped">
                     <Grid ColumnDefinitions="Auto,*,Auto" Margin="10">
                       <Border Grid.Column="0" Classes="iconwell deviceicon" Margin="0,0,10,0"
                               Classes.success="{Binding IsStateOnline}"
@@ -210,14 +242,24 @@
                               VerticalAlignment="Center">
                         <PathIcon Data="{Binding PlatformIconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
                       </Border>
-                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                        <c:Marquee ToolTip.Tip="{Binding Name}">
-                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" />
-                        </c:Marquee>
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <Panel Classes.renaming="{Binding IsEditing}">
+                          <c:Marquee ToolTip.Tip="{Binding Name}">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" />
+                          </c:Marquee>
+                          <TextBox Classes="titlebox devicename" Text="{Binding EditName}" MaxLength="64"
+                                   IsVisible="{Binding IsEditing}" b:FocusOnShow.IsEnabled="True"
+                                   AutomationProperties.Name="{x:Static loc:Strings.Sync_DeviceName}"
+                                   KeyDown="OnDeviceCardNameKeyDown" LostFocus="OnDeviceCardNameLostFocus" />
+                        </Panel>
                         <c:Marquee ToolTip.Tip="{Binding Status}">
                           <TextBlock Text="{Binding Status}" Classes="caption" TextWrapping="NoWrap" />
                         </c:Marquee>
                       </StackPanel>
+                      <PathIcon Grid.Column="2" Data="{StaticResource Icon.edit}" Width="14" Height="14"
+                                Margin="8,0,4,0" Opacity="0.45" VerticalAlignment="Center"
+                                IsVisible="{Binding ShowEditHint}"
+                                ToolTip.Tip="{x:Static loc:Strings.Common_Rename}" />
                       <Button Grid.Column="2" Classes="icon small danger" VerticalAlignment="Center" Margin="6,0,-2,0"
                               IsVisible="{Binding CanRemove}"
                               Command="{Binding AskRemoveCommand}" CommandParameter="{Binding}"
@@ -231,19 +273,7 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <Button Classes="accent" HorizontalAlignment="Right" Command="{Binding AddDeviceCommand}"
-                    ToolTip.Tip="{x:Static loc:Strings.Sync_AddDeviceTip}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.add}" /><TextBlock Text="{x:Static loc:Strings.Sync_AddDevice}" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
-
-            <Separator Classes="row" />
-            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-              <TextBlock Text="{x:Static loc:Strings.Sync_DeviceName}" VerticalAlignment="Center" />
-              <TextBox Grid.Column="1" Text="{Binding DeviceName}" MaxLength="64"
-                       KeyDown="OnDeviceNameKeyDown" LostFocus="OnDeviceNameLostFocus" />
-            </Grid>
+            <Separator Classes="row" IsVisible="{x:Static vm:SyncViewModel.IsDesktop}" />
 
             <!-- Desktop: keep syncing with the window closed, and start with the system. -->
             <StackPanel Spacing="10" IsVisible="{x:Static vm:SyncViewModel.IsDesktop}">

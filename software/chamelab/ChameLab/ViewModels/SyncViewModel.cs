@@ -14,16 +14,48 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>A device in the sync devices list.</summary>
-public sealed class SyncMemberViewModel(SyncMember member, SyncStatus localStatus, int connectedCount, ICommand askRemove)
+public sealed class SyncMemberViewModel : ViewModelBase
 {
-    public string Id => member.Id;
-    public string Name => member.Name;
-    public bool IsThis => member.IsThis;
-    public bool CanRemove => !member.IsThis;
-    public ICommand AskRemoveCommand => askRemove;
+    private readonly ICommand _askRemove;
+    private SyncMember _member;
+    private SyncStatus _localStatus;
+    private int _connectedCount;
+
+    public SyncMemberViewModel(SyncMember member, SyncStatus localStatus, int connectedCount, ICommand askRemove)
+    {
+        _member = member;
+        _localStatus = localStatus;
+        _connectedCount = connectedCount;
+        _askRemove = askRemove;
+        EditName = member.Name;
+    }
+
+    public string Id => _member.Id;
+    public string Name => _member.Name;
+    public bool IsThis => _member.IsThis;
+    public bool CanRemove => !_member.IsThis;
+    public ICommand AskRemoveCommand => _askRemove;
+    public bool ShowEditHint => IsThis && !IsEditing;
+
+    public bool IsEditing
+    {
+        get;
+        private set
+        {
+            if (field == value) return;
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(ShowEditHint));
+        }
+    }
+
+    public string EditName
+    {
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    }
 
     /// <summary>Key for IconGeometryConverter matching the device's OS/platform.</summary>
-    public string PlatformIconKey => member.Platform switch
+    public string PlatformIconKey => _member.Platform switch
     {
         "windows" => "deviceWindows",
         "linux" => "deviceLinux",
@@ -36,16 +68,49 @@ public sealed class SyncMemberViewModel(SyncMember member, SyncStatus localStatu
 
     /// <summary>"This device", "Connected · local network", "Connected · internet", "Last seen 5 min ago", "Not seen yet".</summary>
     public string Status =>
-        member.IsThis ? Strings.Sync_ThisDevice
-        : member.IsOnline ? (member.Link == "lan" ? Strings.Sync_ConnectedLan : Strings.Sync_ConnectedRelay)
-        : member.LastSeen is { } seen ? string.Format(Strings.Sync_LastSeen, Ago(seen))
+        _member.IsThis ? Strings.Sync_ThisDevice
+        : _member.IsOnline ? (_member.Link == "lan" ? Strings.Sync_ConnectedLan : Strings.Sync_ConnectedRelay)
+        : _member.LastSeen is { } seen ? string.Format(Strings.Sync_LastSeen, Ago(seen))
         : Strings.Sync_NotSeenYet;
 
-    public bool IsOnline => member.IsOnline && !member.IsThis;
+    public bool IsOnline => _member.IsOnline && !_member.IsThis;
 
-    public bool IsStateOnline => member.IsThis ? (localStatus == SyncStatus.Online || connectedCount > 0) : member.IsOnline;
-    public bool IsStateConnecting => member.IsThis && localStatus == SyncStatus.Connecting && connectedCount == 0;
+    public bool IsStateOnline => _member.IsThis ? (_localStatus == SyncStatus.Online || _connectedCount > 0) : _member.IsOnline;
+    public bool IsStateConnecting => _member.IsThis && _localStatus == SyncStatus.Connecting && _connectedCount == 0;
     public bool IsStateOffline => !IsStateOnline && !IsStateConnecting;
+
+    public void BeginEdit()
+    {
+        if (!IsThis || IsEditing) return;
+        EditName = Name;
+        IsEditing = true;
+    }
+
+    public void CancelEdit()
+    {
+        IsEditing = false;
+        EditName = Name;
+    }
+
+    internal void EndEdit() => IsEditing = false;
+
+    internal void Update(SyncMember member, SyncStatus localStatus, int connectedCount)
+    {
+        _member = member;
+        _localStatus = localStatus;
+        _connectedCount = connectedCount;
+        if (!IsEditing) EditName = member.Name;
+        this.RaisePropertyChanged(nameof(Name));
+        this.RaisePropertyChanged(nameof(IsThis));
+        this.RaisePropertyChanged(nameof(CanRemove));
+        this.RaisePropertyChanged(nameof(ShowEditHint));
+        this.RaisePropertyChanged(nameof(PlatformIconKey));
+        this.RaisePropertyChanged(nameof(Status));
+        this.RaisePropertyChanged(nameof(IsOnline));
+        this.RaisePropertyChanged(nameof(IsStateOnline));
+        this.RaisePropertyChanged(nameof(IsStateConnecting));
+        this.RaisePropertyChanged(nameof(IsStateOffline));
+    }
 
     private static string Ago(DateTimeOffset time)
     {
@@ -137,9 +202,25 @@ public sealed class SyncViewModel : ViewModelBase
 
     private void Refresh() => Dispatcher.UIThread.Post(() =>
     {
-        Members.Clear();
-        foreach (var member in _sync.Members)
-            Members.Add(new SyncMemberViewModel(member, _sync.Status, _sync.ConnectedCount, AskRemoveCommand));
+        var latest = _sync.Members;
+        for (var i = Members.Count - 1; i >= 0; i--)
+            if (latest.All(m => m.Id != Members[i].Id)) Members.RemoveAt(i);
+        for (var i = 0; i < latest.Count; i++)
+        {
+            var member = latest[i];
+            var idx = -1;
+            for (var j = i; j < Members.Count; j++)
+                if (Members[j].Id == member.Id) { idx = j; break; }
+            if (idx >= 0)
+            {
+                Members[idx].Update(member, _sync.Status, _sync.ConnectedCount);
+                if (idx != i) Members.Move(idx, i);
+            }
+            else
+            {
+                Members.Insert(i, new SyncMemberViewModel(member, _sync.Status, _sync.ConnectedCount, AskRemoveCommand));
+            }
+        }
         Fill(DeletedCards, EntityTypes.Card);
         Fill(DeletedDictionaries, EntityTypes.Dictionary);
         if (_sync.DeviceName is { } name)
@@ -466,6 +547,24 @@ public sealed class SyncViewModel : ViewModelBase
     public void RevertDeviceName()
     {
         if (IsEnabled) DeviceName = _sync.DeviceName ?? SyncService.DefaultDeviceName;
+    }
+
+    public bool HasEditingMember => Members.Any(m => m.IsEditing);
+
+    public void CommitInlineDeviceName(SyncMemberViewModel member)
+    {
+        if (!member.IsEditing) return;
+        member.EndEdit();
+        var sanitized = SyncService.SanitizeDeviceName(member.EditName);
+        var current = _sync.DeviceName ?? SyncService.DefaultDeviceName;
+        if (sanitized.Length == 0 || string.Equals(sanitized, current, StringComparison.Ordinal))
+        {
+            member.EditName = current;
+            return;
+        }
+        DeviceName = sanitized;
+        _lastSyncedDeviceName = sanitized;
+        _sync.Rename(sanitized);
     }
 
     private void AskRemove(SyncMemberViewModel? member)
