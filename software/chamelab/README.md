@@ -110,26 +110,18 @@ choice work as for the other readable T55xx formats.
 **IDTECK reading** uses the RF/2 phase of the RF/32 PSK1 signal and confirms two
 identical complete 64-bit frames. `lf idteck read`, LF search and the saved-card
 writer preserve the full eight-byte ID, including the `4944544B` preamble.
-This requires firmware v2.3.24-cl or newer. Repeated PAC reads power-cycle the
-tag before acquisition so its calibration starts after a complete reset.
-Firmware v2.3.25-cl checks PAC NRZ hysteresis widths in parallel, preserving
-the state while the AC-coupled signal returns toward its baseline. It also
-keeps the full ADC excursions on alternative paths so clipping does not merge
-real transitions with baseline recovery. This addresses false edges seen with
-wall-adapter power over BLE; every path verifies UART parity and the checksum.
-Firmware v2.3.26-cl captures three PAC frame periods in a single EasyDMA transfer
-before decoding, so restarting a short streaming buffer cannot remove samples
-while BLE is servicing an interrupt. Other LF readers retain their streaming path.
-Firmware v2.3.27-cl filters sub-bit ringing and retains fractional bit time in
-32 clock phases, rather than rounding each NRZ interval independently. Full
-signed ADC snapshots of failed PAC reads can be inspected through command 3033
-with parameters `10` through `1B` (12 successive 2048-byte chunks, little endian).
-Firmware v2.3.28-cl applies a sample-wise median across the three captured PAC
-periods before decoding. The RF and ADC clocks share the carrier reference;
-each period is exactly 4096 samples. This rejects interference confined to one
-period while retaining the original ADC snapshot for diagnosis.
-Firmware v2.3.29-cl gives PAC the same 500 ms budget in LF auto detection as in
-a direct read, allowing the capture and coherent clock-phase decoding to finish.
+This requires firmware v2.4.23-cl or newer.
+
+**PAC reading** in firmware v2.4.23-cl power-cycles the tag before repeated reads,
+captures three complete frame periods in a single EasyDMA transfer (avoiding sample
+gaps when BLE delays streaming ADC interrupts), and applies a sample-wise median
+across the three periods to reject nonrepeating interference. The decoder filters
+sub-bit LC ringing, retains fractional bit time across 32 clock phases, and checks
+parallel NRZ hysteresis widths on clipped and full-range ADC paths, verifying UART
+parity and the checksum. LF auto detection gives PAC the same 500 ms acquisition
+budget as a direct read. Full signed ADC snapshots of failed PAC reads can be
+inspected through command 3033 with parameters `10` through `1B` (12 successive
+2048-byte chunks, little endian).
 
 ## Build & run
 
