@@ -52,7 +52,6 @@ NRF_LOG_MODULE_REGISTER();
 #define PAC_SPIKE_MULT      3    // Clip at 3× floor
 #define PAC_MIN_SPIKE_CAP   8000 // Floor: preserves NRZ high (~5000) always
 #define PAC_THRESH_FUZZ     75   // Dead zone: 25%-75% of clipped range
-#define PAC_THRESH_FUZZ_WIDE 90  // Ignore baseline recovery/ringing between 10%-90%
 // Auto-recalibrate if no frame found within this many Phase 3 samples.
 // ~5 frame periods = 5 × 128 bits × 32 samples/bit = 20480 samples (~164ms).
 // Gives ~3 calibration attempts in a 500ms scan window.
@@ -64,6 +63,11 @@ typedef struct {
     uint64_t raw_lo;        // lower 64 bits
     bool polarity;          // current NRZ level (toggled on each edge)
     uint16_t bit_count;     // total bits shifted in (capped at PAC_FRAME_BITS)
+    int32_t bit_error;
+} pac_clock;
+
+typedef struct {
+    pac_clock clocks[PAC_RF_PER_BIT];
     uint8_t card_id[PAC_DATA_SIZE];
 
     // ADC → NRZ demodulation state (spike-clip + threshold with dead zone)
@@ -75,21 +79,23 @@ typedef struct {
     int16_t thresh_high;    // above this → bit=1
     int16_t thresh_low;     // below this → bit=0, between → keep previous
     uint8_t threshold_fuzz;
+    bool unclipped;
     bool adc_state;         // current demodulated binary level
+    uint8_t pending_samples;
     bool has_signal;        // true after first threshold crossing
     uint32_t sample_count;  // samples since last transition
     uint32_t decode_samples; // Phase 3 samples since last calibration
 } pac_codec;
 
 // Shift one bit into the 128-bit register.
-static void shift_bit(pac_codec *d, bool bit) {
+static void shift_bit(pac_clock *d, bool bit) {
     d->raw_hi = (d->raw_hi << 1) | (d->raw_lo >> 63);
     d->raw_lo = (d->raw_lo << 1) | (bit ? 1 : 0);
 }
 
 // Extract a single bit from the 128-bit register.
 // Position 0 = MSB of raw_hi (oldest), position 127 = LSB of raw_lo (newest).
-static bool get_bit(pac_codec *d, uint16_t pos) {
+static bool get_bit(pac_clock *d, uint16_t pos) {
     if (pos < 64) {
         return (d->raw_hi >> (63 - pos)) & 1;
     }
@@ -98,7 +104,7 @@ static bool get_bit(pac_codec *d, uint16_t pos) {
 
 // Decode a 10-bit UART frame at bit position 'start'.
 // Frame: start(0) + 7 data bits LSB-first + odd parity + stop(1).
-static int decode_uart_byte(pac_codec *d, uint16_t start, bool inverted) {
+static int decode_uart_byte(pac_clock *d, uint16_t start, bool inverted) {
 #define RD(pos) (inverted ? !get_bit(d, (pos)) : get_bit(d, (pos)))
 
     if (RD(start)) {
@@ -130,11 +136,8 @@ static int decode_uart_byte(pac_codec *d, uint16_t start, bool inverted) {
 }
 
 // Check if the 128-bit register contains a valid PAC frame.
-static bool try_decode_frame(pac_codec *d, bool inverted) {
-    uint32_t preamble = 0;
-    for (int i = 0; i < PAC_PREAMBLE_BITS; i++) {
-        preamble = (preamble << 1) | (get_bit(d, i) ? 1 : 0);
-    }
+static bool try_decode_frame(pac_clock *d, uint8_t *card_id, bool inverted) {
+    uint32_t preamble = (uint32_t)(d->raw_hi >> (64 - PAC_PREAMBLE_BITS));
 
     uint32_t expected = inverted ? PAC_PREAMBLE_INV : PAC_PREAMBLE;
     if (preamble != expected) {
@@ -163,13 +166,15 @@ static bool try_decode_frame(pac_codec *d, bool inverted) {
         return false;
     }
 
-    memcpy(d->card_id, &decoded[3], PAC_DATA_SIZE);
+    memcpy(card_id, &decoded[3], PAC_DATA_SIZE);
     return true;
 }
 
 // Process a demodulated NRZ edge interval (in samples = carrier cycles).
-static bool pac_process_interval(pac_codec *d, uint32_t interval) {
-    uint32_t nbits = (interval + PAC_HALF_BIT) / PAC_RF_PER_BIT;
+static bool pac_process_clock(pac_clock *d, uint32_t interval, uint8_t *card_id) {
+    int32_t elapsed = (int32_t)interval + d->bit_error;
+    uint32_t nbits = (elapsed + PAC_HALF_BIT) / PAC_RF_PER_BIT;
+    d->bit_error = elapsed - (int32_t)(nbits * PAC_RF_PER_BIT);
 
     if (nbits < 1 || nbits > PAC_MAX_BITS_RUN) {
         d->raw_hi = 0;
@@ -185,13 +190,22 @@ static bool pac_process_interval(pac_codec *d, uint32_t interval) {
             d->bit_count++;
         }
         if (d->bit_count >= PAC_FRAME_BITS) {
-            if (try_decode_frame(d, false) || try_decode_frame(d, true)) {
+            if (try_decode_frame(d, card_id, false) || try_decode_frame(d, card_id, true)) {
                 return true;
             }
         }
     }
 
     d->polarity = !d->polarity;
+    return false;
+}
+
+static bool pac_process_interval(pac_codec *d, uint32_t interval) {
+    // Keep fractional bit time instead of rounding every run independently.
+    // Explore each RF/32 clock phase: jitter near half a bit must not insert
+    // or delete a symbol. Every candidate still passes all UART/parity/XOR checks.
+    for (unsigned i = 0; i < PAC_RF_PER_BIT; i++)
+        if (pac_process_clock(&d->clocks[i], interval, d->card_id)) return true;
     return false;
 }
 
@@ -210,7 +224,10 @@ static uint8_t *pac_get_data(pac_codec *d) {
 
 static void pac_decoder_start(pac_codec *d, uint8_t format) {
     memset(d, 0, sizeof(pac_codec));
-    d->threshold_fuzz = format == PAC_DECODE_WIDE_HYSTERESIS ? PAC_THRESH_FUZZ_WIDE : PAC_THRESH_FUZZ;
+    for (unsigned i = 0; i < PAC_RF_PER_BIT; i++) d->clocks[i].bit_error = (int)i - PAC_HALF_BIT;
+    uint8_t width = format & ~PAC_DECODE_UNCLIPPED;
+    d->threshold_fuzz = width >= 75 && width <= 95 ? width : PAC_THRESH_FUZZ;
+    d->unclipped = (format & PAC_DECODE_UNCLIPPED) != 0;
     d->raw_min = 32767;        // INT16_MAX: first sample updates it
     d->spike_cap = 0x7FFFFFFF; // INT32_MAX: no capping until prescan completes
     d->clip_max = -32768;      // INT16_MIN: first clipped sample updates it
@@ -233,6 +250,10 @@ static bool pac_decoder_feed(pac_codec *d, uint16_t raw_sample) {
             if (d->spike_cap < PAC_MIN_SPIKE_CAP) {
                 d->spike_cap = PAC_MIN_SPIKE_CAP;
             }
+            // Strong AC coupling can leave useful polarity information only
+            // in the excursions. Clipping real peaks and baseline recovery to
+            // the same level makes them inseparable, even with wide hysteresis.
+            if (d->unclipped) d->spike_cap = 32767;
         }
         return false;
     }
@@ -261,7 +282,7 @@ static bool pac_decoder_feed(pac_codec *d, uint16_t raw_sample) {
     // the one-shot calibration may have captured an unlucky NRZ segment.
     d->decode_samples++;
     if (d->decode_samples >= PAC_RECAL_SAMPLES) {
-        pac_decoder_start(d, d->threshold_fuzz == PAC_THRESH_FUZZ_WIDE ? PAC_DECODE_WIDE_HYSTERESIS : 0);
+        pac_decoder_start(d, d->threshold_fuzz | (d->unclipped ? PAC_DECODE_UNCLIPPED : 0));
         return false;
     }
     d->sample_count++;
@@ -272,6 +293,7 @@ static bool pac_decoder_feed(pac_codec *d, uint16_t raw_sample) {
     } else if (sample <= d->thresh_low) {
         new_state = false;
     } else {
+        d->pending_samples = 0;
         return false;
     }
 
@@ -283,12 +305,26 @@ static bool pac_decoder_feed(pac_codec *d, uint16_t raw_sample) {
     }
 
     if (new_state == d->adc_state) {
+        d->pending_samples = 0;
         return false;
     }
 
+    // A genuine NRZ transition is at least one RF/32 bit after the previous
+    // one. LC ringing can cross both thresholds again within that bit. Ignore
+    // those early excursions without changing either state or elapsed time;
+    // resetting the frame on a sub-bit pulse loses otherwise valid packets.
+    if (d->sample_count < PAC_RF_PER_BIT * 3 / 4) {
+        d->pending_samples = 0;
+        return false;
+    }
+    // A short opposite peak is ringing, not a new NRZ symbol. Preserve the
+    // timestamp of its first sample once the excursion has persisted.
+    if (++d->pending_samples < 4) return false;
+
     // Transition detected — process the interval
-    uint32_t interval = d->sample_count;
-    d->sample_count = 0;
+    uint32_t interval = d->sample_count - (d->pending_samples - 1);
+    d->sample_count = d->pending_samples - 1;
+    d->pending_samples = 0;
     d->adc_state = new_state;
 
     return pac_process_interval(d, interval);

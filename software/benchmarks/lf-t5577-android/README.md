@@ -29,8 +29,11 @@ adb logcat -s LfT5577Bench:I '*:S'
 adb exec-out run-as io.github.m0n5ter.chamelab.lft5577bench cat files/results.json
 ```
 
-Use `--es phase smoke --ei limit 5` for a short initial probe. After a completed
-run, collect files before starting again: a new run replaces its JSON logs.
+Use `--es phase smoke --ei limit 5` for a short initial probe.
+`--es family PAC --ei repeat 5` tests just PAC with repeated schedule entries;
+`--es family IDTECK` uses the native PSK1 reader. An optional `--ei limit N`
+limits the expanded schedule. The default still runs the complete schedule once.
+After a completed run, collect files before starting again: a new run replaces its JSON logs.
 Stop the APK with `am force-stop` only after `LF_BLE_COMPLETE` to allow cleanup.
 
 Each cycle writes a different scheduled identity and performs two independent

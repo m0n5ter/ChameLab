@@ -154,7 +154,7 @@ static const lf_auto_reader_t lf_auto_readers[] = {
     { TAG_TYPE_HID_PROX,           16,     200, read_hidprox_any },
     { TAG_TYPE_IOPROX,             16,     200, read_ioprox_any  },  // + 60 ms power cycle in the reader
     { TAG_TYPE_FARPOINTE_PYRAMID,  16,     200, pyramid_read     },  // + 60 ms power cycle in the reader
-    { TAG_TYPE_PAC,                8,      160, pac_read         },  // + 10 ms power-up in the reader
+    { TAG_TYPE_PAC,                8,      500, pac_read         },  // contiguous capture + coherent decoding, + 60 ms power cycle
     { TAG_TYPE_IDTECK,             8,      160, idteck_read      },  // two matching RF/32 PSK1 frames
 };
 

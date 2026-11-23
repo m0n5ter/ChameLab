@@ -37,6 +37,7 @@ typedef struct { union { const nrf_pwm_values_wave_form_t *p_wave_form; } values
 #include "nrfx_saadc.h"
 typedef void (*lf_adc_callback_t)(nrf_saadc_value_t *, size_t);
 void lf_125khz_radio_saadc_enable(lf_adc_callback_t);
+void lf_125khz_radio_saadc_capture_enable(lf_adc_callback_t, nrf_saadc_value_t *, uint16_t);
 void lf_125khz_radio_saadc_disable(void);
 void start_lf_125khz_radio(void);
 void stop_lf_125khz_radio(void);
@@ -85,7 +86,9 @@ void lf_125khz_radio_gpiote_disable(void);
                         str(src / "rfid/nfctag/lf/utils/fskdemod.c"), str(src / "rfid/parity.c"),
                         str(src / "rfid/nfctag/lf/utils/psk1.c"),
                         str(src / "rfid/hex_utils.c"), "-lm", "-o", str(binary)], check=True)
-        subprocess.run([str(binary)], check=True)
+        subprocess.run([str(binary), *[str(firmware / "tests/fixtures" / name) for name in (
+            "pac-ble-failed-a1-pcm16.bin", "pac-ble-failed-a2-pcm16.bin", "pac-ble-failed-b-pcm16.bin",
+            "pac-ble-failed-c-pcm16.bin", "pac-ble-failed-a3-pcm16.bin")]], check=True)
 
         subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-O2",
                         *[f"-I{p}" for p in includes], str(firmware / "tests/test_lf_idteck_read.c"),
@@ -94,8 +97,10 @@ void lf_125khz_radio_gpiote_disable(void);
         subprocess.run([str(binary), str(firmware / "tests/fixtures/idteck-near-antenna-adc.bin")], check=True)
         subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-O2",
                         *[f"-I{p}" for p in includes], str(firmware / "tests/test_lf_pac_read.c"),
-                        str(src / "rfid/nfctag/lf/protocols/pac.c"), "-o", str(binary)], check=True)
-        subprocess.run([str(binary), str(firmware / "tests/fixtures/pac-ble-ringing-adc.bin")], check=True)
+                        str(src / "rfid/nfctag/lf/protocols/pac.c"), "-lm", "-o", str(binary)], check=True)
+        subprocess.run([str(binary), *[str(firmware / "tests/fixtures" / name) for name in (
+            "pac-ble-ringing-adc.bin", "pac-ble-failed-a1-pcm16.bin", "pac-ble-failed-a2-pcm16.bin",
+            "pac-ble-failed-b-pcm16.bin")]], check=True)
         em4x05 = []
         for name in ("lf_em4x05_write.c", "lf_em4x05_data.c", "lf_em410x_data.c"):
             (temp / name).write_bytes((src / "rfid/reader/lf" / name).read_bytes())

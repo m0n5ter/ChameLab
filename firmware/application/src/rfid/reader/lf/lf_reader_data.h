@@ -24,6 +24,7 @@ bool em410x_copy_last_capture(uint8_t *data, size_t offset, size_t length);
 bool ioprox_read(uint8_t *data, uint8_t format_hint, uint32_t timeout_ms);
 bool hidprox_read(uint8_t *data, uint8_t format_hint, uint32_t timeout_ms);
 bool pac_read(uint8_t *data, uint32_t timeout_ms);
+size_t pac_copy_last_capture(uint8_t *data, size_t offset, size_t length);
 bool viking_read(uint8_t *data, uint32_t timeout_ms);
 bool jablotron_read(uint8_t *data, uint32_t timeout_ms);
 bool pyramid_read(uint8_t *data, uint32_t timeout_ms);

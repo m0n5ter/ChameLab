@@ -21,6 +21,8 @@ bool is_nus_working(void);
 void set_ble_connect_key(uint8_t *key);
 
 void register_lf_adc_callback(lf_adc_callback_t cb);
+// One contiguous EasyDMA capture; the caller owns the buffer until disable.
+void register_lf_adc_capture(lf_adc_callback_t cb, nrf_saadc_value_t *buffer, uint16_t count);
 void unregister_lf_adc_callback(void);
 
 #endif

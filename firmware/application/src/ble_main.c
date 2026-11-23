@@ -97,6 +97,7 @@ static ble_radio_policy_t m_radio_policy;
 static void ble_radio_apply(ble_radio_event_t event);
 static uint16_t   m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - 3;            /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 lf_adc_callback_t m_lf_adc_callback      = NULL;
+static bool m_lf_adc_oneshot;
 
 static ble_uuid_t m_adv_uuids[]          =                                          /**< Universally unique service identifier. */
 {
@@ -742,8 +743,10 @@ static void peer_manager_init(void) {
 void saadc_event_handler(nrfx_saadc_evt_t const *p_event) {
     if (p_event->type == NRFX_SAADC_EVT_DONE && m_lf_adc_callback != NULL) {
         ret_code_t err_code;
-        err_code = nrfx_saadc_buffer_convert(&adc_buf[next_free_buf_index()][0], ADC_BUF_SIZE);
-        APP_ERROR_CHECK(err_code);
+        if (!m_lf_adc_oneshot) {
+            err_code = nrfx_saadc_buffer_convert(&adc_buf[next_free_buf_index()][0], ADC_BUF_SIZE);
+            APP_ERROR_CHECK(err_code);
+        }
 
         m_lf_adc_callback(p_event->data.done.p_buffer, p_event->data.done.size);
     }
@@ -836,7 +839,7 @@ void ble_slave_init(void) {
     peer_manager_init();                // Peer manager Initialization
 }
 
-void register_lf_adc_callback(lf_adc_callback_t cb) {
+static void configure_lf_adc(lf_adc_callback_t cb) {
     m_lf_adc_callback = cb;
 
     nrfx_saadc_uninit();
@@ -851,7 +854,12 @@ void register_lf_adc_callback(lf_adc_callback_t cb) {
     ch.acq_time = NRF_SAADC_ACQTIME_5US;
     err_code = nrfx_saadc_channel_init(ADC_CHANNEL, &ch);
     APP_ERROR_CHECK(err_code);
+}
 
+void register_lf_adc_callback(lf_adc_callback_t cb) {
+    configure_lf_adc(cb);
+    m_lf_adc_oneshot = false;
+    ret_code_t err_code;
     err_code = nrfx_saadc_buffer_convert(&adc_buf[next_free_buf_index()][0], ADC_BUF_SIZE);
     APP_ERROR_CHECK(err_code);
 
@@ -859,8 +867,16 @@ void register_lf_adc_callback(lf_adc_callback_t cb) {
     APP_ERROR_CHECK(err_code);
 }
 
+void register_lf_adc_capture(lf_adc_callback_t cb, nrf_saadc_value_t *buffer, uint16_t count) {
+    configure_lf_adc(cb);
+    m_lf_adc_oneshot = true;
+    ret_code_t err_code = nrfx_saadc_buffer_convert(buffer, count);
+    APP_ERROR_CHECK(err_code);
+}
+
 void unregister_lf_adc_callback(void) {
     nrfx_saadc_uninit();
     adc_configure();
     m_lf_adc_callback = NULL;
+    m_lf_adc_oneshot = false;
 }

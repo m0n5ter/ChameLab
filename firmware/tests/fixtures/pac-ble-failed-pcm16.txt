@@ -1,0 +1,26 @@
+Full signed 14-bit ADC snapshots from actual failed PAC reads on a T5577,
+Chameleon Ultra powered from a wall adapter and controlled through Android BLE.
+Recorded 2026-11-23, firmware v2.3.26-cl diagnostic build, command 3014.
+
+Each file is exactly 12288 little-endian int16 samples at 125 ksample/s,
+three RF/32 PAC frame periods. No scaling, clipping, padding or splicing.
+The buffers were copied immediately after the failed read, before the next
+read or a fresh sniff could overwrite them. The input card identities are
+generated test data, not access credentials.
+
+pac-ble-failed-a1-pcm16.bin: cycle 1, read 1, ASCII ID 1234AB00.
+pac-ble-failed-a2-pcm16.bin: cycle 2, read 1, ASCII ID 1234AB00.
+pac-ble-failed-b-pcm16.bin: cycle 18, read 1, ASCII ID 1234AB01.
+pac-ble-failed-c-pcm16.bin: v2.3.27-cl cycle 15, read 1, ASCII ID 1234AB02.
+pac-ble-failed-a3-pcm16.bin: v2.3.27-cl cycle 44, read 2, ASCII ID 1234AB00.
+
+The previous decoder's clipped/full-range hysteresis paths fail these complete
+buffers. Short LC excursions reset its shift register; separately rounding
+edge intervals also creates parity errors near a half-bit boundary. Filtering
+short excursions and tracking fractional time across all 32 clock phases must
+recover the exact ID at each of 32 acquisition offsets. Every candidate still
+passes the original preamble, UART framing, odd parity and payload XOR checks.
+The last two captures additionally need coherent median filtering of the
+three physical frame periods. The acquisition regression exercises the actual
+reader and raw buffers directly; no repeated capture, padding or synthesized
+tail is involved in these PCM16 fixtures.

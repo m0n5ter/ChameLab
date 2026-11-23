@@ -11,6 +11,7 @@ void lf_125khz_radio_init(void);
 void lf_125khz_radio_uninit(void);
 
 void lf_125khz_radio_saadc_enable(lf_adc_callback_t cb);
+void lf_125khz_radio_saadc_capture_enable(lf_adc_callback_t cb, nrf_saadc_value_t *buffer, uint16_t count);
 void lf_125khz_radio_gpiote_enable(void);
 // Hardware-timed edge intervals for EM410x/Electra. Shares the normal disable.
 void lf_125khz_radio_gpiote_capture_enable(void);

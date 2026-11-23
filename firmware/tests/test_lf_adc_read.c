@@ -64,6 +64,12 @@ void bsp_wdt_feed(void) {}
 void start_lf_125khz_radio(void) {}
 void stop_lf_125khz_radio(void) {}
 void lf_125khz_radio_saadc_enable(lf_adc_callback_t callback) { adc_callback = callback; }
+void lf_125khz_radio_saadc_capture_enable(lf_adc_callback_t callback, nrf_saadc_value_t *buffer, uint16_t count) {
+    assert(count == 3 * 128 * 32 && count <= signal_length);
+    memcpy(buffer, signal, count * sizeof(*buffer));
+    timer.time += (count + 124) / 125;
+    callback(buffer, count);
+}
 void lf_125khz_radio_saadc_disable(void) { adc_callback = NULL; }
 
 static void synthesize(const uint8_t *bits, unsigned count, unsigned bitrate) {
@@ -95,7 +101,7 @@ static void check(const char *name, bool read, const uint8_t *actual,
     assert(read && memcmp(actual, expected, size) == 0);
 }
 
-int main(void) {
+int main(int argc, char **argv) {
     setvbuf(stdout, NULL, _IONBF, 0);
     uint8_t bits[128], actual[16];
     const uint8_t pyramid_frame[16] = {0x00, 0x01, 0x01, 0x4A, 0x3E, 0x01, 0x01, 0x01,
@@ -143,6 +149,21 @@ int main(void) {
     }
     assert(pac_read(actual, 500));
     assert(memcmp(actual, pac_id, sizeof(pac_id)) == 0);
+    uint8_t snapshot[16];
+    assert(pac_copy_last_capture(snapshot, 0, sizeof(snapshot)) == sizeof(snapshot));
+    assert(memcmp(snapshot, signal, sizeof(snapshot)) == 0);
+    assert(pac_copy_last_capture(snapshot, 3 * 128 * 32 * sizeof(int16_t), sizeof(snapshot)) == 0);
+    assert(!pac_read(actual, 40)); // A partial DMA period must not outlive its timeout.
+    assert(pac_copy_last_capture(snapshot, 0, sizeof(snapshot)) == 0);
+    for (int fixture = 1; fixture < argc; fixture++) {
+        FILE *input = fopen(argv[fixture], "rb");
+        assert(input && fread(signal, sizeof(*signal), 12288, input) == 12288);
+        fclose(input);
+        signal_length = 12288;
+        const char *expected_id = fixture == 3 ? "1234AB01" : fixture == 4 ? "1234AB02" : "1234AB00";
+        assert(pac_read(actual, 500));
+        assert(memcmp(actual, expected_id, 8) == 0);
+    }
 
     const int16_t raw[] = {-32768, -128, -1, 0, 31, 32, 8159, 8160, 8192, 16383};
     const uint8_t expected[] = {0, 0, 0, 0, 0, 1, 254, 255, 255, 255};

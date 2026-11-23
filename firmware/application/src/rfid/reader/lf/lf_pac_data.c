@@ -2,113 +2,85 @@
 
 #include "bsp_delay.h"
 #include "bsp_time.h"
-#include "circular_buffer.h"
 #include "lf_125khz_radio.h"
 #include "lf_reader_data.h"
-#include "nrfx_saadc.h"
 #include "protocols/pac.h"
-#include "protocols/protocols.h"
 
-#define NRF_LOG_MODULE_NAME pac_reader
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
-#include "nrf_log_default_backends.h"
-NRF_LOG_MODULE_REGISTER();
+// Three complete PAC periods in one EasyDMA transfer. The legacy streaming
+// driver restarts each 2048-sample buffer in its IRQ; BLE can delay that restart
+// and remove part of an NRZ interval. No CPU service is needed within this span.
+#define PAC_FRAME_SAMPLES (128 * 32)
+#define PAC_CAPTURE_SAMPLES (3 * PAC_FRAME_SAMPLES)
+static nrf_saadc_value_t samples[PAC_CAPTURE_SAMPLES];
+static volatile bool samples_ready;
 
-#define PAC_BUFFER_SIZE (6144)
-
-static circular_buffer cb;
-static volatile uint32_t m_cb_gen = 0;
-static volatile uint32_t m_active_gen = 0;
-
-// SAADC callback — push raw ADC samples to circular buffer.
-// NRZ/Direct modulation requires ADC sampling (not GPIOTE edge timing)
-// because the comparator may not produce clean digital edges for NRZ signals.
-static void pac_saadc_cb(nrf_saadc_value_t *vals, size_t size) {
-    uint32_t gen = m_active_gen;
-    if (gen == 0 || gen != m_cb_gen) {
-        return;
-    }
-
-    for (size_t i = 0; i < size; i++) {
-        if (m_active_gen != gen) {
-            return;
-        }
-        nrf_saadc_value_t val = vals[i];
-        if (!cb_push_back(&cb, &val)) {
-            return;
-        }
-    }
+static int16_t coherent_sample(unsigned position) {
+    // PAC repeats at exactly 128 * RF/32 carrier cycles. Reject an excursion
+    // confined to one physical period before slicing NRZ symbols. Keep the
+    // original snapshot intact for diagnosis; feed the cyclic filtered period.
+    unsigned n = position % PAC_FRAME_SAMPLES;
+    int16_t a = samples[n], b = samples[n + PAC_FRAME_SAMPLES], c = samples[n + 2 * PAC_FRAME_SAMPLES];
+    if (a > b) { int16_t t = a; a = b; b = t; }
+    if (b > c) b = c;
+    return a > b ? a : b;
 }
 
-static void init_pac_hw(void) {
-    lf_125khz_radio_saadc_enable(pac_saadc_cb);
+static void pac_saadc_cb(nrf_saadc_value_t *buffer, size_t count) {
+    samples_ready = buffer == samples && count == PAC_CAPTURE_SAMPLES;
 }
 
-static void uninit_pac_hw(void) {
-    lf_125khz_radio_saadc_disable();
+size_t pac_copy_last_capture(uint8_t *data, size_t offset, size_t length) {
+    if (!samples_ready || offset >= sizeof(samples)) return 0;
+    if (length > sizeof(samples) - offset) length = sizeof(samples) - offset;
+    memcpy(data, (const uint8_t *)samples + offset, length);
+    return length;
 }
 
 bool pac_read(uint8_t *data, uint32_t timeout_ms) {
-    void *codec = pac.alloc();
-    void *wide = pac.alloc();
-    if (!codec || !wide) {
-        pac.free(codec);
-        pac.free(wide);
-        return false;
-    }
-    pac.decoder.start(codec, 0);
-    pac.decoder.start(wide, PAC_DECODE_WIDE_HYSTERESIS);
-
-    if (!cb_init(&cb, PAC_BUFFER_SIZE, sizeof(uint16_t))) {
-        pac.free(codec);
-        pac.free(wide);
-        return false;
-    }
-
-    // Back-to-back reads must restart the tag, rather than calibrating on an
-    // arbitrary continuation of its previous frame while its supply decays.
-    stop_lf_125khz_radio();
-    lf_125khz_radio_saadc_disable();
-    bsp_delay_ms(50);
-
-    // Start carrier first, then wait for T55XX POR (~5ms) before
-    // enabling SAADC.  This ensures the prescan calibration phase
-    // sees real NRZ signal levels rather than power-up noise.
-    start_lf_125khz_radio();
-    bsp_delay_ms(10);
-
-    m_active_gen = ++m_cb_gen;
-    init_pac_hw();
-
-    bool ok = false;
-    autotimer *p_at = bsp_obtain_timer(0);
-    while (!ok && NO_TIMEOUT_1MS(p_at, timeout_ms)) {
-        uint16_t val = 0;
-        while (!ok && NO_TIMEOUT_1MS(p_at, timeout_ms) && cb_pop_front(&cb, &val)) {
-            if (pac.decoder.feed(codec, val)) {
-                memcpy(data, pac.get_data(codec), pac.data_size);
-                ok = true;
-                break;
-            }
-            // AC coupling returns a long NRZ level toward the baseline. A
-            // narrow dead zone can count that recovery as another data edge;
-            // retain the original path and check a wider hysteresis in parallel.
-            if (pac.decoder.feed(wide, val)) {
-                memcpy(data, pac.get_data(wide), pac.data_size);
-                ok = true;
-                break;
-            }
+    const uint8_t widths[] = {75, PAC_DECODE_WIDE_HYSTERESIS, 95,
+        PAC_DECODE_UNCLIPPED | 75, PAC_DECODE_UNCLIPPED | PAC_DECODE_WIDE_HYSTERESIS};
+    void *codecs[sizeof(widths)] = {0};
+    for (unsigned i = 0; i < sizeof(widths); i++) {
+        codecs[i] = pac.alloc();
+        if (!codecs[i]) {
+            for (unsigned j = 0; j < i; j++) pac.free(codecs[j]);
+            return false;
         }
     }
 
-    bsp_return_timer(p_at);
-    m_active_gen = 0;
-    uninit_pac_hw();
     stop_lf_125khz_radio();
-    cb_free(&cb);
+    lf_125khz_radio_saadc_disable();
+    bsp_delay_ms(50);
+    start_lf_125khz_radio();
+    bsp_delay_ms(10);
 
-    pac.free(codec);
-    pac.free(wide);
+    bool ok = false;
+    samples_ready = false;
+    autotimer *timer = bsp_obtain_timer(0);
+    // Do not replace the last complete snapshot with a partial capture when
+    // less than one 98.304 ms transfer remains before the deadline.
+    while (!ok && timeout_ms > 105 && NO_TIMEOUT_1MS(timer, timeout_ms - 105)) {
+        for (unsigned i = 0; i < sizeof(widths); i++) pac.decoder.start(codecs[i], widths[i]);
+        samples_ready = false;
+        lf_125khz_radio_saadc_capture_enable(pac_saadc_cb, samples, PAC_CAPTURE_SAMPLES);
+        while (!samples_ready && NO_TIMEOUT_1MS(timer, timeout_ms)) {}
+        // Stop EasyDMA before decoding: this is a stable snapshot, with no
+        // queue or rearmed buffer that can overwrite samples under the reader.
+        lf_125khz_radio_saadc_disable();
+        if (!samples_ready) break;
+        for (unsigned n = 0; n < PAC_CAPTURE_SAMPLES && !ok && NO_TIMEOUT_1MS(timer, timeout_ms); n++) {
+            uint16_t sample = (uint16_t)coherent_sample(n);
+            for (unsigned i = 0; i < sizeof(widths); i++) {
+                if (pac.decoder.feed(codecs[i], sample)) {
+                    memcpy(data, pac.get_data(codecs[i]), pac.data_size);
+                    ok = true;
+                    break;
+                }
+            }
+        }
+    }
+    bsp_return_timer(timer);
+    stop_lf_125khz_radio();
+    for (unsigned i = 0; i < sizeof(widths); i++) pac.free(codecs[i]);
     return ok;
 }

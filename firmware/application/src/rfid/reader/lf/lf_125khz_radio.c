@@ -132,6 +132,12 @@ void lf_125khz_radio_saadc_enable(lf_adc_callback_t cb) {
     APP_ERROR_CHECK(err_code);
 }
 
+void lf_125khz_radio_saadc_capture_enable(lf_adc_callback_t cb, nrf_saadc_value_t *buffer, uint16_t count) {
+    register_lf_adc_capture(cb, buffer, count);
+    nrfx_err_t err_code = nrfx_ppi_channel_enable(m_pwm_saadc_sample_ppi_channel);
+    APP_ERROR_CHECK(err_code);
+}
+
 void lf_125khz_radio_saadc_disable(void) {
     nrfx_err_t err_code;
     err_code = nrfx_ppi_channel_disable(m_pwm_saadc_sample_ppi_channel);

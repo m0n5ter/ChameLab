@@ -23,7 +23,8 @@ public sealed class MainActivity : Activity
             using var input = new StreamReader(asset);
             await LfT5577Runner.Run(new BleTransport(id, "Android BLE " + address),
                 await input.ReadToEndAsync(), FilesDir!.AbsolutePath,
-                Intent?.GetStringExtra("phase"), Intent?.GetIntExtra("limit", 0) ?? 0);
+                Intent?.GetStringExtra("phase"), Intent?.GetIntExtra("limit", 0) ?? 0,
+                Intent?.GetStringExtra("family"), Intent?.GetIntExtra("repeat", 1) ?? 1);
             label.Text = "LF_BLE_COMPLETE. Results: files/results.json and files/cycles.jsonl";
             Console.WriteLine("LF_BLE_COMPLETE");
         }

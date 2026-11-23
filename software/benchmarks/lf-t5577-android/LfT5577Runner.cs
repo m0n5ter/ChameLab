@@ -13,11 +13,15 @@ internal static class LfT5577Runner
     private static string Raw(int cmd, string data = "") => $"hw raw -n {cmd} -t 8" +
         (data.Length == 0 ? "" : " -d " + data);
 
-    internal static async Task Run(ITransport transport, string schedule, string folder, string? phaseFilter, int limit)
+    internal static async Task Run(ITransport transport, string schedule, string folder, string? phaseFilter, int limit,
+        string? familyFilter, int repeat)
     {
+        if (repeat is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(repeat));
         using var document = JsonDocument.Parse(schedule);
         var selected = document.RootElement.EnumerateArray()
-            .Where(x => phaseFilter is null || x.GetProperty("phase").GetString() == phaseFilter).ToArray();
+            .Where(x => (phaseFilter is null || x.GetProperty("phase").GetString() == phaseFilter) &&
+                (familyFilter is null || x.GetProperty("case").GetProperty("family").GetString() == familyFilter)).ToArray();
+        selected = Enumerable.Range(0, repeat).SelectMany(_ => selected).ToArray();
         if (limit > 0) selected = selected.Take(limit).ToArray();
         using var output = new StringWriter();
         using var error = new StringWriter();
@@ -28,12 +32,16 @@ internal static class LfT5577Runner
         var previousMode = await client.GetDeviceModeAsync();
         var metadata = new { utc = DateTimeOffset.UtcNow, transport = "Android BLE / Nordic UART",
             firmware = await client.GetGitVersionAsync(), address = await client.GetAddressAsync(),
-            previousMode = previousMode.ToString(), phaseFilter, plannedCycles = selected.Length,
+            previousMode = previousMode.ToString(), phaseFilter, familyFilter, repeat, plannedCycles = selected.Length,
             android = Android.OS.Build.Model, scheduleSeed = 20261123 };
         await File.WriteAllTextAsync(Path.Combine(folder, "metadata.json"), JsonSerializer.Serialize(metadata, Pretty));
+        foreach (var path in Directory.EnumerateFiles(folder, "failed-*.bin")) File.Delete(path);
+        File.Delete(Path.Combine(folder, "fatal.txt"));
         await File.WriteAllTextAsync(Path.Combine(folder, "cycles.jsonl"), "");
         await File.WriteAllTextAsync(Path.Combine(folder, "commands.jsonl"), "");
         var rows = new List<Cycle>();
+        var integrationChecks = new List<CommandResult>();
+        var pacCaptures = 0;
         var restored = false;
         string? failure = null;
         CommandResult? slotsBefore = null, slotsAfter = null;
@@ -65,6 +73,20 @@ internal static class LfT5577Runner
                 {
                     var result = await Execute(Raw(scan, scanData));
                     commands.Add(result);
+                    if (family == "PAC" && result.exit != 0 && pacCaptures++ < 3)
+                    {
+                        var snapshot = new List<byte>();
+                        for (var part = 0; part < 12; part++)
+                        {
+                            var capture = await Execute(Raw(3033, (0x10 + part).ToString("X2")));
+                            var match = Regex.Match(capture.stdout, @"(?m)^([0-9A-Fa-f]{2}(?:[0-9A-Fa-f]{2})+)\s*$");
+                            if (capture.exit != 0 || !match.Success) break;
+                            snapshot.AddRange(Convert.FromHexString(match.Groups[1].Value));
+                        }
+                        if (snapshot.Count > 0)
+                            await File.WriteAllBytesAsync(Path.Combine(folder,
+                                $"failed-{rows.Count + 1}-read{read + 1}-pac16.bin"), snapshot.ToArray());
+                    }
                     var hex = Regex.Matches(result.stdout, @"(?m)^([0-9A-Fa-f]{2}(?:[0-9A-Fa-f]{2})+)\s*$")
                         .Select(m => m.Groups[1].Value.ToUpperInvariant()).ToArray();
                     if (hex.Length != 1) { reads.Add("NO_FRAME"); continue; }
@@ -88,6 +110,23 @@ internal static class LfT5577Runner
                 // Preserve evidence immediately, without retrying the failed read.
                 if (!row.ok && rows.Count(x => !x.ok) <= 10 && cli.Connected)
                     await Execute($"lf sniff --timeout 100 --out {Path.Combine(folder, $"failed-{row.index}.bin")}");
+            }
+            if (familyFilter is "PAC" or "IDTECK")
+            {
+                var last = selected[^1].GetProperty("case");
+                var id = last.GetProperty("uid").GetString()!;
+                var auto = await Execute(Raw(3037));
+                integrationChecks.Add(auto);
+                var match = Regex.Match(auto.stdout, @"(?m)^([0-9A-Fa-f]{2}(?:[0-9A-Fa-f]{2})+)\s*$");
+                var expected = last.GetProperty("tag").GetInt32().ToString("X4") + id;
+                if (auto.exit != 0 || !match.Success || match.Groups[1].Value != expected)
+                    throw new IOException("Native LF auto scan did not return the exact " + familyFilter + " ID");
+                if (familyFilter == "IDTECK")
+                {
+                    var typed = await Execute("lf idteck read");
+                    integrationChecks.Add(typed);
+                    if (typed.exit != 0 || !typed.stdout.Contains(id)) throw new IOException("Typed IDTECK read failed");
+                }
             }
         }
         catch (Exception e) { failure = e.ToString(); throw; }
@@ -125,7 +164,7 @@ internal static class LfT5577Runner
             cycles = rows.Count, passed = rows.Count(x => x.ok), failed = rows.Count(x => !x.ok),
             nativeReadCount = rows.Count * 2, wrongIds = rows.Sum(x => x.reads.Count(r => r != "NO_FRAME" && r != x.expected)),
             originalPyramidRestored = restored, slotsUnchanged = slotsBefore?.stdout == slotsAfter?.stdout,
-            slotsBefore, slotsAfter, failure,
+            slotsBefore, slotsAfter, failure, integrationChecks,
             byFamily = rows.GroupBy(x => x.family).Select(g => new { family = g.Key, cycles = g.Count(),
                 passed = g.Count(x => x.ok), failed = g.Count(x => !x.ok) }),
             failures = rows.Where(x => !x.ok)

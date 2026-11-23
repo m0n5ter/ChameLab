@@ -852,6 +852,12 @@ static data_frame_tx_t *cmd_processor_mf1_manipulate_value_block(uint16_t cmd, u
 
 static data_frame_tx_t *cmd_processor_lf_edge_capture(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     static uint16_t intervals[1024];
+    if (length == 1 && data[0] >= 0x10 && data[0] < 0x1C) {
+        size_t count = pac_copy_last_capture((uint8_t *)intervals,
+            (data[0] - 0x10) * sizeof(intervals), sizeof(intervals));
+        return data_frame_make(cmd, count ? STATUS_LF_TAG_OK : STATUS_LF_TAG_NO_FOUND,
+                               count, (uint8_t *)intervals);
+    }
     if (length == 1 && data[0] == 4) {
         extern uint32_t em410x_capture_diagnostics[8];
         uint32_t diagnostic[8];
