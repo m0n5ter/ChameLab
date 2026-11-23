@@ -40,8 +40,13 @@ public partial class App : Application
     /// <summary>
     /// The desktop app stays running with its window closed while it syncs in the background
     /// (Settings → Device sync), so the user's other devices find it.
+    /// Debug builds exit immediately when the window closes instead of staying in the tray.
     /// </summary>
+#if DEBUG
+    public bool KeepsRunning => false;
+#else
     public bool KeepsRunning => _desktop is not null && AppServices.Sync.IsEnabled && SyncService.RunInBackground;
+#endif
 
     public static Task ActivateDesktopAsync()
     {
