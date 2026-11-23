@@ -130,6 +130,7 @@ void request_timeslot(uint32_t time_us, timeslot_callback_t callback) {
     }
 
     // Exit critical point
+    NVIC_EnableIRQ(TIMER2_IRQn);
     NVIC_EnableIRQ(GPIOTE_IRQn);
     NVIC_EnableIRQ(RTC1_IRQn);
     NVIC_EnableIRQ(MWU_IRQn);

@@ -36,8 +36,24 @@ extern bool g_usb_led_marquee_enable;
 
 // Whether it is currently in the low -frequency card number of broadcasting
 static volatile bool m_is_lf_emulating = false;
+// Track LPCOMP power state so nrfx_lpcomp_enable/disable are never called out of state
+static bool m_lpcomp_enabled = false;
 // Cache tag type
 static tag_specific_type_t m_tag_type = TAG_TYPE_UNDEFINED;
+
+static void lpcomp_enable_safe(void) {
+    if (!m_lpcomp_enabled) {
+        nrfx_lpcomp_enable();
+        m_lpcomp_enabled = true;
+    }
+}
+
+static void lpcomp_disable_safe(void) {
+    if (m_lpcomp_enabled) {
+        nrfx_lpcomp_disable();
+        m_lpcomp_enabled = false;
+    }
+}
 
 // The pwm to broadcast modulated card id
 const nrfx_pwm_t m_broadcast = NRFX_PWM_INSTANCE(0);
@@ -85,6 +101,13 @@ static uint8_t m_cycle_gap_steps = 0;
 static volatile bool m_gap_active = false;
 static bool m_gap_timer_created = false;
 APP_TIMER_DEF(m_cycle_gap_timer);
+
+static uint16_t playback_burst_frames(void) {
+    if (m_cycle_while_present) {
+        return 10;
+    }
+    return 30;
+}
 
 // Cycle position persists across sleep in retention register GPREGRET(0): the LF field wakes
 // the chip from System OFF through a reset, so RAM cannot carry it. Bits 1-3 hold the slot the
@@ -151,6 +174,8 @@ static void lf_field_lost(void) {
     m_is_lf_emulating = false;
     TAG_FIELD_LED_OFF()  // Make sure the indicator light of the LF field status
     // Re-arm LPCOMP so the next field appearance triggers lpcomp_event_handler.
+    lpcomp_enable_safe();
+    nrf_lpcomp_event_clear(NRF_LPCOMP_EVENT_UP);
     NRF_LPCOMP->INTENSET = LPCOMP_INTENSET_UP_Msk;
     // call sleep_timer_start *after* unsetting g_is_tag_emulating
     sleep_timer_start(settings_get_sleep_timeout());  // Start the timer to enter the sleep
@@ -161,10 +186,17 @@ static void lf_field_lost(void) {
  * @brief Judge field status
  */
 bool is_lf_field_exists(void) {
-    nrfx_lpcomp_enable();
+    bool was_enabled = m_lpcomp_enabled;
+    if (!was_enabled) {
+        lpcomp_enable_safe();
+    }
     bsp_delay_us(30);  // Display for a period of time and sampling to avoid misjudgment
     nrf_lpcomp_task_trigger(NRF_LPCOMP_TASK_SAMPLE);
-    return nrf_lpcomp_result_get() == 1;  // Determine the sampling results of the LF field status
+    bool exists = nrf_lpcomp_result_get() == 1;  // Determine the sampling results of the LF field status
+    if (m_is_lf_emulating && exists) {
+        lpcomp_disable_safe();
+    }
+    return exists;
 }
 
 /**
@@ -185,7 +217,7 @@ static void lpcomp_event_handler(nrf_lpcomp_event_t event) {
     // Disable LPCOMP during emulation — LF_RSSI fluctuates during load
     // modulation and would trigger spurious DOWN events with DETECT_CROSS.
     // Field-loss is checked periodically via EVT_END_SEQ0 in pwm_handler.
-    nrfx_lpcomp_disable();
+    lpcomp_disable_safe();
 
     // set the emulation status logo bit
     m_is_lf_emulating = true;
@@ -219,7 +251,7 @@ static void lpcomp_event_handler(nrf_lpcomp_event_t event) {
     // PWM has fully released LF_MOD, so ANT_NO_MOD() and the settle delay are
     // effective. NRFX_PWM_FLAG_LOOP kept the pin owned by the peripheral,
     // making the field check always read "present" due to self-drive on LF_RSSI.
-    nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
+    nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, playback_burst_frames(), NRFX_PWM_FLAG_STOP);
 
     NRF_LOG_INFO("LF FIELD DETECTED");
 }
@@ -233,6 +265,7 @@ static void lpcomp_init(void) {
 
     ret_code_t err_code = nrfx_lpcomp_init(&cfg, lpcomp_event_handler);
     APP_ERROR_CHECK(err_code);
+    m_lpcomp_enabled = false;
 }
 
 static void cycle_gap_tick(void *context) {
@@ -248,9 +281,10 @@ static void cycle_gap_tick(void *context) {
         lf_field_lost();
         return;
     }
+    lpcomp_disable_safe();
     cycle_advance();
     TAG_FIELD_LED_ON()
-    nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
+    nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, playback_burst_frames(), NRFX_PWM_FLAG_STOP);
 }
 
 static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
@@ -282,9 +316,10 @@ static void pwm_handler(nrfx_pwm_evt_type_t event_type) {
             }
             cycle_advance();
         }
+        lpcomp_disable_safe();
         // Field still present — play another finite burst of the current card and check again.
         // In the per-field mode the card only changes on the next field appearance.
-        nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, 10, NRFX_PWM_FLAG_STOP);
+        nrfx_pwm_simple_playback(&m_broadcast, m_pwm_seq, playback_burst_frames(), NRFX_PWM_FLAG_STOP);
     } else {
         // Field gone — clean up.
         lf_field_lost();
@@ -350,7 +385,10 @@ static void lf_sense_disable(void) {
     cycle_gap_stop();
     m_is_lf_emulating = false;
     nrfx_pwm_uninit(&m_broadcast);
+    NRF_LPCOMP->INTENCLR = LPCOMP_INTENCLR_UP_Msk;
+    lpcomp_enable_safe();
     nrfx_lpcomp_uninit();
+    m_lpcomp_enabled = false;
     m_pwm_seq = NULL;
     m_is_lf_emulating = false;
     sd_clock_hfclk_release();
@@ -451,15 +489,18 @@ bool lf_tag_data_factory(uint8_t slot, tag_specific_type_t tag_type, uint8_t *ta
  * @return Whether the format is successful, if the formatting is successful, it will return to True, otherwise False will be returned
  */
 bool lf_tag_em410x_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
-    static const uint8_t tag_id_base[LF_EM410X_TAG_ID_SIZE] = {0xDE, 0xAD, 0xBE, 0xEF, 0x88};
-    static const uint8_t tag_id_electra[LF_EM410X_ELECTRA_TAG_ID_SIZE] = {0xDE, 0xAD, 0xBE, 0xEF, 0x88,
-                                                                          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-                                                                         };
+    static const uint8_t tag_id_base[LF_EM410X_TAG_ID_SIZE] ALIGN_U32 = {0xDE, 0xAD, 0xBE, 0xEF, 0x88};
+    static const uint8_t tag_id_electra[LF_EM410X_ELECTRA_TAG_ID_SIZE] ALIGN_U32 = {0xDE, 0xAD, 0xBE, 0xEF, 0x88,
+                                                                                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                                                                                   };
 
     switch (tag_type) {
         case TAG_TYPE_EM410X_ELECTRA:
             return lf_tag_data_factory(slot, tag_type, (uint8_t *)tag_id_electra, sizeof(tag_id_electra));
         case TAG_TYPE_EM410X:
+        case TAG_TYPE_EM410X_16:
+        case TAG_TYPE_EM410X_32:
+        case TAG_TYPE_EM410X_64:
             return lf_tag_data_factory(slot, tag_type, (uint8_t *)tag_id_base, sizeof(tag_id_base));
         default:
             return false;
@@ -473,7 +514,7 @@ bool lf_tag_em410x_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
  */
 bool lf_tag_hidprox_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     // default id, must to align(4), more word...
-    uint8_t tag_id[13] = {0x01, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x51, 0x45, 0x00, 0x00, 0x00};
+    uint8_t tag_id[13] ALIGN_U32 = {0x01, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x51, 0x45, 0x00, 0x00, 0x00};
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
 }
 
@@ -483,7 +524,7 @@ bool lf_tag_hidprox_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
  * @return Whether the format is successful, if the formatting is successful, it will return to True, otherwise False will be returned
  */
 bool lf_tag_ioprox_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
-    uint8_t tag_id[16] = {
+    uint8_t tag_id[16] ALIGN_U32 = {
         0x01, 0xAA, 0x30, 0x39, 0x00, 0x78, 0x6A, 0xA0, 0x33, 0x09, 0xCF, 0xEF, 0x00, 0x00, 0x00, 0x00
     };
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
@@ -496,25 +537,25 @@ bool lf_tag_ioprox_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
  */
 bool lf_tag_viking_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     // default id
-    uint8_t tag_id[4] = {0xDE, 0xAD, 0xBE, 0xEF};
+    uint8_t tag_id[4] ALIGN_U32 = {0xDE, 0xAD, 0xBE, 0xEF};
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
 }
 
 bool lf_tag_pac_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     // default id: 8 ASCII bytes
-    uint8_t tag_id[8] = {'C', 'A', 'R', 'D', '0', '0', '0', '1'};
+    uint8_t tag_id[8] ALIGN_U32 = {'C', 'A', 'R', 'D', '0', '0', '0', '1'};
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
 }
 
 bool lf_tag_jablotron_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     // default id: 5 bytes (top bit must be 0)
-    uint8_t tag_id[5] = {0x01, 0xB6, 0x69, 0x00, 0x00};
+    uint8_t tag_id[5] ALIGN_U32 = {0x01, 0xB6, 0x69, 0x00, 0x00};
     return lf_tag_data_factory(slot, tag_type, tag_id, sizeof(tag_id));
 }
 
 /** @brief IDTECK default frame: preamble "IDTK" + 32-bit placeholder card data. */
 bool lf_tag_idteck_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
-    uint8_t tag_id[LF_IDTECK_TAG_ID_SIZE] = {
+    uint8_t tag_id[LF_IDTECK_TAG_ID_SIZE] ALIGN_U32 = {
         0x49, 0x44, 0x54, 0x4B,   // "IDTK" preamble (MSB first)
         0xDE, 0xAD, 0xBE, 0xEF,   // default card data
     };
@@ -524,7 +565,7 @@ bool lf_tag_idteck_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
 /** @brief Pyramid default frame: full 128-bit on-air frame, replayed verbatim. */
 bool lf_tag_pyramid_data_factory(uint8_t slot, tag_specific_type_t tag_type) {
     // A valid 26-bit Pyramid frame (preamble + Wiegand + parity + CRC-8/Maxim).
-    uint8_t tag_id[LF_PYRAMID_TAG_ID_SIZE] = {
+    uint8_t tag_id[LF_PYRAMID_TAG_ID_SIZE] ALIGN_U32 = {
         0x00, 0x01, 0x01, 0x4A, 0x3E, 0x01, 0x01, 0x01,
         0x01, 0x01, 0x01, 0x4A, 0xE3, 0x5E, 0x7F, 0x4F,
     };

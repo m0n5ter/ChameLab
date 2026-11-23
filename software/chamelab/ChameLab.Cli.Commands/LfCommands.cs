@@ -51,8 +51,17 @@ public sealed partial class CliSession
             Add($"lf {family.Path} econfig", async (a, ct) =>
             {
                 if (new[] { "id", "cn", "raw", "raw8", "fc", "ver" }.Any(a.Has))
-                    await Client.SetLfEmulatorIdAsync(family.Type, await LfId(family.Type, a, ct), ct);
-                PrintLf(family.Type, await Client.GetLfEmulatorIdAsync(family.Type, ct));
+                {
+                    var setType = family.Type == TagSpecificType.Em410x && a.Has("id") && a.Hex("id").Length == 13
+                        ? TagSpecificType.Em410xElectra
+                        : family.Type;
+                    await Client.SetLfEmulatorIdAsync(setType, await LfId(setType, a, ct), ct);
+                }
+                var currentId = await Client.GetLfEmulatorIdAsync(family.Type, ct);
+                var displayType = family.Type == TagSpecificType.Em410x && currentId.Length == 13
+                    ? TagSpecificType.Em410xElectra
+                    : family.Type;
+                PrintLf(displayType, currentId);
             });
         }
         Add("lf search", async (_, ct) =>

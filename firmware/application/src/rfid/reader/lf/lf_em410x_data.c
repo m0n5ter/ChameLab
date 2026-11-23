@@ -40,24 +40,100 @@ typedef struct {
     unsigned ones;
 } electra_sample_filter;
 
-static bool electra_sample_transition(electra_sample_filter *filter, unsigned sample) {
+static bool electra_sample_transition(electra_sample_filter *filter, unsigned sample, unsigned median_win) {
     unsigned bit = (electra_samples[sample / 8] >> (7 - sample % 8)) & 1;
-    // A 21-sample median removes spikes up to 10 samples wide while retaining
-    // a real 32-sample half-bit, including one with a spike in its middle.
+    // Median filter removes narrow comparator spikes while retaining half-bit pulses.
     filter->ones += bit;
-    filter->ones -= (filter->history >> 20) & 1;
-    filter->history = ((filter->history << 1) | bit) & 0x1fffff;
-    bool level = filter->ones >= 11;
+    filter->ones -= (filter->history >> (median_win - 1)) & 1;
+    filter->history = ((filter->history << 1) | bit) & ((1u << median_win) - 1);
+    bool level = filter->ones >= (median_win + 1) / 2;
     if (level == filter->level) return false;
     filter->level = level;
     return true;
 }
 
-static bool electra_dma_read(void *codec, uint8_t *data) {
+static bool electra_dma_decode_protocol(const protocol *p, void *codec, unsigned half_bit, unsigned median_win,
+                                        uint8_t *data, uint8_t (*candidates)[13], size_t *candidate_count) {
+    p->decoder.start(codec, 0);
+    // Transitions lie on a half_bit-carrier-cycle grid. Recover phase from the
+    // whole capture, then vote over each half-bit.
+    unsigned phases[32] = {0};
+    electra_sample_filter filter = {0};
+    for (unsigned sample = 0; sample < sizeof(electra_samples) * 8; sample++) {
+        if (electra_sample_transition(&filter, sample, median_win) && sample >= 512)
+            phases[sample % half_bit]++;
+    }
+    unsigned phase = 0;
+    for (unsigned i = 1; i < half_bit; i++) {
+        if (phases[i] > phases[phase]) phase = i;
+    }
+    // The causal median filter delays transitions by (median_win - 1) / 2 samples.
+    phase = (phase + half_bit - median_win / 2) % half_bit;
+    if (p->tag_type == TAG_TYPE_EM410X_ELECTRA) {
+        em410x_capture_diagnostics[4] = phase;
+    }
+
+    unsigned last_edge = 0;
+    bool have_edge = false;
+    bool previous = false;
+    for (unsigned edge = phase; edge + half_bit <= sizeof(electra_samples) * 8; edge += half_bit) {
+        unsigned ones = 0;
+        for (unsigned sample = edge; sample < edge + half_bit; sample++)
+            ones += (electra_samples[sample / 8] >> (7 - sample % 8)) & 1;
+        bool level = (ones * 2 == half_bit) ? previous : (ones * 2 > half_bit);
+        if (level && !previous) {
+            if (have_edge) {
+                unsigned ticks = edge - last_edge;
+                uint16_t interval = ticks > 0xff ? 0xff : ticks;
+                if (p->decoder.feed(codec, interval)) {
+                    uint8_t *decoded = p->get_data(codec);
+                    if (p->tag_type == TAG_TYPE_EM410X_ELECTRA) {
+                        em410x_capture_diagnostics[2]++;
+                        for (size_t i = 0; i < *candidate_count; i++) {
+                            if (memcmp(candidates[i], decoded, sizeof(candidates[i])) == 0) {
+                                data[0] = p->tag_type >> 8;
+                                data[1] = p->tag_type;
+                                memcpy(data + 2, decoded, p->data_size);
+                                em410x_capture_diagnostics[7] = 1;
+                                return true;
+                            }
+                        }
+                        if (*candidate_count < 8)
+                            memcpy(candidates[(*candidate_count)++], decoded, p->data_size);
+                        em410x_capture_diagnostics[3] = *candidate_count;
+                    } else {
+                        data[0] = p->tag_type >> 8;
+                        data[1] = p->tag_type;
+                        memcpy(data + 2, decoded, p->data_size);
+                        return true;
+                    }
+                }
+            }
+            last_edge = edge;
+            have_edge = true;
+        }
+        previous = level;
+    }
+    return false;
+}
+
+static bool electra_dma_read(void **codecs, uint8_t *data) {
     memset(em410x_capture_diagnostics, 0, sizeof(em410x_capture_diagnostics));
     em410x_capture_diagnostics[0] = 0xEC310001;
     uint8_t candidates[8][13];
     size_t candidate_count = 0;
+
+    static const struct {
+        tag_specific_type_t tag_type;
+        unsigned half_bit;
+        unsigned median_win;
+    } dma_cfgs[] = {
+        { TAG_TYPE_EM410X_ELECTRA, 32, 21 },
+        { TAG_TYPE_EM410X_64,      32, 21 },
+        { TAG_TYPE_EM410X_32,      16, 11 },
+        { TAG_TYPE_EM410X_16,       8,  5 },
+    };
+
     // Electra's extension has no parity. Require two identical full frames,
     // so rejecting a comparator spike cannot silently change an extension bit.
     for (unsigned attempt = 0; attempt < 2; attempt++) {
@@ -66,56 +142,32 @@ static bool electra_dma_read(void *codec, uint8_t *data) {
             em410x_capture_diagnostics[5] = 1;
             return false;
         }
-        em410x_electra.decoder.start(codec, 0);
-        // RF/64 transitions lie on a 32-carrier-cycle half-bit grid. Recover
-        // its phase from the whole capture, then vote over each half-bit.
-        // This retains the bit even if a spike splits its comparator pulse.
-        unsigned phases[32] = {0};
-        electra_sample_filter filter = {0};
-        for (unsigned sample = 0; sample < sizeof(electra_samples) * 8; sample++) {
-            if (electra_sample_transition(&filter, sample) && sample >= 512)
-                phases[sample % 32]++;
-        }
-        unsigned phase = 0;
-        for (unsigned i = 1; i < 32; i++) {
-            if (phases[i] > phases[phase]) phase = i;
-        }
-        // The causal 21-sample median delays transitions by 10 samples.
-        phase = (phase + 22) % 32;
-        em410x_capture_diagnostics[4] = phase;
-        unsigned last_edge = 0;
-        bool have_edge = false;
-        bool previous = false;
-        for (unsigned edge = phase; edge + 32 <= sizeof(electra_samples) * 8; edge += 32) {
-            unsigned ones = 0;
-            for (unsigned sample = edge; sample < edge + 32; sample++)
-                ones += (electra_samples[sample / 8] >> (7 - sample % 8)) & 1;
-            bool level = ones == 16 ? previous : ones > 16;
-            if (level && !previous) {
-                if (have_edge) {
-                    unsigned ticks = edge - last_edge;
-                    uint16_t interval = ticks > 0xff ? 0xff : ticks;
-                    if (em410x_electra.decoder.feed(codec, interval)) {
-                        em410x_capture_diagnostics[2]++;
-                        uint8_t *decoded = em410x_electra.get_data(codec);
-                        for (size_t i = 0; i < candidate_count; i++) {
-                            if (memcmp(candidates[i], decoded, sizeof(candidates[i])) == 0) {
-                                data[0] = em410x_electra.tag_type >> 8;
-                                data[1] = em410x_electra.tag_type;
-                                memcpy(data + 2, decoded, em410x_electra.data_size);
-                                em410x_capture_diagnostics[7] = 1;
-                                return true;
-                            }
-                        }
-                        if (candidate_count < sizeof(candidates) / sizeof(candidates[0]))
-                            memcpy(candidates[candidate_count++], decoded, em410x_electra.data_size);
-                        em410x_capture_diagnostics[3] = candidate_count;
-                    }
+        for (size_t j = 0; j < em410x_protocols_size; j++) {
+            if (em410x_protocols[j]->tag_type == TAG_TYPE_EM410X_ELECTRA) {
+                if (electra_dma_decode_protocol(em410x_protocols[j], codecs[j],
+                                                dma_cfgs[0].half_bit, dma_cfgs[0].median_win,
+                                                data, candidates, &candidate_count)) {
+                    return true;
                 }
-                last_edge = edge;
-                have_edge = true;
+                break;
             }
-            previous = level;
+        }
+        // If we already saw an Electra candidate on attempt 0, allow attempt 1
+        // to confirm it before falling back to standard 64-bit EM410x protocols.
+        if (candidate_count > 0 && attempt == 0) {
+            continue;
+        }
+        for (size_t c = 1; c < sizeof(dma_cfgs) / sizeof(dma_cfgs[0]); c++) {
+            for (size_t j = 0; j < em410x_protocols_size; j++) {
+                if (em410x_protocols[j]->tag_type == dma_cfgs[c].tag_type) {
+                    if (electra_dma_decode_protocol(em410x_protocols[j], codecs[j],
+                                                    dma_cfgs[c].half_bit, dma_cfgs[c].median_win,
+                                                    data, candidates, &candidate_count)) {
+                        return true;
+                    }
+                    break;
+                }
+            }
         }
     }
     return false;
@@ -232,7 +284,7 @@ bool em410x_read(uint8_t *data, uint32_t timeout_ms) {
     if (!ok) {
         // A short frame may be Electra with its extension interrupted by BLE.
         // Confirm with an uninterrupted DMA capture before returning EM410x.
-        ok = electra_dma_read(codecs[0], data);
+        ok = electra_dma_read(codecs, data);
         if (!ok && have_em410x) {
             memcpy(data, em410x_data, 2 + 5);
             ok = true;

@@ -20,10 +20,20 @@ NRF_LOG_MODULE_REGISTER();
 #define HIDPROX_BUFFER_SIZE (6144)
 
 static circular_buffer cb;
+static volatile uint32_t m_cb_gen = 0;
+static volatile uint32_t m_active_gen = 0;
 
 // saadc irq is used to sample ANT GPIO.
 static void saadc_cb(nrf_saadc_value_t *vals, size_t size) {
-    for (int i = 0; i < size; i++) {
+    uint32_t gen = m_active_gen;
+    if (gen == 0 || gen != m_cb_gen) {
+        return;
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        if (m_active_gen != gen) {
+            return;
+        }
         nrf_saadc_value_t val = vals[i];
         if (!cb_push_back(&cb, &val)) {
             return;
@@ -44,8 +54,10 @@ bool hidprox_read(uint8_t *data, uint8_t format_hint, uint32_t timeout_ms) {
     hidprox.decoder.start(codec, format_hint);
 
     cb_init(&cb, HIDPROX_BUFFER_SIZE, sizeof(uint16_t));
-    init_hidprox_hw();
     start_lf_125khz_radio();
+    bsp_delay_ms(2);
+    m_active_gen = ++m_cb_gen;
+    init_hidprox_hw();
 
     bool ok = false;
     autotimer *p_at = bsp_obtain_timer(0);
@@ -61,8 +73,9 @@ bool hidprox_read(uint8_t *data, uint8_t format_hint, uint32_t timeout_ms) {
     }
 
     bsp_return_timer(p_at);
-    stop_lf_125khz_radio();
+    m_active_gen = 0;
     uninit_hidprox_hw();
+    stop_lf_125khz_radio();
     cb_free(&cb);
 
     hidprox.free(codec);

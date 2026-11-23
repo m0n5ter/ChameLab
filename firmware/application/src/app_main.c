@@ -791,6 +791,7 @@ static void btn_fn_copy_lf(uint8_t slot, tag_specific_type_t type) {
     uint8_t id_buffer[16] = {0x00};
     uint8_t status = STATUS_LF_TAG_NO_FOUND;
     uint8_t *data = NULL;
+    tag_emulation_sense_end();
     switch (type) {
         case TAG_TYPE_HID_PROX:
             status = scan_hidprox(id_buffer, 0);
@@ -803,20 +804,25 @@ static void btn_fn_copy_lf(uint8_t slot, tag_specific_type_t type) {
             data = id_buffer;
             break;
         case TAG_TYPE_EM410X:
+        case TAG_TYPE_EM410X_16:
+        case TAG_TYPE_EM410X_32:
+        case TAG_TYPE_EM410X_64:
         case TAG_TYPE_EM410X_ELECTRA: {
             status = scan_em410x(id_buffer);
-            tag_specific_type_t detected_type = (id_buffer[0] << 8) | id_buffer[1];
-            tag_specific_type_t new_type =
-                detected_type == TAG_TYPE_EM410X_ELECTRA ? TAG_TYPE_EM410X_ELECTRA : TAG_TYPE_EM410X;
+            if (status == STATUS_LF_TAG_OK) {
+                tag_specific_type_t detected_type = (id_buffer[0] << 8) | id_buffer[1];
+                tag_specific_type_t new_type =
+                    detected_type == TAG_TYPE_EM410X_ELECTRA ? TAG_TYPE_EM410X_ELECTRA : TAG_TYPE_EM410X;
 
-            // If we read Electra but the slot was classic (or vice versa), switch slot type automatically.
-            if (new_type != type) {
-                tag_emulation_change_type(slot, new_type);
-                type = new_type;
+                // If we read Electra but the slot was classic (or vice versa), switch slot type automatically.
+                if (new_type != type) {
+                    tag_emulation_change_type(slot, new_type);
+                    type = new_type;
+                }
+
+                size = (new_type == TAG_TYPE_EM410X_ELECTRA) ? LF_EM410X_ELECTRA_TAG_ID_SIZE : LF_EM410X_TAG_ID_SIZE;
+                data = id_buffer + 2;  // skip tag type
             }
-
-            size = (new_type == TAG_TYPE_EM410X_ELECTRA) ? LF_EM410X_ELECTRA_TAG_ID_SIZE : LF_EM410X_TAG_ID_SIZE;
-            data = id_buffer + 2;  // skip tag type
             break;
         }
         case TAG_TYPE_VIKING:
@@ -835,12 +841,14 @@ static void btn_fn_copy_lf(uint8_t slot, tag_specific_type_t type) {
     }
 
     if (status == STATUS_LF_TAG_OK) {
+        memset(buffer->buffer, 0, buffer->length);
         memcpy(buffer->buffer, data, size);
         tag_emulation_load_by_buffer(type, false);
+        tag_emulation_save();
         NRF_LOG_INFO("Offline lf tag copied")
 
         char *nick = "cloned";
-        uint8_t nick_buffer[36];
+        uint8_t nick_buffer[36] ALIGN_U32 = {0};
         nick_buffer[0] = strlen(nick);
         memcpy(nick_buffer + 1, nick, nick_buffer[0]);
 
@@ -852,6 +860,7 @@ static void btn_fn_copy_lf(uint8_t slot, tag_specific_type_t type) {
         NRF_LOG_INFO("No lf tag found");
         offline_status_error();
     }
+    tag_emulation_sense_run();
 }
 
 static void btn_fn_copy_hf(uint8_t slot, tag_specific_type_t type) {

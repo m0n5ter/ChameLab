@@ -51,11 +51,11 @@ bool is_tag_specific_type_valid(tag_specific_type_t tag_type) {
 /**
  * Tag data stored in flash. Total length must be aligned by 4 bytes (whole words).
  */
-static uint8_t m_tag_data_buffer_lf[LF_CYCLE_SIZE];  // LF card data buffer
+static uint8_t m_tag_data_buffer_lf[LF_CYCLE_SIZE] ALIGN_U32;  // LF card data buffer
 static uint16_t m_tag_data_lf_crc;
 static tag_data_buffer_t m_tag_data_lf = {sizeof(m_tag_data_buffer_lf), m_tag_data_buffer_lf, &m_tag_data_lf_crc};
 
-static uint8_t m_tag_data_buffer_hf[4500];  // HF card data buffer
+static uint8_t m_tag_data_buffer_hf[4500] ALIGN_U32;  // HF card data buffer
 static uint16_t m_tag_data_hf_crc;
 static tag_data_buffer_t m_tag_data_hf = {sizeof(m_tag_data_buffer_hf), m_tag_data_buffer_hf, &m_tag_data_hf_crc};
 

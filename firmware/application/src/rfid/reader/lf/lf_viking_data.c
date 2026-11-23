@@ -20,25 +20,19 @@ static circular_buffer cb;
 
 // GPIO interrupt recovery function is used to detect the descending edge
 static void viking_gpio_int0_cb(void) {
-    uint32_t cntr = get_lf_counter_value();
-    uint16_t val = 0;
-    if (cntr > 0xff) {
-        val = 0xff;
-    } else {
-        val = cntr & 0xff;
-    }
-    cb_push_back(&cb, &val);
-    clear_lf_counter_value();
+    uint32_t ticks = lf_125khz_radio_edge_interval();
+    uint16_t count = ticks > UINT16_MAX ? UINT16_MAX : (uint16_t)ticks;
+    cb_push_back(&cb, &count);
 }
 
 static void init_viking_hw(void) {
     register_rio_callback(viking_gpio_int0_cb);
-    lf_125khz_radio_gpiote_enable();
+    lf_125khz_radio_gpiote_capture_enable();
 }
 
 static void uninit_viking_hw(void) {
-    lf_125khz_radio_gpiote_disable();
     unregister_rio_callback();
+    lf_125khz_radio_gpiote_disable();
 }
 
 bool viking_read(uint8_t *data, uint32_t timeout_ms) {

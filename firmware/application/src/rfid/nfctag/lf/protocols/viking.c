@@ -107,7 +107,9 @@ static void viking_decoder_start(viking_codec *d, uint8_t format) {
 
 static bool viking_decode_feed(viking_codec *d, bool bit) {
     d->raw <<= 1;
-    d->raw_length++;
+    if (d->raw_length < VIKING_RAW_SIZE) {
+        d->raw_length++;
+    }
     if (bit) {
         d->raw |= 0x01;
     }
@@ -134,7 +136,7 @@ static bool viking_decode_feed(viking_codec *d, bool bit) {
     for (int i = 0; i < VIKING_DATA_SIZE; i++) {
         uint8_t data = (d->raw >> ((i + 1) * 8)) & 0xff;
         crc ^= data;
-        d->data[VIKING_DATA_SIZE - i - 1] |= data;
+        d->data[VIKING_DATA_SIZE - i - 1] = data;
     }
 
     return crc == (d->raw & 0xff);
@@ -150,8 +152,7 @@ static bool viking_decoder_feed(viking_codec *d, uint16_t interval) {
         interval -= VIKING_READ_TIME2_BASE;
         manchester_feed(d->modem, (uint8_t)VIKING_READ_TIME2_BASE, bits, &bitlen);
         if (bitlen == -1) {
-            d->raw = 0;
-            d->raw_length = 0;
+            viking_decoder_start(d, 0);
             return false;
         }
         for (int i = 0; i < bitlen; i++) {
@@ -161,15 +162,14 @@ static bool viking_decoder_feed(viking_codec *d, uint16_t interval) {
         }
     }
 
-    manchester_feed(d->modem, (uint8_t)interval, bits, &bitlen);
+    manchester_feed(d->modem, interval > 0xff ? 0xff : (uint8_t)interval, bits, &bitlen);
     if (bitlen == -1) {
-        if (d->raw == 62) {
+        if (d->raw_length == 62) {
             if (viking_decode_feed(d, 1)) {
                 return true;
             }
         }
-        d->raw = 0;
-        d->raw_length = 0;
+        viking_decoder_start(d, 0);
         return false;
     }
     for (int i = 0; i < bitlen; i++) {

@@ -17,14 +17,25 @@ NRF_LOG_MODULE_REGISTER();
 
 /*
  * Circular buffer for SAADC samples.
- * Increased from 128 to 512 to reduce overrun risk during USB transfer.
+ * Sized at 3 * 2048 (6144) because SAADC EasyDMA transfers ADC_BUF_SIZE = 2048
+ * samples per callback invocation.
  * The main loop drains it as fast as possible into the output buffer.
  */
-#define CIRCULAR_BUFFER_SIZE (512)
+#define CIRCULAR_BUFFER_SIZE (6144)
 static circular_buffer cb;
+static volatile uint32_t m_cb_gen = 0;
+static volatile uint32_t m_active_gen = 0;
 
 static void saadc_cb(nrf_saadc_value_t *vals, size_t size) {
-    for (int i = 0; i < size; i++) {
+    uint32_t gen = m_active_gen;
+    if (gen == 0 || gen != m_cb_gen) {
+        return;
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        if (m_active_gen != gen) {
+            return;
+        }
         nrf_saadc_value_t val = vals[i];
         if (!cb_push_back(&cb, &val)) {
             return;  /* buffer full — oldest samples dropped */
@@ -44,13 +55,15 @@ bool raw_read_to_buffer(uint8_t *data, size_t maxlen, uint32_t timeout_ms, size_
     *outlen = 0;
 
     cb_init(&cb, CIRCULAR_BUFFER_SIZE, sizeof(uint16_t));
-    init_saadc_hw();
     start_lf_125khz_radio();
 
     /* Wait for antenna to settle before capturing.
      * The LC circuit rings for ~400µs on field startup, then takes
      * another ~800µs to reach steady state. Skip 2ms to be safe. */
     bsp_delay_ms(2);
+
+    m_active_gen = ++m_cb_gen;
+    init_saadc_hw();
 
     autotimer *p_at = bsp_obtain_timer(0);
     while (NO_TIMEOUT_1MS(p_at, timeout_ms) && *outlen < maxlen) {
@@ -64,8 +77,9 @@ bool raw_read_to_buffer(uint8_t *data, size_t maxlen, uint32_t timeout_ms, size_
     }
 
     bsp_return_timer(p_at);
-    stop_lf_125khz_radio();
+    m_active_gen = 0;
     uninit_saadc_hw();
+    stop_lf_125khz_radio();
     cb_free(&cb);
 
     return true;

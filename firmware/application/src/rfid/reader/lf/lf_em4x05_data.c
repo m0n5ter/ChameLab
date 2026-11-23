@@ -104,23 +104,29 @@ static bool em4x05_rx_feed(em4x05_rx_t *rx, uint8_t interval, uint32_t *word) {
 }
 
 static circular_buffer g_cb;
+static volatile bool m_em4x05_capturing = false;
 
 static void em4x05_edge_cb(void) {
-    uint32_t cnt = get_lf_counter_value();
-    uint16_t val = (cnt > 0xff) ? 0xff : (uint16_t)cnt;
+    if (!m_em4x05_capturing) {
+        return;
+    }
+    uint32_t ticks = lf_125khz_radio_edge_interval();
+    uint16_t val = ticks > UINT16_MAX ? UINT16_MAX : (uint16_t)ticks;
     cb_push_back(&g_cb, &val);
-    clear_lf_counter_value();
 }
 
 static bool em4x05_read_word_once(uint8_t addr, uint32_t *word, uint32_t timeout_ms) {
     if (!cb_init(&g_cb, EM4X05_CB_SIZE, sizeof(uint16_t))) {
         return false;
     }
+    m_em4x05_capturing = false;
+    register_rio_callback(em4x05_edge_cb);
+    lf_125khz_radio_gpiote_capture_enable();
+
     em4x05_send_read(addr);
 
-    register_rio_callback(em4x05_edge_cb);
-    lf_125khz_radio_gpiote_enable();
-    clear_lf_counter_value();
+    (void)lf_125khz_radio_edge_interval();
+    m_em4x05_capturing = true;
 
     em4x05_rx_t rx[2] = {
         {.modem = {.sync = true, .rp = period_rf64}},
@@ -134,12 +140,13 @@ static bool em4x05_read_word_once(uint8_t addr, uint32_t *word, uint32_t timeout
             continue;
         }
         for (int i = 0; i < 2 && !ok; i++) {
-            ok = em4x05_rx_feed(&rx[i], (uint8_t)interval, word);
+            ok = em4x05_rx_feed(&rx[i], interval > 0xff ? 0xff : (uint8_t)interval, word);
         }
     }
     bsp_return_timer(p_at);
-    lf_125khz_radio_gpiote_disable();
+    m_em4x05_capturing = false;
     unregister_rio_callback();
+    lf_125khz_radio_gpiote_disable();
     cb_free(&g_cb);
     return ok;
 }

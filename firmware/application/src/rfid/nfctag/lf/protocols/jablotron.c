@@ -124,7 +124,9 @@ static void jablotron_decoder_start(jablotron_codec *d, uint8_t format) {
 
 static bool jablotron_decode_feed(jablotron_codec *d, bool bit) {
     d->raw <<= 1;
-    d->raw_length++;
+    if (d->raw_length < JABLOTRON_RAW_SIZE) {
+        d->raw_length++;
+    }
     if (bit) {
         d->raw |= 0x01;
     }
@@ -164,10 +166,9 @@ static bool jablotron_decode_feed(jablotron_codec *d, bool bit) {
 static bool jablotron_decoder_feed(jablotron_codec *d, uint16_t interval) {
     bool bits[2] = {0};
     int8_t bitlen = 0;
-    diphase_feed(d->modem, (uint8_t)interval, bits, &bitlen);
+    diphase_feed(d->modem, interval > 0xff ? 0xff : (uint8_t)interval, bits, &bitlen);
     if (bitlen == -1) {
-        d->raw = 0;
-        d->raw_length = 0;
+        jablotron_decoder_start(d, 0);
         return false;
     }
     for (int i = 0; i < bitlen; i++) {

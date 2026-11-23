@@ -1316,12 +1316,21 @@ static data_frame_tx_t *cmd_processor_wipe_fds(uint16_t cmd, uint16_t status, ui
 static bool get_active_em410x_type(tag_specific_type_t *tag_type_out, uint16_t *id_size_out) {
     tag_slot_specific_type_t tag_types;
     tag_emulation_get_specific_types_by_slot(tag_emulation_get_slot(), &tag_types);
-    if (tag_types.tag_lf == TAG_TYPE_EM410X || tag_types.tag_lf == TAG_TYPE_EM410X_ELECTRA) {
-        *tag_type_out = tag_types.tag_lf;
-        *id_size_out = (tag_types.tag_lf == TAG_TYPE_EM410X_ELECTRA) ? LF_EM410X_ELECTRA_TAG_ID_SIZE : LF_EM410X_TAG_ID_SIZE;
-        return true;
+    switch (tag_types.tag_lf) {
+        case TAG_TYPE_EM410X:
+        case TAG_TYPE_EM410X_16:
+        case TAG_TYPE_EM410X_32:
+        case TAG_TYPE_EM410X_64:
+            *tag_type_out = tag_types.tag_lf;
+            *id_size_out = LF_EM410X_TAG_ID_SIZE;
+            return true;
+        case TAG_TYPE_EM410X_ELECTRA:
+            *tag_type_out = tag_types.tag_lf;
+            *id_size_out = LF_EM410X_ELECTRA_TAG_ID_SIZE;
+            return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 // The active slot's LF type, if it is one that can be emulated.
@@ -1346,12 +1355,28 @@ static void lf_replace_card(tag_specific_type_t type, const uint8_t *data, uint1
 }
 
 static data_frame_tx_t *cmd_processor_em410x_set_emu_id(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
-    tag_specific_type_t tag_type;
-    uint16_t id_size;
-    if (!get_active_em410x_type(&tag_type, &id_size) || length != id_size) {
+    if (length != LF_EM410X_TAG_ID_SIZE && length != LF_EM410X_ELECTRA_TAG_ID_SIZE) {
         return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
     }
-    lf_replace_card(tag_type, data, id_size);
+
+    uint8_t slot = tag_emulation_get_slot();
+    tag_specific_type_t tag_type;
+    uint16_t id_size;
+    bool has_em410x = get_active_em410x_type(&tag_type, &id_size);
+
+    if (length == LF_EM410X_ELECTRA_TAG_ID_SIZE) {
+        if (!has_em410x || tag_type != TAG_TYPE_EM410X_ELECTRA) {
+            tag_emulation_change_type(slot, TAG_TYPE_EM410X_ELECTRA);
+        }
+        tag_type = TAG_TYPE_EM410X_ELECTRA;
+    } else {
+        if (!has_em410x || id_size != LF_EM410X_TAG_ID_SIZE) {
+            tag_emulation_change_type(slot, TAG_TYPE_EM410X);
+            tag_type = TAG_TYPE_EM410X;
+        }
+    }
+
+    lf_replace_card(tag_type, data, length);
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);
 }
 

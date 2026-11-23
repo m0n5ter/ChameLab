@@ -180,7 +180,9 @@ void em410x_decoder_start(em410x_codec *d, uint8_t format) {
 
 bool em410x_decode_feed(em410x_codec *d, bool bit) {
     d->raw <<= 1;
-    d->raw_length++;
+    if (d->raw_length < EM_RAW_SIZE) {
+        d->raw_length++;
+    }
     if (bit) {
         d->raw |= 0x01;
     }
@@ -317,18 +319,31 @@ bool em410x_electra_decoder_feed(em410x_codec *d, uint16_t interval) {
     return false;
 };
 
-const nrf_pwm_sequence_t *em410x_modulator(em410x_codec *d, uint8_t *buf) {
+static const nrf_pwm_sequence_t *em410x_modulator_with_top(uint8_t *buf, uint16_t counter_top) {
     uint64_t lo = em410x_raw_data(buf);
+    uint16_t half = counter_top / 2;
     for (int i = 0; i < EM_RAW_SIZE; i++) {
         uint16_t msb = 0x00;
         if (IS_SET(lo, EM_RAW_SIZE - i - 1)) {
             msb = (1 << 15);
         }
-        m_em410x_pwm_seq_vals_base[i].channel_0 = msb | 32;
-        m_em410x_pwm_seq_vals_base[i].counter_top = 64;
+        m_em410x_pwm_seq_vals_base[i].channel_0 = msb | half;
+        m_em410x_pwm_seq_vals_base[i].counter_top = counter_top;
     }
     return &m_em410x_pwm_seq_base;
+}
+
+const nrf_pwm_sequence_t *em410x_modulator(em410x_codec *d, uint8_t *buf) {
+    return em410x_modulator_with_top(buf, 64);
 };
+
+static const nrf_pwm_sequence_t *em410x_32_modulator(em410x_codec *d, uint8_t *buf) {
+    return em410x_modulator_with_top(buf, 32);
+}
+
+static const nrf_pwm_sequence_t *em410x_16_modulator(em410x_codec *d, uint8_t *buf) {
+    return em410x_modulator_with_top(buf, 16);
+}
 
 const nrf_pwm_sequence_t *em410x_electra_modulator(em410x_codec *d, uint8_t *buf) {
     uint64_t data[] = {em410x_raw_data(buf), em410x_raw_epilogue(buf)};
@@ -386,7 +401,7 @@ const protocol em410x_32 = {
     .alloc = (codec_alloc)em410x_32_alloc,
     .free = (codec_free)em410x_free,
     .get_data = (codec_get_data)em410x_get_data,
-    .modulator = (modulator)em410x_modulator,
+    .modulator = (modulator)em410x_32_modulator,
     .decoder =
     {
         .start = (decoder_start)em410x_decoder_start,
@@ -401,7 +416,7 @@ const protocol em410x_16 = {
     .alloc = (codec_alloc)em410x_16_alloc,
     .free = (codec_free)em410x_free,
     .get_data = (codec_get_data)em410x_get_data,
-    .modulator = (modulator)em410x_modulator,
+    .modulator = (modulator)em410x_16_modulator,
     .decoder =
     {
         .start = (decoder_start)em410x_decoder_start,

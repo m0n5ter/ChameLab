@@ -18,12 +18,22 @@ NRF_LOG_MODULE_REGISTER();
 #define PAC_BUFFER_SIZE (6144)
 
 static circular_buffer cb;
+static volatile uint32_t m_cb_gen = 0;
+static volatile uint32_t m_active_gen = 0;
 
 // SAADC callback — push raw ADC samples to circular buffer.
 // NRZ/Direct modulation requires ADC sampling (not GPIOTE edge timing)
 // because the comparator may not produce clean digital edges for NRZ signals.
 static void pac_saadc_cb(nrf_saadc_value_t *vals, size_t size) {
+    uint32_t gen = m_active_gen;
+    if (gen == 0 || gen != m_cb_gen) {
+        return;
+    }
+
     for (size_t i = 0; i < size; i++) {
+        if (m_active_gen != gen) {
+            return;
+        }
         nrf_saadc_value_t val = vals[i];
         if (!cb_push_back(&cb, &val)) {
             return;
@@ -43,13 +53,15 @@ bool pac_read(uint8_t *data, uint32_t timeout_ms) {
     void *codec = pac.alloc();
     pac.decoder.start(codec, 0);
 
+    cb_init(&cb, PAC_BUFFER_SIZE, sizeof(uint16_t));
+
     // Start carrier first, then wait for T55XX POR (~5ms) before
     // enabling SAADC.  This ensures the prescan calibration phase
     // sees real NRZ signal levels rather than power-up noise.
     start_lf_125khz_radio();
     bsp_delay_ms(10);
 
-    cb_init(&cb, PAC_BUFFER_SIZE, sizeof(uint16_t));
+    m_active_gen = ++m_cb_gen;
     init_pac_hw();
 
     bool ok = false;
@@ -66,8 +78,9 @@ bool pac_read(uint8_t *data, uint32_t timeout_ms) {
     }
 
     bsp_return_timer(p_at);
-    stop_lf_125khz_radio();
+    m_active_gen = 0;
     uninit_pac_hw();
+    stop_lf_125khz_radio();
     cb_free(&cb);
 
     pac.free(codec);

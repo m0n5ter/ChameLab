@@ -266,20 +266,39 @@ static bool darkside_expired(uint32_t started) {
     return app_timer_cnt_diff_compute(app_timer_cnt_get(), started) >= APP_TIMER_TICKS(90000);
 }
 
+static uint8_t filter_stretched_samples(uint32_t *values, uint32_t *ticks, uint8_t count,
+                                        uint32_t min_ticks, uint8_t *retries, uint8_t max_retries) {
+    uint8_t kept = 0;
+    for (uint8_t k = 0; k < count; k++) {
+        if (ticks[k] <= min_ticks + 4 || *retries >= max_retries) {
+            values[kept] = values[k];
+            ticks[kept] = ticks[k];
+            kept++;
+        } else {
+            (*retries)++;
+        }
+    }
+    return kept;
+}
+
 static uint8_t darkside_select_nonces(picc_14a_tag_t *tag, uint8_t block, uint8_t keytype, uint32_t *nt,
-    mf1_darkside_status_t *darkside_status, uint32_t started) {
+    mf1_darkside_status_t *darkside_status, uint32_t started, uint32_t *p_min_window_ticks) {
 #define NT_COUNT 15
+#define DARKSIDE_SELECT_BLE_RETRY_MAX 30
     uint8_t tag_auth[4]         = { keytype, block, 0x00, 0x00 };
     uint8_t tag_resp[4]         = { 0x00 };
     uint8_t nt_count[NT_COUNT]  = { 0x00 };
     uint32_t nt_list[NT_COUNT]  = { 0x00 };
+    uint32_t win_ticks[NT_COUNT] = { 0x00 };
+    uint32_t min_window_ticks   = UINT32_MAX;
+    uint8_t ble_retry_count     = 0;
     uint8_t i, m, max, status;
     uint16_t len;
 
     crc_14a_append(tag_auth, 2);
 
     //Random number collection
-    for (i = 0; i < NT_COUNT; i++) {
+    for (i = 0; i < NT_COUNT; ) {
         if (darkside_expired(started)) {
             *darkside_status = DARKSIDE_CANT_FIX_NT;
             return STATUS_HF_TAG_OK;
@@ -289,6 +308,7 @@ static uint8_t darkside_select_nonces(picc_14a_tag_t *tag, uint8_t block, uint8_
         //When the antenna is reset, we must make sure
         // 1. The antenna is powered off for a long time to ensure that the card is completely powered off, otherwise the pseudo -random number generator of the card cannot be reset
         // 2. Moderate power -off time, don't be too long, it will affect efficiency, and don't be too short.
+        uint32_t t_start = app_timer_cnt_get();
         reset_radio_field_with_delay();
         // After the power is completely disconnected, we will select the card quickly and compress the verification time as much as possible.
         if (pcd_14a_reader_fast_select(tag) != STATUS_HF_TAG_OK) {
@@ -296,15 +316,29 @@ static uint8_t darkside_select_nonces(picc_14a_tag_t *tag, uint8_t block, uint8_
             return STATUS_HF_TAG_NO;
         }
         status = pcd_14a_reader_bytes_transfer(PCD_TRANSCEIVE, tag_auth, 4, tag_resp, &len, U8ARR_BIT_LEN(tag_resp));
+        uint32_t window_ticks = app_timer_cnt_diff_compute(app_timer_cnt_get(), t_start);
         // After finding the card, start collecting random numbers
         if (status != STATUS_HF_TAG_OK || len != 32) {
             NRF_LOG_INFO("Get nt failed.\n");
             return STATUS_HF_ERR_STAT;
         }
+        if (window_ticks < min_window_ticks) {
+            min_window_ticks = window_ticks;
+            i = filter_stretched_samples(nt_list, win_ticks, i, min_window_ticks, &ble_retry_count, DARKSIDE_SELECT_BLE_RETRY_MAX);
+        }
+        if (window_ticks > min_window_ticks + 4 && ble_retry_count < DARKSIDE_SELECT_BLE_RETRY_MAX) {
+            ble_retry_count++;
+            continue;
+        }
         // Converted to the type of U32 and cache
         nt_list[i] = bytes_to_num(tag_resp, 4);
+        win_ticks[i] = window_ticks;
+        i++;
         // The byte array of the conversion response is 10 in NT
         // NRF_LOG_INFO("Get nt: %"PRIu32, nt_list[i]);
+    }
+    if (p_min_window_ticks) {
+        *p_min_window_ticks = min_window_ticks;
     }
 
     // Take the random number
@@ -385,6 +419,15 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
     uint16_t len                            = 0x00;  // This variable is responsible for saving the data of the card in the communication process to respond to the length of the card
     uint8_t nt_diff                         = 0x00;  // Start every collection at the first of eight NACKs.
     bool led_toggle                         = false;
+    static uint32_t min_window_ticks        = UINT32_MAX;
+    static uint32_t last_ant_reset_delay    = 0;
+    uint32_t ble_retry_count                = 0;
+#define DARKSIDE_RECOVER_BLE_RETRY_MAX 100
+
+    if (firstRecover || last_ant_reset_delay != g_ant_reset_delay) {
+        min_window_ticks = UINT32_MAX;
+        last_ant_reset_delay = g_ant_reset_delay;
+    }
 
     // We need to confirm the use of a certain card first
     if (pcd_14a_reader_scan_auto(p_tag_info) == STATUS_HF_TAG_OK) {
@@ -413,7 +456,7 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
         uid_ori = get_u32_tag_uid(p_tag_info);
 
         // Then you need to fix a random number that may appear
-        status = darkside_select_nonces(p_tag_info, targetBlk, targetTyp, &nt_ori, darkside_status, started);
+        status = darkside_select_nonces(p_tag_info, targetBlk, targetTyp, &nt_ori, darkside_status, started, &min_window_ticks);
         if ((status != STATUS_HF_TAG_OK) || (*darkside_status != DARKSIDE_OK)) {
             //The fixed random number failed, and the next step cannot be performed
             return status;
@@ -451,6 +494,7 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
         //When the antenna is reset, we must make sure
         // 1. The antenna is powered off for a long time to ensure that the card is completely powered off, otherwise the pseudo -random number generator of the card cannot be reset
         // 2. Moderate power -off time, don't be too long, it will affect efficiency, and don't be too short.
+        uint32_t t_start = app_timer_cnt_get();
         reset_radio_field_with_delay();
 
         //After the power is completely disconnected, we will select the card quickly and compress the verification time as much as possible.
@@ -460,11 +504,16 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
         }
 
         status = pcd_14a_reader_bytes_transfer(PCD_TRANSCEIVE, tag_auth, 4, dat_recv, &len, U8ARR_BIT_LEN(dat_recv));
+        uint32_t window_ticks = app_timer_cnt_diff_compute(app_timer_cnt_get(), t_start);
 
         // After finding the card, start collecting random numbers
         if (status != STATUS_HF_TAG_OK || len != 32) {
             NRF_LOG_INFO("Get nt failed.\n");
             return STATUS_HF_ERR_STAT;
+        }
+
+        if (window_ticks < min_window_ticks) {
+            min_window_ticks = window_ticks;
         }
 
         //The byte array of the conversion response is 10 in NT
@@ -473,6 +522,11 @@ uint8_t darkside_recover_key(uint8_t targetBlk, uint8_t targetTyp,
 
         //Determine the clock synchronization (fixing NT)
         if (nt_cur != nt_ori) {
+            // If a BLE radio interrupt stretched this window, retry without penalizing resync_count.
+            if (window_ticks > min_window_ticks + 4 && ble_retry_count < DARKSIDE_RECOVER_BLE_RETRY_MAX) {
+                ble_retry_count++;
+                continue;
+            }
             // The random number is not synchronized, but we have chosen the random number
             // And the random number we chose was also successfully attacked
             // In other words, this error has no chance to correct the random number
@@ -795,11 +849,17 @@ static uint8_t measure_distance(uint64_t u64Key, uint8_t block, uint8_t type, ui
     struct Crypto1State mpcs = {0, 0};
     struct Crypto1State *pcs = &mpcs;
     uint32_t distances[DIST_NR] = { 0x00 };
+    uint32_t dist_ticks[DIST_NR] = { 0x00 };
     uint32_t uid = get_u32_tag_uid(p_tag_info);
     uint32_t nt1, nt2;
+    uint32_t min_ticks = UINT32_MAX;
     uint8_t index = 0;
+    uint8_t retries = 0;
+    const uint8_t max_retries = 8;
 
     do {
+        bsp_wdt_feed();
+        while (NRF_LOG_PROCESS());
         // Reset card communication
         pcd_14a_reader_halt_tag();
         // We will choose a fast card, and we will be compressed to verify as much as possible
@@ -807,6 +867,7 @@ static uint8_t measure_distance(uint64_t u64Key, uint8_t block, uint8_t type, ui
             NRF_LOG_INFO("Tag can't select\r\n");
             return STATUS_HF_TAG_NO;
         }
+        uint32_t t_start = app_timer_cnt_get();
         // Perform the first verification in order to obtain the unblocked NT1
         if (authex(pcs, uid, block, type, u64Key, AUTH_FIRST, &nt1) != STATUS_HF_TAG_OK) {
             NRF_LOG_INFO("Auth failed 1\r\n");
@@ -817,6 +878,7 @@ static uint8_t measure_distance(uint64_t u64Key, uint8_t block, uint8_t type, ui
             NRF_LOG_INFO("Auth failed 2\r\n");
             return STATUS_MF_ERR_AUTH;
         }
+        uint32_t iter_ticks = app_timer_cnt_diff_compute(app_timer_cnt_get(), t_start);
         // Determine whether the two random numbers are the same, under normal circumstances,
         // We can't bring the same random number, because PRNG is updating chip at any time
         // If you really encounter the same NT, then it can only be explained that this card is a ST card for special firmware
@@ -825,8 +887,18 @@ static uint8_t measure_distance(uint64_t u64Key, uint8_t block, uint8_t type, ui
             *distance = 0;
             return STATUS_HF_TAG_OK;
         }
+        if (iter_ticks < min_ticks) {
+            min_ticks = iter_ticks;
+            index = filter_stretched_samples(distances, dist_ticks, index, min_ticks, &retries, max_retries);
+        }
+        if (iter_ticks > min_ticks + 4 && retries < max_retries) {
+            retries++;
+            continue;
+        }
         // After the measurement is completed, store in the buffer
-        distances[index++] = measure_nonces(nt1, nt2);
+        distances[index] = measure_nonces(nt1, nt2);
+        dist_ticks[index] = iter_ticks;
+        index++;
         // NRF_LOG_INFO("dist = %"PRIu32"\n\n", distances[index - 1]);
     } while (index < DIST_NR);
 
@@ -1327,40 +1399,125 @@ uint8_t mf1_static_encrypted_nonces_with_key(uint64_t key, uint8_t known_block, 
     *card_uid = cuid;
     status = authex(&state, cuid, known_block, known_type, key, AUTH_FIRST, &first_nt);
     if (status != STATUS_HF_TAG_OK) return status;
-    if (send_cmd(&state, AUTH_NESTED, known_type, known_block, &status, answer, parity, sizeof(answer) * 8) != 32)
-        return STATUS_HF_ERR_STAT;
-    uint32_t encrypted_nt = bytes_to_num(answer, 4);
-    crypto1_init(&state, key);
-    uint32_t nested_nt = crypto1_word(&state, encrypted_nt ^ cuid, 1) ^ encrypted_nt;
-    if (pcd_14a_reader_fast_select(p_tag_info) != STATUS_HF_TAG_OK) return STATUS_HF_TAG_NO;
-    status = authex(&state, cuid, known_block, known_type, key, AUTH_FIRST, &first_nt);
-    if (status != STATUS_HF_TAG_OK) return status;
-    if (!check_lfsr_prng(nested_nt) || !check_lfsr_prng(first_nt)) return STATUS_HF_ERR_STAT;
-    uint32_t from = nested_nt >> 16, to = first_nt >> 16;
-    nonce_distance(&from, &to);
-    uint32_t distance = (65535 - from + to) % 65535;
+
+    /* Calibrate distance over up to 5 attempts; require at least two matching
+     * distances (|d1 - d2| <= 5) and keep the fastest clean window (cal_ticks). */
+    uint32_t cal_dist[5] = {0};
+    uint32_t cal_time[5] = {0};
+    uint8_t cal_count = 0;
+    bool confirmed = false;
+    uint32_t distance = 0;
+    uint32_t cal_ticks = UINT32_MAX;
+
+    for (uint8_t attempt = 0; attempt < 5; attempt++) {
+        mf1_toolbox_report_healthy();
+        uint32_t t_start = app_timer_cnt_get();
+        if (send_cmd(&state, AUTH_NESTED, known_type, known_block, &status, answer, parity, sizeof(answer) * 8) != 32) {
+            crypto1_deinit(&state);
+            return STATUS_HF_ERR_STAT;
+        }
+        uint32_t encrypted_nt = bytes_to_num(answer, 4);
+        crypto1_init(&state, key);
+        uint32_t nested_nt = crypto1_word(&state, encrypted_nt ^ cuid, 1) ^ encrypted_nt;
+        if (pcd_14a_reader_fast_select(p_tag_info) != STATUS_HF_TAG_OK) {
+            crypto1_deinit(&state);
+            return STATUS_HF_TAG_NO;
+        }
+        status = authex(&state, cuid, known_block, known_type, key, AUTH_FIRST, &first_nt);
+        uint32_t t_ticks = app_timer_cnt_diff_compute(app_timer_cnt_get(), t_start);
+        if (status != STATUS_HF_TAG_OK) {
+            crypto1_deinit(&state);
+            return status;
+        }
+        if (!check_lfsr_prng(nested_nt) || !check_lfsr_prng(first_nt)) {
+            crypto1_deinit(&state);
+            return STATUS_HF_ERR_STAT;
+        }
+        uint32_t from = nested_nt >> 16, to = first_nt >> 16;
+        nonce_distance(&from, &to);
+        uint32_t d = (65535 - from + to) % 65535;
+        cal_dist[cal_count] = d;
+        cal_time[cal_count] = t_ticks;
+        cal_count++;
+
+        for (uint8_t i = 0; i + 1 < cal_count; i++) {
+            uint32_t diff = (cal_dist[i] > d) ? (cal_dist[i] - d) : (d - cal_dist[i]);
+            if (diff <= 5) {
+                uint32_t pair_min_ticks = (cal_time[i] < t_ticks) ? cal_time[i] : t_ticks;
+                uint32_t pair_dist = (cal_time[i] <= t_ticks) ? cal_dist[i] : d;
+                if (!confirmed || pair_min_ticks < cal_ticks) {
+                    confirmed = true;
+                    cal_ticks = pair_min_ticks;
+                    distance = pair_dist;
+                }
+            }
+        }
+        if (confirmed && attempt >= 2 && t_ticks + 4 >= cal_ticks) {
+            break;
+        }
+    }
+    if (!confirmed) {
+        for (uint8_t i = 0; i < cal_count; i++) {
+            if (cal_time[i] < cal_ticks) {
+                cal_ticks = cal_time[i];
+                distance = cal_dist[i];
+            }
+        }
+    }
+
     for (uint16_t sec = starting_sector; sec < sector_count; sec++) {
         mf1_toolbox_report_healthy();
         mf1_static_nonce_sector_t captured = {0};
         uint8_t block = sec < 32 ? sec * 4 : 128 + (sec - 32) * 16;
         for (uint8_t type = 0; type < 2; type++) {
-            memset(parity, 0, sizeof(parity));
-            if (send_cmd(&state, AUTH_NESTED, 0x60 + type, block, &status, answer, parity, sizeof(answer) * 8) != 32)
-                return STATUS_HF_ERR_STAT;
-            uint32_t enc = bytes_to_num(answer, 4);
-            uint8_t error = ((parity[0] ^ oddparity8(enc >> 24)) << 3) |
-                ((parity[1] ^ oddparity8(enc >> 16)) << 2) |
-                ((parity[2] ^ oddparity8(enc >> 8)) << 1) | (parity[3] ^ oddparity8(enc));
-            if (pcd_14a_reader_fast_select(p_tag_info) != STATUS_HF_TAG_OK) return STATUS_HF_TAG_NO;
-            status = authex(&state, cuid, known_block, known_type, key, AUTH_FIRST, &first_nt);
-            if (status != STATUS_HF_TAG_OK) return status;
-            if (!check_lfsr_prng(first_nt)) return STATUS_HF_ERR_STAT;
-            uint32_t nt = prng_successor(first_nt, (65535 - distance) % 65535);
+            uint32_t best_enc = 0;
+            uint8_t best_error = 0;
+            uint32_t best_first_nt = 0;
+            uint32_t best_ticks = UINT32_MAX;
+            for (uint8_t retry = 0; retry <= 3; retry++) {
+                if (retry > 0) {
+                    mf1_toolbox_report_healthy();
+                }
+                memset(parity, 0, sizeof(parity));
+                uint32_t t_start = app_timer_cnt_get();
+                if (send_cmd(&state, AUTH_NESTED, 0x60 + type, block, &status, answer, parity, sizeof(answer) * 8) != 32) {
+                    crypto1_deinit(&state);
+                    return STATUS_HF_ERR_STAT;
+                }
+                uint32_t enc = bytes_to_num(answer, 4);
+                uint8_t error = ((parity[0] ^ oddparity8(enc >> 24)) << 3) |
+                    ((parity[1] ^ oddparity8(enc >> 16)) << 2) |
+                    ((parity[2] ^ oddparity8(enc >> 8)) << 1) | (parity[3] ^ oddparity8(enc));
+                if (pcd_14a_reader_fast_select(p_tag_info) != STATUS_HF_TAG_OK) {
+                    crypto1_deinit(&state);
+                    return STATUS_HF_TAG_NO;
+                }
+                status = authex(&state, cuid, known_block, known_type, key, AUTH_FIRST, &first_nt);
+                uint32_t iter_ticks = app_timer_cnt_diff_compute(app_timer_cnt_get(), t_start);
+                if (status != STATUS_HF_TAG_OK) {
+                    crypto1_deinit(&state);
+                    return status;
+                }
+                if (!check_lfsr_prng(first_nt)) {
+                    crypto1_deinit(&state);
+                    return STATUS_HF_ERR_STAT;
+                }
+                if (iter_ticks < best_ticks) {
+                    best_ticks = iter_ticks;
+                    best_enc = enc;
+                    best_error = error;
+                    best_first_nt = first_nt;
+                }
+                if (iter_ticks <= cal_ticks + 4) {
+                    break;
+                }
+            }
+            uint32_t nt = prng_successor(best_first_nt, (65535 - distance) % 65535);
             /* Both records use the existing 7-byte wire format. */
             uint8_t *record = type == 0 ? (uint8_t *)&captured.key_a : (uint8_t *)&captured.key_b;
             num_to_bytes(nt >> 16, 2, record);
-            record[2] = error;
-            num_to_bytes(enc, 4, record + 3);
+            record[2] = best_error;
+            num_to_bytes(best_enc, 4, record + 3);
         }
         memcpy(sector_data[sec], &captured, sizeof(captured));
         (*sectors_acquired)++;
