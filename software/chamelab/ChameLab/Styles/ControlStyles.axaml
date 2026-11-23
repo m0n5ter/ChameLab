@@ -378,10 +378,6 @@
     <Setter Property="Padding" Value="14,0" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
-  <Style Selector="actipro|ToggleThemeButton">
-    <Setter Property="Height" Value="40" />
-    <Setter Property="MinWidth" Value="40" />
-  </Style>
 
   <!-- Large clickable tile (scan buttons). -->
   <Style Selector="Button.tile">

@@ -80,10 +80,41 @@
       <Setter Property="Margin" Value="-7,-3,0,-3" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <!-- The links bar sits under the scrolling page, lined up with its cards. -->
+    <Style Selector="StackPanel.page">
+      <Setter Property="Margin" Value="28,24,28,0" />
+    </Style>
+    <Style Selector=".compact StackPanel.page">
+      <Setter Property="Margin" Value="14,10,14,0" />
+    </Style>
+    <Style Selector=".wide c|PageHost.short StackPanel.page">
+      <Setter Property="Margin" Value="28,12,28,0" />
+    </Style>
+    <Style Selector=".compact c|PageHost.short StackPanel.page">
+      <Setter Property="Margin" Value="14,6,14,0" />
+    </Style>
+    <Style Selector="Border.card.linksbar">
+      <Setter Property="MaxWidth" Value="820" />
+      <Setter Property="Margin" Value="28,12,28,24" />
+      <Setter Property="Padding" Value="20,12" />
+    </Style>
+    <Style Selector=".compact Border.card.linksbar">
+      <Setter Property="Margin" Value="14,8,14,8" />
+      <Setter Property="Padding" Value="14,10" />
+    </Style>
+    <Style Selector=".wide c|PageHost.short Border.card.linksbar">
+      <Setter Property="Margin" Value="28,6,28,12" />
+      <Setter Property="Padding" Value="20,8" />
+    </Style>
+    <Style Selector=".compact c|PageHost.short Border.card.linksbar">
+      <Setter Property="Margin" Value="14,6,14,6" />
+      <Setter Property="Padding" Value="14,6" />
+    </Style>
   </UserControl.Styles>
 
-  <ScrollViewer IsEnabled="{Binding !Sync.IsDialogOpen}">
-    <StackPanel Classes="page" MaxWidth="820">
+  <Grid RowDefinitions="*,Auto" IsEnabled="{Binding !Sync.IsDialogOpen}">
+    <ScrollViewer Grid.Row="0">
+      <StackPanel Classes="page" MaxWidth="820">
 
       <!-- Header -->
       <StackPanel Spacing="2">
@@ -92,49 +123,64 @@
                    Text="{x:Static loc:Strings.Settings_AppSettingsTheyApplyRightAway}" />
       </StackPanel>
 
-      <!-- Appearance (app-side, applies immediately) -->
-      <Border Classes="card">
-        <c:SettingRow Classes="setting">
-          <Border Classes="iconwell green">
-            <Border Width="16" Height="16" CornerRadius="4" Background="{Binding Accent.Swatch}" />
-          </Border>
-          <TextBlock Text="{x:Static loc:Strings.Settings_AccentColor}" FontWeight="SemiBold" />
-          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_ButtonsTogglesAndHighlights}" />
-          <ComboBox Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate x:DataType="svc:AccentOption">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <Border Width="14" Height="14" CornerRadius="3" Background="{Binding Swatch}"
-                          VerticalAlignment="Center" />
-                  <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                </StackPanel>
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-        </c:SettingRow>
-      </Border>
-
-      <!-- Language (app-side, applies after a restart) -->
-      <Border Classes="card">
-        <c:SettingRow Classes="setting">
-          <Border Classes="iconwell blue">
-            <PathIcon Data="{StaticResource Icon.language}" />
-          </Border>
-          <TextBlock Text="{x:Static loc:Strings.Settings_Language}" FontWeight="SemiBold" />
-          <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_LanguageCaption}" />
-          <ComboBox Classes="control" ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}">
-            <ComboBox.ItemTemplate>
-              <DataTemplate x:DataType="svc:LanguageOption">
-                <TextBlock Text="{Binding Name}" />
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
-        </c:SettingRow>
-      </Border>
-
-      <!-- Scan feedback (app-side, applies immediately) -->
+      <!-- App preferences (app-side, apply immediately) -->
       <Border Classes="card">
         <StackPanel>
+          <c:SettingRow Classes="setting">
+            <Border Classes="iconwell green">
+              <PathIcon Data="{StaticResource Icon.theme}" />
+            </Border>
+            <TextBlock Text="{x:Static loc:Strings.Settings_Theme}" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_ThemeCaption}" />
+            <ComboBox Classes="control" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ThemeOption">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </c:SettingRow>
+
+          <Separator Classes="row" />
+
+          <c:SettingRow Classes="setting">
+            <Border Classes="iconwell green">
+              <Border Width="16" Height="16" CornerRadius="4" Background="{Binding Accent.Swatch}" />
+            </Border>
+            <TextBlock Text="{x:Static loc:Strings.Settings_AccentColor}" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_ButtonsTogglesAndHighlights}" />
+            <ComboBox Classes="control" ItemsSource="{Binding Accents}" SelectedItem="{Binding Accent}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:AccentOption">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Border Width="14" Height="14" CornerRadius="3" Background="{Binding Swatch}"
+                            VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </c:SettingRow>
+
+          <Separator Classes="row" />
+
+          <c:SettingRow Classes="setting">
+            <Border Classes="iconwell blue">
+              <PathIcon Data="{StaticResource Icon.language}" />
+            </Border>
+            <TextBlock Text="{x:Static loc:Strings.Settings_Language}" FontWeight="SemiBold" />
+            <TextBlock Classes="caption" Text="{x:Static loc:Strings.Settings_LanguageCaption}" />
+            <ComboBox Classes="control" ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:LanguageOption">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </c:SettingRow>
+
+          <Separator Classes="row" />
+
           <c:SettingRow Classes="setting">
             <Border Classes="iconwell amber">
               <PathIcon Data="{StaticResource Icon.volume}" />
@@ -336,7 +382,7 @@
               </StackPanel>
             </Expander>
 
-            <Button Classes="danger" HorizontalAlignment="Right" Command="{Binding AskLeaveCommand}"
+            <Button Classes="danger" HorizontalAlignment="Left" Command="{Binding AskLeaveCommand}"
                     ToolTip.Tip="{x:Static loc:Strings.Sync_LeaveTip}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.close}" /><TextBlock Text="{x:Static loc:Strings.Sync_Leave}" VerticalAlignment="Center" />
@@ -411,29 +457,33 @@
           </StackPanel>
           <TextBlock Classes="caption" TextWrapping="Wrap"
                      Text="{x:Static loc:Strings.Settings_CrossPlatformClientForTheChameleon}" />
-          <!-- The website, the support page (Boosty in the Russian UI, Patreon elsewhere; not in
-               store copies), then community channels: Telegram and MAX in the Russian UI, Discord
-               everywhere else. Short of room, they drop their labels by priority: MAX first, then
-               Discord, Telegram, the website, and the support page last. -->
-          <ItemsControl Classes="links" ItemsSource="{Binding SocialLinks}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate><c:ActionRow /></ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:SocialLink">
-                <Button Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).OpenLinkCommand}"
-                        CommandParameter="{Binding Url}" ToolTip.Tip="{Binding Url}">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" Classes.accent="{Binding Accent}" /><TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                  </StackPanel>
-                </Button>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
           <SelectableTextBlock Classes="caption" TextWrapping="Wrap" FontSize="11" Opacity="0.8"
                                Text="{x:Static vm:SettingsViewModel.TrademarkNotice}" />
         </StackPanel>
       </Border>
-    </StackPanel>
-  </ScrollViewer>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- The website, the support page (Boosty in the Russian UI, Patreon elsewhere; not in
+         store copies), then community channels: Telegram and MAX in the Russian UI, Discord
+         everywhere else. Short of room, they drop their labels by priority: MAX first, then
+         Discord, Telegram, the website, and the support page last. -->
+    <Border Grid.Row="1" Classes="card linksbar">
+      <ItemsControl Classes="links" ItemsSource="{Binding SocialLinks}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><c:ActionRow /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:SocialLink">
+            <Button Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).OpenLinkCommand}"
+                    CommandParameter="{Binding Url}" ToolTip.Tip="{Binding Url}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{Binding IconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" Classes.accent="{Binding Accent}" /><TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+  </Grid>
 </UserControl>

@@ -22,6 +22,7 @@ public static class AppearanceService
     private const string AccentSetting = "accent";
     private const string ThemeSetting = "theme";
     public const string DefaultAccent = "Emerald";
+    public static ThemeVariant DefaultTheme => ThemeVariant.Dark;
 
     /// <summary>Every Actipro hue, with its mid (500) shade as the swatch color.</summary>
     public static IReadOnlyList<AccentOption> Accents => field ??= BuildAccents();
@@ -44,37 +45,31 @@ public static class AppearanceService
         return Accents.Any(a => a.Name == saved) ? saved! : DefaultAccent;
     }
 
-    /// <summary>
-    /// Applies the saved accent and theme, then remembers every later theme change
-    /// (the title bar toggle sets the application's variant directly). Called once at start-up.
-    /// </summary>
+    /// <summary>Applies the saved accent and theme. Called once at start-up.</summary>
     public static void ApplySaved()
     {
         Apply(LoadAccent(), persist: false);
-
-        if (Application.Current is not { } app) return;
-        if (LoadTheme() is { } theme) app.RequestedThemeVariant = theme;
-        app.PropertyChanged += (_, e) =>
-        {
-            if (e.Property == Application.RequestedThemeVariantProperty)
-                SaveTheme(app.RequestedThemeVariant);
-        };
+        ApplyTheme(LoadTheme(), persist: false);
     }
 
-    private static ThemeVariant? LoadTheme()
+    /// <summary>The saved theme variant, or the default when none is saved or it is unknown.</summary>
+    public static ThemeVariant LoadTheme()
     {
         return AppSettings.GetString(ThemeSetting) switch
         {
             "Light" => ThemeVariant.Light,
             "Dark" => ThemeVariant.Dark,
             "Default" => ThemeVariant.Default,
-            _ => null,
+            _ => DefaultTheme,
         };
     }
 
-    private static void SaveTheme(ThemeVariant? theme)
+    public static void ApplyTheme(ThemeVariant theme, bool persist = true)
     {
-        AppSettings.Set(ThemeSetting, theme?.Key.ToString() ?? "Default");
+        if (Application.Current is { } app && app.RequestedThemeVariant != theme)
+            app.RequestedThemeVariant = theme;
+        if (!persist) return;
+        AppSettings.Set(ThemeSetting, theme.Key.ToString());
     }
 
     public static void Apply(string name, bool persist = true)

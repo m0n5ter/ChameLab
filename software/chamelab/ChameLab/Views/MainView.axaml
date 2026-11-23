@@ -41,7 +41,7 @@
     <!-- ==================== Top app bar ==================== -->
     <Border Grid.Row="0" Padding="10,8,12,8" Background="{actipro:ThemeResource Container1BackgroundBrush}"
             BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,0,1">
-      <c:AppBarGrid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+      <c:AppBarGrid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
         <Button Grid.Column="0" Classes="icon" Command="{Binding TogglePaneCommand}"
                 ToolTip.Tip="{x:Static loc:Strings.Main_ToggleNavigation}" Margin="0,0,6,0">
           <PathIcon Data="{StaticResource Icon.menu}" />
@@ -49,8 +49,7 @@
 
         <!-- Brand mark: the ChameLab logo. -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-          <Path Data="{StaticResource Logo.chamelab}" Fill="#BBA678" Stretch="Uniform" Height="32"
-                VerticalAlignment="Center" Classes="header-logo" />
+          <c:ChameleonLogo Fill="#BBA678" Height="32" VerticalAlignment="Center" Classes="header-logo" />
           <Button Classes="brand" VerticalAlignment="Center"
                   Command="{Binding AppUpdate.OpenDownloadCommand}"
                   IsHitTestVisible="{Binding AppUpdate.IsUpdateAvailable}"
@@ -76,7 +75,7 @@
 
         <!-- Connection pill: the device's name and firmware when connected, "No device" otherwise;
              only the dot is left when the bar runs out of room. -->
-        <Border Grid.Column="3" VerticalAlignment="Center" Margin="16,0,8,0"
+        <Border Grid.Column="3" VerticalAlignment="Center" Margin="16,0,0,0"
                 CornerRadius="12" Padding="10,4"
                 Background="{actipro:ThemeResource Container2BackgroundBrush}">
           <StackPanel Orientation="Horizontal" Spacing="7">
@@ -94,10 +93,7 @@
           </ToolTip.Tip>
         </Border>
 
-        <actipro:ToggleThemeButton Grid.Column="4" Margin="0,0,6,0" VerticalAlignment="Center"
-                                   ToolTip.Tip="{x:Static loc:Strings.Main_ToggleLightDarkTheme}" />
-
-        <Button Grid.Column="5" Classes="danger header-disconnect" Command="{Binding DisconnectCommand}"
+        <Button Grid.Column="4" Margin="8,0,0,0" Classes="danger header-disconnect" Command="{Binding DisconnectCommand}"
                 IsVisible="{Binding IsConnected}" ToolTip.Tip="{x:Static loc:Strings.Main_DisconnectFromTheDevice}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <PathIcon Data="{StaticResource Icon.power}" />

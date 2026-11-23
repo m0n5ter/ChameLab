@@ -900,9 +900,6 @@
   <data name="Main_Retry" xml:space="preserve">
     <value>Повторить</value>
   </data>
-  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
-    <value>Переключить светлую / тёмную тему</value>
-  </data>
   <data name="Main_ToggleNavigation" xml:space="preserve">
     <value>Показать / скрыть навигацию</value>
   </data>
@@ -4328,5 +4325,20 @@
   </data>
   <data name="Tray_HiddenMessage" xml:space="preserve">
     <value>Синхронизация продолжается в фоне. Через значок в трее можно снова открыть окно или выйти.</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Settings_ThemeCaption" xml:space="preserve">
+    <value>Светлая, тёмная или как в системе.</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>Как в системе</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Тёмная</value>
   </data>
 </root>

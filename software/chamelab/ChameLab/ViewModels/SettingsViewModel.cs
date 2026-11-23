@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows.Input;
 using System.Linq;
 using System.Collections.Generic;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using ChameLab.Services;
 using ReactiveUI;
@@ -26,6 +27,7 @@ public sealed class SettingsViewModel : PageViewModelBase
         ExportBackupCommand = ReactiveCommand.CreateFromTask(ExportBackupAsync);
         ImportBackupCommand = ReactiveCommand.CreateFromTask(ImportBackupAsync);
         OpenLinkCommand = ReactiveCommand.CreateFromTask<string>(OpenLinkAsync);
+        _theme = Themes.First(t => t.Variant == AppearanceService.LoadTheme());
         LocalizationService.LanguageChanged += OnLanguageChanged;
         Sync = new SyncViewModel(AppServices.Sync, ReportError, Notify);
     }
@@ -34,13 +36,39 @@ public sealed class SettingsViewModel : PageViewModelBase
     public SyncViewModel Sync { get; }
 
     /// <summary>
-    /// The list is rebuilt in the new language and the choice moves to its new entry. Nothing is
-    /// raised: the views are rebuilt over this view model and read both afresh, while the old
-    /// picker must not react (it would write its stale selection back).
+    /// The lists are rebuilt in the new language and the choices move to their new entries. Nothing
+    /// is raised: the views are rebuilt over this view model and read both afresh, while the old
+    /// pickers must not react (they would write their stale selections back).
     /// </summary>
-    private void OnLanguageChanged() => _language = Languages.First(l => l.Code == _language.Code);
+    private void OnLanguageChanged()
+    {
+        _language = Languages.First(l => l.Code == _language.Code);
+        _theme = Themes.First(t => t.Variant == _theme.Variant);
+    }
 
     public bool CanUseFiles => StorageService.IsAvailable;
+
+    /// <summary>Read afresh when the views are rebuilt for a new language.</summary>
+    public IReadOnlyList<ThemeOption> Themes =>
+    [
+        new(ThemeVariant.Default, Strings.Settings_ThemeSystem),
+        new(ThemeVariant.Light, Strings.Settings_ThemeLight),
+        new(ThemeVariant.Dark, Strings.Settings_ThemeDark),
+    ];
+
+    private ThemeOption _theme;
+
+    /// <summary>App theme; applied and remembered as soon as it changes.</summary>
+    public ThemeOption Theme
+    {
+        get => _theme;
+        set
+        {
+            if (value is null || value.Variant == _theme.Variant) return;
+            this.RaiseAndSetIfChanged(ref _theme, value);
+            AppearanceService.ApplyTheme(value.Variant);
+        }
+    }
 
     public IReadOnlyList<AccentOption> Accents => AppearanceService.Accents;
 
@@ -180,6 +208,17 @@ public sealed class SettingsViewModel : PageViewModelBase
         if (StorageService.TopLevelAccessor?.Invoke()?.Launcher is { } launcher)
             await launcher.LaunchUriAsync(new Uri(url));
     }
+}
+
+/// <summary>
+/// A theme choice as the Settings picker lists it. Equal by variant alone, so the choice
+/// still matches its entry once the list is rebuilt in another language.
+/// </summary>
+public sealed record ThemeOption(ThemeVariant Variant, string Name)
+{
+    public bool Equals(ThemeOption? other) => other is not null && other.Variant == Variant;
+
+    public override int GetHashCode() => Variant.GetHashCode();
 }
 
 /// <summary>

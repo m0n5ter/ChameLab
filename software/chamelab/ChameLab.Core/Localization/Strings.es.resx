@@ -2076,9 +2076,6 @@
   <data name="Main_Retry" xml:space="preserve">
     <value>Reintentar</value>
   </data>
-  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
-    <value>Cambiar tema claro / oscuro</value>
-  </data>
   <data name="Main_ToggleNavigation" xml:space="preserve">
     <value>Mostrar / ocultar navegación</value>
   </data>
@@ -4314,5 +4311,20 @@
   </data>
   <data name="Tray_HiddenMessage" xml:space="preserve">
     <value>La sincronización continúa en segundo plano. Usa el icono de la bandeja para volver a abrir la ventana o salir.</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Tema</value>
+  </data>
+  <data name="Settings_ThemeCaption" xml:space="preserve">
+    <value>Claro, oscuro o según el sistema.</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>Predeterminado del sistema</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Claro</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Oscuro</value>
   </data>
 </root>

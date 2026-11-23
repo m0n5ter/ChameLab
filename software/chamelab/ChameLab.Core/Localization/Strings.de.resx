@@ -2076,9 +2076,6 @@
   <data name="Main_Retry" xml:space="preserve">
     <value>Wiederholen</value>
   </data>
-  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
-    <value>Helles / dunkles Design umschalten</value>
-  </data>
   <data name="Main_ToggleNavigation" xml:space="preserve">
     <value>Navigation ein-/ausblenden</value>
   </data>
@@ -4314,5 +4311,20 @@
   </data>
   <data name="Tray_HiddenMessage" xml:space="preserve">
     <value>Die Synchronisierung läuft im Hintergrund weiter. Über das Symbol im Infobereich lässt sich das Fenster wieder öffnen oder beenden.</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Design</value>
+  </data>
+  <data name="Settings_ThemeCaption" xml:space="preserve">
+    <value>Hell, dunkel oder wie im System.</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>Systemstandard</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Dunkel</value>
   </data>
 </root>

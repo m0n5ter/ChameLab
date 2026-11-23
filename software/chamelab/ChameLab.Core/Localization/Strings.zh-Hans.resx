@@ -2076,9 +2076,6 @@
   <data name="Main_Retry" xml:space="preserve">
     <value>重试</value>
   </data>
-  <data name="Main_ToggleLightDarkTheme" xml:space="preserve">
-    <value>切换浅色 / 深色主题</value>
-  </data>
   <data name="Main_ToggleNavigation" xml:space="preserve">
     <value>切换导航栏</value>
   </data>
@@ -4314,5 +4311,20 @@
   </data>
   <data name="Tray_HiddenMessage" xml:space="preserve">
     <value>同步会在后台继续。通过托盘图标可重新打开窗口或退出。</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="Settings_ThemeCaption" xml:space="preserve">
+    <value>浅色、深色或跟随系统。</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>深色</value>
   </data>
 </root>
