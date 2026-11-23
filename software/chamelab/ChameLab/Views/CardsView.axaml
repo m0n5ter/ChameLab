@@ -684,7 +684,7 @@
                     <Button Grid.Column="1" Classes="scanpart scan-continuous" Command="{Binding OpenHfContinuousScanCommand}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_ContinuousScanTip}"
                             AutomationProperties.Name="{x:Static loc:Strings.Cards_ContinuousScanTip}">
-                      <PathIcon Data="{StaticResource Icon.refresh}" Width="18" Height="18" />
+                      <PathIcon Data="{StaticResource Icon.infinity}" Width="20" Height="20" />
                     </Button>
                   </Grid>
                 </Border>
@@ -705,7 +705,7 @@
                     <Button Grid.Column="1" Classes="scanpart scan-continuous" Command="{Binding OpenLfContinuousScanCommand}"
                             ToolTip.Tip="{x:Static loc:Strings.Cards_ContinuousScanTip}"
                             AutomationProperties.Name="{x:Static loc:Strings.Cards_ContinuousScanTip}">
-                      <PathIcon Data="{StaticResource Icon.refresh}" Width="18" Height="18" />
+                      <PathIcon Data="{StaticResource Icon.infinity}" Width="20" Height="20" />
                     </Button>
                   </Grid>
                 </Border>
