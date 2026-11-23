@@ -1420,6 +1420,7 @@ nfc_tag_mf1_write_mode_t nfc_tag_mf1_get_write_mode(void) {
 
 void nfc_tag_mf1_set_field_off_do_reset(bool enable) {
     m_tag_information->config.field_off_do_reset = enable;
+    nfc_tag_14a_set_reset_enable(enable);
 }
 
 bool nfc_tag_mf1_is_field_off_do_reset(void) {

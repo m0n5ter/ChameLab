@@ -1,6 +1,7 @@
 #include <hal/nrf_nfct.h>
 #include <nrfx_nfct.h>
 #include <nrf_gpio.h>
+#include <nrf_soc.h>
 #include <nrfx_timer.h>
 #include <nrfx_ppi.h>
 
@@ -60,6 +61,22 @@ const uint16_t ats_fsdi_table[] = {
 
 // Whether it is responding to
 static volatile bool m_is_responded = false;
+// Track HFXO request balanced across FIELD_DETECTED / FIELD_LOST / sense_switch(false)
+static volatile bool m_hf_hfclk_requested = false;
+
+static inline void nfc_14a_hfclk_request(void) {
+    if (!m_hf_hfclk_requested) {
+        m_hf_hfclk_requested = true;
+        sd_clock_hfclk_request();
+    }
+}
+
+static inline void nfc_14a_hfclk_release(void) {
+    if (m_hf_hfclk_requested) {
+        m_hf_hfclk_requested = false;
+        sd_clock_hfclk_release();
+    }
+}
 // Receiving buffer
 static uint8_t m_nfc_rx_buffer[MAX_NFC_RX_BUFFER_SIZE] = { 0x00 };
 
@@ -716,6 +733,9 @@ static inline void nrf_nfct_reset(void) {
                          NRF_NFCT_INT_RXERROR_MASK      |
                          NRF_NFCT_INT_TXFRAMESTART_MASK |
                          NRF_NFCT_INT_TXFRAMEEND_MASK);
+
+    // Re-enter SENSE immediately so NFCT does not remain disabled until m_nfc_close_timer expires.
+    nrf_nfct_task_trigger(NRF_NFCT_TASK_SENSE);
 }
 
 static inline void nfc_fdt_reset(void) {
@@ -736,6 +756,11 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
         case NRFX_NFCT_EVT_FIELD_DETECTED: {
             sleep_timer_stop();
 
+            // Hold 64 MHz HFXO while an HF field is present so NFCT FDT timing stays accurate
+            // even on HF-only slots (nrfx_nfct delays ACTIVATE by 1 ms, ample time for HFXO lock).
+            nfc_14a_hfclk_request();
+
+            m_is_responded = false;
             g_is_tag_emulating = true;
             g_usb_led_marquee_enable = false;
 
@@ -763,13 +788,15 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
             // call sleep_timer_start *after* unsetting g_is_tag_emulating
             sleep_timer_start(settings_get_sleep_timeout());
 
+            nfc_14a_hfclk_release();
+
             TAG_FIELD_LED_OFF()
             m_tag_state_14a = NFC_TAG_STATE_14A_IDLE;
 
-            if (reset_if_field_lost) {
-                // Fix a bug where certain special conditions prevent triggering TX start events and actually transmit incorrect data to the card reader.
-                // After more more more testing, I found that simply going into sleep mode and restarting can restore work.
-                // Therefore, I suspect that there may be some issues with the NFC peripheral that require a reset to resolve.
+            if (reset_if_field_lost || m_is_responded) {
+                // Reset NFCT if configured or if a started TX never completed (TX_FRAMEEND did not fire),
+                // preventing the nRF52840 NFCT peripheral from remaining stuck echoing RX bytes.
+                m_is_responded = false;
                 nrf_nfct_reset();
             }
 
@@ -790,6 +817,7 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
         }
         case NRFX_NFCT_EVT_TX_FRAMEEND: {
             // NRF_LOG_INFO("TX end.\n");
+            m_is_responded = false;
             uint32_t bits = NRF_NFCT->TXD.AMOUNT;
             if (bits > 0 && bits <= MAX_NFC_TX_BUFFER_SIZE * 8) {
                 timed_sniff_frame(m_nfc_tx_buffer, (uint16_t)bits, true);
@@ -892,6 +920,8 @@ void nfc_tag_14a_sense_switch(bool enable) {
             //Directly anti -initialization NFC peripherals can turn off NFC field induction
             // SDK inside us to call us nrfx_nfct_disable
             nrfx_nfct_uninit();
+            m_is_responded = false;
+            nfc_14a_hfclk_release();
         }
     }
 }

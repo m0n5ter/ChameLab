@@ -12,7 +12,7 @@
 // Up to eight card slots
 #define TAG_MAX_SLOT_NUM 8
 
-extern bool g_is_tag_emulating;
+extern volatile bool g_is_tag_emulating;
 
 // Tag data buffer
 typedef struct {

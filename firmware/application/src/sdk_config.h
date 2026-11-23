@@ -2478,7 +2478,7 @@
 // <7=> 7
 
 #ifndef NRFX_NFCT_CONFIG_IRQ_PRIORITY
-#define NRFX_NFCT_CONFIG_IRQ_PRIORITY 6
+#define NRFX_NFCT_CONFIG_IRQ_PRIORITY 5
 #endif
 
 // <e> NRFX_NFCT_CONFIG_LOG_ENABLED - Enables logging in the module.

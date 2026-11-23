@@ -29,7 +29,7 @@ NRF_LOG_MODULE_REGISTER();
  */
 
 // Is the logo in the analog card?
-bool g_is_tag_emulating = false;
+volatile bool g_is_tag_emulating = false;
 
 static tag_specific_type_t tag_specific_type_old2new_lf_values[][2] = {TAG_SPECIFIC_TYPE_OLD2NEW_LF_VALUES};
 static tag_specific_type_t tag_specific_type_old2new_hf_values[][2] = {TAG_SPECIFIC_TYPE_OLD2NEW_HF_VALUES};
@@ -733,7 +733,7 @@ void tag_emulation_change_type(uint8_t slot, tag_specific_type_t tag_type) {
     }
     NRF_LOG_INFO("tag type = %d", tag_type);
     // After the update is completed, we need to notify the relevant data in the update of the memory
-    if (sense_type != TAG_SENSE_NO) {
+    if (sense_type != TAG_SENSE_NO && tag_emulation_get_slot() == slot) {
         load_data_by_tag_type(slot, tag_type);
         NRF_LOG_INFO("reload data success.");
     }

@@ -1200,6 +1200,11 @@ int main(void) {
         // No task to process, system sleep enter.
         // If system idle sometime, we can enter deep sleep state.
         // Some task process done, we can enter cpu sleep state.
-        sleep_system_run(system_off_enter, nrf_pwr_mgmt_run);
+        // Stay awake while a tag field is active: entering System ON low-power sleep
+        // (sd_app_evt_wait) between ISO14443-A frames adds wake/clock latency that misses
+        // the 86.4 us FDT window (e.g. ANTICOLL 93 20).
+        if (!g_is_tag_emulating) {
+            sleep_system_run(system_off_enter, nrf_pwr_mgmt_run);
+        }
     }
 }
