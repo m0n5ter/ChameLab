@@ -1106,6 +1106,14 @@ static data_frame_tx_t *cmd_processor_pyramid_scan(uint16_t cmd, uint16_t status
     return data_frame_make(cmd, STATUS_LF_TAG_OK, sizeof(card_data), card_data);
 }
 
+static data_frame_tx_t *cmd_processor_idteck_scan(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if (length != 0) return data_frame_make(cmd, STATUS_PAR_ERR, 0, NULL);
+    uint8_t card_data[8] = {0};
+    status = scan_idteck(card_data);
+    return data_frame_make(cmd, status, status == STATUS_LF_TAG_OK ? sizeof(card_data) : 0,
+                           status == STATUS_LF_TAG_OK ? card_data : NULL);
+}
+
 static data_frame_tx_t *cmd_processor_lf_auto_scan(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
     uint8_t result[2 + 16] = {0};  // tag type, then the protocol's scan data
     uint16_t result_len = 0;
@@ -3715,6 +3723,7 @@ static cmd_data_map_t m_data_cmd_map[] = {
     {    DATA_CMD_JABLOTRON_SCAN,               before_reader_run,           cmd_processor_jablotron_scan,                NULL                   },
     {    DATA_CMD_JABLOTRON_WRITE_TO_T55XX,     before_reader_run,           cmd_processor_jablotron_write_to_t55xx,      NULL                   },
     {    DATA_CMD_PYRAMID_SCAN,                 before_reader_run,           cmd_processor_pyramid_scan,                  NULL                   },
+    {    DATA_CMD_IDTECK_SCAN,                  before_reader_run,           cmd_processor_idteck_scan,                   NULL                   },
     {    DATA_CMD_LF_AUTO_SCAN,                 before_reader_run,           cmd_processor_lf_auto_scan,                  NULL                   },
     {    DATA_CMD_IDTECK_WRITE_TO_T55XX,        before_reader_run,           cmd_processor_idteck_write_to_t55xx,         NULL                   },
     {    DATA_CMD_LF_T55XX_WRITE,               before_reader_run,           cmd_processor_lf_t55xx_write,                NULL                   },

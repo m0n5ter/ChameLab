@@ -1,0 +1,19 @@
+Chameleon Ultra, T5577 programmed as PAC NRZ RF/32, Android BLE, wall adapter.
+Generated ASCII ID: 1234AB00. Recorded 2026-11-23 after both native reads of
+the full LF BLE test's cycle 9 returned LF_TAG_NO_FOUND on v2.3.24-cl.
+4000 bytes exported by LF sniff at 125 ksample/s, negative values clamped to
+zero, shifted right by five and capped at 255. This is a fresh diagnostic
+capture after the failed reads, not an exact replay of their ADC buffers.
+
+The analog baseline recovers between NRZ transitions. A 25%-75% hysteresis
+counts some recoveries as data edges and independently rounded intervals
+insert/remove bits. A parallel 10%-90% hysteresis retains the NRZ state until
+the opposite excursion. Both paths still validate UART framing, odd parity,
+the PAC preamble and payload XOR.
+
+Sniff truncates the 4096-sample frame at 4000. The C regression retains all
+4000 physical samples and explicitly appends the known final two low bits
+and stop bit, then repeats that hybrid period. This extension is synthetic;
+it must not be described as a full recorded hardware frame. The original
+hysteresis fails the hybrid signal; the wide path returns the exact ID at
+all 32 acquisition phases. Separate synthetic cases cover polarity and noise.

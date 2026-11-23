@@ -18,7 +18,7 @@ public class CommandTests
     {
         using var output = new StringWriter(); using var error = new StringWriter();
         await using var cli = new CliSession(output, error);
-        Assert.Equal(118, CommandCatalog.Commands.Count);
+        Assert.Equal(119, CommandCatalog.Commands.Count);
         Assert.Equal(CommandCatalog.Commands.Select(c => c.Name).Order(), cli.ImplementedCommands.Order());
         foreach (var command in CommandCatalog.Commands)
         {
@@ -228,6 +228,28 @@ public class CommandTests
         await cli.AttachAsync(device);
         Assert.Equal(0, await cli.ExecuteAsync("lf em 410x write --id DEADBEEF880102030405060708"));
         Assert.Equal(Convert.FromHexString("DEADBEEF880102030405060708"), Assert.Single(device.Requests, r => r.RawCommand == 3006).Data[..13]);
+    }
+
+    [Fact]
+    public async Task IdteckReadUsesNativeScanAndRestoresEmulatorMode()
+    {
+        byte[] id = Convert.FromHexString("4944544B351FBE4B");
+        var mode = DeviceMode.Tag;
+        using var output = new StringWriter();
+        await using var cli = new CliSession(output, TextWriter.Null);
+        var device = new ScriptedTransport(request =>
+        {
+            if (request.Command == Command.ChangeDeviceMode) mode = (DeviceMode)request.Data[0];
+            return ScriptedTransport.Reply(request,
+                request.Command == Command.GetDeviceMode ? [(byte)mode] :
+                request.Command == Command.IdteckScan ? id : [],
+                request.Command == Command.IdteckScan ? Status.LfTagOk : Status.Success);
+        });
+        await cli.AttachAsync(device);
+        Assert.Equal(0, await cli.ExecuteAsync("lf idteck read"));
+        Assert.Contains(Convert.ToHexString(id), output.ToString());
+        Assert.Empty(Assert.Single(device.Requests, r => r.Command == Command.IdteckScan).Data);
+        Assert.Equal(DeviceMode.Tag, mode);
     }
 
     [Fact]

@@ -51,9 +51,26 @@ static void uninit_pac_hw(void) {
 
 bool pac_read(uint8_t *data, uint32_t timeout_ms) {
     void *codec = pac.alloc();
+    void *wide = pac.alloc();
+    if (!codec || !wide) {
+        pac.free(codec);
+        pac.free(wide);
+        return false;
+    }
     pac.decoder.start(codec, 0);
+    pac.decoder.start(wide, PAC_DECODE_WIDE_HYSTERESIS);
 
-    cb_init(&cb, PAC_BUFFER_SIZE, sizeof(uint16_t));
+    if (!cb_init(&cb, PAC_BUFFER_SIZE, sizeof(uint16_t))) {
+        pac.free(codec);
+        pac.free(wide);
+        return false;
+    }
+
+    // Back-to-back reads must restart the tag, rather than calibrating on an
+    // arbitrary continuation of its previous frame while its supply decays.
+    stop_lf_125khz_radio();
+    lf_125khz_radio_saadc_disable();
+    bsp_delay_ms(50);
 
     // Start carrier first, then wait for T55XX POR (~5ms) before
     // enabling SAADC.  This ensures the prescan calibration phase
@@ -74,6 +91,14 @@ bool pac_read(uint8_t *data, uint32_t timeout_ms) {
                 ok = true;
                 break;
             }
+            // AC coupling returns a long NRZ level toward the baseline. A
+            // narrow dead zone can count that recovery as another data edge;
+            // retain the original path and check a wider hysteresis in parallel.
+            if (pac.decoder.feed(wide, val)) {
+                memcpy(data, pac.get_data(wide), pac.data_size);
+                ok = true;
+                break;
+            }
         }
     }
 
@@ -84,5 +109,6 @@ bool pac_read(uint8_t *data, uint32_t timeout_ms) {
     cb_free(&cb);
 
     pac.free(codec);
+    pac.free(wide);
     return ok;
 }

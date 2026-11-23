@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "bsp_delay.h"
 #include "bsp_time.h"
 #include "circular_buffer.h"
@@ -34,7 +36,8 @@ static void saadc_cb(nrf_saadc_value_t *vals, size_t size) {
     for (size_t i = 0; i < size; i++) {
         // Check if we were disarmed mid-batch
         if (g_lf_active_gen != gen) return;
-        uint16_t v = (uint16_t)vals[i];
+        // SAADC is signed: below-ground noise must not wrap to 65535.
+        uint16_t v = vals[i] < 0 ? 0u : (uint16_t)vals[i];
         cb_push_back(&cb, &v);
     }
 }

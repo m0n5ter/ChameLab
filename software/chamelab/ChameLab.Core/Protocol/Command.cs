@@ -101,6 +101,7 @@ public enum Command : ushort
     JablotronScan = 3019,
     JablotronWriteToT55xx = 3020,
     PyramidScan = 3021,
+    IdteckScan = 3022,
     Em4x05Scan = 3030,
     LfSniff = 3031,
     Em4x05ReadSniff = 3032,

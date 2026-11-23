@@ -52,6 +52,7 @@ NRF_LOG_MODULE_REGISTER();
 #define PAC_SPIKE_MULT      3    // Clip at 3× floor
 #define PAC_MIN_SPIKE_CAP   8000 // Floor: preserves NRZ high (~5000) always
 #define PAC_THRESH_FUZZ     75   // Dead zone: 25%-75% of clipped range
+#define PAC_THRESH_FUZZ_WIDE 90  // Ignore baseline recovery/ringing between 10%-90%
 // Auto-recalibrate if no frame found within this many Phase 3 samples.
 // ~5 frame periods = 5 × 128 bits × 32 samples/bit = 20480 samples (~164ms).
 // Gives ~3 calibration attempts in a 500ms scan window.
@@ -73,6 +74,7 @@ typedef struct {
     int16_t clip_min;       // min of clipped samples during warmup
     int16_t thresh_high;    // above this → bit=1
     int16_t thresh_low;     // below this → bit=0, between → keep previous
+    uint8_t threshold_fuzz;
     bool adc_state;         // current demodulated binary level
     bool has_signal;        // true after first threshold crossing
     uint32_t sample_count;  // samples since last transition
@@ -208,6 +210,7 @@ static uint8_t *pac_get_data(pac_codec *d) {
 
 static void pac_decoder_start(pac_codec *d, uint8_t format) {
     memset(d, 0, sizeof(pac_codec));
+    d->threshold_fuzz = format == PAC_DECODE_WIDE_HYSTERESIS ? PAC_THRESH_FUZZ_WIDE : PAC_THRESH_FUZZ;
     d->raw_min = 32767;        // INT16_MAX: first sample updates it
     d->spike_cap = 0x7FFFFFFF; // INT32_MAX: no capping until prescan completes
     d->clip_max = -32768;      // INT16_MIN: first clipped sample updates it
@@ -247,8 +250,8 @@ static bool pac_decoder_feed(pac_codec *d, uint16_t raw_sample) {
         if (sample < d->clip_min) d->clip_min = sample;
         if (warmup_samples == PAC_WARMUP_SAMPLES) {
             int16_t range = d->clip_max - d->clip_min;
-            d->thresh_high = d->clip_min + (range * PAC_THRESH_FUZZ) / 100;
-            d->thresh_low = d->clip_min + (range * (100 - PAC_THRESH_FUZZ)) / 100;
+            d->thresh_high = d->clip_min + (range * d->threshold_fuzz) / 100;
+            d->thresh_low = d->clip_min + (range * (100 - d->threshold_fuzz)) / 100;
         }
         return false;
     }
@@ -258,7 +261,7 @@ static bool pac_decoder_feed(pac_codec *d, uint16_t raw_sample) {
     // the one-shot calibration may have captured an unlucky NRZ segment.
     d->decode_samples++;
     if (d->decode_samples >= PAC_RECAL_SAMPLES) {
-        pac_decoder_start(d, 0);
+        pac_decoder_start(d, d->threshold_fuzz == PAC_THRESH_FUZZ_WIDE ? PAC_DECODE_WIDE_HYSTERESIS : 0);
         return false;
     }
     d->sample_count++;

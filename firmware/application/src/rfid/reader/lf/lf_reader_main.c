@@ -127,6 +127,10 @@ uint8_t scan_pyramid(uint8_t *data) {
     return STATUS_LF_TAG_NO_FOUND;
 }
 
+uint8_t scan_idteck(uint8_t *data) {
+    return idteck_read(data, g_timeout_readem_ms) ? STATUS_LF_TAG_OK : STATUS_LF_TAG_NO_FOUND;
+}
+
 static bool read_hidprox_any(uint8_t *data, uint32_t timeout_ms) { return hidprox_read(data, 0, timeout_ms); }
 static bool read_ioprox_any(uint8_t *data, uint32_t timeout_ms) { return ioprox_read(data, 0, timeout_ms); }
 
@@ -151,6 +155,7 @@ static const lf_auto_reader_t lf_auto_readers[] = {
     { TAG_TYPE_IOPROX,             16,     200, read_ioprox_any  },  // + 60 ms power cycle in the reader
     { TAG_TYPE_FARPOINTE_PYRAMID,  16,     200, pyramid_read     },  // + 60 ms power cycle in the reader
     { TAG_TYPE_PAC,                8,      160, pac_read         },  // + 10 ms power-up in the reader
+    { TAG_TYPE_IDTECK,             8,      160, idteck_read      },  // two matching RF/32 PSK1 frames
 };
 
 /**

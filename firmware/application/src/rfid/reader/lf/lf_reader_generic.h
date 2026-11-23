@@ -8,7 +8,8 @@
  * Capture raw ADC samples from the LF antenna field.
  *
  * The SAADC samples at the PWM period rate (125kHz = 8µs/sample).
- * Each sample is an 8-bit value (14-bit ADC >> 5, clamped to 0xFF).
+ * Each sample is an 8-bit value (signed ADC clamped to zero, >> 5,
+ * then clamped to 0xFF).
  * A steady carrier reads ~0x80-0x82; a gap reads noticeably lower.
  *
  * @param data        Output buffer for raw samples

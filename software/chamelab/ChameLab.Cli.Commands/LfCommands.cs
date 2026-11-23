@@ -16,7 +16,7 @@ public sealed partial class CliSession
         ("pac", TagSpecificType.Pac, 3014, 3015),
         ("viking", TagSpecificType.Viking, 3004, 3005),
         ("jablotron", TagSpecificType.Jablotron, 3019, 3020),
-        ("idteck", TagSpecificType.Idteck, 0, 3018),
+        ("idteck", TagSpecificType.Idteck, 3022, 3018),
         ("pyramid", TagSpecificType.FarpointePyramid, 3021, (int)Command.LfT55xxWrite)
     ];
 

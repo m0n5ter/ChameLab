@@ -1,0 +1,11 @@
+Chameleon Ultra USB ADC capture of a T5577 at PSK1 RF/32, 125 ksample/s.
+Raw ID: 4944544BBFBBFD07. Generated test identity; not an access credential.
+4000 unsigned bytes exported by LF sniff (negative ADC values clamped to zero,
+then shifted right by 5 and capped at 255). Recorded on 2026-11-23 with the
+tag touching the antenna, after a stress run found a weak-phase misdecode.
+
+After skipping 1024 startup samples, the next 2048 contain one frame period.
+The regression replays that period four times at all 32 sample offsets, without joining
+the truncated period at the end of the 4000-sample capture. The first-matching-phase
+decoder can repeat the same wrong payload; selecting agreement between
+strong phases must always preserve all eight bytes of the expected ID.

@@ -29,9 +29,7 @@ static nrf_pwm_sequence_t m_idteck_pwm_seq = {
 };
 
 static idteck_codec *idteck_alloc(void) {
-    idteck_codec *d = malloc(sizeof(idteck_codec));
-    memset(d->data, 0, IDTECK_DATA_SIZE);
-    return d;
+    return calloc(1, sizeof(idteck_codec));
 }
 
 static void idteck_free(idteck_codec *d) {
@@ -42,19 +40,83 @@ static uint8_t *idteck_get_data(idteck_codec *d) {
     return d->data;
 }
 
-// PSK demodulation is not implemented. The tag-emulation ADC path runs at
-// 125kHz and is envelope-filtered, so recovering subcarrier phase for read
-// would require a dedicated decoder (edge-timing based). These stubs keep the
-// protocol struct complete; a future change can fill them in without touching
-// the struct layout.
+// PSK1 uses an RF/2 subcarrier: at one ADC sample per carrier cycle its phase
+// is the sign of sum((-1)^n * sample[n]). A rolling RF/32 window cancels DC;
+// all window phases tolerate acquisition anywhere within a bit. Preserve
+// signed ADC samples here: unlike the FSK readers, this is a phase correlation.
 static void idteck_decoder_start(idteck_codec *d, uint8_t format) {
-    (void)d;
     (void)format;
+    memset(d, 0, sizeof(*d));
+}
+
+static bool idteck_select_frame(idteck_codec *d) {
+    uint32_t strongest = 0, best_score = 0, best_peak = 0;
+    uint64_t best_frame = 0;
+    for (unsigned i = 0; i < IDTECK_PHASES; i++) {
+        const idteck_lane *lane = &d->lanes[i];
+        if (!lane->have_previous || lane->bits_seen - lane->previous_at > 2) continue;
+        if (lane->confidence > strongest) strongest = lane->confidence;
+        if (!lane->confirmed) continue;
+        unsigned votes = 0;
+        uint32_t score = 0, peak = 0;
+        for (unsigned j = 0; j < IDTECK_PHASES; j++) {
+            const idteck_lane *other = &d->lanes[j];
+            if (!other->confirmed || other->previous != lane->previous ||
+                    other->bits_seen - other->previous_at > 2) continue;
+            votes++;
+            score += other->confidence;
+            if (other->confidence > peak) peak = other->confidence;
+        }
+        if (votes >= 3 && score > best_score) {
+            best_score = score;
+            best_peak = peak;
+            best_frame = lane->previous;
+        }
+    }
+    // A half-bit window can repeat the same wrong payload with a good
+    // preamble. Require agreement and a phase near the strongest signal,
+    // even if the stronger (changing/noisy) candidates are not confirmed.
+    if (!best_score || best_peak * 4 < strongest * 3) return false;
+    for (unsigned i = 0; i < IDTECK_DATA_SIZE; i++)
+        d->data[i] = (uint8_t)(best_frame >> (56 - i * 8));
+    return true;
 }
 
 static bool idteck_decoder_feed(idteck_codec *d, uint16_t val) {
-    (void)d;
-    (void)val;
+    if (d->settle && --d->settle == 0 && idteck_select_frame(d)) return true;
+    int16_t sample = (int16_t)val;
+    int32_t delta = (int32_t)sample - d->samples[d->position];
+    d->samples[d->position] = sample;
+    d->correlation += (d->position & 1) ? -delta : delta;
+    d->position = (d->position + 1) % IDTECK_RF_PER_BIT;
+    if (d->filled < IDTECK_RF_PER_BIT) d->filled++;
+    if (++d->step < IDTECK_RF_PER_BIT / IDTECK_PHASES) return false;
+    d->step = 0;
+    idteck_lane *lane = &d->lanes[d->lane];
+    d->lane = (d->lane + 1) % IDTECK_PHASES;
+    if (d->filled < IDTECK_RF_PER_BIT) return false;
+
+    lane->bits = (lane->bits << 1) | (d->correlation > 0);
+    lane->bits_seen++;
+    lane->energy += d->correlation < 0 ? -d->correlation : d->correlation;
+    if (lane->count < IDTECK_BIT_COUNT) lane->count++;
+    if (lane->count < IDTECK_BIT_COUNT) return false;
+
+    uint64_t frame = lane->bits;
+    if ((uint32_t)(frame >> 32) == (uint32_t)~IDTECK_PREAMBLE) frame = ~frame;
+    if ((uint32_t)(frame >> 32) != IDTECK_PREAMBLE) return false;
+    // Payload checksum variants are not established; require two identical
+    // complete frames instead of rejecting genuine cards using a guessed CRC.
+    uint32_t span = lane->bits_seen - lane->previous_at;
+    lane->confidence = (lane->energy - lane->previous_energy) / span;
+    lane->confirmed = lane->have_previous && lane->previous == frame && span >= IDTECK_BIT_COUNT;
+    lane->previous = frame;
+    lane->have_previous = true;
+    lane->previous_at = lane->bits_seen;
+    lane->previous_energy = lane->energy;
+    // Wait one complete bit so every phase has had a chance to contribute;
+    // do not return the first phase whose repeated preamble happens to pass.
+    if (lane->confirmed && !d->settle) d->settle = IDTECK_RF_PER_BIT;
     return false;
 }
 

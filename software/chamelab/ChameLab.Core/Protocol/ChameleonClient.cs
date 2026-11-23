@@ -1008,6 +1008,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
             TagSpecificType.Pac => (Command.PacScan, Array.Empty<byte>()),
             TagSpecificType.Jablotron => (Command.JablotronScan, Array.Empty<byte>()),
             TagSpecificType.FarpointePyramid => (Command.PyramidScan, Array.Empty<byte>()),
+            TagSpecificType.Idteck => (Command.IdteckScan, Array.Empty<byte>()),
             _ => throw new NotSupportedException(string.Format(Strings.Device_LfScanUnsupported, type.DisplayName())),
         };
 
@@ -1023,7 +1024,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     public static readonly TagSpecificType[] LfAutoScanProtocols =
     [
         TagSpecificType.Em410x, TagSpecificType.Viking, TagSpecificType.Jablotron, TagSpecificType.HidProx,
-        TagSpecificType.IoProx, TagSpecificType.FarpointePyramid, TagSpecificType.Pac,
+        TagSpecificType.IoProx, TagSpecificType.FarpointePyramid, TagSpecificType.Pac, TagSpecificType.Idteck,
     ];
 
     /// <summary>
@@ -1053,7 +1054,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
                 var tag = await Em410xScanAsync(ct);
                 return new LfScanResult(tag.Type, tag.Id);
             }
-            catch (ChameleonException e) when (e.Status == Status.LfTagNoFound) { }
+            catch (ChameleonException e) when (e.Status == Status.LfTagNoFound ||
+                (type == TagSpecificType.Idteck && e.Status is Status.InvalidCmd or Status.NotImplemented)) { }
         }
         throw new ChameleonException(string.Format(Strings.Device_NoLfTag, Status.LfTagNoFound.Describe()), Status.LfTagNoFound);
     }

@@ -26,11 +26,18 @@ typedef struct { union { const nrf_pwm_values_wave_form_t *p_wave_form; } values
         "timeslot.h": "#pragma once\n#include <stdint.h>\ntypedef void (*timeslot_callback_t)();\nvoid request_timeslot(uint32_t time_us, timeslot_callback_t callback);\n",
         "bsp_delay.h": "#pragma once\n#include <stdint.h>\nvoid bsp_delay_ms(uint16_t);\nvoid bsp_delay_us(uint32_t);\n",
         "nrf_gpio.h": "#pragma once\n",
+        "nrfx_saadc.h": "#pragma once\n#include <stdint.h>\ntypedef int16_t nrf_saadc_value_t;\n",
+        "rfid_main.h": "#pragma once\n",
+        "lf_reader_main.h": "#pragma once\n",
         "lf_125khz_radio.h": """
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "nrfx_saadc.h"
+typedef void (*lf_adc_callback_t)(nrf_saadc_value_t *, size_t);
+void lf_125khz_radio_saadc_enable(lf_adc_callback_t);
+void lf_125khz_radio_saadc_disable(void);
 void start_lf_125khz_radio(void);
 void stop_lf_125khz_radio(void);
 void lf_125khz_radio_gpiote_enable(void);
@@ -65,6 +72,30 @@ void lf_125khz_radio_gpiote_disable(void);
                         "-DPROJECT_CHAMELEON_ULTRA", *[f"-I{p}" for p in includes],
                         str(firmware / "tests/test_lf_t55xx_write.c"), str(writer), "-o", str(binary)], check=True)
         subprocess.run([str(binary)], check=True)
+
+        adc_readers = []
+        for name in ("lf_pyramid_data.c", "lf_hidprox_data.c", "lf_ioprox_data.c", "lf_reader_generic.c", "lf_idteck_data.c", "lf_pac_data.c"):
+            (temp / name).write_bytes((src / "rfid/reader/lf" / name).read_bytes())
+            adc_readers.append(str(temp / name))
+        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter",
+                        "-Wno-sign-compare", "-O2", *[f"-I{p}" for p in includes], "-I", str(src),
+                        str(firmware / "tests/test_lf_adc_read.c"), *adc_readers,
+                        *[str(src / "rfid/nfctag/lf/protocols" / name)
+                          for name in ("pyramid.c", "hidprox.c", "wiegand.c", "ioprox.c", "idteck.c", "pac.c")],
+                        str(src / "rfid/nfctag/lf/utils/fskdemod.c"), str(src / "rfid/parity.c"),
+                        str(src / "rfid/nfctag/lf/utils/psk1.c"),
+                        str(src / "rfid/hex_utils.c"), "-lm", "-o", str(binary)], check=True)
+        subprocess.run([str(binary)], check=True)
+
+        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-O2",
+                        *[f"-I{p}" for p in includes], str(firmware / "tests/test_lf_idteck_read.c"),
+                        str(src / "rfid/nfctag/lf/protocols/idteck.c"),
+                        str(src / "rfid/nfctag/lf/utils/psk1.c"), "-lm", "-o", str(binary)], check=True)
+        subprocess.run([str(binary), str(firmware / "tests/fixtures/idteck-near-antenna-adc.bin")], check=True)
+        subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wextra", "-Werror", "-Wno-unused-parameter", "-O2",
+                        *[f"-I{p}" for p in includes], str(firmware / "tests/test_lf_pac_read.c"),
+                        str(src / "rfid/nfctag/lf/protocols/pac.c"), "-o", str(binary)], check=True)
+        subprocess.run([str(binary), str(firmware / "tests/fixtures/pac-ble-ringing-adc.bin")], check=True)
         em4x05 = []
         for name in ("lf_em4x05_write.c", "lf_em4x05_data.c", "lf_em410x_data.c"):
             (temp / name).write_bytes((src / "rfid/reader/lf" / name).read_bytes())

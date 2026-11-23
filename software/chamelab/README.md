@@ -107,6 +107,16 @@ writing needs no update. Write a saved Pyramid card from Saved cards, or use
 `lf clone --type pyramid --id <32 hex digits>`. Password handling and the Keep / Set
 choice work as for the other readable T55xx formats.
 
+**IDTECK reading** uses the RF/2 phase of the RF/32 PSK1 signal and confirms two
+identical complete 64-bit frames. `lf idteck read`, LF search and the saved-card
+writer preserve the full eight-byte ID, including the `4944544B` preamble.
+This requires firmware v2.3.24-cl or newer. Repeated PAC reads power-cycle the
+tag before acquisition so its calibration starts after a complete reset.
+Firmware v2.3.25-cl also checks a wider PAC NRZ hysteresis in parallel, preserving
+the state while the AC-coupled signal returns toward its baseline. This avoids
+false edges seen with wall-adapter power over BLE; UART parity and the payload
+checksum are verified in both paths.
+
 ## Build & run
 
 ```bash

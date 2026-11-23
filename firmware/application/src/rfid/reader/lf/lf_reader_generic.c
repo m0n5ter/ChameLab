@@ -36,7 +36,8 @@ static void saadc_cb(nrf_saadc_value_t *vals, size_t size) {
         if (m_active_gen != gen) {
             return;
         }
-        nrf_saadc_value_t val = vals[i];
+        // Clamp before unsigned storage/scaling, so negative noise stays black.
+        uint16_t val = vals[i] < 0 ? 0u : (uint16_t)vals[i];
         if (!cb_push_back(&cb, &val)) {
             return;  /* buffer full — oldest samples dropped */
         }
