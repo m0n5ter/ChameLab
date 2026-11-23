@@ -4303,4 +4303,10 @@
   <data name="Tray_Tooltip" xml:space="preserve">
     <value>ChameLab · 正在后台同步</value>
   </data>
+  <data name="Tray_HiddenTitle" xml:space="preserve">
+    <value>ChameLab 仍在后台运行</value>
+  </data>
+  <data name="Tray_HiddenMessage" xml:space="preserve">
+    <value>同步会在后台继续。通过托盘图标可重新打开窗口或退出。</value>
+  </data>
 </root>

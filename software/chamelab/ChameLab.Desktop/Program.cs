@@ -15,6 +15,13 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        var background = Array.Exists(args, static arg => arg == Autostart.BackgroundArgument);
+        using var singleInstance = SingleInstance.TryAcquire(activateExisting: !background);
+        if (singleInstance is null) return;
+        singleInstance.Subscribe(App.ActivateDesktopAsync);
+        DesktopHost.BringToFront = DesktopPlatform.BringToFront;
+        DesktopHost.ShowTrayBalloon = DesktopPlatform.ShowTrayBalloon;
+
         AppServices.Register(new ITransportScanner[] { new SerialScanner() }, dfu: new IDfuLocator[] { new SerialDfuLocator() },
             hardnested: new ManagedHardnestedEngine(), wakeLock: new WakeLockService(DesktopWakeLock.AcquireAsync));
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

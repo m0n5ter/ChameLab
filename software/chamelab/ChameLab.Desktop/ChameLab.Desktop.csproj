@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <Product>ChameLab</Product>
+    <AssemblyTitle>ChameLab</AssemblyTitle>
   </PropertyGroup>
 
   <PropertyGroup>

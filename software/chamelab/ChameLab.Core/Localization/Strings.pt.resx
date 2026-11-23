@@ -4303,4 +4303,10 @@
   <data name="Tray_Tooltip" xml:space="preserve">
     <value>ChameLab · a sincronizar em segundo plano</value>
   </data>
+  <data name="Tray_HiddenTitle" xml:space="preserve">
+    <value>ChameLab continua em execução</value>
+  </data>
+  <data name="Tray_HiddenMessage" xml:space="preserve">
+    <value>A sincronização continua em segundo plano. Use o ícone na bandeja para reabrir a janela ou sair.</value>
+  </data>
 </root>

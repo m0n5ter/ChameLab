@@ -4320,4 +4320,10 @@
   <data name="Tray_Tooltip" xml:space="preserve">
     <value>ChameLab · syncing in the background</value>
   </data>
+  <data name="Tray_HiddenTitle" xml:space="preserve">
+    <value>ChameLab is still running</value>
+  </data>
+  <data name="Tray_HiddenMessage" xml:space="preserve">
+    <value>Sync continues in the background. Use the tray icon to open the window again or quit.</value>
+  </data>
 </root>

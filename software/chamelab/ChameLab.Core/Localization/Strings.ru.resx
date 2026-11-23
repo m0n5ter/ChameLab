@@ -4317,4 +4317,10 @@
   <data name="Tray_Tooltip" xml:space="preserve">
     <value>ChameLab · синхронизация в фоне</value>
   </data>
+  <data name="Tray_HiddenTitle" xml:space="preserve">
+    <value>ChameLab работает в трее</value>
+  </data>
+  <data name="Tray_HiddenMessage" xml:space="preserve">
+    <value>Синхронизация продолжается в фоне. Через значок в трее можно снова открыть окно или выйти.</value>
+  </data>
 </root>

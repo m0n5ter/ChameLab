@@ -43,13 +43,20 @@ public partial class MainWindow : Window
         {
             Save();
             // Syncing in the background: closing the window hides it; the tray icon brings it back.
-            if (Application.Current is App { KeepsRunning: true, IsQuitting: false }
+            if (Application.Current is App { KeepsRunning: true, IsQuitting: false } app
                 && e.CloseReason is WindowCloseReason.WindowClosing && !e.IsProgrammatic)
             {
                 e.Cancel = true;
                 Hide();
+                app.NotifyHiddenToTray();
             }
         };
+    }
+
+    internal void RestoreIfMinimized()
+    {
+        if (WindowState == WindowState.Minimized)
+            WindowState = _maximized ? WindowState.Maximized : WindowState.Normal;
     }
 
     /// <summary>Puts the window back where it was last closed, if that spot is still on a screen.</summary>

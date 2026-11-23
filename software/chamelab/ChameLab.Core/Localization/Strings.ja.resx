@@ -4303,4 +4303,10 @@
   <data name="Tray_Tooltip" xml:space="preserve">
     <value>ChameLab · バックグラウンドで同期中</value>
   </data>
+  <data name="Tray_HiddenTitle" xml:space="preserve">
+    <value>ChameLab はバックグラウンドで実行中です</value>
+  </data>
+  <data name="Tray_HiddenMessage" xml:space="preserve">
+    <value>同期はバックグラウンドで続行されます。トレイアイコンからウィンドウを再度開くか終了できます。</value>
+  </data>
 </root>

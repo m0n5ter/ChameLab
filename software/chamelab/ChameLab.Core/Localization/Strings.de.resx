@@ -4303,4 +4303,10 @@
   <data name="Tray_Tooltip" xml:space="preserve">
     <value>ChameLab · synchronisiert im Hintergrund</value>
   </data>
+  <data name="Tray_HiddenTitle" xml:space="preserve">
+    <value>ChameLab läuft weiter</value>
+  </data>
+  <data name="Tray_HiddenMessage" xml:space="preserve">
+    <value>Die Synchronisierung läuft im Hintergrund weiter. Über das Symbol im Infobereich lässt sich das Fenster wieder öffnen oder beenden.</value>
+  </data>
 </root>

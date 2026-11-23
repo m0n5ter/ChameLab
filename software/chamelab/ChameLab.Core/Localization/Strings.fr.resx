@@ -4303,4 +4303,10 @@
   <data name="Tray_Tooltip" xml:space="preserve">
     <value>ChameLab · synchro en arrière-plan</value>
   </data>
+  <data name="Tray_HiddenTitle" xml:space="preserve">
+    <value>ChameLab continue en arrière-plan</value>
+  </data>
+  <data name="Tray_HiddenMessage" xml:space="preserve">
+    <value>La synchronisation se poursuit en arrière-plan. Utilisez l'icône de la zone de notification pour rouvrir la fenêtre ou quitter.</value>
+  </data>
 </root>

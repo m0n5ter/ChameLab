@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -16,6 +18,11 @@ namespace ChameLab;
 
 public partial class App : Application
 {
+    private const string TrayBalloonShownSetting = "trayBalloonShown";
+    private static readonly object ActivationGate = new();
+    private static App? _desktopInstance;
+    private static bool _activationPending;
+
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private MainViewModel? _desktopVm;
     private TrayIcon? _tray;
@@ -36,6 +43,21 @@ public partial class App : Application
     /// </summary>
     public bool KeepsRunning => _desktop is not null && AppServices.Sync.IsEnabled && SyncService.RunInBackground;
 
+    public static Task ActivateDesktopAsync()
+    {
+        App? app;
+        lock (ActivationGate)
+        {
+            app = _desktopInstance;
+            if (app is null)
+            {
+                _activationPending = true;
+                return Task.CompletedTask;
+            }
+        }
+        return Dispatcher.UIThread.InvokeAsync(app.ShowWindow).GetTask();
+    }
+
     public override void OnFrameworkInitializationCompleted()
     {
         AppearanceService.ApplySaved();
@@ -46,12 +68,28 @@ public partial class App : Application
         {
             _desktop = desktop;
             _desktopVm = vm;
+            bool pendingActivation;
+            lock (ActivationGate)
+            {
+                _desktopInstance = this;
+                pendingActivation = _activationPending;
+                _activationPending = false;
+            }
+            desktop.Exit += (_, _) =>
+            {
+                lock (ActivationGate)
+                {
+                    if (ReferenceEquals(_desktopInstance, this)) _desktopInstance = null;
+                }
+            };
             // Started with the system: only the tray icon until the user opens the window.
-            var background = desktop.Args?.Contains(Autostart.BackgroundArgument) == true && KeepsRunning;
+            var background = !pendingActivation && desktop.Args?.Contains(Autostart.BackgroundArgument) == true && KeepsRunning;
             if (!background) desktop.MainWindow = new MainWindow { DataContext = vm };
             UpdateBackground();
             SyncViewModel.BackgroundChanged += UpdateBackground;
             AppServices.Sync.Changed += UpdateBackground;
+            if (this.TryGetFeature<IActivatableLifetime>() is { } activatable)
+                activatable.Activated += (_, e) => { if (e.Kind == ActivationKind.Reopen) Dispatcher.UIThread.Post(ShowWindow); };
         }
         else if (ApplicationLifetime is IActivityApplicationLifetime activityLifetime)
         {
@@ -119,8 +157,31 @@ public partial class App : Application
         if (_desktop.MainWindow is null) _desktop.MainWindow = new MainWindow { DataContext = _desktopVm };
         var window = _desktop.MainWindow;
         window.Show();
-        if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
+        if (window is MainWindow main) main.RestoreIfMinimized();
+        else if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
         window.Activate();
+        DesktopHost.BringToFront?.Invoke(window);
+    }
+
+    internal void NotifyHiddenToTray()
+    {
+        if (_desktop is null || !KeepsRunning) return;
+        if (_tray is null) UpdateBackground();
+        if (_tray is null || DesktopHost.ShowTrayBalloon is not { } show) return;
+        if (TryConsumeFirstTrayHide()) show(_tray, Strings.Tray_HiddenTitle, Strings.Tray_HiddenMessage);
+    }
+
+    internal static bool TryConsumeFirstTrayHide()
+    {
+        var shown = false;
+        AppSettings.Update(TrayBalloonShownSetting, existing =>
+        {
+            if (existing is JsonValue value && value.TryGetValue<bool>(out var alreadyShown) && alreadyShown)
+                return existing;
+            shown = true;
+            return JsonValue.Create(true);
+        });
+        return shown;
     }
 
     private void Quit()
