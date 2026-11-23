@@ -60,12 +60,9 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
             new ConnectParameters(autoConnect: false, forceBleTransport: true), ct);
 
         // Larger MTU greatly improves throughput; ignore if unsupported.
-        try
-        {
-            var mtu = await _device.RequestMtuAsync(247, ct);
-            if (mtu > 3) _mtuPayload = mtu - 3; // minus ATT header
-        }
-        catch { /* best effort */ }
+        var isApple = OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst();
+        if (!isApple)
+            await UpdateMtuPayloadAsync(isApple: false, ct);
 
         // Android starts on a slow, power-saving interval; commands are request/response round trips.
         try { _device.UpdateConnectionInterval(ConnectionInterval.High); }
@@ -86,8 +83,25 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
         _tx.ValueUpdated += OnTxValueUpdated;
         await _tx.StartUpdatesAsync(ct);
 
+        if (isApple)
+            await UpdateMtuPayloadAsync(isApple: true, ct);
+
         _adapter.DeviceDisconnected += OnDeviceDisconnected;
         _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
+    }
+
+    private async Task UpdateMtuPayloadAsync(bool isApple, CancellationToken ct)
+    {
+        if (_device is null) return;
+        try
+        {
+            var mtu = await _device.RequestMtuAsync(247, ct);
+            // Plugin.BLE on Apple platforms returns GetMaximumWriteValueLength(WithoutResponse),
+            // which is already the payload length without the 3-byte ATT header.
+            var payload = isApple ? mtu : mtu - 3;
+            if (payload >= 20) _mtuPayload = payload;
+        }
+        catch { /* best effort */ }
     }
 
     private void OnTxValueUpdated(object? sender, CharacteristicUpdatedEventArgs e)

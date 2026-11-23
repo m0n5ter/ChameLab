@@ -39,7 +39,7 @@ public static class AppServices
     /// <summary>Sharing a local device over the internet through the relay.</summary>
     public static DeviceSharingService Sharing => field ??= new DeviceSharingService(Device, WakeLock);
 
-    public static FirmwareUpdateService Firmware => field ??= new FirmwareUpdateService(Device, _dfu);
+    public static FirmwareUpdateService Firmware => field ??= new FirmwareUpdateService(Device, _dfu, WakeLock);
 
     /// <summary>Scan sounds and vibration; the desktop player unless a head registers its own.</summary>
     public static IFeedbackPlayer Feedback => _feedback ??= new DesktopFeedbackPlayer();

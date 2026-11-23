@@ -29,7 +29,8 @@ public readonly record struct FirmwareUpdateProgress(FirmwareUpdateStep Step, do
 /// a DFU package: restarts the device into its bootloader, flashes it over USB serial or BLE and
 /// reconnects.
 /// </summary>
-public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnlyList<IDfuLocator> locators)
+public sealed partial class FirmwareUpdateService(
+    DeviceService device, IReadOnlyList<IDfuLocator> locators, WakeLockService? wakeLock = null)
 {
     /// <summary>Where releases (with <c>ultra-dfu-app.zip</c> / <c>lite-dfu-app.zip</c>) are published.</summary>
     public const string Repository = "m0n5ter/ChameLab";
@@ -122,6 +123,7 @@ public sealed partial class FirmwareUpdateService(DeviceService device, IReadOnl
         DfuPackage package, IDfuTarget target,
         IProgress<FirmwareUpdateProgress> progress, CancellationToken ct = default)
     {
+        await using var awake = wakeLock is not null ? await wakeLock.AcquireAsync() : null;
         var previous = device.Candidate;
 
         if (device.Client is { } client)

@@ -19,6 +19,7 @@
     <ProjectReference Include="..\ChameLab\ChameLab.csproj" />
     <ProjectReference Include="..\ChameLab.Relay\ChameLab.Relay.csproj" />
     <Compile Include="..\Mobile\BleTransport.cs" Link="Mobile\BleTransport.cs" />
+    <Compile Include="..\Mobile\BleDfu.cs" Link="Mobile\BleDfu.cs" />
     <Compile Include="..\Mobile\UsbCdcTransport.cs" Link="Mobile\UsbCdcTransport.cs" />
     <Compile Include="..\ChameLab.Desktop\DesktopWakeLock.cs" Link="Desktop\DesktopWakeLock.cs" />
     <Compile Include="..\ChameLab.Serial\LinuxSerialUsbId.cs" Link="Serial\LinuxSerialUsbId.cs" />

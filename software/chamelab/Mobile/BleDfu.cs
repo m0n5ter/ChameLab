@@ -32,10 +32,16 @@ internal static class SecureDfuService
 /// </summary>
 public sealed class BleDfuLocator : IDfuLocator
 {
+    private readonly IBluetoothLE _ble;
+
+    public BleDfuLocator() : this(CrossBluetoothLE.Current) { }
+
+    internal BleDfuLocator(IBluetoothLE ble) => _ble = ble;
+
     public TransportKind Kind => TransportKind.Ble;
 
     public IDfuTarget Prepare(TransportCandidate? device) =>
-        new Target(device is not null && Guid.TryParse(device.Id, out var id) ? Address(id) : null);
+        new Target(_ble, device is not null && Guid.TryParse(device.Id, out var id) ? Address(id) : null);
 
     /// <summary>
     /// Plugin.BLE on Android builds ids as <c>00000000-0000-0000-0000-{MAC}</c>, most significant
@@ -47,18 +53,39 @@ public sealed class BleDfuLocator : IDfuLocator
         return hex.StartsWith("00000000000000000000", StringComparison.Ordinal) ? Convert.FromHexString(hex[^12..]) : null;
     }
 
-    private sealed class Target(byte[]? app) : IDfuTarget
+    internal static bool IsBootloader(IDevice d) =>
+        d.Name is { } name && (name.StartsWith("CU-", StringComparison.Ordinal) || name.StartsWith("CL-", StringComparison.Ordinal)) ||
+        Records(d).Any(r =>
+            r.Type is AdvertisementRecordType.UuidsComplete16Bit or AdvertisementRecordType.UuidsIncomplete16Bit &&
+            ListsSecureDfuUuid(r.Data));
+
+    private static bool ListsSecureDfuUuid(byte[]? data)
+    {
+        if (data is null) return false;
+        for (var i = 0; i + 2 <= data.Length; i += 2)
+        {
+            // Little-endian in raw advertising data (Android), big-endian from iOS CBUUIDs.
+            if (data[i] == 0x59 && data[i + 1] == 0xFE || data[i] == 0xFE && data[i + 1] == 0x59)
+                return true;
+        }
+        return false;
+    }
+
+    private static IEnumerable<AdvertisementRecord> Records(IDevice d) =>
+        d.AdvertisementRecords ?? (IEnumerable<AdvertisementRecord>)Array.Empty<AdvertisementRecord>();
+
+    private sealed class Target(IBluetoothLE ble, byte[]? app) : IDfuTarget
     {
         // One scan for the whole wait: Android ignores an app's scans after five starts in 30 seconds.
         private static readonly TimeSpan ScanWindow = TimeSpan.FromSeconds(12);
 
         public async Task<IDfuChannel?> TryOpenAsync(CancellationToken ct)
         {
-            var ble = CrossBluetoothLE.Current;
             if (!ble.IsAvailable || !ble.IsOn) throw new InvalidOperationException(Strings.Ble_Off);
             var adapter = ble.Adapter;
 
             // The adapter runs one scan at a time (a Rescan on the Connect page, say).
+            await BleScanner.WaitForScanAsync(ct);
             while (adapter.IsScanning) await Task.Delay(250, ct);
 
             var found = new Dictionary<Guid, IDevice>();
@@ -98,12 +125,6 @@ public sealed class BleDfuLocator : IDfuLocator
             return device is null ? null : await BleDfuChannel.OpenAsync(adapter, device, ct);
         }
 
-        private static bool IsBootloader(IDevice d) =>
-            d.Name is { } name && (name.StartsWith("CU-", StringComparison.Ordinal) || name.StartsWith("CL-", StringComparison.Ordinal)) ||
-            Records(d).Any(r =>
-                r.Type is AdvertisementRecordType.UuidsComplete16Bit or AdvertisementRecordType.UuidsIncomplete16Bit &&
-                r.Data.Length >= 2 && r.Data[0] == 0x59 && r.Data[1] == 0xFE);
-
         /// <summary>
         /// The bootloader takes the application's address + 1 (least significant byte, no carry), and
         /// advertises the application's address after company id 0xFFFF, most significant byte first.
@@ -114,11 +135,8 @@ public sealed class BleDfuLocator : IDfuLocator
             if (own is not null && own.AsSpan(0, 5).SequenceEqual(app.AsSpan(0, 5)) && own[5] == (byte)(app[5] + 1)) return true;
             return Records(d).Any(r =>
                 r.Type == AdvertisementRecordType.ManufacturerSpecificData &&
-                r.Data.Length >= 8 && r.Data[0] == 0xFF && r.Data[1] == 0xFF && r.Data.AsSpan(2, 6).SequenceEqual(app));
+                r.Data is { Length: >= 8 } && r.Data[0] == 0xFF && r.Data[1] == 0xFF && r.Data.AsSpan(2, 6).SequenceEqual(app));
         }
-
-        private static IEnumerable<AdvertisementRecord> Records(IDevice d) =>
-            d.AdvertisementRecords ?? (IEnumerable<AdvertisementRecord>)Array.Empty<AdvertisementRecord>();
     }
 }
 
@@ -139,12 +157,34 @@ public sealed class BleDfuChannel : IDfuChannel
         _device = device;
     }
 
+    internal const int MaxRequestedMtu = 247;
+    private const int MaxPayloadSize = MaxRequestedMtu - 3;
+
     public int MaxDataSize { get; private set; } = 20;
 
     // Below the bootloader's 8 receive buffers (NRF_DFU_BLE_BUFFERS), so data writes never overrun it.
     public int PacketReceiptInterval => 6;
 
-    public static async Task<BleDfuChannel> OpenAsync(IAdapter adapter, IDevice device, CancellationToken ct)
+    /// <summary>
+    /// Computes the DFU packet payload size from <see cref="IDevice.RequestMtuAsync"/>.
+    /// Android returns the negotiated ATT MTU (including the 3-byte ATT header), whereas
+    /// Plugin.BLE on Apple platforms returns <c>GetMaximumWriteValueLength(WithoutResponse)</c>,
+    /// which is already the payload length. The nRF5 SDK bootloader's <c>nrf_fstorage_write</c>
+    /// requires flash writes to be 4-byte aligned, so the payload is rounded down to a multiple of 4.
+    /// </summary>
+    internal static int DataSizeForMtu(int reportedMtu, bool returnsPayloadLength)
+    {
+        var payload = returnsPayloadLength ? reportedMtu : reportedMtu - 3;
+        if (payload > MaxPayloadSize) payload = MaxPayloadSize;
+        payload &= ~3;
+        return payload >= 20 ? payload : 20;
+    }
+
+    public static Task<BleDfuChannel> OpenAsync(IAdapter adapter, IDevice device, CancellationToken ct) =>
+        OpenAsync(adapter, device, OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst(), ct);
+
+    internal static async Task<BleDfuChannel> OpenAsync(
+        IAdapter adapter, IDevice device, bool returnsPayloadLength, CancellationToken ct)
     {
         var channel = new BleDfuChannel(adapter, device);
         try
@@ -154,12 +194,8 @@ public sealed class BleDfuChannel : IDfuChannel
             adapter.DeviceDisconnected += channel.OnDisconnected;
             adapter.DeviceConnectionLost += channel.OnConnectionLost;
 
-            try
-            {
-                var mtu = await device.RequestMtuAsync(247, ct);
-                if (mtu > 23) channel.MaxDataSize = mtu - 3; // minus the ATT header
-            }
-            catch { /* stay at the default 23-byte MTU */ }
+            if (!returnsPayloadLength)
+                await channel.UpdateMaxDataSizeAsync(returnsPayloadLength: false, ct);
 
             var service = await device.GetServiceAsync(SecureDfuService.Service, ct)
                 ?? throw new InvalidOperationException(Strings.Dfu_NoService);
@@ -172,6 +208,12 @@ public sealed class BleDfuChannel : IDfuChannel
 
             channel._control.ValueUpdated += channel.OnControlValue;
             await channel._control.StartUpdatesAsync(ct);
+
+            // CoreBluetooth negotiates MTU automatically; querying after service discovery and CCCD
+            // setup ensures the negotiated value has settled rather than reading the initial 20-byte default.
+            if (returnsPayloadLength)
+                await channel.UpdateMaxDataSizeAsync(returnsPayloadLength: true, ct);
+
             return channel;
         }
         catch
@@ -179,6 +221,16 @@ public sealed class BleDfuChannel : IDfuChannel
             await channel.DisposeAsync();
             throw;
         }
+    }
+
+    private async Task UpdateMaxDataSizeAsync(bool returnsPayloadLength, CancellationToken ct)
+    {
+        try
+        {
+            var mtu = await _device.RequestMtuAsync(MaxRequestedMtu, ct);
+            MaxDataSize = DataSizeForMtu(mtu, returnsPayloadLength);
+        }
+        catch { /* stay at the default 23-byte MTU */ }
     }
 
     private void OnControlValue(object? sender, CharacteristicUpdatedEventArgs e)
