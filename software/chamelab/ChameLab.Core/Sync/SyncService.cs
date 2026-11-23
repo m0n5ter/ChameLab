@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -31,7 +32,7 @@ public enum SyncStatus
 }
 
 /// <summary>A device of the group as the devices list shows it.</summary>
-public sealed record SyncMember(string Id, string Name, bool IsThis, bool IsOnline, string? Link, DateTimeOffset? LastSeen);
+public sealed record SyncMember(string Id, string Name, bool IsThis, bool IsOnline, string? Link, DateTimeOffset? LastSeen, string? Platform = null);
 
 /// <summary>An entry of a card's or dictionary's history, for the history list.</summary>
 public sealed record SyncHistoryItem(Hlc Time, string Device, IReadOnlyList<string> Fields, bool Deleted);
@@ -63,11 +64,16 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
     /// <summary>Android keeps multicast (mDNS) packets only while asked to; the head sets this.</summary>
     public static Action<bool>? MulticastLock { get; set; }
 
+    public const int MaxDeviceNameLength = 64;
+
     /// <summary>The relays to use (all of them; the room picks one by its id).</summary>
     public static Func<IReadOnlyList<RelayServer>> Relays { get; set; } = () => RelayEndpoint.Servers;
 
     /// <summary>What this device is called in other devices' lists unless renamed.</summary>
     public static string DefaultDeviceName { get; set; } = DefaultName();
+
+    /// <summary>Platform tag reported to sync peers (windows, linux, macos, android, ios, browser).</summary>
+    public static string CurrentPlatform { get; set; } = DetectPlatform();
 
     private readonly object _lock = new();
     private readonly SyncStorage _storage;
@@ -149,9 +155,12 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
                     .Select(e =>
                     {
                         var online = _sessions.TryGetValue(e.Id, out var s);
+                        var platform = CleanPlatform((string?)e.Value("platform"))
+                            ?? (e.Id == _device.Id ? CleanPlatform(CurrentPlatform) : null);
                         return new SyncMember(e.Id, (string?)e.Value("name") ?? "?", e.Id == _device.Id,
                             e.Id == _device.Id || online, online ? s!.Session.Kind : null,
-                            e.Id == _device.Id ? null : _lastSeen.TryGetValue(e.Id, out var seen) ? seen : null);
+                            e.Id == _device.Id ? null : _lastSeen.TryGetValue(e.Id, out var seen) ? seen : null,
+                            platform);
                     })
                     .OrderByDescending(m => m.IsThis)
                     .ThenBy(m => m.Name, StringComparer.CurrentCultureIgnoreCase)
@@ -165,8 +174,8 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
 
     public void Rename(string name)
     {
-        name = name.Trim();
-        if (_device is null || name.Length == 0) return;
+        name = SanitizeDeviceName(name);
+        if (_device is null || name.Length == 0 || string.Equals(name, _device.Name, StringComparison.Ordinal)) return;
         _device = _device with { Name = name };
         _storage.SaveDevice(_device);
         Commit(doc => doc.Change(EntityTypes.Member, _device.Id, new Dictionary<string, JsonNode?> { ["name"] = name }));
@@ -197,7 +206,7 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
         var device = new DeviceIdentity(SyncCrypto.B64(SyncCrypto.Random(16)), Clean(name), KeyPair.Generate());
         var doc = new SyncDocument(device.Id);
         doc.Change(EntityTypes.Group, "group", new Dictionary<string, JsonNode?> { ["room"] = SyncCrypto.B64(SyncCrypto.Random(32)) });
-        doc.Change(EntityTypes.Member, device.Id, MemberFields(device.Name, device.Key.Public));
+        doc.Change(EntityTypes.Member, device.Id, MemberFields(device.Name, device.Key.Public, CurrentPlatform));
         _storage.SaveDevice(device);
         _storage.SaveSnapshot(doc);
         lock (_lock)
@@ -230,15 +239,76 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
         RaiseChanged();
     }
 
-    private static Dictionary<string, JsonNode?> MemberFields(string name, byte[] key) => new()
+    private static Dictionary<string, JsonNode?> MemberFields(string name, byte[] key, string? platform = null)
     {
-        ["name"] = name,
-        ["key"] = SyncCrypto.B64(key),
-        ["added"] = DateTimeOffset.UtcNow.ToString("O"),
-    };
+        var fields = new Dictionary<string, JsonNode?>
+        {
+            ["name"] = name,
+            ["key"] = SyncCrypto.B64(key),
+            ["added"] = DateTimeOffset.UtcNow.ToString("O"),
+        };
+        if (CleanPlatform(platform) is { } p) fields["platform"] = p;
+        return fields;
+    }
+
+    /// <summary>
+    /// Cleans a device name: trims, collapses whitespace runs to single spaces, removes control,
+    /// format, replacement and filename-illegal characters, and cuts to <see cref="MaxDeviceNameLength"/> UTF-16 chars.
+    /// </summary>
+    public static string SanitizeDeviceName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return string.Empty;
+        var sb = new StringBuilder(Math.Min(name.Length, MaxDeviceNameLength));
+        Span<char> buf = stackalloc char[2];
+        var pendingSpace = false;
+        foreach (var rune in name.EnumerateRunes())
+        {
+            if (Rune.IsWhiteSpace(rune))
+            {
+                if (sb.Length > 0) pendingSpace = true;
+                continue;
+            }
+            if (IsIllegalDeviceNameRune(rune)) continue;
+            if (pendingSpace)
+            {
+                if (sb.Length + 1 > MaxDeviceNameLength) break;
+                sb.Append(' ');
+                pendingSpace = false;
+            }
+            var len = rune.EncodeToUtf16(buf);
+            if (sb.Length + len > MaxDeviceNameLength) break;
+            sb.Append(buf[..len]);
+        }
+        return sb.ToString().TrimEnd();
+    }
+
+    private static bool IsIllegalDeviceNameRune(Rune rune) =>
+        Rune.IsControl(rune)
+        || Rune.GetUnicodeCategory(rune) is UnicodeCategory.Format or UnicodeCategory.Control
+            or UnicodeCategory.Surrogate or UnicodeCategory.PrivateUse
+        || rune.Value is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*' or 0xFFFD;
 
     private static string Clean(string? name) =>
-        string.IsNullOrWhiteSpace(name) ? DefaultDeviceName : name.Trim()[..Math.Min(name.Trim().Length, 64)];
+        SanitizeDeviceName(name) is { Length: > 0 } clean ? clean
+        : SanitizeDeviceName(DefaultDeviceName) is { Length: > 0 } fallback ? fallback
+        : "ChameLab";
+
+    private static string DetectPlatform()
+    {
+        if (OperatingSystem.IsWindows()) return "windows";
+        if (OperatingSystem.IsMacOS()) return "macos";
+        if (OperatingSystem.IsLinux()) return "linux";
+        if (OperatingSystem.IsAndroid()) return "android";
+        if (OperatingSystem.IsIOS()) return "ios";
+        if (OperatingSystem.IsBrowser()) return "browser";
+        return "unknown";
+    }
+
+    private static string? CleanPlatform(string? platform) => platform?.Trim().ToLowerInvariant() switch
+    {
+        "windows" or "linux" or "macos" or "android" or "ios" or "browser" => platform.Trim().ToLowerInvariant(),
+        _ => null,
+    };
 
     private static string DefaultName()
     {
@@ -255,6 +325,7 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
     public void Start()
     {
         if (_device is null || _run is not null || _joining) return;
+        EnsurePlatform();
         _run = new CancellationTokenSource();
         var ct = _run.Token;
         MulticastLock?.Invoke(true);
@@ -356,6 +427,22 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
         Status = status;
         Error = error;
         RaiseChanged();
+    }
+
+    private void EnsurePlatform()
+    {
+        if (CleanPlatform(CurrentPlatform) is not { } platform) return;
+        string? deviceId;
+        lock (_lock)
+        {
+            if (_device is null || _doc is null) return;
+            var current = (string?)_doc.Find(EntityTypes.Member, _device.Id)?.Value("platform");
+            if (string.Equals(current, platform, StringComparison.Ordinal)) return;
+            deviceId = _device.Id;
+        }
+        Commit(doc => _device?.Id == deviceId
+            ? doc.Change(EntityTypes.Member, deviceId, new Dictionary<string, JsonNode?> { ["platform"] = platform })
+            : null);
     }
 
     /// <summary>Room changed (a device was removed): reconnect to the new one, announce the new one locally.</summary>
@@ -712,7 +799,8 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
         {
             if (_channel is null || _join is null || _service._device is not { } device) throw new InvalidOperationException();
             var id = (string)_join["device"]!;
-            _service.Commit(doc => doc.Change(EntityTypes.Member, id, MemberFields(Clean((string?)_join["name"]), _channel.RemoteKey)));
+            _service.Commit(doc => doc.Change(EntityTypes.Member, id,
+                MemberFields(Clean((string?)_join["name"]), _channel.RemoteKey, CleanPlatform((string?)_join["platform"]))));
             var vector = _service.Locked(doc => SyncDocument.VectorJson(doc.Vector));
             await _channel.SendAsync(new JsonObject { ["type"] = "welcome", ["device"] = device.Id, ["vector"] = vector }, ct);
             var channel = _channel;
@@ -758,6 +846,7 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
                 ["name"] = device.Name,
                 ["key"] = SyncCrypto.B64(device.Key.Public),
             };
+            if (CleanPlatform(CurrentPlatform) is { } platform) join["platform"] = platform;
             if (pairing.Secret is { } secret) join["proof"] = PairingCode.Proof(secret, channel);
             await channel.SendAsync(join, ct);
             if (!verified) showDigits?.Invoke(channel.ShortAuthenticationString());

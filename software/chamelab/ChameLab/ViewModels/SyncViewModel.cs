@@ -14,13 +14,25 @@ using ReactiveUI;
 namespace ChameLab.ViewModels;
 
 /// <summary>A device in the sync devices list.</summary>
-public sealed class SyncMemberViewModel(SyncMember member, ICommand remove)
+public sealed class SyncMemberViewModel(SyncMember member, SyncStatus localStatus, int connectedCount, ICommand askRemove)
 {
     public string Id => member.Id;
     public string Name => member.Name;
     public bool IsThis => member.IsThis;
     public bool CanRemove => !member.IsThis;
-    public ICommand RemoveCommand => remove;
+    public ICommand AskRemoveCommand => askRemove;
+
+    /// <summary>Key for IconGeometryConverter matching the device's OS/platform.</summary>
+    public string PlatformIconKey => member.Platform switch
+    {
+        "windows" => "deviceWindows",
+        "linux" => "deviceLinux",
+        "macos" => "deviceMacos",
+        "android" => "deviceAndroid",
+        "ios" => "deviceIos",
+        "browser" => "web",
+        _ => "device",
+    };
 
     /// <summary>"This device", "Connected · local network", "Connected · internet", "Last seen 5 min ago", "Not seen yet".</summary>
     public string Status =>
@@ -30,6 +42,10 @@ public sealed class SyncMemberViewModel(SyncMember member, ICommand remove)
         : Strings.Sync_NotSeenYet;
 
     public bool IsOnline => member.IsOnline && !member.IsThis;
+
+    public bool IsStateOnline => member.IsThis ? (localStatus == SyncStatus.Online || connectedCount > 0) : member.IsOnline;
+    public bool IsStateConnecting => member.IsThis && localStatus == SyncStatus.Connecting && connectedCount == 0;
+    public bool IsStateOffline => !IsStateOnline && !IsStateConnecting;
 
     private static string Ago(DateTimeOffset time)
     {
@@ -57,12 +73,14 @@ public sealed class SyncViewModel : ViewModelBase
     private CancellationTokenSource? _inviteCts;
     private SyncService.Invitation? _invitation;
     private TaskCompletionSource<bool>? _decision;
+    private string? _lastSyncedDeviceName;
 
     public SyncViewModel(SyncService sync, Action<string> error, Action<string> notice)
     {
         _sync = sync;
         _error = error;
         _notice = notice;
+        _lastSyncedDeviceName = sync.DeviceName;
         DeviceName = sync.DeviceName ?? SyncService.DefaultDeviceName;
         CreateCommand = ReactiveCommand.Create(Create);
         ShowJoinCommand = ReactiveCommand.Create(() => { IsJoinOpen = !IsJoinOpen; });
@@ -74,8 +92,12 @@ public sealed class SyncViewModel : ViewModelBase
         CancelInviteCommand = ReactiveCommand.Create(CancelInvite);
         AcceptCommand = ReactiveCommand.Create(() => _decision?.TrySetResult(true));
         DeclineCommand = ReactiveCommand.Create(() => _decision?.TrySetResult(false));
-        RenameCommand = ReactiveCommand.Create(() => _sync.Rename(DeviceName));
-        LeaveCommand = ReactiveCommand.CreateFromTask(LeaveAsync);
+        AskRemoveCommand = ReactiveCommand.Create<SyncMemberViewModel>(AskRemove);
+        ConfirmRemoveCommand = ReactiveCommand.Create(ConfirmRemove);
+        CancelRemoveCommand = ReactiveCommand.Create(() => { MemberToRemove = null; });
+        AskLeaveCommand = ReactiveCommand.Create(() => { MemberToRemove = null; IsConfirmingLeave = true; });
+        ConfirmLeaveCommand = ReactiveCommand.CreateFromTask(ConfirmLeaveAsync);
+        CancelLeaveCommand = ReactiveCommand.Create(() => { IsConfirmingLeave = false; });
         _sync.Changed += Refresh;
         Refresh();
     }
@@ -116,15 +138,25 @@ public sealed class SyncViewModel : ViewModelBase
     private void Refresh() => Dispatcher.UIThread.Post(() =>
     {
         Members.Clear();
-        var remove = ReactiveCommand.Create<string>(id =>
-        {
-            _sync.Remove(id);
-            _notice(Strings.Sync_DeviceRemoved);
-        });
-        foreach (var member in _sync.Members) Members.Add(new SyncMemberViewModel(member, remove));
+        foreach (var member in _sync.Members)
+            Members.Add(new SyncMemberViewModel(member, _sync.Status, _sync.ConnectedCount, AskRemoveCommand));
         Fill(DeletedCards, EntityTypes.Card);
         Fill(DeletedDictionaries, EntityTypes.Dictionary);
-        if (_sync.DeviceName is { } name && !string.Equals(name, DeviceName, StringComparison.Ordinal)) DeviceName = name;
+        if (_sync.DeviceName is { } name)
+        {
+            if (!string.Equals(name, _lastSyncedDeviceName, StringComparison.Ordinal))
+            {
+                _lastSyncedDeviceName = name;
+                if (!string.Equals(name, DeviceName, StringComparison.Ordinal)) DeviceName = name;
+            }
+        }
+        else
+        {
+            _lastSyncedDeviceName = null;
+        }
+        if (MemberToRemove is { } pending && _sync.Members.All(m => m.Id != pending.Id)) MemberToRemove = null;
+        if (!IsEnabled && IsConfirmingLeave) IsConfirmingLeave = false;
+        if (!IsEnabled && IsInviting) CancelInvite();
         this.RaisePropertyChanged(nameof(IsEnabled));
         this.RaisePropertyChanged(nameof(IsOff));
         this.RaisePropertyChanged(nameof(StatusText));
@@ -255,19 +287,35 @@ public sealed class SyncViewModel : ViewModelBase
     public bool IsInviting
     {
         get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsDialogOpen));
+            this.RaisePropertyChanged(nameof(IsInviteLoading));
+            this.RaisePropertyChanged(nameof(ShowInviteCodeSlot));
+        }
     }
 
     public string? InviteQr
     {
         get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsInviteLoading));
+            this.RaisePropertyChanged(nameof(ShowInviteCodeSlot));
+        }
     }
 
     public string? InviteCode
     {
         get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(ShowInviteCode));
+            this.RaisePropertyChanged(nameof(ShowInviteCodeSlot));
+        }
     }
 
     public string? InviteStatus
@@ -280,13 +328,25 @@ public sealed class SyncViewModel : ViewModelBase
     public bool IsDeciding
     {
         get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsInviteLoading));
+            this.RaisePropertyChanged(nameof(ShowInviteCode));
+            this.RaisePropertyChanged(nameof(ShowInviteCodeSlot));
+        }
     }
+
+    public bool IsInviteLoading => IsInviting && !IsDeciding && InviteQr is null;
+    public bool ShowInviteCode => !IsDeciding && InviteCode is not null;
+    public bool ShowInviteCodeSlot => !IsDeciding && (InviteCode is not null || IsInviteLoading);
 
     private async Task InviteAsync()
     {
         _inviteCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         var ct = _inviteCts.Token;
+        MemberToRemove = null;
+        IsConfirmingLeave = false;
         IsInviting = true;
         InviteStatus = Strings.Sync_Connecting;
         try
@@ -341,8 +401,94 @@ public sealed class SyncViewModel : ViewModelBase
 
     // ---- This device -------------------------------------------------------------
 
-    public ICommand RenameCommand { get; }
-    public ICommand LeaveCommand { get; }
+    public ICommand AskRemoveCommand { get; }
+    public ICommand ConfirmRemoveCommand { get; }
+    public ICommand CancelRemoveCommand { get; }
+    public ICommand AskLeaveCommand { get; }
+    public ICommand ConfirmLeaveCommand { get; }
+    public ICommand CancelLeaveCommand { get; }
+
+    /// <summary>The peer device pending removal confirmation; null when closed.</summary>
+    public SyncMemberViewModel? MemberToRemove
+    {
+        get;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsConfirmingRemove));
+            this.RaisePropertyChanged(nameof(RemoveDevicePrompt));
+            this.RaisePropertyChanged(nameof(IsConfirming));
+            this.RaisePropertyChanged(nameof(IsDialogOpen));
+        }
+    }
+
+    public bool IsConfirmingRemove => MemberToRemove is not null;
+
+    public string RemoveDevicePrompt =>
+        MemberToRemove is { } m ? string.Format(Strings.Sync_RemoveDevicePrompt, m.Name) : string.Empty;
+
+    public bool IsConfirmingLeave
+    {
+        get;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsConfirming));
+            this.RaisePropertyChanged(nameof(IsDialogOpen));
+        }
+    }
+
+    public bool IsConfirming => IsConfirmingRemove || IsConfirmingLeave;
+
+    public bool IsDialogOpen => IsInviting || IsConfirming;
+
+    public void CommitDeviceName()
+    {
+        var sanitized = SyncService.SanitizeDeviceName(DeviceName);
+        if (!IsEnabled)
+        {
+            var fallback = SyncService.SanitizeDeviceName(SyncService.DefaultDeviceName);
+            DeviceName = sanitized.Length > 0 ? sanitized : (fallback.Length > 0 ? fallback : "ChameLab");
+            return;
+        }
+        var current = _sync.DeviceName ?? SyncService.DefaultDeviceName;
+        if (sanitized.Length == 0)
+        {
+            DeviceName = current;
+            return;
+        }
+        if (!string.Equals(DeviceName, sanitized, StringComparison.Ordinal)) DeviceName = sanitized;
+        if (string.Equals(sanitized, current, StringComparison.Ordinal)) return;
+        _lastSyncedDeviceName = sanitized;
+        _sync.Rename(sanitized);
+    }
+
+    public void RevertDeviceName()
+    {
+        if (IsEnabled) DeviceName = _sync.DeviceName ?? SyncService.DefaultDeviceName;
+    }
+
+    private void AskRemove(SyncMemberViewModel? member)
+    {
+        if (member is null || !member.CanRemove) return;
+        IsConfirmingLeave = false;
+        MemberToRemove = member;
+    }
+
+    private void ConfirmRemove()
+    {
+        var member = MemberToRemove;
+        MemberToRemove = null;
+        if (member is null || _sync.Members.All(m => m.Id != member.Id)) return;
+        _sync.Remove(member.Id);
+        _notice(Strings.Sync_DeviceRemoved);
+    }
+
+    private async Task ConfirmLeaveAsync()
+    {
+        IsConfirmingLeave = false;
+        await LeaveAsync();
+    }
 
     private async Task LeaveAsync()
     {

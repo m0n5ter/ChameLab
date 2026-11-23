@@ -47,9 +47,9 @@ public sealed class QrCodeView : Control
 
     public override void Render(DrawingContext context)
     {
+        if (_modules is not { } modules) return;
         var side = Math.Min(Bounds.Width, Bounds.Height);
         context.FillRectangle(Brushes.White, new Rect(0, 0, side, side));
-        if (_modules is not { } modules) return;
 
         var count = modules.GetLength(0) + 2 * QuietZone;
         // Whole device pixels per module keep the edges crisp; the rest is spread around as margin.

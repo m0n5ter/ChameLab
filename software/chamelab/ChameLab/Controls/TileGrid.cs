@@ -20,9 +20,15 @@ public class TileGrid : Panel
     public static readonly StyledProperty<double> RowSpacingProperty =
         AvaloniaProperty.Register<TileGrid, double>(nameof(RowSpacing));
 
+    public static readonly StyledProperty<int> MaxColumnsProperty =
+        AvaloniaProperty.Register<TileGrid, int>(nameof(MaxColumns));
+
+    public static readonly StyledProperty<bool> FitItemCountProperty =
+        AvaloniaProperty.Register<TileGrid, bool>(nameof(FitItemCount));
+
     static TileGrid()
     {
-        AffectsMeasure<TileGrid>(MinItemWidthProperty, ColumnSpacingProperty, RowSpacingProperty);
+        AffectsMeasure<TileGrid>(MinItemWidthProperty, ColumnSpacingProperty, RowSpacingProperty, MaxColumnsProperty, FitItemCountProperty);
     }
 
     public double MinItemWidth
@@ -43,15 +49,43 @@ public class TileGrid : Panel
         set => SetValue(RowSpacingProperty, value);
     }
 
-    private int Columns(double width) =>
-        double.IsInfinity(width) ? 1 : Math.Max(1, (int)((width + ColumnSpacing) / (MinItemWidth + ColumnSpacing)));
+    /// <summary>Maximum number of columns when > 0; 0 means unlimited.</summary>
+    public int MaxColumns
+    {
+        get => GetValue(MaxColumnsProperty);
+        set => SetValue(MaxColumnsProperty, value);
+    }
+
+    /// <summary>When true, cap columns to the number of visible items so items stretch across the row.</summary>
+    public bool FitItemCount
+    {
+        get => GetValue(FitItemCountProperty);
+        set => SetValue(FitItemCountProperty, value);
+    }
+
+    private int Columns(double width, int visibleCount)
+    {
+        if (double.IsInfinity(width)) return 1;
+        var columns = Math.Max(1, (int)((width + ColumnSpacing) / (MinItemWidth + ColumnSpacing)));
+        if (MaxColumns > 0) columns = Math.Min(columns, MaxColumns);
+        if (FitItemCount && visibleCount > 0) columns = Math.Min(columns, visibleCount);
+        return columns;
+    }
 
     private double ItemWidth(double width, int columns) =>
         Math.Max(0, (width - (columns - 1) * ColumnSpacing) / columns);
 
+    private int VisibleCount()
+    {
+        var count = 0;
+        foreach (var child in Children)
+            if (child.IsVisible) count++;
+        return count;
+    }
+
     protected override Size MeasureOverride(Size availableSize)
     {
-        var columns = Columns(availableSize.Width);
+        var columns = Columns(availableSize.Width, VisibleCount());
         var itemW = double.IsInfinity(availableSize.Width) ? double.PositiveInfinity : ItemWidth(availableSize.Width, columns);
         double height = 0, rowH = 0, widest = 0;
         var visible = 0;
@@ -74,7 +108,7 @@ public class TileGrid : Panel
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        var columns = Columns(finalSize.Width);
+        var columns = Columns(finalSize.Width, VisibleCount());
         var itemW = ItemWidth(finalSize.Width, columns);
         double y = 0, rowH = 0;
         var i = 0;

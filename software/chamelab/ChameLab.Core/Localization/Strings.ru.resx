@@ -4167,6 +4167,9 @@
   <data name="Sync_RemoveDevice" xml:space="preserve">
     <value>Удалить устройство</value>
   </data>
+  <data name="Sync_RemoveDevicePrompt" xml:space="preserve">
+    <value>Удалить «{0}»?</value>
+  </data>
   <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
     <value>Оно больше не получит изменений, а группа переедет в новую комнату, которую оно не найдёт. То, что уже на нём, останется. Чтобы вернуть его, нужно добавить его заново.</value>
   </data>
@@ -4226,6 +4229,9 @@
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Выйти из группы на этом устройстве; карты останутся</value>
+  </data>
+  <data name="Sync_LeavePrompt" xml:space="preserve">
+    <value>Отключить синхронизацию на этом устройстве?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>Устройство выйдет из группы и забудет историю. Карты и словари останутся как есть; остальные устройства продолжат синхронизироваться.</value>

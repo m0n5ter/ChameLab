@@ -4153,6 +4153,9 @@
   <data name="Sync_RemoveDevice" xml:space="preserve">
     <value>Quitar dispositivo</value>
   </data>
+  <data name="Sync_RemoveDevicePrompt" xml:space="preserve">
+    <value>¿Quitar «{0}»?</value>
+  </data>
   <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
     <value>No recibirá más cambios y el grupo se moverá a una sala nueva que no podrá encontrar. Lo que ya tiene se queda en él. Para volver a añadirlo hay que emparejarlo de nuevo.</value>
   </data>
@@ -4212,6 +4215,9 @@
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Salir del grupo en este dispositivo; las tarjetas se quedan</value>
+  </data>
+  <data name="Sync_LeavePrompt" xml:space="preserve">
+    <value>¿Dejar de sincronizar en este dispositivo?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>Este dispositivo sale del grupo y olvida el historial. Sus tarjetas y diccionarios se quedan como están; los demás siguen sincronizando.</value>

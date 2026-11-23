@@ -445,6 +445,99 @@
       <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DeleteFolderDialog}" />
     </Panel>
 
+    <!-- ==================== Sync dialogs ==================== -->
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+           DataContext="{Binding Settings.Sync}" IsVisible="{Binding IsInviting}"
+           x:DataType="vm:SyncViewModel">
+      <Border Classes="card" MaxWidth="440" Margin="16" VerticalAlignment="Center">
+        <Grid RowDefinitions="Auto,*,Auto">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_AddDevice}" />
+            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_InviteHint}"
+                       IsVisible="{Binding !IsDeciding}" />
+          </StackPanel>
+          <Panel Grid.Row="1" Margin="0,12,0,0" HorizontalAlignment="Center"
+                 MaxWidth="260" MaxHeight="260" IsVisible="{Binding !IsDeciding}">
+            <Border CornerRadius="10" ClipToBounds="True">
+              <c:QrCodeView Text="{Binding InviteQr}" />
+            </Border>
+            <Border CornerRadius="10"
+                    Background="{actipro:ThemeResource Container2BackgroundBrush}"
+                    BorderBrush="{actipro:ThemeResource Container1BorderBrush}"
+                    BorderThickness="1"
+                    IsVisible="{Binding IsInviteLoading}">
+              <PathIcon Data="{StaticResource Icon.qrcode}" Width="44" Height="44"
+                        Foreground="{actipro:ThemeResource DefaultForegroundBrushTertiary}"
+                        b:Pulse.IsActive="{Binding IsInviteLoading}" />
+            </Border>
+          </Panel>
+          <StackPanel Grid.Row="2" Margin="0,12,0,0" Spacing="10">
+            <Panel MinHeight="30" IsVisible="{Binding ShowInviteCodeSlot}">
+              <Border Width="180" Height="22" CornerRadius="6" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Background="{actipro:ThemeResource Container2BackgroundBrush}"
+                      IsVisible="{Binding IsInviteLoading}" />
+              <SelectableTextBlock Text="{Binding InviteCode}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FontSize="22" FontWeight="SemiBold"
+                                   FontFamily="{x:Static c:AppFonts.Mono}"
+                                   IsVisible="{Binding ShowInviteCode}" />
+            </Panel>
+            <TextBlock TextWrapping="Wrap" Text="{Binding InviteStatus}"
+                       HorizontalAlignment="Center" TextAlignment="Center" />
+            <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">
+              <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelInviteCommand}"
+                      IsVisible="{Binding !IsDeciding}" b:DialogKeys.IsCancel="True" />
+              <Button Content="{x:Static loc:Strings.Sync_Decline}" Command="{Binding DeclineCommand}"
+                      IsVisible="{Binding IsDeciding}" b:DialogKeys.IsCancel="True" />
+              <Button Classes="accent" Content="{x:Static loc:Strings.Sync_Accept}" Command="{Binding AcceptCommand}"
+                      IsVisible="{Binding IsDeciding}" b:DialogKeys.IsDefault="True" />
+            </WrapPanel>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Panel>
+
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+           DataContext="{Binding Settings.Sync}" IsVisible="{Binding IsConfirmingRemove}"
+           x:DataType="vm:SyncViewModel">
+      <Border Classes="card" MaxWidth="420" Margin="16" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock Classes="h2" TextWrapping="Wrap" Text="{Binding RemoveDevicePrompt}" />
+          <TextBlock TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_RemoveDeviceConfirm}" />
+          <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">
+            <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelRemoveCommand}"
+                    b:DialogKeys.IsCancel="True" />
+            <Button Classes="danger solid" Command="{Binding ConfirmRemoveCommand}" b:DialogKeys.IsDefault="True">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.delete}" />
+                <TextBlock Text="{x:Static loc:Strings.Sync_RemoveDevice}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+           DataContext="{Binding Settings.Sync}" IsVisible="{Binding IsConfirmingLeave}"
+           x:DataType="vm:SyncViewModel">
+      <Border Classes="card" MaxWidth="420" Margin="16" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock Classes="h2" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_LeavePrompt}" />
+          <TextBlock TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_LeaveConfirm}" />
+          <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">
+            <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelLeaveCommand}"
+                    b:DialogKeys.IsCancel="True" />
+            <Button Classes="danger solid" Command="{Binding ConfirmLeaveCommand}" b:DialogKeys.IsDefault="True">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.close}" />
+                <TextBlock Text="{x:Static loc:Strings.Sync_Leave}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+
     <!-- ==================== Exit hint ==================== -->
     <!-- After Back on the start page; a second Back within a moment closes the app. -->
     <Border Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"

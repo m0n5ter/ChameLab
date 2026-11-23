@@ -82,6 +82,14 @@
     <Setter Property="Background" Value="{DynamicResource BrandAmberSoftBrush}" />
     <Setter Property="TextElement.Foreground" Value="{DynamicResource BrandAmberBrush}" />
   </Style>
+  <Style Selector="Border.iconwell.success">
+    <Setter Property="Background" Value="{actipro:ThemeResource InfoBarBackgroundBrushSuccess}" />
+    <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource ControlForegroundBrushOutlineSuccess}" />
+  </Style>
+  <Style Selector="Border.iconwell.neutral">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{actipro:ThemeResource DefaultForegroundBrushTertiary}" />
+  </Style>
   <Style Selector="Border.iconwell > PathIcon">
     <Setter Property="Width" Value="20" />
     <Setter Property="Height" Value="20" />

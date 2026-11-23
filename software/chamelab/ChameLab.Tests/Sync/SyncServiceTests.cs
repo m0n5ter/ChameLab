@@ -122,6 +122,92 @@ public class SyncServiceTests
         await b.Sync.StopAsync();
     }
 
+    [Theory]
+    [InlineData("  Laptop  ", "Laptop")]
+    [InlineData("  My\t\n  Laptop  ", "My Laptop")]
+    [InlineData("My<Dev>:name\"/\\|?*", "MyDevname")]
+    [InlineData("A\u0000B\u200BC\u202ED\uFFFDE", "ABCDE")]
+    [InlineData("Мой ноутбук (дом)", "Мой ноутбук (дом)")]
+    [InlineData("   <>|?* \t ", "")]
+    [InlineData(null, "")]
+    public void SanitizeDeviceName_TrimsCollapsesStripsIllegal(string? input, string expected) =>
+        Assert.Equal(expected, SyncService.SanitizeDeviceName(input));
+
+    [Fact]
+    public void SanitizeDeviceName_CapsLengthWithoutSplittingSurrogatePairs()
+    {
+        var tooLong = new string('x', SyncService.MaxDeviceNameLength + 10);
+        Assert.Equal(SyncService.MaxDeviceNameLength, SyncService.SanitizeDeviceName(tooLong).Length);
+
+        var endsWithSurrogate = new string('a', SyncService.MaxDeviceNameLength - 1) + "\U0001F600";
+        var cleaned = SyncService.SanitizeDeviceName(endsWithSurrogate);
+        Assert.Equal(SyncService.MaxDeviceNameLength - 1, cleaned.Length);
+        Assert.All(cleaned, c => Assert.False(char.IsSurrogate(c)));
+    }
+
+    [Fact]
+    public async Task Rename_SanitizesIgnoresEmptyAndNoOp()
+    {
+        var node = new Node();
+        await node.OnUi(() => node.Sync.CreateGroup("  First/Name  "));
+        Assert.Equal("FirstName", node.Sync.DeviceName);
+
+        var seqBefore = node.Sync.Locked(doc => doc.Seq(doc.DeviceId));
+        await node.OnUi(() => node.Sync.Rename("   <>|?*  "));
+        Assert.Equal("FirstName", node.Sync.DeviceName);
+        Assert.Equal(seqBefore, node.Sync.Locked(doc => doc.Seq(doc.DeviceId)));
+
+        await node.OnUi(() => node.Sync.Rename("  First\tName  "));
+        Assert.Equal("First Name", node.Sync.DeviceName);
+        var seqAfterRename = node.Sync.Locked(doc => doc.Seq(doc.DeviceId));
+        Assert.True(seqAfterRename > seqBefore);
+
+        // Sanitized value matches current name -> no-op.
+        await node.OnUi(() => node.Sync.Rename("  First  Name/  "));
+        Assert.Equal("First Name", node.Sync.DeviceName);
+        Assert.Equal(seqAfterRename, node.Sync.Locked(doc => doc.Seq(doc.DeviceId)));
+
+        await node.Sync.StopAsync();
+    }
+
+    [Fact]
+    public async Task DevicesExchangePlatformTags()
+    {
+        var previousPlatform = SyncService.CurrentPlatform;
+        await using var relay = await Setup();
+        var a = new Node();
+        var b = new Node();
+        try
+        {
+            SyncService.CurrentPlatform = "windows";
+            await a.OnUi(() => a.Sync.CreateGroup("Workstation"));
+            await Until(() => a.Sync.Status == SyncStatus.Online, "A online");
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            await using var invitation = await a.Sync.InviteAsync(cts.Token);
+
+            SyncService.CurrentPlatform = "android";
+            var join = b.Sync.JoinAsync(invitation.Qr, "Phone", null, cts.Token);
+            var request = await invitation.WaitAsync(cts.Token);
+            Assert.Equal("Phone", request.Name);
+            await invitation.AcceptAsync(cts.Token);
+            await join;
+
+            await Until(() => a.Sync.Members.Count == 2 && b.Sync.Members.Count == 2, "both members present");
+
+            Assert.Equal("windows", a.Sync.Members.Single(m => m.IsThis).Platform);
+            Assert.Equal("android", a.Sync.Members.Single(m => !m.IsThis).Platform);
+            Assert.Equal("android", b.Sync.Members.Single(m => m.IsThis).Platform);
+            Assert.Equal("windows", b.Sync.Members.Single(m => !m.IsThis).Platform);
+        }
+        finally
+        {
+            SyncService.CurrentPlatform = previousPlatform;
+            await a.Sync.StopAsync();
+            await b.Sync.StopAsync();
+        }
+    }
+
     [Fact]
     public async Task CardsCanBeSentToAnyone()
     {

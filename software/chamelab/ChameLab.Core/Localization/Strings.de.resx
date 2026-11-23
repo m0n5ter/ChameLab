@@ -4153,6 +4153,9 @@
   <data name="Sync_RemoveDevice" xml:space="preserve">
     <value>Gerät entfernen</value>
   </data>
+  <data name="Sync_RemoveDevicePrompt" xml:space="preserve">
+    <value>„{0}“ entfernen?</value>
+  </data>
   <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
     <value>Es erhält keine Änderungen mehr, und die Gruppe zieht in einen neuen Raum, den es nicht findet. Was es schon hat, bleibt darauf. Zum Zurückholen muss es neu gekoppelt werden.</value>
   </data>
@@ -4212,6 +4215,9 @@
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Gruppe auf diesem Gerät verlassen; die Karten bleiben</value>
+  </data>
+  <data name="Sync_LeavePrompt" xml:space="preserve">
+    <value>Synchronisierung auf diesem Gerät beenden?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>Dieses Gerät verlässt die Gruppe und vergisst den Verlauf. Karten und Wörterbücher bleiben; die anderen Geräte synchronisieren weiter.</value>

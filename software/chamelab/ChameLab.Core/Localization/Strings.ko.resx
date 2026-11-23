@@ -4153,6 +4153,9 @@
   <data name="Sync_RemoveDevice" xml:space="preserve">
     <value>기기 제거</value>
   </data>
+  <data name="Sync_RemoveDevicePrompt" xml:space="preserve">
+    <value>“{0}”을(를) 제거할까요?</value>
+  </data>
   <data name="Sync_RemoveDeviceConfirm" xml:space="preserve">
     <value>이 기기는 더 이상 변경 사항을 받지 않으며, 그룹은 이 기기가 찾을 수 없는 새 방으로 옮겨갑니다. 이미 가진 데이터는 그대로 남습니다. 다시 추가하려면 새로 페어링해야 합니다.</value>
   </data>
@@ -4212,6 +4215,9 @@
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>이 기기에서 그룹을 나갑니다. 카드는 유지됩니다</value>
+  </data>
+  <data name="Sync_LeavePrompt" xml:space="preserve">
+    <value>이 기기에서 동기화를 중지할까요?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>이 기기는 그룹을 나가고 기록을 지웁니다. 카드와 사전은 그대로 남고 다른 기기는 계속 동기화합니다.</value>
