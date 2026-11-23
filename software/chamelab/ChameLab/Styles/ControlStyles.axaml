@@ -667,6 +667,12 @@
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="0" />
   </Style>
+  <!-- Above and below the scrolling part of the navigation (Cards, Dictionaries and their folders). -->
+  <Style Selector="Border.navseparator">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="20,6" />
+    <Setter Property="Background" Value="{actipro:ThemeResource Container1BorderBrush}" />
+  </Style>
   <!-- The items touch, and each row (Border.navrow) draws its own highlight inset by 2 px: the gap
        between highlights belongs to the items, so there is no hole a click or hover falls through. -->
   <Style Selector="ListBox.nav ListBoxItem">

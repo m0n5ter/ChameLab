@@ -119,17 +119,14 @@
         <Panel ClipToBounds="True">
           <Border BorderBrush="{actipro:ThemeResource Container1BorderBrush}" BorderThickness="0,0,1,0"
                   Width="{Binding #Shell.OpenPaneLength}" HorizontalAlignment="Left">
-            <Grid RowDefinitions="Auto,*,Auto,Auto">
-              <TextBlock Grid.Row="0" Text="{x:Static loc:Strings.Main_NavigationHeader}" Classes="overline" Margin="20,18,0,6" />
-
-              <!-- The pages, with the card folders indented under Cards and the dictionary folders under
-                   Dictionaries; a folder's folders are listed under it while it is expanded. Cards (and
-                   dictionaries) are dragged onto a folder, or onto their page to take them out of theirs
-                   (see ListReorder). -->
-              <!-- Scrolls only up and down: long folder names are trimmed, never scrolled to. -->
-              <ListBox Grid.Row="1" Classes="nav" Margin="10,0" ItemsSource="{Binding NavItems}" IsEnabled="{Binding !IsNavigationLocked}"
-                       SelectedItem="{Binding SelectedNavItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListBox.DataTemplates>
+            <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto">
+              <!-- The pages, in three lists: the device pages above (Connect or Chameleon, Slots) and the
+                   rest below (Tools, Settings) stay put, and only the library between them scrolls: Cards
+                   and Dictionaries, with the card folders indented under Cards and the dictionary folders
+                   under Dictionaries; a folder's folders are listed under it while it is expanded. Cards
+                   (and dictionaries) are dragged onto a folder, or onto their page to take them out of
+                   theirs (see ListReorder). The templates are shared by the three lists. -->
+              <Grid.DataTemplates>
                   <!-- Cards, with buttons for a new folder and a new card (before the general page template,
                        which would match too). -->
                   <DataTemplate DataType="vm:CardsViewModel">
@@ -243,11 +240,28 @@
                       </Grid>
                     </Border>
                   </DataTemplate>
-                </ListBox.DataTemplates>
-              </ListBox>
+              </Grid.DataTemplates>
+
+              <TextBlock Grid.Row="0" Text="{x:Static loc:Strings.Main_NavigationHeader}" Classes="overline" Margin="20,18,0,6" />
+
+              <ListBox Grid.Row="1" Classes="nav" Margin="10,0" ItemsSource="{Binding NavTopItems}" IsEnabled="{Binding !IsNavigationLocked}"
+                       SelectedItem="{Binding SelectedNavTopItem}"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+
+              <Border Grid.Row="2" Classes="navseparator" />
+
+              <!-- Scrolls only up and down: long folder names are trimmed, never scrolled to. -->
+              <ListBox Grid.Row="3" Classes="nav" Margin="10,0" ItemsSource="{Binding NavLibraryItems}" IsEnabled="{Binding !IsNavigationLocked}"
+                       SelectedItem="{Binding SelectedNavLibraryItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+
+              <Border Grid.Row="4" Classes="navseparator" />
+
+              <ListBox Grid.Row="5" Classes="nav" Margin="10,0" ItemsSource="{Binding NavBottomItems}" IsEnabled="{Binding !IsNavigationLocked}"
+                       SelectedItem="{Binding SelectedNavBottomItem}"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
 
               <!-- Single trimmed lines: wrapped text would change the height while the pane animates its width. -->
-              <Border Grid.Row="2" Classes="inset" Margin="12,8,12,8">
+              <Border Grid.Row="6" Classes="inset" Margin="12,8,12,8">
                 <StackPanel Spacing="2">
                   <TextBlock Text="{x:Static loc:Strings.Main_ConnectedDeviceHeader}" Classes="overline" IsVisible="{Binding IsConnected}"
                              TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
@@ -274,7 +288,7 @@
 
               <!-- The support page (Boosty in Russian, Patreon otherwise) under the device, as wide
                    as its panel; store copies have none. -->
-              <Button Grid.Row="3" Margin="12,0,12,14" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              <Button Grid.Row="7" Margin="12,0,12,14" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                       Height="28" MinHeight="0" Padding="8,0" FontSize="12"
                       IsVisible="{Binding Settings.SupportLink, Converter={x:Static ObjectConverters.IsNotNull}}"
                       Command="{Binding Settings.OpenLinkCommand}" CommandParameter="{Binding Settings.SupportLink.Url}"

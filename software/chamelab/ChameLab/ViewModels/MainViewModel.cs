@@ -118,8 +118,7 @@ public sealed class MainViewModel : ViewModelBase
         private set
         {
             this.RaiseAndSetIfChanged(ref _currentPage, value);
-            this.RaisePropertyChanged(nameof(SelectedNavItem));
-            this.RaisePropertyChanged(nameof(SelectedNavPage));
+            RaiseNavSelectionProperties();
             UpdateWatching();
         }
     }
@@ -150,8 +149,14 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
-    /// <summary>The navigation list: the pages, with the card folders under Cards and the dictionary folders under Dictionaries.</summary>
-    public ObservableCollection<object> NavItems { get; } = new();
+    /// <summary>
+    /// The navigation list in three parts: the device pages above the library (Connect or Chameleon,
+    /// Slots), the library itself (Cards and Dictionaries, each with its folders under it), which
+    /// alone scrolls, and the pages below it (Tools, Settings).
+    /// </summary>
+    public ObservableCollection<object> NavTopItems { get; } = new();
+    public ObservableCollection<object> NavLibraryItems { get; } = new();
+    public ObservableCollection<object> NavBottomItems { get; } = new();
 
     /// <summary>The page whose folders these are.</summary>
     private PageViewModelBase PageOf(FolderBrowser tree) => ReferenceEquals(tree, Cards.FolderTree) ? Cards : Dictionaries;
@@ -162,25 +167,73 @@ public sealed class MainViewModel : ViewModelBase
         : ReferenceEquals(_currentPage, Dictionaries) ? Dictionaries.CurrentFolder
         : null;
 
-    /// <summary>Keeps <see cref="NavItems"/> in step with the pages and folders, in place (so a folder being renamed keeps its row).</summary>
+    /// <summary>Keeps the navigation lists in step with the pages and folders, in place (so a folder being renamed keeps its row).</summary>
     private void SyncNavItems()
     {
-        var wanted = new List<object>();
+        var top = new List<object>();
+        var library = new List<object>();
+        var bottom = new List<object>();
         foreach (var page in NavPages)
         {
-            wanted.Add(page);
-            if (ReferenceEquals(page, Cards)) wanted.AddRange(Cards.FolderTree.NavFolders);
-            else if (ReferenceEquals(page, Dictionaries)) wanted.AddRange(Dictionaries.FolderTree.NavFolders);
+            if (ReferenceEquals(page, Cards))
+            {
+                library.Add(page);
+                library.AddRange(Cards.FolderTree.NavFolders);
+            }
+            else if (ReferenceEquals(page, Dictionaries))
+            {
+                library.Add(page);
+                library.AddRange(Dictionaries.FolderTree.NavFolders);
+            }
+            else (library.Count == 0 ? top : bottom).Add(page);
         }
-        for (var i = NavItems.Count - 1; i >= 0; i--)
-            if (!wanted.Contains(NavItems[i])) NavItems.RemoveAt(i);
+        SyncList(NavTopItems, top);
+        SyncList(NavLibraryItems, library);
+        SyncList(NavBottomItems, bottom);
+        if (!_swappingNavPages) RaiseNavSelection();
+    }
+
+    private static void SyncList(ObservableCollection<object> items, List<object> wanted)
+    {
+        for (var i = items.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(items[i])) items.RemoveAt(i);
         for (var i = 0; i < wanted.Count; i++)
         {
-            var at = NavItems.IndexOf(wanted[i]);
-            if (at < 0) NavItems.Insert(i, wanted[i]);
-            else if (at != i) NavItems.Move(at, i);
+            var at = items.IndexOf(wanted[i]);
+            if (at < 0) items.Insert(i, wanted[i]);
+            else if (at != i) items.Move(at, i);
         }
-        if (!_swappingNavPages) RaiseNavSelection();
+    }
+
+    /// <summary>Each navigation list's selection: the place shown when it is in that list, nothing otherwise.</summary>
+    public object? SelectedNavTopItem
+    {
+        get => SelectedIn(NavTopItems);
+        set { if (value is not null) SelectedNavItem = value; }
+    }
+
+    public object? SelectedNavLibraryItem
+    {
+        get => SelectedIn(NavLibraryItems);
+        set { if (value is not null) SelectedNavItem = value; }
+    }
+
+    public object? SelectedNavBottomItem
+    {
+        get => SelectedIn(NavBottomItems);
+        set { if (value is not null) SelectedNavItem = value; }
+    }
+
+    private object? SelectedIn(ObservableCollection<object> items) =>
+        SelectedNavItem is { } item && items.Contains(item) ? item : null;
+
+    private void RaiseNavSelectionProperties()
+    {
+        this.RaisePropertyChanged(nameof(SelectedNavItem));
+        this.RaisePropertyChanged(nameof(SelectedNavPage));
+        this.RaisePropertyChanged(nameof(SelectedNavTopItem));
+        this.RaisePropertyChanged(nameof(SelectedNavLibraryItem));
+        this.RaisePropertyChanged(nameof(SelectedNavBottomItem));
     }
 
     /// <summary>
@@ -216,16 +269,13 @@ public sealed class MainViewModel : ViewModelBase
     /// </summary>
     private void RaiseNavSelection()
     {
-        this.RaisePropertyChanged(nameof(SelectedNavItem));
-        this.RaisePropertyChanged(nameof(SelectedNavPage));
+        RaiseNavSelectionProperties();
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             _clearingNavSelection = true;
-            this.RaisePropertyChanged(nameof(SelectedNavItem));
-            this.RaisePropertyChanged(nameof(SelectedNavPage));
+            RaiseNavSelectionProperties();
             _clearingNavSelection = false;
-            this.RaisePropertyChanged(nameof(SelectedNavItem));
-            this.RaisePropertyChanged(nameof(SelectedNavPage));
+            RaiseNavSelectionProperties();
         }, Avalonia.Threading.DispatcherPriority.Background);
     }
 
