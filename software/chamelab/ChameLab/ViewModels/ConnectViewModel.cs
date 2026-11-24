@@ -297,8 +297,15 @@ public sealed class ConnectViewModel : PageViewModelBase
         if (Selected is not { } selected) { ReportError(Strings.Connect_SelectFirst); return; }
         // A BLE connection attempt made while the adapter is scanning may stall or fail.
         StopWatchers();
-        // Off the UI thread: opening a serial port blocks, sometimes for seconds.
-        try { await Task.Run(() => _device.ConnectAsync(selected)); }
+        // Off the UI thread for serial/network transports (opening a serial port blocks,
+        // sometimes for seconds); keep BLE on the UI thread where Android's GATT stack expects it.
+        try
+        {
+            if (selected.Kind == TransportKind.Ble)
+                await _device.ConnectAsync(selected);
+            else
+                await Task.Run(() => _device.ConnectAsync(selected));
+        }
         finally
         {
             if (_pollTimer is not null && _device.State != ConnectionState.Connected) StartWatchers();

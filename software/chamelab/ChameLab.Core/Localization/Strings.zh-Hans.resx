@@ -4327,4 +4327,7 @@
   <data name="Settings_ThemeDark" xml:space="preserve">
     <value>深色</value>
   </data>
+  <data name="Ble_ConnectTimeout" xml:space="preserve">
+    <value>Chameleon 未通过蓝牙响应。请唤醒设备后重试。</value>
+  </data>
 </root>

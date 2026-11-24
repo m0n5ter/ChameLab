@@ -4327,4 +4327,7 @@
   <data name="Settings_ThemeDark" xml:space="preserve">
     <value>Scuro</value>
   </data>
+  <data name="Ble_ConnectTimeout" xml:space="preserve">
+    <value>Il Chameleon non ha risposto via Bluetooth. Sveglialo e riprova.</value>
+  </data>
 </root>

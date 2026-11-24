@@ -4327,4 +4327,7 @@
   <data name="Settings_ThemeDark" xml:space="preserve">
     <value>ダーク</value>
   </data>
+  <data name="Ble_ConnectTimeout" xml:space="preserve">
+    <value>Chameleon から Bluetooth 経由で応答がありませんでした。本体を起動してもう一度お試しください。</value>
+  </data>
 </root>

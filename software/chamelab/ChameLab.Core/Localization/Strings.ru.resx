@@ -3315,6 +3315,9 @@
   <data name="Device_UnknownModel" xml:space="preserve">
     <value>неизвестная модель</value>
   </data>
+  <data name="Ble_ConnectTimeout" xml:space="preserve">
+    <value>Chameleon не ответил по Bluetooth. Разбудите его и попробуйте снова.</value>
+  </data>
   <data name="Ble_LinkClosed" xml:space="preserve">
     <value>Соединение BLE закрыто.</value>
   </data>

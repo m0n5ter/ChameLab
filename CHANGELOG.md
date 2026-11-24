@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: fixed BLE connection hangs on Android/iOS/Web by moving MTU negotiation after GATT setup with a short timeout, adding timeouts across all BLE connect/cleanup steps, connecting directly via the discovered device handle, and keeping BLE connect on the UI thread
 
 ## [v1.8.59][2026-11-24] · firmware v2.4.25-cl
 ### Summary

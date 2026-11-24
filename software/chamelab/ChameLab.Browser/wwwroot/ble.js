@@ -67,32 +67,32 @@ export async function connect(id) {
     const device = devices.get(id);
     if (!device) throw new Error("Bluetooth device is no longer available. Pick it again.");
 
+    const timeoutMsg = "The Chameleon didn't answer over Bluetooth. Press a button on it to wake it up.";
     let server;
     try {
-        server = await withTimeout(device.gatt.connect(), CONNECT_TIMEOUT_MS,
-            "The Chameleon didn't answer over Bluetooth. Press a button on it to wake it up.");
+        server = await withTimeout(device.gatt.connect(), CONNECT_TIMEOUT_MS, timeoutMsg);
+        const service = await withTimeout(server.getPrimaryService(NUS), CONNECT_TIMEOUT_MS, timeoutMsg);
+        const rx = await withTimeout(service.getCharacteristic(NUS_RX), CONNECT_TIMEOUT_MS, timeoutMsg);
+        const tx = await withTimeout(service.getCharacteristic(NUS_TX), CONNECT_TIMEOUT_MS, timeoutMsg);
+
+        const link = { device, rx, tx, chunks: [], waiter: null, closed: false, writes: Promise.resolve() };
+        link.onValue = e => {
+            const v = e.target.value;
+            link.chunks.push(new Uint8Array(v.buffer, v.byteOffset, v.byteLength).slice());
+            wake(link);
+        };
+        link.onDisconnected = () => {
+            link.closed = true;
+            wake(link);
+        };
+        tx.addEventListener("characteristicvaluechanged", link.onValue);
+        device.addEventListener("gattserverdisconnected", link.onDisconnected);
+        await withTimeout(tx.startNotifications(), CONNECT_TIMEOUT_MS, timeoutMsg);
+        links.set(id, link);
     } catch (e) {
         try { device.gatt.disconnect(); } catch (_) { }
         throw e;
     }
-    const service = await server.getPrimaryService(NUS);
-    const rx = await service.getCharacteristic(NUS_RX);
-    const tx = await service.getCharacteristic(NUS_TX);
-
-    const link = { device, rx, tx, chunks: [], waiter: null, closed: false, writes: Promise.resolve() };
-    link.onValue = e => {
-        const v = e.target.value;
-        link.chunks.push(new Uint8Array(v.buffer, v.byteOffset, v.byteLength).slice());
-        wake(link);
-    };
-    link.onDisconnected = () => {
-        link.closed = true;
-        wake(link);
-    };
-    tx.addEventListener("characteristicvaluechanged", link.onValue);
-    device.addEventListener("gattserverdisconnected", link.onDisconnected);
-    await tx.startNotifications();
-    links.set(id, link);
 }
 
 function wake(link) {

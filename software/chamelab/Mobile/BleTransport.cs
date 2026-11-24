@@ -33,9 +33,30 @@ internal static class NordicUart
 /// on the TX characteristic are buffered into a channel that <see cref="ReadAsync"/>
 /// drains; <see cref="WriteAsync"/> chunks frames to the negotiated MTU on RX.
 /// </summary>
-public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
+public sealed class BleTransport : ITransport
 {
-    private readonly IAdapter _adapter = CrossBluetoothLE.Current.Adapter;
+    internal const int MaxRequestedMtu = 247;
+    internal const int MaxMtuPayload = MaxRequestedMtu - 3;
+
+    private static readonly TimeSpan DefaultScanWaitTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan DefaultGattTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan DefaultStartUpdatesTimeout = TimeSpan.FromSeconds(25);
+    private static readonly TimeSpan DefaultMtuTimeout = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan DefaultDisposeTimeout = TimeSpan.FromSeconds(3);
+
+    private readonly Guid _deviceId;
+    private readonly string _displayName;
+    private readonly IAdapter _adapter;
+    private readonly IDevice? _discoveredDevice;
+    private readonly Func<CancellationToken, Task> _waitForScan;
+    private readonly bool _isApple;
+    private readonly TimeSpan _scanWaitTimeout;
+    private readonly TimeSpan _connectTimeout;
+    private readonly TimeSpan _gattTimeout;
+    private readonly TimeSpan _startUpdatesTimeout;
+    private readonly TimeSpan _mtuTimeout;
+    private readonly TimeSpan _disposeTimeout;
 
     private IDevice? _device;
     private ICharacteristic? _rx;
@@ -47,32 +68,84 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
     private byte[] _pending = Array.Empty<byte>();
     private int _pendingOffset;
 
+    public BleTransport(Guid deviceId, string displayName)
+        : this(deviceId, displayName, CrossBluetoothLE.Current.Adapter) { }
+
+    internal BleTransport(
+        Guid deviceId,
+        string displayName,
+        IAdapter adapter,
+        IDevice? discoveredDevice = null,
+        Func<CancellationToken, Task>? waitForScan = null,
+        bool? isApple = null,
+        TimeSpan? scanWaitTimeout = null,
+        TimeSpan? connectTimeout = null,
+        TimeSpan? gattTimeout = null,
+        TimeSpan? startUpdatesTimeout = null,
+        TimeSpan? mtuTimeout = null,
+        TimeSpan? disposeTimeout = null)
+    {
+        _deviceId = deviceId;
+        _displayName = displayName;
+        _adapter = adapter;
+        _discoveredDevice = discoveredDevice;
+        _waitForScan = waitForScan ?? BleScanner.WaitForScanAsync;
+        _isApple = isApple ?? (OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst());
+        _scanWaitTimeout = scanWaitTimeout ?? DefaultScanWaitTimeout;
+        _connectTimeout = connectTimeout ?? DefaultConnectTimeout;
+        _gattTimeout = gattTimeout ?? DefaultGattTimeout;
+        _startUpdatesTimeout = startUpdatesTimeout ?? DefaultStartUpdatesTimeout;
+        _mtuTimeout = mtuTimeout ?? DefaultMtuTimeout;
+        _disposeTimeout = disposeTimeout ?? DefaultDisposeTimeout;
+    }
+
     public TransportKind Kind => TransportKind.Ble;
-    public string DisplayName => displayName;
+    public string DisplayName => _displayName;
     public bool IsConnected => _device?.State == DeviceState.Connected;
+    internal int MtuPayload => _mtuPayload;
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         // StopWatching cancels the window, but native scan cleanup is asynchronous.
-        await BleScanner.WaitForScanAsync(ct);
-        // Android's default transport may pick BR/EDR for a device it has not cached as LE.
-        _device = await _adapter.ConnectToKnownDeviceAsync(deviceId,
-            new ConnectParameters(autoConnect: false, forceBleTransport: true), ct);
+        // Bound the wait so a stuck native StopScanning callback cannot block connecting forever.
+        using (var waitCts = CancellationTokenSource.CreateLinkedTokenSource(ct))
+        {
+            waitCts.CancelAfter(_scanWaitTimeout);
+            try { await _waitForScan(waitCts.Token).WaitAsync(waitCts.Token); }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                Console.WriteLine("[BLE] Timed out waiting for scan cleanup; proceeding to connect.");
+            }
+        }
 
-        // Larger MTU greatly improves throughput; ignore if unsupported.
-        var isApple = OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst();
-        if (!isApple)
-            await UpdateMtuPayloadAsync(isApple: false, ct);
+        // Android's default transport may pick BR/EDR for a device it has not cached as LE.
+        var connectParams = new ConnectParameters(autoConnect: false, forceBleTransport: true);
+        await RunStepAsync("connect", _connectTimeout, ct, async stepCt =>
+        {
+            if (_discoveredDevice is { } known)
+            {
+                // Keep the handle before awaiting so DisposeAsync can cancel a pending GATT attempt on timeout.
+                _device = known;
+                await _adapter.ConnectToDeviceAsync(known, connectParams, stepCt).WaitAsync(stepCt);
+            }
+            else
+            {
+                _device = await _adapter.ConnectToKnownDeviceAsync(_deviceId, connectParams, stepCt).WaitAsync(stepCt);
+            }
+        });
 
         // Android starts on a slow, power-saving interval; commands are request/response round trips.
-        try { _device.UpdateConnectionInterval(ConnectionInterval.High); }
+        try { _device!.UpdateConnectionInterval(ConnectionInterval.High); }
         catch { /* not supported on this platform */ }
 
-        var service = await _device.GetServiceAsync(NordicUart.Service, ct)
+        var service = await RunStepAsync("service discovery", _gattTimeout, ct,
+                stepCt => _device!.GetServiceAsync(NordicUart.Service, stepCt).WaitAsync(stepCt))
             ?? throw new InvalidOperationException(Strings.Ble_NoUart);
-        _rx = await service.GetCharacteristicAsync(NordicUart.Rx, ct)
+        _rx = await RunStepAsync("RX characteristic", _gattTimeout, ct,
+                stepCt => service.GetCharacteristicAsync(NordicUart.Rx, stepCt).WaitAsync(stepCt))
             ?? throw new InvalidOperationException(Strings.Ble_NoRx);
-        _tx = await service.GetCharacteristicAsync(NordicUart.Tx, ct)
+        _tx = await RunStepAsync("TX characteristic", _gattTimeout, ct,
+                stepCt => service.GetCharacteristicAsync(NordicUart.Tx, stepCt).WaitAsync(stepCt))
             ?? throw new InvalidOperationException(Strings.Ble_NoTx);
 
         // Acknowledged writes: a write command the device rejects (e.g. BLE pairing is enabled and
@@ -81,27 +154,71 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
         _rx.WriteType = CharacteristicWriteType.WithResponse;
 
         _tx.ValueUpdated += OnTxValueUpdated;
-        await _tx.StartUpdatesAsync(ct);
+        await RunStepAsync("notifications", _startUpdatesTimeout, ct,
+            stepCt => _tx.StartUpdatesAsync(stepCt).WaitAsync(stepCt));
 
-        if (isApple)
-            await UpdateMtuPayloadAsync(isApple: true, ct);
+        // Negotiate/query MTU after GATT discovery and CCCD setup on both Android and Apple:
+        // the nRF5 firmware initiates an ATT MTU exchange immediately on connect and Android 14+
+        // negotiates 517 automatically, so calling RequestMtuAsync right after connect can collide
+        // and drop onMtuChanged forever. A short timeout ensures fallback to the 20-byte default.
+        await UpdateMtuPayloadAsync(_isApple, ct);
 
         _adapter.DeviceDisconnected += OnDeviceDisconnected;
         _adapter.DeviceConnectionLost += OnDeviceConnectionLost;
     }
 
+    private static async Task RunStepAsync(string step, TimeSpan timeout, CancellationToken ct, Func<CancellationToken, Task> action)
+    {
+        using var stepCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        stepCts.CancelAfter(timeout);
+        try
+        {
+            await action(stepCts.Token);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            Console.WriteLine($"[BLE] Step '{step}' timed out after {timeout.TotalSeconds:0.#}s.");
+            throw new TimeoutException(Strings.Ble_ConnectTimeout);
+        }
+    }
+
+    private static async Task<T> RunStepAsync<T>(string step, TimeSpan timeout, CancellationToken ct, Func<CancellationToken, Task<T>> action)
+    {
+        using var stepCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        stepCts.CancelAfter(timeout);
+        try
+        {
+            return await action(stepCts.Token);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            Console.WriteLine($"[BLE] Step '{step}' timed out after {timeout.TotalSeconds:0.#}s.");
+            throw new TimeoutException(Strings.Ble_ConnectTimeout);
+        }
+    }
+
     private async Task UpdateMtuPayloadAsync(bool isApple, CancellationToken ct)
     {
         if (_device is null) return;
+        using var mtuCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        mtuCts.CancelAfter(_mtuTimeout);
         try
         {
-            var mtu = await _device.RequestMtuAsync(247, ct);
+            var mtu = await _device.RequestMtuAsync(MaxRequestedMtu, mtuCts.Token).WaitAsync(mtuCts.Token);
             // Plugin.BLE on Apple platforms returns GetMaximumWriteValueLength(WithoutResponse),
             // which is already the payload length without the 3-byte ATT header.
             var payload = isApple ? mtu : mtu - 3;
+            if (payload > MaxMtuPayload) payload = MaxMtuPayload;
             if (payload >= 20) _mtuPayload = payload;
         }
-        catch { /* best effort */ }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            Console.WriteLine("[BLE] MTU negotiation timed out; keeping default 20-byte payload.");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Console.WriteLine($"[BLE] MTU negotiation failed; keeping default 20-byte payload: {ex.Message}");
+        }
     }
 
     private void OnTxValueUpdated(object? sender, CharacteristicUpdatedEventArgs e)
@@ -116,7 +233,7 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
 
     private void HandleDrop(IDevice? device)
     {
-        if (device?.Id == deviceId)
+        if (device?.Id == _deviceId)
             _incoming.Writer.TryComplete();
     }
 
@@ -128,7 +245,7 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
         {
             var len = Math.Min(_mtuPayload, data.Length - offset);
             var chunk = data.Slice(offset, len).ToArray();
-            await _rx.WriteAsync(chunk, ct);
+            await _rx.WriteAsync(chunk, ct).WaitAsync(ct);
             offset += len;
         }
     }
@@ -169,11 +286,13 @@ public sealed class BleTransport(Guid deviceId, string displayName) : ITransport
         if (_tx is not null)
         {
             _tx.ValueUpdated -= OnTxValueUpdated;
-            try { await _tx.StopUpdatesAsync(); } catch { /* ignore */ }
+            using var stopCts = new CancellationTokenSource(_disposeTimeout);
+            try { await _tx.StopUpdatesAsync(stopCts.Token).WaitAsync(stopCts.Token); } catch { /* ignore */ }
         }
         if (_device is not null)
         {
-            try { await _adapter.DisconnectDeviceAsync(_device); } catch { /* ignore */ }
+            using var discCts = new CancellationTokenSource(_disposeTimeout);
+            try { await _adapter.DisconnectDeviceAsync(_device).WaitAsync(discCts.Token); } catch { /* ignore */ }
         }
         _incoming.Writer.TryComplete();
     }
@@ -229,6 +348,7 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
     // A watched device stays listed while it was seen in the current or the previous window, so it
     // drops out about one window after it goes to sleep or out of range.
     private readonly object _watchGate = new();
+    private readonly ConcurrentDictionary<Guid, IDevice> _discovered = new();
     private CancellationTokenSource? _watch;
     private Action<IReadOnlyList<TransportCandidate>>? _changed;
     private Dictionary<Guid, TransportCandidate> _lastWindow = new();
@@ -358,6 +478,7 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
         {
             var d = e.Device;
             if (d is null || !IsChameleon(d)) return;
+            _discovered[d.Id] = d;
             var candidate = new TransportCandidate(
                 TransportKind.Ble,
                 d.Id.ToString(),
@@ -384,15 +505,19 @@ public sealed class BleScanner : ITransportScanner, ITransportWatcher
         catch (OperationCanceledException) { /* scan window elapsed */ }
         finally
         {
-            try { await _adapter.StopScanningForDevicesAsync(); } catch { /* ignore */ }
+            try { await _adapter.StopScanningForDevicesAsync().WaitAsync(TimeSpan.FromSeconds(3)); } catch { /* ignore */ }
             _adapter.DeviceAdvertised -= OnDiscovered;
         }
 
         return new List<TransportCandidate>(found.Values);
     }
 
-    public ITransport Create(TransportCandidate candidate) =>
-        new BleTransport(Guid.Parse(candidate.Id), candidate.DisplayName);
+    public ITransport Create(TransportCandidate candidate)
+    {
+        var id = Guid.Parse(candidate.Id);
+        _discovered.TryGetValue(id, out var device);
+        return new BleTransport(id, candidate.DisplayName, _adapter, device);
+    }
 
     private static bool IsChameleon(IDevice d)
     {

@@ -223,14 +223,19 @@ public sealed class BleDfuChannel : IDfuChannel
         }
     }
 
+    private static readonly TimeSpan MtuTimeout = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan DisposeTimeout = TimeSpan.FromSeconds(3);
+
     private async Task UpdateMaxDataSizeAsync(bool returnsPayloadLength, CancellationToken ct)
     {
+        using var mtuCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        mtuCts.CancelAfter(MtuTimeout);
         try
         {
-            var mtu = await _device.RequestMtuAsync(MaxRequestedMtu, ct);
+            var mtu = await _device.RequestMtuAsync(MaxRequestedMtu, mtuCts.Token).WaitAsync(mtuCts.Token);
             MaxDataSize = DataSizeForMtu(mtu, returnsPayloadLength);
         }
-        catch { /* stay at the default 23-byte MTU */ }
+        catch (Exception) when (!ct.IsCancellationRequested) { /* stay at the default 23-byte MTU */ }
     }
 
     private void OnControlValue(object? sender, CharacteristicUpdatedEventArgs e)
@@ -297,9 +302,11 @@ public sealed class BleDfuChannel : IDfuChannel
         if (_control is not null)
         {
             _control.ValueUpdated -= OnControlValue;
-            try { await _control.StopUpdatesAsync(); } catch { /* the bootloader may have reset already */ }
+            using var stopCts = new CancellationTokenSource(DisposeTimeout);
+            try { await _control.StopUpdatesAsync(stopCts.Token).WaitAsync(stopCts.Token); } catch { /* the bootloader may have reset already */ }
         }
-        try { await _adapter.DisconnectDeviceAsync(_device); } catch { /* ignore */ }
+        using var discCts = new CancellationTokenSource(DisposeTimeout);
+        try { await _adapter.DisconnectDeviceAsync(_device).WaitAsync(discCts.Token); } catch { /* ignore */ }
         _responses.Writer.TryComplete();
     }
 }
