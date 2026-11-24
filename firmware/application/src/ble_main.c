@@ -337,7 +337,7 @@ static void services_init(void) {
     bas_init_obj.evt_handler          = on_bas_evt;
     bas_init_obj.support_notification = true;
     bas_init_obj.p_report_ref         = NULL;
-    bas_init_obj.initial_batt_level   = 100;
+    bas_init_obj.initial_batt_level   = percentage_batt_lvl;
 
     if (settings_get_ble_pairing_enable_first_load()) {
         bas_init_obj.bl_rd_sec        = SEC_MITM;
@@ -766,6 +766,21 @@ static void adc_configure(void) {
     APP_ERROR_CHECK(err_code);
 }
 
+void battery_level_measure_now(void) {
+    // When LF sample is enabled, PWM triggers ADC samples through PPI, at 125khz sample rate.
+    // To avoid corrupt LF samples, skip battery measurement while LF ADC owns SAADC.
+    if (m_lf_adc_callback != NULL) {
+        return;
+    }
+
+    nrf_saadc_value_t adc_result;
+    ret_code_t err_code = nrfx_saadc_sample_convert(ADC_CHANNEL, &adc_result);
+    APP_ERROR_CHECK(err_code);
+
+    batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) + 100;
+    percentage_batt_lvl = BATVOL2PERCENT(batt_lvl_in_milli_volts);
+}
+
 /**@brief Function for handling the Battery measurement timer timeout.
  *
  * @details This function will be called each time the battery level measurement timer expires.
@@ -785,16 +800,10 @@ static void battery_level_meas_timeout_handler(void *p_context) {
 
     // Here we fetch the conversion result from the ADC, convert the value into
     // percentage and send it to peer.
-    ret_code_t err_code;
-    nrf_saadc_value_t adc_result;
-    err_code = nrfx_saadc_sample_convert(ADC_CHANNEL, &adc_result);
-    APP_ERROR_CHECK(err_code);
-
-    batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) + 100;
-    percentage_batt_lvl = BATVOL2PERCENT(batt_lvl_in_milli_volts);
+    battery_level_measure_now();
 
     // if battery service is notification enable, we can send msg to device.
-    err_code = ble_bas_battery_level_update(&m_bas, percentage_batt_lvl, BLE_CONN_HANDLE_ALL);
+    ret_code_t err_code = ble_bas_battery_level_update(&m_bas, percentage_batt_lvl, BLE_CONN_HANDLE_ALL);
     if ((err_code != NRF_SUCCESS) &&
             (err_code != NRF_ERROR_INVALID_STATE) &&
             (err_code != NRF_ERROR_RESOURCES) &&
@@ -829,6 +838,7 @@ void create_battery_timer(void) {
  */
 void ble_slave_init(void) {
     adc_configure();                    // ADC initialization
+    battery_level_measure_now();        // Populate initial battery reading before BLE connects
     create_battery_timer();             // Create a battery power update timer
     ble_stack_init();                   // BLE protocol stack initialization
     gap_params_init();                  // GAP parameter initialization

@@ -172,6 +172,9 @@ static data_frame_tx_t *cmd_processor_get_animation_mode(uint16_t cmd, uint16_t 
 }
 
 static data_frame_tx_t *cmd_processor_get_battery_info(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if (batt_lvl_in_milli_volts == 0) {
+        battery_level_measure_now();
+    }
     struct {
         uint16_t voltage;
         uint8_t percent;
@@ -182,6 +185,9 @@ static data_frame_tx_t *cmd_processor_get_battery_info(uint16_t cmd, uint16_t st
 }
 
 static data_frame_tx_t *cmd_processor_get_battery_info_ex(uint16_t cmd, uint16_t status, uint16_t length, uint8_t *data) {
+    if (batt_lvl_in_milli_volts == 0) {
+        battery_level_measure_now();
+    }
     struct {
         uint16_t voltage;
         uint8_t percent;

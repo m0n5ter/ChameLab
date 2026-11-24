@@ -12,6 +12,7 @@ extern uint8_t percentage_batt_lvl;
 typedef void (*lf_adc_callback_t)(nrf_saadc_value_t *, size_t);
 
 void ble_slave_init(void);
+void battery_level_measure_now(void);
 void advertising_start(bool erase_bonds);
 void advertising_stop(void);
 void ble_usb_cdc_set_open(bool open);

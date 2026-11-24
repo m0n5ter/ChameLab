@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Models;
 using ChameLab.Protocol;
@@ -20,6 +21,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
     private readonly CardLibrary _cards;
     private bool _suppressModeWrite;
     private Values _saved;
+    private CancellationTokenSource? _batteryRetryCts;
 
     public ChameleonViewModel(DeviceService device, CardLibrary cards, FirmwareUpdateViewModel firmware) : base(() => Strings.Nav_Chameleon, "dashboard")
     {
@@ -58,6 +60,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         _device.StateChanged += s => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             if (s == ConnectionState.Connected) return;
+            CancelBatteryRetry();
             SupportsBle = false;
             SupportsLongPressThreshold = false;
             // Edits meant for that device are dropped; the next connection loads fresh values.
@@ -237,12 +240,11 @@ public sealed class ChameleonViewModel : PageViewModelBase
     /// <summary>Reads the device afresh; unsaved setting edits survive leaving and coming back.</summary>
     public override Task OnActivatedAsync() => RunAsync(async () =>
     {
+        CancelBatteryRetry();
         var client = _device.Client;
         if (client is null) return;
 
         var info = await client.GetDeviceInfoAsync();
-        BatteryInfo? bat = null;
-        try { bat = await client.GetBatteryInfoAsync(); } catch { /* lite has no gauge */ }
 
         var active = 1;
         SlotInfo[] slots = [];
@@ -258,6 +260,9 @@ public sealed class ChameleonViewModel : PageViewModelBase
         }
         catch { /* older firmware */ }
 
+        BatteryInfo? bat = null;
+        try { bat = await client.GetBatteryInfoAsync(); } catch { /* lite has no gauge */ }
+
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             Info = info;
@@ -272,7 +277,60 @@ public sealed class ChameleonViewModel : PageViewModelBase
         });
 
         if (!IsDirty) await LoadSettingsAsync(client);
+
+        // Older firmware only measures battery on a 5 s timer after wake-up, so connecting
+        // quickly over BLE can return 0 mV before the first tick; re-read quietly in the background.
+        if (bat is { Millivolts: 0 })
+            ScheduleBatteryRetry(client);
     });
+
+    public override Task OnDeactivatedAsync()
+    {
+        CancelBatteryRetry();
+        return base.OnDeactivatedAsync();
+    }
+
+    private void CancelBatteryRetry()
+    {
+        var previous = Interlocked.Exchange(ref _batteryRetryCts, null);
+        if (previous is null) return;
+        try { previous.Cancel(); } catch { /* ignore */ }
+        previous.Dispose();
+    }
+
+    private void ScheduleBatteryRetry(ChameleonClient client)
+    {
+        CancelBatteryRetry();
+        var cts = new CancellationTokenSource();
+        _batteryRetryCts = cts;
+        _ = RetryBatteryAsync(client, cts.Token);
+    }
+
+    private static readonly int[] BatteryRetryDelaysMs = [0, 1500, 1500, 1500, 1500];
+
+    private async Task RetryBatteryAsync(ChameleonClient client, CancellationToken ct)
+    {
+        // Re-check once right after settings load, then every 1.5 s up to 6 s to cover the 5 s ADC timer.
+        try
+        {
+            foreach (var delay in BatteryRetryDelaysMs)
+            {
+                if (delay > 0) await Task.Delay(delay, ct);
+                if (ct.IsCancellationRequested || !ReferenceEquals(_device.Client, client)) return;
+                var fresh = await client.GetBatteryInfoAsync(ct);
+                if (fresh.Millivolts > 0)
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        if (!ct.IsCancellationRequested && ReferenceEquals(_device.Client, client))
+                            Battery = fresh;
+                    });
+                    return;
+                }
+            }
+        }
+        catch { /* disconnected, canceled, or unsupported */ }
+    }
 
     private Task ToggleModeAsync() => RunAsync(async () =>
     {
