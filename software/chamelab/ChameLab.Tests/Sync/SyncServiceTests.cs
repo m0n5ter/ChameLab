@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Net;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using ChameLab.Models;
@@ -24,9 +27,9 @@ public class SyncServiceTests
         public DictionaryLibrary Dictionaries { get; }
         public SyncService Sync { get; }
 
-        public Node()
+        public Node(IKeyValueStore? store = null)
         {
-            var store = new MemoryKeyValueStore();
+            store ??= new MemoryKeyValueStore();
             Cards = new CardLibrary(store);
             Dictionaries = new DictionaryLibrary(store);
             Sync = new SyncService(store, Cards, Dictionaries);
@@ -38,6 +41,17 @@ public class SyncServiceTests
             var done = new TaskCompletionSource();
             SyncService.Ui(() => { action(); done.SetResult(); });
             return done.Task;
+        }
+    }
+
+    private sealed class CancelOnSnapshotStore(Action cancel) : IKeyValueStore
+    {
+        private readonly MemoryKeyValueStore _inner = new();
+        public string? Read(string key) => _inner.Read(key);
+        public void Write(string key, string value)
+        {
+            _inner.Write(key, value);
+            if (key == "sync/snapshot") cancel();
         }
     }
 
@@ -120,6 +134,163 @@ public class SyncServiceTests
 
         await a.Sync.StopAsync();
         await b.Sync.StopAsync();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RelayPairingSurvivesWaitingForApproval(bool scanQr)
+    {
+        await using var relay = await TestRelay.StartAsync(new RelayOptions
+        {
+            KeepAlive = TimeSpan.FromMilliseconds(200),
+            JoinsPerMinute = 1000,
+            RoomsPerMinute = 1000,
+        });
+        SyncService.Relays = () => [relay.Server];
+        SyncService.LanDiscovery = () => null;
+        var a = new Node();
+        var b = new Node();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try
+        {
+            await a.OnUi(() =>
+            {
+                a.Cards.Add(Card("c1", "Office"));
+                a.Sync.CreateGroup("Laptop");
+            });
+            Task join;
+            await using (var invitation = await a.Sync.InviteAsync(cts.Token))
+            {
+                // Force the QR path through the relay even on a shared local network.
+                var code = PairingCode.Parse(invitation.Qr)! with { Lan = Array.Empty<IPEndPoint>() };
+                join = b.Sync.JoinAsync(scanQr ? code.ToQr() : invitation.TypedCode!, "Phone", null, cts.Token);
+                var request = await invitation.WaitAsync(cts.Token);
+                Assert.Equal(scanQr, request.Digits is null);
+                // Several ping timeouts pass while the inviter has no application read pending.
+                await Task.Delay(TimeSpan.FromSeconds(2), cts.Token);
+                await invitation.AcceptAsync(cts.Token);
+            }
+            // The UI disposes the invitation immediately after approval; the session must survive.
+            await join;
+            await Until(() => b.Cards.Cards.Any(c => c.Id == "c1"), "initial relay sync");
+            await b.OnUi(() => b.Cards.Add(Card("c2", "Gym")));
+            await Until(() => a.Cards.Cards.Any(c => c.Id == "c2"), "relay sync after approval");
+        }
+        finally
+        {
+            await a.Sync.StopAsync();
+            await b.Sync.StopAsync();
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CanceledJoinDoesNotLeaveAPhantomMember(bool afterAcceptance)
+    {
+        await using var relay = await Setup();
+        var a = new Node();
+        var b = new Node();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var joining = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token);
+        var previousUi = SyncService.Ui;
+        var queued = new ConcurrentQueue<Action>();
+        try
+        {
+            await a.OnUi(() => a.Sync.CreateGroup("Laptop"));
+            var room = a.Sync.Locked(doc => (string?)doc.Find(EntityTypes.Group, "group")?.Value("room"));
+            await using var invitation = await a.Sync.InviteAsync(timeout.Token);
+            // Hold UI work so that even after receiving the welcome and data, B cannot finish joining.
+            if (afterAcceptance) SyncService.Ui = queued.Enqueue;
+            var join = b.Sync.JoinAsync(invitation.TypedCode!, "Phone", null, joining.Token);
+            await invitation.WaitAsync(timeout.Token);
+            Task accept;
+            if (afterAcceptance)
+            {
+                accept = invitation.AcceptAsync(timeout.Token);
+                await Until(() => b.Sync.IsEnabled, "B received the welcome");
+                Assert.False(accept.IsCompleted);
+                joining.Cancel();
+            }
+            else
+            {
+                joining.Cancel();
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => join);
+                accept = invitation.AcceptAsync(timeout.Token);
+            }
+            if (afterAcceptance) await Assert.ThrowsAnyAsync<OperationCanceledException>(() => join);
+            await Assert.ThrowsAnyAsync<System.IO.IOException>(() => accept);
+            Assert.False(b.Sync.IsEnabled);
+            Assert.Single(a.Sync.Members);
+            Assert.True(a.Sync.Members[0].IsThis);
+            Assert.NotEqual(room, a.Sync.Locked(doc => (string?)doc.Find(EntityTypes.Group, "group")?.Value("room")));
+        }
+        finally
+        {
+            SyncService.Ui = previousUi;
+            while (queued.TryDequeue(out var action)) previousUi(action);
+            await a.Sync.StopAsync();
+            await b.Sync.StopAsync();
+        }
+    }
+
+    [Fact]
+    public async Task CancellationDuringFinalSaveFinishesJoiningOnBothDevices()
+    {
+        await using var relay = await Setup();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var joining = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token);
+        var a = new Node();
+        var b = new Node(new CancelOnSnapshotStore(joining.Cancel));
+        try
+        {
+            await a.OnUi(() => a.Sync.CreateGroup("Laptop"));
+            await using var invitation = await a.Sync.InviteAsync(timeout.Token);
+            var join = b.Sync.JoinAsync(invitation.TypedCode!, "Phone", null, joining.Token);
+            await invitation.WaitAsync(timeout.Token);
+            var accept = invitation.AcceptAsync(timeout.Token);
+            await join;
+            await accept;
+            Assert.True(joining.IsCancellationRequested);
+            Assert.True(b.Sync.IsEnabled);
+            Assert.Equal(2, a.Sync.Members.Count);
+            Assert.Equal(2, b.Sync.Members.Count);
+        }
+        finally
+        {
+            await a.Sync.StopAsync();
+            await b.Sync.StopAsync();
+        }
+    }
+
+    [Fact]
+    public async Task LegacyPeerCanJoinWithoutCompletionAcknowledgment()
+    {
+        await using var relay = await Setup();
+        var a = new Node();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try
+        {
+            await a.OnUi(() => a.Sync.CreateGroup("Laptop"));
+            await using var invitation = await a.Sync.InviteAsync(timeout.Token);
+            var key = KeyPair.Generate();
+            var (channel, _) = await Rendezvous.ConnectAsync(PairingCode.Parse(invitation.TypedCode)!, "join",
+                key, [relay.Server], timeout.Token);
+            await using var peer = channel;
+            await peer.SendAsync(new JsonObject
+            {
+                ["type"] = "join", ["device"] = "legacy-phone", ["name"] = "Phone", ["key"] = SyncCrypto.B64(key.Public),
+            }, timeout.Token);
+            await invitation.WaitAsync(timeout.Token);
+            var accept = invitation.AcceptAsync(timeout.Token);
+            var welcome = await peer.ReceiveAsync(timeout.Token);
+            Assert.Equal("welcome", (string?)welcome?["type"]);
+            Assert.Null(welcome?["confirmJoin"]);
+            await accept;
+            Assert.Equal(2, a.Sync.Members.Count);
+        }
+        finally { await a.Sync.StopAsync(); }
     }
 
     [Theory]

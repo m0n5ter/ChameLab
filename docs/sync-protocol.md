@@ -130,7 +130,7 @@ within 2 s, else through `/join/{code}`. With the QR it checks the key hash agai
 handshake. It sends
 
 ```json
-{"type": "join", "device": "<new id>", "name": "...", "key": "<its public key>", "proof": "b64(HMAC-SHA256(secret, handshake hash))"}
+{"type": "join", "device": "<new id>", "name": "...", "key": "<its public key>", "proof": "b64(HMAC-SHA256(secret, handshake hash))", "confirmJoin": true}
 ```
 
 (`proof` only with the QR). Without a valid proof both screens show the six digits. When
@@ -139,6 +139,20 @@ accepted, the existing device adds the `member` entity and answers
 channel carries a sync session. The new device takes the group's state up to that vector, then
 adds its own library: items the group already has keep the group's version, folders with the same
 path are the same folders.
+
+Clients supporting completion confirmation include `confirmJoin: true` in `join`. The inviter
+echoes it in `welcome` and keeps approval pending until the new device has received the initial
+state, merged and saved its library, and sent `{"type": "joined"}` over the sync session.
+On the joining device, cancellation wins until UI finalization starts. Once merging and saving
+begin, finalization and the bounded acknowledgment send finish despite a late UI cancel, so a
+delivered acknowledgment cannot leave the joining device outside the group. The inviter disables
+its decision buttons while this completion is pending.
+If the channel closes, either side cancels, or the five-minute confirmation timeout expires
+before this acknowledgment, the inviter revokes the provisional member and rotates the room
+secret. The joining device cancels its initial session and clears its group state on failure.
+This prevents a canceled join from leaving a phantom member. A pairing channel awaiting the
+acknowledgment is kept when another room or local connection arrives. Older peers that omit
+`confirmJoin` retain the original exchange; new clients send `joined` only when it is echoed.
 
 ## Sending cards (`p: cards`)
 

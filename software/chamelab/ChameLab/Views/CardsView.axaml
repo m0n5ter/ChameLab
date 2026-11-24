@@ -797,12 +797,14 @@
               <StackPanel Spacing="8" IsVisible="{Binding IsReceiveOpen}" b:BringIntoViewOnShow.IsEnabled="True">
                 <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_ReceiveHint}" />
                 <WrapPanel ItemSpacing="8" LineSpacing="8">
-                  <TextBox Text="{Binding ReceiveCode}" PlaceholderText="DE1-ABCD-1234" MinWidth="200" IsEnabled="{Binding !IsReceiving}" />
+                  <TextBox Text="{Binding ReceiveCode}" Classes="connectioncode" PlaceholderText="DE1-ABCD-1234" MinWidth="200" IsEnabled="{Binding !IsReceiving}" />
                   <Button Classes="accent" Content="{x:Static loc:Strings.Sync_Receive}" Command="{Binding ReceiveCommand}" />
                   <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelReceiveCommand}" IsVisible="{Binding IsReceiving}" />
                 </WrapPanel>
                 <TextBlock Classes="caption" TextWrapping="Wrap" FontWeight="SemiBold" Text="{Binding ReceiveStatus}"
                            IsVisible="{Binding ReceiveStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <SelectableTextBlock Text="{Binding ReceiveDigits}" Classes="verificationcode"
+                                     IsVisible="{Binding ReceiveDigits, Converter={x:Static ObjectConverters.IsNotNull}}" />
               </StackPanel>
 
               <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding QrScanStatus}"
@@ -1839,13 +1841,22 @@
               <PathIcon Data="{StaticResource Icon.close}" />
             </Button>
           </Grid>
-          <c:QrCodeView Grid.Row="1" Text="{Binding SendQr}" HorizontalAlignment="Center"
+          <c:QrCodeView Grid.Row="1" Text="{Binding SendQr}" HorizontalAlignment="Center" Cursor="Hand"
+                        b:CopyToClipboard.Text="{Binding SendCopyText}"
                         IsVisible="{Binding SendQr, Converter={x:Static ObjectConverters.IsNotNull}}" />
           <StackPanel Grid.Row="2" Spacing="8" HorizontalAlignment="Center">
-            <SelectableTextBlock Text="{Binding SendCode}" HorizontalAlignment="Center" FontSize="22" FontWeight="SemiBold"
-                                 FontFamily="{x:Static c:AppFonts.Mono}"
-                                 IsVisible="{Binding SendCode, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"
+                        IsVisible="{Binding SendQr, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <SelectableTextBlock Text="{Binding SendCode}" VerticalAlignment="Center" FontSize="22" FontWeight="SemiBold" Classes="mono"
+                                   IsVisible="{Binding SendCode, Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <Button Classes="icon" b:CopyToClipboard.Text="{Binding SendCopyText}"
+                      AutomationProperties.Name="{x:Static loc:Strings.Hex_Copy}">
+                <PathIcon Data="{StaticResource Icon.copy}" />
+              </Button>
+            </StackPanel>
             <TextBlock Text="{Binding SendStatus}" TextWrapping="Wrap" TextAlignment="Center" />
+            <SelectableTextBlock Text="{Binding SendDigits}" Classes="verificationcode"
+                                 IsVisible="{Binding SendDigits, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <Button Classes="accent" HorizontalAlignment="Center" Content="{x:Static loc:Strings.Sync_Send}"
                     Command="{Binding ConfirmSendCommand}" IsVisible="{Binding IsSendConfirming}" />
           </StackPanel>
@@ -1890,7 +1901,7 @@
           </ScrollViewer>
         </Grid>
       </Border>
-      <!-- Share as QR code: one code, or a series that changes by itself. A click on the code closes it. -->
+      <!-- Share as QR code: one code, or a series that changes by itself. Tapping copies the current code. -->
       <Border Grid.Row="0" Grid.RowSpan="3" Classes="savebar dialog" IsVisible="{Binding IsQrOpen}">
         <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -1904,21 +1915,27 @@
             </Button>
           </Grid>
           <c:QrCodeView Grid.Row="1" Text="{Binding QrText}" HorizontalAlignment="Center" Cursor="Hand"
-                        ToolTip.Tip="{x:Static loc:Strings.Common_Close}" Tapped="OnQrTapped" />
-          <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding IsQrSeries}">
-            <Button Classes="icon" Command="{Binding QrPreviousCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_Previous}">
-              <PathIcon Data="{StaticResource Icon.chevronleft}" />
+                        b:CopyToClipboard.Text="{Binding QrText}" />
+          <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <Button Classes="icon" b:CopyToClipboard.Text="{Binding QrText}"
+                    AutomationProperties.Name="{x:Static loc:Strings.Hex_Copy}">
+              <PathIcon Data="{StaticResource Icon.copy}" />
             </Button>
-            <Button Classes="icon" Command="{Binding QrPlayPauseCommand}" ToolTip.Tip="{Binding QrPlayPauseTip}">
-              <Panel>
-                <PathIcon Data="{StaticResource Icon.pause}" IsVisible="{Binding IsQrPlaying}" />
-                <PathIcon Data="{StaticResource Icon.play}" IsVisible="{Binding !IsQrPlaying}" />
-              </Panel>
-            </Button>
-            <TextBlock Text="{Binding QrPartLabel}" VerticalAlignment="Center" MinWidth="90" TextAlignment="Center" />
-            <Button Classes="icon" Command="{Binding QrNextCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_Next}">
-              <PathIcon Data="{StaticResource Icon.chevronright}" />
-            </Button>
+            <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsQrSeries}">
+              <Button Classes="icon" Command="{Binding QrPreviousCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_Previous}">
+                <PathIcon Data="{StaticResource Icon.chevronleft}" />
+              </Button>
+              <Button Classes="icon" Command="{Binding QrPlayPauseCommand}" ToolTip.Tip="{Binding QrPlayPauseTip}">
+                <Panel>
+                  <PathIcon Data="{StaticResource Icon.pause}" IsVisible="{Binding IsQrPlaying}" />
+                  <PathIcon Data="{StaticResource Icon.play}" IsVisible="{Binding !IsQrPlaying}" />
+                </Panel>
+              </Button>
+              <TextBlock Text="{Binding QrPartLabel}" VerticalAlignment="Center" MinWidth="90" TextAlignment="Center" />
+              <Button Classes="icon" Command="{Binding QrNextCommand}" ToolTip.Tip="{x:Static loc:Strings.Qr_Next}">
+                <PathIcon Data="{StaticResource Icon.chevronright}" />
+              </Button>
+            </StackPanel>
           </StackPanel>
         </Grid>
       </Border>

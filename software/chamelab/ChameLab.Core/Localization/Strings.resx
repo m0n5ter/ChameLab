@@ -4087,13 +4087,13 @@
     <value>Device name</value>
   </data>
   <data name="Sync_Start" xml:space="preserve">
-    <value>Start sync</value>
+    <value>Create group</value>
   </data>
   <data name="Sync_StartTip" xml:space="preserve">
     <value>Start a sync group with this device; add your other devices to it afterwards</value>
   </data>
   <data name="Sync_Join" xml:space="preserve">
-    <value>Join another device</value>
+    <value>Join group</value>
   </data>
   <data name="Sync_JoinTip" xml:space="preserve">
     <value>Join the sync group of a device that already syncs</value>
@@ -4117,13 +4117,13 @@
     <value>Connecting…</value>
   </data>
   <data name="Sync_CompareDigitsJoin" xml:space="preserve">
-    <value>Check that the other device shows {0}, and confirm there.</value>
+    <value>Check that this code matches on both devices, and confirm on the other device.</value>
   </data>
   <data name="Sync_Joined" xml:space="preserve">
     <value>Joined. Your cards are syncing.</value>
   </data>
   <data name="Sync_GroupCreated" xml:space="preserve">
-    <value>Sync is on. Add your other devices.</value>
+    <value>Group created. Add your other devices.</value>
   </data>
   <data name="Sync_StatusPaused" xml:space="preserve">
     <value>Paused</value>
@@ -4192,7 +4192,7 @@
     <value>{0} wants to join.</value>
   </data>
   <data name="Sync_CompareDigitsInvite" xml:space="preserve">
-    <value>{0} wants to join. Add it only if it shows {1}.</value>
+    <value>{0} wants to join. Add it only if this code matches on both devices.</value>
   </data>
   <data name="Sync_Accept" xml:space="preserve">
     <value>Add</value>
@@ -4225,19 +4225,19 @@
     <value>Restored</value>
   </data>
   <data name="Sync_Leave" xml:space="preserve">
-    <value>Stop syncing</value>
+    <value>Leave group</value>
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Leave the group on this device; the cards stay</value>
   </data>
   <data name="Sync_LeavePrompt" xml:space="preserve">
-    <value>Stop syncing on this device?</value>
+    <value>Leave the group on this device?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>This device leaves the group and forgets its history. Its cards and dictionaries stay as they are; the other devices keep syncing.</value>
   </data>
   <data name="Sync_Left" xml:space="preserve">
-    <value>Sync is off on this device</value>
+    <value>This device left the group</value>
   </data>
   <data name="Sync_ConflictSuffix" xml:space="preserve">
     <value> (conflict)</value>
@@ -4255,7 +4255,7 @@
     <value>Waiting for the other device…</value>
   </data>
   <data name="Sync_CompareDigitsSend" xml:space="preserve">
-    <value>Send only if {0} shows {1}.</value>
+    <value>Send only if this code matches on {0}.</value>
   </data>
   <data name="Sync_Send" xml:space="preserve">
     <value>Send</value>
@@ -4309,7 +4309,7 @@
     <value>Type the code the other device shows. Cards go into the folder shown.</value>
   </data>
   <data name="Sync_CompareDigitsReceive" xml:space="preserve">
-    <value>Check that the sending device shows {0}; it sends once confirmed there.</value>
+    <value>Check that this code matches on the sending device; it sends once confirmed there.</value>
   </data>
   <data name="Sync_CardsReceived" xml:space="preserve">
     <value>Received {0}</value>

@@ -70,10 +70,26 @@ public sealed partial class CardsViewModel
     public string? SendQr
     {
         get;
-        private set => this.RaiseAndSetIfChanged(ref field, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(SendCopyText));
+        }
     }
 
     public string? SendCode
+    {
+        get;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(SendCopyText));
+        }
+    }
+
+    public string? SendCopyText => SendCode ?? SendQr;
+
+    public string? SendDigits
     {
         get;
         private set => this.RaiseAndSetIfChanged(ref field, value);
@@ -98,6 +114,7 @@ public sealed partial class CardsViewModel
         var cts = _sendCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         SendQr = null;
         SendCode = null;
+        SendDigits = null;
         IsSendConfirming = false;
         SendStatus = Strings.Sync_Connecting;
         try
@@ -110,7 +127,8 @@ public sealed partial class CardsViewModel
             if (digits is not null)
             {
                 _sendConfirm = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                SendStatus = string.Format(Strings.Sync_CompareDigitsSend, name, digits);
+                SendDigits = digits;
+                SendStatus = string.Format(Strings.Sync_CompareDigitsSend, name);
                 IsSendConfirming = true;
                 await _sendConfirm.Task.WaitAsync(cts.Token);
                 IsSendConfirming = false;
@@ -130,6 +148,7 @@ public sealed partial class CardsViewModel
         finally
         {
             IsSendConfirming = false;
+            SendDigits = null;
         }
     }
 
@@ -199,17 +218,29 @@ public sealed partial class CardsViewModel
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
+    public string? ReceiveDigits
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
     /// <summary>Receives the cards another device offers (its code typed, or its QR scanned) into the folder shown.</summary>
     private async Task ReceiveAsync(string? code)
     {
         if (string.IsNullOrWhiteSpace(code)) return;
         var cts = _receiveCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         IsReceiving = true;
+        ReceiveDigits = null;
         ReceiveStatus = Strings.Sync_Connecting;
         try
         {
             var cards = await SyncService.ReceiveCardsAsync(code,
-                digits => Dispatcher.UIThread.Post(() => ReceiveStatus = string.Format(Strings.Sync_CompareDigitsReceive, digits)),
+                digits => Dispatcher.UIThread.Post(() =>
+                {
+                    IsReceiveOpen = true;
+                    ReceiveDigits = digits;
+                    ReceiveStatus = Strings.Sync_CompareDigitsReceive;
+                }),
                 cts.Token);
             var folder = CurrentFolder?.Path ?? string.Empty;
             foreach (var card in cards) card.Folder = folder;
@@ -229,6 +260,7 @@ public sealed partial class CardsViewModel
         {
             IsReceiving = false;
             ReceiveStatus = null;
+            ReceiveDigits = null;
         }
     }
 

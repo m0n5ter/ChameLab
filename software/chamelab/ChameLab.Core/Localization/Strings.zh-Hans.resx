@@ -4070,13 +4070,13 @@
     <value>设备名称</value>
   </data>
   <data name="Sync_Start" xml:space="preserve">
-    <value>开始同步</value>
+    <value>创建群组</value>
   </data>
   <data name="Sync_StartTip" xml:space="preserve">
     <value>用此设备创建同步组，之后再添加其他设备</value>
   </data>
   <data name="Sync_Join" xml:space="preserve">
-    <value>加入另一台设备</value>
+    <value>加入群组</value>
   </data>
   <data name="Sync_JoinTip" xml:space="preserve">
     <value>加入已在同步的设备所在的同步组</value>
@@ -4100,13 +4100,13 @@
     <value>正在连接…</value>
   </data>
   <data name="Sync_CompareDigitsJoin" xml:space="preserve">
-    <value>请确认另一台设备显示 {0}，并在该设备上确认。</value>
+    <value>请确认两台设备显示相同的代码，并在另一台设备上确认。</value>
   </data>
   <data name="Sync_Joined" xml:space="preserve">
     <value>已加入，卡片正在同步。</value>
   </data>
   <data name="Sync_GroupCreated" xml:space="preserve">
-    <value>同步已开启，请添加其他设备。</value>
+    <value>群组已创建，请添加其他设备。</value>
   </data>
   <data name="Sync_StatusPaused" xml:space="preserve">
     <value>已暂停</value>
@@ -4175,7 +4175,7 @@
     <value>{0} 请求加入。</value>
   </data>
   <data name="Sync_CompareDigitsInvite" xml:space="preserve">
-    <value>{0} 请求加入。仅当其显示 {1} 时才添加。</value>
+    <value>{0} 请求加入群组。仅当两台设备显示相同的代码时才添加。</value>
   </data>
   <data name="Sync_Accept" xml:space="preserve">
     <value>添加</value>
@@ -4208,19 +4208,19 @@
     <value>已恢复</value>
   </data>
   <data name="Sync_Leave" xml:space="preserve">
-    <value>停止同步</value>
+    <value>退出群组</value>
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>在此设备上退出同步组；卡片会保留</value>
   </data>
   <data name="Sync_LeavePrompt" xml:space="preserve">
-    <value>要在此设备上停止同步吗？</value>
+    <value>在此设备上退出群组？</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>此设备将退出同步组并清除历史记录。卡片和字典保持不变，其他设备继续同步。</value>
   </data>
   <data name="Sync_Left" xml:space="preserve">
-    <value>此设备已关闭同步</value>
+    <value>此设备已退出群组</value>
   </data>
   <data name="Sync_ConflictSuffix" xml:space="preserve">
     <value>（冲突）</value>
@@ -4238,7 +4238,7 @@
     <value>正在等待另一台设备…</value>
   </data>
   <data name="Sync_CompareDigitsSend" xml:space="preserve">
-    <value>仅当 {0} 显示 {1} 时才发送。</value>
+    <value>仅当 {0} 显示相同的代码时才发送。</value>
   </data>
   <data name="Sync_Send" xml:space="preserve">
     <value>发送</value>
@@ -4292,7 +4292,7 @@
     <value>输入另一台设备显示的代码。卡片会放入当前文件夹。</value>
   </data>
   <data name="Sync_CompareDigitsReceive" xml:space="preserve">
-    <value>请确认发送设备显示 {0}；在该设备上确认后即会发送。</value>
+    <value>请确认发送设备显示相同的代码；在该设备上确认后即会发送。</value>
   </data>
   <data name="Sync_CardsReceived" xml:space="preserve">
     <value>已接收 {0}</value>

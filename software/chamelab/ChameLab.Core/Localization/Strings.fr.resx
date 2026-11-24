@@ -4070,13 +4070,13 @@
     <value>Nom de l'appareil</value>
   </data>
   <data name="Sync_Start" xml:space="preserve">
-    <value>Démarrer la synchro</value>
+    <value>Créer un groupe</value>
   </data>
   <data name="Sync_StartTip" xml:space="preserve">
     <value>Créer un groupe de synchro avec cet appareil ; ajoutez ensuite vos autres appareils</value>
   </data>
   <data name="Sync_Join" xml:space="preserve">
-    <value>Rejoindre un autre appareil</value>
+    <value>Rejoindre un groupe</value>
   </data>
   <data name="Sync_JoinTip" xml:space="preserve">
     <value>Rejoindre le groupe d'un appareil déjà synchronisé</value>
@@ -4100,13 +4100,13 @@
     <value>Connexion…</value>
   </data>
   <data name="Sync_CompareDigitsJoin" xml:space="preserve">
-    <value>Vérifiez que l'autre appareil affiche {0}, puis confirmez-y.</value>
+    <value>Vérifiez que ce code est identique sur les deux appareils, puis confirmez sur l&apos;autre.</value>
   </data>
   <data name="Sync_Joined" xml:space="preserve">
     <value>Groupe rejoint. Vos cartes se synchronisent.</value>
   </data>
   <data name="Sync_GroupCreated" xml:space="preserve">
-    <value>Synchro activée. Ajoutez vos autres appareils.</value>
+    <value>Groupe créé. Ajoutez vos autres appareils.</value>
   </data>
   <data name="Sync_StatusPaused" xml:space="preserve">
     <value>En pause</value>
@@ -4175,7 +4175,7 @@
     <value>{0} souhaite rejoindre le groupe.</value>
   </data>
   <data name="Sync_CompareDigitsInvite" xml:space="preserve">
-    <value>{0} souhaite rejoindre le groupe. Ajoutez-le seulement s'il affiche {1}.</value>
+    <value>{0} souhaite rejoindre le groupe. Ajoutez-le seulement si ce code est identique sur les deux appareils.</value>
   </data>
   <data name="Sync_Accept" xml:space="preserve">
     <value>Ajouter</value>
@@ -4208,19 +4208,19 @@
     <value>Restauré</value>
   </data>
   <data name="Sync_Leave" xml:space="preserve">
-    <value>Arrêter la synchro</value>
+    <value>Quitter le groupe</value>
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Quitter le groupe sur cet appareil ; les cartes restent</value>
   </data>
   <data name="Sync_LeavePrompt" xml:space="preserve">
-    <value>Arrêter la synchronisation sur cet appareil ?</value>
+    <value>Quitter le groupe sur cet appareil ?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>Cet appareil quitte le groupe et oublie l'historique. Ses cartes et dictionnaires restent tels quels ; les autres appareils continuent.</value>
   </data>
   <data name="Sync_Left" xml:space="preserve">
-    <value>Synchro désactivée sur cet appareil</value>
+    <value>Cet appareil a quitté le groupe</value>
   </data>
   <data name="Sync_ConflictSuffix" xml:space="preserve">
     <value> (conflit)</value>
@@ -4238,7 +4238,7 @@
     <value>En attente de l'autre appareil…</value>
   </data>
   <data name="Sync_CompareDigitsSend" xml:space="preserve">
-    <value>N'envoyez que si {0} affiche {1}.</value>
+    <value>N&apos;envoyez que si {0} affiche le même code.</value>
   </data>
   <data name="Sync_Send" xml:space="preserve">
     <value>Envoyer</value>
@@ -4292,7 +4292,7 @@
     <value>Saisissez le code affiché par l'autre appareil. Les cartes vont dans le dossier affiché.</value>
   </data>
   <data name="Sync_CompareDigitsReceive" xml:space="preserve">
-    <value>Vérifiez que l'appareil qui envoie affiche {0} ; il envoie une fois confirmé.</value>
+    <value>Vérifiez que l&apos;appareil qui envoie affiche le même code ; il envoie après confirmation sur celui-ci.</value>
   </data>
   <data name="Sync_CardsReceived" xml:space="preserve">
     <value>Reçu : {0}</value>

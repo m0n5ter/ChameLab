@@ -27,7 +27,7 @@ public interface ISyncHost
 /// <item>a receiver that finds a gap sends <c>want</c> with its vector to have them sent again.</item>
 /// </list>
 /// </summary>
-public sealed class SyncSession(SecureChannel channel, string peerDevice, ISyncHost host)
+public sealed class SyncSession(SecureChannel channel, string peerDevice, ISyncHost host, Action? joined = null)
 {
     private const int Batch = 200;
 
@@ -56,6 +56,9 @@ public sealed class SyncSession(SecureChannel channel, string peerDevice, ISyncH
             {
                 switch ((string?)message["type"])
                 {
+                    case "joined":
+                        joined?.Invoke();
+                        break;
                     case "hello":
                     case "want":
                         lock (_vectorLock) _peerVector = SyncDocument.ReadVector(message["vector"]);

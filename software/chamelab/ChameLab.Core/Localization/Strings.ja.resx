@@ -4070,13 +4070,13 @@
     <value>デバイス名</value>
   </data>
   <data name="Sync_Start" xml:space="preserve">
-    <value>同期を開始</value>
+    <value>グループを作成</value>
   </data>
   <data name="Sync_StartTip" xml:space="preserve">
     <value>このデバイスで同期グループを作成し、後から他のデバイスを追加します</value>
   </data>
   <data name="Sync_Join" xml:space="preserve">
-    <value>他のデバイスに参加</value>
+    <value>グループに参加</value>
   </data>
   <data name="Sync_JoinTip" xml:space="preserve">
     <value>すでに同期しているデバイスの同期グループに参加します</value>
@@ -4100,13 +4100,13 @@
     <value>接続中…</value>
   </data>
   <data name="Sync_CompareDigitsJoin" xml:space="preserve">
-    <value>もう一方のデバイスに {0} と表示されていることを確認し、そちらで承認してください。</value>
+    <value>両方のデバイスに同じコードが表示されていることを確認し、もう一方のデバイスで承認してください。</value>
   </data>
   <data name="Sync_Joined" xml:space="preserve">
     <value>参加しました。カードを同期しています。</value>
   </data>
   <data name="Sync_GroupCreated" xml:space="preserve">
-    <value>同期がオンになりました。他のデバイスを追加してください。</value>
+    <value>グループを作成しました。他のデバイスを追加してください。</value>
   </data>
   <data name="Sync_StatusPaused" xml:space="preserve">
     <value>一時停止中</value>
@@ -4175,7 +4175,7 @@
     <value>{0} が参加しようとしています。</value>
   </data>
   <data name="Sync_CompareDigitsInvite" xml:space="preserve">
-    <value>{0} が参加しようとしています。{1} と表示されている場合のみ追加してください。</value>
+    <value>{0} がグループに参加しようとしています。両方のデバイスに同じコードが表示されている場合のみ追加してください。</value>
   </data>
   <data name="Sync_Accept" xml:space="preserve">
     <value>追加</value>
@@ -4208,19 +4208,19 @@
     <value>復元しました</value>
   </data>
   <data name="Sync_Leave" xml:space="preserve">
-    <value>同期を停止</value>
+    <value>グループから退出</value>
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>このデバイスでグループから抜けます。カードは残ります</value>
   </data>
   <data name="Sync_LeavePrompt" xml:space="preserve">
-    <value>このデバイスでの同期を停止しますか？</value>
+    <value>このデバイスでグループから退出しますか？</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>このデバイスはグループから抜け、履歴を削除します。カードと辞書はそのまま残り、他のデバイスは同期を続けます。</value>
   </data>
   <data name="Sync_Left" xml:space="preserve">
-    <value>このデバイスの同期をオフにしました</value>
+    <value>このデバイスはグループから退出しました</value>
   </data>
   <data name="Sync_ConflictSuffix" xml:space="preserve">
     <value>（競合）</value>
@@ -4238,7 +4238,7 @@
     <value>もう一方のデバイスを待っています…</value>
   </data>
   <data name="Sync_CompareDigitsSend" xml:space="preserve">
-    <value>{0} に {1} と表示されている場合のみ送信してください。</value>
+    <value>{0} に同じコードが表示されている場合のみ送信してください。</value>
   </data>
   <data name="Sync_Send" xml:space="preserve">
     <value>送信</value>
@@ -4292,7 +4292,7 @@
     <value>もう一方のデバイスに表示されたコードを入力します。カードは表示中のフォルダーに入ります。</value>
   </data>
   <data name="Sync_CompareDigitsReceive" xml:space="preserve">
-    <value>送信側のデバイスに {0} と表示されていることを確認してください。そちらで承認すると送信されます。</value>
+    <value>送信側のデバイスに同じコードが表示されていることを確認してください。そちらで承認すると送信されます。</value>
   </data>
   <data name="Sync_CardsReceived" xml:space="preserve">
     <value>{0} を受信しました</value>

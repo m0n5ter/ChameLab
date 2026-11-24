@@ -33,9 +33,8 @@ public sealed class SyncMemberViewModel : ViewModelBase
     public string Id => _member.Id;
     public string Name => _member.Name;
     public bool IsThis => _member.IsThis;
-    public bool CanRemove => !_member.IsThis;
     public ICommand AskRemoveCommand => _askRemove;
-    public bool ShowEditHint => IsThis && !IsEditing;
+    public string RemoveActionText => IsThis ? Strings.Sync_Leave : Strings.Sync_RemoveDevice;
 
     public bool IsEditing
     {
@@ -44,7 +43,6 @@ public sealed class SyncMemberViewModel : ViewModelBase
         {
             if (field == value) return;
             this.RaiseAndSetIfChanged(ref field, value);
-            this.RaisePropertyChanged(nameof(ShowEditHint));
         }
     }
 
@@ -102,8 +100,7 @@ public sealed class SyncMemberViewModel : ViewModelBase
         if (!IsEditing) EditName = member.Name;
         this.RaisePropertyChanged(nameof(Name));
         this.RaisePropertyChanged(nameof(IsThis));
-        this.RaisePropertyChanged(nameof(CanRemove));
-        this.RaisePropertyChanged(nameof(ShowEditHint));
+        this.RaisePropertyChanged(nameof(RemoveActionText));
         this.RaisePropertyChanged(nameof(PlatformIconKey));
         this.RaisePropertyChanged(nameof(Status));
         this.RaisePropertyChanged(nameof(IsOnline));
@@ -148,19 +145,20 @@ public sealed class SyncViewModel : ViewModelBase
         _lastSyncedDeviceName = sync.DeviceName;
         DeviceName = sync.DeviceName ?? SyncService.DefaultDeviceName;
         CreateCommand = ReactiveCommand.Create(Create);
-        ShowJoinCommand = ReactiveCommand.Create(() => { IsJoinOpen = !IsJoinOpen; });
+        ShowJoinCommand = ReactiveCommand.Create(() => { IsJoinOpen = true; });
         JoinCommand = ReactiveCommand.CreateFromTask(() => JoinAsync(JoinCode),
             this.WhenAnyValue(x => x.JoinCode, x => x.IsJoining, (code, joining) => !joining && !string.IsNullOrWhiteSpace(code)));
         ScanJoinCommand = ReactiveCommand.CreateFromTask(ScanJoinAsync, this.WhenAnyValue(x => x.IsJoining, j => !j));
-        CancelJoinCommand = ReactiveCommand.Create(() => _joinCts?.Cancel());
+        CancelJoinCommand = ReactiveCommand.Create(() => { _joinCts?.Cancel(); IsJoinOpen = false; });
         AddDeviceCommand = ReactiveCommand.CreateFromTask(InviteAsync, this.WhenAnyValue(x => x.IsInviting, i => !i));
         CancelInviteCommand = ReactiveCommand.Create(CancelInvite);
-        AcceptCommand = ReactiveCommand.Create(() => _decision?.TrySetResult(true));
-        DeclineCommand = ReactiveCommand.Create(() => _decision?.TrySetResult(false));
+        AcceptCommand = ReactiveCommand.Create(() => _decision?.TrySetResult(true),
+            this.WhenAnyValue(x => x.IsAccepting, accepting => !accepting));
+        DeclineCommand = ReactiveCommand.Create(() => _decision?.TrySetResult(false),
+            this.WhenAnyValue(x => x.IsAccepting, accepting => !accepting));
         AskRemoveCommand = ReactiveCommand.Create<SyncMemberViewModel>(AskRemove);
         ConfirmRemoveCommand = ReactiveCommand.Create(ConfirmRemove);
         CancelRemoveCommand = ReactiveCommand.Create(() => { MemberToRemove = null; });
-        AskLeaveCommand = ReactiveCommand.Create(() => { MemberToRemove = null; IsConfirmingLeave = true; });
         ConfirmLeaveCommand = ReactiveCommand.CreateFromTask(ConfirmLeaveAsync);
         CancelLeaveCommand = ReactiveCommand.Create(() => { IsConfirmingLeave = false; });
         _sync.Changed += Refresh;
@@ -172,6 +170,8 @@ public sealed class SyncViewModel : ViewModelBase
 
     /// <summary>The background node: only the desktop app runs one.</summary>
     public static bool IsDesktop => !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS() && !OperatingSystem.IsBrowser();
+
+    public bool IsMobile => OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
 
     public string StatusText => _sync.Status switch
     {
@@ -283,7 +283,11 @@ public sealed class SyncViewModel : ViewModelBase
     public bool IsJoinOpen
     {
         get;
-        set => this.RaiseAndSetIfChanged(ref field, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsDialogOpen));
+        }
     }
 
     public string? JoinCode
@@ -298,7 +302,13 @@ public sealed class SyncViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
-    /// <summary>What joining is doing now, or the digits to compare.</summary>
+    public string? JoinDigits
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    /// <summary>What joining is doing now.</summary>
     public string? JoinStatus
     {
         get;
@@ -333,11 +343,16 @@ public sealed class SyncViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(code)) return;
         _joinCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         IsJoining = true;
+        JoinDigits = null;
         JoinStatus = Strings.Sync_Connecting;
         try
         {
             await _sync.JoinAsync(code, DeviceName,
-                digits => Dispatcher.UIThread.Post(() => JoinStatus = string.Format(Strings.Sync_CompareDigitsJoin, digits)),
+                digits => Dispatcher.UIThread.Post(() =>
+                {
+                    JoinDigits = digits;
+                    JoinStatus = Strings.Sync_CompareDigitsJoin;
+                }),
                 _joinCts.Token);
             IsJoinOpen = false;
             JoinCode = null;
@@ -354,6 +369,8 @@ public sealed class SyncViewModel : ViewModelBase
         {
             IsJoining = false;
             JoinStatus = null;
+            JoinDigits = null;
+            _joinCts = null;
             Refresh();
         }
     }
@@ -385,6 +402,7 @@ public sealed class SyncViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(IsInviteLoading));
             this.RaisePropertyChanged(nameof(ShowInviteCodeSlot));
+            this.RaisePropertyChanged(nameof(InviteCopyText));
         }
     }
 
@@ -396,7 +414,16 @@ public sealed class SyncViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref field, value);
             this.RaisePropertyChanged(nameof(ShowInviteCode));
             this.RaisePropertyChanged(nameof(ShowInviteCodeSlot));
+            this.RaisePropertyChanged(nameof(InviteCopyText));
         }
+    }
+
+    public string? InviteCopyText => InviteCode ?? InviteQr;
+
+    public string? InviteDigits
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? InviteStatus
@@ -418,9 +445,15 @@ public sealed class SyncViewModel : ViewModelBase
         }
     }
 
+    public bool IsAccepting
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
     public bool IsInviteLoading => IsInviting && !IsDeciding && InviteQr is null;
     public bool ShowInviteCode => !IsDeciding && InviteCode is not null;
-    public bool ShowInviteCodeSlot => !IsDeciding && (InviteCode is not null || IsInviteLoading);
+    public bool ShowInviteCodeSlot => !IsDeciding && (InviteQr is not null || IsInviteLoading);
 
     private async Task InviteAsync()
     {
@@ -439,14 +472,15 @@ public sealed class SyncViewModel : ViewModelBase
             InviteStatus = Strings.Sync_InviteWaiting;
             var request = await invitation.WaitAsync(ct);
             _decision = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            InviteStatus = request.Digits is { } digits
-                ? string.Format(Strings.Sync_CompareDigitsInvite, request.Name, digits)
+            InviteDigits = request.Digits;
+            InviteStatus = request.Digits is not null
+                ? string.Format(Strings.Sync_CompareDigitsInvite, request.Name)
                 : string.Format(Strings.Sync_DeviceWantsToJoin, request.Name);
             IsDeciding = true;
             var accept = await _decision.Task.WaitAsync(ct);
-            IsDeciding = false;
             if (accept)
             {
+                IsAccepting = true;
                 await invitation.AcceptAsync(ct);
                 _notice(string.Format(Strings.Sync_DeviceAdded, request.Name));
             }
@@ -458,7 +492,7 @@ public sealed class SyncViewModel : ViewModelBase
         catch (OperationCanceledException) { }
         catch (Exception ex) when (ex is System.IO.IOException or InvalidOperationException
                                        or System.Security.Cryptography.CryptographicException
-                                       or System.Net.WebSockets.WebSocketException)
+                                       or System.Net.WebSockets.WebSocketException or TimeoutException)
         {
             _error(ex.Message);
         }
@@ -467,9 +501,11 @@ public sealed class SyncViewModel : ViewModelBase
             _invitation = null;
             IsInviting = false;
             IsDeciding = false;
+            IsAccepting = false;
             InviteQr = null;
             InviteCode = null;
             InviteStatus = null;
+            InviteDigits = null;
             Refresh();
         }
     }
@@ -485,7 +521,6 @@ public sealed class SyncViewModel : ViewModelBase
     public ICommand AskRemoveCommand { get; }
     public ICommand ConfirmRemoveCommand { get; }
     public ICommand CancelRemoveCommand { get; }
-    public ICommand AskLeaveCommand { get; }
     public ICommand ConfirmLeaveCommand { get; }
     public ICommand CancelLeaveCommand { get; }
 
@@ -521,7 +556,7 @@ public sealed class SyncViewModel : ViewModelBase
 
     public bool IsConfirming => IsConfirmingRemove || IsConfirmingLeave;
 
-    public bool IsDialogOpen => IsInviting || IsConfirming;
+    public bool IsDialogOpen => IsJoinOpen || IsInviting || IsConfirming;
 
     public void CommitDeviceName()
     {
@@ -569,9 +604,9 @@ public sealed class SyncViewModel : ViewModelBase
 
     private void AskRemove(SyncMemberViewModel? member)
     {
-        if (member is null || !member.CanRemove) return;
-        IsConfirmingLeave = false;
-        MemberToRemove = member;
+        if (member is null) return;
+        MemberToRemove = member.IsThis ? null : member;
+        IsConfirmingLeave = member.IsThis;
     }
 
     private void ConfirmRemove()

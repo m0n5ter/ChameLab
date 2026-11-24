@@ -38,6 +38,7 @@ public partial class SettingsView : UserControl
 
     private void OnDeviceCardTapped(object? sender, TappedEventArgs e)
     {
+        if ((e.Source as Visual)?.FindAncestorOfType<Button>(includeSelf: true) is not null) return;
         if (sender is Control { DataContext: SyncMemberViewModel { IsThis: true, IsEditing: false } member })
         {
             member.BeginEdit();

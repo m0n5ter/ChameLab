@@ -511,10 +511,12 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
 
     // ---- Sessions --------------------------------------------------------------
 
-    private sealed class SessionEntry(SyncSession session, string initiator, CancellationTokenSource cts)
+    private sealed class SessionEntry(SyncSession session, string initiator, CancellationTokenSource cts,
+        TaskCompletionSource? joined = null)
     {
         public SyncSession Session => session;
         public string Initiator => initiator;
+        public bool IsJoining => joined is not null && !joined.Task.IsCompletedSuccessfully;
         public void Cancel()
         {
             try { cts.Cancel(); }
@@ -560,13 +562,15 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
     }
 
     /// <summary>Runs a sync session with a member; keeps one connection per device (local network first).</summary>
-    private async Task RunSessionAsync(SecureChannel channel, string member, string initiator, CancellationToken ct)
+    private async Task RunSessionAsync(SecureChannel channel, string member, string initiator, CancellationToken ct,
+        TaskCompletionSource? joined = null)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        var session = new SyncSession(channel, member, this);
-        var entry = new SessionEntry(session, initiator, cts);
+        var session = new SyncSession(channel, member, this, () => joined?.TrySetResult());
+        var entry = new SessionEntry(session, initiator, cts, joined);
         if (!Register(member, entry))
         {
+            joined?.TrySetException(new IOException(Strings.Sync_PairingFailed));
             await channel.DisposeAsync();
             return;
         }
@@ -583,6 +587,7 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
         }
         finally
         {
+            joined?.TrySetException(new IOException(Strings.Sync_PairingFailed));
             _sessions.TryRemove(KeyValuePair.Create(member, entry));
             await channel.DisposeAsync();
             lock (_lock) _lastSeen[member] = DateTimeOffset.UtcNow;
@@ -609,6 +614,8 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
     /// <summary>A local link beats a relayed one; between two of a kind, both devices keep the one the smaller device id opened.</summary>
     private static bool Prefer(SessionEntry candidate, SessionEntry existing)
     {
+        // Let the final pairing acknowledgment arrive before replacing its channel with a room/LAN link.
+        if (existing.IsJoining) return false;
         var (a, b) = (candidate.Session.Kind == "lan", existing.Session.Kind == "lan");
         if (a != b) return a;
         return string.CompareOrdinal(candidate.Initiator, existing.Initiator) < 0;
@@ -794,18 +801,39 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
             return new JoinRequest(Clean((string?)_join["name"]), proven ? null : _channel.ShortAuthenticationString());
         }
 
-        /// <summary>Lets the device in: adds it to the group and hands it everything.</summary>
+        /// <summary>Lets the device in and waits for it to finish joining; an interrupted join is revoked.</summary>
         public async Task AcceptAsync(CancellationToken ct)
         {
             if (_channel is null || _join is null || _service._device is not { } device) throw new InvalidOperationException();
+            ct.ThrowIfCancellationRequested();
             var id = (string)_join["device"]!;
-            _service.Commit(doc => doc.Change(EntityTypes.Member, id,
-                MemberFields(Clean((string?)_join["name"]), _channel.RemoteKey, CleanPlatform((string?)_join["platform"]))));
-            var vector = _service.Locked(doc => SyncDocument.VectorJson(doc.Vector));
-            await _channel.SendAsync(new JsonObject { ["type"] = "welcome", ["device"] = device.Id, ["vector"] = vector }, ct);
+            if (_service.Locked(doc => doc.Find(EntityTypes.Member, id) is not null))
+                throw new IOException(Strings.Sync_PairingFailed);
             var channel = _channel;
-            _channel = null;
-            _ = Task.Run(() => _service.RunSessionAsync(channel, id, id, _service._run?.Token ?? CancellationToken.None));
+            var joined = (bool?)_join["confirmJoin"] == true
+                ? new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously) : null;
+            Task? session = null;
+            try
+            {
+                _service.Commit(doc => doc.Change(EntityTypes.Member, id,
+                    MemberFields(Clean((string?)_join["name"]), channel.RemoteKey, CleanPlatform((string?)_join["platform"]))));
+                var vector = _service.Locked(doc => SyncDocument.VectorJson(doc.Vector));
+                var welcome = new JsonObject { ["type"] = "welcome", ["device"] = device.Id, ["vector"] = vector };
+                if (joined is not null) welcome["confirmJoin"] = true;
+                await channel.SendAsync(welcome, ct);
+                session = Task.Run(() => _service.RunSessionAsync(channel, id, id,
+                    _service._run?.Token ?? CancellationToken.None, joined));
+                if (joined is not null) await joined.Task.WaitAsync(TimeSpan.FromMinutes(5), ct);
+                _channel = null;
+            }
+            catch
+            {
+                // The device may already have received the room secret, so revoke it and rotate the room.
+                _service.Remove(id);
+                await channel.DisposeAsync();
+                if (session is not null) await session;
+                throw;
+            }
         }
 
         public async Task RejectAsync()
@@ -837,6 +865,8 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
         var pairing = PairingCode.Parse(code) ?? throw new FormatException(Strings.Sync_NotACode);
         var device = new DeviceIdentity(SyncCrypto.B64(SyncCrypto.Random(16)), Clean(name), KeyPair.Generate());
         var (channel, verified) = await Rendezvous.ConnectAsync(pairing, "join", device.Key, Relays(), ct);
+        using var sessionStop = new CancellationTokenSource();
+        Task? session = null;
         try
         {
             var join = new JsonObject
@@ -845,6 +875,7 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
                 ["device"] = device.Id,
                 ["name"] = device.Name,
                 ["key"] = SyncCrypto.B64(device.Key.Public),
+                ["confirmJoin"] = true,
             };
             if (CleanPlatform(CurrentPlatform) is { } platform) join["platform"] = platform;
             if (pairing.Secret is { } secret) join["proof"] = PairingCode.Proof(secret, channel);
@@ -867,11 +898,19 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
             }
             _storage.SaveDevice(device);
             // The session outlives this call: it is the first connection to the group.
-            _ = Task.Run(() => RunSessionAsync(channel, inviter, device.Id, CancellationToken.None));
+            session = Task.Run(() => RunSessionAsync(channel, inviter, device.Id, sessionStop.Token));
             await _caughtUp.Task.WaitAsync(TimeSpan.FromMinutes(5), ct);
             var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            // Cancellation wins until UI finalization starts. Once saving/merging begins,
+            // complete the join and its acknowledgment so both devices make the same decision.
+            var finalization = 0;
+            using var cancelFinalization = ct.Register(() =>
+            {
+                if (Interlocked.CompareExchange(ref finalization, 2, 0) == 0) done.TrySetCanceled(ct);
+            });
             Ui(() =>
             {
+                if (Interlocked.CompareExchange(ref finalization, 1, 0) != 0) return;
                 try
                 {
                     lock (_lock) _joining = false;
@@ -882,14 +921,26 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
                 catch (Exception ex) { done.TrySetException(ex); }
             });
             await done.Task;
+            if ((bool?)welcome["confirmJoin"] == true)
+            {
+                // The local join is saved. A late UI cancel must not abort an acknowledgment
+                // that the inviter may already have received and leave the two sides disagreeing.
+                using var confirmation = new CancellationTokenSource(HandshakeTimeout);
+                await channel.SendAsync(new JsonObject { ["type"] = "joined" }, confirmation.Token);
+            }
             _catchUpTo = null;
             Start();
         }
         catch
         {
+            sessionStop.Cancel();
+            await channel.DisposeAsync();
+            if (session is not null) await session;
             lock (_lock)
             {
                 _joining = false;
+                _catchUpTo = null;
+                _caughtUp = null;
                 if (_doc is not null && _doc.DeviceId == device.Id)
                 {
                     _device = null;
@@ -897,7 +948,6 @@ public sealed class SyncService : ISyncHost, IAsyncDisposable
                     _storage.Clear();
                 }
             }
-            await channel.DisposeAsync();
             throw;
         }
     }

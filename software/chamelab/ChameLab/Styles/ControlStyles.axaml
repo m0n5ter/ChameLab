@@ -170,6 +170,18 @@
   <Style Selector="TextBlock.mono, SelectableTextBlock.mono">
     <Setter Property="FontFamily" Value="{x:Static c:AppFonts.Mono}" />
   </Style>
+  <Style Selector="TextBox.connectioncode">
+    <Setter Property="FontFamily" Value="{x:Static c:AppFonts.Mono}" />
+    <Setter Property="TextInputOptions.Uppercase" Value="True" />
+    <Setter Property="TextInputOptions.AutoCapitalization" Value="False" />
+    <Setter Property="TextInputOptions.ShowSuggestions" Value="False" />
+    <Setter Property="b:ConnectionCodeInput.IsEnabled" Value="True" />
+  </Style>
+  <Style Selector="SelectableTextBlock.verificationcode">
+    <Setter Property="FontSize" Value="32" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
   <Style Selector="TextBlock.value">
     <Setter Property="FontSize" Value="15" />
     <Setter Property="FontWeight" Value="SemiBold" />

@@ -48,7 +48,7 @@
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Separator.row">
-      <Setter Property="Margin" Value="0,14" />
+      <Setter Property="Margin" Value="0,6" />
       <Setter Property="Opacity" Value="0.6" />
     </Style>
     <Style Selector="Border.iconwell.deviceicon">
@@ -237,32 +237,17 @@
                        KeyDown="OnDeviceNameKeyDown" LostFocus="OnDeviceNameLostFocus" />
             </Grid>
             <WrapPanel ItemSpacing="8" LineSpacing="8">
-              <Button Classes="accent" Command="{Binding CreateCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_StartTip}">
+              <Button Classes.accent="{Binding !IsMobile}" Command="{Binding CreateCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_StartTip}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.sync}" /><TextBlock Text="{x:Static loc:Strings.Sync_Start}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
-              <Button Command="{Binding ShowJoinCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_JoinTip}">
+              <Button Classes.accent="{Binding IsMobile}" Command="{Binding ShowJoinCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_JoinTip}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.link}" /><TextBlock Text="{x:Static loc:Strings.Sync_Join}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </WrapPanel>
-            <StackPanel Spacing="8" IsVisible="{Binding IsJoinOpen}" b:BringIntoViewOnShow.IsEnabled="True">
-              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_JoinHint}" />
-              <WrapPanel ItemSpacing="8" LineSpacing="8">
-                <TextBox Text="{Binding JoinCode}" PlaceholderText="DE1-ABCD-1234" MinWidth="200" IsEnabled="{Binding !IsJoining}" />
-                <Button Classes="accent" Content="{x:Static loc:Strings.Sync_Connect}" Command="{Binding JoinCommand}" />
-                <Button Command="{Binding ScanJoinCommand}" IsVisible="{Binding HasQrCamera}">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{StaticResource Icon.qrcode}" /><TextBlock Text="{x:Static loc:Strings.Sync_ScanQr}" VerticalAlignment="Center" />
-                  </StackPanel>
-                </Button>
-                <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelJoinCommand}" IsVisible="{Binding IsJoining}" />
-              </WrapPanel>
-              <TextBlock Classes="caption" TextWrapping="Wrap" FontWeight="SemiBold" Text="{Binding JoinStatus}"
-                         IsVisible="{Binding JoinStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
-            </StackPanel>
           </StackPanel>
 
           <!-- In a group. -->
@@ -302,15 +287,10 @@
                           <TextBlock Text="{Binding Status}" Classes="caption" TextWrapping="NoWrap" />
                         </c:Marquee>
                       </StackPanel>
-                      <PathIcon Grid.Column="2" Data="{StaticResource Icon.edit}" Width="14" Height="14"
-                                Margin="8,0,4,0" Opacity="0.45" VerticalAlignment="Center"
-                                IsVisible="{Binding ShowEditHint}"
-                                ToolTip.Tip="{x:Static loc:Strings.Common_Rename}" />
                       <Button Grid.Column="2" Classes="icon small danger" VerticalAlignment="Center" Margin="6,0,-2,0"
-                              IsVisible="{Binding CanRemove}"
                               Command="{Binding AskRemoveCommand}" CommandParameter="{Binding}"
-                              ToolTip.Tip="{x:Static loc:Strings.Sync_RemoveDevice}"
-                              AutomationProperties.Name="{x:Static loc:Strings.Sync_RemoveDevice}">
+                              ToolTip.Tip="{Binding RemoveActionText}"
+                              AutomationProperties.Name="{Binding RemoveActionText}">
                         <PathIcon Data="{StaticResource Icon.delete}" Width="16" Height="16" />
                       </Button>
                     </Grid>
@@ -382,12 +362,6 @@
               </StackPanel>
             </Expander>
 
-            <Button Classes="danger" HorizontalAlignment="Left" Command="{Binding AskLeaveCommand}"
-                    ToolTip.Tip="{x:Static loc:Strings.Sync_LeaveTip}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <PathIcon Data="{StaticResource Icon.close}" /><TextBlock Text="{x:Static loc:Strings.Sync_Leave}" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
           </StackPanel>
         </StackPanel>
       </Border>

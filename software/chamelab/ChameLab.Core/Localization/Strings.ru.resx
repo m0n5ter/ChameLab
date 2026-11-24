@@ -4084,13 +4084,13 @@
     <value>Имя устройства</value>
   </data>
   <data name="Sync_Start" xml:space="preserve">
-    <value>Включить синхронизацию</value>
+    <value>Создать группу</value>
   </data>
   <data name="Sync_StartTip" xml:space="preserve">
     <value>Создать группу синхронизации с этим устройством; остальные устройства добавите потом</value>
   </data>
   <data name="Sync_Join" xml:space="preserve">
-    <value>Подключиться к другому устройству</value>
+    <value>Войти в группу</value>
   </data>
   <data name="Sync_JoinTip" xml:space="preserve">
     <value>Войти в группу синхронизации устройства, которое уже синхронизируется</value>
@@ -4114,13 +4114,13 @@
     <value>Подключение…</value>
   </data>
   <data name="Sync_CompareDigitsJoin" xml:space="preserve">
-    <value>Убедитесь, что другое устройство показывает {0}, и подтвердите на нём.</value>
+    <value>Убедитесь, что код совпадает на обоих устройствах, и подтвердите на другом устройстве.</value>
   </data>
   <data name="Sync_Joined" xml:space="preserve">
     <value>Готово. Карты синхронизируются.</value>
   </data>
   <data name="Sync_GroupCreated" xml:space="preserve">
-    <value>Синхронизация включена. Добавьте другие устройства.</value>
+    <value>Группа создана. Добавьте другие устройства.</value>
   </data>
   <data name="Sync_StatusPaused" xml:space="preserve">
     <value>Приостановлено</value>
@@ -4189,7 +4189,7 @@
     <value>«{0}» хочет присоединиться.</value>
   </data>
   <data name="Sync_CompareDigitsInvite" xml:space="preserve">
-    <value>«{0}» хочет присоединиться. Добавляйте, только если на нём {1}.</value>
+    <value>«{0}» хочет войти в группу. Добавляйте, только если код совпадает на обоих устройствах.</value>
   </data>
   <data name="Sync_Accept" xml:space="preserve">
     <value>Добавить</value>
@@ -4222,19 +4222,19 @@
     <value>Восстановлено</value>
   </data>
   <data name="Sync_Leave" xml:space="preserve">
-    <value>Отключить синхронизацию</value>
+    <value>Выйти из группы</value>
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Выйти из группы на этом устройстве; карты останутся</value>
   </data>
   <data name="Sync_LeavePrompt" xml:space="preserve">
-    <value>Отключить синхронизацию на этом устройстве?</value>
+    <value>Выйти из группы на этом устройстве?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>Устройство выйдет из группы и забудет историю. Карты и словари останутся как есть; остальные устройства продолжат синхронизироваться.</value>
   </data>
   <data name="Sync_Left" xml:space="preserve">
-    <value>Синхронизация на этом устройстве отключена</value>
+    <value>Устройство вышло из группы</value>
   </data>
   <data name="Sync_ConflictSuffix" xml:space="preserve">
     <value> (конфликт)</value>
@@ -4252,7 +4252,7 @@
     <value>Ожидание другого устройства…</value>
   </data>
   <data name="Sync_CompareDigitsSend" xml:space="preserve">
-    <value>Отправляйте, только если на «{0}» показано {1}.</value>
+    <value>Отправляйте, только если на «{0}» показан тот же код.</value>
   </data>
   <data name="Sync_Send" xml:space="preserve">
     <value>Отправить</value>
@@ -4306,7 +4306,7 @@
     <value>Введите код, который показывает другое устройство. Карты попадут в открытую папку.</value>
   </data>
   <data name="Sync_CompareDigitsReceive" xml:space="preserve">
-    <value>Убедитесь, что отправляющее устройство показывает {0}; оно отправит после подтверждения.</value>
+    <value>Убедитесь, что на отправляющем устройстве показан тот же код; оно отправит после подтверждения.</value>
   </data>
   <data name="Sync_CardsReceived" xml:space="preserve">
     <value>Получено: {0}</value>

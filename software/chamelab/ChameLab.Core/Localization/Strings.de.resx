@@ -4070,13 +4070,13 @@
     <value>Gerätename</value>
   </data>
   <data name="Sync_Start" xml:space="preserve">
-    <value>Sync starten</value>
+    <value>Gruppe erstellen</value>
   </data>
   <data name="Sync_StartTip" xml:space="preserve">
     <value>Eine Sync-Gruppe mit diesem Gerät starten; die anderen Geräte danach hinzufügen</value>
   </data>
   <data name="Sync_Join" xml:space="preserve">
-    <value>Anderem Gerät beitreten</value>
+    <value>Gruppe beitreten</value>
   </data>
   <data name="Sync_JoinTip" xml:space="preserve">
     <value>Der Sync-Gruppe eines Geräts beitreten, das bereits synchronisiert</value>
@@ -4100,13 +4100,13 @@
     <value>Verbinde…</value>
   </data>
   <data name="Sync_CompareDigitsJoin" xml:space="preserve">
-    <value>Prüfe, dass das andere Gerät {0} zeigt, und bestätige dort.</value>
+    <value>Prüfe, dass dieser Code auf beiden Geräten übereinstimmt, und bestätige auf dem anderen Gerät.</value>
   </data>
   <data name="Sync_Joined" xml:space="preserve">
     <value>Beigetreten. Deine Karten werden synchronisiert.</value>
   </data>
   <data name="Sync_GroupCreated" xml:space="preserve">
-    <value>Sync ist an. Füge deine anderen Geräte hinzu.</value>
+    <value>Gruppe erstellt. Füge deine anderen Geräte hinzu.</value>
   </data>
   <data name="Sync_StatusPaused" xml:space="preserve">
     <value>Pausiert</value>
@@ -4175,7 +4175,7 @@
     <value>{0} möchte beitreten.</value>
   </data>
   <data name="Sync_CompareDigitsInvite" xml:space="preserve">
-    <value>{0} möchte beitreten. Nur hinzufügen, wenn es {1} zeigt.</value>
+    <value>{0} möchte beitreten. Nur hinzufügen, wenn dieser Code auf beiden Geräten übereinstimmt.</value>
   </data>
   <data name="Sync_Accept" xml:space="preserve">
     <value>Hinzufügen</value>
@@ -4208,19 +4208,19 @@
     <value>Wiederhergestellt</value>
   </data>
   <data name="Sync_Leave" xml:space="preserve">
-    <value>Synchronisierung beenden</value>
+    <value>Gruppe verlassen</value>
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Gruppe auf diesem Gerät verlassen; die Karten bleiben</value>
   </data>
   <data name="Sync_LeavePrompt" xml:space="preserve">
-    <value>Synchronisierung auf diesem Gerät beenden?</value>
+    <value>Die Gruppe auf diesem Gerät verlassen?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>Dieses Gerät verlässt die Gruppe und vergisst den Verlauf. Karten und Wörterbücher bleiben; die anderen Geräte synchronisieren weiter.</value>
   </data>
   <data name="Sync_Left" xml:space="preserve">
-    <value>Sync ist auf diesem Gerät aus</value>
+    <value>Dieses Gerät hat die Gruppe verlassen</value>
   </data>
   <data name="Sync_ConflictSuffix" xml:space="preserve">
     <value> (Konflikt)</value>
@@ -4238,7 +4238,7 @@
     <value>Warte auf das andere Gerät…</value>
   </data>
   <data name="Sync_CompareDigitsSend" xml:space="preserve">
-    <value>Nur senden, wenn {0} {1} zeigt.</value>
+    <value>Nur senden, wenn auf {0} derselbe Code angezeigt wird.</value>
   </data>
   <data name="Sync_Send" xml:space="preserve">
     <value>Senden</value>
@@ -4292,7 +4292,7 @@
     <value>Gib den Code ein, den das andere Gerät zeigt. Die Karten kommen in den angezeigten Ordner.</value>
   </data>
   <data name="Sync_CompareDigitsReceive" xml:space="preserve">
-    <value>Prüfe, dass das sendende Gerät {0} zeigt; es sendet nach der Bestätigung dort.</value>
+    <value>Prüfe, dass auf dem sendenden Gerät derselbe Code angezeigt wird; es sendet nach der Bestätigung dort.</value>
   </data>
   <data name="Sync_CardsReceived" xml:space="preserve">
     <value>{0} empfangen</value>

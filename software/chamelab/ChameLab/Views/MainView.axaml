@@ -443,19 +443,55 @@
 
     <!-- ==================== Sync dialogs ==================== -->
     <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+           DataContext="{Binding Settings.Sync}" IsVisible="{Binding IsJoinOpen}"
+           x:DataType="vm:SyncViewModel">
+      <Border Classes="card" MaxWidth="440" Margin="16" VerticalAlignment="Center">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="10">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="h2" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_Join}" />
+              <TextBlock Classes="caption" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_JoinHint}"
+                         IsVisible="{Binding !IsJoining}" />
+            </StackPanel>
+            <TextBox Text="{Binding JoinCode}" Classes="connectioncode" PlaceholderText="DE1-ABCD-1234"
+                     IsVisible="{Binding !IsJoining}" b:FocusOnShow.IsEnabled="True"
+                     AutomationProperties.Name="{x:Static loc:Strings.Share_CodeLabel}" />
+            <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="14" Text="{Binding JoinStatus}"
+                       IsVisible="{Binding JoinStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <SelectableTextBlock Text="{Binding JoinDigits}" Classes="verificationcode"
+                                 IsVisible="{Binding JoinDigits, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">
+              <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelJoinCommand}"
+                      b:DialogKeys.IsCancel="True" />
+              <Button Command="{Binding ScanJoinCommand}" IsVisible="{Binding HasQrCamera}" IsEnabled="{Binding !IsJoining}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.qrcode}" />
+                  <TextBlock Text="{x:Static loc:Strings.Sync_ScanQr}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <Button Classes="accent" Content="{x:Static loc:Strings.Sync_Connect}" Command="{Binding JoinCommand}"
+                      IsVisible="{Binding !IsJoining}" b:DialogKeys.IsDefault="True" />
+            </WrapPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Panel>
+
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
            DataContext="{Binding Settings.Sync}" IsVisible="{Binding IsInviting}"
            x:DataType="vm:SyncViewModel">
       <Border Classes="card" MaxWidth="440" Margin="16" VerticalAlignment="Center">
         <Grid RowDefinitions="Auto,*,Auto">
           <StackPanel Spacing="4">
-            <TextBlock Classes="h2" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_AddDevice}" />
-            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_InviteHint}"
+            <TextBlock Classes="h2" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_AddDevice}" />
+            <TextBlock Classes="caption" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_InviteHint}"
                        IsVisible="{Binding !IsDeciding}" />
           </StackPanel>
           <Panel Grid.Row="1" Margin="0,12,0,0" HorizontalAlignment="Center"
                  MaxWidth="260" MaxHeight="260" IsVisible="{Binding !IsDeciding}">
             <Border CornerRadius="10" ClipToBounds="True">
-              <c:QrCodeView Text="{Binding InviteQr}" />
+              <c:QrCodeView Text="{Binding InviteQr}" Cursor="Hand"
+                            b:CopyToClipboard.Text="{Binding InviteCopyText}" />
             </Border>
             <Border CornerRadius="10"
                     Background="{actipro:ThemeResource Container2BackgroundBrush}"
@@ -468,17 +504,28 @@
             </Border>
           </Panel>
           <StackPanel Grid.Row="2" Margin="0,12,0,0" Spacing="10">
-            <Panel MinHeight="30" IsVisible="{Binding ShowInviteCodeSlot}">
-              <Border Width="180" Height="22" CornerRadius="6" HorizontalAlignment="Center" VerticalAlignment="Center"
-                      Background="{actipro:ThemeResource Container2BackgroundBrush}"
-                      IsVisible="{Binding IsInviteLoading}" />
-              <SelectableTextBlock Text="{Binding InviteCode}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   FontSize="22" FontWeight="SemiBold"
-                                   FontFamily="{x:Static c:AppFonts.Mono}"
-                                   IsVisible="{Binding ShowInviteCode}" />
+            <Panel Height="36" MinWidth="216" IsVisible="{Binding ShowInviteCodeSlot}">
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"
+                          IsVisible="{Binding IsInviteLoading}">
+                <Border Width="172" Height="26" CornerRadius="6" VerticalAlignment="Center"
+                        Background="{actipro:ThemeResource Container2BackgroundBrush}" />
+                <Border Width="36" Height="36" CornerRadius="6"
+                        Background="{actipro:ThemeResource Container2BackgroundBrush}" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"
+                          IsVisible="{Binding !IsInviteLoading}">
+                <SelectableTextBlock Text="{Binding InviteCode}" VerticalAlignment="Center"
+                                     FontSize="22" FontWeight="SemiBold" Classes="mono"
+                                     IsVisible="{Binding ShowInviteCode}" />
+                <Button Classes="icon" b:CopyToClipboard.Text="{Binding InviteCopyText}"
+                        AutomationProperties.Name="{x:Static loc:Strings.Hex_Copy}">
+                  <PathIcon Data="{StaticResource Icon.copy}" />
+                </Button>
+              </StackPanel>
             </Panel>
-            <TextBlock TextWrapping="Wrap" Text="{Binding InviteStatus}"
-                       HorizontalAlignment="Center" TextAlignment="Center" />
+            <TextBlock TextWrapping="Wrap" Text="{Binding InviteStatus}" FontSize="14" TextAlignment="Center" />
+            <SelectableTextBlock Text="{Binding InviteDigits}" Classes="verificationcode"
+                                 IsVisible="{Binding InviteDigits, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">
               <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelInviteCommand}"
                       IsVisible="{Binding !IsDeciding}" b:DialogKeys.IsCancel="True" />

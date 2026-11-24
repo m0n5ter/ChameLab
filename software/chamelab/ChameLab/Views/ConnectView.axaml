@@ -156,7 +156,7 @@
         <StackPanel Spacing="10">
           <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Connect_SharedDeviceHint}" />
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <TextBox Grid.Column="0" Text="{Binding SharedCode}" PlaceholderText="TR1-ABCD-1234" Classes="mono" />
+            <TextBox Grid.Column="0" Text="{Binding SharedCode}" PlaceholderText="TR1-ABCD-1234" Classes="connectioncode" />
             <Button Grid.Column="1" Classes="soft accent" Command="{Binding ConnectSharedCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <PathIcon Data="{StaticResource Icon.link}" />

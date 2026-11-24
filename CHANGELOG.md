@@ -9,6 +9,18 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.8.58][2026-11-24] · firmware v2.4.24-cl
+### Summary
+ - ChameLab: **Reliable device pairing** cleans up canceled group joins; update both devices for completion confirmation
+ - ChameLab: clearer group actions, a join dialog, and matching verification dialogs with smaller codes
+ - ChameLab: uppercase monospace connection codes, clipboard buttons, QR copying, and stable loading placeholders
+
+### Details
+ - ChameLab: canceled or interrupted group joins no longer leave a phantom member when both devices support completion confirmation; pairing dialogs use matching alignment and smaller verification codes in the regular font
+ - ChameLab: leave a sync group from the delete button on this device's card, keeping the exit confirmation; reduced Settings separator spacing
+ - ChameLab: clearer sync group actions, a join dialog with large verification codes, uppercase monospace connection codes, and clipboard buttons and QR copying; desktop emphasizes creating a group, while mobile emphasizes joining; invitation code placeholders reserve space for the code and copy button to keep the dialog steady
+ - ChameLab: fixed relay connections timing out while waiting to approve device sync pairing or card sharing
+
 ## [v1.8.57][2026-11-24] · firmware v2.4.24-cl
 ### Summary
  - ChameLab: **Device sync** keeps saved cards, folders and key dictionaries in sync across all your devices without an account, with end-to-end encryption, card history, and direct card sharing

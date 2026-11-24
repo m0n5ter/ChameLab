@@ -4070,13 +4070,13 @@
     <value>Nome del dispositivo</value>
   </data>
   <data name="Sync_Start" xml:space="preserve">
-    <value>Avvia sincronizzazione</value>
+    <value>Crea gruppo</value>
   </data>
   <data name="Sync_StartTip" xml:space="preserve">
     <value>Crea un gruppo di sincronizzazione con questo dispositivo; aggiungi poi gli altri</value>
   </data>
   <data name="Sync_Join" xml:space="preserve">
-    <value>Unisciti a un altro dispositivo</value>
+    <value>Unisciti al gruppo</value>
   </data>
   <data name="Sync_JoinTip" xml:space="preserve">
     <value>Unisciti al gruppo di un dispositivo che sincronizza già</value>
@@ -4100,13 +4100,13 @@
     <value>Connessione…</value>
   </data>
   <data name="Sync_CompareDigitsJoin" xml:space="preserve">
-    <value>Controlla che l'altro dispositivo mostri {0} e conferma lì.</value>
+    <value>Controlla che il codice sia uguale su entrambi i dispositivi e conferma sull&apos;altro.</value>
   </data>
   <data name="Sync_Joined" xml:space="preserve">
     <value>Fatto. Le tue carte si stanno sincronizzando.</value>
   </data>
   <data name="Sync_GroupCreated" xml:space="preserve">
-    <value>Sincronizzazione attiva. Aggiungi gli altri dispositivi.</value>
+    <value>Gruppo creato. Aggiungi gli altri dispositivi.</value>
   </data>
   <data name="Sync_StatusPaused" xml:space="preserve">
     <value>In pausa</value>
@@ -4175,7 +4175,7 @@
     <value>{0} vuole unirsi.</value>
   </data>
   <data name="Sync_CompareDigitsInvite" xml:space="preserve">
-    <value>{0} vuole unirsi. Aggiungilo solo se mostra {1}.</value>
+    <value>{0} vuole unirsi al gruppo. Aggiungilo solo se il codice è uguale su entrambi i dispositivi.</value>
   </data>
   <data name="Sync_Accept" xml:space="preserve">
     <value>Aggiungi</value>
@@ -4208,19 +4208,19 @@
     <value>Ripristinato</value>
   </data>
   <data name="Sync_Leave" xml:space="preserve">
-    <value>Interrompi sincronizzazione</value>
+    <value>Esci dal gruppo</value>
   </data>
   <data name="Sync_LeaveTip" xml:space="preserve">
     <value>Esci dal gruppo su questo dispositivo; le carte restano</value>
   </data>
   <data name="Sync_LeavePrompt" xml:space="preserve">
-    <value>Interrompere la sincronizzazione su questo dispositivo?</value>
+    <value>Uscire dal gruppo su questo dispositivo?</value>
   </data>
   <data name="Sync_LeaveConfirm" xml:space="preserve">
     <value>Questo dispositivo esce dal gruppo e dimentica la cronologia. Carte e dizionari restano; gli altri continuano a sincronizzarsi.</value>
   </data>
   <data name="Sync_Left" xml:space="preserve">
-    <value>Sincronizzazione disattivata su questo dispositivo</value>
+    <value>Questo dispositivo è uscito dal gruppo</value>
   </data>
   <data name="Sync_ConflictSuffix" xml:space="preserve">
     <value> (conflitto)</value>
@@ -4238,7 +4238,7 @@
     <value>In attesa dell'altro dispositivo…</value>
   </data>
   <data name="Sync_CompareDigitsSend" xml:space="preserve">
-    <value>Invia solo se {0} mostra {1}.</value>
+    <value>Invia solo se su {0} viene mostrato lo stesso codice.</value>
   </data>
   <data name="Sync_Send" xml:space="preserve">
     <value>Invia</value>
@@ -4292,7 +4292,7 @@
     <value>Digita il codice mostrato dall'altro dispositivo. Le carte finiscono nella cartella aperta.</value>
   </data>
   <data name="Sync_CompareDigitsReceive" xml:space="preserve">
-    <value>Controlla che il dispositivo mittente mostri {0}; invierà dopo la conferma.</value>
+    <value>Controlla che il dispositivo mittente mostri lo stesso codice; invierà dopo la conferma su quel dispositivo.</value>
   </data>
   <data name="Sync_CardsReceived" xml:space="preserve">
     <value>Ricevuto: {0}</value>

@@ -166,23 +166,88 @@ public sealed class RelayPipe : Stream
     private readonly ClientWebSocket _ws;
     private readonly SemaphoreSlim _send = new(1, 1);
     private readonly TaskCompletionSource _peer = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly Channel<(WebSocketMessageType Type, byte[] Data)> _inbound =
+        Channel.CreateBounded<(WebSocketMessageType, byte[])>(16);
+    private readonly CancellationTokenSource _stop = new();
+    private readonly Task _reader;
     private byte[] _pending = Array.Empty<byte>();
     private int _pendingAt;
     private bool _ended;
 
-    private RelayPipe(ClientWebSocket ws) => _ws = ws;
+    private RelayPipe(ClientWebSocket ws)
+    {
+        _ws = ws;
+        // Receive even while the user compares digits or approves the new device:
+        // ClientWebSocket only answers the relay's keep-alive pings while receiving.
+        _reader = ReadSocketAsync();
+    }
+
+    private async Task ReadSocketAsync()
+    {
+        Exception? error = null;
+        try
+        {
+            var buffer = new byte[16 * 1024];
+            while (true)
+            {
+                var r = await _ws.ReceiveAsync(buffer.AsMemory(), _stop.Token);
+                if (r.MessageType == WebSocketMessageType.Close) return;
+                // Binary data is a stream; text controls must remain whole messages.
+                var data = buffer[..r.Count];
+                if (r.MessageType == WebSocketMessageType.Text && !r.EndOfMessage)
+                {
+                    using var message = new MemoryStream();
+                    message.Write(data);
+                    do
+                    {
+                        r = await _ws.ReceiveAsync(buffer.AsMemory(), _stop.Token);
+                        if (r.MessageType == WebSocketMessageType.Close) return;
+                        message.Write(buffer, 0, r.Count);
+                        if (message.Length > 4096) throw new IOException("Relay control message too large.");
+                    } while (!r.EndOfMessage);
+                    data = message.ToArray();
+                }
+                await _inbound.Writer.WriteAsync((r.MessageType, data), _stop.Token);
+            }
+        }
+        catch (Exception ex) when (ex is WebSocketException or IOException or OperationCanceledException or ObjectDisposedException)
+        {
+            if (!_stop.IsCancellationRequested) error = new IOException(Localization.Strings.Relay_Closed, ex);
+        }
+        finally { _inbound.Writer.TryComplete(error); }
+    }
+
+    private async Task<(WebSocketMessageType Type, byte[] Data)?> ReadMessageAsync(CancellationToken ct)
+    {
+        try { return await _inbound.Reader.ReadAsync(ct); }
+        catch (ChannelClosedException ex)
+        {
+            if (ex.InnerException is { } error) throw new IOException(Localization.Strings.Relay_Closed, error);
+            return null;
+        }
+    }
 
     /// <summary>Opens a share: the code the relay handed out, and the pipe (usable once <see cref="WaitForPeerAsync"/> returns).</summary>
     public static async Task<(RelayPipe Pipe, ShareCode Code)> ShareAsync(RelayServer server, CancellationToken ct)
     {
         var ws = RelayEndpoint.CreateSocket(server);
-        await ws.ConnectAsync(RelayEndpoint.Share(server.Url), ct);
-        var pipe = new RelayPipe(ws);
-        while (true)
+        RelayPipe? pipe = null;
+        try
         {
-            var text = await pipe.ReadControlAsync(ct) ?? throw new IOException(Localization.Strings.Relay_Closed);
-            if (RelayEndpoint.MessageType(text) == "code" && RelayEndpoint.Property(text, "code") is { } code)
-                return (pipe, new ShareCode(server.Region, code.Replace("-", "")));
+            await ws.ConnectAsync(RelayEndpoint.Share(server.Url), ct);
+            pipe = new RelayPipe(ws);
+            while (true)
+            {
+                var text = await pipe.ReadControlAsync(ct) ?? throw new IOException(Localization.Strings.Relay_Closed);
+                if (RelayEndpoint.MessageType(text) == "code" && RelayEndpoint.Property(text, "code") is { } code)
+                    return (pipe, new ShareCode(server.Region, code.Replace("-", "")));
+            }
+        }
+        catch
+        {
+            if (pipe is not null) await pipe.DisposeAsync();
+            else ws.Dispose();
+            throw;
         }
     }
 
@@ -199,32 +264,32 @@ public sealed class RelayPipe : Stream
     public static async Task<RelayPipe> JoinAsync(RelayServer server, string code, CancellationToken ct)
     {
         var ws = RelayEndpoint.CreateSocket(server);
-        await ws.ConnectAsync(RelayEndpoint.Join(server.Url, code), ct);
-        var pipe = new RelayPipe(ws);
-        while (true)
+        RelayPipe? pipe = null;
+        try
         {
-            var text = await pipe.ReadControlAsync(ct)
-                       ?? throw new IOException(RelayEndpoint.CloseMessage(ws.CloseStatusDescription));
-            if (RelayEndpoint.MessageType(text) == "joined") return pipe;
+            await ws.ConnectAsync(RelayEndpoint.Join(server.Url, code), ct);
+            pipe = new RelayPipe(ws);
+            while (true)
+            {
+                var text = await pipe.ReadControlAsync(ct)
+                           ?? throw new IOException(RelayEndpoint.CloseMessage(ws.CloseStatusDescription));
+                if (RelayEndpoint.MessageType(text) == "joined") return pipe;
+            }
+        }
+        catch
+        {
+            if (pipe is not null) await pipe.DisposeAsync();
+            else ws.Dispose();
+            throw;
         }
     }
 
     /// <summary>The next text (control) message, skipping binary ones; null once closed.</summary>
     private async Task<byte[]?> ReadControlAsync(CancellationToken ct)
     {
-        var buffer = new byte[4096];
-        while (true)
-        {
-            var message = new MemoryStream();
-            ValueWebSocketReceiveResult r;
-            do
-            {
-                r = await _ws.ReceiveAsync(buffer.AsMemory(), ct);
-                if (r.MessageType == WebSocketMessageType.Close) return null;
-                message.Write(buffer, 0, r.Count);
-            } while (!r.EndOfMessage);
-            if (r.MessageType == WebSocketMessageType.Text) return message.ToArray();
-        }
+        while (await ReadMessageAsync(ct) is { } message)
+            if (message.Type == WebSocketMessageType.Text) return message.Data;
+        return null;
     }
 
     public override async ValueTask<int> ReadAsync(Memory<byte> destination, CancellationToken ct = default)
@@ -232,23 +297,15 @@ public sealed class RelayPipe : Stream
         while (_pendingAt >= _pending.Length)
         {
             if (_ended) return 0;
-            var buffer = new byte[16 * 1024];
-            var r = await _ws.ReceiveAsync(buffer.AsMemory(), ct);
-            if (r.MessageType == WebSocketMessageType.Close) { _ended = true; return 0; }
-            if (r.MessageType == WebSocketMessageType.Text)
+            var message = await ReadMessageAsync(ct);
+            if (message is null) { _ended = true; return 0; }
+            if (message.Value.Type == WebSocketMessageType.Text)
             {
                 // Control messages mid-stream: the other side leaving ends the stream.
-                var rest = new MemoryStream();
-                rest.Write(buffer, 0, r.Count);
-                while (!r.EndOfMessage)
-                {
-                    r = await _ws.ReceiveAsync(buffer.AsMemory(), ct);
-                    rest.Write(buffer, 0, r.Count);
-                }
-                if (RelayEndpoint.MessageType(rest.ToArray()) == "peer-left") { _ended = true; return 0; }
+                if (RelayEndpoint.MessageType(message.Value.Data) == "peer-left") { _ended = true; return 0; }
                 continue;
             }
-            _pending = buffer[..r.Count];
+            _pending = message.Value.Data;
             _pendingAt = 0;
         }
         var n = Math.Min(destination.Length, _pending.Length - _pendingAt);
@@ -291,7 +348,9 @@ public sealed class RelayPipe : Stream
                 await _ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, null, timeout.Token);
         }
         catch (Exception ex) when (ex is WebSocketException or OperationCanceledException or ObjectDisposedException) { }
+        _stop.Cancel();
         _ws.Dispose();
+        await _reader;
         await base.DisposeAsync();
     }
 }
