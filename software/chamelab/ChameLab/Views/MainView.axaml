@@ -449,14 +449,14 @@
         <ScrollViewer HorizontalScrollBarVisibility="Disabled">
           <StackPanel Spacing="10">
             <StackPanel Spacing="4">
-              <TextBlock Classes="h2" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_Join}" />
-              <TextBlock Classes="caption" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_JoinHint}"
+              <TextBlock Classes="h2" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_Join}" />
+              <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_JoinHint}"
                          IsVisible="{Binding !IsJoining}" />
             </StackPanel>
             <TextBox Text="{Binding JoinCode}" Classes="connectioncode" PlaceholderText="DE1-ABCD-1234"
                      IsVisible="{Binding !IsJoining}" b:FocusOnShow.IsEnabled="True"
                      AutomationProperties.Name="{x:Static loc:Strings.Share_CodeLabel}" />
-            <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="14" Text="{Binding JoinStatus}"
+            <TextBlock TextWrapping="Wrap" FontSize="14" Text="{Binding JoinStatus}"
                        IsVisible="{Binding JoinStatus, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <SelectableTextBlock Text="{Binding JoinDigits}" Classes="verificationcode"
                                  IsVisible="{Binding JoinDigits, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -483,8 +483,8 @@
       <Border Classes="card" MaxWidth="440" Margin="16" VerticalAlignment="Center">
         <Grid RowDefinitions="Auto,*,Auto">
           <StackPanel Spacing="4">
-            <TextBlock Classes="h2" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_AddDevice}" />
-            <TextBlock Classes="caption" TextWrapping="Wrap" TextAlignment="Center" Text="{x:Static loc:Strings.Sync_InviteHint}"
+            <TextBlock Classes="h2" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_AddDevice}" />
+            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{x:Static loc:Strings.Sync_InviteHint}"
                        IsVisible="{Binding !IsDeciding}" />
           </StackPanel>
           <Panel Grid.Row="1" Margin="0,12,0,0" HorizontalAlignment="Center"
@@ -523,7 +523,7 @@
                 </Button>
               </StackPanel>
             </Panel>
-            <TextBlock TextWrapping="Wrap" Text="{Binding InviteStatus}" FontSize="14" TextAlignment="Center" />
+            <TextBlock TextWrapping="Wrap" Text="{Binding InviteStatus}" FontSize="14" />
             <SelectableTextBlock Text="{Binding InviteDigits}" Classes="verificationcode"
                                  IsVisible="{Binding InviteDigits, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">

@@ -171,7 +171,11 @@ public sealed class SyncViewModel : ViewModelBase
     /// <summary>The background node: only the desktop app runs one.</summary>
     public static bool IsDesktop => !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS() && !OperatingSystem.IsBrowser();
 
-    public bool IsMobile => OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
+    /// <summary>Desktop starts a group by default; mobile and web join an existing one.</summary>
+    public bool IsCreatePrimary => IsDesktop;
+    public bool IsJoinPrimary => !IsDesktop;
+    public int CreatePriority => IsCreatePrimary ? 2 : 1;
+    public int JoinPriority => IsJoinPrimary ? 2 : 1;
 
     public string StatusText => _sync.Status switch
     {

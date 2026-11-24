@@ -236,18 +236,24 @@
               <TextBox Grid.Column="1" Text="{Binding DeviceName}" MaxLength="64" HorizontalAlignment="Stretch"
                        KeyDown="OnDeviceNameKeyDown" LostFocus="OnDeviceNameLostFocus" />
             </Grid>
-            <WrapPanel ItemSpacing="8" LineSpacing="8">
-              <Button Classes.accent="{Binding !IsMobile}" Command="{Binding CreateCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_StartTip}">
+            <c:ActionRow>
+              <Button Classes.accent="{Binding IsCreatePrimary}" c:ActionRow.Priority="{Binding CreatePriority}"
+                      Command="{Binding CreateCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_StartTip}"
+                      AutomationProperties.Name="{x:Static loc:Strings.Sync_Start}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.sync}" /><TextBlock Text="{x:Static loc:Strings.Sync_Start}" VerticalAlignment="Center" />
+                  <PathIcon Data="{StaticResource Icon.sync}" />
+                  <TextBlock Text="{x:Static loc:Strings.Sync_Start}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
-              <Button Classes.accent="{Binding IsMobile}" Command="{Binding ShowJoinCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_JoinTip}">
+              <Button Classes.accent="{Binding IsJoinPrimary}" c:ActionRow.Priority="{Binding JoinPriority}"
+                      Command="{Binding ShowJoinCommand}" ToolTip.Tip="{x:Static loc:Strings.Sync_JoinTip}"
+                      AutomationProperties.Name="{x:Static loc:Strings.Sync_Join}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <PathIcon Data="{StaticResource Icon.link}" /><TextBlock Text="{x:Static loc:Strings.Sync_Join}" VerticalAlignment="Center" />
+                  <PathIcon Data="{StaticResource Icon.link}" />
+                  <TextBlock Text="{x:Static loc:Strings.Sync_Join}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
-            </WrapPanel>
+            </c:ActionRow>
           </StackPanel>
 
           <!-- In a group. -->
