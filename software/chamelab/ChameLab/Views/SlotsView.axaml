@@ -315,6 +315,15 @@
                         </ComboBox.ItemTemplate>
                       </ComboBox>
                     </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                      <TextBlock Text="{x:Static loc:Strings.Slots_WriteMode}" VerticalAlignment="Center" />
+                      <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding MfcWriteMode}">
+                        <ComboBox.ItemTemplate>
+                          <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                      </ComboBox>
+                    </Grid>
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                       <TextBlock Text="{x:Static loc:Strings.Slots_Gen1AMagicMode}" VerticalAlignment="Center" TextWrapping="Wrap" />
                       <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="" OffContent=""
@@ -342,15 +351,6 @@
                     </Grid>
                     <Border Classes="inset" IsVisible="{Binding MfcDetection}">
                       <StackPanel Spacing="10">
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                          <TextBlock Text="{x:Static loc:Strings.Slots_WriteMode}" VerticalAlignment="Center" />
-                          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                                    ItemsSource="{x:Static vm:SlotEditorViewModel.WriteModes}" SelectedItem="{Binding MfcWriteMode}">
-                            <ComboBox.ItemTemplate>
-                              <DataTemplate><TextBlock Text="{Binding Converter={x:Static conv:EnumLabelConverter.Instance}}" /></DataTemplate>
-                            </ComboBox.ItemTemplate>
-                          </ComboBox>
-                        </Grid>
                         <c:EmulatorCapturePanel DataContext="{Binding MfcCapture}" />
                       </StackPanel>
                     </Border>
