@@ -120,7 +120,8 @@ int main(int argc, char **argv) {
     read = hidprox_read(actual, H10301, 500);
     check("HID Prox", read, actual, hid_id, sizeof(hid_id));
 
-    uint8_t io_id[16];
+    // The encoder writes fields/raw data only; the decoder also clears four reserved bytes.
+    uint8_t io_id[16] = {0};
     assert(ioprox_encode_params_to_data(1, 2, 3456, io_id));
     for (unsigned i = 0; i < 64; i++) bits[i] = (io_id[4 + i / 8] >> (7 - i % 8)) & 1;
     synthesize(bits, 64, 64);
