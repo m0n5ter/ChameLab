@@ -8,9 +8,19 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.8.60][2026-11-24] · firmware v2.4.26-cl
+### Summary
+ - ChameLab: **Reliable Bluetooth connections** on Android, iOS, and Web — fixes hangs with BLE step timeouts and post-GATT MTU negotiation
+ - Firmware v2.4.26-cl: **Accurate battery level on wake** — measures voltage on boot instead of reporting 0% over BLE (with an app fallback for older firmware)
+ - ChameLab: MIFARE Classic write mode is now always visible in slot settings, plus cleaner sync button and dialog layout
+
+### Details
  - Firmware v2.4.26-cl: measure battery voltage immediately on boot (and on demand if still zero) instead of waiting for the first 5-second timer tick, fixing 0% battery readings right after waking the device over BLE
  - ChameLab: automatically re-read battery level in the background when a freshly woken device initially reports 0 mV (for older firmware)
  - ChameLab: fixed BLE connection hangs on Android/iOS/Web by moving MTU negotiation after GATT setup with a short timeout, adding timeouts across all BLE connect/cleanup steps, connecting directly via the discovered device handle, and keeping BLE connect on the UI thread
+ - ChameLab: moved the MIFARE Classic write mode selector out of the nonce collection section in slot settings so it is always available
+ - ChameLab: sync start/join buttons now use `ActionRow` (emphasizing Join on mobile and web, Start on desktop) and sync pairing dialogs left-align their text
 
 ## [v1.8.59][2026-11-24] · firmware v2.4.25-cl
 ### Summary
