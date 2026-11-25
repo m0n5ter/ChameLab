@@ -124,15 +124,11 @@ public sealed class MdnsDiscovery : ILanDiscovery
             SocketReceiveFromResult r;
             try { r = await socket.ReceiveFromAsync(buffer, SocketFlags.None, new IPEndPoint(IPAddress.Any, 0), _stop.Token); }
             catch (Exception ex) when (ex is SocketException or OperationCanceledException or ObjectDisposedException) { return; }
-            try { Handle(buffer.AsSpan(0, r.ReceivedBytes), (IPEndPoint)r.RemoteEndPoint); }
-            catch (Exception ex) when (ex is IndexOutOfRangeException or ArgumentException or FormatException)
-            {
-                // Malformed packet from someone on the network: ignored.
-            }
+            Handle(buffer.AsSpan(0, r.ReceivedBytes), (IPEndPoint)r.RemoteEndPoint);
         }
     }
 
-    private void Handle(ReadOnlySpan<byte> packet, IPEndPoint from)
+    internal void Handle(ReadOnlySpan<byte> packet, IPEndPoint from)
     {
         if (packet.Length < 12) return;
         var flags = BinaryPrimitives.ReadUInt16BigEndian(packet[2..]);
@@ -142,7 +138,7 @@ public sealed class MdnsDiscovery : ILanDiscovery
         var asked = false;
         for (var i = 0; i < qd; i++)
         {
-            var name = ReadName(packet, ref at);
+            if (!TryReadName(packet, ref at, out var name) || at + 4 > packet.Length) return;
             var type = BinaryPrimitives.ReadUInt16BigEndian(packet[at..]);
             at += 4;
             if ((flags & 0x8000) == 0 && Same(name, ServiceType) && type is Ptr or 255) asked = true;
@@ -160,26 +156,29 @@ public sealed class MdnsDiscovery : ILanDiscovery
         var hosts = new Dictionary<string, List<IPAddress>>(StringComparer.OrdinalIgnoreCase);
         for (var i = 0; i < an + ns + ar; i++)
         {
-            var name = ReadName(packet, ref at);
+            if (!TryReadName(packet, ref at, out var name) || at + 10 > packet.Length) return;
             var type = BinaryPrimitives.ReadUInt16BigEndian(packet[at..]);
             var length = BinaryPrimitives.ReadUInt16BigEndian(packet[(at + 8)..]);
             at += 10;
+            if (at + length > packet.Length) return;
             var data = packet.Slice(at, length);
             var dataAt = at;
             switch (type)
             {
                 case Ptr when Same(name, ServiceType):
-                    instances.Add(ReadName(packet, ref dataAt));
+                    if (TryReadName(packet, ref dataAt, out var instance)) instances.Add(instance);
                     break;
-                case Srv:
+                case Srv when length >= 6:
                     var srvAt = dataAt + 6;
-                    srv[name] = (BinaryPrimitives.ReadUInt16BigEndian(data[4..]), ReadName(packet, ref srvAt));
+                    if (TryReadName(packet, ref srvAt, out var target))
+                        srv[name] = (BinaryPrimitives.ReadUInt16BigEndian(data[4..]), target);
                     break;
                 case Txt:
                     var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     for (var t = 0; t < data.Length;)
                     {
                         var n = data[t++];
+                        if (t + n > data.Length) break;
                         var entry = Encoding.UTF8.GetString(data.Slice(t, n));
                         t += n;
                         var eq = entry.IndexOf('=');
@@ -204,31 +203,53 @@ public sealed class MdnsDiscovery : ILanDiscovery
 
     private static bool Same(string a, string b) => string.Equals(a.TrimEnd('.'), b.TrimEnd('.'), StringComparison.OrdinalIgnoreCase);
 
-    private static string ReadName(ReadOnlySpan<byte> packet, ref int at)
+    internal static bool TryReadName(ReadOnlySpan<byte> packet, ref int at, out string name)
     {
         var labels = new List<string>();
         var jumped = false;
         var position = at;
-        for (var hops = 0; hops < 32; hops++)
+        for (var hops = 0; hops < 128; hops++)
         {
+            if ((uint)position >= (uint)packet.Length)
+            {
+                name = string.Empty;
+                return false;
+            }
             var length = packet[position];
             if (length == 0)
             {
                 if (!jumped) at = position + 1;
-                return string.Join('.', labels);
+                name = string.Join('.', labels);
+                return true;
             }
             if ((length & 0xC0) == 0xC0)
             {
+                if (position + 1 >= packet.Length)
+                {
+                    name = string.Empty;
+                    return false;
+                }
                 var pointer = BinaryPrimitives.ReadUInt16BigEndian(packet[position..]) & 0x3FFF;
+                if (pointer >= packet.Length)
+                {
+                    name = string.Empty;
+                    return false;
+                }
                 if (!jumped) at = position + 2;
                 jumped = true;
                 position = pointer;
                 continue;
             }
+            if ((length & 0xC0) != 0 || position + 1 + length > packet.Length)
+            {
+                name = string.Empty;
+                return false;
+            }
             labels.Add(Encoding.UTF8.GetString(packet.Slice(position + 1, length)));
             position += 1 + length;
         }
-        throw new FormatException("DNS name loop.");
+        name = string.Empty;
+        return false;
     }
 
     private static byte[] Query()
