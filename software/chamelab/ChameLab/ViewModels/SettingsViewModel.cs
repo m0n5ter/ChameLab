@@ -1,13 +1,16 @@
 using System;
-using System.Globalization;
-using System.Windows.Input;
-using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Input;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using ChameLab.Localization;
+using ChameLab.Models;
+using ChameLab.Protocol;
 using ChameLab.Services;
 using ReactiveUI;
-using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
@@ -26,10 +29,17 @@ public sealed class SettingsViewModel : PageViewModelBase
 
         ExportBackupCommand = ReactiveCommand.CreateFromTask(ExportBackupAsync);
         ImportBackupCommand = ReactiveCommand.CreateFromTask(ImportBackupAsync);
+        ConfirmBackupImportCommand = ReactiveCommand.Create(ConfirmBackupImport);
+        CancelBackupImportCommand = ReactiveCommand.Create(CancelBackupImport);
         OpenLinkCommand = ReactiveCommand.CreateFromTask<string>(OpenLinkAsync);
         _theme = Themes.First(t => t.Variant == AppearanceService.LoadTheme());
         LocalizationService.LanguageChanged += OnLanguageChanged;
         Sync = new SyncViewModel(AppServices.Sync, ReportError, Notify);
+        Sync.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SyncViewModel.IsDialogOpen))
+                this.RaisePropertyChanged(nameof(IsDialogOpen));
+        };
     }
 
     /// <summary>The Device sync card.</summary>
@@ -130,8 +140,65 @@ public sealed class SettingsViewModel : PageViewModelBase
 
     public bool CanVibrate => ScanFeedback.CanVibrate;
 
+    private BackupImportPlan? _pendingBackupPlan;
+    private bool _isBackupImportDialogOpen;
+
+    public bool IsBackupImportDialogOpen
+    {
+        get => _isBackupImportDialogOpen;
+        private set
+        {
+            if (_isBackupImportDialogOpen == value) return;
+            _isBackupImportDialogOpen = value;
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(IsDialogOpen));
+        }
+    }
+
+    public bool IsDialogOpen => Sync.IsDialogOpen || IsBackupImportDialogOpen;
+
+    public ObservableCollection<BackupConflictItem> CardConflicts { get; } = new();
+    public ObservableCollection<BackupConflictItem> DictionaryConflicts { get; } = new();
+    public bool HasBothConflictKinds => CardConflicts.Count > 0 && DictionaryConflicts.Count > 0;
+
+    private IEnumerable<BackupConflictItem> AllConflicts => CardConflicts.Concat(DictionaryConflicts);
+
+    public bool AllSkip
+    {
+        get => AllConflicts.Any() && AllConflicts.All(c => c.Resolution == BackupConflictResolution.Skip);
+        set { if (value) SetAllResolutions(BackupConflictResolution.Skip); }
+    }
+
+    public bool AllOverwrite
+    {
+        get => AllConflicts.Any() && AllConflicts.All(c => c.Resolution == BackupConflictResolution.Overwrite);
+        set { if (value) SetAllResolutions(BackupConflictResolution.Overwrite); }
+    }
+
+    public bool AllKeepBoth
+    {
+        get => AllConflicts.Any() && AllConflicts.All(c => c.Resolution == BackupConflictResolution.KeepBoth);
+        set { if (value) SetAllResolutions(BackupConflictResolution.KeepBoth); }
+    }
+
+    private void SetAllResolutions(BackupConflictResolution resolution)
+    {
+        foreach (var item in AllConflicts)
+            item.SetResolutionSilent(resolution);
+        RaiseAllResolutionProps();
+    }
+
+    private void RaiseAllResolutionProps()
+    {
+        this.RaisePropertyChanged(nameof(AllSkip));
+        this.RaisePropertyChanged(nameof(AllOverwrite));
+        this.RaisePropertyChanged(nameof(AllKeepBoth));
+    }
+
     public ICommand ExportBackupCommand { get; }
     public ICommand ImportBackupCommand { get; }
+    public ICommand ConfirmBackupImportCommand { get; }
+    public ICommand CancelBackupImportCommand { get; }
 
     private System.Threading.Tasks.Task ExportBackupAsync() => RunAsync(async () =>
     {
@@ -144,9 +211,44 @@ public sealed class SettingsViewModel : PageViewModelBase
     {
         var picked = await StorageService.OpenAsync(Strings.Settings_ImportBackup, "json");
         if (picked is not { } file) return;
-        var (c, d) = BackupService.Import(file.Data, _cards, _dictionaries);
-        Notify(string.Format(Strings.Settings_ImportedBackup, Loc.Plural(Strings.Plural_Cards, c), Loc.Plural(Strings.Plural_Dictionaries, d)));
+        var plan = BackupService.PlanImport(file.Data, _cards, _dictionaries);
+        if (!plan.HasConflicts)
+        {
+            var (c, d) = BackupService.ApplyImport(plan, _cards, _dictionaries);
+            Notify(string.Format(Strings.Settings_ImportedBackup, Loc.Plural(Strings.Plural_Cards, c), Loc.Plural(Strings.Plural_Dictionaries, d)));
+            return;
+        }
+
+        _pendingBackupPlan = plan;
+        CardConflicts.Clear();
+        DictionaryConflicts.Clear();
+        foreach (var card in plan.CardConflicts)
+            CardConflicts.Add(new BackupConflictItem(card, RaiseAllResolutionProps));
+        foreach (var dict in plan.DictionaryConflicts)
+            DictionaryConflicts.Add(new BackupConflictItem(dict, RaiseAllResolutionProps));
+        this.RaisePropertyChanged(nameof(HasBothConflictKinds));
+        RaiseAllResolutionProps();
+        IsBackupImportDialogOpen = true;
     });
+
+    private void ConfirmBackupImport()
+    {
+        if (_pendingBackupPlan is not { } plan) return;
+        _pendingBackupPlan = null;
+        CardConflicts.Clear();
+        DictionaryConflicts.Clear();
+        IsBackupImportDialogOpen = false;
+        var (c, d) = BackupService.ApplyImport(plan, _cards, _dictionaries);
+        Notify(string.Format(Strings.Settings_ImportedBackup, Loc.Plural(Strings.Plural_Cards, c), Loc.Plural(Strings.Plural_Dictionaries, d)));
+    }
+
+    private void CancelBackupImport()
+    {
+        _pendingBackupPlan = null;
+        CardConflicts.Clear();
+        DictionaryConflicts.Clear();
+        IsBackupImportDialogOpen = false;
+    }
 
     /// <summary>Application version, from the assembly's informational version.</summary>
     public string AppVersion => AppUpdateService.CurrentVersion;
@@ -227,3 +329,100 @@ public sealed record ThemeOption(ThemeVariant Variant, string Name)
 /// <paramref name="Accent"/> draws the icon in the accent color.
 /// </summary>
 public sealed record SocialLink(string Name, string Url, string IconKey, int Priority, bool Accent = false);
+
+public sealed class BackupConflictItem : ReactiveObject
+{
+    private readonly BackupCardConflict? _cardConflict;
+    private readonly BackupDictionaryConflict? _dictConflict;
+    private readonly Action _onChanged;
+    private BackupConflictResolution _resolution;
+
+    public BackupConflictItem(BackupCardConflict conflict, Action onChanged)
+    {
+        _cardConflict = conflict;
+        _onChanged = onChanged;
+        _resolution = conflict.Resolution;
+        IconKey = "card";
+        KindLabel = Strings.Backup_CardLabel;
+        DisplayPath = FormatPath(conflict.Imported.Folder, conflict.Imported.Name, conflict.Existing.Folder, conflict.Existing.Name, conflict.Imported.UidHex);
+        LineA = $"A: {FormatCard(conflict.Existing)}";
+        LineB = $"B: {FormatCard(conflict.Imported)}";
+    }
+
+    public BackupConflictItem(BackupDictionaryConflict conflict, Action onChanged)
+    {
+        _dictConflict = conflict;
+        _onChanged = onChanged;
+        _resolution = conflict.Resolution;
+        IconKey = "key";
+        KindLabel = Strings.Backup_DictionaryLabel;
+        DisplayPath = FormatPath(conflict.Imported.Folder, conflict.Imported.Name, conflict.Existing.Folder, conflict.Existing.Name, Strings.Common_NoName);
+        LineA = $"A: {FormatDict(conflict.Existing)}";
+        LineB = $"B: {FormatDict(conflict.Imported)}";
+    }
+
+    public string GroupId { get; } = Guid.NewGuid().ToString("N");
+    public string IconKey { get; }
+    public string KindLabel { get; }
+    public string DisplayPath { get; }
+    public string LineA { get; }
+    public string LineB { get; }
+
+    public BackupConflictResolution Resolution => _resolution;
+
+    public bool IsSkip
+    {
+        get => _resolution == BackupConflictResolution.Skip;
+        set { if (value) SetResolution(BackupConflictResolution.Skip); }
+    }
+
+    public bool IsOverwrite
+    {
+        get => _resolution == BackupConflictResolution.Overwrite;
+        set { if (value) SetResolution(BackupConflictResolution.Overwrite); }
+    }
+
+    public bool IsKeepBoth
+    {
+        get => _resolution == BackupConflictResolution.KeepBoth;
+        set { if (value) SetResolution(BackupConflictResolution.KeepBoth); }
+    }
+
+    public bool IsLineAHighlighted => _resolution is BackupConflictResolution.Skip or BackupConflictResolution.KeepBoth;
+    public bool IsLineBHighlighted => _resolution is BackupConflictResolution.Overwrite or BackupConflictResolution.KeepBoth;
+
+    public void SetResolutionSilent(BackupConflictResolution value)
+    {
+        if (_resolution == value) return;
+        _resolution = value;
+        if (_cardConflict is not null) _cardConflict.Resolution = value;
+        if (_dictConflict is not null) _dictConflict.Resolution = value;
+        this.RaisePropertyChanged(nameof(IsSkip));
+        this.RaisePropertyChanged(nameof(IsOverwrite));
+        this.RaisePropertyChanged(nameof(IsKeepBoth));
+        this.RaisePropertyChanged(nameof(IsLineAHighlighted));
+        this.RaisePropertyChanged(nameof(IsLineBHighlighted));
+    }
+
+    private void SetResolution(BackupConflictResolution value)
+    {
+        SetResolutionSilent(value);
+        _onChanged();
+    }
+
+    private static string FormatPath(string folder, string name, string fallbackFolder, string fallbackName, string fallback)
+    {
+        var n = string.IsNullOrWhiteSpace(name) ? fallbackName : name;
+        if (string.IsNullOrWhiteSpace(n)) n = fallback;
+        var f = string.IsNullOrWhiteSpace(folder) ? fallbackFolder : folder;
+        return string.IsNullOrWhiteSpace(f) ? n : $"{f}/{n}";
+    }
+
+    private static string FormatCard(CardSave c) => $"{c.Tag.ShortName()} ({c.UidHex})";
+
+    private static string FormatDict(KeyDictionary d)
+    {
+        var name = string.IsNullOrWhiteSpace(d.Name) ? Strings.Common_NoName : d.Name;
+        return $"{name} ({Loc.Plural(Strings.Plural_Keys, d.Count)})";
+    }
+}

@@ -112,7 +112,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="*,Auto" IsEnabled="{Binding !Sync.IsDialogOpen}">
+  <Grid RowDefinitions="*,Auto" IsEnabled="{Binding !IsDialogOpen}">
     <ScrollViewer Grid.Row="0">
       <StackPanel Classes="page" MaxWidth="820">
 

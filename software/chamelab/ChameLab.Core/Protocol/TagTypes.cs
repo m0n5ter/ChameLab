@@ -93,6 +93,39 @@ public static class TagTypeExtensions
         _ => t.ToString(),
     };
 
+    public static string ShortName(this TagSpecificType t) => t switch
+    {
+        TagSpecificType.Undefined => Strings.Common_Empty,
+        TagSpecificType.MifareMini => "MFC Mini",
+        TagSpecificType.Mifare1024 => "MFC 1K",
+        TagSpecificType.Mifare2048 => "MFC 2K",
+        TagSpecificType.Mifare4096 => "MFC 4K",
+        TagSpecificType.Ntag210 => "NTAG210",
+        TagSpecificType.Ntag212 => "NTAG212",
+        TagSpecificType.Ntag213 => "NTAG213",
+        TagSpecificType.Ntag215 => "NTAG215",
+        TagSpecificType.Ntag216 => "NTAG216",
+        TagSpecificType.Mf0Icu1 => "UL",
+        TagSpecificType.Mf0Icu2 => "UL C",
+        TagSpecificType.Mf0Ul11 => "UL EV1 11",
+        TagSpecificType.Mf0Ul21 => "UL EV1 21",
+        TagSpecificType.Em410x => "EM410X",
+        TagSpecificType.Em410x16 => "EM410X/16",
+        TagSpecificType.Em410x32 => "EM410X/32",
+        TagSpecificType.Em410x64 => "EM410X/64",
+        TagSpecificType.Em410xElectra => "EM Electra",
+        TagSpecificType.HidProx => "HID",
+        TagSpecificType.IoProx => "ioProx",
+        TagSpecificType.FarpointePyramid => "Pyramid",
+        TagSpecificType.Pac => "PAC",
+        TagSpecificType.Viking => "Viking",
+        TagSpecificType.Jablotron => "Jablotron",
+        TagSpecificType.Idteck => "IDTECK",
+        TagSpecificType.Hf14a4 => "14A-4",
+        TagSpecificType.Seos => "SEOS",
+        _ => t.ToString(),
+    };
+
     public static IEnumerable<TagSpecificType> All() =>
         System.Enum.GetValues<TagSpecificType>()
             .Where(t => t != TagSpecificType.TagTypesLfEnd);

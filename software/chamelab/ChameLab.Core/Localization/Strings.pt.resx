@@ -4339,4 +4339,32 @@
   <data name="Firmware_InstalledWakeBle" xml:space="preserve">
     <value>O firmware foi instalado. Na bateria, o dispositivo desliga após atualizar — pressione o botão B duas vezes com uma pausa de 1 segundo para ligá-lo e reconecte-o pela página Conectar.</value>
   </data>
+  <data name="Backup_ConflictsTitle" xml:space="preserve">
+    <value>Conflitos do backup</value>
+  </data>
+  <data name="Backup_ConflictsHint" xml:space="preserve">
+    <value>Alguns itens do backup coincidem parcialmente com os existentes. Escolha o que fazer para cada um:</value>
+  </data>
+  <data name="Backup_ResolutionSkip" xml:space="preserve">
+    <value>Ignorar</value>
+  </data>
+  <data name="Backup_ResolutionOverwrite" xml:space="preserve">
+    <value>Substituir</value>
+  </data>
+  <data name="Backup_ResolutionKeepBoth" xml:space="preserve">
+    <value>Manter ambos</value>
+  </data>
+  <data name="Backup_ConflictCompare" xml:space="preserve">
+    <value>Existente: {0} · Backup: {1}</value>
+  </data>
+  <data name="Backup_CardLabel" xml:space="preserve">
+    <value>Cartão</value>
+  </data>
+  <data name="Backup_DictionaryLabel" xml:space="preserve">
+    <value>Dicionário</value>
+  </data>
+  <data name="Backup_ConflictLegend" xml:space="preserve">
+    <value>A - existente
+B - importado</value>
+  </data>
 </root>

@@ -99,4 +99,77 @@ public class ChameleonGuiImportTests
         Assert.Equal((0, 0), BackupService.Import(Bytes(json), cards, dicts));
         Assert.Equal(["Work", "Work/Doors"], cards.Folders);
     }
+
+    [Fact]
+    public void PlanImportClassifiesExactPartialAndNewAcrossBothFormats()
+    {
+        var store = new MemoryKeyValueStore();
+        var cards = new CardLibrary(store);
+        var dicts = new DictionaryLibrary(store);
+
+        // Existing items: one exact match (c1), one partial match by Id (c2 modified), one partial dict by Name (d1 with different key).
+        var c1 = CardSave.FromJson(Card1);
+        c1.Folder = "Work/Doors";
+        var c2 = CardSave.FromJson(Card2);
+        c2.Name = "Loose (local)";
+        cards.AddRange([c1, c2]);
+
+        var d1 = KeyDictionary.FromJson(Dict);
+        d1.Id = "different-id";
+        d1.Keys.Add([0, 0, 0, 0, 0, 0]);
+        dicts.Add(d1);
+
+        var json = $$"""{"cards":[{{Card1}},{{Card2}},{{Card3}}],"card_folders":[{{Work}},{{Doors}}],"dictionaries":[{{Dict}}]}""";
+        var plan = BackupService.PlanImport(Bytes(json), cards, dicts);
+
+        Assert.True(plan.HasConflicts);
+        Assert.Equal(1, plan.SkippedCards);
+        Assert.Single(plan.NewCards);
+        Assert.Equal("c3", plan.NewCards[0].Id);
+        Assert.Single(plan.CardConflicts);
+        Assert.Equal("c2", plan.CardConflicts[0].Imported.Id);
+        Assert.Single(plan.DictionaryConflicts);
+        Assert.Equal("FF", plan.DictionaryConflicts[0].Imported.Name);
+
+        // Overwrite c2, KeepBoth for d1.
+        plan.CardConflicts[0].Resolution = BackupConflictResolution.Overwrite;
+        plan.DictionaryConflicts[0].Resolution = BackupConflictResolution.KeepBoth;
+
+        var (addedCards, addedDicts) = BackupService.ApplyImport(plan, cards, dicts);
+        Assert.Equal((2, 1), (addedCards, addedDicts));
+        Assert.Equal(3, cards.Cards.Count);
+        Assert.Equal("Loose", cards.Cards.Single(c => c.Id == "c2").Name);
+        Assert.Equal(2, dicts.Dictionaries.Count);
+    }
+
+    [Fact]
+    public void PlanImportSkipsExactMatchesAndResolvesSkipOnChameLabBackup()
+    {
+        var store = new MemoryKeyValueStore();
+        var cards = new CardLibrary(store);
+        var dicts = new DictionaryLibrary(store);
+
+        var c2 = CardSave.FromJson(Card2);
+        cards.Add(c2);
+        var d1 = KeyDictionary.FromJson(Dict);
+        dicts.Add(d1);
+
+        var backup = BackupService.Export(cards, dicts);
+
+        // Mutate local c2 so it's a partial match against the backup.
+        c2.Name = "Changed";
+        cards.Update(c2);
+
+        var plan = BackupService.PlanImport(backup, cards, dicts);
+        Assert.True(plan.HasConflicts);
+        Assert.Equal(0, plan.SkippedCards);
+        Assert.Equal(1, plan.SkippedDictionaries);
+        Assert.Single(plan.CardConflicts);
+        Assert.Empty(plan.DictionaryConflicts);
+
+        // Default resolution is Skip.
+        var (addedCards, addedDicts) = BackupService.ApplyImport(plan, cards, dicts);
+        Assert.Equal((0, 0), (addedCards, addedDicts));
+        Assert.Equal("Changed", cards.Cards.Single(c => c.Id == "c2").Name);
+    }
 }

@@ -4339,4 +4339,32 @@
   <data name="Firmware_InstalledWakeBle" xml:space="preserve">
     <value>ファームウェアはインストールされました。バッテリー駆動時は更新後に電源が切れるため、ボタンBを1秒ほど空けて2回押して起動し、「接続」ページから再接続してください。</value>
   </data>
+  <data name="Backup_ConflictsTitle" xml:space="preserve">
+    <value>バックアップの競合</value>
+  </data>
+  <data name="Backup_ConflictsHint" xml:space="preserve">
+    <value>バックアップ内の一部の項目が既存の項目と部分的に一致しています。それぞれの処理を選択してください:</value>
+  </data>
+  <data name="Backup_ResolutionSkip" xml:space="preserve">
+    <value>スキップ</value>
+  </data>
+  <data name="Backup_ResolutionOverwrite" xml:space="preserve">
+    <value>上書き</value>
+  </data>
+  <data name="Backup_ResolutionKeepBoth" xml:space="preserve">
+    <value>両方保持</value>
+  </data>
+  <data name="Backup_ConflictCompare" xml:space="preserve">
+    <value>既存: {0} · バックアップ: {1}</value>
+  </data>
+  <data name="Backup_CardLabel" xml:space="preserve">
+    <value>カード</value>
+  </data>
+  <data name="Backup_DictionaryLabel" xml:space="preserve">
+    <value>辞書</value>
+  </data>
+  <data name="Backup_ConflictLegend" xml:space="preserve">
+    <value>A - 既存
+B - インポート</value>
+  </data>
 </root>

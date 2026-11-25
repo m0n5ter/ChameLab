@@ -4353,4 +4353,32 @@
   <data name="Firmware_InstalledWakeBle" xml:space="preserve">
     <value>Прошивка установлена. При работе от батареи устройство выключается после прошивки — нажмите кнопку B дважды с паузой в секунду, чтобы включить его, затем подключитесь заново на странице «Подключение».</value>
   </data>
+  <data name="Backup_ConflictsTitle" xml:space="preserve">
+    <value>Конфликты импорта</value>
+  </data>
+  <data name="Backup_ConflictsHint" xml:space="preserve">
+    <value>Некоторые объекты в резервной копии частично совпадают с уже имеющимися. Выберите действие для каждого:</value>
+  </data>
+  <data name="Backup_ResolutionSkip" xml:space="preserve">
+    <value>Пропустить</value>
+  </data>
+  <data name="Backup_ResolutionOverwrite" xml:space="preserve">
+    <value>Перезаписать</value>
+  </data>
+  <data name="Backup_ResolutionKeepBoth" xml:space="preserve">
+    <value>Сохранить обе</value>
+  </data>
+  <data name="Backup_ConflictCompare" xml:space="preserve">
+    <value>Имеющийся: {0} · Копия: {1}</value>
+  </data>
+  <data name="Backup_CardLabel" xml:space="preserve">
+    <value>Карта</value>
+  </data>
+  <data name="Backup_DictionaryLabel" xml:space="preserve">
+    <value>Словарь</value>
+  </data>
+  <data name="Backup_ConflictLegend" xml:space="preserve">
+    <value>A - существующий объект
+B - импортируемый объект</value>
+  </data>
 </root>

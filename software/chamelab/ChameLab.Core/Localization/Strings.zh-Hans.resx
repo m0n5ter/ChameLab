@@ -4339,4 +4339,32 @@
   <data name="Firmware_InstalledWakeBle" xml:space="preserve">
     <value>固件已安装。使用电池供电时，设备在更新后会关机，请间隔约 1 秒按两次 B 键开机，然后在“连接”页面重新连接。</value>
   </data>
+  <data name="Backup_ConflictsTitle" xml:space="preserve">
+    <value>备份冲突</value>
+  </data>
+  <data name="Backup_ConflictsHint" xml:space="preserve">
+    <value>备份中的部分项目与现有项目部分匹配。请为每项选择处理方式：</value>
+  </data>
+  <data name="Backup_ResolutionSkip" xml:space="preserve">
+    <value>跳过</value>
+  </data>
+  <data name="Backup_ResolutionOverwrite" xml:space="preserve">
+    <value>覆盖</value>
+  </data>
+  <data name="Backup_ResolutionKeepBoth" xml:space="preserve">
+    <value>保留两者</value>
+  </data>
+  <data name="Backup_ConflictCompare" xml:space="preserve">
+    <value>现有: {0} · 备份: {1}</value>
+  </data>
+  <data name="Backup_CardLabel" xml:space="preserve">
+    <value>卡片</value>
+  </data>
+  <data name="Backup_DictionaryLabel" xml:space="preserve">
+    <value>字典</value>
+  </data>
+  <data name="Backup_ConflictLegend" xml:space="preserve">
+    <value>A - 现有
+B - 导入</value>
+  </data>
 </root>

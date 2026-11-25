@@ -4339,4 +4339,32 @@
   <data name="Firmware_InstalledWakeBle" xml:space="preserve">
     <value>Die Firmware wurde installiert. Im Akkubetrieb schaltet sich das Gerät nach dem Update aus – drücken Sie die Taste B zweimal mit einer Sekunde Pause, um es einzuschalten, und verbinden Sie es auf der Seite „Verbinden“ erneut.</value>
   </data>
+  <data name="Backup_ConflictsTitle" xml:space="preserve">
+    <value>Backup-Konflikte</value>
+  </data>
+  <data name="Backup_ConflictsHint" xml:space="preserve">
+    <value>Einige Elemente im Backup stimmen teilweise mit vorhandenen überein. Wählen Sie für jedes eine Aktion:</value>
+  </data>
+  <data name="Backup_ResolutionSkip" xml:space="preserve">
+    <value>Überspringen</value>
+  </data>
+  <data name="Backup_ResolutionOverwrite" xml:space="preserve">
+    <value>Überschreiben</value>
+  </data>
+  <data name="Backup_ResolutionKeepBoth" xml:space="preserve">
+    <value>Beide behalten</value>
+  </data>
+  <data name="Backup_ConflictCompare" xml:space="preserve">
+    <value>Vorhanden: {0} · Backup: {1}</value>
+  </data>
+  <data name="Backup_CardLabel" xml:space="preserve">
+    <value>Karte</value>
+  </data>
+  <data name="Backup_DictionaryLabel" xml:space="preserve">
+    <value>Wörterbuch</value>
+  </data>
+  <data name="Backup_ConflictLegend" xml:space="preserve">
+    <value>A - vorhanden
+B - importiert</value>
+  </data>
 </root>
