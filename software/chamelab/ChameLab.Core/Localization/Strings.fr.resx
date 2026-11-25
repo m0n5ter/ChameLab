@@ -4330,4 +4330,10 @@
   <data name="Ble_ConnectTimeout" xml:space="preserve">
     <value>Le Chameleon n'a pas répondu en Bluetooth. Réveillez-le et réessayez.</value>
   </data>
+  <data name="Firmware_WaitingRestartBle" xml:space="preserve">
+    <value>En attente du redémarrage de l'appareil… Sur batterie, il s'éteint après la mise à jour — appuyez deux fois sur le bouton B avec une pause d'une seconde pour le rallumer.</value>
+  </data>
+  <data name="Firmware_InstalledWakeBle" xml:space="preserve">
+    <value>Le firmware a été installé. Sur batterie, l'appareil s'éteint après la mise à jour — appuyez deux fois sur le bouton B avec une pause d'une seconde pour le rallumer, puis reconnectez-le depuis la page Connexion.</value>
+  </data>
 </root>

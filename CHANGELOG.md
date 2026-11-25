@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: handle BLE firmware updates on battery cleanly — harden final DFU execute writes against immediate bootloader disconnect, prompt to press button B twice to wake the device (the Chameleon bootloader enters System OFF on battery both after DFU and after firmware activation), and report the update as installed rather than failed if reconnect times out
 
 ## [v1.8.60][2026-11-24] · firmware v2.4.26-cl
 ### Summary

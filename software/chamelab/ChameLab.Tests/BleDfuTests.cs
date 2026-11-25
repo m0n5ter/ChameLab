@@ -248,6 +248,243 @@ public class BleDfuTests
         Assert.Equal(1, released);
     }
 
+    [Theory]
+    [InlineData("disconnect_while_writing")]
+    [InlineData("write_throws_before_disconnect")]
+    [InlineData("write_hangs")]
+    public async Task FinalExecuteLinkLossOrHangStillCompletesFlash(string failureMode)
+    {
+        var adapter = FakeProxy.Create<IAdapter>();
+        var device = FakeProxy.Create<IDevice>();
+        var service = FakeProxy.Create<IService>();
+        var control = FakeProxy.Create<ICharacteristic>();
+        var packet = FakeProxy.Create<ICharacteristic>();
+
+        device.Values["Id"] = Guid.NewGuid();
+        device.Values["Name"] = "CU-1234";
+        device.Values["State"] = DeviceState.Connected;
+
+        byte currentObj = 0;
+        uint offset = 0;
+        uint crc = 0;
+        var stopUpdatesCalled = false;
+
+        void Notify(byte[] payload)
+        {
+            control.Values["Value"] = payload;
+            control.RaiseValueUpdated();
+        }
+
+        byte[] Ok(byte op, params byte[] extra) => [SecureDfu.OpResponse, op, 0x01, .. extra];
+
+        control.OnMethod = (name, args) =>
+        {
+            if (name == "StartUpdatesAsync") return Task.CompletedTask;
+            if (name == "StopUpdatesAsync")
+            {
+                stopUpdatesCalled = true;
+                return Task.CompletedTask;
+            }
+            if (name == "WriteAsync")
+            {
+                var req = (byte[])args[0]!;
+                switch (req[0])
+                {
+                    case SecureDfu.OpSetPrn:
+                        Notify(Ok(SecureDfu.OpSetPrn));
+                        break;
+                    case SecureDfu.OpSelect:
+                        currentObj = req[1];
+                        Notify(Ok(SecureDfu.OpSelect, [.. BitConverter.GetBytes(4096u), .. BitConverter.GetBytes(0u), .. BitConverter.GetBytes(0u)]));
+                        break;
+                    case SecureDfu.OpCreate:
+                        currentObj = req[1];
+                        if (currentObj == 0x01) { offset = 0; crc = 0; }
+                        Notify(Ok(SecureDfu.OpCreate));
+                        break;
+                    case SecureDfu.OpCrc:
+                        Notify(Ok(SecureDfu.OpCrc, [.. BitConverter.GetBytes(offset), .. BitConverter.GetBytes(crc)]));
+                        break;
+                    case SecureDfu.OpExecute when currentObj == 0x01:
+                        offset = 0;
+                        crc = 0;
+                        Notify(Ok(SecureDfu.OpExecute));
+                        break;
+                    case SecureDfu.OpExecute when currentObj == 0x02:
+                        if (failureMode == "disconnect_while_writing")
+                        {
+                            var never = new TaskCompletionSource<int>();
+                            _ = Task.Run(async () =>
+                            {
+                                await Task.Delay(20);
+                                device.Values["State"] = DeviceState.Disconnected;
+                                adapter.RaiseDeviceDisconnected(device.Object);
+                            });
+                            return never.Task;
+                        }
+                        if (failureMode == "write_throws_before_disconnect")
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                await Task.Delay(20);
+                                device.Values["State"] = DeviceState.Disconnected;
+                                adapter.RaiseDeviceDisconnected(device.Object);
+                            });
+                            return Task.FromException<int>(new InvalidOperationException("GATT write failed on disconnect"));
+                        }
+                        if (failureMode == "write_hangs")
+                            return new TaskCompletionSource<int>().Task;
+                        break;
+                }
+                return Task.FromResult(0);
+            }
+            return null;
+        };
+
+        packet.OnMethod = (name, args) =>
+        {
+            if (name == "WriteAsync")
+            {
+                var data = (byte[])args[0]!;
+                crc = AppendCrc32(crc, data);
+                offset += (uint)data.Length;
+                return Task.FromResult(0);
+            }
+            return null;
+        };
+
+        service.OnMethod = (name, args) =>
+        {
+            if (name == "GetCharacteristicAsync")
+            {
+                var id = (Guid)args[0]!;
+                if (id == SecureDfuService.ControlPoint) return Task.FromResult(control.Object);
+                if (id == SecureDfuService.Packet) return Task.FromResult(packet.Object);
+            }
+            return null;
+        };
+
+        device.OnMethod = (name, _) =>
+        {
+            if (name == "RequestMtuAsync") return Task.FromResult(180);
+            if (name == "GetServiceAsync") return Task.FromResult(service.Object);
+            return null;
+        };
+
+        adapter.OnMethod = (name, _) =>
+        {
+            if (name is "ConnectToDeviceAsync" or "DisconnectDeviceAsync") return Task.CompletedTask;
+            return null;
+        };
+
+        await using (var channel = await BleDfuChannel.OpenAsync(
+            adapter.Object, device.Object, returnsPayloadLength: true, CancellationToken.None,
+            responseTimeout: TimeSpan.FromMilliseconds(100),
+            disconnectGrace: TimeSpan.FromMilliseconds(150)))
+        {
+            var package = new DfuPackage([1, 2, 3, 4], [5, 6, 7, 8, 9, 10, 11, 12]);
+            await new SecureDfu(channel).FlashAsync(package);
+        }
+
+        if (failureMode != "write_hangs")
+            Assert.False(stopUpdatesCalled, "Should skip StopUpdatesAsync once the bootloader has already disconnected.");
+    }
+
+    [Fact]
+    public async Task InstallAsyncReturnsNotReconnectedWhenDevicePowersOffAfterFlash()
+    {
+        var scanner = new EmptyBleScanner();
+        var device = new DeviceService([scanner]);
+        // Simulate a previously connected BLE device (e.g. Chameleon on battery) that won't return without a button press.
+        typeof(DeviceService).GetProperty(nameof(DeviceService.Candidate))!
+            .SetValue(device, new TransportCandidate(TransportKind.Ble, Guid.NewGuid().ToString(), "Chameleon Ultra", "BLE"));
+
+        var service = new FirmwareUpdateService(device, Array.Empty<IDfuLocator>())
+        {
+            ReconnectTimeout = TimeSpan.FromMilliseconds(80),
+        };
+        var target = new ScriptedDfuTarget();
+        var steps = new List<FirmwareUpdateStep>();
+        var progress = new SyncProgress<FirmwareUpdateProgress>(p => steps.Add(p.Step));
+
+        var result = await service.InstallAsync(new DfuPackage([1, 2, 3, 4], [5, 6, 7, 8]), target, progress);
+
+        Assert.Equal(FirmwareInstallResult.NotReconnected, result);
+        Assert.Contains(FirmwareUpdateStep.Flashing, steps);
+        Assert.Contains(FirmwareUpdateStep.Reconnecting, steps);
+    }
+
+    private sealed class SyncProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
+    }
+
+    private sealed class EmptyBleScanner : ITransportScanner
+    {
+        public TransportKind Kind => TransportKind.Ble;
+        public string DisplayName => "BLE";
+        public Task<IReadOnlyList<TransportCandidate>> ScanAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<TransportCandidate>>(Array.Empty<TransportCandidate>());
+        public ITransport Create(TransportCandidate candidate) => throw new NotSupportedException();
+    }
+
+    private sealed class ScriptedDfuTarget : IDfuTarget
+    {
+        public Task<IDfuChannel?> TryOpenAsync(CancellationToken ct) =>
+            Task.FromResult<IDfuChannel?>(new ScriptedDfuChannel());
+    }
+
+    private sealed class ScriptedDfuChannel : IDfuChannel
+    {
+        private byte _obj;
+        private uint _offset;
+        private uint _crc;
+
+        public int MaxDataSize => 20;
+        public int PacketReceiptInterval => 0;
+
+        public Task<byte[]> RequestAsync(byte[] request, CancellationToken ct)
+        {
+            var op = request[0];
+            byte[] resp = op switch
+            {
+                SecureDfu.OpSetPrn => [SecureDfu.OpResponse, op, 0x01],
+                SecureDfu.OpSelect => SetObj(request[1], [SecureDfu.OpResponse, op, 0x01, .. BitConverter.GetBytes(4096u), .. BitConverter.GetBytes(0u), .. BitConverter.GetBytes(0u)]),
+                SecureDfu.OpCreate => CreateObj(request[1]),
+                SecureDfu.OpCrc => [SecureDfu.OpResponse, op, 0x01, .. BitConverter.GetBytes(_offset), .. BitConverter.GetBytes(_crc)],
+                SecureDfu.OpExecute => ExecuteObj(),
+                _ => throw new NotSupportedException(),
+            };
+            return Task.FromResult(resp);
+        }
+
+        private byte[] SetObj(byte obj, byte[] resp) { _obj = obj; return resp; }
+
+        private byte[] CreateObj(byte obj)
+        {
+            _obj = obj;
+            if (obj == 0x01) { _offset = 0; _crc = 0; }
+            return [SecureDfu.OpResponse, SecureDfu.OpCreate, 0x01];
+        }
+
+        private byte[] ExecuteObj()
+        {
+            if (_obj == 0x01) { _offset = 0; _crc = 0; }
+            return [SecureDfu.OpResponse, SecureDfu.OpExecute, 0x01];
+        }
+
+        public Task<byte[]> ReceiveAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task WriteDataAsync(byte[] data, CancellationToken ct)
+        {
+            _crc = AppendCrc32(_crc, data);
+            _offset += (uint)data.Length;
+            return Task.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync() => default;
+    }
+
     private sealed class FailingTarget(Action onTryOpen) : IDfuTarget
     {
         public Task<IDfuChannel?> TryOpenAsync(CancellationToken ct)
@@ -289,6 +526,9 @@ public class BleDfuTests
         public void RaiseValueUpdated() =>
             _valueUpdated?.Invoke(_self, new CharacteristicUpdatedEventArgs((ICharacteristic)_self!));
 
+        public void RaiseDeviceDisconnected(IDevice device) =>
+            _disconnected?.Invoke(_self, new DeviceEventArgs { Device = device });
+
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
             var name = method!.Name;
@@ -321,5 +561,6 @@ public class BleDfuTests
         public Dictionary<string, object?> Values => Handler.Values;
         public Func<string, object?[], object?>? OnMethod { set => Handler.OnMethod = value; }
         public void RaiseValueUpdated() => Handler.RaiseValueUpdated();
+        public void RaiseDeviceDisconnected(IDevice device) => Handler.RaiseDeviceDisconnected(device);
     }
 }

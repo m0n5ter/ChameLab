@@ -4347,4 +4347,10 @@
   <data name="Settings_ThemeDark" xml:space="preserve">
     <value>Dark</value>
   </data>
+  <data name="Firmware_WaitingRestartBle" xml:space="preserve">
+    <value>Waiting for the device to restart… On battery, it powers off after updating — press button B twice with a 1-second pause to turn it on.</value>
+  </data>
+  <data name="Firmware_InstalledWakeBle" xml:space="preserve">
+    <value>The firmware was installed. On battery, the device powers off after updating — press button B twice with a 1-second pause to turn it on, then reconnect from the Connect page.</value>
+  </data>
 </root>

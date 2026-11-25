@@ -285,7 +285,7 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
             // Prepared before the restart, so a retry still knows which bootloader is this device's.
             _target ??= _service.PrepareTarget();
 
-            await _service.InstallAsync(_package, _target, new Progress<FirmwareUpdateProgress>(p =>
+            var result = await _service.InstallAsync(_package, _target, new Progress<FirmwareUpdateProgress>(p =>
             {
                 switch (p.Step)
                 {
@@ -299,16 +299,23 @@ public sealed class FirmwareUpdateViewModel : ViewModelBase
                         CanPickBootloader = false;
                         SetStep(string.Format(Strings.Firmware_Flashing, p.Fraction), p.Fraction);
                         break;
-                    case FirmwareUpdateStep.Reconnecting: SetStep(Strings.Firmware_WaitingRestart); break;
+                    case FirmwareUpdateStep.Reconnecting:
+                        SetStep(_overBle ? Strings.Firmware_WaitingRestartBle : Strings.Firmware_WaitingRestart);
+                        break;
                 }
             }));
 
             _package = null;
             _target = null;
             InstallTitle = Strings.Firmware_Updated;
-            StepText = _device.DeviceInfo is { } info
-                ? string.Format(Strings.Firmware_NowRuns, info.ModelName, info.FullFirmwareVersion)
-                : Strings.Firmware_Restarted;
+            StepText = result switch
+            {
+                FirmwareInstallResult.Reconnected when _device.DeviceInfo is { } info =>
+                    string.Format(Strings.Firmware_NowRuns, info.ModelName, info.FullFirmwareVersion),
+                FirmwareInstallResult.NotReconnected =>
+                    _overBle ? Strings.Firmware_InstalledWakeBle : Strings.Firmware_DidNotReturn,
+                _ => Strings.Firmware_Restarted,
+            };
             Dialog = FirmwareDialog.Done;
         }
         catch (Exception ex)

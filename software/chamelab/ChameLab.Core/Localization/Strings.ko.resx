@@ -4330,4 +4330,10 @@
   <data name="Ble_ConnectTimeout" xml:space="preserve">
     <value>Chameleon이 Bluetooth로 응답하지 않았습니다. 기기를 깨운 뒤 다시 시도하세요.</value>
   </data>
+  <data name="Firmware_WaitingRestartBle" xml:space="preserve">
+    <value>장치가 재시작되기를 기다리는 중… 배터리로 작동 중일 때는 업데이트 후 꺼지므로 B 버튼을 1초 간격으로 두 번 눌러 켜 주세요.</value>
+  </data>
+  <data name="Firmware_InstalledWakeBle" xml:space="preserve">
+    <value>펌웨어가 설치되었습니다. 배터리로 작동 중일 때는 업데이트 후 장치가 꺼집니다. B 버튼을 1초 간격으로 두 번 눌러 켠 뒤 ‘연결’ 페이지에서 다시 연결하세요.</value>
+  </data>
 </root>

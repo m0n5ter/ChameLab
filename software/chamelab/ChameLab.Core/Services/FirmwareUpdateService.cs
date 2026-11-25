@@ -22,6 +22,8 @@ public sealed record FirmwareRelease(
 
 public enum FirmwareUpdateStep { Downloading, Restarting, WaitingForBootloader, Flashing, Reconnecting }
 
+public enum FirmwareInstallResult { Reconnected, BootloaderOnly, NotReconnected }
+
 public readonly record struct FirmwareUpdateProgress(FirmwareUpdateStep Step, double Fraction = 0);
 
 /// <summary>
@@ -37,7 +39,7 @@ public sealed partial class FirmwareUpdateService(
 
     private static readonly TimeSpan BootloaderTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PickTimeout = TimeSpan.FromMinutes(2);
-    private static readonly TimeSpan ReconnectTimeout = TimeSpan.FromSeconds(40);
+    internal TimeSpan ReconnectTimeout { get; init; } = TimeSpan.FromSeconds(40);
 
     private static readonly HttpClient Http = CreateHttp();
 
@@ -118,8 +120,10 @@ public sealed partial class FirmwareUpdateService(
     /// <summary>
     /// Flashes <paramref name="package"/>. A connected device is restarted into its bootloader first;
     /// otherwise a device already waiting in the bootloader (an earlier attempt failed) is flashed.
+    /// Returns whether the device reconnected afterwards; on battery the Chameleon bootloader enters
+    /// System OFF after DFU instead of rebooting, so not reconnecting is not a flash failure.
     /// </summary>
-    public async Task InstallAsync(
+    public async Task<FirmwareInstallResult> InstallAsync(
         DfuPackage package, IDfuTarget target,
         IProgress<FirmwareUpdateProgress> progress, CancellationToken ct = default)
     {
@@ -148,15 +152,25 @@ public sealed partial class FirmwareUpdateService(
         }
 
         progress.Report(new(FirmwareUpdateStep.Reconnecting));
-        if (previous is null) return;   // flashed a device that was already waiting in its bootloader
+        if (previous is null) return FirmwareInstallResult.BootloaderOnly; // flashed a device that was already waiting in its bootloader
         // A port is listed (a peripheral advertises) a moment before it accepts a connection, so keep trying.
-        await PollAsync(async () =>
+        // On battery (no USB), the Chameleon bootloader powers off after flashing instead of rebooting, so
+        // timing out here means the firmware is installed and only awaits a button press to wake the device.
+        try
         {
-            var found = await device.ScanAsync(previous.Kind, ct);
-            if ((found.FirstOrDefault(c => c.Id == previous?.Id) ?? found.FirstOrDefault()) is not { } candidate) return null;
-            await device.ConnectAsync(candidate, ct);
-            return candidate;
-        }, ReconnectTimeout, ct, Strings.Firmware_DidNotReturn);
+            await PollAsync(async () =>
+            {
+                var found = await device.ScanAsync(previous.Kind, ct);
+                if ((found.FirstOrDefault(c => c.Id == previous?.Id) ?? found.FirstOrDefault()) is not { } candidate) return null;
+                await device.ConnectAsync(candidate, ct);
+                return candidate;
+            }, ReconnectTimeout, ct, Strings.Firmware_DidNotReturn);
+            return FirmwareInstallResult.Reconnected;
+        }
+        catch (TimeoutException)
+        {
+            return FirmwareInstallResult.NotReconnected;
+        }
     }
 
     /// <summary>

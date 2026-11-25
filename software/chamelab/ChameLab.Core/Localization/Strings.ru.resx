@@ -4344,4 +4344,10 @@
   <data name="Settings_ThemeDark" xml:space="preserve">
     <value>Тёмная</value>
   </data>
+  <data name="Firmware_WaitingRestartBle" xml:space="preserve">
+    <value>Ожидание перезапуска устройства… При работе от батареи оно выключается после прошивки — нажмите кнопку B дважды с паузой в секунду, чтобы включить его.</value>
+  </data>
+  <data name="Firmware_InstalledWakeBle" xml:space="preserve">
+    <value>Прошивка установлена. При работе от батареи устройство выключается после прошивки — нажмите кнопку B дважды с паузой в секунду, чтобы включить его, затем подключитесь заново на странице «Подключение».</value>
+  </data>
 </root>

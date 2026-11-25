@@ -143,18 +143,25 @@ public sealed class BleDfuLocator : IDfuLocator
 /// <summary>Secure DFU over BLE: requests on the control point, image data on the packet characteristic.</summary>
 public sealed class BleDfuChannel : IDfuChannel
 {
-    private static readonly TimeSpan ResponseTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan DefaultResponseTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan DefaultDisconnectGrace = TimeSpan.FromMilliseconds(250);
 
     private readonly IAdapter _adapter;
     private readonly IDevice _device;
+    private readonly TimeSpan _responseTimeout;
+    private readonly TimeSpan _disconnectGrace;
     private ICharacteristic _control = null!;
     private ICharacteristic _packet = null!;
     private readonly Channel<byte[]> _responses = Channel.CreateUnbounded<byte[]>();
+    private readonly TaskCompletionSource _linkClosed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private volatile bool _disconnected;
 
-    private BleDfuChannel(IAdapter adapter, IDevice device)
+    private BleDfuChannel(IAdapter adapter, IDevice device, TimeSpan? responseTimeout = null, TimeSpan? disconnectGrace = null)
     {
         _adapter = adapter;
         _device = device;
+        _responseTimeout = responseTimeout ?? DefaultResponseTimeout;
+        _disconnectGrace = disconnectGrace ?? DefaultDisconnectGrace;
     }
 
     internal const int MaxRequestedMtu = 247;
@@ -184,9 +191,10 @@ public sealed class BleDfuChannel : IDfuChannel
         OpenAsync(adapter, device, OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst(), ct);
 
     internal static async Task<BleDfuChannel> OpenAsync(
-        IAdapter adapter, IDevice device, bool returnsPayloadLength, CancellationToken ct)
+        IAdapter adapter, IDevice device, bool returnsPayloadLength, CancellationToken ct,
+        TimeSpan? responseTimeout = null, TimeSpan? disconnectGrace = null)
     {
-        var channel = new BleDfuChannel(adapter, device);
+        var channel = new BleDfuChannel(adapter, device, responseTimeout, disconnectGrace);
         try
         {
             // LE explicitly: Android's default transport may try classic Bluetooth on a device it just met (GATT error 133).
@@ -249,26 +257,22 @@ public sealed class BleDfuChannel : IDfuChannel
 
     private void OnDrop(IDevice? device)
     {
-        if (device?.Id == _device.Id) _responses.Writer.TryComplete();
+        if (device?.Id != _device.Id) return;
+        _disconnected = true;
+        _linkClosed.TrySetResult();
+        _responses.Writer.TryComplete();
     }
 
     public async Task<byte[]> RequestAsync(byte[] request, CancellationToken ct)
     {
-        try
-        {
-            await _control.WriteAsync(request, ct);
-        }
-        catch when (_responses.Reader.Completion.IsCompleted)
-        {
-            throw new DfuLinkClosedException();
-        }
+        await WriteCheckedAsync(_control, request, ct);
         return await ReceiveAsync(ct);
     }
 
     public async Task<byte[]> ReceiveAsync(CancellationToken ct)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(ResponseTimeout);
+        timeout.CancelAfter(_responseTimeout);
         try
         {
             return await _responses.Reader.ReadAsync(timeout.Token);
@@ -283,15 +287,39 @@ public sealed class BleDfuChannel : IDfuChannel
         }
     }
 
-    public async Task WriteDataAsync(byte[] data, CancellationToken ct)
+    public Task WriteDataAsync(byte[] data, CancellationToken ct) =>
+        WriteCheckedAsync(_packet, data, ct);
+
+    private async Task WriteCheckedAsync(ICharacteristic characteristic, byte[] payload, CancellationToken ct)
     {
+        if (_disconnected) throw new DfuLinkClosedException();
+        using var writeCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        writeCts.CancelAfter(_responseTimeout);
+        var writeTask = characteristic.WriteAsync(payload, writeCts.Token);
+        _ = writeTask.ContinueWith(static t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
         try
         {
-            await _packet.WriteAsync(data, ct);
+            var finished = await Task.WhenAny(writeTask, _linkClosed.Task).WaitAsync(writeCts.Token);
+            if (ReferenceEquals(finished, _linkClosed.Task))
+            {
+                writeCts.Cancel();
+                throw new DfuLinkClosedException();
+            }
+            await writeTask;
         }
-        catch when (_responses.Reader.Completion.IsCompleted)
+        catch (DfuLinkClosedException) { throw; }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            throw new DfuLinkClosedException();
+            throw _disconnected ? new DfuLinkClosedException() : new TimeoutException(Strings.Dfu_Stopped);
+        }
+        catch (Exception) when (!ct.IsCancellationRequested)
+        {
+            if (_disconnected || _device.State != DeviceState.Connected)
+                throw new DfuLinkClosedException();
+            // A native write failure on disconnect can race slightly ahead of DeviceDisconnected.
+            if (await Task.WhenAny(_linkClosed.Task, Task.Delay(_disconnectGrace, ct)) == _linkClosed.Task)
+                throw new DfuLinkClosedException();
+            throw;
         }
     }
 
@@ -302,11 +330,16 @@ public sealed class BleDfuChannel : IDfuChannel
         if (_control is not null)
         {
             _control.ValueUpdated -= OnControlValue;
-            using var stopCts = new CancellationTokenSource(DisposeTimeout);
-            try { await _control.StopUpdatesAsync(stopCts.Token).WaitAsync(stopCts.Token); } catch { /* the bootloader may have reset already */ }
+            if (!_disconnected)
+            {
+                using var stopCts = new CancellationTokenSource(DisposeTimeout);
+                try { await _control.StopUpdatesAsync(stopCts.Token).WaitAsync(stopCts.Token); } catch { /* the bootloader may have reset already */ }
+            }
         }
         using var discCts = new CancellationTokenSource(DisposeTimeout);
         try { await _adapter.DisconnectDeviceAsync(_device).WaitAsync(discCts.Token); } catch { /* ignore */ }
+        _disconnected = true;
+        _linkClosed.TrySetResult();
         _responses.Writer.TryComplete();
     }
 }

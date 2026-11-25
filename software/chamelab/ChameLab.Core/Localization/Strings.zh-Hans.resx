@@ -4330,4 +4330,10 @@
   <data name="Ble_ConnectTimeout" xml:space="preserve">
     <value>Chameleon 未通过蓝牙响应。请唤醒设备后重试。</value>
   </data>
+  <data name="Firmware_WaitingRestartBle" xml:space="preserve">
+    <value>正在等待设备重启… 使用电池供电时设备在更新后会关机，请间隔约 1 秒按两次 B 键将其开机。</value>
+  </data>
+  <data name="Firmware_InstalledWakeBle" xml:space="preserve">
+    <value>固件已安装。使用电池供电时，设备在更新后会关机，请间隔约 1 秒按两次 B 键开机，然后在“连接”页面重新连接。</value>
+  </data>
 </root>
