@@ -24,7 +24,7 @@ public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null
         foreach (var name in new[]
                  {
                      nameof(Info), nameof(HfNick), nameof(LfNick), nameof(HfType), nameof(LfType),
-                     nameof(HasHf), nameof(HasLf), nameof(IsEmpty), nameof(HfLed), nameof(LfLed), nameof(LedLeft), nameof(LedRight),
+                     nameof(HasHf), nameof(HasLf), nameof(IsEmpty), nameof(IsEnabled), nameof(HfLed), nameof(LfLed), nameof(LedLeft), nameof(LedRight),
                      nameof(HfLabel), nameof(LfLabel), nameof(LfNames), nameof(HfTypeLabel), nameof(LfTypeLabel), nameof(Summary),
                  })
             this.RaisePropertyChanged(name);
@@ -40,9 +40,11 @@ public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null
     public TagSpecificType HfType => _info.HfType;
     public TagSpecificType LfType => _info.LfType;
 
-    public bool HasHf => _info.HfType != TagSpecificType.Undefined && _info.HfEnabled;
-    public bool HasLf => _info.LfType != TagSpecificType.Undefined && _info.LfEnabled;
+    public bool HasHf => _info.HfType != TagSpecificType.Undefined;
+    public bool HasLf => _info.LfType != TagSpecificType.Undefined;
     public bool IsEmpty => !HasHf && !HasLf;
+    public bool IsEnabled => (_info.HfType != TagSpecificType.Undefined && _info.HfEnabled)
+        || (_info.LfType != TagSpecificType.Undefined && _info.LfEnabled);
 
     /// <summary>The LED color the device shows for each card (#RRGGBB), null when the frequency is empty.</summary>
     public string? HfLed => SlotColors.Effective(_info, HasHf, HasLf).Hf;

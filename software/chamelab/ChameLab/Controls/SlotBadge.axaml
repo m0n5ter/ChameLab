@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:ChameLab.Controls"
+             xmlns:conv="using:ChameLab.Converters"
+             xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+             x:Class="ChameLab.Controls.SlotBadge"
+             x:Name="Root"
+             Width="36" Height="36">
+  <UserControl.Styles>
+    <Style Selector="Ellipse.ledring">
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="Stroke" Value="Transparent" />
+    </Style>
+    <Style Selector="Ellipse.ledring.active">
+      <Setter Property="Stroke" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
+    </Style>
+    <Style Selector="Border.led">
+      <Setter Property="Opacity" Value="0.55" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="c|SlotBadge:pointerover Border.led, Border.led.active">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="TextBlock.lednum">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="TextBlock.lednum.lit">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Opacity" Value="1" />
+      <Setter Property="Effect">
+        <DropShadowEffect OffsetX="0" OffsetY="0" BlurRadius="3" Color="Black" Opacity="0.8" />
+      </Setter>
+    </Style>
+    <Style Selector="TextBlock.lednum.active">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Panel.inactive">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
+  </UserControl.Styles>
+
+  <Panel DataContext="{Binding #Root}" x:DataType="c:SlotBadge" Width="36" Height="36">
+    <Ellipse Classes="ledring" Classes.active="{Binding IsActive}" />
+    <Panel Classes.inactive="{Binding !IsSlotEnabled}">
+      <!-- HF color on the left, LF on the right; one card fills both halves. -->
+      <Border Classes="led" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14"
+              ClipToBounds="True" IsVisible="{Binding !IsEmpty}">
+        <Grid ColumnDefinitions="*,*">
+          <Border Grid.Column="0" Background="{Binding LedLeft, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+          <Border Grid.Column="1" Background="{Binding LedRight, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+        </Grid>
+      </Border>
+      <Ellipse Width="28" Height="28" StrokeThickness="1.5" StrokeDashArray="2,2"
+               Stroke="{actipro:ThemeResource Container3BorderBrush}" IsVisible="{Binding IsEmpty}" />
+      <TextBlock Classes="lednum" Classes.active="{Binding IsActive}" Classes.lit="{Binding !IsEmpty}"
+                 Text="{Binding Index}" />
+    </Panel>
+  </Panel>
+</UserControl>

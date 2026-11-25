@@ -23,6 +23,9 @@
   <Style Selector="ComboBoxItem">
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
+  <Style Selector="ToggleSwitch:disabled">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
 
   <!-- ==================== Shell ==================== -->
 

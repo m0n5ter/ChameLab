@@ -2301,6 +2301,9 @@
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>Saved “{0}” to Saved cards.</value>
   </data>
+  <data name="Slots_SlotActive" xml:space="preserve">
+    <value>Slot active</value>
+  </data>
   <data name="Slots_SlotN" xml:space="preserve">
     <value>Slot {0}</value>
   </data>

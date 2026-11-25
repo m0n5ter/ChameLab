@@ -2784,6 +2784,9 @@
   <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
     <value>Selecciona una ranura para activarla y editarla.</value>
   </data>
+  <data name="Slots_SlotActive" xml:space="preserve">
+    <value>Ranura activa</value>
+  </data>
   <data name="Slots_SlotN" xml:space="preserve">
     <value>Ranura {0}</value>
   </data>

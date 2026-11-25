@@ -2784,6 +2784,9 @@
   <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
     <value>Sélectionnez un emplacement pour l'activer et le modifier.</value>
   </data>
+  <data name="Slots_SlotActive" xml:space="preserve">
+    <value>Emplacement actif</value>
+  </data>
   <data name="Slots_SlotN" xml:space="preserve">
     <value>Emplacement {0}</value>
   </data>

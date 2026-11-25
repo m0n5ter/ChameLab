@@ -174,7 +174,8 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     /// <summary>A fresh editor on what the slot holds; activates the slot on the device.</summary>
     private void OpenEditor(SlotItemViewModel slot)
     {
-        var editor = new SlotEditorViewModel(_device, _cards, slot.Info, OnSlotChanged, OpenCard, _dictionaries);
+        var hasOtherEnabled = Slots.Any(s => s.Index != slot.Index && s.IsEnabled);
+        var editor = new SlotEditorViewModel(_device, _cards, slot.Info, OnSlotChanged, OpenCard, _dictionaries, hasOtherEnabled);
         Editor = editor;
         foreach (var s in Slots) s.IsActive = s.Index == slot.Index;
         this.RaisePropertyChanged(nameof(CountText));
@@ -287,7 +288,12 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
             }
             RaiseListState();
             if (reopen && _selected is { } open) OpenEditor(open);
-            else OpenActiveIfIdle();
+            else
+            {
+                if (_editor is { } openEditor)
+                    openEditor.SetHasOtherEnabledSlot(Slots.Any(s => s.Index != openEditor.SlotIndex && s.IsEnabled));
+                OpenActiveIfIdle();
+            }
         });
     });
 

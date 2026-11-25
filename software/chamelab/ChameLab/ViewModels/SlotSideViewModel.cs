@@ -290,7 +290,6 @@ public sealed class SlotSideViewModel : ViewModelBase
         }
         if (!hasCard) return;
         if (pending is not null) await client.LoadCardToSlotAsync(pending, slot, progress);
-        await client.SetSlotEnableAsync(slot, Sense, enabled: true);
         if (SupportsColors) await client.SetSlotColorAsync(slot, Sense, color);
     }
 

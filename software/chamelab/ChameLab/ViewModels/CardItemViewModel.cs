@@ -54,10 +54,22 @@ public sealed class SlotTargetViewModel : ViewModelBase
             : (info.HfType, info.HfEnabled, info.HfNick);
         IsEmpty = type == TagSpecificType.Undefined || !enabled;
         Label = IsEmpty ? Strings.Common_Empty : (string.IsNullOrEmpty(nick) ? type.DisplayName() : nick);
+
+        var hasHf = info.HfType != TagSpecificType.Undefined;
+        var hasLf = info.LfType != TagSpecificType.Undefined;
+        IsSlotEmpty = !hasHf && !hasLf;
+        IsSlotEnabled = (hasHf && info.HfEnabled) || (hasLf && info.LfEnabled);
+        var (hfLed, lfLed) = SlotColors.Effective(info, hasHf, hasLf);
+        LedLeft = hfLed ?? lfLed;
+        LedRight = lfLed ?? hfLed;
     }
 
     public int Index { get; }
     public bool IsActive { get; }
     public bool IsEmpty { get; }
+    public bool IsSlotEmpty { get; }
+    public bool IsSlotEnabled { get; }
+    public string? LedLeft { get; }
+    public string? LedRight { get; }
     public string Label { get; }
 }

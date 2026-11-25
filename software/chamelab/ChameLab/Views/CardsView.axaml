@@ -1307,10 +1307,9 @@
                                 Command="{Binding $parent[ItemsControl].((vm:CardsViewModel)DataContext).Mfkey32SelectSlotCommand}"
                                 CommandParameter="{Binding}">
                           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                            <Border Classes="slotnum" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14">
-                              <TextBlock Text="{Binding Index}" FontWeight="Bold"
-                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
+                            <c:SlotBadge Index="{Binding Index}" IsActive="{Binding IsActive}"
+                                         IsEmpty="{Binding IsSlotEmpty}" IsSlotEnabled="{Binding IsSlotEnabled}"
+                                         LedLeft="{Binding LedLeft}" LedRight="{Binding LedRight}" />
                             <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis" Classes.dim="{Binding IsEmpty}" />
                           </Grid>
@@ -1812,10 +1811,9 @@
                           Command="{Binding $parent[ItemsControl].((vm:CardsViewModel)DataContext).LoadToSlotCommand}"
                           CommandParameter="{Binding}">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                      <Border Classes="slotnum" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14">
-                        <TextBlock Text="{Binding Index}" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                      </Border>
+                      <c:SlotBadge Index="{Binding Index}" IsActive="{Binding IsActive}"
+                                   IsEmpty="{Binding IsSlotEmpty}" IsSlotEnabled="{Binding IsSlotEnabled}"
+                                   LedLeft="{Binding LedLeft}" LedRight="{Binding LedRight}" />
                       <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
                                  TextTrimming="CharacterEllipsis" Classes.dim="{Binding IsEmpty}" />
                     </Grid>

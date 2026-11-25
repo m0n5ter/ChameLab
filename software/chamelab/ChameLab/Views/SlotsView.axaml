@@ -30,12 +30,6 @@
       <Setter Property="BorderBrush" Value="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
       <Setter Property="BorderThickness" Value="2" />
     </Style>
-    <!-- Slot number in the list rows and the editor header. -->
-    <Style Selector="Border.slotnum.small">
-      <Setter Property="Width" Value="30" />
-      <Setter Property="Height" Value="30" />
-      <Setter Property="CornerRadius" Value="15" />
-    </Style>
     <!-- A frequency without a card: its tile and "Empty" fade back. -->
     <Style Selector="Border.chip.off">
       <Setter Property="Opacity" Value="0.4" />
@@ -49,6 +43,13 @@
       <Setter Property="Height" Value="1" />
       <Setter Property="Background" Value="{actipro:ThemeResource Container1BorderBrush}" />
     </Style>
+    <!-- Inactive slot in the list: dimmed (avoid double-dimming SlotBadge inside the row). -->
+    <Style Selector="Grid.inactive">
+      <Setter Property="Opacity" Value="0.45" />
+    </Style>
+    <Style Selector="Grid.inactive c|SlotBadge Panel.inactive">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
   </UserControl.Styles>
 
   <UserControl.Resources>
@@ -58,10 +59,10 @@
          slot is the same height; "Empty" sits centered over them. -->
     <DataTemplate x:Key="SlotTile" x:DataType="vm:SlotItemViewModel">
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="14" RowSpacing="2">
-        <Border Grid.Column="0" Grid.RowSpan="3" Classes="slotnum small" Classes.active="{Binding IsActive}"
-                VerticalAlignment="Top">
-          <TextBlock Text="{Binding Index}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </Border>
+        <c:SlotBadge Grid.Column="0" Grid.RowSpan="3" VerticalAlignment="Top"
+                     Index="{Binding Index}" IsActive="{Binding IsActive}"
+                     IsEmpty="{Binding IsEmpty}" IsSlotEnabled="{Binding IsEnabled}"
+                     LedLeft="{Binding LedLeft}" LedRight="{Binding LedRight}" />
         <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="8">
           <Border Classes="chip hf" Classes.off="{Binding !HasHf}" VerticalAlignment="Center">
             <TextBlock Text="HF" />
@@ -243,7 +244,7 @@
             <DataTemplate x:DataType="vm:SlotItemViewModel">
               <Panel>
                 <Border Classes="cardrow" ToolTip.Tip="{Binding Summary}"><Border Classes="cardclip">
-                  <Grid ColumnDefinitions="8,*" ColumnSpacing="12">
+                  <Grid ColumnDefinitions="8,*" ColumnSpacing="12" Classes.inactive="{Binding !IsEnabled}">
                     <!-- The LED colors of the slot's cards, HF above LF. -->
                     <UniformGrid Grid.Column="0" Columns="1">
                       <Border IsVisible="{Binding HasHf}"
@@ -268,17 +269,60 @@
       <!-- Header + actions (stays in view); disabled under the lightbox so Tab can't reach it. -->
       <Border Grid.Row="0" Classes="card panehead" IsVisible="{Binding HasPane}"
               IsEnabled="{Binding !IsAsking}">
-        <StackPanel>
-          <!-- The back arrow sits under the slot number, centered on it (36 wide against 30). -->
-          <Panel>
-            <ContentControl Content="{Binding Selected}" ContentTemplate="{StaticResource SlotTile}" />
-            <Button Classes="icon backonly" Margin="-3,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                    Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
-                    b:DialogKeys.IsBack="True">
-              <PathIcon Data="{StaticResource Icon.back}" />
-            </Button>
-          </Panel>
-        </StackPanel>
+        <Grid ColumnDefinitions="36,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="14" RowSpacing="8">
+          <c:SlotBadge Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" VerticalAlignment="Center"
+                       DataContext="{Binding Selected}" x:DataType="vm:SlotItemViewModel"
+                       Index="{Binding Index}" IsActive="{Binding IsActive}"
+                       IsEmpty="{Binding IsEmpty}" IsSlotEnabled="{Binding IsEnabled}"
+                       LedLeft="{Binding LedLeft}" LedRight="{Binding LedRight}" />
+          <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8"
+                DataContext="{Binding Selected}" x:DataType="vm:SlotItemViewModel">
+            <Border Classes="chip hf" Classes.off="{Binding !HasHf}" VerticalAlignment="Center">
+              <TextBlock Text="HF" />
+            </Border>
+            <Ellipse Grid.Column="1" Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasHf}"
+                     Fill="{Binding HfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+            <c:Marquee Grid.Column="2" VerticalAlignment="Center" IsVisible="{Binding HasHf}">
+              <TextBlock>
+                <Run Text="{Binding HfNick}" FontWeight="Bold" />
+                <Run Text="{Binding HfTypeLabel}" FontSize="12"
+                     Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+              </TextBlock>
+            </c:Marquee>
+            <TextBlock Grid.Column="2" Classes="caption" Text="{x:Static loc:Strings.Common_Empty}" VerticalAlignment="Center"
+                       IsVisible="{Binding !HasHf}" />
+          </Grid>
+          <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8"
+                DataContext="{Binding Selected}" x:DataType="vm:SlotItemViewModel">
+            <Border Classes="chip lf" Classes.off="{Binding !HasLf}" VerticalAlignment="Center">
+              <TextBlock Text="LF" />
+            </Border>
+            <Ellipse Grid.Column="1" Width="10" Height="10" VerticalAlignment="Center" IsVisible="{Binding HasLf}"
+                     Fill="{Binding LfLed, Converter={x:Static conv:HexBrushConverter.Instance}}" />
+            <c:Marquee Grid.Column="2" VerticalAlignment="Center" IsVisible="{Binding HasLf}">
+              <TextBlock>
+                <Run Text="{Binding LfNames}" FontWeight="Bold" />
+                <Run Text="{Binding LfTypeLabel}" FontSize="12"
+                     Foreground="{actipro:ThemeResource DefaultForegroundBrushSecondary}" />
+              </TextBlock>
+            </c:Marquee>
+            <TextBlock Grid.Column="2" Classes="caption" Text="{x:Static loc:Strings.Common_Empty}" VerticalAlignment="Center"
+                       IsVisible="{Binding !HasLf}" />
+          </Grid>
+          <!-- The back arrow sits under the slot badge in its own row, centered on it (36 wide). -->
+          <Button Grid.Row="2" Grid.Column="0" Classes="icon backonly" HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Command="{Binding CloseCommand}" ToolTip.Tip="{x:Static loc:Strings.Common_BackToTheList}"
+                  b:DialogKeys.IsBack="True">
+            <PathIcon Data="{StaticResource Icon.back}" />
+          </Button>
+          <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                      DataContext="{Binding Editor}" x:DataType="vm:SlotEditorViewModel">
+            <ToggleSwitch VerticalAlignment="Center" MinWidth="0" OnContent="" OffContent=""
+                          IsChecked="{Binding IsSlotEnabled}"
+                          IsEnabled="{Binding CanToggleSlotEnabled}" />
+            <TextBlock Text="{x:Static loc:Strings.Slots_SlotActive}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Grid>
       </Border>
 
       <!-- Nothing open (desktop only) -->

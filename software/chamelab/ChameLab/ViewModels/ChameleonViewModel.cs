@@ -97,13 +97,13 @@ public sealed class ChameleonViewModel : PageViewModelBase
     public ICommand NextSlotCommand { get; }
     public ICommand SelectSlotCommand { get; }
 
-    // Like the device buttons: step to the next slot holding a card, wrapping around.
+    // Like the device buttons: step to the next active slot, wrapping around.
     private Task ChangeSlotAsync(int delta)
     {
         for (var step = 1; step < 8; step++)
         {
             var target = ((ActiveSlot - 1 + delta * step + 8 * 8) % 8) + 1;
-            if (Slots.FirstOrDefault(s => s.Index == target) is { IsEmpty: false })
+            if (Slots.FirstOrDefault(s => s.Index == target) is { IsEnabled: true })
                 return ActivateSlotAsync(target);
         }
         return Task.CompletedTask;

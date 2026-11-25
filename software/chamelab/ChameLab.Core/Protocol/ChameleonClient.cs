@@ -256,7 +256,7 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     /// </summary>
     public async Task ReadLfCyclesAsync(IReadOnlyList<SlotInfo> slots, CancellationToken ct = default)
     {
-        var lf = slots.Where(s => LfCycleCard.CanCycle(s.LfType) && s.LfEnabled).ToList();
+        var lf = slots.Where(s => LfCycleCard.CanCycle(s.LfType)).ToList();
         if (lf.Count == 0 || !(await GetCapabilitiesAsync(ct)).Contains((ushort)Command.LfGetAllCycles)) return;
         var all = await GetAllLfCyclesAsync(ct);
         foreach (var slot in lf) slot.LfCycle = all[slot.Index - 1];
@@ -1917,8 +1917,8 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     /// </summary>
     public async Task<SlotEmulatorSettings> ReadEmulatorSettingsAsync(SlotInfo slot, CancellationToken ct = default)
     {
-        var mfc = slot.HfEnabled && slot.HfType.IsMifareClassic();
-        var ul = slot.HfEnabled && slot.HfType.IsUltralight();
+        var mfc = slot.HfType.IsMifareClassic();
+        var ul = slot.HfType.IsUltralight();
         if (!mfc && !ul) return SlotEmulatorSettings.None;
 
         var previous = await GetActiveSlotAsync(ct);

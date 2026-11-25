@@ -2784,6 +2784,9 @@
   <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
     <value>슬롯을 선택하면 활성화되고 편집할 수 있습니다.</value>
   </data>
+  <data name="Slots_SlotActive" xml:space="preserve">
+    <value>슬롯 활성</value>
+  </data>
   <data name="Slots_SlotN" xml:space="preserve">
     <value>슬롯 {0}</value>
   </data>

@@ -680,14 +680,19 @@ void tag_emulation_slot_set_color(uint8_t slot, tag_sense_type_t sense_type, uin
     }
 }
 
+static bool is_slot_active_for_cycle(uint8_t slot) {
+    return (slotConfig.slots[slot].enabled_hf && slotConfig.slots[slot].tag_hf != TAG_TYPE_UNDEFINED) ||
+           (slotConfig.slots[slot].enabled_lf && slotConfig.slots[slot].tag_lf != TAG_TYPE_UNDEFINED);
+}
+
 /**
  * Find the next valid card slot
  */
 uint8_t tag_emulation_slot_find_next(uint8_t slot_now) {
     uint8_t start_slot = (slot_now + 1 == TAG_MAX_SLOT_NUM) ? 0 : slot_now + 1;
     for (uint8_t i = start_slot;;) {
-        if (i == slot_now) return slot_now;                                              // No other activated card slots were found after a loop
-        if (slotConfig.slots[i].enabled_hf || slotConfig.slots[i].enabled_lf) return i;  // Check whether the card slot that is currently traversed is enabled, so that the capacity determines that the current card slot is the card slot that can effectively enable capacity
+        if (i == slot_now) return slot_now;                  // No other activated card slots were found after a loop
+        if (is_slot_active_for_cycle(i)) return i;           // Check whether the card slot that is currently traversed is enabled
         i++;
         if (i == TAG_MAX_SLOT_NUM) {  // Continue the next cycle
             i = 0;
@@ -702,9 +707,9 @@ uint8_t tag_emulation_slot_find_next(uint8_t slot_now) {
 uint8_t tag_emulation_slot_find_prev(uint8_t slot_now) {
     uint8_t start_slot = (slot_now == 0) ? (TAG_MAX_SLOT_NUM - 1) : slot_now - 1;
     for (uint8_t i = start_slot;;) {
-        if (i == slot_now) return slot_now;                                              // No other activated card slots were found after a loop
-        if (slotConfig.slots[i].enabled_hf || slotConfig.slots[i].enabled_lf) return i;  // Check whether the card slot that is currently traversed is enabled, so that the capacity determines that the current card slot is the card slot that can effectively enable capacity
-        if (i == 0) {                                                                    // Continue the next cycle
+        if (i == slot_now) return slot_now;                  // No other activated card slots were found after a loop
+        if (is_slot_active_for_cycle(i)) return i;           // Check whether the card slot that is currently traversed is enabled
+        if (i == 0) {                                        // Continue the next cycle
             i = TAG_MAX_SLOT_NUM - 1;
         } else {
             i--;

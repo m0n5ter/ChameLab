@@ -2784,6 +2784,9 @@
   <data name="Slots_SelectASlotToMakeIt" xml:space="preserve">
     <value>选择一个卡槽以激活并编辑它。</value>
   </data>
+  <data name="Slots_SlotActive" xml:space="preserve">
+    <value>插槽已启用</value>
+  </data>
   <data name="Slots_SlotN" xml:space="preserve">
     <value>卡槽 {0}</value>
   </data>

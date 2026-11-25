@@ -8,7 +8,18 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.8.61][2026-11-25] · firmware v2.4.27-cl
+### Summary
+ - ChameLab: **Slot active toggle & unified slot badges** — enable or disable slots with cards in the slot editor, skip inactive slots when stepping, dim inactive slots, and show split-color circular slot badges across all pages
+ - ChameLab: **Cleaner BLE battery firmware updates** — harden final DFU execute writes and prompt to wake the device with button B twice when needed
+ - Firmware v2.4.27-cl: **Consistent slot enable handling** — keep the active slot unchanged when toggling another slot and immediately stop/update emulation on the active slot
+
+### Details
+ - ChameLab: added a "Slot active" switch in the slot editor header (automatically enabled when adding a card to an empty slot, disabled when all cards are removed, and guarded against deactivating the last active slot); inactive slots are dimmed in the slot lists and skipped by prev/next stepping on the Chameleon page while remaining selectable by direct tap
+ - ChameLab: unified the circular split-color `SlotBadge` control across Chameleon, Slots (list and editor header), and Cards (slot assignment and MFKEY32 slot picker), and updated the slot editor header card to a compact one-line-per-frequency layout
  - ChameLab: handle BLE firmware updates on battery cleanly — harden final DFU execute writes against immediate bootloader disconnect, prompt to press button B twice to wake the device (the Chameleon bootloader enters System OFF on battery both after DFU and after firmware activation), and report the update as installed rather than failed if reconnect times out
+ - Firmware v2.4.27-cl: `cmd_processor_set_slot_enable` now switches away only when disabling the currently active slot (leaving it selected if no other slot is active) and updates `tag_emulation_sense_switch` and the slot LED immediately; slot cycling checks that an enabled frequency has a valid card type
 
 ## [v1.8.60][2026-11-24] · firmware v2.4.26-cl
 ### Summary

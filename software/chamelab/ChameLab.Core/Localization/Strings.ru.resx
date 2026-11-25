@@ -2298,6 +2298,9 @@
   <data name="Slots_SavedToCards" xml:space="preserve">
     <value>«{0}» сохранена в «Сохранённые карты».</value>
   </data>
+  <data name="Slots_SlotActive" xml:space="preserve">
+    <value>Слот активен</value>
+  </data>
   <data name="Slots_SlotN" xml:space="preserve">
     <value>Слот {0}</value>
   </data>

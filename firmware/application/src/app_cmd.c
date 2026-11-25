@@ -1286,15 +1286,20 @@ static data_frame_tx_t *cmd_processor_set_slot_enable(uint16_t cmd, uint16_t sta
 
     uint8_t slot_now = payload->slot_index;
     tag_emulation_slot_set_enable(slot_now, payload->sense_type, payload->enabled);
-    if ((!payload->enabled) &&
-            (!is_slot_enabled(slot_now, payload->sense_type == TAG_SENSE_HF ? TAG_SENSE_LF : TAG_SENSE_HF))) {
-        // HF and LF disabled, need to change slot
-        uint8_t slot_prev = tag_emulation_slot_find_next(slot_now);
-        NRF_LOG_INFO("slot_now = %d, slot_prev = %d", slot_now, slot_prev);
-        if (slot_prev == slot_now) {
-            set_slot_light_color(RGB_MAGENTA);
+    if (slot_now == tag_emulation_get_slot()) {
+        tag_emulation_sense_switch(payload->sense_type, payload->enabled);
+        if ((!payload->enabled) &&
+                (!is_slot_enabled(slot_now, payload->sense_type == TAG_SENSE_HF ? TAG_SENSE_LF : TAG_SENSE_HF))) {
+            // HF and LF disabled, need to change slot
+            uint8_t slot_prev = tag_emulation_slot_find_next(slot_now);
+            NRF_LOG_INFO("slot_now = %d, slot_prev = %d", slot_now, slot_prev);
+            if (slot_prev == slot_now) {
+                set_slot_light_color(RGB_MAGENTA);
+            } else {
+                change_slot_auto(slot_prev);
+            }
         } else {
-            change_slot_auto(slot_prev);
+            light_up_by_slot();
         }
     }
     return data_frame_make(cmd, STATUS_SUCCESS, 0, NULL);

@@ -10,44 +10,6 @@
              x:DataType="vm:ChameleonViewModel">
 
   <UserControl.Styles>
-    <!-- Slot strip: a row of LEDs like the device's, each split HF | LF; the active one is ringed. -->
-    <Style Selector="Ellipse.ledring">
-      <Setter Property="StrokeThickness" Value="2" />
-      <Setter Property="Stroke" Value="Transparent" />
-    </Style>
-    <Style Selector="Ellipse.ledring.active">
-      <Setter Property="Stroke" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
-    </Style>
-    <Style Selector="Border.led">
-      <Setter Property="Opacity" Value="0.55" />
-      <Setter Property="Transitions">
-        <Transitions>
-          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-        </Transitions>
-      </Setter>
-    </Style>
-    <Style Selector="Button.slot:pointerover Border.led, Border.led.active">
-      <Setter Property="Opacity" Value="1" />
-    </Style>
-    <!-- The number sits on the LED: white with a shadow over a color, plain text over an empty slot. -->
-    <Style Selector="TextBlock.lednum">
-      <Setter Property="FontSize" Value="13" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="HorizontalAlignment" Value="Center" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="Opacity" Value="0.6" />
-    </Style>
-    <Style Selector="TextBlock.lednum.lit">
-      <Setter Property="Foreground" Value="White" />
-      <Setter Property="Opacity" Value="1" />
-      <Setter Property="Effect">
-        <DropShadowEffect OffsetX="0" OffsetY="0" BlurRadius="3" Color="Black" Opacity="0.8" />
-      </Setter>
-    </Style>
-    <Style Selector="TextBlock.lednum.active">
-      <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="Opacity" Value="1" />
-    </Style>
     <!-- An empty frequency of the active slot: its chip dimmed. -->
     <Style Selector="Border.chip.off">
       <Setter Property="Opacity" Value="0.4" />
@@ -209,21 +171,9 @@
                     <Button Classes="slot" ToolTip.Tip="{Binding Summary}"
                             Command="{Binding $parent[ItemsControl].((vm:ChameleonViewModel)DataContext).SelectSlotCommand}"
                             CommandParameter="{Binding}">
-                      <Panel Width="36" Height="36">
-                        <Ellipse Classes="ledring" Classes.active="{Binding IsActive}" />
-                        <!-- HF color on the left, LF on the right; one card fills both halves. -->
-                        <Border Classes="led" Classes.active="{Binding IsActive}" Width="28" Height="28" CornerRadius="14"
-                                ClipToBounds="True" IsVisible="{Binding !IsEmpty}">
-                          <Grid ColumnDefinitions="*,*">
-                            <Border Grid.Column="0" Background="{Binding LedLeft, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-                            <Border Grid.Column="1" Background="{Binding LedRight, Converter={x:Static conv:HexBrushConverter.Instance}}" />
-                          </Grid>
-                        </Border>
-                        <Ellipse Width="28" Height="28" StrokeThickness="1.5" StrokeDashArray="2,2"
-                                 Stroke="{actipro:ThemeResource Container3BorderBrush}" IsVisible="{Binding IsEmpty}" />
-                        <TextBlock Classes="lednum" Classes.active="{Binding IsActive}" Classes.lit="{Binding !IsEmpty}"
-                                   Text="{Binding Index}" />
-                      </Panel>
+                      <c:SlotBadge Index="{Binding Index}" IsActive="{Binding IsActive}"
+                                   IsEmpty="{Binding IsEmpty}" IsSlotEnabled="{Binding IsEnabled}"
+                                   LedLeft="{Binding LedLeft}" LedRight="{Binding LedRight}" />
                     </Button>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

@@ -53,6 +53,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private bool _ulUidMagic, _ulDetection;
     private EmulatorWriteMode _ulWriteMode;
 
+    private bool _savedSlotEnabled, _isSlotEnabled, _hadAnyCard, _hasOtherEnabledSlot;
     private SlotSideViewModel? _pickerSide;
     private bool _supportsLfCycle, _supportsCycleMode;
     // The cycle the LF cards were loaded with while multi-LF is supported, else null.
@@ -129,7 +130,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     };
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
-        Action onChanged, Action<CardSave> openCard, DictionaryLibrary? dictionaries = null)
+        Action onChanged, Action<CardSave> openCard, DictionaryLibrary? dictionaries = null,
+        bool hasOtherEnabledSlot = true)
         : base(() => string.Format(Strings.Slots_SlotN, info.Index), "slots")
     {
         _device = device;
@@ -148,6 +150,10 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         Hf.Partner = Lf;
         Lf.Partner = Hf;
         LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard);
+        _hasOtherEnabledSlot = hasOtherEnabledSlot;
+        _savedSlotEnabled = _isSlotEnabled = (info.HfType != TagSpecificType.Undefined && info.HfEnabled)
+            || (info.LfType != TagSpecificType.Undefined && info.LfEnabled);
+        _hadAnyCard = HasAnyCard;
         // Lay the LF cards out from what the slot list read, so they don't change shape once the device answers.
         if (device.Client?.Capabilities is { } capabilities) SetLfCapabilities(capabilities);
         LoadCycle(LfCycleCard.CanCycle(info.LfType) ? info.LfCycle ?? new LfCardCycle([]) : new LfCardCycle([]));
@@ -181,8 +187,30 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         MifareClassicPrngType.Static, MifareClassicPrngType.Weak, MifareClassicPrngType.Hard,
     };
 
+    public bool HasAnyCard => Hf.HasCard || Lf.HasCard;
+    public bool CanToggleSlotEnabled => HasAnyCard && (!IsSlotEnabled || _hasOtherEnabledSlot);
+
+    public void SetHasOtherEnabledSlot(bool value)
+    {
+        if (_hasOtherEnabledSlot == value) return;
+        _hasOtherEnabledSlot = value;
+        this.RaisePropertyChanged(nameof(CanToggleSlotEnabled));
+    }
+
+    public bool IsSlotEnabled
+    {
+        get => _isSlotEnabled;
+        set
+        {
+            if (_isSlotEnabled == value) return;
+            this.RaiseAndSetIfChanged(ref _isSlotEnabled, value);
+            this.RaisePropertyChanged(nameof(CanToggleSlotEnabled));
+            RaiseDirty();
+        }
+    }
+
     /// <summary>Anything differs from what the slot holds (drives the save bar).</summary>
-    public bool IsDirty => Hf.IsDirty || Lf.IsDirty || IsEmulatorDirty || IsCycleDirty;
+    public bool IsDirty => Hf.IsDirty || Lf.IsDirty || IsEmulatorDirty || IsCycleDirty || IsSlotEnabled != _savedSlotEnabled;
 
     private bool IsEmulatorDirty => ShownKind != EmulatorKind.None && CurrentEmulator != _savedEmulator;
 
@@ -197,6 +225,9 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         LfCards.Discard();
         RestoreCycleMode();
         SetEmulator(_savedEmulator);
+        _hadAnyCard = HasAnyCard;
+        IsSlotEnabled = _savedSlotEnabled;
+        this.RaisePropertyChanged(nameof(CanToggleSlotEnabled));
     }
 
     /// <summary>The library changed: the sides re-match their cards, the open picker its list.</summary>
@@ -249,10 +280,22 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     public bool ShowMfcSettings => ShownKind == EmulatorKind.Mfc;
     public bool ShowUlSettings => ShownKind == EmulatorKind.Ul;
 
+    private void UpdateSlotEnabledForCardChange()
+    {
+        var hasAny = HasAnyCard;
+        if (!_hadAnyCard && hasAny)
+            IsSlotEnabled = true;
+        else if (!hasAny)
+            IsSlotEnabled = false;
+        _hadAnyCard = hasAny;
+        this.RaisePropertyChanged(nameof(CanToggleSlotEnabled));
+    }
+
     private void OnLfChanged()
     {
         Hf.RaiseLed();
         LfCards?.RefreshPrimary();
+        UpdateSlotEnabledForCardChange();
         OnLfListChanged();
     }
 
@@ -265,6 +308,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private void OnHfChanged()
     {
         Lf.RaiseLed();
+        UpdateSlotEnabledForCardChange();
         // Another kind of card starts from the firmware's defaults; the saved kind gets the slot's settings back.
         var kind = TypeKind;
         if (kind != _fieldsKind)
@@ -458,6 +502,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                             ? new Mf0EmulatorSettings(emulator.UlUidMagic, emulator.UlWriteMode, emulator.UlDetection)
                             : null));
                 }
+                if (Hf.HasCard) await client.SetSlotEnableAsync(_slot, TagSenseType.Hf, IsSlotEnabled);
+                if (Lf.HasCard) await client.SetSlotEnableAsync(_slot, TagSenseType.Lf, IsSlotEnabled);
                 await client.SaveSlotConfigAsync();
             });
 
@@ -470,6 +516,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
                 Hf.MarkSaved();
                 Lf.MarkSaved();
                 LfCards.MarkSaved();
+                _savedSlotEnabled = IsSlotEnabled;
+                _hadAnyCard = HasAnyCard;
                 if (cycle is not null && cycle.Extras.Length > 0 && _supportsCycleMode)
                 {
                     _savedCycleWhilePresent = cycle.Mode == LfCycleMode.WhilePresent;
