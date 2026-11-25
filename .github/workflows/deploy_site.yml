@@ -36,17 +36,29 @@ jobs:
           rm _site/i18n/check.py
           # The download page shows each release's part of it
           cp CHANGELOG.md CHANGELOG.ru.md _site/
-      - name: Add the release manifest
+          cp software/chamelab/ChameLab.iOS/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png _site/icon.png
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Add the release and AltStore manifests
         # version.json feeds the apps' update checks: reading it from Pages costs no GitHub API
         # rate limit (60 requests/hour per address without a token), which users behind a shared
         # mobile or office address exhaust. The shape mirrors the GitHub release JSON.
+        # altstore.json and altstore-dev.json serve SideStore / AltStore update feeds.
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           pick='{tag_name,name,body,html_url,assets:[.assets[]|{name,browser_download_url,size}]}'
           latest=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq "$pick" || echo null)
-          dev=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/dev" --jq "$pick" || echo null)
-          jq -n --argjson latest "$latest" --argjson dev "$dev" '{latest:$latest,dev:$dev}' > _site/version.json
+          dev_pick=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/dev" --jq "$pick" || echo null)
+          jq -n --argjson latest "$latest" --argjson dev "$dev_pick" '{latest:$latest,dev:$dev}' > _site/version.json
+
+          alt_pick='{tag_name,name,body,html_url,prerelease,draft,published_at,created_at,assets:[.assets[]|{name,browser_download_url,size,digest}]}'
+          releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=30" --jq "[.[]|$alt_pick]" || echo '[]')
+          dev=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/dev" --jq "$alt_pick" || echo null)
+          jq -n --argjson releases "$releases" --argjson dev "$dev" '{releases:$releases,dev:$dev}' > "$RUNNER_TEMP/altstore-input.json"
+          dotnet run --project software/chamelab/ChameLab.Tools -c Release -- generate-altstore "$RUNNER_TEMP/altstore-input.json" _site
       - name: Add the web apps
         env:
           GH_TOKEN: ${{ github.token }}

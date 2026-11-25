@@ -239,5 +239,10 @@
  "js.group.dfu": "Firmware (DFU)",
  "js.group.client": "Cliente de línea de comandos",
  "js.group.binaries": "Binarios del firmware (para instalar por SWD)",
- "js.group.other": "Otros"
+ "js.group.other": "Otros",
+ "js.iosSource": "Fuente de actualizaciones para iOS (SideStore / AltStore)",
+ "js.sub.addSource": "Añadir fuente",
+ "js.sourceJson": "JSON de la fuente",
+ "js.sub.copyUrl": "Copiar URL",
+ "js.copied": "¡Copiado!"
 }

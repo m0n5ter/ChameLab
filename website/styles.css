@@ -96,6 +96,7 @@ li::marker { color: var(--accent); }
 .downloads section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 28px; }
 .downloads h2 { font-size: 1.5rem; }
 .downloads h3 { font-size: 1rem; }
+.ios-sources-label { margin: 16px 0 8px; font-size: .875rem; }
 .buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 /* Two to a row, or one when two don't fit */
 .buttons.pairs { grid-template-columns: repeat(auto-fit, minmax(min(100%, max(230px, calc(50% - 5px))), 1fr)); }

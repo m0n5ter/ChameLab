@@ -239,5 +239,10 @@
  "js.group.dfu": "固件（DFU）",
  "js.group.client": "命令行客户端",
  "js.group.binaries": "固件二进制文件（用于 SWD 刷写）",
- "js.group.other": "其他"
+ "js.group.other": "其他",
+ "js.iosSource": "iOS 更新源（SideStore / AltStore）",
+ "js.sub.addSource": "添加软件源",
+ "js.sourceJson": "源 JSON",
+ "js.sub.copyUrl": "复制链接",
+ "js.copied": "已复制！"
 }

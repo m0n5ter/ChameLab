@@ -156,23 +156,47 @@
     return e;
   }
 
-  function button(href, icon, name, detail, title) {
+  function button(href, icon, name, detail, title, highlight = true) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('aria-hidden', 'true');
     svg.innerHTML = icons[icon];
     const label = el('span', {}, el('b', {}, name));
     if (detail) label.append(el('small', {}, detail));
-    const a = el('a', { className: icon === platform ? 'platform mine' : 'platform', href }, svg, label);
+    const a = el('a', { className: highlight && icon === platform ? 'platform mine' : 'platform', href }, svg, label);
     if (title) a.title = title;
     return a;
+  }
+
+  function iosSourceButtons(altstorePath) {
+    const sourceUrl = new URL(altstorePath, location.href).href;
+    const encoded = encodeURIComponent(sourceUrl);
+    const addSource = t('js.sub.addSource', 'Add source');
+    const jsonButton = button(altstorePath, 'file', t('js.sourceJson', 'Source JSON'), t('js.sub.copyUrl', 'Copy URL'), sourceUrl, false);
+    jsonButton.addEventListener('click', event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !navigator.clipboard?.writeText) return;
+      event.preventDefault();
+      const sub = jsonButton.querySelector('small');
+      const original = sub.textContent;
+      navigator.clipboard.writeText(sourceUrl).then(() => {
+        sub.textContent = t('js.copied', 'Copied!');
+        setTimeout(() => { sub.textContent = original; }, 2000);
+      }).catch(() => { location.href = altstorePath; });
+    });
+    return [
+      el('p', { className: 'meta ios-sources-label' }, t('js.iosSource', 'iOS update source (SideStore / AltStore)')),
+      el('div', { className: 'buttons' },
+        button(`sidestore://source?url=${encoded}`, 'apple', 'SideStore', addSource, sourceUrl, false),
+        button(`altstore://source?url=${encoded}`, 'apple', 'AltStore', addSource, sourceUrl, false),
+        jsonButton),
+    ];
   }
 
   function assetButton(a) {
     const kind = kinds.find(([p]) => p.test(a.name));
     const title = `${a.name} · ${sizeOf(a.size)}`;
     return kind
-      ? button(a.browser_download_url, kind[1], kind[2], text(kind[3]), title)
+      ? button(a.browser_download_url, kind[1], kind[2], text(kind[3]), title, !/ios\.ipa$/i.test(a.name))
       : button(a.browser_download_url, 'file', a.name, sizeOf(a.size), title);
   }
 
@@ -266,6 +290,9 @@
       rest.splice(0, rest.length, ...rest.filter(a => !assets.includes(a)));
       section.append(el('h3', {}, text(name)), el('div', { className: layout ? `buttons ${layout}` : 'buttons' },
         ...web, ...assets.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name)).map(assetButton)));
+      if (pattern === groups[0][1] && channel.altstore && assets.some(a => /\.ipa$/i.test(a.name))) {
+        section.append(...iosSourceButtons(channel.altstore));
+      }
     }
 
     if (channel.changes) section.append(whatsNew(channel.changes, channel.empty));
@@ -293,11 +320,13 @@
       const latest = published[0];
       render(stable, latest, stableTitle(), {
         web: '../app/',
+        altstore: '../altstore.json',
         changes: latest && changes.get(latest.tag_name.toLowerCase()),
       });
       // The development build has what the changelog lists as unreleased
       render(dev, releases.find(r => r.tag_name === 'dev'), devTitle(), {
         web: '../dev/',
+        altstore: '../altstore-dev.json',
         changes: changes.size ? changes.get('unreleased') || { items: [], summary: false } : null,
         empty: latest
           ? t('js.noChanges', 'No notable changes since {version}.').replace('{version}', latest.tag_name)

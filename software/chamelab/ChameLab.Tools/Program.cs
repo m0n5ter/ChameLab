@@ -28,10 +28,11 @@ internal static class Program
                 case ["announce-release", var tag]: await ReleaseAnnouncer.Run(tag, false); break;
                 case ["announce-release", var tag, "--dry-run"]: await ReleaseAnnouncer.Run(tag, true); break;
                 case ["play-release-notes", var tag, var directory]: ReleaseAnnouncer.WritePlayNotes(tag, directory); break;
+                case ["generate-altstore", var inputPath, var outputDir, .. var rest]: AltStoreSourceGenerator.Run(Root(), inputPath, outputDir, rest); break;
                 case ["zip", var source, var destination]: Archive(source, destination); break;
                 case ["name-release-files", var folder, var appVersion, var firmwareVersion]: NameReleaseFiles(folder, appVersion, firmwareVersion); break;
                 case ["--help"] or []:
-                    Console.WriteLine("ChameLab development tools\n  generate-hardnested [--check]\n  generate-hardnested-partial-sums\n  prepare-hardnested-gui CHECKOUT OUTPUT_ADAPTER\n  import-hardnested-tables PROXMARK3_CHECKOUT\n  prepare-hardnested-reference DISPOSABLE_PROXMARK3_CHECKOUT\n  compare-hardnested MANAGED NATIVE OUTPUT [REPETITIONS] [--cases FILE] [--gui-root CHECKOUT] [--only CASE...]\n  reference-vectors --generator EXE --nested EXE --staticnested EXE --mfkey32v2 EXE [--output JSON]\n  benchmark nested|static-encrypted [ITERATIONS WARMUPS]\n  read-mfc4k --help\n  pr-review MODE\n  zip SOURCE_DIRECTORY OUTPUT.zip\n  name-release-files DIRECTORY APP_VERSION FIRMWARE_VERSION");
+                    Console.WriteLine("ChameLab development tools\n  generate-hardnested [--check]\n  generate-hardnested-partial-sums\n  prepare-hardnested-gui CHECKOUT OUTPUT_ADAPTER\n  import-hardnested-tables PROXMARK3_CHECKOUT\n  prepare-hardnested-reference DISPOSABLE_PROXMARK3_CHECKOUT\n  compare-hardnested MANAGED NATIVE OUTPUT [REPETITIONS] [--cases FILE] [--gui-root CHECKOUT] [--only CASE...]\n  reference-vectors --generator EXE --nested EXE --staticnested EXE --mfkey32v2 EXE [--output JSON]\n  benchmark nested|static-encrypted [ITERATIONS WARMUPS]\n  read-mfc4k --help\n  pr-review MODE\n  generate-altstore INPUT.json OUTPUT_DIR [--base-url URL]\n  zip SOURCE_DIRECTORY OUTPUT.zip\n  name-release-files DIRECTORY APP_VERSION FIRMWARE_VERSION");
                     break;
                 default: throw new ArgumentException("Unknown command. Run with --help.");
             }

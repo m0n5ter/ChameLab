@@ -239,5 +239,10 @@
  "js.group.dfu": "펌웨어(DFU)",
  "js.group.client": "명령줄 클라이언트",
  "js.group.binaries": "펌웨어 바이너리(SWD 기록용)",
- "js.group.other": "기타"
+ "js.group.other": "기타",
+ "js.iosSource": "iOS 업데이트 소스(SideStore / AltStore)",
+ "js.sub.addSource": "소스 추가",
+ "js.sourceJson": "소스 JSON",
+ "js.sub.copyUrl": "URL 복사",
+ "js.copied": "복사됨!"
 }

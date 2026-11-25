@@ -239,5 +239,10 @@
  "js.group.dfu": "Прошивка (DFU)",
  "js.group.client": "Клиент командной строки",
  "js.group.binaries": "Бинарные файлы прошивки (для прошивки через SWD)",
- "js.group.other": "Прочее"
+ "js.group.other": "Прочее",
+ "js.iosSource": "Источник обновлений для iOS (SideStore / AltStore)",
+ "js.sub.addSource": "Добавить источник",
+ "js.sourceJson": "JSON источника",
+ "js.sub.copyUrl": "Скопировать URL",
+ "js.copied": "Скопировано!"
 }

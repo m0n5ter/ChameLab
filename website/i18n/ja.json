@@ -239,5 +239,10 @@
  "js.group.dfu": "ファームウェア（DFU）",
  "js.group.client": "コマンドラインクライアント",
  "js.group.binaries": "ファームウェアのバイナリ（SWD 書き込み用）",
- "js.group.other": "その他"
+ "js.group.other": "その他",
+ "js.iosSource": "iOS 更新ソース（SideStore / AltStore）",
+ "js.sub.addSource": "ソースを追加",
+ "js.sourceJson": "ソース JSON",
+ "js.sub.copyUrl": "URL をコピー",
+ "js.copied": "コピーしました！"
 }

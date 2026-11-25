@@ -239,5 +239,10 @@
  "js.group.dfu": "Firmware (DFU)",
  "js.group.client": "Kommandozeilen-Client",
  "js.group.binaries": "Firmware-Binärdateien (zum Flashen per SWD)",
- "js.group.other": "Sonstiges"
+ "js.group.other": "Sonstiges",
+ "js.iosSource": "iOS-Update-Quelle (SideStore / AltStore)",
+ "js.sub.addSource": "Quelle hinzufügen",
+ "js.sourceJson": "Quellen-JSON",
+ "js.sub.copyUrl": "URL kopieren",
+ "js.copied": "Kopiert!"
 }
