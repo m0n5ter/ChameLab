@@ -14,6 +14,15 @@ using ChameLab.Localization;
 
 namespace ChameLab.ViewModels;
 
+/// <summary>Destructive device action awaiting confirmation in the shell modal dialog.</summary>
+public enum ChameleonDangerAction
+{
+    None,
+    ClearBonds,
+    ResetSettings,
+    FactoryReset,
+}
+
 /// <summary>The connected device: status, active slot, firmware and the settings it keeps.</summary>
 public sealed class ChameleonViewModel : PageViewModelBase
 {
@@ -39,9 +48,11 @@ public sealed class ChameleonViewModel : PageViewModelBase
         SelectSlotCommand = ReactiveCommand.CreateFromTask<SlotItemViewModel>(s => ActivateSlotAsync(s.Index));
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, this.WhenAnyValue(x => x.IsDirty));
         DiscardCommand = ReactiveCommand.Create(Discard);
-        ResetCommand = ReactiveCommand.CreateFromTask(ResetAsync);
-        ClearBondsCommand = ReactiveCommand.CreateFromTask(ClearBondsAsync);
-        FactoryResetCommand = ReactiveCommand.CreateFromTask(FactoryResetAsync);
+        AskResetCommand = ReactiveCommand.Create(() => { PendingDanger = ChameleonDangerAction.ResetSettings; });
+        AskClearBondsCommand = ReactiveCommand.Create(() => { PendingDanger = ChameleonDangerAction.ClearBonds; });
+        AskFactoryResetCommand = ReactiveCommand.Create(() => { PendingDanger = ChameleonDangerAction.FactoryReset; });
+        CancelDangerCommand = ReactiveCommand.Create(() => { PendingDanger = ChameleonDangerAction.None; });
+        ConfirmDangerCommand = ReactiveCommand.CreateFromTask(ConfirmDangerAsync);
 
         // Writing the mode on user toggles only, not when we load the current value.
         this.WhenAnyValue(x => x.ReaderMode)
@@ -61,6 +72,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
         {
             if (s == ConnectionState.Connected) return;
             CancelBatteryRetry();
+            PendingDanger = ChameleonDangerAction.None;
             SupportsBle = false;
             SupportsLongPressThreshold = false;
             // Edits meant for that device are dropped; the next connection loads fresh values.
@@ -233,9 +245,60 @@ public sealed class ChameleonViewModel : PageViewModelBase
 
     public ICommand SaveCommand { get; }
     public ICommand DiscardCommand { get; }
-    public ICommand ResetCommand { get; }
-    public ICommand ClearBondsCommand { get; }
-    public ICommand FactoryResetCommand { get; }
+    public ICommand AskResetCommand { get; }
+    public ICommand AskClearBondsCommand { get; }
+    public ICommand AskFactoryResetCommand { get; }
+    public ICommand CancelDangerCommand { get; }
+    public ICommand ConfirmDangerCommand { get; }
+
+    /// <summary>Pending destructive action awaiting user confirmation; <see cref="ChameleonDangerAction.None"/> when closed.</summary>
+    public ChameleonDangerAction PendingDanger
+    {
+        get;
+        private set
+        {
+            if (field == value) return;
+            this.RaiseAndSetIfChanged(ref field, value);
+            this.RaisePropertyChanged(nameof(IsConfirmingDanger));
+            this.RaisePropertyChanged(nameof(DangerPrompt));
+            this.RaisePropertyChanged(nameof(DangerDetail));
+            this.RaisePropertyChanged(nameof(DangerConfirmText));
+            this.RaisePropertyChanged(nameof(DangerConfirmIconKey));
+        }
+    }
+
+    public bool IsConfirmingDanger => PendingDanger != ChameleonDangerAction.None;
+
+    public string DangerPrompt => PendingDanger switch
+    {
+        ChameleonDangerAction.ClearBonds => Strings.Chameleon_ClearAllBondedBLEDevices,
+        ChameleonDangerAction.ResetSettings => Strings.Chameleon_ResetAllSettings,
+        ChameleonDangerAction.FactoryReset => Strings.Chameleon_FactoryResetTheChameleon,
+        _ => string.Empty,
+    };
+
+    public string DangerDetail => PendingDanger switch
+    {
+        ChameleonDangerAction.ClearBonds => Strings.Chameleon_PairedPhonesAndTabletsWillHave,
+        ChameleonDangerAction.ResetSettings => Strings.Chameleon_CurrentDeviceSettingsWillBeReplaced,
+        ChameleonDangerAction.FactoryReset => Strings.Chameleon_AllSlotsNicknamesEmulatorDataAnd,
+        _ => string.Empty,
+    };
+
+    public string DangerConfirmText => PendingDanger switch
+    {
+        ChameleonDangerAction.ClearBonds => Strings.Chameleon_ClearBonds,
+        ChameleonDangerAction.ResetSettings => Strings.Chameleon_ResetSettings,
+        ChameleonDangerAction.FactoryReset => Strings.Chameleon_EraseEverything,
+        _ => string.Empty,
+    };
+
+    public string DangerConfirmIconKey => PendingDanger switch
+    {
+        ChameleonDangerAction.ClearBonds => "ble",
+        ChameleonDangerAction.ResetSettings => "reset",
+        _ => "delete",
+    };
 
     /// <summary>Reads the device afresh; unsaved setting edits survive leaving and coming back.</summary>
     public override Task OnActivatedAsync() => RunAsync(async () =>
@@ -287,6 +350,7 @@ public sealed class ChameleonViewModel : PageViewModelBase
     public override Task OnDeactivatedAsync()
     {
         CancelBatteryRetry();
+        PendingDanger = ChameleonDangerAction.None;
         return base.OnDeactivatedAsync();
     }
 
@@ -424,6 +488,19 @@ public sealed class ChameleonViewModel : PageViewModelBase
         LongPressThreshold = _saved.LongPressThreshold;
         BlePairingEnabled = _saved.BlePairingEnabled;
         BlePin = string.Empty;
+    }
+
+    private Task ConfirmDangerAsync()
+    {
+        var action = PendingDanger;
+        PendingDanger = ChameleonDangerAction.None;
+        return action switch
+        {
+            ChameleonDangerAction.ClearBonds => ClearBondsAsync(),
+            ChameleonDangerAction.ResetSettings => ResetAsync(),
+            ChameleonDangerAction.FactoryReset => FactoryResetAsync(),
+            _ => Task.CompletedTask,
+        };
     }
 
     private Task ResetAsync() => RunAsync(async () =>

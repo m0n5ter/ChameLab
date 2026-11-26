@@ -1128,10 +1128,12 @@
   </Style>
   <!-- Actions short of room: icon only (the tooltip names the action). Only the label in the
        button's content: a plain descendant selector would also blank the tooltip's text. -->
-  <Style Selector="c|ActionRow > :is(Control).iconic > StackPanel > TextBlock">
+  <Style Selector="c|ActionRow > :is(Control).iconic > StackPanel > TextBlock,
+                   c|SettingRow > :is(Control).iconic > StackPanel > TextBlock">
     <Setter Property="IsVisible" Value="False" />
   </Style>
-  <Style Selector="c|ActionRow > Button.iconic, c|ActionRow > DropDownButton.iconic">
+  <Style Selector="c|ActionRow > Button.iconic, c|ActionRow > DropDownButton.iconic,
+                   c|SettingRow > Button.iconic">
     <Setter Property="Width" Value="40" />
     <Setter Property="Height" Value="40" />
     <Setter Property="MinWidth" Value="0" />

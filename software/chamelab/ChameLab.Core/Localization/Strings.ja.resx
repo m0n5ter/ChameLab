@@ -988,7 +988,7 @@
     <value>アクティブなスロット</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>すべてのスロット、ニックネーム、エミュレーターデータ、設定が消去されます。その後デバイスは切断されます。</value>
+    <value>すべてのスロット、ニックネーム、設定、BLEペアリングが工場出荷時の状態に戻り、スロット1～3にはデモカードが入ります。その後デバイスは再起動します。</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>バッテリー</value>
@@ -1180,7 +1180,7 @@
     <value>このモデルにはバッテリー残量計がありません。</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>すべてのデータ（すべてのスロット、ニックネーム、保存されたエミュレーター内容、設定）を消去します。元に戻すことはできません。</value>
+    <value>すべてのデータを消去し、工場出荷時の設定とデモスロットを復元します。</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 kHz</value>

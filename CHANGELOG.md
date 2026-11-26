@@ -10,6 +10,7 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 ## [unreleased][unreleased]
  - ChameLab: publish stable (`altstore.json`) and development (`altstore-dev.json`) AltStore / SideStore update source feeds on the website with one-tap add buttons on the download page
  - ChameLab: T55xx "Clear" password option now removes password protection so the tag becomes unprotected (the default key `20206666` remains available under "Set" when left empty)
+ - ChameLab: fixed Clear BLE bonds, Reset settings, and Factory reset on the Chameleon page, replaced their flyout popups with standard modal confirmation dialogs, aligned the danger buttons with the settings fields above (shrinking to fit text and collapsing to icons on narrow screens), and clarified the factory reset descriptions
 
 ## [v1.8.61][2026-11-25] · firmware v2.4.27-cl
 ### Summary

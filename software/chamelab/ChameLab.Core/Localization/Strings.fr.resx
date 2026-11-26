@@ -988,7 +988,7 @@
     <value>EMPLACEMENT ACTIF</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>Tous les emplacements, noms, données d'émulation et réglages seront effacés. L'appareil se déconnectera ensuite.</value>
+    <value>Tous les emplacements, noms, réglages et appairages BLE seront réinitialisés, avec des cartes de démo dans les emplacements 1–3. L'appareil redémarrera ensuite.</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>BATTERIE</value>
@@ -1180,7 +1180,7 @@
     <value>Ce modèle n'a pas de jauge de batterie.</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>Efface TOUTES les données : chaque emplacement, nom, contenu d'émulation enregistré et réglage. Action irréversible.</value>
+    <value>Efface toutes les données et rétablit les réglages d'usine et les emplacements de démo.</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 kHz</value>

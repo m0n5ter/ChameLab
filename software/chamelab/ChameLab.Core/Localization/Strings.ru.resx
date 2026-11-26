@@ -472,7 +472,7 @@
     <value>Действие при коротком нажатии.</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>Все слоты, их имена, данные эмулятора и настройки будут стёрты. После этого устройство отключится.</value>
+    <value>Все слоты, их имена, настройки и сопряжения BLE вернутся к заводским, в слотах 1–3 останутся демо-карты. После этого устройство перезагрузится.</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>БАТАРЕЯ</value>
@@ -637,7 +637,7 @@
     <value>У этой модели нет датчика заряда.</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>Стирает ВСЕ данные: все слоты, их имена, сохранённое содержимое эмулятора и настройки. Отменить это нельзя.</value>
+    <value>Стирает все данные, возвращая заводские настройки и демо-слоты.</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 кГц</value>

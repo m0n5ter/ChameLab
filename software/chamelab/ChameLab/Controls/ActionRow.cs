@@ -257,10 +257,15 @@ public class ActionRow : Panel
     /// invalidate the button's cached size by the time it is measured again, so the whole
     /// subtree is invalidated here.
     /// </summary>
-    private static void SetIconic(Control child, bool iconic)
+    internal static void SetIconic(Control child, bool iconic)
     {
         if (child.Classes.Contains(IconicClass) == iconic) return;
         child.Classes.Set(IconicClass, iconic);
+        InvalidateSubtree(child);
+    }
+
+    internal static void InvalidateSubtree(Control child)
+    {
         foreach (var layoutable in child.GetSelfAndVisualDescendants().OfType<Layoutable>())
             layoutable.InvalidateMeasure();
     }

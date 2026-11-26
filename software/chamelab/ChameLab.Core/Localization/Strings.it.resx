@@ -988,7 +988,7 @@
     <value>SLOT ATTIVO</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>Tutti gli slot, i soprannomi, i dati dell'emulatore e le impostazioni verranno cancellati. Poi il dispositivo si disconnetterà.</value>
+    <value>Tutti gli slot, i soprannomi, le impostazioni e le associazioni BLE verranno ripristinati alle impostazioni di fabbrica, con schede demo negli slot 1–3. Poi il dispositivo si riavvierà.</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>BATTERIA</value>
@@ -1180,7 +1180,7 @@
     <value>Questo modello non ha un indicatore della batteria.</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>Cancella TUTTI i dati: ogni slot, soprannome, contenuto salvato dell'emulatore e impostazione. L'operazione non può essere annullata.</value>
+    <value>Cancella tutti i dati e ripristina le impostazioni di fabbrica e gli slot demo.</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 kHz</value>

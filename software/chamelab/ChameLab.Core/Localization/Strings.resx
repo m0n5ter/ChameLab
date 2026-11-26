@@ -475,7 +475,7 @@
     <value>Action on a short press.</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>All slots, nicknames, emulator data and settings will be erased. The device will disconnect afterwards.</value>
+    <value>All slots, nicknames, settings and BLE bonds will be reset to factory defaults with demo cards in slots 1–3. The device will restart afterwards.</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>BATTERY</value>
@@ -640,7 +640,7 @@
     <value>This model has no battery gauge.</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>Wipes ALL data: every slot, nickname, saved emulator content and settings. This cannot be undone.</value>
+    <value>Erases all data, restoring factory settings and demo slots.</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 kHz</value>

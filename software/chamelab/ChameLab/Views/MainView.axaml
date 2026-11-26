@@ -581,6 +581,28 @@
       </Border>
     </Panel>
 
+    <!-- ==================== Chameleon danger confirmation dialog ==================== -->
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+           DataContext="{Binding Chameleon}" IsVisible="{Binding IsConfirmingDanger}"
+           x:DataType="vm:ChameleonViewModel">
+      <Border Classes="card" MaxWidth="420" Margin="16" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock Classes="h2" TextWrapping="Wrap" Text="{Binding DangerPrompt}" />
+          <TextBlock TextWrapping="Wrap" Text="{Binding DangerDetail}" />
+          <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">
+            <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelDangerCommand}"
+                    b:DialogKeys.IsCancel="True" />
+            <Button Classes="danger solid" Command="{Binding ConfirmDangerCommand}" b:DialogKeys.IsDefault="True">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{Binding DangerConfirmIconKey, Converter={x:Static conv:IconGeometryConverter.Instance}}" />
+                <TextBlock Text="{Binding DangerConfirmText}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+
     <!-- ==================== Backup import conflict dialog ==================== -->
     <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
            DataContext="{Binding Settings}" IsVisible="{Binding IsBackupImportDialogOpen}"

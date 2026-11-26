@@ -54,7 +54,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="*,Auto">
+  <Grid RowDefinitions="*,Auto" IsEnabled="{Binding !IsConfirmingDanger}">
     <ScrollViewer Grid.Row="0">
       <StackPanel Classes="page">
 
@@ -465,74 +465,50 @@
         <Border Classes="card" BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}">
           <StackPanel>
             <!-- Bonded BLE devices -->
-            <c:SettingRow IsVisible="{Binding SupportsBle}">
+            <c:SettingRow ControlTargetWidth="220" ControlGroup="danger" IsVisible="{Binding SupportsBle}">
               <Panel IsVisible="False" />
               <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearBondedDevices}" FontWeight="SemiBold" />
               <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_ForgetsEveryPhoneAndTabletPaired}" />
-              <Button x:Name="ClearBondsButton" Classes="danger">
+              <Button Classes="danger" Command="{Binding AskClearBondsCommand}"
+                      ToolTip.Tip="{x:Static loc:Strings.Chameleon_ClearBonds2}"
+                      AutomationProperties.Name="{x:Static loc:Strings.Chameleon_ClearBonds2}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.ble}" />
                   <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearBonds2}" VerticalAlignment="Center" />
                 </StackPanel>
-                <Button.Flyout>
-                  <Flyout Placement="TopEdgeAlignedRight">
-                    <StackPanel Spacing="12" MaxWidth="280">
-                      <TextBlock Text="{x:Static loc:Strings.Chameleon_ClearAllBondedBLEDevices}" FontWeight="SemiBold" />
-                      <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_PairedPhonesAndTabletsWillHave}" />
-                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="{x:Static loc:Strings.Chameleon_ClearBonds}"
-                              Command="{Binding ClearBondsCommand}" Click="OnCloseFlyout" />
-                    </StackPanel>
-                  </Flyout>
-                </Button.Flyout>
               </Button>
             </c:SettingRow>
 
             <Separator Classes="row" IsVisible="{Binding SupportsBle}" />
 
-            <c:SettingRow>
+            <c:SettingRow ControlTargetWidth="220" ControlGroup="danger">
               <Panel IsVisible="False" />
               <TextBlock Text="{x:Static loc:Strings.Chameleon_ResetToDefaults}" FontWeight="SemiBold" />
               <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_RestoresFactorySettingsForLEDsSleep}" />
-              <Button x:Name="ResetButton" Classes="danger">
+              <Button Classes="danger" Command="{Binding AskResetCommand}"
+                      ToolTip.Tip="{x:Static loc:Strings.Chameleon_Reset}"
+                      AutomationProperties.Name="{x:Static loc:Strings.Chameleon_Reset}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.reset}" />
                   <TextBlock Text="{x:Static loc:Strings.Chameleon_Reset}" VerticalAlignment="Center" />
                 </StackPanel>
-                <Button.Flyout>
-                  <Flyout Placement="TopEdgeAlignedRight">
-                    <StackPanel Spacing="12" MaxWidth="260">
-                      <TextBlock Text="{x:Static loc:Strings.Chameleon_ResetAllSettings}" FontWeight="SemiBold" />
-                      <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_CurrentDeviceSettingsWillBeReplaced}" />
-                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="{x:Static loc:Strings.Chameleon_ResetSettings}"
-                              Command="{Binding ResetCommand}" Click="OnCloseFlyout" />
-                    </StackPanel>
-                  </Flyout>
-                </Button.Flyout>
               </Button>
             </c:SettingRow>
 
             <Separator Classes="row" />
 
             <!-- Factory reset (wipe) -->
-            <c:SettingRow>
+            <c:SettingRow ControlTargetWidth="220" ControlGroup="danger">
               <Panel IsVisible="False" />
               <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryReset}" FontWeight="SemiBold" />
               <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_WipesALLDataEverySlotNickname}" />
-              <Button x:Name="WipeButton" Classes="danger">
+              <Button Classes="danger" Command="{Binding AskFactoryResetCommand}"
+                      ToolTip.Tip="{x:Static loc:Strings.Chameleon_FactoryReset2}"
+                      AutomationProperties.Name="{x:Static loc:Strings.Chameleon_FactoryReset2}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <PathIcon Data="{StaticResource Icon.delete}" />
                   <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryReset2}" VerticalAlignment="Center" />
                 </StackPanel>
-                <Button.Flyout>
-                  <Flyout Placement="TopEdgeAlignedRight">
-                    <StackPanel Spacing="12" MaxWidth="280">
-                      <TextBlock Text="{x:Static loc:Strings.Chameleon_FactoryResetTheChameleon}" FontWeight="SemiBold" />
-                      <TextBlock Classes="caption" Text="{x:Static loc:Strings.Chameleon_AllSlotsNicknamesEmulatorDataAnd}" />
-                      <Button Classes="danger solid" HorizontalAlignment="Right" Content="{x:Static loc:Strings.Chameleon_EraseEverything}"
-                              Command="{Binding FactoryResetCommand}" Click="OnCloseFlyout" />
-                    </StackPanel>
-                  </Flyout>
-                </Button.Flyout>
               </Button>
             </c:SettingRow>
           </StackPanel>

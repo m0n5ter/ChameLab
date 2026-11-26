@@ -988,7 +988,7 @@
     <value>AKTIVER SLOT</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>Alle Slots, Namen, Emulatordaten und Einstellungen werden gelöscht. Danach trennt sich das Gerät.</value>
+    <value>Alle Slots, Namen, Einstellungen und BLE-Kopplungen werden auf Werkseinstellungen zurückgesetzt, mit Demo-Karten in den Slots 1–3. Danach startet das Gerät neu.</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>AKKU</value>
@@ -1180,7 +1180,7 @@
     <value>Dieses Modell hat keine Akkuanzeige.</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>Löscht ALLE Daten: jeden Slot, jeden Namen, gespeicherte Emulatorinhalte und Einstellungen. Dies kann nicht rückgängig gemacht werden.</value>
+    <value>Löscht alle Daten und stellt Werkseinstellungen sowie Demo-Slots wieder her.</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 kHz</value>

@@ -988,7 +988,7 @@
     <value>활성 슬롯</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>모든 슬롯, 별명, 에뮬레이터 데이터와 설정이 지워집니다. 그 후 장치 연결이 끊어집니다.</value>
+    <value>모든 슬롯, 별명, 설정과 BLE 본딩이 공장 기본값으로 초기화되며 슬롯 1–3에는 데모 카드가 들어갑니다. 그 후 장치가 재부팅됩니다.</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>배터리</value>
@@ -1180,7 +1180,7 @@
     <value>이 모델에는 배터리 게이지가 없습니다.</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>모든 데이터(모든 슬롯, 별명, 저장된 에뮬레이터 내용, 설정)를 지웁니다. 이 작업은 되돌릴 수 없습니다.</value>
+    <value>모든 데이터를 지우고 공장 설정과 데모 슬롯을 복원합니다.</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 kHz</value>

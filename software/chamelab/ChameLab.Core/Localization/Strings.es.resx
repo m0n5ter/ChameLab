@@ -988,7 +988,7 @@
     <value>RANURA ACTIVA</value>
   </data>
   <data name="Chameleon_AllSlotsNicknamesEmulatorDataAnd" xml:space="preserve">
-    <value>Se borrarán todas las ranuras, nombres, datos del emulador y ajustes. Después el dispositivo se desconectará.</value>
+    <value>Todas las ranuras, nombres, ajustes y emparejamientos BLE volverán a los valores de fábrica, con tarjetas de demostración en las ranuras 1–3. Después el dispositivo se reiniciará.</value>
   </data>
   <data name="Chameleon_BatteryHeader" xml:space="preserve">
     <value>BATERÍA</value>
@@ -1180,7 +1180,7 @@
     <value>Este modelo no tiene indicador de batería.</value>
   </data>
   <data name="Chameleon_WipesALLDataEverySlotNickname" xml:space="preserve">
-    <value>Borra TODOS los datos: todas las ranuras, nombres, contenido guardado del emulador y ajustes. No se puede deshacer.</value>
+    <value>Borra todos los datos y restaura los ajustes de fábrica y las ranuras de demostración.</value>
   </data>
   <data name="Common_125KHz" xml:space="preserve">
     <value>125 kHz</value>
