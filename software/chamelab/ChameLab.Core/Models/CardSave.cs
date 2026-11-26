@@ -1,6 +1,8 @@
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using ChameLab.Protocol;
 using ChameLab.Localization;
@@ -60,6 +62,73 @@ public sealed class CardSave
         var copy = FromJson(json);
         copy.Id = Guid.NewGuid().ToString();
         return copy;
+    }
+
+    /// <summary>
+    /// SHA-256 hex digest of the card's slot-comparable content (slot-normalized tag type, UID/ID,
+    /// SAK, ATQA, ATS, memory blocks/pages, and Ultralight version/signature/counters).
+    /// Excludes local metadata (<see cref="Id"/>, <see cref="Name"/>, <see cref="Color"/>,
+    /// <see cref="Folder"/>) and recovery annotations (<see cref="CardSaveExtra.UnknownKeyA"/>,
+    /// <see cref="CardSaveExtra.UnknownKeyB"/>).
+    /// </summary>
+    public string ContentHash()
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        Span<byte> buf = stackalloc byte[4];
+
+        BinaryPrimitives.WriteUInt16BigEndian(buf, (ushort)ChameleonClient.SlotTypeFor(Tag));
+        hash.AppendData(buf[..2]);
+
+        AppendBytes(hash, Uid, buf);
+        buf[0] = Sak;
+        hash.AppendData(buf[..1]);
+        AppendBytes(hash, Atqa, buf);
+        AppendBytes(hash, Ats, buf);
+
+        BinaryPrimitives.WriteInt32BigEndian(buf, Data.Count);
+        hash.AppendData(buf);
+        foreach (var block in Data) AppendBytes(hash, block, buf);
+
+        AppendBytes(hash, Extra.UltralightVersion, buf);
+        AppendBytes(hash, Extra.UltralightSignature, buf);
+        BinaryPrimitives.WriteInt32BigEndian(buf, Extra.UltralightCounters.Count);
+        hash.AppendData(buf);
+        foreach (var counter in Extra.UltralightCounters)
+        {
+            BinaryPrimitives.WriteInt32BigEndian(buf, counter);
+            hash.AppendData(buf);
+        }
+
+        Span<byte> digest = stackalloc byte[32];
+        hash.GetHashAndReset(digest);
+        return Convert.ToHexString(digest);
+    }
+
+    private static void AppendBytes(IncrementalHash hash, byte[] bytes, Span<byte> lenBuf)
+    {
+        BinaryPrimitives.WriteInt32BigEndian(lenBuf, bytes.Length);
+        hash.AppendData(lenBuf);
+        if (bytes.Length > 0) hash.AppendData(bytes);
+    }
+
+    /// <summary>
+    /// Full comparison of two cards' slot-comparable content (matching <see cref="ContentHash"/>).
+    /// </summary>
+    public static bool ContentEquals(CardSave a, CardSave b)
+    {
+        if (ReferenceEquals(a, b)) return true;
+        if (ChameleonClient.SlotTypeFor(a.Tag) != ChameleonClient.SlotTypeFor(b.Tag)) return false;
+        if (a.Sak != b.Sak) return false;
+        if (!a.Uid.AsSpan().SequenceEqual(b.Uid)) return false;
+        if (!a.Atqa.AsSpan().SequenceEqual(b.Atqa)) return false;
+        if (!a.Ats.AsSpan().SequenceEqual(b.Ats)) return false;
+        if (a.Data.Count != b.Data.Count) return false;
+        for (var i = 0; i < a.Data.Count; i++)
+            if (!a.Data[i].AsSpan().SequenceEqual(b.Data[i])) return false;
+        if (!a.Extra.UltralightVersion.AsSpan().SequenceEqual(b.Extra.UltralightVersion)) return false;
+        if (!a.Extra.UltralightSignature.AsSpan().SequenceEqual(b.Extra.UltralightSignature)) return false;
+        if (!a.Extra.UltralightCounters.SequenceEqual(b.Extra.UltralightCounters)) return false;
+        return true;
     }
 
     // ---- JSON ----------------------------------------------------------

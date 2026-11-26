@@ -140,21 +140,11 @@ public sealed partial class ToolsViewModel
     {
         var keys = T55xxActionKeys();
         if (keys.Count == 0) return;
-        var name = FreeT55xxDictionaryName(Strings.Tools_T55xxPassword);
+        var name = _dictionaries.FreeName(Strings.Tools_T55xxPassword);
         var dict = new KeyDictionary { Name = name, Keys = keys.Select(k => k.ToArray()).ToList() };
         try { _dictionaries.Add(dict); }
         catch (Exception ex) { ReportError(ex.Message); return; }
         Notify(string.Format(Strings.Cards_KeysSavedToNewDictionary, Loc.Plural(Strings.Plural_Keys, keys.Count), name));
-    }
-
-    /// <summary>The name, or with " (2)", " (3)"… after it when a dictionary already has it.</summary>
-    private string FreeT55xxDictionaryName(string name)
-    {
-        var taken = _dictionaries.Dictionaries.Select(d => d.Name.Trim())
-            .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
-        var free = name;
-        for (var n = 2; taken.Contains(free); n++) free = $"{name} ({n})";
-        return free;
     }
 
     private Task SaveT55xxKeyToFileAsync() => RunAsync(async () =>

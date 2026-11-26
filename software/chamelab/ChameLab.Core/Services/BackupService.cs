@@ -171,6 +171,7 @@ public static class BackupService
                     break;
                 case BackupConflictResolution.KeepBoth:
                     conflict.Imported.Id = Guid.NewGuid().ToString();
+                    conflict.Imported.Name = cards.FreeName(conflict.Imported.Name);
                     cards.Add(conflict.Imported);
                     addedCards++;
                     break;
@@ -194,6 +195,7 @@ public static class BackupService
                     break;
                 case BackupConflictResolution.KeepBoth:
                     conflict.Imported.Id = Guid.NewGuid().ToString();
+                    conflict.Imported.Name = dictionaries.FreeName(conflict.Imported.Name);
                     dictionaries.Add(conflict.Imported);
                     addedDicts++;
                     break;

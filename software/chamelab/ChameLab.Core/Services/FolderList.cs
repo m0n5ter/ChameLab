@@ -1,10 +1,53 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Nodes;
 using ChameLab.Models;
+using ChameLab.Localization;
 
 namespace ChameLab.Services;
+
+/// <summary>Allocates unique item names with a trailing <c>(n)</c> index when needed.</summary>
+internal static class UniqueName
+{
+    public static string Next(string? name, IEnumerable<string> existing)
+    {
+        var taken = existing.Select(n => n.Trim()).ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+        return Next(name, taken);
+    }
+
+    public static string Next(string? name, HashSet<string> taken)
+    {
+        var basis = string.IsNullOrWhiteSpace(name) ? Strings.Common_Untitled : name.Trim();
+        if (taken.Add(basis)) return basis;
+
+        var (prefix, next) = ParseIndexed(basis);
+        var free = $"{prefix} ({next})";
+        for (var n = next + 1; !taken.Add(free); n++) free = $"{prefix} ({n})";
+        return free;
+    }
+
+    private static (string Prefix, int NextIndex) ParseIndexed(string name)
+    {
+        if (name.EndsWith(')'))
+        {
+            var open = name.LastIndexOf(" (", StringComparison.Ordinal);
+            if (open > 0)
+            {
+                var digits = name.AsSpan(open + 2, name.Length - open - 3);
+                if (digits.Length > 0 && digits[0] != '0'
+                    && int.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out var index)
+                    && index < int.MaxValue)
+                {
+                    var prefix = name[..open].TrimEnd();
+                    if (prefix.Length > 0) return (prefix, index + 1);
+                }
+            }
+        }
+        return (name, 2);
+    }
+}
 
 /// <summary>
 /// A library whose items are filed in nested folders (see <see cref="FolderPath"/>). Folders are

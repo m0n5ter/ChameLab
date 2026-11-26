@@ -227,9 +227,7 @@ public sealed class EmulatorCaptureViewModel : PageViewModelBase
         try
         {
             var basis = $"{string.Format(Strings.Slots_SlotN, _slot)} · {(IsMifare ? "mfkey32" : "NTAG")}";
-            var taken = _dictionaries.Dictionaries.Select(d => d.Name.Trim()).ToHashSet(StringComparer.CurrentCultureIgnoreCase);
-            var name = basis;
-            for (var n = 2; taken.Contains(name); n++) name = $"{basis} ({n})";
+            var name = _dictionaries.FreeName(basis);
             _dictionaries.Add(new KeyDictionary { Name = name, Keys = _keys.Select(k => k.ToArray()).ToList() });
             Notify(string.Format(Strings.Cards_KeysSavedToNewDictionary, Loc.Plural(Strings.Plural_Keys, _keys.Count), name));
         }

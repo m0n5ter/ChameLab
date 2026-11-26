@@ -65,9 +65,29 @@ public class SaveCardKeysTests
         Assert.Equal("Office", created.Name);
         Assert.Equal(["112233445566", "A0A1A2A3A4A5", "B0B1B2B3B4B5"], Hex(created.Keys));
 
-        // Saving again does not repeat the name.
+        // Saving again does not repeat the name, and an indexed card increments its index.
         vm.SaveKeysToNewDictionaryCommand.Execute(null);
         vm.SaveKeysToNewDictionaryCommand.Execute(null);
         Assert.Equal(["Mine", "Office", "Office (2)", "Office (3)"], dictionaries.Dictionaries.Select(d => d.Name));
+
+        var indexed = MiniCard();
+        indexed.Name = "Office (2)";
+        library.Add(indexed);
+        vm.OpenCard(indexed.Id);
+        vm.SaveKeysToNewDictionaryCommand.Execute(null);
+        Assert.Equal("Office (4)", dictionaries.Dictionaries[^1].Name);
+    }
+
+    [Fact]
+    public void DictionaryLibraryFreeNameIncrementsExistingIndexCaseInsensitively()
+    {
+        var dictionaries = new DictionaryLibrary(new MemoryKeyValueStore());
+        Assert.Equal("Keys", dictionaries.FreeName(" Keys "));
+
+        dictionaries.Add(new KeyDictionary { Name = "Keys" });
+        Assert.Equal("keys (2)", dictionaries.FreeName("keys"));
+
+        dictionaries.Add(new KeyDictionary { Name = "Keys (2)" });
+        Assert.Equal("Keys (3)", dictionaries.FreeName("Keys (2)"));
     }
 }

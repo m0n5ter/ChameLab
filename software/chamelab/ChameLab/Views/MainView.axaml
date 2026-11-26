@@ -126,7 +126,7 @@
                   <!-- Cards, with buttons for a new folder and a new card (before the general page template,
                        which would match too). -->
                   <DataTemplate DataType="vm:CardsViewModel">
-                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
+                    <Border Classes="navrow" Classes.current="{Binding IsRootCurrent}" b:ListReorder.IsDropTarget="True">
                       <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Height="40">
                         <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
                                 Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
@@ -148,7 +148,7 @@
 
                   <!-- Dictionaries, with buttons for a new folder and a new dictionary. -->
                   <DataTemplate DataType="vm:DictionariesViewModel">
-                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True">
+                    <Border Classes="navrow" Classes.current="{Binding IsRootCurrent}" b:ListReorder.IsDropTarget="True">
                       <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" Height="40">
                         <Border Grid.Column="0" Classes="navbar" Margin="0,0,9,0"
                                 Opacity="{Binding $parent[ListBoxItem].IsSelected, Converter={x:Static conv:BoolToOpacityConverter.Instance}}" />
@@ -181,7 +181,7 @@
                   </DataTemplate>
 
                   <DataTemplate DataType="vm:FolderViewModel">
-                    <Border Classes="navrow" b:ListReorder.IsDropTarget="True" Margin="0,1">
+                    <Border Classes="navrow" Classes.current="{Binding IsCurrent}" b:ListReorder.IsDropTarget="True" Margin="0,1">
                       <Grid Classes="folderrow" Classes.empty="{Binding IsEmpty}" Classes.editing="{Binding IsEditing}"
                             ColumnDefinitions="Auto,Auto,Auto,*,Auto" MinHeight="32">
                         <Grid.ContextFlyout>
@@ -208,9 +208,9 @@
                                   Data="{StaticResource Icon.folder}" />
                         <!-- A transparent box around the name, so its tooltip shows over the whole cell, not just the glyphs. -->
                         <Border Grid.Column="3" Classes="foldername" Background="Transparent" ToolTip.Tip="{Binding Path}">
-                          <!-- Long names wrap onto a second line, tightly spaced, then trim. -->
-                          <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" Margin="0,4"
-                                     TextWrapping="Wrap" MaxLines="2" LineSpacing="-2" TextTrimming="CharacterEllipsis" />
+                          <!-- Long names wrap onto a second line, tightly spaced, then trim; bottom padding keeps descenders from clipping and centers caps with the icons. -->
+                          <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" Margin="0,2" Padding="0,0,0,5"
+                                     TextWrapping="Wrap" MaxLines="2" LineSpacing="-4" TextTrimming="CharacterEllipsis" />
                         </Border>
                         <TextBlock Grid.Column="4" Classes="caption foldercount" Text="{Binding Count}"
                                    VerticalAlignment="Center" Margin="8,0,10,0" />

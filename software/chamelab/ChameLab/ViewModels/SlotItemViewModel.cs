@@ -68,8 +68,7 @@ public sealed class SlotItemViewModel(SlotInfo info, CardLibrary? library = null
         : "-";
 
     private string ExtraName(LfCycleCard card) =>
-        library?.Cards.FirstOrDefault(c => c.Sense == TagSenseType.Lf &&
-            ChameleonClient.SlotTypeFor(c.Tag) == card.Type && c.Uid.AsSpan().SequenceEqual(card.Id))?.Name
+        library?.FindMatch(new CardSave { Tag = card.Type, Uid = card.Id })?.Name
         ?? LfSlotListViewModel.DefaultName(card);
 
     /// <summary>Type of each card, under its name in the slot tile; a dash (hidden) when the frequency is empty.</summary>

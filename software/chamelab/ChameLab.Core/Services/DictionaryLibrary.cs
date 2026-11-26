@@ -165,6 +165,21 @@ public sealed class DictionaryLibrary : IFolderLibrary
         if (_dicts.RemoveAll(d => d.Id == dict.Id) > 0) Save();
     }
 
+    /// <summary>
+    /// Returns <paramref name="name"/>, or appends / increments a trailing <c>(n)</c> index
+    /// when another saved dictionary already uses it (case-insensitive).
+    /// </summary>
+    public string FreeName(string? name) => UniqueName.Next(name, _dicts.Select(d => d.Name));
+
+    /// <summary>
+    /// Assigns unique indexed names to <paramref name="dicts"/> against the library and each other.
+    /// </summary>
+    public void EnsureUniqueNames(IEnumerable<KeyDictionary> dicts)
+    {
+        var taken = _dicts.Select(d => d.Name.Trim()).ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+        foreach (var dict in dicts) dict.Name = UniqueName.Next(dict.Name, taken);
+    }
+
     // ---- Folders --------------------------------------------------------
 
     public string? FindFolder(string? path) => _folders.Find(path);

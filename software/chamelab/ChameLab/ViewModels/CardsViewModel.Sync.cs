@@ -244,6 +244,7 @@ public sealed partial class CardsViewModel
                 cts.Token);
             var folder = CurrentFolder?.Path ?? string.Empty;
             foreach (var card in cards) card.Folder = folder;
+            _library.EnsureUniqueNames(cards);
             _library.AddRange(cards);
             IsReceiveOpen = false;
             ReceiveCode = null;

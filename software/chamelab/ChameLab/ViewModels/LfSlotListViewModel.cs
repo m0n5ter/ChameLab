@@ -19,15 +19,18 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
     private readonly CardLibrary _library;
     private readonly Action _changed;
     private readonly Action<CardSave> _openCard;
+    private readonly Func<string>? _saveFolder;
     private CardSave[] _saved = [];
     private bool _syncing, _supportsCycle;
 
-    public LfSlotListViewModel(SlotSideViewModel side, CardLibrary library, Action changed, Action<CardSave> openCard)
+    public LfSlotListViewModel(SlotSideViewModel side, CardLibrary library, Action changed, Action<CardSave> openCard,
+        Func<string>? saveFolder = null)
     {
         _side = side;
         _library = library;
         _changed = changed;
         _openCard = openCard;
+        _saveFolder = saveFolder;
         Load(false, new LfCardCycle([]));
     }
 
@@ -102,7 +105,7 @@ public sealed class LfSlotListViewModel : ViewModelBase, IReorderableList
         SyncPrimary();
     }
 
-    private LfSlotCardViewModel Row(CardSave card) => new(card, _library, _openCard, Remove);
+    private LfSlotCardViewModel Row(CardSave card) => new(card, _library, _openCard, Remove, _saveFolder);
 
     private void SyncPrimary()
     {
@@ -186,14 +189,22 @@ public sealed class LfSlotCardViewModel : ViewModelBase
     private CardItemViewModel _item;
 
     public LfSlotCardViewModel(CardSave card, CardLibrary library, Action<CardSave> open,
-        Action<LfSlotCardViewModel> remove)
+        Action<LfSlotCardViewModel> remove, Func<string>? saveFolder = null)
     {
         Card = card;
         _library = library;
         _item = new CardItemViewModel(card);
         OpenCommand = ReactiveCommand.Create(() => { if (_match is { } match) open(match); });
         RemoveCommand = ReactiveCommand.Create(() => remove(this));
-        SaveCommand = ReactiveCommand.Create(() => { _library.Add(Card.Clone()); Refresh(); });
+        SaveCommand = ReactiveCommand.Create(() =>
+        {
+            var copy = Card.Clone();
+            copy.Name = _library.FreeName(copy.Name);
+            var folder = saveFolder?.Invoke();
+            copy.Folder = string.IsNullOrEmpty(folder) ? string.Empty : _library.FindFolder(folder) ?? string.Empty;
+            _library.Add(copy);
+            Refresh();
+        });
         Refresh();
     }
 
@@ -206,9 +217,7 @@ public sealed class LfSlotCardViewModel : ViewModelBase
 
     public void Refresh()
     {
-        var candidates = _library.Cards.Where(c => c.Sense == TagSenseType.Lf &&
-            ChameleonClient.SlotTypeFor(c.Tag) == ChameleonClient.SlotTypeFor(Card.Tag) && c.Uid.AsSpan().SequenceEqual(Card.Uid)).ToList();
-        _match = candidates.FirstOrDefault(c => c.Id == Card.Id || c.Name == Card.Name) ?? candidates.FirstOrDefault();
+        _match = _library.FindMatch(Card, preferredId: Card.Id, preferredName: Card.Name);
         _item = new CardItemViewModel(_match ?? Card);
         this.RaisePropertyChanged(nameof(Item));
         this.RaisePropertyChanged(nameof(HasMatch));

@@ -282,6 +282,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
         FolderTree.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(FolderBrowser.CurrentFolder)) this.RaisePropertyChanged(nameof(CurrentFolder));
+            if (e.PropertyName == nameof(FolderBrowser.IsInFolder)) this.RaisePropertyChanged(nameof(IsRootCurrent));
         };
         KnownEditor = new KnownKeysEditorViewModel(library.KnownKeys, cards ?? AppServices.Cards);
         KnownEditor.PropertyChanged += (_, e) =>
@@ -502,6 +503,9 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
 
     /// <summary>The folder shown, or null for the dictionaries in no folder.</summary>
     public FolderViewModel? CurrentFolder => FolderTree.CurrentFolder;
+
+    /// <summary>The dictionaries root itself is the current folder (no nested folder is open).</summary>
+    public bool IsRootCurrent => !FolderTree.IsInFolder;
 
     /// <summary>Shows the dictionaries of a folder, or those in no folder for null.</summary>
     public void ShowFolder(FolderViewModel? folder) => FolderTree.Show(folder?.Path);
@@ -732,6 +736,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
                 // Only while the downloads are still shown: going elsewhere meanwhile drops it.
                 if (_pane != DictionariesPane.Download) return;
                 dict.Folder = FolderTree.Location;
+                dict.Name = _library.FreeName(dict.Name);
                 OpenNew(dict, null);
                 _newFromDownload = true;
                 this.RaisePropertyChanged(nameof(EditorBackTip));
@@ -754,7 +759,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
 
     private void BeginNew() => OpenNew(new KeyDictionary
     {
-        Name = Strings.Dictionaries_NewDictionary,
+        Name = _library.FreeName(Strings.Dictionaries_NewDictionary),
         Folder = FolderTree.Location,
         KeyLength = _keyLengthFilter.Length == 0 ? 6 : _keyLengthFilter.Length,
     }, null);
@@ -844,6 +849,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
         catch (FormatException ex) { ReportSaveError(ex.Message); return false; }
 
         var isNew = _pane == DictionariesPane.New;
+        if (isNew) dict.Folder = FolderTree.Location;
         try
         {
             if (isNew) _library.Add(dict); else _library.Update(dict);
@@ -888,7 +894,7 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
         if (dict is null) return;
         // The copy takes the unsaved edits; the original stays as last saved.
         var copy = dict.Clone();
-        copy.Name = dict.Name + Strings.Common_CopySuffix;
+        copy.Name = _library.FreeName(dict.Name);
         _library.Add(copy);
         SelectById(copy.Id);
     }
@@ -905,27 +911,66 @@ public sealed class DictionariesViewModel : PageViewModelBase, IReorderableList,
         var picked = await StorageService.OpenAsync(Strings.Dictionaries_ImportTitle, "json", "dic", "keys", "txt");
         if (picked is not { } file) return;
 
-        KeyDictionary dict;
-        var name = System.IO.Path.GetFileNameWithoutExtension(file.Name);
-        var text = Encoding.UTF8.GetString(file.Data).TrimStart('﻿');
+        var dicts = ParseImportedDictionaries(file.Name, file.Data);
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyImportedDictionaries(file.Name, dicts));
+    });
+
+    internal static IReadOnlyList<KeyDictionary> ParseImportedDictionaries(string fileName, byte[] data)
+    {
+        var fallbackName = System.IO.Path.GetFileNameWithoutExtension(fileName);
+        var text = Encoding.UTF8.GetString(data).TrimStart('﻿');
+        List<KeyDictionary> dicts;
         try
         {
-            dict = file.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
-                ? KeyDictionary.FromJson(text)
-                : KeyDictionary.FromText(name, text);
+            if (fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                var node = System.Text.Json.Nodes.JsonNode.Parse(text) ?? throw new FormatException(Strings.Import_EmptyJson);
+                if (ChameleonGuiImport.TryRead(node) is { Dictionaries.Count: > 0 } gui)
+                    dicts = gui.Dictionaries.ToList();
+                else if (node is System.Text.Json.Nodes.JsonArray list)
+                    dicts = list.Where(n => n is not null).Select(n => KeyDictionary.FromJson(n!)).ToList();
+                else if (node["dictionaries"] is System.Text.Json.Nodes.JsonArray wrapped)
+                    dicts = wrapped.Where(n => n is not null).Select(n => KeyDictionary.FromJson(n!)).ToList();
+                else
+                    dicts = [KeyDictionary.FromJson(node)];
+            }
+            else
+            {
+                dicts = [KeyDictionary.FromText(fallbackName, text)];
+            }
         }
-        catch (Exception ex) { throw new FormatException($"{file.Name}: {ex.Message}"); }
+        catch (Exception ex) { throw new FormatException($"{fileName}: {ex.Message}"); }
 
-        if (dict.Count == 0) throw new FormatException(string.Format(Strings.Dictionaries_NoValidKeys, file.Name));
-        if (string.IsNullOrWhiteSpace(dict.Name)) dict.Name = name;
-        // A fresh id, so a re-import never stands in for the saved original.
-        dict.Id = Guid.NewGuid().ToString();
-        // Filed in the folder shown, like a new one.
-        dict.Folder = FolderTree.Location;
+        var nonEmpty = dicts.Where(d => d.Count > 0).ToList();
+        if (nonEmpty.Count == 0) throw new FormatException(string.Format(Strings.Dictionaries_NoValidKeys, fileName));
+        foreach (var d in nonEmpty)
+        {
+            if (string.IsNullOrWhiteSpace(d.Name)) d.Name = fallbackName;
+            d.Id = Guid.NewGuid().ToString();
+        }
+        return nonEmpty;
+    }
 
-        // Reviewed (name, color, keys) before it is saved, like a new one.
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenNew(dict, string.Format(Strings.Common_ImportedFrom, file.Name)));
-    });
+    internal void ApplyImportedDictionaries(string fileName, IReadOnlyList<KeyDictionary> dicts)
+    {
+        var target = FolderTree.Location;
+        if (dicts.Count == 1)
+        {
+            var dict = dicts[0];
+            dict.Name = _library.FreeName(dict.Name);
+            dict.Folder = target;
+            // Reviewed (name, color, keys) before it is saved, like a new one.
+            OpenNew(dict, string.Format(Strings.Common_ImportedFrom, fileName));
+            return;
+        }
+        if (target.Length > 0)
+            foreach (var d in dicts)
+                d.Folder = FolderPath.Combine(target, FolderPath.Normalize(d.Folder));
+        _library.EnsureUniqueNames(dicts);
+        _library.AddRange(dicts);
+        SelectById(dicts[^1].Id);
+        Notify(string.Format(Strings.Common_ImportedFrom, fileName));
+    }
 
     private Task ExportAsync() => RunAsync(async () =>
     {

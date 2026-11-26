@@ -221,7 +221,9 @@ public sealed partial class CardsViewModel
             // Reviewed (name, color, identity) before it is saved, like an imported file.
             ResetAddState();
             QrScanStatus = null;
-            Form = new CardEditorViewModel(card!);
+            card!.Folder = FolderTree.Location;
+            card.Name = _library.FreeName(card.Name);
+            Form = new CardEditorViewModel(card);
             SetScanMatches(card);
             FormSource = Strings.Qr_FromQrCode;
         });

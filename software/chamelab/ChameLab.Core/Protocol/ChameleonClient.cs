@@ -1858,37 +1858,50 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         var tag = sense == TagSenseType.Hf ? slot.HfType : slot.LfType;
         if (tag == TagSpecificType.Undefined)
             throw new InvalidOperationException(string.Format(Strings.Device_SlotHasNoCard, slot.Index, sense));
-        var nick = sense == TagSenseType.Hf ? slot.HfNick : slot.LfNick;
 
         var previous = await GetActiveSlotAsync(ct);
         if (previous != slot.Index) await SetActiveSlotAsync(slot.Index, ct);
         try
         {
-            var card = new CardSave { Tag = tag };
-            if (sense == TagSenseType.Lf)
-            {
-                card.Uid = await GetLfEmulatorIdAsync(tag, ct);
-            }
-            else
-            {
-                await ReadHf14aAntiCollAsync(card, ct);
-                if (tag.IsMifareClassic())
-                    card.Data = await ReadMf1BlocksAsync(tag.MifareClassicBlocks(), progress, ct);
-                else if (tag.IsUltralight())
-                    await ReadUltralightAsync(card, tag, progress, ct);
-            }
-            card.Name = !string.IsNullOrWhiteSpace(nick)
-                ? nick
-                : card.Uid.Length > 0 ? $"{tag.DisplayName()} {Hex.Compact(card.Uid)}" : tag.DisplayName();
-            if ((sense == TagSenseType.Hf ? slot.HfColor : slot.LfColor) is { } color)
-                card.Color = SlotColors.SnapToPalette(color);
-            return card;
+            return await ReadActiveSlotCardAsync(slot, sense, progress, ct);
         }
         finally
         {
             if (previous != slot.Index && previous is >= 1 and <= 8)
                 await SetActiveSlotAsync(previous, ct);
         }
+    }
+
+    /// <summary>Reads the card currently emulated on <paramref name="sense"/> in the already-active slot.</summary>
+    public async Task<CardSave> ReadActiveSlotCardAsync(
+        SlotInfo slot, TagSenseType sense,
+        IProgress<MifareProgress>? progress = null,
+        CancellationToken ct = default)
+    {
+        var tag = sense == TagSenseType.Hf ? slot.HfType : slot.LfType;
+        if (tag == TagSpecificType.Undefined)
+            throw new InvalidOperationException(string.Format(Strings.Device_SlotHasNoCard, slot.Index, sense));
+        var nick = sense == TagSenseType.Hf ? slot.HfNick : slot.LfNick;
+
+        var card = new CardSave { Tag = tag };
+        if (sense == TagSenseType.Lf)
+        {
+            card.Uid = await GetLfEmulatorIdAsync(tag, ct);
+        }
+        else
+        {
+            await ReadHf14aAntiCollAsync(card, ct);
+            if (tag.IsMifareClassic())
+                card.Data = await ReadMf1BlocksAsync(tag.MifareClassicBlocks(), progress, ct);
+            else if (tag.IsUltralight())
+                await ReadUltralightAsync(card, tag, progress, ct);
+        }
+        card.Name = !string.IsNullOrWhiteSpace(nick)
+            ? nick
+            : card.Uid.Length > 0 ? $"{tag.DisplayName()} {Hex.Compact(card.Uid)}" : tag.DisplayName();
+        if ((sense == TagSenseType.Hf ? slot.HfColor : slot.LfColor) is { } color)
+            card.Color = SlotColors.SnapToPalette(color);
+        return card;
     }
 
     /// <summary>The UID (HF) or ID (LF) the active slot emulates for <paramref name="type"/>; empty when it can't be read.</summary>
@@ -2144,7 +2157,9 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
         var signature = await conn.SendAsync(Command.Mf0NtagGetSignatureData, ct: ct);
         if (signature.Status == Status.Success && signature.Data.Length == 32)
             card.Extra.UltralightSignature = signature.Data;
-        if (tag.HasUltralightCounters())
+        // NTAG 210/212 only carry an internal auth-attempt slot, not an external NFC counter.
+        if (tag is TagSpecificType.Mf0Ul11 or TagSpecificType.Mf0Ul21
+            or TagSpecificType.Ntag213 or TagSpecificType.Ntag215 or TagSpecificType.Ntag216)
         {
             for (var i = 0; i < 3; i++)
             {

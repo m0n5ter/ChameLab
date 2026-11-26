@@ -26,6 +26,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     private readonly DeviceService _device;
     private readonly CardLibrary _cards;
     private readonly DictionaryLibrary _dictionaries;
+    private readonly Func<string>? _saveFolder;
     private DispatcherTimer? _captureTimer;
     private CancellationTokenSource? _capturePoll;
     private bool _capturePageActive;
@@ -41,11 +42,13 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     // Page margins 56 + list 280 + gap 18 + details 420 (see SlotsView).
     public override double MinContentWidth => 774;
 
-    public SlotsViewModel(DeviceService device, CardLibrary cards, DictionaryLibrary? dictionaries = null) : base(() => Strings.Nav_Slots, "slots")
+    public SlotsViewModel(DeviceService device, CardLibrary cards, DictionaryLibrary? dictionaries = null,
+        Func<string>? saveFolder = null) : base(() => Strings.Nav_Slots, "slots")
     {
         _device = device;
         _cards = cards;
         _dictionaries = dictionaries ?? AppServices.Dictionaries;
+        _saveFolder = saveFolder;
         _isConnected = device.State == ConnectionState.Connected;
 
         CloseCommand = ReactiveCommand.Create(() => LeaveThen(() => SetSelected(null)));
@@ -175,7 +178,7 @@ public sealed class SlotsViewModel : PageViewModelBase, IReorderableList, IDropO
     private void OpenEditor(SlotItemViewModel slot)
     {
         var hasOtherEnabled = Slots.Any(s => s.Index != slot.Index && s.IsEnabled);
-        var editor = new SlotEditorViewModel(_device, _cards, slot.Info, OnSlotChanged, OpenCard, _dictionaries, hasOtherEnabled);
+        var editor = new SlotEditorViewModel(_device, _cards, slot.Info, OnSlotChanged, OpenCard, _dictionaries, hasOtherEnabled, _saveFolder);
         Editor = editor;
         foreach (var s in Slots) s.IsActive = s.Index == slot.Index;
         this.RaisePropertyChanged(nameof(CountText));

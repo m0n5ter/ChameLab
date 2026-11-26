@@ -144,6 +144,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         FolderTree.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(FolderBrowser.CurrentFolder)) this.RaisePropertyChanged(nameof(CurrentFolder));
+            if (e.PropertyName == nameof(FolderBrowser.IsInFolder)) this.RaisePropertyChanged(nameof(IsRootCurrent));
         };
         WriteT55xxSettings = new(dictionaries);
         WriteT55xxSettings.WhenAnyValue(x => x.ReadyToStart, x => x.NewKeyError)
@@ -940,6 +941,9 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     /// <summary>The folder shown, or null for the cards in no folder.</summary>
     public FolderViewModel? CurrentFolder => FolderTree.CurrentFolder;
 
+    /// <summary>The cards root itself is the current folder (no nested folder is open).</summary>
+    public bool IsRootCurrent => !FolderTree.IsInFolder;
+
     /// <summary>The open card's folder; picking another moves the card, and the list follows it there.</summary>
     public FolderOption? SelectedCardFolder
     {
@@ -1448,7 +1452,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         _isManual = true;
         // Starts as a MIFARE Classic 1K with its usual SAK / ATQA; changing the type adapts them.
         // Its memory is that of a factory-blank card of the type, all of it known.
-        var card = new CardSave { Name = Strings.Cards_NewCard, Tag = TagSpecificType.Mifare1024 };
+        var card = new CardSave { Name = _library.FreeName(Strings.Cards_NewCard), Tag = TagSpecificType.Mifare1024 };
         if (card.Tag.DefaultSakAtqa(sevenByteUid: false) is { } id) { card.Sak = id.Sak; card.Atqa = id.Atqa; }
         Form = new CardEditorViewModel(card, blankMemory: true);
         FormSource = Strings.Cards_ManualEntry;
@@ -1484,6 +1488,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         }
         ResetAddState();
         Pane = CardsPane.Add;
+        card.Name = _library.FreeName(card.Name);
         _scannedAts = card.Ats;
         Form = new CardEditorViewModel(card, sameFrequency: true);
         SetScanMatches(card);
@@ -1521,6 +1526,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             var t = tags[0];
             var card = CardFormats.FromHf14a(t);
             if (ultralight is { } exact) card.Tag = exact;
+            card.Name = _library.FreeName(card.Name);
             _scannedAts = card.Ats;
             Form = new CardEditorViewModel(card, sameFrequency: true);
             SetScanMatches(card);
@@ -1546,7 +1552,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
             FormSource = string.Format(Strings.Cards_SourceTag, result.Type.DisplayName());
             var card = new CardSave
             {
-                Name = $"{result.Type.DisplayName()} {result.IdHex}",
+                Name = _library.FreeName($"{result.Type.DisplayName()} {result.IdHex}"),
                 Tag = result.Type,
                 Uid = result.Id,
             };
@@ -1734,7 +1740,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 card.Ats = _scannedAts;
                 _applyingDump = true;
                 if (Form is { } form) form.ReplaceContent(card);
-                else Form = new CardEditorViewModel(card, sameFrequency: true);
+                else { card.Name = _library.FreeName(card.Name); Form = new CardEditorViewModel(card, sameFrequency: true); }
                 _applyingDump = false;
                 SetScanMatches(card);
                 _hasDump = true;
@@ -1810,7 +1816,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 foreach (var page in kept) SetDumpBlocks(page, 1, MifareBlockState.Read);
                 _applyingDump = true;
                 if (Form is { } form) form.ReplaceContent(result.Card);
-                else Form = new CardEditorViewModel(result.Card, sameFrequency: true);
+                else { result.Card.Name = _library.FreeName(result.Card.Name); Form = new CardEditorViewModel(result.Card, sameFrequency: true); }
                 _applyingDump = false;
                 FormSource = string.Format(Strings.Cards_SourceTypeUid, result.Card.Tag.DisplayName(), Hex.Compact(result.Card.Uid));
                 IsDumpComplete = result.PagesRead == result.PageCount;
@@ -2003,15 +2009,10 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         var picked = await StorageService.OpenAsync(Strings.Cards_ImportCardTitle, CardFormats.ImportExtensions);
         if (picked is not { } file) return;
 
-        // A Chameleon Ultra GUI library (settings export, folder export or shared_preferences.json) keeps its folders.
+        // A Chameleon Ultra GUI library (settings export, folder export or shared_preferences.json) keeps its folders under the open folder.
         if (ChameleonGuiImport.TryRead(file.Data) is { } gui)
         {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                var (added, refiled) = _library.Merge(gui.Cards, gui.Folders);
-                if (gui.Cards.Count > 0) SelectById(gui.Cards[^1].Id);
-                Notify(Loc.Plural(Strings.Plural_ImportedCards, added + refiled));
-            });
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyImportedGuiLibrary(gui));
             return;
         }
 
@@ -2020,24 +2021,38 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         catch (Exception ex) { throw new FormatException(string.Format(Strings.Cards_UnsupportedFile, file.Name, ex.Message)); }
         if (cards.Count == 0) throw new FormatException(string.Format(Strings.Cards_FileHasNoCards, file.Name));
 
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            if (cards.Count == 1)
-            {
-                // A single card is reviewed (name, color, identity) before it is saved.
-                ResetAddState();
-                Form = new CardEditorViewModel(cards[0]);
-                FormSource = string.Format(Strings.Common_ImportedFrom, file.Name);
-                return;
-            }
-            // A whole library export goes straight in (the open folder takes cards that have none).
-            if (FolderTree.Current is { } folder)
-                foreach (var card in cards.Where(c => c.Folder.Length == 0)) card.Folder = folder;
-            _library.AddRange(cards);
-            SelectById(cards[^1].Id);
-            Notify(Loc.Plural(Strings.Plural_ImportedCards, cards.Count));
-        });
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyImportedCards(file.Name, cards));
     });
+
+    internal void ApplyImportedGuiLibrary(ChameleonGuiLibrary gui)
+    {
+        var (added, refiled) = _library.Merge(gui.Cards, gui.Folders, FolderTree.Location);
+        if (gui.Cards.Count > 0) SelectById(gui.Cards[^1].Id);
+        Notify(Loc.Plural(Strings.Plural_ImportedCards, added + refiled));
+    }
+
+    internal void ApplyImportedCards(string fileName, IReadOnlyList<CardSave> cards)
+    {
+        var target = FolderTree.Location;
+        if (cards.Count == 1)
+        {
+            // A single card is reviewed (name, color, identity) before it is saved into the open folder.
+            ResetAddState();
+            cards[0].Folder = target;
+            cards[0].Name = _library.FreeName(cards[0].Name);
+            Form = new CardEditorViewModel(cards[0]);
+            FormSource = string.Format(Strings.Common_ImportedFrom, fileName);
+            return;
+        }
+        // Multiple cards go straight in, rooted inside the open folder.
+        if (target.Length > 0)
+            foreach (var card in cards)
+                card.Folder = FolderPath.Combine(target, FolderPath.Normalize(card.Folder));
+        _library.EnsureUniqueNames(cards);
+        _library.AddRange(cards);
+        SelectById(cards[^1].Id);
+        Notify(Loc.Plural(Strings.Plural_ImportedCards, cards.Count));
+    }
 
     // ---- Save ----------------------------------------------------------
 
@@ -2052,7 +2067,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
         var isNew = _pane == CardsPane.Add;
         var previous = isNew ? null : _selected?.Card;
-        if (isNew && card.Folder.Length == 0 && FolderTree.Current is { } folder) card.Folder = folder;
+        if (isNew) card.Folder = FolderTree.Location;
         try
         {
             if (isNew) _library.Add(card); else _library.Update(card);
@@ -2689,7 +2704,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
         if (card is null) return;
         // The copy takes the unsaved edits; the original stays as last saved.
         var copy = card.Clone();
-        copy.Name = card.Name + Strings.Common_CopySuffix;
+        copy.Name = _library.FreeName(card.Name);
         _library.Add(copy);
         SelectById(copy.Id);
     }
@@ -2800,21 +2815,11 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         var keys = ActionKeys();
         if (keys.Count == 0 || _form is not { } form) return;
-        var name = FreeDictionaryName(string.IsNullOrWhiteSpace(form.Name) ? Strings.Common_Untitled : form.Name.Trim());
+        var name = _dictionaries.FreeName(form.Name);
         var dict = new KeyDictionary { Name = name, Color = form.Color, Keys = keys.Select(k => k.ToArray()).ToList() };
         try { _dictionaries.Add(dict); }
         catch (Exception ex) { ReportError(ex.Message); return; }
         Notify(string.Format(Strings.Cards_KeysSavedToNewDictionary, Loc.Plural(Strings.Plural_Keys, keys.Count), name));
-    }
-
-    /// <summary>The name, or with " (2)", " (3)"… after it when a dictionary already has it.</summary>
-    private string FreeDictionaryName(string name)
-    {
-        var taken = _dictionaries.Dictionaries.Select(d => d.Name.Trim())
-            .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
-        var free = name;
-        for (var n = 2; taken.Contains(free); n++) free = $"{name} ({n})";
-        return free;
     }
 
     private Task SaveKeysToFileAsync() => RunAsync(async () =>
@@ -2849,7 +2854,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
     {
         var keys = WriteT55xxActionKeys();
         if (keys.Count == 0) return;
-        var name = FreeDictionaryName(Strings.Tools_T55xxPassword);
+        var name = _dictionaries.FreeName(Strings.Tools_T55xxPassword);
         var dict = new KeyDictionary { Name = name, Keys = keys.Select(k => k.ToArray()).ToList() };
         try { _dictionaries.Add(dict); }
         catch (Exception ex) { ReportError(ex.Message); return; }

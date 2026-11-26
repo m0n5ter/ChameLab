@@ -23,8 +23,8 @@ public enum SlotColorMode
 
 /// <summary>
 /// One frequency (HF or LF) of the slot editor. The card it holds is shown as the saved card
-/// it matches (same type and UID, the name picking among several), or by name and type with an
-/// offer to save it. A card in the
+/// whose full content matches it (the name picking among identical copies), or by name and type
+/// with an offer to save it. A card in the
 /// slot is always emulated (saving enables it). Picking a saved card, clearing and the LED color
 /// are edits held until the slot is saved.
 /// </summary>
@@ -36,8 +36,8 @@ public sealed class SlotSideViewModel : ViewModelBase
     // What the frequency holds on the device; the edits are compared against it.
     private TagSpecificType _savedType;
     private string _savedNick;
-    // Null until read from the device (or when it can't be): the card is then matched by name.
-    private byte[]? _savedUid;
+    // Null until the slot card is read from the device (or when it can't be): matched by type and name until then.
+    private CardSave? _savedCard;
     private readonly string? _deviceColor;
     private SlotColorMode _savedMode;
     private string _savedCustom;
@@ -109,8 +109,8 @@ public sealed class SlotSideViewModel : ViewModelBase
     public string TypeLabel => Type.DisplayName();
 
     /// <summary>The type and the UID / ID the slot emulates (once read), for a card not in Saved cards.</summary>
-    public string UnmatchedSummary => _savedUid is { } uid
-        ? string.Format(Strings.Slots_NotInSavedId, TypeLabel, (IsLf ? "ID" : "UID"), Hex.Spaced(uid))
+    public string UnmatchedSummary => _savedCard is { Uid.Length: > 0 } card
+        ? string.Format(Strings.Slots_NotInSavedId, TypeLabel, (IsLf ? "ID" : "UID"), Hex.Spaced(card.Uid))
         : string.Format(Strings.Slots_NotInSaved, TypeLabel);
 
     /// <summary>What the slot holds on the device, for reading the card back.</summary>
@@ -121,24 +121,42 @@ public sealed class SlotSideViewModel : ViewModelBase
     /// <summary>The LF identity being edited, including an identity absent from the library.</summary>
     public CardSave CurrentCard() => _pending ?? new CardSave
     {
-        Tag = Type, Name = Name, Uid = _savedUid?.ToArray() ?? [],
+        Tag = Type, Name = Name, Uid = _savedCard?.Uid.ToArray() ?? [],
         Color = EffectiveColor ?? CardSave.DefaultColor,
     };
 
-    /// <summary>Saving the card to the library named it; the slot now carries that name.</summary>
-    public void Renamed(string nick, byte[] uid)
+    /// <summary>Saving the card to the library named it; the slot now carries that name and content.</summary>
+    public void Renamed(string nick, CardSave card)
     {
         _savedNick = nick;
-        _savedUid = uid.Length > 0 ? uid : null;
+        _savedCard = card;
         FindMatch();
         RaiseCard();
     }
 
-    /// <summary>The UID the slot emulates was read for <paramref name="type"/>: the saved card is matched by it.</summary>
+    /// <summary>The UID the slot emulates was read for <paramref name="type"/>: updates the LF card match.</summary>
     public void UidRead(TagSpecificType type, byte[] uid)
     {
         if (type != _savedType) return;
-        _savedUid = uid.Length > 0 ? uid : null;
+        if (uid.Length == 0)
+        {
+            _savedCard = null;
+            ApplyCardRead();
+            return;
+        }
+        CardRead(new CardSave { Tag = type, Uid = uid.ToArray() });
+    }
+
+    /// <summary>The full card the slot emulates was read from the device: the saved card is matched by its full content.</summary>
+    public void CardRead(CardSave card)
+    {
+        if (ChameleonClient.SlotTypeFor(card.Tag) != _savedType) return;
+        _savedCard = card;
+        ApplyCardRead();
+    }
+
+    private void ApplyCardRead()
+    {
         FindMatch();
         // Another card may have matched: an untouched color is read again against it.
         if (_pending is null && !_cleared && _colorMode == _savedMode && _customColor == _savedCustom)
@@ -192,17 +210,13 @@ public sealed class SlotSideViewModel : ViewModelBase
         if (match is not null) _cardColor = match.Color;
     }
 
-    // Matched by type and UID, the name picking among cards with the same UID. Until the UID
-    // is read, by type and name, like the Cards page tells which slots hold a card.
-    private CardSave? FindHeld()
-    {
-        var candidates = _library.Cards
-            .Where(c => c.Sense == Sense && ChameleonClient.SlotTypeFor(c.Tag) == _savedType);
-        if (_savedUid is { } uid) candidates = candidates.Where(c => c.Uid.AsSpan().SequenceEqual(uid));
-        var list = candidates.ToList();
-        return list.FirstOrDefault(c => ChameleonClient.SlotNickFor(c) == _savedNick)
-            ?? (_savedUid is null ? null : list.FirstOrDefault());
-    }
+    // Matched by full card content via the library's hash dictionary, with the slot nick picking
+    // among identical copies. Until the slot is read, by type and name.
+    private CardSave? FindHeld() => _savedCard is { } card
+        ? _library.FindMatch(card, preferredNick: _savedNick)
+        : _library.Cards
+            .Where(c => c.Sense == Sense && ChameleonClient.SlotTypeFor(c.Tag) == _savedType)
+            .FirstOrDefault(c => ChameleonClient.SlotNickFor(c) == _savedNick);
 
     // ---- LED color ----------------------------------------------------
 
@@ -296,8 +310,8 @@ public sealed class SlotSideViewModel : ViewModelBase
     /// <summary>The edits are on the device now.</summary>
     public void MarkSaved()
     {
-        if (_pending is { } card) _savedUid = card.Uid.Length > 0 ? card.Uid : null;
-        else if (_cleared) _savedUid = null;
+        if (_pending is { } card) _savedCard = card;
+        else if (_cleared) _savedCard = null;
         _savedType = Type;
         _savedNick = Nick;
         _savedMode = IsEmpty ? SlotColorMode.Default : _colorMode;

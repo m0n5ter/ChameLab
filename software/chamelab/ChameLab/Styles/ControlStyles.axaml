@@ -708,13 +708,23 @@
     <Setter Property="CornerRadius" Value="8" />
     <Setter Property="Background" Value="Transparent" />
   </Style>
-  <!-- The theme's own list item brushes, as the item would have drawn them. -->
+  <!-- A section's current folder stays softly marked in gray while another page is open. -->
+  <Style Selector="ListBox.nav Border.navrow.current">
+    <Setter Property="Background" Value="{actipro:ThemeResource Container3BackgroundBrush}" />
+  </Style>
   <Style Selector="ListBox.nav ListBoxItem:pointerover Border.navrow">
     <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPointerOver}" />
+  </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pointerover Border.navrow.current">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPressed}" />
   </Style>
   <Style Selector="ListBox.nav ListBoxItem:pressed Border.navrow">
     <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPressed}" />
   </Style>
+  <Style Selector="ListBox.nav ListBoxItem:pressed Border.navrow.current">
+    <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushPressed}" />
+  </Style>
+  <!-- The theme's own selected (accent) brushes win over .current when this row is the active page/folder. -->
   <Style Selector="ListBox.nav ListBoxItem:selected Border.navrow">
     <Setter Property="Background" Value="{actipro:ThemeResource ListItemBackgroundBrushSelected}" />
   </Style>
@@ -751,9 +761,10 @@
   <Style Selector="Grid.folderrow.empty Border.foldername, Grid.folderrow.empty TextBlock.foldercount">
     <Setter Property="Opacity" Value="0.45" />
   </Style>
-  <!-- Folder rows trade their card count for Rename / Delete on hover and while open; the buttons sit
-       over the end of the name, which fades out under them. Nothing changes size, so the name doesn't
-       rewrap (and the row jump) as they come and go. -->
+  <!-- Folder rows trade their card count for New subfolder / Rename / Delete on hover and while open; the
+       buttons sit over the end of the name, which fades out cleanly before the first button via a
+       right-anchored pixel mask so nested rows fade at the exact same distance. Nothing changes size, so
+       the name doesn't rewrap (and the row jump) as they come and go. -->
   <Style Selector="ListBox.nav StackPanel.folderactions">
     <Setter Property="Opacity" Value="0" />
     <Setter Property="IsHitTestVisible" Value="False" />
@@ -767,11 +778,20 @@
   </Style>
   <Style Selector="ListBox.nav ListBoxItem:pointerover Border.foldername, ListBox.nav ListBoxItem:selected Border.foldername">
     <Setter Property="OpacityMask">
-      <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-        <GradientStop Offset="0" Color="Black" />
-        <GradientStop Offset="0.5" Color="Black" />
-        <GradientStop Offset="0.68" Color="Transparent" />
-      </LinearGradientBrush>
+      <DrawingBrush Stretch="None" AlignmentX="Right" AlignmentY="Top" TileMode="None">
+        <DrawingBrush.Drawing>
+          <GeometryDrawing Geometry="M 0,0 H 600 V 120 H 0 Z">
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                <GradientStop Offset="0" Color="Black" />
+                <GradientStop Offset="0.86" Color="Black" />
+                <GradientStop Offset="0.90" Color="Transparent" />
+                <GradientStop Offset="1" Color="Transparent" />
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+          </GeometryDrawing>
+        </DrawingBrush.Drawing>
+      </DrawingBrush>
     </Setter>
   </Style>
   <!-- Renaming a folder: the name (and count) stay, unseen, so the row keeps its size, and the field lies

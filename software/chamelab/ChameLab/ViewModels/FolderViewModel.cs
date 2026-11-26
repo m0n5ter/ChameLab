@@ -90,6 +90,13 @@ public sealed class FolderViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
+    /// <summary>This folder is the open folder of its library (kept highlighted even on other pages).</summary>
+    public bool IsCurrent
+    {
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
     /// <summary>The name is being edited in its row.</summary>
     public bool IsEditing
     {

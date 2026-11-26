@@ -170,6 +170,7 @@ public sealed class FolderBrowser : ViewModelBase
 
     private void RebuildViews()
     {
+        foreach (var folder in Folders) folder.IsCurrent = folder.Path == _current;
         SyncNav();
         var location = Location;
         Sync(Subfolders, Folders.Where(f => FolderPath.Parent(f.Path) == location && f.Path.Length > 0).ToList());

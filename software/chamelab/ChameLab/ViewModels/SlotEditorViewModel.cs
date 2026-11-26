@@ -26,6 +26,8 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     private readonly CardLibrary _library;
     private readonly int _slot;
     private readonly Action _onChanged;
+    private readonly Func<string>? _saveFolder;
+    internal Action<Action> PostToUi { get; set; } = a => Avalonia.Threading.Dispatcher.UIThread.Post(a);
 
     /// <summary>The HF card's emulator settings; compared against what the slot holds.</summary>
     private sealed record Emulator(
@@ -131,13 +133,14 @@ public sealed class SlotEditorViewModel : PageViewModelBase
 
     public SlotEditorViewModel(DeviceService device, CardLibrary library, SlotInfo info,
         Action onChanged, Action<CardSave> openCard, DictionaryLibrary? dictionaries = null,
-        bool hasOtherEnabledSlot = true)
+        bool hasOtherEnabledSlot = true, Func<string>? saveFolder = null)
         : base(() => string.Format(Strings.Slots_SlotN, info.Index), "slots")
     {
         _device = device;
         _library = library;
         _slot = info.Index;
         _onChanged = onChanged;
+        _saveFolder = saveFolder;
         var keyDictionaries = dictionaries ?? AppServices.Dictionaries;
         MfcCapture = new EmulatorCaptureViewModel(() => _device.Client, _slot, true, keyDictionaries);
         UlCapture = new EmulatorCaptureViewModel(() => _device.Client, _slot, false, keyDictionaries);
@@ -149,7 +152,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         Lf = new SlotSideViewModel(TagSenseType.Lf, info, library, colors, OnLfChanged, OpenPicker, SaveToLibraryAsync, openCard);
         Hf.Partner = Lf;
         Lf.Partner = Hf;
-        LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard);
+        LfCards = new LfSlotListViewModel(Lf, library, OnLfListChanged, openCard, saveFolder);
         _hasOtherEnabledSlot = hasOtherEnabledSlot;
         _savedSlotEnabled = _isSlotEnabled = (info.HfType != TagSpecificType.Undefined && info.HfEnabled)
             || (info.LfType != TagSpecificType.Undefined && info.LfEnabled);
@@ -364,13 +367,13 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         await client.WithSlotLockAsync(async () =>
         {
             await client.SetActiveSlotAsync(_slot);
-            await LoadUidAsync(client, Hf);
-            await LoadUidAsync(client, Lf);
+            await LoadCardAsync(client, Hf);
+            await LoadCardAsync(client, Lf);
             var capabilities = await client.GetCapabilitiesAsync();
             var supportsCycle = capabilities.Contains((ushort)Command.LfSetCycle) && capabilities.Contains((ushort)Command.LfGetCycle);
             var cycle = supportsCycle && LfCycleCard.CanCycle(Lf.SavedType)
                 ? await client.GetLfCycleAsync() : new LfCardCycle([]);
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            PostToUi(() =>
             {
                 SetLfCapabilities(capabilities);
                 // Reloading the same cycle would only rebuild the rows (and drop edits made meanwhile).
@@ -400,19 +403,22 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         CycleGapSeconds = _savedCycleGapSeconds;
     }
 
-    // The saved card is matched by the UID the slot emulates, not just its name.
-    private async Task LoadUidAsync(ChameleonClient client, SlotSideViewModel side)
+    // The saved card is matched by the full card content the slot emulates, not just its name or UID.
+    private async Task LoadCardAsync(ChameleonClient client, SlotSideViewModel side)
     {
         var type = side.SavedType;
         if (type == TagSpecificType.Undefined) return;
-        byte[] uid;
-        try { uid = await client.ReadSlotUidAsync(type); }
-        catch (ChameleonException) { return; /* matched by name */ }
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        var info = side.IsHf
+            ? new SlotInfo { Index = _slot, HfType = type, HfNick = side.SavedNick, HfColor = side.SavedColor }
+            : new SlotInfo { Index = _slot, LfType = type, LfNick = side.SavedNick, LfColor = side.SavedColor };
+        CardSave card;
+        try { card = await client.ReadActiveSlotCardAsync(info, side.Sense); }
+        catch (Exception ex) when (ex is ChameleonException or NotSupportedException) { return; /* matched by name */ }
+        PostToUi(() =>
         {
-            side.UidRead(type, uid);
+            side.CardRead(card);
             // The LF list was laid out before the UID was known; its saved first card has it now.
-            if (side == Lf) LfCards.PrimaryUidRead(type, uid);
+            if (side == Lf) LfCards.PrimaryUidRead(type, card.Uid);
         });
     }
 
@@ -448,7 +454,7 @@ public sealed class SlotEditorViewModel : PageViewModelBase
         catch (ChameleonException) { /* the firmware defaults are shown */ }
 
         UpdateSavedCollection(kind, e);
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        PostToUi(() =>
         {
             _savedEmulator = e;
             _savedKind = _fieldsKind = kind;
@@ -539,10 +545,13 @@ public sealed class SlotEditorViewModel : PageViewModelBase
     {
         var client = _device.Client;
         if (client is null || side.SavedType == TagSpecificType.Undefined) return;
+        var folder = _saveFolder?.Invoke();
         var info = side.IsHf
             ? new SlotInfo { Index = _slot, HfType = side.SavedType, HfNick = side.SavedNick, HfColor = side.SavedColor }
             : new SlotInfo { Index = _slot, LfType = side.SavedType, LfNick = side.SavedNick, LfColor = side.SavedColor };
         var card = await client.WithSlotLockAsync(() => client.ReadCardFromSlotAsync(info, side.Sense));
+        card.Name = _library.FreeName(card.Name);
+        card.Folder = string.IsNullOrEmpty(folder) ? string.Empty : _library.FindFolder(folder) ?? string.Empty;
 
         // A slot without a nick is matched to the card by the name the card got.
         var nick = ChameleonClient.SlotNickFor(card);
@@ -552,10 +561,10 @@ public sealed class SlotEditorViewModel : PageViewModelBase
             await client.SaveSlotConfigAsync();
             _onChanged();
         }
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        PostToUi(() =>
         {
-            side.Renamed(nick, card.Uid);
             _library.Add(card);
+            side.Renamed(nick, card);
         });
         Notify(string.Format(Strings.Slots_SavedToCards, card.Name));
     });

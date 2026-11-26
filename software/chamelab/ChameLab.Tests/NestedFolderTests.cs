@@ -165,4 +165,150 @@ public class NestedFolderTests
         vm.FolderTree.ShowParentCommand.Execute(null);
         Assert.Equal("Travel", vm.FolderTree.Current);
     }
+
+    [Fact]
+    public void CurrentFolderStaysMarkedAcrossOtherPages()
+    {
+        var store = new MemoryKeyValueStore();
+        var cards = new CardLibrary(store);
+        cards.AddFolder("Work/Doors");
+        var dicts = new DictionaryLibrary(store);
+        dicts.AddFolder("Hotel");
+
+        var device = new DeviceService([]);
+        var main = new MainViewModel(device, cards, dicts, new FirmwareUpdateService(device, [], new WakeLockService()));
+        // At startup the active page is Connect while both library roots are the current folders.
+        Assert.True(main.Cards.IsRootCurrent);
+        Assert.True(main.Dictionaries.IsRootCurrent);
+        Assert.Null(main.SelectedNavLibraryItem);
+
+        main.Cards.FolderTree.Show("Work/Doors");
+        main.Dictionaries.FolderTree.Show("Hotel");
+
+        var work = main.Cards.FolderTree.Folders.Single(f => f.Path == "Work");
+        var doors = main.Cards.FolderTree.Folders.Single(f => f.Path == "Work/Doors");
+        var hotel = main.Dictionaries.FolderTree.Folders.Single(f => f.Path == "Hotel");
+
+        Assert.False(main.Cards.IsRootCurrent);
+        Assert.False(main.Dictionaries.IsRootCurrent);
+        Assert.False(work.IsCurrent);
+        Assert.True(doors.IsCurrent);
+        Assert.True(hotel.IsCurrent);
+
+        main.NavigateCommand.Execute(main.Cards);
+        Assert.Same(doors, main.SelectedNavLibraryItem);
+
+        main.NavigateCommand.Execute(main.Slots);
+        Assert.Null(main.SelectedNavLibraryItem);
+        Assert.True(doors.IsCurrent);
+        Assert.True(hotel.IsCurrent);
+
+        main.Cards.FolderTree.Show(null);
+        Assert.True(main.Cards.IsRootCurrent);
+        Assert.False(doors.IsCurrent);
+        Assert.True(hotel.IsCurrent);
+    }
+
+    [Fact]
+    public void ImportingCardsSavesIntoCurrentFolder()
+    {
+        var store = new MemoryKeyValueStore();
+        var cards = new CardLibrary(store);
+        cards.AddFolder("Work/Doors");
+        var dicts = new DictionaryLibrary(store);
+        var vm = new CardsViewModel(new DeviceService([]), cards, dicts);
+        vm.FolderTree.Show("Work/Doors");
+
+        // Single card JSON carrying a stale folder still saves into the folder currently open.
+        var single = new CardSave
+        {
+            Name = "Imported",
+            Tag = ChameLab.Protocol.TagSpecificType.Mifare1024,
+            Uid = [1, 2, 3, 4],
+            Sak = 8,
+            Atqa = [4, 0],
+            Folder = "OldFolder",
+        };
+        vm.AddCommand.Execute(null);
+        vm.ApplyImportedCards("card.json", [single]);
+        vm.SaveCommand.Execute(null);
+        Assert.Equal("Work/Doors", cards.Cards.Single(c => c.Name == "Imported").Folder);
+
+        // Switching folder while reviewing saves into the folder open at Save time.
+        vm.FolderTree.Show("Work");
+        var shifted = new CardSave
+        {
+            Name = "Shifted",
+            Tag = ChameLab.Protocol.TagSpecificType.Mifare1024,
+            Uid = [5, 6, 7, 8],
+            Sak = 8,
+            Atqa = [4, 0],
+        };
+        vm.FolderTree.Show("Work/Doors");
+        vm.AddCommand.Execute(null);
+        vm.ApplyImportedCards("shifted.json", [shifted]);
+        vm.FolderTree.Show("Work");
+        vm.SaveCommand.Execute(null);
+        Assert.Equal("Work", cards.Cards.Single(c => c.Name == "Shifted").Folder);
+
+        // Multi-card import nests under the current folder.
+        vm.ApplyImportedCards("batch.json",
+        [
+            new CardSave { Name = "LooseInWork", Tag = ChameLab.Protocol.TagSpecificType.Mifare1024, Uid = [9, 10, 11, 12] },
+            new CardSave { Name = "NestedInWork", Tag = ChameLab.Protocol.TagSpecificType.Mifare1024, Uid = [13, 14, 15, 16], Folder = "Sub" },
+        ]);
+        Assert.Equal("Work", cards.Cards.Single(c => c.Name == "LooseInWork").Folder);
+        Assert.Equal("Work/Sub", cards.Cards.Single(c => c.Name == "NestedInWork").Folder);
+
+        // ChameleonUltraGUI library/folder import also nests under the current folder.
+        var gui = new ChameleonGuiLibrary(
+        [
+            new CardSave { Name = "GuiLoose", Tag = ChameLab.Protocol.TagSpecificType.Mifare1024, Uid = [17, 18, 19, 20] },
+            new CardSave { Name = "GuiDoors", Tag = ChameLab.Protocol.TagSpecificType.Mifare1024, Uid = [21, 22, 23, 24], Folder = "Doors" },
+        ],
+        ["Doors", "EmptyGui"],
+        []);
+        vm.ApplyImportedGuiLibrary(gui);
+        Assert.Equal("Work", cards.Cards.Single(c => c.Name == "GuiLoose").Folder);
+        Assert.Equal("Work/Doors", cards.Cards.Single(c => c.Name == "GuiDoors").Folder);
+        Assert.Contains("Work/EmptyGui", cards.Folders);
+    }
+
+    [Fact]
+    public void ImportingDictionariesSavesIntoCurrentFolder()
+    {
+        var store = new MemoryKeyValueStore();
+        var dicts = new DictionaryLibrary(store);
+        dicts.AddFolder("Travel/Hotels");
+        var vm = new DictionariesViewModel(dicts, new CardLibrary(store));
+        vm.FolderTree.Show("Travel/Hotels");
+
+        // Single JSON dictionary with a stale folder saves into the current folder.
+        var json = """{"name":"RoomKeys","folder":"StaleFolder","keyLength":12,"keys":[[1,2,3,4,5,6]]}""";
+        var parsedSingle = DictionariesViewModel.ParseImportedDictionaries("room.json", System.Text.Encoding.UTF8.GetBytes(json));
+        vm.ApplyImportedDictionaries("room.json", parsedSingle);
+        vm.SaveCommand.Execute(null);
+        Assert.Equal("Travel/Hotels", dicts.Dictionaries.Single(d => d.Name == "RoomKeys").Folder);
+
+        // Importing on root then moving to another folder before Save files it into the open folder.
+        vm.FolderTree.Show(null);
+        var dicBytes = System.Text.Encoding.UTF8.GetBytes("FFFFFFFFFFFF\nA0A1A2A3A4A5\n");
+        var parsedDic = DictionariesViewModel.ParseImportedDictionaries("hotel.dic", dicBytes);
+        vm.ApplyImportedDictionaries("hotel.dic", parsedDic);
+        vm.FolderTree.Show("Travel");
+        vm.SaveCommand.Execute(null);
+        Assert.Equal("Travel", dicts.Dictionaries.Single(d => d.Name == "hotel").Folder);
+
+        // Multi-dictionary JSON array nests under the current folder.
+        var batchJson = """
+        [
+          {"name":"BatchLoose","keyLength":12,"keys":[[1,1,1,1,1,1]]},
+          {"name":"BatchNested","folder":"Sub","keyLength":12,"keys":[[2,2,2,2,2,2]]}
+        ]
+        """;
+        var parsedBatch = DictionariesViewModel.ParseImportedDictionaries("batch.json", System.Text.Encoding.UTF8.GetBytes(batchJson));
+        vm.ApplyImportedDictionaries("batch.json", parsedBatch);
+        Assert.Equal("Travel", dicts.Dictionaries.Single(d => d.Name == "BatchLoose").Folder);
+        Assert.Equal("Travel/Sub", dicts.Dictionaries.Single(d => d.Name == "BatchNested").Folder);
+    }
 }

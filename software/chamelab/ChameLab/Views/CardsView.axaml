@@ -267,8 +267,8 @@
                                     Data="{StaticResource Icon.cards}" IsVisible="{Binding IsRoot}" />
                           <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
                                     Data="{StaticResource Icon.folder}" IsVisible="{Binding !IsRoot}" />
-                          <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
-                                     TextWrapping="Wrap" MaxLines="2" LineSpacing="-2" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center" Padding="0,0,0,5"
+                                     TextWrapping="Wrap" MaxLines="2" LineSpacing="-4" TextTrimming="CharacterEllipsis" />
                         </Grid>
                       </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -403,8 +403,8 @@
                             <PathIcon Grid.Column="0" Classes="foldericon" Width="20" Height="20"
                                       Data="{StaticResource Icon.folder}" />
                             <TextBlock Grid.Column="1" Classes="foldername" Text="{Binding Name}" FontWeight="SemiBold"
-                                       FontSize="15" VerticalAlignment="Center" TextWrapping="Wrap" MaxLines="2"
-                                       LineSpacing="-2" TextTrimming="CharacterEllipsis" />
+                                       FontSize="15" VerticalAlignment="Center" Padding="0,0,0,5" TextWrapping="Wrap" MaxLines="2"
+                                       LineSpacing="-4" TextTrimming="CharacterEllipsis" />
                             <!-- Just the number, in a frame; the open folder's header words it (“3 cards”). -->
                             <Border Grid.Column="2" Classes="foldercount" ToolTip.Tip="{Binding CountText}">
                               <TextBlock Classes="caption" Text="{Binding Count}" />
@@ -597,8 +597,8 @@
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" Margin="{Binding Indent}">
                               <PathIcon Grid.Column="0" Width="16" Height="16" Opacity="0.75" VerticalAlignment="Center"
                                         Data="{StaticResource Icon.folder}" />
-                              <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
-                                         TextWrapping="Wrap" MaxLines="2" LineSpacing="-2"
+                              <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center" Padding="0,0,0,5"
+                                         TextWrapping="Wrap" MaxLines="2" LineSpacing="-4"
                                          TextTrimming="CharacterEllipsis" />
                               <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="caption"
                                          VerticalAlignment="Center" />
