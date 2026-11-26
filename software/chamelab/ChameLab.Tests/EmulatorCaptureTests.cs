@@ -432,6 +432,27 @@ public class EmulatorCaptureTests
     }
 
     [Fact]
+    public async Task Mfkey32RecoversBothReaderKeysForTheSameBlockWithoutRetryingCoveredNonces()
+    {
+        // Interleaved reader authentications from the u_n_k capture: the old search stopped at A2CF96D49E38.
+        DetectionLog Log(int block, string nt, string nr, string ar) => new(block, MfKeyType.A, false,
+            Convert.FromHexString("6BFCBABA"), Convert.FromHexString(nt),
+            Convert.FromHexString(nr), Convert.FromHexString(ar));
+        var first = Log(1, "7EB0ED07", "309576D1", "45348422");
+        var second = Log(1, "D4268DA2", "5D4E87E2", "C6A9C38B");
+        var engine = new CountingEngine();
+        var found = await EmulatorCaptureViewModel.RecoverKeysAsync(
+            [Log(56, "D2AA6A00", "8F800940", "8C55DFD6"), first, second,
+                Log(56, "6B63C76C", "DB7C12FF", "61CA1EFA"),
+                Log(1, "0839A389", "6F0D7CA3", "0C6C927E"),
+                Log(1, "B2EEBDC7", "7DB672BF", "BED2AAB9"), first, second], engine);
+
+        Assert.Equal(new[] { (56, 0x1D85C630A9FAUL), (1, 0xA2CF96D49E38UL), (1, 0xF362BC67E81DUL) },
+            found.Select(item => (item.Log.Block, item.Key)).ToArray());
+        Assert.Equal(4, engine.RequestCount);
+    }
+
+    [Fact]
     public async Task Mfkey32DoesNotPairDifferentCardsBlocksKeyTypesOrNestedAndDuplicateRecords()
     {
         DetectionLog Log(string nt) => new(3, MfKeyType.A, false, [1, 2, 3, 4],
@@ -475,6 +496,17 @@ public class EmulatorCaptureTests
         await new ChameleonClient(connection).ApplyEmulatorSettingsAsync(settings);
         Assert.DoesNotContain(transport.Requests, r => r.Command is Command.Mf1SetDetectionEnable or Command.Mf0NtagSetDetectionEnable);
         Assert.Contains(transport.Requests, r => r.Command == (isMifare ? Command.Mf1SetWriteMode : Command.Mf0NtagSetWriteMode));
+    }
+
+    private sealed class CountingEngine : IKeyRecoveryEngine
+    {
+        private readonly ManagedKeyRecoveryEngine _inner = new();
+        public int RequestCount { get; private set; }
+        public Task<IReadOnlyList<ulong>> RecoverAsync(KeyRecoveryRequest request, CancellationToken ct)
+        {
+            RequestCount++;
+            return _inner.RecoverAsync(request, ct);
+        }
     }
 
     private sealed class RecordingEngine : IKeyRecoveryEngine

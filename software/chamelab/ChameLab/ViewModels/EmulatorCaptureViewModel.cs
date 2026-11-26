@@ -155,29 +155,9 @@ public sealed class EmulatorCaptureViewModel : PageViewModelBase
         ClearMessages();
     }
 
-    internal static async Task<IReadOnlyList<(DetectionLog Log, ulong Key)>> RecoverKeysAsync(
-        IReadOnlyList<DetectionLog> logs, IKeyRecoveryEngine engine, CancellationToken ct = default)
-    {
-        var found = new List<(DetectionLog, ulong)>();
-        foreach (var group in logs.Where(l => !l.IsNested)
-                     .GroupBy(l => (Uid: Convert.ToHexString(l.Uid), l.Block, l.KeyType)))
-        {
-            var records = group.DistinctBy(l => (Convert.ToHexString(l.Nt),
-                Convert.ToHexString(l.Nr), Convert.ToHexString(l.Ar))).ToArray();
-            var recovered = false;
-            for (var i = 0; i < records.Length && !recovered; i++)
-            for (var j = i + 1; j < records.Length && !recovered; j++)
-            {
-                ct.ThrowIfCancellationRequested();
-                var keys = await engine.RecoverAsync(new KeyRecoveryRequest(KeyRecoveryOperation.Mfkey32)
-                    { Logs = [records[i], records[j]] }, ct);
-                if (keys.Count == 0) continue;
-                found.Add((records[i], keys[0]));
-                recovered = true;
-            }
-        }
-        return found;
-    }
+    internal static Task<IReadOnlyList<(DetectionLog Log, ulong Key)>> RecoverKeysAsync(
+        IReadOnlyList<DetectionLog> logs, IKeyRecoveryEngine engine, CancellationToken ct = default) =>
+        Mfkey32Recovery.RecoverAllAsync(logs, engine, ct);
 
     private void SetCount(int count)
     {

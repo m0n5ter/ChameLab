@@ -1,6 +1,9 @@
 using System;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ChameLab.Models;
 using ChameLab.Crypto;
 
@@ -13,6 +16,62 @@ namespace ChameLab.Services;
 /// </summary>
 public static class Mfkey32Recovery
 {
+    /// <summary>
+    /// Recovers every distinct reader key in a collection, including different keys for the same block.
+    /// Exchanges explained by a recovered key are skipped while the remaining exchanges are paired.
+    /// </summary>
+    public static async Task<IReadOnlyList<(DetectionLog Log, ulong Key)>> RecoverAllAsync(
+        IReadOnlyList<DetectionLog> logs, IKeyRecoveryEngine engine, CancellationToken ct = default,
+        ISet<string>? attempted = null)
+    {
+        var found = new List<(DetectionLog, ulong)>();
+        foreach (var group in logs.Where(l => !l.IsNested)
+                     .GroupBy(l => (l.UidHex, l.Block, l.KeyType)))
+        {
+            var records = group.DistinctBy(l => (l.NtHex, l.NrHex, l.ArHex)).ToArray();
+            var covered = new bool[records.Length];
+            var keys = new HashSet<ulong>();
+            for (var i = 0; i < records.Length; i++)
+            {
+                if (covered[i]) continue;
+                for (var j = i + 1; j < records.Length; j++)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    if (covered[j]) continue;
+                    var a = records[i];
+                    var b = records[j];
+                    if (attempted is not null && !attempted.Add(
+                            $"{a.UidHex}:{a.Block}:{a.KeyChar}:{a.NtHex}{a.NrHex}{a.ArHex}:{b.NtHex}{b.NrHex}{b.ArHex}"))
+                        continue;
+                    var recovered = await engine.RecoverAsync(new(KeyRecoveryOperation.Mfkey32)
+                        { Logs = [a, b] }, ct);
+                    ct.ThrowIfCancellationRequested();
+                    if (recovered.Count == 0) continue;
+                    var key = recovered[0];
+                    if (keys.Add(key)) found.Add((a, key));
+                    covered[i] = covered[j] = true;
+                    for (var k = 0; k < records.Length; k++)
+                        if (!covered[k] && Matches(records[k], key)) covered[k] = true;
+                    break;
+                }
+            }
+        }
+        ct.ThrowIfCancellationRequested();
+        return found;
+    }
+
+    private static bool Matches(DetectionLog log, ulong key)
+    {
+        if (log.Uid.Length is not (4 or 7 or 10) || log.Nt.Length != 4
+            || log.Nr.Length != 4 || log.Ar.Length != 4)
+            return false;
+        var nt = ToUInt32(log.Nt);
+        var state = new Crypto1State(key);
+        state.Crypto1Word(ToUInt32(log.Uid) ^ nt);
+        state.Crypto1Word(ToUInt32(log.Nr), true);
+        return ToUInt32(log.Ar) == (state.Crypto1Word() ^ Crypto1.PrngSuccessor(nt, 64));
+    }
+
     /// <summary>
     /// Computes the sector key from two distinct <paramref name="a"/>/<paramref name="b"/>
     /// auth exchanges on the same block and key type. Returns the 48-bit key, or

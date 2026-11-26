@@ -123,26 +123,8 @@ public sealed class Mfkey32Wizard(ChameleonClient client, KnownCardKeys knownKey
 
     private async Task<IReadOnlyList<byte[]>> RecoverAsync(List<DetectionLog> logs, HashSet<string> attempted, CancellationToken ct)
     {
-        var keys = new Dictionary<string, byte[]>();
-        foreach (var group in logs.GroupBy(l => (l.Block, l.KeyType)))
-        {
-            var distinct = group.DistinctBy(l => l.NtHex + l.NrHex + l.ArHex).ToList();
-            for (var i = 0; i < distinct.Count; i++)
-                for (var j = i + 1; j < distinct.Count; j++)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    var a = distinct[i];
-                    var b = distinct[j];
-                    if (!attempted.Add($"{a.Block}:{a.KeyChar}:{a.NtHex}{a.NrHex}{a.ArHex}:{b.NtHex}{b.NrHex}{b.ArHex}")) continue;
-                    var recovered = await _keyRecovery.RecoverAsync(new(KeyRecoveryOperation.Mfkey32)
-                        { Logs = [a, b] }, ct);
-                    if (recovered.Count == 0) continue;
-                    var key = recovered[0];
-                    var hex = key.ToString("X12");
-                    keys[hex] = Convert.FromHexString(hex);
-                    break;
-                }
-        }
-        return keys.Values.ToArray();
+        var found = await Mfkey32Recovery.RecoverAllAsync(logs, _keyRecovery, ct, attempted);
+        return found.Select(item => item.Key).Distinct()
+            .Select(key => Convert.FromHexString(key.ToString("X12"))).ToArray();
     }
 }

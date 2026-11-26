@@ -73,13 +73,8 @@ public sealed partial class CliSession
             var logs = await Client.GetAllMf1DetectionLogsAsync(ct);
             foreach (var log in logs) Print($"Block {log.Block} {log.KeyChar} UID={log.UidHex} NT={log.NtHex} NR={log.NrHex} AR={log.ArHex}");
             if (a.Flag("decrypt"))
-                foreach (var group in logs.GroupBy(l => (l.UidHex, l.Block, l.KeyType)))
-                {
-                    var entries = group.ToArray();
-                    for (var i = 0; i < entries.Length; i++) for (var j = i + 1; j < entries.Length; j++)
-                        if (Mfkey32Recovery.Recover(entries[i], entries[j]) is { } key) { Print($"{group.Key}: {key:X12}"); goto next; }
-                    next: ;
-                }
+                foreach (var item in await Mfkey32Recovery.RecoverAllAsync(logs, new ManagedKeyRecoveryEngine(), ct))
+                    Print($"{(item.Log.UidHex, item.Log.Block, item.Log.KeyType)}: {item.Key:X12}");
         });
     }
 
