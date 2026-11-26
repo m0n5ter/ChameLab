@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Input;
 using Avalonia;
 using ReactiveUI;
@@ -12,8 +13,15 @@ namespace ChameLab.ViewModels;
 /// </summary>
 public sealed class FolderViewModel : ViewModelBase
 {
+    public const double BaseIndentStep = 16;
+    public const double MaxTotalIndent = 60;
+
     private string _path;
     private int _count;
+    private double _indentStep = BaseIndentStep;
+
+    public static double IndentStepForMaxDepth(int maxDepth) =>
+        maxDepth > 0 ? Math.Min(BaseIndentStep, MaxTotalIndent / maxDepth) : BaseIndentStep;
 
     public FolderViewModel(FolderBrowser owner, string path)
     {
@@ -55,8 +63,20 @@ public sealed class FolderViewModel : ViewModelBase
 
     public int Depth => FolderPath.Depth(_path);
 
-    /// <summary>The navigation pane indents a folder under Cards (or Dictionaries), and further under its own folder.</summary>
-    public Thickness NavIndent => new(14 + 16 * Depth, 0, 2, 0);
+    /// <summary>The navigation pane indents a folder under Cards (or Dictionaries), and further under its own folder,
+    /// scaling step size down once depth exceeds 3 so total nesting indent never exceeds <see cref="MaxTotalIndent"/>.</summary>
+    public Thickness NavIndent => new(14 + _indentStep * Depth, 0, 2, 0);
+
+    internal double IndentStep
+    {
+        get => _indentStep;
+        set
+        {
+            if (Math.Abs(_indentStep - value) < 0.001) return;
+            _indentStep = value;
+            this.RaisePropertyChanged(nameof(NavIndent));
+        }
+    }
 
     /// <summary>Items in the folder and the folders in it.</summary>
     public int Count
@@ -118,7 +138,7 @@ public sealed class FolderViewModel : ViewModelBase
 /// A folder something can be moved to; the empty path is no folder. Options are the same folder by
 /// path alone, whatever their label or count says.
 /// </summary>
-public sealed record FolderOption(string Path, string Label, int Count = 0)
+public sealed record FolderOption(string Path, string Label, int Count = 0, double Step = FolderViewModel.BaseIndentStep)
 {
     public int Depth => Path.Length == 0 ? 0 : FolderPath.Depth(Path);
 
@@ -126,7 +146,7 @@ public sealed record FolderOption(string Path, string Label, int Count = 0)
     public bool IsRoot => Path.Length == 0;
 
     /// <summary>Folders inside others are indented in the picker.</summary>
-    public Thickness Indent => new(16 * Depth, 0, 0, 0);
+    public Thickness Indent => new(Step * Depth, 0, 0, 0);
 
     public bool Equals(FolderOption? other) => other is not null && other.Path == Path;
     public override int GetHashCode() => Path.GetHashCode();

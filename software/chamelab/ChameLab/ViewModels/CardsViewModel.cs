@@ -1928,8 +1928,13 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
 
     private void RememberT55xxPassword(T55xxPasswordResult result)
     {
-        if (result.NewKey is null) return;
-        try { _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type); }
+        try
+        {
+            if (result.NewKey is not null)
+                _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type);
+            else
+                _dictionaries.KnownKeys.ForgetT55xxPassword(result.Card.Id);
+        }
         catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSavePassword, ex.Message)); }
     }
 
@@ -2984,6 +2989,7 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                 var oldKeys = WriteT55xxSettings.BuildOldKeys();
                 var newKey = WriteT55xxSettings.BuildNewKey();
                 var keepPassword = WriteT55xxSettings.KeepKey;
+                var clearPassword = WriteT55xxSettings.ClearKey;
                 // The target tag's own learned password rides along only while the known keys are chosen.
                 var useKnownKeys = !WriteT55xxSettings.KnowKey && WriteT55xxSettings.Keys.IncludeKnownCardKeys;
                 var result = await T55xxPasswordRecovery.WriteAsync(client, card.Tag, card.Uid, oldKeys, newKey,
@@ -3003,14 +3009,16 @@ public sealed partial class CardsViewModel : PageViewModelBase, IReorderableList
                         WriteT55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected : Hex.Spaced(key);
                         this.RaisePropertyChanged(nameof(CanSaveWriteT55xxKey));
                     }), useKnownKeys ? original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id) : null,
-                    cts.Token, keepPassword);
+                    cts.Token, keepPassword, clearPassword);
                 if (result is null) throw new InvalidOperationException(Strings.Tools_T55xxNoMatch);
                 RememberT55xxPassword(result);
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     if (version != _writeVersion) return;
                     WriteT55xxProgress = 100;
-                    WriteT55xxSetKey = keepPassword ? null : Hex.Spaced(newKey);
+                    WriteT55xxSetKey = keepPassword ? null
+                        : result.NewKey is { } written ? Hex.Spaced(written)
+                        : Strings.Tools_T55xxUnprotected;
                 });
                 succeeded = true;
                 Notify(string.Format(Strings.Cards_WroteT55xx, card.Name));

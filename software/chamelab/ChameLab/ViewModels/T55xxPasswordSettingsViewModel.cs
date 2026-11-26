@@ -78,6 +78,7 @@ public sealed class T55xxPasswordSettingsViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(NewKeyError));
     }
 
+    /// <summary>Clear the password completely and leave the tag unprotected.</summary>
     public bool ClearKey
     {
         get => _newKeyMode == NewKeyMode.Clear;
@@ -109,7 +110,7 @@ public sealed class T55xxPasswordSettingsViewModel : ViewModelBase
         }
     } = "";
 
-    /// <summary>The default key used when the user doesn't set one, as hex (shown in place of the input).</summary>
+    /// <summary>The default key used when Set is chosen with an empty input, as hex.</summary>
     public string DefaultKeyText { get; } = Hex.Spaced(ChameleonClient.DefaultT55xxKey);
 
     // The key is only required, and only validated, when the user chose to set one.
@@ -123,6 +124,7 @@ public sealed class T55xxPasswordSettingsViewModel : ViewModelBase
 
     public IReadOnlyList<byte[]> BuildOldKeys() => KnowKey ? [Hex.Parse(KnownKey)] : Keys.BuildKeys();
 
-    public byte[] BuildNewKey() => SetNewKey && !string.IsNullOrWhiteSpace(NewKey)
-        ? Hex.Parse(NewKey) : ChameleonClient.DefaultT55xxKey;
+    public byte[]? BuildNewKey() => !SetNewKey ? null
+        : string.IsNullOrWhiteSpace(NewKey) ? ChameleonClient.DefaultT55xxKey
+        : Hex.Parse(NewKey);
 }

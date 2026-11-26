@@ -311,4 +311,32 @@ public class NestedFolderTests
         Assert.Equal("Travel", dicts.Dictionaries.Single(d => d.Name == "BatchLoose").Folder);
         Assert.Equal("Travel/Sub", dicts.Dictionaries.Single(d => d.Name == "BatchNested").Folder);
     }
+
+    [Fact]
+    public void DeepNestingScalesIndentStepSoTotalShiftNeverExceeds60()
+    {
+        var library = new CardLibrary(new MemoryKeyValueStore());
+        library.AddFolder("L0/L1/L2/L3"); // max Depth = 3
+        var browser = new FolderBrowser(library, "testExp", () => "Cards", _ => "", (_, _, _) => "", _ => { }, _ => { });
+        browser.Rebuild();
+
+        var f3 = browser.Folders.Single(f => f.Name == "L3");
+        Assert.Equal(16, f3.IndentStep);
+        Assert.Equal(14 + 48, f3.NavIndent.Left);
+
+        library.AddFolder("L0/L1/L2/L3/L4"); // max Depth = 4 -> 60 / 4 = 15
+        browser.Rebuild();
+        Assert.Equal(15, f3.IndentStep);
+        var f4 = browser.Folders.Single(f => f.Name == "L4");
+        Assert.Equal(14 + 60, f4.NavIndent.Left);
+        Assert.Equal(60, browser.Options.Single(o => o.Path == f4.Path).Indent.Left);
+
+        library.AddFolder("L0/L1/L2/L3/L4/L5"); // max Depth = 5 -> 60 / 5 = 12
+        browser.Rebuild();
+        var f5 = browser.Folders.Single(f => f.Name == "L5");
+        Assert.Equal(12, f5.IndentStep);
+        Assert.Equal(14 + 60, f5.NavIndent.Left);
+        Assert.Equal(14 + 12, browser.Folders.Single(f => f.Name == "L1").NavIndent.Left);
+        Assert.Equal(60, browser.Options.Single(o => o.Path == f5.Path).Indent.Left);
+    }
 }

@@ -151,6 +151,7 @@ public sealed class FolderBrowser : ViewModelBase
         var parents = paths.Select(FolderPath.Parent).ToHashSet();
 
         Sync(Folders, paths.Select(p => Folders.FirstOrDefault(f => f.Path == p) ?? new FolderViewModel(this, p)).ToList());
+        var step = UpdateIndentSteps();
         foreach (var folder in Folders)
         {
             folder.Count = counts.GetValueOrDefault(folder.Path);
@@ -158,14 +159,22 @@ public sealed class FolderBrowser : ViewModelBase
             folder.IsExpanded = _expanded.Contains(folder.Path);
         }
 
-        var options = Folders.Select(f => new FolderOption(f.Path, f.Name, f.Count)).ToList();
-        // Rebuilt when a name or a count changed (options compare by path alone).
-        if (!options.Select(o => (o.Path, o.Count)).SequenceEqual(Options.Select(o => (o.Path, o.Count))))
+        var options = Folders.Select(f => new FolderOption(f.Path, f.Name, f.Count, step)).ToList();
+        // Rebuilt when a name, count, or indent step changed (options compare by path alone).
+        if (!options.Select(o => (o.Path, o.Count, o.Indent.Left)).SequenceEqual(Options.Select(o => (o.Path, o.Count, o.Indent.Left))))
         {
             Options.Clear();
             foreach (var option in options) Options.Add(option);
         }
         RebuildViews();
+    }
+
+    private double UpdateIndentSteps()
+    {
+        var maxDepth = Folders.Count == 0 ? 0 : Folders.Max(f => f.Depth);
+        var step = FolderViewModel.IndentStepForMaxDepth(maxDepth);
+        foreach (var folder in Folders) folder.IndentStep = step;
+        return step;
     }
 
     private void RebuildViews()
@@ -313,6 +322,7 @@ public sealed class FolderBrowser : ViewModelBase
         foreach (var p in expanded) _expanded.Add(FolderPath.Rebase(p, old, to));
         if (expanded.Count > 0) SaveExpanded();
         if (_current is not null && FolderPath.IsWithin(_current, old)) _current = FolderPath.Rebase(_current, old, to);
+        UpdateIndentSteps();
         this.RaisePropertyChanged(nameof(Title));
     }
 

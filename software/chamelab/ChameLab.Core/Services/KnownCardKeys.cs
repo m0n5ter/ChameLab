@@ -258,6 +258,18 @@ public sealed class KnownCardKeys
     public void RememberT55xxPassword(byte[] id, byte[] pwd, TagSpecificType? tag = null) =>
         PutPassword(KnownCardFamily.T55xx, id, pwd, tag);
 
+    /// <summary>Removes any remembered password for a T55xx tag that is now unprotected.</summary>
+    public void ForgetT55xxPassword(byte[] id)
+    {
+        if (id.Length == 0) return;
+        var key = new KnownCardId(KnownCardFamily.T55xx, Convert.ToHexString(id));
+        if (!_cards.ContainsKey(key)) return;
+        if (LoadError is not null) throw new InvalidOperationException(LoadError);
+        var next = Copy();
+        next.Remove(key);
+        Save(next);
+    }
+
     private void PutPassword(KnownCardFamily family, byte[] uid, byte[] pwd, TagSpecificType? tag)
     {
         if (uid.Length == 0 || pwd.Length != 4) return;

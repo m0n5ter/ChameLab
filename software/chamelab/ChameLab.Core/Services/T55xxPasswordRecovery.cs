@@ -28,21 +28,26 @@ public static class T55xxPasswordRecovery
     public static Task<T55xxPasswordResult?> RecoverAsync(ChameleonClient client, IEnumerable<byte[]> passwords,
         byte[]? newKey = null, Action<int, int>? progress = null, Action<LfScanResult>? originalRead = null,
         Action<byte[]?>? keyFound = null, Func<LfScanResult, byte[]?>? knownPassword = null,
-        CancellationToken ct = default, bool keepPassword = false) =>
-        RunAsync(client, null, passwords, newKey, progress, originalRead, keyFound, knownPassword, ct, keepPassword);
+        CancellationToken ct = default, bool keepPassword = false, bool clearPassword = false) =>
+        RunAsync(client, null, passwords, newKey, progress, originalRead, keyFound, knownPassword, ct, keepPassword, clearPassword);
 
     public static Task<T55xxPasswordResult?> WriteAsync(ChameleonClient client, TagSpecificType type, byte[] id,
         IEnumerable<byte[]> passwords, byte[]? newKey = null, Action<int, int>? progress = null,
         Action<LfScanResult>? originalRead = null, Action<byte[]?>? keyFound = null,
-        Func<LfScanResult, byte[]?>? knownPassword = null, CancellationToken ct = default, bool keepPassword = false) =>
+        Func<LfScanResult, byte[]?>? knownPassword = null, CancellationToken ct = default,
+        bool keepPassword = false, bool clearPassword = false) =>
         RunAsync(client, new(type, (byte[])id.Clone()), passwords, newKey, progress, originalRead, keyFound,
-            knownPassword, ct, keepPassword);
+            knownPassword, ct, keepPassword, clearPassword);
+
+    private static readonly byte[] ClearKey = new byte[4];
 
     private static async Task<T55xxPasswordResult?> RunAsync(ChameleonClient client, LfScanResult? requested,
         IEnumerable<byte[]> passwords, byte[]? newKey, Action<int, int>? progress,
         Action<LfScanResult>? originalRead, Action<byte[]?>? keyFound, Func<LfScanResult, byte[]?>? knownPassword,
-        CancellationToken ct, bool keepPassword)
+        CancellationToken ct, bool keepPassword, bool clearPassword)
     {
+        if (keepPassword && clearPassword)
+            throw new ArgumentException("keepPassword and clearPassword cannot both be true.");
         var target = (byte[])(newKey ?? ChameleonClient.DefaultT55xxKey).Clone();
         var keys = passwords.Select(k => (byte[])k.Clone()).ToArray();
         if (target.Length != 4 || keys.Any(k => k.Length != 4))
@@ -85,13 +90,13 @@ public static class T55xxPasswordRecovery
             while (SameId(original, probeId) || SameId(final, probeId)) probeId[4]++;
 
             // Open writes identify unprotected tags without claiming a dictionary key matched.
-            if (await AttemptAsync(null)) return new(null, keepPassword ? null : target, final);
+            if (await AttemptAsync(null)) return new(null, keepPassword || clearPassword ? null : target, final);
             if (original is null) throw new InvalidOperationException(Strings.Tools_T55xxReadOriginalFailed);
             for (var i = 0; i < keys.Length; i++)
             {
                 var matched = await AttemptAsync(keys[i]);
                 progress?.Invoke(i + 1, keys.Length);
-                if (matched) return new(keys[i], keepPassword ? keys[i] : target, final);
+                if (matched) return new(keys[i], clearPassword ? null : keepPassword ? keys[i] : target, final);
             }
             ct.ThrowIfCancellationRequested();
             return null;
@@ -99,7 +104,9 @@ public static class T55xxPasswordRecovery
             async Task<bool> AttemptAsync(byte[]? candidate)
             {
                 ct.ThrowIfCancellationRequested();
-                var finalPassword = keepPassword ? candidate : target;
+                var finalPassword = clearPassword ? null : keepPassword ? candidate : target;
+                var unprotected = clearPassword || (keepPassword && candidate is null);
+                var writeKey = clearPassword ? ClearKey : finalPassword ?? target;
                 var finalStarted = false;
                 var restored = false;
                 try
@@ -132,14 +139,14 @@ public static class T55xxPasswordRecovery
                     keyFound?.Invoke(candidate);
                     if (ct.IsCancellationRequested && original is not null)
                     {
-                        await RestoreAsync(candidate ?? target, candidate is null ? [target] : [candidate]);
+                        await RestoreAsync(candidate ?? target, candidate is null ? [target] : [candidate],
+                            candidate is null && (keepPassword || clearPassword));
                         restored = true;
                         ct.ThrowIfCancellationRequested();
                     }
                     finalStarted = true;
                     // Firmware write payloads require at least one old-key slot, even for an open tag.
-                    await WriteCardAsync(final, finalPassword ?? target, candidate is null ? [target] : [candidate],
-                        keepPassword && candidate is null);
+                    await WriteCardAsync(final, writeKey, candidate is null ? [writeKey] : [candidate], unprotected);
                     restored = true;
                     // Without a readable original, finish the requested card instead of leaving
                     // an initially blank tag broadcasting our temporary probe ID.
@@ -155,17 +162,24 @@ public static class T55xxPasswordRecovery
                             if (!finalStarted && await OriginalIntactAsync()) restored = true;
                             else
                             {
-                                await RestoreAsync(finalStarted ? finalPassword ?? target : candidate ?? target,
-                                    candidate is null ? [target] : [target, candidate]);
+                                var restoreKey = finalStarted ? writeKey : candidate ?? target;
+                                var oldKeys = finalStarted
+                                    ? (candidate is null ? new[] { writeKey } : new[] { writeKey, candidate })
+                                    : (candidate is null ? new[] { target } : new[] { target, candidate });
+                                var restoreUnprotected = finalStarted
+                                    ? unprotected
+                                    : candidate is null && (keepPassword || clearPassword);
+                                await RestoreAsync(restoreKey, oldKeys, restoreUnprotected);
                                 restored = true;
                             }
                         }
                         catch (Exception restoreError)
                         {
+                            var reportedNew = finalStarted && clearPassword ? writeKey : finalPassword;
                             throw new InvalidOperationException(string.Format(Strings.Tools_T55xxRestoreFailed,
                                 original.Type.DisplayName(), Convert.ToHexString(original.Id),
                                 candidate is null ? "—" : Convert.ToHexString(candidate),
-                                finalPassword is null ? "—" : Convert.ToHexString(finalPassword),
+                                reportedNew is null ? "—" : Convert.ToHexString(reportedNew),
                                 restoreError.Message), error);
                         }
                     }
@@ -188,8 +202,8 @@ public static class T55xxPasswordRecovery
                     catch { return false; } // A failed check must not skip the restoration attempt.
                 }
 
-                Task RestoreAsync(byte[] password, byte[][] oldKeys) =>
-                    WriteCardAsync(original!, password, oldKeys, keepPassword && candidate is null);
+                Task RestoreAsync(byte[] password, byte[][] oldKeys, bool restoreUnprotected) =>
+                    WriteCardAsync(original!, password, oldKeys, restoreUnprotected);
             }
 
             async Task WriteCardAsync(LfScanResult card, byte[] password, byte[][] oldKeys, bool unprotected)

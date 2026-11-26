@@ -169,10 +169,11 @@ public sealed partial class ToolsViewModel
             var keys = T55xxSettings.BuildOldKeys();
             // The scanned tag's own learned password rides along only while the known keys are chosen.
             var useKnownKeys = !T55xxSettings.KnowKey && T55xxSettings.Keys.IncludeKnownCardKeys;
-            // Keep uses the matched password; Clear and an empty Set use the default.
+            // Keep preserves protection; Clear removes password protection; Set uses the entered key or the default.
             if (T55xxSettings.NewKeyError is not null) throw new FormatException(T55xxSettings.NewKeyError);
             var target = T55xxSettings.BuildNewKey();
             var keepPassword = T55xxSettings.KeepKey;
+            var clearPassword = T55xxSettings.ClearKey;
             using var cts = new CancellationTokenSource();
             _t55xxCts = cts;
             IsT55xxRunning = true;
@@ -200,10 +201,16 @@ public sealed partial class ToolsViewModel
                         T55xxFoundKey = key is null ? Strings.Tools_T55xxUnprotected : Hex.Spaced(key);
                         this.RaisePropertyChanged(nameof(CanSaveT55xxKey));
                     }), useKnownKeys ? original => _dictionaries.KnownKeys.T55xxPasswordForId(original.Id) : null,
-                    cts.Token, keepPassword);
-                if (result?.NewKey is not null)
+                    cts.Token, keepPassword, clearPassword);
+                if (result is not null)
                 {
-                    try { _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type); }
+                    try
+                    {
+                        if (result.NewKey is not null)
+                            _dictionaries.KnownKeys.RememberT55xxPassword(result.Card.Id, result.NewKey, result.Card.Type);
+                        else
+                            _dictionaries.KnownKeys.ForgetT55xxPassword(result.Card.Id);
+                    }
                     catch (Exception ex) { ReportError(string.Format(Strings.Cards_CouldNotSavePassword, ex.Message)); }
                 }
                 Dispatcher.UIThread.Post(() =>
@@ -218,7 +225,9 @@ public sealed partial class ToolsViewModel
                     else
                     {
                         T55xxResult = Strings.Tools_T55xxComplete;
-                        T55xxSetKey = keepPassword ? null : Hex.Spaced(target);
+                        T55xxSetKey = keepPassword ? null
+                            : result.NewKey is { } written ? Hex.Spaced(written)
+                            : Strings.Tools_T55xxUnprotected;
                         T55xxProgress = 100;
                     }
                 });
