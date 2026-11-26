@@ -8,9 +8,20 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+
+## [v1.8.62][2026-11-26] · firmware v2.4.27-cl
+### Summary
+ - ChameLab: **Backup conflict resolution & AltStore feeds** — choose Skip, Overwrite, or Keep both per item when importing a backup, and add AltStore / SideStore update feeds on the website
+ - ChameLab: **Content-based slot matching & folder UX** — match slot cards by SHA-256 content hash, assign unique `(n)` names across imports/duplicates, and cap folder nesting indent
+ - ChameLab: **Safer T55xx clear, modal danger dialogs & marquee notices** — clear T55xx password protection cleanly, use aligned modal dialogs on Chameleon, and scroll long success notices
+
+### Details
+ - ChameLab: added a backup import conflict resolution dialog letting you pick Skip (`A`), Overwrite (`B`), or Keep both (`AB`) per conflicting card or dictionary (or for all at once)
  - ChameLab: publish stable (`altstore.json`) and development (`altstore-dev.json`) AltStore / SideStore update source feeds on the website with one-tap add buttons on the download page
+ - ChameLab: match active slot cards by full content using a SHA-256 hash index and save unmatched cards to the last selected folder; assign unique incremented `(n)` names across cards, dictionaries, duplicates, scans, sync, backups, and imports; preserve active vs inactive folder highlights, fix folder label clipping/line spacing/action fade, import files into the current folder, and cap total folder nesting indent at 60 px
  - ChameLab: T55xx "Clear" password option now removes password protection so the tag becomes unprotected (the default key `20206666` remains available under "Set" when left empty)
  - ChameLab: fixed Clear BLE bonds, Reset settings, and Factory reset on the Chameleon page, replaced their flyout popups with standard modal confirmation dialogs, aligned the danger buttons with the settings fields above (shrinking to fit text and collapsing to icons on narrow screens), and clarified the factory reset descriptions
+ - ChameLab: long success toast notices now scroll in a marquee inside the toast bounds instead of overflowing on a single line
 
 ## [v1.8.61][2026-11-25] · firmware v2.4.27-cl
 ### Summary
