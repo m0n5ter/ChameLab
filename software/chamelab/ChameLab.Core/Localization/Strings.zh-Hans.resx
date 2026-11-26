@@ -4367,4 +4367,187 @@
     <value>A - 现有
 B - 导入</value>
   </data>
+  <data name="Tools_Gen4Title" xml:space="preserve">
+    <value>Gen4 配置</value>
+  </data>
+  <data name="Tools_Gen4Hint" xml:space="preserve">
+    <value>配置 Gen4 Ultimate (GTU) 卡</value>
+  </data>
+  <data name="Tools_Gen4Intro" xml:space="preserve">
+    <value>仅限 Ultimate / GTU 卡。所有值均为十六进制。</value>
+  </data>
+  <data name="Tools_Gen4UltraRequired" xml:space="preserve">
+    <value>高频读卡器操作需要 Chameleon Ultra。</value>
+  </data>
+  <data name="Tools_Gen4CurrentPassword" xml:space="preserve">
+    <value>当前后门密码（4 字节）</value>
+  </data>
+  <data name="Tools_Gen4NewPassword" xml:space="preserve">
+    <value>新后门密码（4 字节）</value>
+  </data>
+  <data name="Tools_Gen4Read" xml:space="preserve">
+    <value>读取配置</value>
+  </data>
+  <data name="Tools_Gen4Version" xml:space="preserve">
+    <value>版本</value>
+  </data>
+  <data name="Tools_Gen4VersionFormat" xml:space="preserve">
+    <value>版本：{0}</value>
+  </data>
+  <data name="Tools_Gen4Protocol" xml:space="preserve">
+    <value>模拟协议</value>
+  </data>
+  <data name="Tools_Gen4UidLength" xml:space="preserve">
+    <value>UID 长度（字节）</value>
+  </data>
+  <data name="Tools_Gen4Shadow" xml:space="preserve">
+    <value>影子模式</value>
+  </data>
+  <data name="Tools_Gen4Prewrite" xml:space="preserve">
+    <value>预写入</value>
+  </data>
+  <data name="Tools_Gen4Restore" xml:space="preserve">
+    <value>恢复</value>
+  </data>
+  <data name="Tools_Gen4Disabled" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
+  <data name="Tools_Gen4Enabled" xml:space="preserve">
+    <value>已启用</value>
+  </data>
+  <data name="Tools_Gen4HighSpeed" xml:space="preserve">
+    <value>已禁用 / 高速</value>
+  </data>
+  <data name="Tools_Gen4Split" xml:space="preserve">
+    <value>分离</value>
+  </data>
+  <data name="Tools_Gen4ShadowWarning" xml:space="preserve">
+    <value>“恢复”模式在 06A0 卡上可能失败；“分离”模式尚未在旧卡上测试。</value>
+  </data>
+  <data name="Tools_Gen4PasswordHelp" xml:space="preserve">
+    <value>请妥善保存此密码，丢失后无法找回。</value>
+  </data>
+  <data name="Tools_Gen4AtsHelp" xml:space="preserve">
+    <value>最多 16 字节，不含 CRC。留空则禁用。</value>
+  </data>
+  <data name="Tools_Gen4SakHelp" xml:space="preserve">
+    <value>避免使用 04；20 / 28 需要 ATS。</value>
+  </data>
+  <data name="Tools_Gen4UlMode" xml:space="preserve">
+    <value>Ultralight / NTAG 型号</value>
+  </data>
+  <data name="Tools_Gen4MaxBlock" xml:space="preserve">
+    <value>最大可访问块（00–FF）</value>
+  </data>
+  <data name="Tools_Gen4MaxBlockHelp" xml:space="preserve">
+    <value>末块：1K 为 3F，4K 为 FF。</value>
+  </data>
+  <data name="Tools_Gen4Block0" xml:space="preserve">
+    <value>直接写入第 0 块</value>
+  </data>
+  <data name="Tools_Gen4FactoryDefault" xml:space="preserve">
+    <value>出厂默认</value>
+  </data>
+  <data name="Tools_Gen4Apply" xml:space="preserve">
+    <value>应用配置</value>
+  </data>
+  <data name="Tools_Gen4ConfirmWrite" xml:space="preserve">
+    <value>确认写入</value>
+  </data>
+  <data name="Tools_Gen4ApplyWarning" xml:space="preserve">
+    <value>写入这些设置吗？协议、UID 长度、ATS 和选卡参数必须与卡内存一致。错误的值可能导致无法选卡。在验证完成前请保持卡片静止。</value>
+  </data>
+  <data name="Tools_Gen4FuseWarning" xml:space="preserve">
+    <value>这将永久锁定包括密码在内的这些设置，之后无法再次更改。请先保存密码再继续。</value>
+  </data>
+  <data name="Tools_Gen4PermanentLock" xml:space="preserve">
+    <value>永久锁定配置</value>
+  </data>
+  <data name="Tools_Gen4ConfirmLock" xml:space="preserve">
+    <value>永久锁定</value>
+  </data>
+  <data name="Tools_Gen4Verified" xml:space="preserve">
+    <value>已通过回读验证写入。</value>
+  </data>
+  <data name="Tools_Gen4VerifyFailed" xml:space="preserve">
+    <value>写入已完成，但回读数据不一致。继续前请重新读取卡片。</value>
+  </data>
+  <data name="Tools_Gen4WrittenReadFailed" xml:space="preserve">
+    <value>配置已写入。等待回读；当前密码已更新。</value>
+  </data>
+  <data name="Tools_Gen4UidAndMemory" xml:space="preserve">
+    <value>UID 与高级内存访问</value>
+  </data>
+  <data name="Tools_Gen4UidHelp" xml:space="preserve">
+    <value>请先应用协议和 UID 长度的更改。</value>
+  </data>
+  <data name="Tools_Gen4UidWarning" xml:space="preserve">
+    <value>使用上次读取的配置写入 UID 吗？请先应用 UID 长度或协议更改。其他厂商字节和锁定字节会保留。如果中途移开卡片，多块写入可能只完成一部分。</value>
+  </data>
+  <data name="Tools_Gen4UidWritten" xml:space="preserve">
+    <value>UID 已写入。请重新扫描卡片以验证身份。</value>
+  </data>
+  <data name="Tools_Gen4WriteUid" xml:space="preserve">
+    <value>写入 UID</value>
+  </data>
+  <data name="Tools_Gen4BlockAddress" xml:space="preserve">
+    <value>块地址（1 字节十六进制）</value>
+  </data>
+  <data name="Tools_Gen4BlockData" xml:space="preserve">
+    <value>块数据（16 字节十六进制）</value>
+  </data>
+  <data name="Tools_Gen4ReadBlock" xml:space="preserve">
+    <value>读取块</value>
+  </data>
+  <data name="Tools_Gen4WriteBlock" xml:space="preserve">
+    <value>写入块</value>
+  </data>
+  <data name="Tools_Gen4BlockWarning" xml:space="preserve">
+    <value>覆盖此 16 字节块吗？厂商数据、密钥、访问控制位和锁定字节可能会受影响。此操作立即生效。</value>
+  </data>
+  <data name="Tools_Gen4HexRequired" xml:space="preserve">
+    <value>请输入 {0} 字节的十六进制数。</value>
+  </data>
+  <data name="Tools_Gen4MemorySetting" xml:space="preserve">
+    <value>内存配置项</value>
+  </data>
+  <data name="Tools_Gen4Otp" xml:space="preserve">
+    <value>OTP</value>
+  </data>
+  <data name="Tools_Gen4NtagPassword" xml:space="preserve">
+    <value>NTAG 密码（非后门密码）</value>
+  </data>
+  <data name="Tools_Gen4Signature" xml:space="preserve">
+    <value>原厂签名</value>
+  </data>
+  <data name="Tools_Gen4ReadSetting" xml:space="preserve">
+    <value>读取设置</value>
+  </data>
+  <data name="Tools_Gen4WriteSetting" xml:space="preserve">
+    <value>写入设置</value>
+  </data>
+  <data name="Tools_Gen4MemoryValueHelp" xml:space="preserve">
+    <value>{0} 字节十六进制，从块 {1} 开始。</value>
+  </data>
+  <data name="Tools_Gen4PackPage" xml:space="preserve">
+    <value>PACK 页</value>
+  </data>
+  <data name="Tools_Gen4PackPageHelp" xml:space="preserve">
+    <value>06A0 / 6666 为 13；其他版本为 E6。</value>
+  </data>
+  <data name="Tools_Gen4InvalidConfig" xml:space="preserve">
+    <value>无效的 Gen4 配置。</value>
+  </data>
+  <data name="Tools_Gen4UnexpectedConfigLength" xml:space="preserve">
+    <value>需要 30、32 或 34 字节的 Gen4 配置。</value>
+  </data>
+  <data name="Tools_Gen4CommandRejected" xml:space="preserve">
+    <value>Gen4 命令被拒绝（{0}）。</value>
+  </data>
+  <data name="Tools_Gen4ExpectedBlock16" xml:space="preserve">
+    <value>需要 16 字节的块。</value>
+  </data>
+  <data name="Tools_Gen4UidConfigUnsupported" xml:space="preserve">
+    <value>无法为当前协议或 UID 长度写入 UID。</value>
+  </data>
 </root>

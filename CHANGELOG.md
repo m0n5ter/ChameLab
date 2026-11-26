@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - ChameLab: added Gen4 Ultimate (GTU) magic card configuration tool in Tools (read/write 30-byte configuration, permanent lock, UID write preserving manufacturer/lock bytes, memory-backed settings for OTP/NTAG password/PACK/version/signature, and raw block read/write)
 
 ## [v1.8.62][2026-11-26] · firmware v2.4.27-cl
 ### Summary

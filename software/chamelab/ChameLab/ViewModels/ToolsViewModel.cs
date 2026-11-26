@@ -46,6 +46,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, hasCapture);
         InitHf(idle);
         InitT55xx(dictionaries ?? AppServices.Dictionaries, idle);
+        InitGen4(idle);
         InitConsole();
         InitCompare(cards ?? AppServices.Cards);
         OpenHfCommand = ReactiveCommand.Create(() => { Tool = SniffTool.Hf; });
@@ -57,7 +58,12 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             IsSupported = null;
             IsHfSupported = null;
             IsT55xxSupported = null;
-            if (!IsConnected) _t55xxCts?.Cancel();
+            IsGen4Supported = null;
+            if (!IsConnected)
+            {
+                _t55xxCts?.Cancel();
+                ResetGen4OnDisconnect();
+            }
         });
     }
 
@@ -92,6 +98,7 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             this.RaisePropertyChanged(nameof(IsHf));
             this.RaisePropertyChanged(nameof(IsLf));
             this.RaisePropertyChanged(nameof(IsT55xx));
+            this.RaisePropertyChanged(nameof(IsGen4));
             this.RaisePropertyChanged(nameof(IsConsole));
             this.RaisePropertyChanged(nameof(IsCompare));
             this.RaisePropertyChanged(nameof(CurrentToolTitle));
@@ -102,10 +109,12 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     public bool IsHf => _tool == SniffTool.Hf;
     public bool IsLf => _tool == SniffTool.Lf;
     public bool IsT55xx => _tool == SniffTool.T55xx;
+    public bool IsGen4 => _tool == SniffTool.Gen4;
     public string CurrentToolTitle => _tool switch
     {
         SniffTool.Hf => Strings.Tools_SniffHF,
         SniffTool.T55xx => Strings.Tools_T55xxPassword,
+        SniffTool.Gen4 => Strings.Tools_Gen4Title,
         SniffTool.Console => Strings.Tools_Console,
         SniffTool.Compare => Strings.Compare_Title,
         _ => Strings.Tools_SniffLF,
@@ -119,7 +128,9 @@ public sealed partial class ToolsViewModel : PageViewModelBase
     public override async Task OnActivatedAsync()
     {
         RebuildT55xxKeySources();
-        if (!IsConnected || IsSupported is not null && IsHfSupported is not null && IsT55xxSupported is not null || _device.Client is not { } client) return;
+        if (!IsConnected || IsSupported is not null && IsHfSupported is not null && IsT55xxSupported is not null && IsGen4Supported is not null || _device.Client is not { } client) return;
+        if (_device.DeviceInfo?.Model == DeviceModel.Lite)
+            IsGen4Supported = false;
         try
         {
             var capabilities = await client.GetCapabilitiesAsync();
@@ -128,6 +139,8 @@ public sealed partial class ToolsViewModel : PageViewModelBase
             IsSupported = capabilities.Contains((ushort)Command.LfSniff);
             IsHfSupported = capabilities.Contains((ushort)Command.Hf14aSniff);
             IsT55xxSupported = capabilities.Contains((ushort)Command.LfT55xxWrite);
+            if (_device.DeviceInfo?.Model != DeviceModel.Lite)
+                IsGen4Supported = capabilities.Contains((ushort)Command.Hf14aRaw);
         }
         catch { /* unknown: just try */ }
     }
@@ -339,4 +352,4 @@ public sealed partial class ToolsViewModel : PageViewModelBase
         };
 }
 
-public enum SniffTool { None, Hf, Lf, T55xx, Console, Compare }
+public enum SniffTool { None, Hf, Lf, T55xx, Gen4, Console, Compare }

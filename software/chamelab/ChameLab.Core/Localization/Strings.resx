@@ -4384,4 +4384,187 @@
     <value>A - existing
 B - imported</value>
   </data>
+  <data name="Tools_Gen4Title" xml:space="preserve">
+    <value>Gen4 configuration</value>
+  </data>
+  <data name="Tools_Gen4Hint" xml:space="preserve">
+    <value>Configure Gen4 Ultimate (GTU) card</value>
+  </data>
+  <data name="Tools_Gen4Intro" xml:space="preserve">
+    <value>Ultimate / GTU cards only. All values are hexadecimal.</value>
+  </data>
+  <data name="Tools_Gen4UltraRequired" xml:space="preserve">
+    <value>HF reader operations require a Chameleon Ultra.</value>
+  </data>
+  <data name="Tools_Gen4CurrentPassword" xml:space="preserve">
+    <value>Current backdoor password (4 bytes)</value>
+  </data>
+  <data name="Tools_Gen4NewPassword" xml:space="preserve">
+    <value>New backdoor password (4 bytes)</value>
+  </data>
+  <data name="Tools_Gen4Read" xml:space="preserve">
+    <value>Read configuration</value>
+  </data>
+  <data name="Tools_Gen4Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Tools_Gen4VersionFormat" xml:space="preserve">
+    <value>Version: {0}</value>
+  </data>
+  <data name="Tools_Gen4Protocol" xml:space="preserve">
+    <value>Emulated protocol</value>
+  </data>
+  <data name="Tools_Gen4UidLength" xml:space="preserve">
+    <value>UID length (bytes)</value>
+  </data>
+  <data name="Tools_Gen4Shadow" xml:space="preserve">
+    <value>Shadow mode</value>
+  </data>
+  <data name="Tools_Gen4Prewrite" xml:space="preserve">
+    <value>Pre-write</value>
+  </data>
+  <data name="Tools_Gen4Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Tools_Gen4Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Tools_Gen4Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Tools_Gen4HighSpeed" xml:space="preserve">
+    <value>Disabled / high speed</value>
+  </data>
+  <data name="Tools_Gen4Split" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="Tools_Gen4ShadowWarning" xml:space="preserve">
+    <value>Restore may fail on 06A0 cards; Split is untested on older cards.</value>
+  </data>
+  <data name="Tools_Gen4PasswordHelp" xml:space="preserve">
+    <value>Save this password; it cannot be recovered.</value>
+  </data>
+  <data name="Tools_Gen4AtsHelp" xml:space="preserve">
+    <value>Up to 16 bytes, no CRC. Leave empty to disable.</value>
+  </data>
+  <data name="Tools_Gen4SakHelp" xml:space="preserve">
+    <value>Avoid 04; 20 / 28 require ATS.</value>
+  </data>
+  <data name="Tools_Gen4UlMode" xml:space="preserve">
+    <value>Ultralight / NTAG variant</value>
+  </data>
+  <data name="Tools_Gen4MaxBlock" xml:space="preserve">
+    <value>Maximum accessible block (00–FF)</value>
+  </data>
+  <data name="Tools_Gen4MaxBlockHelp" xml:space="preserve">
+    <value>Last block: 3F for 1K, FF for 4K.</value>
+  </data>
+  <data name="Tools_Gen4Block0" xml:space="preserve">
+    <value>Direct writes to block 0</value>
+  </data>
+  <data name="Tools_Gen4FactoryDefault" xml:space="preserve">
+    <value>Factory default</value>
+  </data>
+  <data name="Tools_Gen4Apply" xml:space="preserve">
+    <value>Apply configuration</value>
+  </data>
+  <data name="Tools_Gen4ConfirmWrite" xml:space="preserve">
+    <value>Confirm write</value>
+  </data>
+  <data name="Tools_Gen4ApplyWarning" xml:space="preserve">
+    <value>Write these settings? Protocol, UID length, ATS and selection parameters must agree with card memory. Incorrect values can prevent card selection. Keep this card in place until verification finishes.</value>
+  </data>
+  <data name="Tools_Gen4FuseWarning" xml:space="preserve">
+    <value>This permanently locks these settings, including the password. You cannot change them again. Save the password before continuing.</value>
+  </data>
+  <data name="Tools_Gen4PermanentLock" xml:space="preserve">
+    <value>Permanently lock configuration</value>
+  </data>
+  <data name="Tools_Gen4ConfirmLock" xml:space="preserve">
+    <value>Lock permanently</value>
+  </data>
+  <data name="Tools_Gen4Verified" xml:space="preserve">
+    <value>Write verified by readback.</value>
+  </data>
+  <data name="Tools_Gen4VerifyFailed" xml:space="preserve">
+    <value>Write completed, but readback differs. Read the card again before continuing.</value>
+  </data>
+  <data name="Tools_Gen4WrittenReadFailed" xml:space="preserve">
+    <value>Configuration written. Readback pending; the current password has been updated.</value>
+  </data>
+  <data name="Tools_Gen4UidAndMemory" xml:space="preserve">
+    <value>UID and advanced memory access</value>
+  </data>
+  <data name="Tools_Gen4UidHelp" xml:space="preserve">
+    <value>Apply protocol and UID length changes first.</value>
+  </data>
+  <data name="Tools_Gen4UidWarning" xml:space="preserve">
+    <value>Write the UID using the configuration last read? Apply UID length or protocol changes first. Other manufacturer and lock bytes are preserved. A multi-block write can partially complete if the card is removed.</value>
+  </data>
+  <data name="Tools_Gen4UidWritten" xml:space="preserve">
+    <value>UID written. Scan the card again to verify its identity.</value>
+  </data>
+  <data name="Tools_Gen4WriteUid" xml:space="preserve">
+    <value>Write UID</value>
+  </data>
+  <data name="Tools_Gen4BlockAddress" xml:space="preserve">
+    <value>Block address (1 hex byte)</value>
+  </data>
+  <data name="Tools_Gen4BlockData" xml:space="preserve">
+    <value>Block data (16 hex bytes)</value>
+  </data>
+  <data name="Tools_Gen4ReadBlock" xml:space="preserve">
+    <value>Read block</value>
+  </data>
+  <data name="Tools_Gen4WriteBlock" xml:space="preserve">
+    <value>Write block</value>
+  </data>
+  <data name="Tools_Gen4BlockWarning" xml:space="preserve">
+    <value>Overwrite this 16-byte block? Manufacturer data, keys, access bits and lock bytes may be affected. This applies immediately.</value>
+  </data>
+  <data name="Tools_Gen4HexRequired" xml:space="preserve">
+    <value>Enter {0} bytes of hexadecimal.</value>
+  </data>
+  <data name="Tools_Gen4MemorySetting" xml:space="preserve">
+    <value>Memory-backed setting</value>
+  </data>
+  <data name="Tools_Gen4Otp" xml:space="preserve">
+    <value>OTP</value>
+  </data>
+  <data name="Tools_Gen4NtagPassword" xml:space="preserve">
+    <value>NTAG password (not backdoor password)</value>
+  </data>
+  <data name="Tools_Gen4Signature" xml:space="preserve">
+    <value>Originality signature</value>
+  </data>
+  <data name="Tools_Gen4ReadSetting" xml:space="preserve">
+    <value>Read setting</value>
+  </data>
+  <data name="Tools_Gen4WriteSetting" xml:space="preserve">
+    <value>Write setting</value>
+  </data>
+  <data name="Tools_Gen4MemoryValueHelp" xml:space="preserve">
+    <value>{0} hex bytes, starting at block {1}.</value>
+  </data>
+  <data name="Tools_Gen4PackPage" xml:space="preserve">
+    <value>PACK page</value>
+  </data>
+  <data name="Tools_Gen4PackPageHelp" xml:space="preserve">
+    <value>13 for 06A0 / 6666; E6 for other revisions.</value>
+  </data>
+  <data name="Tools_Gen4InvalidConfig" xml:space="preserve">
+    <value>Invalid Gen4 configuration.</value>
+  </data>
+  <data name="Tools_Gen4UnexpectedConfigLength" xml:space="preserve">
+    <value>Expected a 30, 32, or 34 byte Gen4 configuration.</value>
+  </data>
+  <data name="Tools_Gen4CommandRejected" xml:space="preserve">
+    <value>Gen4 command rejected ({0}).</value>
+  </data>
+  <data name="Tools_Gen4ExpectedBlock16" xml:space="preserve">
+    <value>Expected a 16-byte block.</value>
+  </data>
+  <data name="Tools_Gen4UidConfigUnsupported" xml:space="preserve">
+    <value>Cannot write UID for the current protocol or UID length.</value>
+  </data>
 </root>

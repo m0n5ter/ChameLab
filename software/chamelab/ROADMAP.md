@@ -33,7 +33,7 @@ Tick `[x]` as things land, and drop finished items over time.
   (only the CLI uses it; the app checks block by block with `Mf1CheckKeysOnBlock`)
 - [ ] Value block tool: decode value, Inc / Dec / Restore / Transfer on a live card,
   with key recovery when keys are missing (CLI has `hf mf value`; `Mf1ManipulateValueBlock`)
-- [ ] Gen4 Ultimate (GTU) magic card configuration: UID length, SAK/ATQA/ATS, protocol, Ultralight mode, password
+- [x] Gen4 Ultimate (GTU) magic card configuration: UID length, SAK/ATQA/ATS, protocol, Ultralight mode, password
 
 ### Tools
 - [ ] Raw T55xx block editor: read and write single blocks, with a password

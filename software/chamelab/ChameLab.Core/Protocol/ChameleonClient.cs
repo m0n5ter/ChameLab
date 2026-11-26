@@ -2650,14 +2650,42 @@ public sealed partial class ChameleonClient(ChameleonConnection conn)
     private async Task<byte[]> Hf14aRawAsync(
         RawOpt opt, byte[] data, int? bitLen = null, int timeoutMs = 200, CancellationToken ct = default)
     {
+        var buf = BuildRaw14aPayload(opt, data, bitLen, timeoutMs);
+        var f = await conn.SendAsync(Command.Hf14aRaw, buf, timeoutMs: timeoutMs + 1500, ct: ct);
+        return f.Data;
+    }
+
+    /// <summary>
+    /// Sends a raw ISO14443-A frame and requires <see cref="Status.HfTagOk"/>, returning the tag's reply.
+    /// </summary>
+    public async Task<byte[]> Send14aRawAsync(
+        byte[] data, int timeoutMs = 1000, int? bitLen = null,
+        bool activateRfField = true, bool waitResponse = true, bool appendCrc = true,
+        bool autoSelect = true, bool keepRfField = false, bool checkResponseCrc = true,
+        CancellationToken ct = default)
+    {
+        var opt = RawOpt.None;
+        if (activateRfField) opt |= RawOpt.ActivateRfField;
+        if (waitResponse) opt |= RawOpt.WaitResponse;
+        if (appendCrc) opt |= RawOpt.AppendCrc;
+        if (autoSelect) opt |= RawOpt.AutoSelect;
+        if (keepRfField) opt |= RawOpt.KeepRfField;
+        if (checkResponseCrc) opt |= RawOpt.CheckResponseCrc;
+
+        var buf = BuildRaw14aPayload(opt, data, bitLen, timeoutMs);
+        var f = await conn.SendExpectAsync(Command.Hf14aRaw, Status.HfTagOk, buf, timeoutMs: timeoutMs + 1500, ct: ct);
+        return f.Data;
+    }
+
+    private static byte[] BuildRaw14aPayload(RawOpt opt, byte[] data, int? bitLen, int timeoutMs)
+    {
         var bits = bitLen ?? data.Length * 8;
         var buf = new byte[5 + data.Length];
         buf[0] = (byte)opt;
         BinaryPrimitives.WriteUInt16BigEndian(buf.AsSpan(1, 2), (ushort)timeoutMs);
         BinaryPrimitives.WriteUInt16BigEndian(buf.AsSpan(3, 2), (ushort)bits);
         data.CopyTo(buf, 5);
-        var f = await conn.SendAsync(Command.Hf14aRaw, buf, timeoutMs: timeoutMs + 1500, ct: ct);
-        return f.Data;
+        return buf;
     }
 
     // ---- Magic-card detection -----------------------------------------

@@ -181,7 +181,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid Classes="page tools" Classes.fullwidth="{Binding IsConsole}" RowDefinitions="Auto,*">
+  <Grid Classes="page tools" Classes.fullwidth="{Binding IsConsole}" IsEnabled="{Binding !IsGen4Confirming}" RowDefinitions="Auto,*">
 
     <!-- ==================== Header: stays put while the results scroll ==================== -->
     <StackPanel Grid.Row="0" Spacing="10">
@@ -215,6 +215,20 @@
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
               <TextBlock Text="{x:Static loc:Strings.Tools_SniffLF}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
               <TextBlock Text="{x:Static loc:Strings.Tools_125KHzRawSignal}" Classes="caption" TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </Grid>
+        </Button>
+        <!-- Gen4 configuration needs a Chameleon Ultra, so the tile shows only with a device connected. -->
+        <Button Classes="tile source" Command="{Binding OpenGen4Command}" IsVisible="{Binding IsConnected}"
+                ToolTip.Tip="{x:Static loc:Strings.Tools_Gen4Hint}">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Border Classes="iconwell blue" VerticalAlignment="Center">
+              <PathIcon Data="{StaticResource Icon.card}" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="{x:Static loc:Strings.Tools_Gen4Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{x:Static loc:Strings.Tools_Gen4Hint}" Classes="caption" TextWrapping="NoWrap"
                          TextTrimming="CharacterEllipsis" />
             </StackPanel>
           </Grid>
@@ -270,6 +284,7 @@
             <PathIcon Data="{StaticResource Icon.sniff}" IsVisible="{Binding IsHf}" />
             <PathIcon Data="{StaticResource Icon.sniff}" IsVisible="{Binding IsLf}" />
             <PathIcon Data="{StaticResource Icon.key}" IsVisible="{Binding IsT55xx}" />
+            <PathIcon Data="{StaticResource Icon.card}" IsVisible="{Binding IsGen4}" />
             <PathIcon Data="{StaticResource Icon.console}" IsVisible="{Binding IsConsole}" />
             <PathIcon Data="{StaticResource Icon.compare}" IsVisible="{Binding IsCompare}" />
           </Panel>
@@ -534,6 +549,298 @@
                                      IsVisible="{Binding T55xxResult, Converter={x:Static ObjectConverters.IsNotNull}}" />
               </StackPanel>
             </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- ========== Gen4 ========== -->
+        <StackPanel Spacing="12" IsVisible="{Binding IsGen4}">
+          <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_Gen4Intro}" />
+          <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding !IsConnected}"
+                     Text="{x:Static loc:Strings.Common_ConnectFirst}" />
+          <TextBlock Classes="caption" TextWrapping="Wrap" IsVisible="{Binding IsGen4Unsupported}"
+                     Foreground="{DynamicResource BrandAmberBrush}" Text="{x:Static loc:Strings.Tools_Gen4UltraRequired}" />
+
+          <!-- Password + Read configuration -->
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <Panel IsEnabled="{Binding !IsBusy}">
+                <c:FormColumns ColumnSpacing="14" RowSpacing="10" LabelSpacing="6">
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4CurrentPassword}" />
+                  <c:HexBox Text="{Binding Gen4Password}" ByteLengths="4" PlaceholderText="00 00 00 00"
+                            AutomationProperties.Name="{x:Static loc:Strings.Tools_Gen4CurrentPassword}" />
+                  <Panel />
+                  <TextBlock Classes="caption danger" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                             Text="{Binding Gen4PasswordError}"
+                             IsVisible="{Binding Gen4PasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </c:FormColumns>
+              </Panel>
+              <WrapPanel ItemSpacing="12" LineSpacing="8" VerticalAlignment="Center">
+                <Button Classes="accent" Command="{Binding Gen4ReadCommand}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource Icon.import}" />
+                    <TextBlock Text="{x:Static loc:Strings.Tools_Gen4Read}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <SelectableTextBlock VerticalAlignment="Center" Classes="caption mono"
+                                     IsVisible="{Binding Gen4HasVersion}"
+                                     Text="{Binding Gen4Version, StringFormat={x:Static loc:Strings.Tools_Gen4VersionFormat}}" />
+              </WrapPanel>
+              <SelectableTextBlock TextWrapping="Wrap"
+                                   Text="{Binding Gen4Status}"
+                                   Classes.danger="{Binding Gen4Failed}"
+                                   Classes.success="{Binding !Gen4Failed}">
+                <SelectableTextBlock.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="Gen4HasStatus" />
+                    <Binding Path="!Gen4HasConfig" />
+                  </MultiBinding>
+                </SelectableTextBlock.IsVisible>
+              </SelectableTextBlock>
+            </StackPanel>
+          </Border>
+
+          <!-- Configuration fields -->
+          <Border Classes="card" IsVisible="{Binding Gen4HasConfig}">
+            <StackPanel Spacing="14">
+              <Panel IsEnabled="{Binding !IsBusy}">
+                <c:FormColumns ColumnSpacing="14" RowSpacing="10" LabelSpacing="6">
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4Protocol}" />
+                  <ComboBox ItemsSource="{Binding Gen4ProtocolOptions}" SelectedItem="{Binding Gen4ProtocolOption}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:Gen4Option">
+                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4UidLength}" />
+                  <ComboBox ItemsSource="{Binding Gen4UidSizeOptions}" SelectedItem="{Binding Gen4UidSizeOption}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:Gen4Option">
+                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4Shadow}" />
+                  <ComboBox ItemsSource="{Binding Gen4ShadowOptions}" SelectedItem="{Binding Gen4ShadowOption}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:Gen4Option">
+                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+
+                  <Panel />
+                  <TextBlock Classes="caption hint" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                             Text="{x:Static loc:Strings.Tools_Gen4ShadowWarning}"
+                             IsVisible="{Binding Gen4ShowShadowWarning}" />
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4NewPassword}" />
+                  <c:HexBox Text="{Binding Gen4NewPassword}" ByteLengths="4" PlaceholderText="00 00 00 00"
+                            AutomationProperties.Name="{x:Static loc:Strings.Tools_Gen4NewPassword}" />
+                  <Panel />
+                  <StackPanel Spacing="2" Margin="0,-6,0,0" c:FormColumns.Free="True">
+                    <TextBlock Classes="caption hint" TextWrapping="Wrap"
+                               Text="{x:Static loc:Strings.Tools_Gen4PasswordHelp}" />
+                    <TextBlock Classes="caption danger" TextWrapping="Wrap"
+                               Text="{Binding Gen4NewPasswordError}"
+                               IsVisible="{Binding Gen4NewPasswordError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center" Text="ATS" />
+                  <c:HexBox Text="{Binding Gen4Ats}" PlaceholderText="{x:Static loc:Strings.Cards_Optional2}"
+                            TextWrapping="Wrap" AutomationProperties.Name="ATS" />
+                  <Panel />
+                  <StackPanel Spacing="2" Margin="0,-6,0,0" c:FormColumns.Free="True">
+                    <TextBlock Classes="caption hint" TextWrapping="Wrap"
+                               Text="{x:Static loc:Strings.Tools_Gen4AtsHelp}" />
+                    <TextBlock Classes="caption danger" TextWrapping="Wrap"
+                               Text="{Binding Gen4AtsError}"
+                               IsVisible="{Binding Gen4AtsError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center" Text="ATQA" />
+                  <c:HexBox Text="{Binding Gen4Atqa}" ByteLengths="2" PlaceholderText="00 04"
+                            AutomationProperties.Name="ATQA" />
+                  <Panel />
+                  <TextBlock Classes="caption danger" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                             Text="{Binding Gen4AtqaError}"
+                             IsVisible="{Binding Gen4AtqaError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center" Text="SAK" />
+                  <c:HexBox Text="{Binding Gen4Sak}" ByteLengths="1" PlaceholderText="08"
+                            AutomationProperties.Name="SAK" />
+                  <Panel />
+                  <StackPanel Spacing="2" Margin="0,-6,0,0" c:FormColumns.Free="True">
+                    <TextBlock Classes="caption hint" TextWrapping="Wrap"
+                               Text="{x:Static loc:Strings.Tools_Gen4SakHelp}" />
+                    <TextBlock Classes="caption danger" TextWrapping="Wrap"
+                               Text="{Binding Gen4SakError}"
+                               IsVisible="{Binding Gen4SakError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4UlMode}" />
+                  <ComboBox ItemsSource="{Binding Gen4UlModeOptions}" SelectedItem="{Binding Gen4UlModeOption}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:Gen4Option">
+                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4MaxBlock}" />
+                  <c:HexBox Text="{Binding Gen4MaxBlock}" ByteLengths="1" PlaceholderText="3F"
+                            AutomationProperties.Name="{x:Static loc:Strings.Tools_Gen4MaxBlock}" />
+                  <Panel />
+                  <StackPanel Spacing="2" Margin="0,-6,0,0" c:FormColumns.Free="True">
+                    <TextBlock Classes="caption hint" TextWrapping="Wrap"
+                               Text="{x:Static loc:Strings.Tools_Gen4MaxBlockHelp}" />
+                    <TextBlock Classes="caption danger" TextWrapping="Wrap"
+                               Text="{Binding Gen4MaxBlockError}"
+                               IsVisible="{Binding Gen4MaxBlockError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
+
+                  <TextBlock Classes="caption" VerticalAlignment="Center"
+                             Text="{x:Static loc:Strings.Tools_Gen4Block0}" />
+                  <ComboBox ItemsSource="{Binding Gen4Block0Options}" SelectedItem="{Binding Gen4Block0Option}"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:Gen4Option">
+                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </c:FormColumns>
+              </Panel>
+              <Button Classes="accent" Command="{Binding Gen4ApplyCommand}" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.save}" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_Gen4Apply}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </Border>
+
+          <!-- UID and advanced memory access -->
+          <Expander Classes="card" IsVisible="{Binding Gen4HasConfig}" HorizontalAlignment="Stretch">
+            <Expander.Header>
+              <TextBlock Text="{x:Static loc:Strings.Tools_Gen4UidAndMemory}" FontWeight="SemiBold" />
+            </Expander.Header>
+            <StackPanel Spacing="14" IsEnabled="{Binding !IsBusy}">
+              <c:FormColumns ColumnSpacing="14" RowSpacing="10" LabelSpacing="6">
+                <TextBlock Classes="caption" VerticalAlignment="Center" Text="UID" />
+                <c:HexBox Text="{Binding Gen4Uid}" ByteLengths="{Binding Gen4UidByteLengths}"
+                          PlaceholderText="{Binding Gen4UidPlaceholder}" AutomationProperties.Name="UID" />
+                <Panel />
+                <TextBlock Classes="caption hint" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                           Text="{x:Static loc:Strings.Tools_Gen4UidHelp}" />
+              </c:FormColumns>
+              <Button Command="{Binding Gen4WriteUidCommand}" HorizontalAlignment="Left"
+                      Content="{x:Static loc:Strings.Tools_Gen4WriteUid}" />
+
+              <Separator />
+
+              <c:FormColumns ColumnSpacing="14" RowSpacing="10" LabelSpacing="6">
+                <TextBlock Classes="caption" VerticalAlignment="Center"
+                           Text="{x:Static loc:Strings.Tools_Gen4MemorySetting}" />
+                <ComboBox ItemsSource="{Binding Gen4MemorySettingOptions}" SelectedItem="{Binding Gen4MemorySettingOption}"
+                          HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:Gen4Option">
+                      <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <TextBlock Classes="caption" VerticalAlignment="Center"
+                           Text="{x:Static loc:Strings.Tools_Gen4PackPage}"
+                           IsVisible="{Binding Gen4IsPackSelected}" />
+                <ComboBox ItemsSource="{Binding Gen4PackPageOptions}" SelectedItem="{Binding Gen4PackPageOption}"
+                          IsVisible="{Binding Gen4IsPackSelected}" HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:Gen4Option">
+                      <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Panel IsVisible="{Binding Gen4IsPackSelected}" />
+                <TextBlock Classes="caption hint" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                           IsVisible="{Binding Gen4IsPackSelected}"
+                           Text="{x:Static loc:Strings.Tools_Gen4PackPageHelp}" />
+
+                <TextBlock Classes="caption" VerticalAlignment="Center"
+                           Text="{Binding Gen4MemorySettingOption?.Label, TargetNullValue=''}" />
+                <c:HexBox Text="{Binding Gen4MemoryData}" TextWrapping="Wrap" />
+                <Panel />
+                <TextBlock Classes="caption hint" Margin="0,-6,0,0" TextWrapping="Wrap" c:FormColumns.Free="True"
+                           Text="{Binding Gen4MemoryValueHelp}" />
+              </c:FormColumns>
+              <WrapPanel ItemSpacing="10" LineSpacing="8">
+                <Button Command="{Binding Gen4ReadMemoryCommand}" Content="{x:Static loc:Strings.Tools_Gen4ReadSetting}" />
+                <Button Command="{Binding Gen4WriteMemoryCommand}" Content="{x:Static loc:Strings.Tools_Gen4WriteSetting}" />
+              </WrapPanel>
+
+              <Separator />
+
+              <c:FormColumns ColumnSpacing="14" RowSpacing="10" LabelSpacing="6">
+                <TextBlock Classes="caption" VerticalAlignment="Center"
+                           Text="{x:Static loc:Strings.Tools_Gen4BlockAddress}" />
+                <c:HexBox Text="{Binding Gen4BlockAddress}" ByteLengths="1" PlaceholderText="00"
+                          AutomationProperties.Name="{x:Static loc:Strings.Tools_Gen4BlockAddress}" />
+
+                <TextBlock Classes="caption" VerticalAlignment="Center"
+                           Text="{x:Static loc:Strings.Tools_Gen4BlockData}" />
+                <c:HexBox Text="{Binding Gen4BlockData}" TextWrapping="Wrap"
+                          AutomationProperties.Name="{x:Static loc:Strings.Tools_Gen4BlockData}" />
+              </c:FormColumns>
+              <WrapPanel ItemSpacing="10" LineSpacing="8">
+                <Button Command="{Binding Gen4ReadBlockCommand}" Content="{x:Static loc:Strings.Tools_Gen4ReadBlock}" />
+                <Button Command="{Binding Gen4WriteBlockCommand}" Content="{x:Static loc:Strings.Tools_Gen4WriteBlock}" />
+              </WrapPanel>
+            </StackPanel>
+          </Expander>
+
+          <!-- Permanently lock configuration -->
+          <Expander Classes="card" IsVisible="{Binding Gen4HasConfig}" HorizontalAlignment="Stretch"
+                    BorderBrush="{actipro:ThemeResource ControlBackgroundBrushSoftDanger}">
+            <Expander.Header>
+              <TextBlock Text="{x:Static loc:Strings.Tools_Gen4PermanentLock}" FontWeight="SemiBold" />
+            </Expander.Header>
+            <StackPanel Spacing="10">
+              <TextBlock Classes="caption hint" TextWrapping="Wrap" Text="{x:Static loc:Strings.Tools_Gen4FuseWarning}" />
+              <Button Classes="danger" Command="{Binding Gen4PermanentLockCommand}" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <PathIcon Data="{StaticResource Icon.lock}" />
+                  <TextBlock Text="{x:Static loc:Strings.Tools_Gen4PermanentLock}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </Expander>
+
+          <!-- Status / verification outcome -->
+          <Border Classes="card">
+            <Border.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="Gen4HasStatus" />
+                <Binding Path="Gen4HasConfig" />
+              </MultiBinding>
+            </Border.IsVisible>
+            <SelectableTextBlock TextWrapping="Wrap"
+                                 Text="{Binding Gen4Status}"
+                                 Classes.danger="{Binding Gen4Failed}"
+                                 Classes.success="{Binding !Gen4Failed}" />
           </Border>
         </StackPanel>
 

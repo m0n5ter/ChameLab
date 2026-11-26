@@ -605,6 +605,37 @@
       </Border>
     </Panel>
 
+    <!-- ==================== Gen4 write / lock confirmation dialog ==================== -->
+    <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+           DataContext="{Binding Tools}" IsVisible="{Binding IsGen4Confirming}"
+           x:DataType="vm:ToolsViewModel">
+      <Border Classes="card" MaxWidth="440" Margin="16" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource Icon.lock}" Width="18" Height="18"
+                      Foreground="{actipro:ThemeResource ControlBackgroundBrushSolidDanger}"
+                      IsVisible="{Binding Gen4IsDangerConfirm}" VerticalAlignment="Center" />
+            <TextBlock Classes="h2" TextWrapping="Wrap" Text="{Binding Gen4ConfirmTitle}" VerticalAlignment="Center" />
+          </StackPanel>
+          <TextBlock TextWrapping="Wrap" Text="{Binding Gen4ConfirmMessage}" />
+          <WrapPanel ItemSpacing="8" LineSpacing="8" HorizontalAlignment="Right">
+            <Button Content="{x:Static loc:Strings.Common_Cancel}" Command="{Binding CancelGen4ConfirmCommand}"
+                    b:DialogKeys.IsCancel="True" />
+            <Button Classes.danger="{Binding Gen4IsDangerConfirm}"
+                    Classes.solid="{Binding Gen4IsDangerConfirm}"
+                    Classes.accent="{Binding !Gen4IsDangerConfirm}"
+                    Command="{Binding ConfirmGen4ActionCommand}" b:DialogKeys.IsDefault="True">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <PathIcon Data="{StaticResource Icon.lock}" IsVisible="{Binding Gen4IsDangerConfirm}" />
+                <PathIcon Data="{StaticResource Icon.check}" IsVisible="{Binding !Gen4IsDangerConfirm}" />
+                <TextBlock Text="{Binding Gen4ConfirmButtonText}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </WrapPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+
     <!-- ==================== Backup import conflict dialog ==================== -->
     <Panel Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
            DataContext="{Binding Settings}" IsVisible="{Binding IsBackupImportDialogOpen}"

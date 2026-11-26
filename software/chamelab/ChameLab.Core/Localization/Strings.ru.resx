@@ -4381,4 +4381,187 @@
     <value>A - существующий объект
 B - импортируемый объект</value>
   </data>
+  <data name="Tools_Gen4Title" xml:space="preserve">
+    <value>Конфигурация Gen4</value>
+  </data>
+  <data name="Tools_Gen4Hint" xml:space="preserve">
+    <value>Настройка карты Gen4 Ultimate (GTU)</value>
+  </data>
+  <data name="Tools_Gen4Intro" xml:space="preserve">
+    <value>Только для карт Ultimate / GTU. Все значения в шестнадцатеричном формате.</value>
+  </data>
+  <data name="Tools_Gen4UltraRequired" xml:space="preserve">
+    <value>Для операций с ВЧ-считывателем требуется Chameleon Ultra.</value>
+  </data>
+  <data name="Tools_Gen4CurrentPassword" xml:space="preserve">
+    <value>Текущий пароль бэкдора (4 байта)</value>
+  </data>
+  <data name="Tools_Gen4NewPassword" xml:space="preserve">
+    <value>Новый пароль бэкдора (4 байта)</value>
+  </data>
+  <data name="Tools_Gen4Read" xml:space="preserve">
+    <value>Прочитать конфигурацию</value>
+  </data>
+  <data name="Tools_Gen4Version" xml:space="preserve">
+    <value>Версия</value>
+  </data>
+  <data name="Tools_Gen4VersionFormat" xml:space="preserve">
+    <value>Версия: {0}</value>
+  </data>
+  <data name="Tools_Gen4Protocol" xml:space="preserve">
+    <value>Эмулируемый протокол</value>
+  </data>
+  <data name="Tools_Gen4UidLength" xml:space="preserve">
+    <value>Длина UID (байт)</value>
+  </data>
+  <data name="Tools_Gen4Shadow" xml:space="preserve">
+    <value>Теневой режим</value>
+  </data>
+  <data name="Tools_Gen4Prewrite" xml:space="preserve">
+    <value>Предзапись</value>
+  </data>
+  <data name="Tools_Gen4Restore" xml:space="preserve">
+    <value>Восстановление</value>
+  </data>
+  <data name="Tools_Gen4Disabled" xml:space="preserve">
+    <value>Отключён</value>
+  </data>
+  <data name="Tools_Gen4Enabled" xml:space="preserve">
+    <value>Включена</value>
+  </data>
+  <data name="Tools_Gen4HighSpeed" xml:space="preserve">
+    <value>Отключён / быстрый режим</value>
+  </data>
+  <data name="Tools_Gen4Split" xml:space="preserve">
+    <value>Разделённый</value>
+  </data>
+  <data name="Tools_Gen4ShadowWarning" xml:space="preserve">
+    <value>Режим «Восстановление» может не работать на картах 06A0; режим «Разделённый» не проверялся на старых картах.</value>
+  </data>
+  <data name="Tools_Gen4PasswordHelp" xml:space="preserve">
+    <value>Сохраните этот пароль — восстановить его невозможно.</value>
+  </data>
+  <data name="Tools_Gen4AtsHelp" xml:space="preserve">
+    <value>До 16 байт без CRC. Оставьте пустым, чтобы отключить.</value>
+  </data>
+  <data name="Tools_Gen4SakHelp" xml:space="preserve">
+    <value>Избегайте 04; значения 20 / 28 требуют ATS.</value>
+  </data>
+  <data name="Tools_Gen4UlMode" xml:space="preserve">
+    <value>Вариант Ultralight / NTAG</value>
+  </data>
+  <data name="Tools_Gen4MaxBlock" xml:space="preserve">
+    <value>Макс. доступный блок (00–FF)</value>
+  </data>
+  <data name="Tools_Gen4MaxBlockHelp" xml:space="preserve">
+    <value>Последний блок: 3F для 1K, FF для 4K.</value>
+  </data>
+  <data name="Tools_Gen4Block0" xml:space="preserve">
+    <value>Прямая запись в блок 0</value>
+  </data>
+  <data name="Tools_Gen4FactoryDefault" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="Tools_Gen4Apply" xml:space="preserve">
+    <value>Применить конфигурацию</value>
+  </data>
+  <data name="Tools_Gen4ConfirmWrite" xml:space="preserve">
+    <value>Подтвердить запись</value>
+  </data>
+  <data name="Tools_Gen4ApplyWarning" xml:space="preserve">
+    <value>Записать эти настройки? Протокол, длина UID, ATS и параметры выбора должны соответствовать памяти карты. Неверные значения могут сделать выбор карты невозможным. Не убирайте карту до завершения проверки.</value>
+  </data>
+  <data name="Tools_Gen4FuseWarning" xml:space="preserve">
+    <value>Это действие навсегда заблокирует эти настройки, включая пароль. Изменить их снова будет нельзя. Сохраните пароль перед продолжением.</value>
+  </data>
+  <data name="Tools_Gen4PermanentLock" xml:space="preserve">
+    <value>Заблокировать конфигурацию навсегда</value>
+  </data>
+  <data name="Tools_Gen4ConfirmLock" xml:space="preserve">
+    <value>Заблокировать навсегда</value>
+  </data>
+  <data name="Tools_Gen4Verified" xml:space="preserve">
+    <value>Запись подтверждена обратным чтением.</value>
+  </data>
+  <data name="Tools_Gen4VerifyFailed" xml:space="preserve">
+    <value>Запись завершена, но считанные данные отличаются. Прочитайте карту снова перед продолжением.</value>
+  </data>
+  <data name="Tools_Gen4WrittenReadFailed" xml:space="preserve">
+    <value>Конфигурация записана. Ожидается обратное чтение; текущий пароль обновлён.</value>
+  </data>
+  <data name="Tools_Gen4UidAndMemory" xml:space="preserve">
+    <value>UID и расширенный доступ к памяти</value>
+  </data>
+  <data name="Tools_Gen4UidHelp" xml:space="preserve">
+    <value>Сначала примените изменения протокола и длины UID.</value>
+  </data>
+  <data name="Tools_Gen4UidWarning" xml:space="preserve">
+    <value>Записать UID с использованием последней считанной конфигурации? Сначала примените изменения длины UID или протокола. Прочие байты производителя и блокировки сохраняются. Многоблочная запись может завершиться частично, если убрать карту.</value>
+  </data>
+  <data name="Tools_Gen4UidWritten" xml:space="preserve">
+    <value>UID записан. Отсканируйте карту снова для проверки.</value>
+  </data>
+  <data name="Tools_Gen4WriteUid" xml:space="preserve">
+    <value>Записать UID</value>
+  </data>
+  <data name="Tools_Gen4BlockAddress" xml:space="preserve">
+    <value>Адрес блока (1 байт hex)</value>
+  </data>
+  <data name="Tools_Gen4BlockData" xml:space="preserve">
+    <value>Данные блока (16 байт hex)</value>
+  </data>
+  <data name="Tools_Gen4ReadBlock" xml:space="preserve">
+    <value>Прочитать блок</value>
+  </data>
+  <data name="Tools_Gen4WriteBlock" xml:space="preserve">
+    <value>Записать блок</value>
+  </data>
+  <data name="Tools_Gen4BlockWarning" xml:space="preserve">
+    <value>Перезаписать этот 16-байтный блок? Данные производителя, ключи, биты доступа и блокировки могут измениться. Действует немедленно.</value>
+  </data>
+  <data name="Tools_Gen4HexRequired" xml:space="preserve">
+    <value>Введите {0} байт в шестнадцатеричном формате.</value>
+  </data>
+  <data name="Tools_Gen4MemorySetting" xml:space="preserve">
+    <value>Параметр в памяти</value>
+  </data>
+  <data name="Tools_Gen4Otp" xml:space="preserve">
+    <value>OTP</value>
+  </data>
+  <data name="Tools_Gen4NtagPassword" xml:space="preserve">
+    <value>Пароль NTAG (не пароль бэкдора)</value>
+  </data>
+  <data name="Tools_Gen4Signature" xml:space="preserve">
+    <value>Подпись подлинности</value>
+  </data>
+  <data name="Tools_Gen4ReadSetting" xml:space="preserve">
+    <value>Прочитать параметр</value>
+  </data>
+  <data name="Tools_Gen4WriteSetting" xml:space="preserve">
+    <value>Записать параметр</value>
+  </data>
+  <data name="Tools_Gen4MemoryValueHelp" xml:space="preserve">
+    <value>{0} байт hex, начиная с блока {1}.</value>
+  </data>
+  <data name="Tools_Gen4PackPage" xml:space="preserve">
+    <value>Страница PACK</value>
+  </data>
+  <data name="Tools_Gen4PackPageHelp" xml:space="preserve">
+    <value>13 для 06A0 / 6666; E6 для остальных ревизий.</value>
+  </data>
+  <data name="Tools_Gen4InvalidConfig" xml:space="preserve">
+    <value>Некорректная конфигурация Gen4.</value>
+  </data>
+  <data name="Tools_Gen4UnexpectedConfigLength" xml:space="preserve">
+    <value>Ожидалась конфигурация Gen4 длиной 30, 32 или 34 байта.</value>
+  </data>
+  <data name="Tools_Gen4CommandRejected" xml:space="preserve">
+    <value>Команда Gen4 отклонена ({0}).</value>
+  </data>
+  <data name="Tools_Gen4ExpectedBlock16" xml:space="preserve">
+    <value>Ожидался 16-байтный блок.</value>
+  </data>
+  <data name="Tools_Gen4UidConfigUnsupported" xml:space="preserve">
+    <value>Невозможно записать UID для текущего протокола или длины UID.</value>
+  </data>
 </root>

@@ -4367,4 +4367,187 @@
     <value>A - 既存
 B - インポート</value>
   </data>
+  <data name="Tools_Gen4Title" xml:space="preserve">
+    <value>Gen4 設定</value>
+  </data>
+  <data name="Tools_Gen4Hint" xml:space="preserve">
+    <value>Gen4 Ultimate (GTU) カードを設定</value>
+  </data>
+  <data name="Tools_Gen4Intro" xml:space="preserve">
+    <value>Ultimate / GTU カード専用です。すべての値は16進数です。</value>
+  </data>
+  <data name="Tools_Gen4UltraRequired" xml:space="preserve">
+    <value>HF リーダー操作には Chameleon Ultra が必要です。</value>
+  </data>
+  <data name="Tools_Gen4CurrentPassword" xml:space="preserve">
+    <value>現在のバックドアパスワード (4 バイト)</value>
+  </data>
+  <data name="Tools_Gen4NewPassword" xml:space="preserve">
+    <value>新しいバックドアパスワード (4 バイト)</value>
+  </data>
+  <data name="Tools_Gen4Read" xml:space="preserve">
+    <value>設定を読み取る</value>
+  </data>
+  <data name="Tools_Gen4Version" xml:space="preserve">
+    <value>バージョン</value>
+  </data>
+  <data name="Tools_Gen4VersionFormat" xml:space="preserve">
+    <value>バージョン: {0}</value>
+  </data>
+  <data name="Tools_Gen4Protocol" xml:space="preserve">
+    <value>エミュレートプロトコル</value>
+  </data>
+  <data name="Tools_Gen4UidLength" xml:space="preserve">
+    <value>UID 長 (バイト)</value>
+  </data>
+  <data name="Tools_Gen4Shadow" xml:space="preserve">
+    <value>シャドウモード</value>
+  </data>
+  <data name="Tools_Gen4Prewrite" xml:space="preserve">
+    <value>プレライト</value>
+  </data>
+  <data name="Tools_Gen4Restore" xml:space="preserve">
+    <value>復元</value>
+  </data>
+  <data name="Tools_Gen4Disabled" xml:space="preserve">
+    <value>無効</value>
+  </data>
+  <data name="Tools_Gen4Enabled" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="Tools_Gen4HighSpeed" xml:space="preserve">
+    <value>無効 / 高速</value>
+  </data>
+  <data name="Tools_Gen4Split" xml:space="preserve">
+    <value>分割</value>
+  </data>
+  <data name="Tools_Gen4ShadowWarning" xml:space="preserve">
+    <value>「復元」は 06A0 カードで失敗する場合があります。「分割」は古いカードでは未検証です。</value>
+  </data>
+  <data name="Tools_Gen4PasswordHelp" xml:space="preserve">
+    <value>このパスワードを保存してください。復元することはできません。</value>
+  </data>
+  <data name="Tools_Gen4AtsHelp" xml:space="preserve">
+    <value>最大 16 バイト、CRC なし。無効にする場合は空のままにします。</value>
+  </data>
+  <data name="Tools_Gen4SakHelp" xml:space="preserve">
+    <value>04 は避けてください。20 / 28 には ATS が必要です。</value>
+  </data>
+  <data name="Tools_Gen4UlMode" xml:space="preserve">
+    <value>Ultralight / NTAG バリアント</value>
+  </data>
+  <data name="Tools_Gen4MaxBlock" xml:space="preserve">
+    <value>アクセス可能な最大ブロック (00–FF)</value>
+  </data>
+  <data name="Tools_Gen4MaxBlockHelp" xml:space="preserve">
+    <value>最終ブロック: 1K は 3F、4K は FF。</value>
+  </data>
+  <data name="Tools_Gen4Block0" xml:space="preserve">
+    <value>ブロック 0 への直接書き込み</value>
+  </data>
+  <data name="Tools_Gen4FactoryDefault" xml:space="preserve">
+    <value>工場出荷時設定</value>
+  </data>
+  <data name="Tools_Gen4Apply" xml:space="preserve">
+    <value>設定を適用</value>
+  </data>
+  <data name="Tools_Gen4ConfirmWrite" xml:space="preserve">
+    <value>書き込みを確認</value>
+  </data>
+  <data name="Tools_Gen4ApplyWarning" xml:space="preserve">
+    <value>これらの設定を書き込みますか？プロトコル、UID 長、ATS、選択パラメータはカードメモリと一致している必要があります。誤った値を設定するとカードが選択できなくなることがあります。確認が完了するまでカードを動かさないでください。</value>
+  </data>
+  <data name="Tools_Gen4FuseWarning" xml:space="preserve">
+    <value>パスワードを含むこれらの設定を永久にロックします。後から変更することはできません。続行する前にパスワードを保存してください。</value>
+  </data>
+  <data name="Tools_Gen4PermanentLock" xml:space="preserve">
+    <value>設定を永久にロック</value>
+  </data>
+  <data name="Tools_Gen4ConfirmLock" xml:space="preserve">
+    <value>永久にロック</value>
+  </data>
+  <data name="Tools_Gen4Verified" xml:space="preserve">
+    <value>読み戻しにより書き込みが確認されました。</value>
+  </data>
+  <data name="Tools_Gen4VerifyFailed" xml:space="preserve">
+    <value>書き込みは完了しましたが、読み戻した内容が異なります。続行する前にカードを再度読み取ってください。</value>
+  </data>
+  <data name="Tools_Gen4WrittenReadFailed" xml:space="preserve">
+    <value>設定を書き込みました。読み戻し待機中です。現在のパスワードが更新されました。</value>
+  </data>
+  <data name="Tools_Gen4UidAndMemory" xml:space="preserve">
+    <value>UID と高度なメモリアクセス</value>
+  </data>
+  <data name="Tools_Gen4UidHelp" xml:space="preserve">
+    <value>先にプロトコルと UID 長の変更を適用してください。</value>
+  </data>
+  <data name="Tools_Gen4UidWarning" xml:space="preserve">
+    <value>最後に読み取った設定を使って UID を書き込みますか？UID 長やプロトコルの変更は先に適用してください。その他のメーカーバイトやロックバイトは保持されます。書き込み中にカードを外すと複数ブロックの書き込みが途中で終了する場合があります。</value>
+  </data>
+  <data name="Tools_Gen4UidWritten" xml:space="preserve">
+    <value>UID を書き込みました。カードを再スキャンして確認してください。</value>
+  </data>
+  <data name="Tools_Gen4WriteUid" xml:space="preserve">
+    <value>UID を書き込む</value>
+  </data>
+  <data name="Tools_Gen4BlockAddress" xml:space="preserve">
+    <value>ブロックアドレス (16進 1 バイト)</value>
+  </data>
+  <data name="Tools_Gen4BlockData" xml:space="preserve">
+    <value>ブロックデータ (16進 16 バイト)</value>
+  </data>
+  <data name="Tools_Gen4ReadBlock" xml:space="preserve">
+    <value>ブロックを読み取る</value>
+  </data>
+  <data name="Tools_Gen4WriteBlock" xml:space="preserve">
+    <value>ブロックを書き込む</value>
+  </data>
+  <data name="Tools_Gen4BlockWarning" xml:space="preserve">
+    <value>この 16 バイトブロックを上書きしますか？メーカーデータ、キー、アクセスビット、ロックバイトに影響する可能性があります。すぐに適用されます。</value>
+  </data>
+  <data name="Tools_Gen4HexRequired" xml:space="preserve">
+    <value>{0} バイトの16進数を入力してください。</value>
+  </data>
+  <data name="Tools_Gen4MemorySetting" xml:space="preserve">
+    <value>メモリ上の設定</value>
+  </data>
+  <data name="Tools_Gen4Otp" xml:space="preserve">
+    <value>OTP</value>
+  </data>
+  <data name="Tools_Gen4NtagPassword" xml:space="preserve">
+    <value>NTAG パスワード (バックドアパスワードではありません)</value>
+  </data>
+  <data name="Tools_Gen4Signature" xml:space="preserve">
+    <value>真正性署名</value>
+  </data>
+  <data name="Tools_Gen4ReadSetting" xml:space="preserve">
+    <value>設定を読み取る</value>
+  </data>
+  <data name="Tools_Gen4WriteSetting" xml:space="preserve">
+    <value>設定を書き込む</value>
+  </data>
+  <data name="Tools_Gen4MemoryValueHelp" xml:space="preserve">
+    <value>ブロック {1} から始まる {0} バイトの16進数。</value>
+  </data>
+  <data name="Tools_Gen4PackPage" xml:space="preserve">
+    <value>PACK ページ</value>
+  </data>
+  <data name="Tools_Gen4PackPageHelp" xml:space="preserve">
+    <value>06A0 / 6666 は 13、その他のリビジョンは E6。</value>
+  </data>
+  <data name="Tools_Gen4InvalidConfig" xml:space="preserve">
+    <value>無効な Gen4 設定です。</value>
+  </data>
+  <data name="Tools_Gen4UnexpectedConfigLength" xml:space="preserve">
+    <value>30、32、または 34 バイトの Gen4 設定が必要です。</value>
+  </data>
+  <data name="Tools_Gen4CommandRejected" xml:space="preserve">
+    <value>Gen4 コマンドが拒否されました ({0})。</value>
+  </data>
+  <data name="Tools_Gen4ExpectedBlock16" xml:space="preserve">
+    <value>16 バイトのブロックが必要です。</value>
+  </data>
+  <data name="Tools_Gen4UidConfigUnsupported" xml:space="preserve">
+    <value>現在のプロトコルまたは UID 長では UID を書き込めません。</value>
+  </data>
 </root>

@@ -249,6 +249,7 @@ public sealed partial class ToolsViewModel
 
     public override async Task OnDeactivatedAsync()
     {
+        CancelGen4Confirm();
         _t55xxCts?.Cancel();
         await _t55xxRun;
     }
