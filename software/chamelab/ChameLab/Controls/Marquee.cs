@@ -18,11 +18,12 @@ namespace ChameLab.Controls;
 /// </remarks>
 public class Marquee : Decorator
 {
-    private const double Speed = 30; // px per second
-    private static readonly TimeSpan Pause = TimeSpan.FromSeconds(1.5);
+    public double Speed { get; set; } = 30; // px per second
+    public TimeSpan Pause { get; set; } = TimeSpan.FromSeconds(1.5);
 
     private readonly TranslateTransform _shift = new();
     private double _overflow;
+    private double _childWidth;
     private bool _running;
     private bool _forward;
     private bool _inView = true;
@@ -35,6 +36,11 @@ public class Marquee : Decorator
         ClipToBounds = true;
         EffectiveViewportChanged += (_, e) =>
         {
+            if (!IsEffectivelyVisible)
+            {
+                Stop();
+                return;
+            }
             _inView = e.EffectiveViewport.Width > 0 && e.EffectiveViewport.Height > 0;
             if (_inView && _waitingForView) BeginSlide();
         };
@@ -52,7 +58,13 @@ public class Marquee : Decorator
         if (Child is not { } child) return finalSize;
         if (!Equals(child.RenderTransform, _shift)) child.RenderTransform = _shift;
         child.Arrange(new Rect(0, 0, Math.Max(finalSize.Width, child.DesiredSize.Width), finalSize.Height));
-        _overflow = child.DesiredSize.Width - finalSize.Width;
+        var childWidth = child.DesiredSize.Width;
+        if (Math.Abs(childWidth - _childWidth) > 0.5)
+        {
+            _childWidth = childWidth;
+            Stop();
+        }
+        _overflow = childWidth - finalSize.Width;
         if (_overflow > 0.5)
         {
             // Resting past a new, shorter end would cut the text off.
