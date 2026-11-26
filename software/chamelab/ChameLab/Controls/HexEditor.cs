@@ -1678,18 +1678,9 @@ public sealed class HexEditor : Control
 
         // Above the selection, else under its end handle, else at the top of the screen;
         // within what is on screen of the editor.
-        const double gap = 8;
-        var bar = _touchLayer.Bar.DesiredSize;
         var view = _viewport.Width > 0 ? _viewport.Intersect(new Rect(size)) : new Rect(size);
-        var top = start.Y - _lineH - gap - bar.Height;
-        var below = end.Y + _touchLayer.End.DesiredSize.Height + gap;
-        var y = top >= view.Top ? top
-            : below + bar.Height <= view.Bottom ? below
-            : view.Top + gap;
         var sameLine = LineOf(Selection().from) == LineOf(Selection().to);
-        var center = sameLine ? (start.X + end.X) / 2 : view.Center.X;
-        var x = Math.Max(view.Left, Math.Min(center - bar.Width / 2, view.Right - bar.Width));
-        _touchLayer.Bar.Arrange(new Rect(new Point(x, y), bar));
+        TouchSelection.ArrangeBar(_touchLayer.Bar, start, end, _lineH, _touchLayer.End.DesiredSize.Height, sameLine, view);
     }
 
     private void BeginHandleDrag(bool start, Point p)
@@ -1729,56 +1720,38 @@ public sealed class HexEditor : Control
         public TouchSelectionLayer(HexEditor owner)
         {
             _owner = owner;
-            Start = new SelectionHandle(owner, start: true) { IsVisible = false };
-            End = new SelectionHandle(owner, start: false) { IsVisible = false };
+            Start = new TouchSelectionHandle(owner, start: true, () => owner.CaretBrush,
+                owner.BeginHandleDrag, owner.DragHandle, owner.EndHandleDrag) { IsVisible = false };
+            End = new TouchSelectionHandle(owner, start: false, () => owner.CaretBrush,
+                owner.BeginHandleDrag, owner.DragHandle, owner.EndHandleDrag) { IsVisible = false };
 
-            Button Command(string text, Action action)
-            {
-                // Not focusable: tapping one must not take focus (and the keyboard) from the editor.
-                var button = new Button { Content = text, Focusable = false };
-                button.Classes.Add("theme-subtle");
-                button.Click += (_, _) => action();
-                return button;
-            }
-
-            Paste = Command(Strings.Hex_Paste, () =>
+            Paste = TouchSelection.CreateCommand(Strings.Hex_Paste, () =>
             {
                 // The paste replaces the selection once the clipboard is read, and ends it.
                 _owner._touchBarShown = false;
                 _owner.UpdateTouchUi();
                 _owner.Paste();
             });
-            Bar = new Border
-            {
-                IsVisible = false,
-                Child = new StackPanel
+            Bar = TouchSelection.CreateBar(
+                TouchSelection.CreateCommand(Strings.Hex_Copy, () =>
                 {
-                    Orientation = Avalonia.Layout.Orientation.Horizontal,
-                    Children =
-                    {
-                        Command(Strings.Hex_Copy, () =>
-                        {
-                            _owner.Copy();
-                            _owner.EndTouchSelection();
-                        }),
-                        Paste,
-                        Command(Strings.Hex_SelectAll, () =>
-                        {
-                            _owner.SelectAll();
-                            _owner._touchBarShown = true;
-                            _owner.UpdateTouchUi();
-                        }),
-                    },
-                },
-            };
-            Bar.Classes.Add("hextouchbar");
+                    _owner.Copy();
+                    _owner.EndTouchSelection();
+                }),
+                Paste,
+                TouchSelection.CreateCommand(Strings.Hex_SelectAll, () =>
+                {
+                    _owner.SelectAll();
+                    _owner._touchBarShown = true;
+                    _owner.UpdateTouchUi();
+                }));
             Children.Add(Start);
             Children.Add(End);
             Children.Add(Bar);
         }
 
-        public SelectionHandle Start { get; }
-        public SelectionHandle End { get; }
+        public TouchSelectionHandle Start { get; }
+        public TouchSelectionHandle End { get; }
         public Border Bar { get; }
         public Button Paste { get; }
 
@@ -1792,71 +1765,6 @@ public sealed class HexEditor : Control
         {
             _owner.ArrangeTouchUi(finalSize);
             return finalSize;
-        }
-    }
-
-    /// <summary>
-    /// A drop-shaped handle under one end of a touch selection, pointing at it with its square
-    /// corner; dragging it moves that end. Its touch area is larger than the drop.
-    /// </summary>
-    private sealed class SelectionHandle : Control
-    {
-        private const double Radius = 11, BoxWidth = 44, BoxHeight = 40;
-        private readonly HexEditor _owner;
-        private readonly bool _start;
-
-        public SelectionHandle(HexEditor owner, bool start)
-        {
-            _owner = owner;
-            _start = start;
-            // The tip at the drop's square corner: right of a start handle's drop, left of an end one's.
-            Tip = new Vector(start ? BoxWidth - 14 : 14, 0);
-        }
-
-        /// <summary>Where on the handle its tip is.</summary>
-        public Vector Tip { get; }
-
-        protected override Size MeasureOverride(Size availableSize) => new(BoxWidth, BoxHeight);
-
-        public override void Render(DrawingContext context)
-        {
-            context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
-            if (_owner.CaretBrush is not { } brush) return;
-            var center = new Point(Tip.X + (_start ? -Radius : Radius), Radius);
-            context.DrawEllipse(brush, null, center, Radius, Radius);
-            context.FillRectangle(brush, new Rect(Math.Min(Tip.X, center.X), 0, Radius, Radius));
-        }
-
-        protected override void OnPointerPressed(PointerPressedEventArgs e)
-        {
-            base.OnPointerPressed(e);
-            e.Handled = true;
-            e.PreventGestureRecognition();
-            e.Pointer.Capture(this);
-            _owner.BeginHandleDrag(_start, e.GetPosition(_owner));
-        }
-
-        protected override void OnPointerMoved(PointerEventArgs e)
-        {
-            base.OnPointerMoved(e);
-            if (e.Pointer.Captured != this) return;
-            e.Handled = true;
-            e.PreventGestureRecognition();
-            _owner.DragHandle(e.GetPosition(_owner));
-        }
-
-        protected override void OnPointerReleased(PointerReleasedEventArgs e)
-        {
-            base.OnPointerReleased(e);
-            if (e.Pointer.Captured != this) return;
-            e.Handled = true;
-            e.Pointer.Capture(null);
-        }
-
-        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
-        {
-            base.OnPointerCaptureLost(e);
-            _owner.EndHandleDrag();
         }
     }
 

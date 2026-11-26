@@ -1430,8 +1430,8 @@
     <Setter Property="StripeBrush" Value="#18808080" />
   </Style>
 
-  <!-- Copy / Paste / Select all over a touch selection in the hex editor. -->
-  <Style Selector="c|HexEditor Border.hextouchbar">
+  <!-- Copy / Paste / Select all over a touch selection (hex editor, console). -->
+  <Style Selector="Border.touchbar">
     <Setter Property="Background" Value="{actipro:ThemeResource Container1BackgroundBrush}" />
     <Setter Property="BorderBrush" Value="{actipro:ThemeResource Container1BorderBrush}" />
     <Setter Property="BorderThickness" Value="1" />
@@ -1439,10 +1439,13 @@
     <Setter Property="Padding" Value="4" />
     <Setter Property="BoxShadow" Value="0 4 14 -2 #60000000" />
   </Style>
-  <Style Selector="c|HexEditor Border.hextouchbar Button">
+  <Style Selector="Border.touchbar Button">
     <Setter Property="FontFamily" Value="{x:Static FontFamily.Default}" />
     <Setter Property="FontSize" Value="14" />
     <Setter Property="Padding" Value="12,8" />
+  </Style>
+  <Style Selector="c|TouchSelectableText">
+    <Setter Property="HandleBrush" Value="{actipro:ThemeResource ControlBackgroundBrushSolidAccent}" />
   </Style>
 
   <Style Selector="WrapPanel.hexlegend">

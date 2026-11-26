@@ -84,4 +84,55 @@ public class ConsoleTests
         Assert.Equal(300, side.Bounds.Width);
         Assert.Equal(800 - 300 - 8, fill.Bounds.Width);
     }
+
+    [Theory]
+    [InlineData("UID=5FC1AD1E NT=A9385308", 6, "5FC1AD1E")]
+    [InlineData("UID=5FC1AD1E NT=A9385308", 4, "5FC1AD1E")]
+    [InlineData("UID=5FC1AD1E NT=A9385308", 12, "5FC1AD1E")]
+    [InlineData("UID=5FC1AD1E NT=A9385308", 0, "UID")]
+    [InlineData("> hf mf elog\n", 12, "elog")]
+    [InlineData("   \n", 1, "")]
+    public void TouchWordSpanSelectsTokenUnderFinger(string text, int index, string expected)
+    {
+        var (start, end) = TouchSelectableText.WordSpanAt(text, index);
+        Assert.Equal(expected, text[start..end]);
+    }
+
+    [Fact]
+    public void TouchBarPlacesAboveSelectionOrBelowHandlesOrPinnedInViewport()
+    {
+        var bar = new Border { Width = 140, Height = 40 };
+        bar.Measure(Size.Infinity);
+        var viewport = new Rect(0, 0, 360, 400);
+
+        // Near the bottom: fits above the selection.
+        TouchSelection.ArrangeBar(bar, new Point(100, 320), new Point(200, 320), 16, 40, sameLine: true, viewport);
+        Assert.Equal(320 - 16 - 8 - 40, bar.Bounds.Y);
+        Assert.Equal(150 - 70, bar.Bounds.X);
+
+        // At the top of the viewport: flips below the end handle.
+        TouchSelection.ArrangeBar(bar, new Point(10, 20), new Point(110, 20), 16, 40, sameLine: true, viewport);
+        Assert.Equal(20 + 40 + 8, bar.Bounds.Y);
+
+        // Multi-line selection filling the viewport: pins near the top edge.
+        TouchSelection.ArrangeBar(bar, new Point(10, 20), new Point(200, 380), 16, 40, sameLine: false, viewport);
+        Assert.Equal(8, bar.Bounds.Y);
+        Assert.Equal(180 - 70, bar.Bounds.X);
+    }
+
+    [Fact]
+    public void TouchSelectionHandleHitTestsItsFullBoxOnlyWhileVisible()
+    {
+        var handle = new TouchSelectionHandle(new Border(), start: true, () => null, (_, _) => { }, _ => { }, () => { });
+        handle.Measure(Size.Infinity);
+        Assert.Equal(new Size(44, 40), handle.DesiredSize);
+        handle.Arrange(new Rect(10, 20, 44, 40));
+
+        Assert.True(handle.HitTest(new Point(1, 1)));
+        Assert.True(handle.HitTest(new Point(43, 39)));
+        Assert.False(handle.HitTest(new Point(45, 20)));
+
+        handle.IsVisible = false;
+        Assert.False(handle.HitTest(new Point(10, 10)));
+    }
 }

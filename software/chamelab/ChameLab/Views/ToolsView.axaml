@@ -1040,9 +1040,10 @@
               </c:SideDock>
             </Grid>
 
-            <Border Grid.Row="1" Classes="inset" Padding="10,8">
+            <Border Grid.Row="1" Classes="inset" Padding="0">
               <ScrollViewer Name="ConsoleScroller">
-                <SelectableTextBlock Name="ConsoleOutput" FontFamily="{x:Static c:AppFonts.Mono}" FontSize="12" />
+                <c:TouchSelectableText Name="ConsoleOutput" Padding="18,10,18,18"
+                                       FontFamily="{x:Static c:AppFonts.Mono}" FontSize="12" />
               </ScrollViewer>
             </Border>
 

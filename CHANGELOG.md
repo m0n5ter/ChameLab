@@ -10,6 +10,7 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 ## [unreleased][unreleased]
  - ChameLab: mfkey32 now recovers all distinct reader keys for the same block and key type in nonce collection, the recovery wizard, and CLI instead of stopping at the first key
  - ChameLab: added Gen4 Ultimate (GTU) magic card configuration tool in Tools (read/write 30-byte configuration, permanent lock, UID write preserving manufacturer/lock bytes, memory-backed settings for OTP/NTAG password/PACK/version/signature, and raw block read/write)
+ - ChameLab: added mobile touch text selection in Tools → Console (long press a token to select, drag to extend or adjust drop handles, and use the floating Copy / Select all bar without stealing focus or breaking scroll)
 
 ## [v1.8.62][2026-11-26] · firmware v2.4.27-cl
 ### Summary
