@@ -6,4 +6,17 @@
          designer support) that we can't fix; our own assemblies still get per-call trim warnings. -->
     <NoWarn>$(NoWarn);IL2104</NoWarn>
   </PropertyGroup>
+
+  <!-- NativeAOT's _ComputeIlcCompileInputs only collects satellite assemblies with AssetType=resources,
+       skipping ProjectReference satellite .resources.dll files (e.g. ChameLab.Core.resources.dll).
+       Feed them to ILC so localized strings are embedded into NativeAOT binaries. -->
+  <Target Name="_IncludeProjectSatelliteAssembliesForIlc"
+          AfterTargets="_ComputeIlcCompileInputs"
+          Condition="'$(PublishAot)' == 'true'">
+    <ItemGroup>
+      <IlcSatelliteAssembly Include="@(ResolvedFileToPublish)"
+                            Exclude="@(IlcSatelliteAssembly)"
+                            Condition="$([System.String]::new('%(ResolvedFileToPublish.Filename)').EndsWith('.resources')) and '%(ResolvedFileToPublish.Extension)' == '.dll'" />
+    </ItemGroup>
+  </Target>
 </Project>
