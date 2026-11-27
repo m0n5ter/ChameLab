@@ -38,6 +38,10 @@ public partial class DictionarySelector : UserControl
     public static readonly StyledProperty<string?> CountTextProperty =
         AvaloniaProperty.Register<DictionarySelector, string?>(nameof(CountText));
 
+    public static readonly DirectProperty<DictionarySelector, bool> NoDictionariesProperty =
+        AvaloniaProperty.RegisterDirect<DictionarySelector, bool>(nameof(NoDictionaries), o => o.NoDictionaries);
+
+    private bool _noDictionaries = true;
     private INotifyCollectionChanged? _watched;
 
     public DictionarySelector() => InitializeComponent();
@@ -52,6 +56,12 @@ public partial class DictionarySelector : UserControl
     {
         get => GetValue(CountTextProperty);
         set => SetValue(CountTextProperty, value);
+    }
+
+    public bool NoDictionaries
+    {
+        get => _noDictionaries;
+        private set => SetAndRaise(NoDictionariesProperty, ref _noDictionaries, value);
     }
 
     /// <summary>What the list shows: the dictionaries, with a heading for each folder.</summary>
@@ -73,6 +83,8 @@ public partial class DictionarySelector : UserControl
     {
         Rows.Clear();
         var sources = (ItemsSource?.OfType<DumpKeySourceViewModel>() ?? []).ToList();
+        // Known card keys and the built-in row before the divider are special sources.
+        NoDictionaries = sources.All(s => s.IsKnownCardKeys || s.SeparatorAfter);
         // Those in no folder (the known and built-in keys first) keep their order; folders follow in tree order.
         var ordered = sources.OrderBy(s => s.Folder.Length == 0 ? 0 : 1).ThenBy(s => s.Folder, FolderPath.TreeOrder);
         var shown = new HashSet<string>();

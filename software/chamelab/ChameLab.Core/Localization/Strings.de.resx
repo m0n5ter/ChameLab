@@ -1719,6 +1719,9 @@
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
     <value>Keine Wörterbücher entsprechen den Filtern.</value>
   </data>
+  <data name="Dictionaries_EmptySelectorHint" xml:space="preserve">
+    <value>Noch keine Wörterbücher. Erstellen Sie eines oder laden Sie ein fertiges herunter.</value>
+  </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Noch keine Wörterbücher</value>
   </data>

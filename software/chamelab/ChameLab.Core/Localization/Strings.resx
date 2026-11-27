@@ -813,6 +813,9 @@
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
     <value>No dictionaries match the filters.</value>
   </data>
+  <data name="Dictionaries_EmptySelectorHint" xml:space="preserve">
+    <value>No dictionaries yet. Create one or download a ready-made dictionary.</value>
+  </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>No dictionaries yet</value>
   </data>

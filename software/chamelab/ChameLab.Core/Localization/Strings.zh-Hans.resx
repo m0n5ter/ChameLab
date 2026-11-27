@@ -1719,6 +1719,9 @@
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
     <value>没有符合筛选条件的字典。</value>
   </data>
+  <data name="Dictionaries_EmptySelectorHint" xml:space="preserve">
+    <value>暂无字典。请新建或下载现成的字典。</value>
+  </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>还没有字典</value>
   </data>

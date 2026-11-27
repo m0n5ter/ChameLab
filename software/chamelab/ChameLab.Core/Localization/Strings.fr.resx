@@ -1719,6 +1719,9 @@
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
     <value>Aucun dictionnaire ne correspond aux filtres.</value>
   </data>
+  <data name="Dictionaries_EmptySelectorHint" xml:space="preserve">
+    <value>Aucun dictionnaire. Créez-en un ou téléchargez un dictionnaire prêt à l’emploi.</value>
+  </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Aucun dictionnaire pour l'instant</value>
   </data>
