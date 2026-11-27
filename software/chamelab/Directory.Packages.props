@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <!-- Keep the whole Avalonia stack on one version. -->
-    <AvaloniaVersion>12.1.6</AvaloniaVersion>
+    <AvaloniaVersion>12.2.0</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="K4os.Compression.LZ4.Streams" Version="1.3.8" />
@@ -19,7 +19,7 @@
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <!-- Reactive stack -->
-    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.7" />
+    <PackageVersion Include="ReactiveUI.Avalonia" Version="12.1.9" />
     <PackageVersion Include="System.Reactive" Version="7.0.0" />
     <!-- Actipro modern theme + controls -->
     <PackageVersion Include="ActiproSoftware.Controls.Avalonia" Version="26.2.0" />

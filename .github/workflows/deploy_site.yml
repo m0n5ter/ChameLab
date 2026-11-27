@@ -40,7 +40,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
       - name: Add the release and AltStore manifests
         # version.json feeds the apps' update checks: reading it from Pages costs no GitHub API
         # rate limit (60 requests/hour per address without a token), which users behind a shared

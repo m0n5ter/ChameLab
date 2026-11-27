@@ -95,7 +95,7 @@ APK устанавливается отдельно от основного пр
 
 ```powershell
 dotnet build software/benchmarks/batch-keys-android -c Debug
-adb install --no-incremental -r software/benchmarks/batch-keys-android/bin/Debug/net10.0-android/android-arm64/io.github.m0n5ter.chamelab.batchbench-Signed.apk
+adb install --no-incremental -r software/benchmarks/batch-keys-android/bin/Debug/net11.0-android/android-arm64/io.github.m0n5ter.chamelab.batchbench-Signed.apk
 adb shell pm grant io.github.m0n5ter.chamelab.batchbench android.permission.BLUETOOTH_SCAN
 adb shell pm grant io.github.m0n5ter.chamelab.batchbench android.permission.BLUETOOTH_CONNECT
 adb shell am start -n io.github.m0n5ter.chamelab.batchbench/crc647f210a30036712c2.MainActivity --es address CE:BA:62:C5:67:98 --ei repetitions 3

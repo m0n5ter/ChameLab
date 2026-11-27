@@ -13,7 +13,7 @@ export MSYS_NO_PATHCONV=1
 docker run --rm \
   -v "$(host_path "$root"):/src:ro" \
   -v "$(host_path "$here/publish"):/out" \
-  mcr.microsoft.com/dotnet/sdk:10.0 bash -euo pipefail -c '
+  mcr.microsoft.com/dotnet/sdk:11.0 bash -euo pipefail -c '
     apt-get update -qq && apt-get install -y -qq clang zlib1g-dev >/dev/null
     mkdir -p /work
     cp /src/Directory.Build.props /src/Directory.Packages.props /work/

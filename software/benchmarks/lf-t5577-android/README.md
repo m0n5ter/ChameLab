@@ -21,7 +21,7 @@ to another modulation for verification.
 
 ```powershell
 dotnet build software/benchmarks/lf-t5577-android -c Debug -p:LfT5577Schedule=C:\path\schedule.json
-adb install --no-incremental -r software/benchmarks/lf-t5577-android/bin/Debug/net10.0-android/android-arm64/io.github.m0n5ter.chamelab.lft5577bench-Signed.apk
+adb install --no-incremental -r software/benchmarks/lf-t5577-android/bin/Debug/net11.0-android/android-arm64/io.github.m0n5ter.chamelab.lft5577bench-Signed.apk
 adb shell pm grant io.github.m0n5ter.chamelab.lft5577bench android.permission.BLUETOOTH_SCAN
 adb shell pm grant io.github.m0n5ter.chamelab.lft5577bench android.permission.BLUETOOTH_CONNECT
 adb shell am start -n io.github.m0n5ter.chamelab.lft5577bench/.MainActivity --es address CE:BA:62:C5:67:98

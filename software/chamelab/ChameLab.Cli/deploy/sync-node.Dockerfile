@@ -6,7 +6,7 @@
 # then keep it running:
 #   docker run -d --restart unless-stopped --network host -v chamelab-sync:/data chamelab-sync-node
 # --network host lets devices on the same network find it over mDNS; without it only the relay is used.
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 ARG TARGETARCH
 WORKDIR /src
 COPY . .
@@ -14,7 +14,7 @@ RUN find . -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} + \
  && rid=linux-x64 && [ "$TARGETARCH" = "arm64" ] && rid=linux-arm64 || true \
  && dotnet publish ChameLab.Cli -c Release -r "$rid" --self-contained -o /out
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled
+FROM mcr.microsoft.com/dotnet/runtime-deps:11.0-noble-chiseled
 COPY --from=build /out /app
 VOLUME /data
 ENTRYPOINT ["/app/chamelab", "sync", "serve", "--data", "/data"]

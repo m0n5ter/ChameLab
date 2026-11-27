@@ -4,7 +4,7 @@
        relays raw bytes between them. Published as a small Native AOT binary for a Linux VPS
        (see deploy/README.md). -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>

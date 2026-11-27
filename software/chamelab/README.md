@@ -1,7 +1,7 @@
 # ChameLab — Avalonia GUI for Chameleon Ultra
 
-A cross-platform desktop + mobile client for the Chameleon Ultra, built with the
-latest **Avalonia 12.1**, **ReactiveUI** (ReactiveUI.Avalonia 12.1.6) and the
+A cross-platform desktop + mobile client for the Chameleon Ultra, built with
+**Avalonia 12.2**, **ReactiveUI** (ReactiveUI.Avalonia 12.1.9) and the
 **Actipro Modern Theme** (26.2). It replaces the older GUI with a single
 responsive UI that adapts from a docked side-navigation on desktop to an overlay
 drawer on phones.
@@ -10,11 +10,11 @@ drawer on phones.
 
 | Project | Target | Notes |
 | --- | --- | --- |
-| `ChameLab` | `net10.0` | Shared core: protocol, transports, view models, views, theme |
-| `ChameLab.Desktop` | `net10.0` | Windows/macOS/Linux. Serial (USB-CDC) + TCP transports |
-| `ChameLab.Android` | `net10.0-android` | Phone/tablet. USB CDC (OTG) + BLE (Nordic UART) + TCP transports |
-| `ChameLab.iOS` | `net10.0-ios` | Phone/tablet (build on macOS). BLE + TCP |
-| `ChameLab.Browser` | `net10.0-browser` | WebAssembly build. Web Serial + Web Bluetooth + TCP |
+| `ChameLab` | `net11.0` | Shared core: protocol, transports, view models, views, theme |
+| `ChameLab.Desktop` | `net11.0` | Windows/macOS/Linux. Serial (USB-CDC) + TCP transports |
+| `ChameLab.Android` | `net11.0-android` | Phone/tablet. USB CDC (OTG) + BLE (Nordic UART) + TCP transports |
+| `ChameLab.iOS` | `net11.0-ios` | Phone/tablet (build on macOS). BLE + TCP |
+| `ChameLab.Browser` | `net11.0-browser` | WebAssembly build. Web Serial + Web Bluetooth + TCP |
 
 Package versions are centralized in [`Directory.Packages.props`](Directory.Packages.props).
 
@@ -150,7 +150,7 @@ comparing performance or investigating build issues.
 
 ```bash
 # Android (needs the matching Android SDK platform installed once)
-dotnet build -t:InstallAndroidDependencies -f net10.0-android ChameLab.Android
+dotnet build -t:InstallAndroidDependencies -f net11.0-android ChameLab.Android
 dotnet build ChameLab.Android -c Debug
 ```
 

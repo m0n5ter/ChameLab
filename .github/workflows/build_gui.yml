@@ -66,7 +66,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
       - name: Verify recovery and scalar/SIMD equivalence
         run: dotnet test software/chamelab/ChameLab.Tests -c Release --filter FullyQualifiedName~Hardnested
 
@@ -88,7 +88,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
       - name: Publish
         run: >
           dotnet publish software/chamelab/ChameLab.Desktop/ChameLab.Desktop.csproj
@@ -125,11 +125,11 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
       - name: Install the WebAssembly workload
         # Links SkiaSharp's native assets into the WASM output. Restored from the project, not
-        # installed by name: when the runner image ships a newer SDK (11) than the target (net10),
-        # the project needs wasm-tools-net10, and plain wasm-tools would be the SDK's own version.
+        # installed by name: when the runner image ships a newer SDK (12) than the target (net11),
+        # the project needs wasm-tools-net11, and plain wasm-tools would be the SDK's own version.
         run: dotnet workload restore software/chamelab/ChameLab.Browser/ChameLab.Browser.csproj
       - name: Publish
         run: >
@@ -166,7 +166,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '11.0.x'
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -199,7 +199,7 @@ jobs:
           # arm for 32-bit systems (common on Android 8 and older devices)
           for rid in android-arm64 android-arm; do
             dotnet publish software/chamelab/ChameLab.Android/ChameLab.Android.csproj \
-              -c Release -f net10.0-android -r "$rid" \
+              -c Release -f net11.0-android -r "$rid" \
               -p:Version=${{ needs.version.outputs.version }} \
               -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }} \
               -p:ApplicationVersion=${{ needs.version.outputs.code }} \
@@ -214,7 +214,7 @@ jobs:
           # One .aab with every ABI; Play splits it per device. Signed with the same key as the
           # APKs (the upload key), so it is not a release asset, only a workflow artifact.
           dotnet publish software/chamelab/ChameLab.Android/ChameLab.Android.csproj \
-            -c Release -f net10.0-android \
+            -c Release -f net11.0-android \
             -p:AndroidPackageFormat=aab \
             -p:Version=${{ needs.version.outputs.version }} \
             -p:ApplicationDisplayVersion=${{ needs.version.outputs.version }} \
@@ -237,12 +237,6 @@ jobs:
     name: Build GUI (iOS, ${{ matrix.rid }})
     runs-on: macos-26
     needs: version
-    # Keep the Apple toolchain and workload set together. Installing the latest
-    # iOS workload can require an Xcode not yet available on hosted runners.
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
-      IOS_DOTNET_VERSION: '10.0.302'
-      IOS_WORKLOAD_VERSION: '10.0.302.0'
     permissions:
       contents: read
     strategy:
@@ -258,14 +252,13 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.IOS_DOTNET_VERSION }}
-      - name: Select the pinned .NET SDK and Xcode
+          dotnet-version: '11.0.x'
+      - name: Check toolchain versions
         run: |
-          dotnet new globaljson --sdk-version "$IOS_DOTNET_VERSION" --roll-forward disable
           dotnet --version
           xcodebuild -version
       - name: Install the iOS workload
-        run: dotnet workload install ios --version "$IOS_WORKLOAD_VERSION"
+        run: dotnet workload restore software/chamelab/ChameLab.iOS/ChameLab.iOS.csproj
       - name: Build the app with the managed hardnested engine
         env:
           VERSION: ${{ needs.version.outputs.version }}
@@ -283,7 +276,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: gui-${{ matrix.rid }}-unsigned
-          path: software/chamelab/ChameLab.iOS/bin/Release/net10.0-ios/${{ matrix.rid }}/*.app
+          path: software/chamelab/ChameLab.iOS/bin/Release/net11.0-ios/${{ matrix.rid }}/*.app
       - name: Package the .ipa for sideloading
         if: matrix.rid == 'ios-arm64'
         # A packaging problem leaves the release without the .ipa instead of holding it up
@@ -292,7 +285,7 @@ jobs:
         # well-formed placeholder that AltStore, SideStore or Sideloadly re-sign with the
         # user's own Apple ID. Nested code is signed first, the app bundle last.
         run: |
-          app=$(echo software/chamelab/ChameLab.iOS/bin/Release/net10.0-ios/ios-arm64/*.app)
+          app=$(echo software/chamelab/ChameLab.iOS/bin/Release/net11.0-ios/ios-arm64/*.app)
           if [[ -d $app/Frameworks ]]; then
             find "$app/Frameworks" \( -name '*.dylib' -o -name '*.framework' \) -prune -print0 |
               xargs -0 -r -n1 codesign --force --sign - --timestamp=none

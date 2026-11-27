@@ -38,7 +38,7 @@ internal static class BenchmarkTools
         var root = Program.Root(); var directory = Path.Combine(root, "software/benchmarks", name);
         RequireSuccess(await Run("dotnet", ["build", directory, "-c", "Release", "--nologo"]));
         var assembly = name == "nested" ? "NestedBench" : "StaticEncryptedBench";
-        var arguments = new List<string> { Path.Combine(directory, $"bin/Release/net10.0/{assembly}.dll"), iterations.ToString(), warmups.ToString() };
+        var arguments = new List<string> { Path.Combine(directory, $"bin/Release/net11.0/{assembly}.dll"), iterations.ToString(), warmups.ToString() };
         if (name == "nested") arguments.AddRange([Path.Combine(root, "software/chamelab/ChameLab.Tests/Reference/crypto_vectors.json"), "C#/1,C#/4,C#/all"]);
         var result = await Run("dotnet", arguments, directory: directory, optimizingJit: true);
         Console.Write(result.Output); RequireSuccess(result);
