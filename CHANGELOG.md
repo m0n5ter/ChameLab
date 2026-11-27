@@ -8,12 +8,20 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
- - ChameLab: the dictionary picker now suggests creating or downloading a dictionary when none are available
- - ChameLab: highlighted the Add card and Add dictionary buttons in the left menu with the accent color
- - ChameLab: MIFARE key search now defaults to batches within one sector, starting from the selected sector, with remaining sectors in random order; startup migrates the old default combination once and preserves custom choices
- - ChameLab: mfkey32 now recovers all distinct reader keys for the same block and key type in nonce collection, the recovery wizard, and CLI instead of stopping at the first key
- - ChameLab: added Gen4 Ultimate (GTU) magic card configuration tool in Tools (read/write 30-byte configuration, permanent lock, UID write preserving manufacturer/lock bytes, memory-backed settings for OTP/NTAG password/PACK/version/signature, and raw block read/write)
+
+## [v1.9.63][2026-11-27] · firmware v2.4.27-cl
+### Summary
+ - ChameLab: **.NET 11 & NativeAOT** — Desktop, CLI, and Relay now compile natively for faster startup and smaller self-contained builds (iOS now requires iOS 15.0+)
+ - ChameLab: **Gen4 Ultimate config & multi-key mfkey32** — experimental GTU magic card configuration in Tools, plus recovering all distinct reader keys per block in mfkey32
+ - ChameLab: **Mobile Console selection & MIFARE UX** — touch text selection handles in Tools → Console, smarter MIFARE key search defaults, and empty-dictionary hints
+
+### Details
+ - ChameLab: migrated all .NET projects, packages, and CI to `.NET 11` (`Avalonia 12.2.0`), enabled NativeAOT (`PublishAot`) for Desktop, CLI (`chamelab`), Tools, and Relay, raised the minimum iOS version to `15.0`, and declared `UIApplicationSceneManifest` for the iOS 27 SDK
+ - ChameLab: added experimental Gen4 Ultimate (GTU) magic card configuration tool in Tools (read/write 30-byte configuration, permanent lock, UID write preserving manufacturer/lock bytes, memory-backed settings for OTP/NTAG password/PACK/version/signature, and raw block read/write; untested on physical Gen4 hardware)
+ - ChameLab: `mfkey32` now recovers all distinct reader keys for the same block and key type in nonce collection, the recovery wizard, and CLI instead of stopping at the first key
  - ChameLab: added mobile touch text selection in Tools → Console (long press a token to select, drag to extend or adjust drop handles, and use the floating Copy / Select all bar without stealing focus or breaking scroll)
+ - ChameLab: the dictionary picker now suggests creating or downloading a dictionary when none are available, and highlighted the Add card and Add dictionary buttons in the left menu with the accent color
+ - ChameLab: MIFARE key search now defaults to batches within one sector, starting from the selected sector, with remaining sectors in random order; startup migrates the old default combination once and preserves custom choices
 
 ## [v1.8.62][2026-11-26] · firmware v2.4.27-cl
 ### Summary
