@@ -9,6 +9,15 @@ Each release (v1.4.35 on) opens with `### Summary`, up to three of its most impo
 
 ## [unreleased][unreleased]
 
+## [v1.9.64][2026-11-27] · firmware v2.4.27-cl
+### Summary
+ - ChameLab: **Single-file Desktop & CLI builds** — NativeAOT builds on Windows, Linux, and macOS now bundle native graphics libraries in one executable with automatic first-run self-extraction (lazy for CLI)
+ - ChameLab: **Fixed NativeAOT language switching** — all translated UI resource assemblies are embedded into the native binary so switching languages works in release builds
+
+### Details
+ - ChameLab: desktop (`ChameLab`) and CLI (`chamelab`) NativeAOT builds on Windows, Linux, and macOS (`osx-arm64`, `osx-x64`) now ship as single executables by compressing native libraries (`av_libglesv2`, `libSkiaSharp`, `libHarfBuzzSharp`, `libAvaloniaNative`) into the binary and extracting them on demand into a hash-versioned local cache (in CLI, only when opening `--plot-capture`), and strip debug symbols from CLI release archives
+ - ChameLab: fixed UI language switching in NativeAOT builds by collecting `ReferenceSatellitePaths` from `ProjectReference` targets (embedding all `ChameLab.Core.resources.dll` translations directly into the native binary)
+
 ## [v1.9.63][2026-11-27] · firmware v2.4.27-cl
 ### Summary
  - ChameLab: **.NET 11 & NativeAOT** — Desktop, CLI, and Relay now compile natively for faster startup and smaller self-contained builds (iOS now requires iOS 15.0+)
