@@ -12,6 +12,7 @@ namespace ChameLab.ViewModels;
 public sealed class MifareKeySearchSettingsViewModel : ReactiveObject
 {
     public const string SettingsKey = "mifareKeySearch";
+    private const string DefaultsMigratedKey = "oneSectorDefaultsMigrated";
     public static MifareKeySearchSettingsViewModel Shared { get; } = new();
     public string Title => Strings.KeySearch_Options.ToUpper(CultureInfo.CurrentUICulture);
     private MifareKeySearchMethod _method;
@@ -21,12 +22,35 @@ public sealed class MifareKeySearchSettingsViewModel : ReactiveObject
     public MifareKeySearchSettingsViewModel()
     {
         var saved = AppSettings.Get(SettingsKey) as JsonObject;
-        T Read<T>(string name, T fallback) where T : struct, Enum =>
-            saved?[name] is JsonValue value && value.TryGetValue<string>(out var text)
+        static T Read<T>(JsonObject? settings, string name, T fallback) where T : struct, Enum =>
+            settings?[name] is JsonValue value && value.TryGetValue<string>(out var text)
             && Enum.TryParse<T>(text, out var parsed) && Enum.IsDefined(parsed) ? parsed : fallback;
-        _method = Read("method", MifareKeySearchMethod.AllSectors);
-        _start = Read("start", MifareKeySearchStart.Beginning);
-        _order = Read("sectorOrder", MifareKeySearchOrder.Sequential);
+        static bool IsMigrated(JsonObject? settings) =>
+            settings?[DefaultsMigratedKey] is JsonValue value && value.TryGetValue<bool>(out var migrated) && migrated;
+
+        if (!IsMigrated(saved))
+        {
+            AppSettings.Update(SettingsKey, node =>
+            {
+                var settings = node as JsonObject ?? new JsonObject();
+                if (IsMigrated(settings)) return settings;
+                if (Read(settings, "method", MifareKeySearchMethod.AllSectors) == MifareKeySearchMethod.AllSectors
+                    && Read(settings, "start", MifareKeySearchStart.Beginning) == MifareKeySearchStart.Beginning
+                    && Read(settings, "sectorOrder", MifareKeySearchOrder.Sequential) == MifareKeySearchOrder.Sequential)
+                {
+                    settings["method"] = MifareKeySearchMethod.OneSector.ToString();
+                    settings["start"] = MifareKeySearchStart.Selected.ToString();
+                    settings["sectorOrder"] = MifareKeySearchOrder.Random.ToString();
+                }
+                settings[DefaultsMigratedKey] = true;
+                return settings;
+            });
+            saved = AppSettings.Get(SettingsKey) as JsonObject;
+        }
+
+        _method = Read(saved, "method", MifareKeySearchMethod.OneSector);
+        _start = Read(saved, "start", MifareKeySearchStart.Selected);
+        _order = Read(saved, "sectorOrder", MifareKeySearchOrder.Random);
     }
 
     private void Save(string name, string value)

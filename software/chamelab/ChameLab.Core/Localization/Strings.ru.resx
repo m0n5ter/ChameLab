@@ -810,6 +810,9 @@
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
     <value>Нет словарей, соответствующих фильтрам.</value>
   </data>
+  <data name="Dictionaries_EmptySelectorHint" xml:space="preserve">
+    <value>Нет словарей. Создайте новый или скачайте готовый.</value>
+  </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>Словарей пока нет</value>
   </data>

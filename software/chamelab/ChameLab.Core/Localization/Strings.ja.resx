@@ -1719,6 +1719,9 @@
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
     <value>フィルターに一致する辞書はありません。</value>
   </data>
+  <data name="Dictionaries_EmptySelectorHint" xml:space="preserve">
+    <value>辞書がありません。新しく作成するか、既存の辞書をダウンロードしてください。</value>
+  </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>辞書はまだありません</value>
   </data>

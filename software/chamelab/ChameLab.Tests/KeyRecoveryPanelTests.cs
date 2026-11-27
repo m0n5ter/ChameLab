@@ -40,7 +40,10 @@ public class KeyRecoveryPanelTests
         try
         {
             AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, null);
-            var settings = new MifareKeySearchSettingsViewModel { OneSector = true, FromSelected = true, Random = true };
+            var settings = new MifareKeySearchSettingsViewModel { AllSectors = true, FromBeginning = true, Sequential = true };
+            settings.OneSector = true;
+            settings.FromSelected = true;
+            settings.Random = true;
             settings.OneSector = false; // Radio unchecking must not reset a selection.
             var reloaded = new MifareKeySearchSettingsViewModel();
             Assert.Equal(new MifareKeySearchOptions(MifareKeySearchMethod.OneSector,
@@ -57,6 +60,51 @@ public class KeyRecoveryPanelTests
     }
 
     [Fact]
+    public void KeySearchOldDefaultsMigrateOnlyOnce()
+    {
+        var original = AppSettings.Get(MifareKeySearchSettingsViewModel.SettingsKey);
+        try
+        {
+            AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey,
+                System.Text.Json.Nodes.JsonNode.Parse("{\"method\":\"AllSectors\",\"start\":\"Beginning\",\"sectorOrder\":\"Sequential\"}"));
+            var settings = new MifareKeySearchSettingsViewModel();
+            Assert.Equal(new MifareKeySearchOptions(MifareKeySearchMethod.OneSector,
+                MifareKeySearchStart.Selected, MifareKeySearchOrder.Random, 7), settings.CreateOptions(7));
+            var saved = System.Text.Json.Nodes.JsonNode.Parse(AppServices.Store.Read("settings")!)!;
+            Assert.True(saved[MifareKeySearchSettingsViewModel.SettingsKey]!["oneSectorDefaultsMigrated"]!.GetValue<bool>());
+
+            settings.AllSectors = true;
+            settings.FromBeginning = true;
+            settings.Sequential = true;
+            Assert.Equal(new MifareKeySearchOptions(), new MifareKeySearchSettingsViewModel().CreateOptions(0));
+        }
+        finally { AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, original); }
+    }
+
+    [Theory]
+    [InlineData(MifareKeySearchMethod.SingleKey, MifareKeySearchStart.Beginning, MifareKeySearchOrder.Sequential)]
+    [InlineData(MifareKeySearchMethod.OneSector, MifareKeySearchStart.Beginning, MifareKeySearchOrder.Sequential)]
+    [InlineData(MifareKeySearchMethod.AllSectors, MifareKeySearchStart.Selected, MifareKeySearchOrder.Sequential)]
+    [InlineData(MifareKeySearchMethod.AllSectors, MifareKeySearchStart.Beginning, MifareKeySearchOrder.Random)]
+    public void KeySearchMigrationPreservesCustomChoices(MifareKeySearchMethod method,
+        MifareKeySearchStart start, MifareKeySearchOrder order)
+    {
+        var original = AppSettings.Get(MifareKeySearchSettingsViewModel.SettingsKey);
+        try
+        {
+            AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, new System.Text.Json.Nodes.JsonObject
+            {
+                ["method"] = method.ToString(), ["start"] = start.ToString(), ["sectorOrder"] = order.ToString(),
+            });
+            var expected = new MifareKeySearchOptions(method, start, order, 7);
+            Assert.Equal(expected, new MifareKeySearchSettingsViewModel().CreateOptions(7));
+            Assert.True(AppSettings.Get(MifareKeySearchSettingsViewModel.SettingsKey)!["oneSectorDefaultsMigrated"]!.GetValue<bool>());
+            Assert.Equal(expected, new MifareKeySearchSettingsViewModel().CreateOptions(7));
+        }
+        finally { AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, original); }
+    }
+
+    [Fact]
     public void KeySearchPreferencesRecoverDefaultsFromInvalidSavedValues()
     {
         var original = AppSettings.Get(MifareKeySearchSettingsViewModel.SettingsKey);
@@ -64,7 +112,9 @@ public class KeyRecoveryPanelTests
         {
             AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey,
                 System.Text.Json.Nodes.JsonNode.Parse("{\"method\":\"99\",\"start\":true,\"sectorOrder\":\"invalid\"}"));
-            Assert.Equal(new MifareKeySearchOptions(), new MifareKeySearchSettingsViewModel().CreateOptions(0));
+            Assert.Equal(new MifareKeySearchOptions(MifareKeySearchMethod.OneSector,
+                MifareKeySearchStart.Selected, MifareKeySearchOrder.Random),
+                new MifareKeySearchSettingsViewModel().CreateOptions(0));
         }
         finally { AppSettings.Set(MifareKeySearchSettingsViewModel.SettingsKey, original); }
     }

@@ -1719,6 +1719,9 @@
   <data name="Dictionaries_NoDictionariesMatchTheSearch" xml:space="preserve">
     <value>필터와 일치하는 사전이 없습니다.</value>
   </data>
+  <data name="Dictionaries_EmptySelectorHint" xml:space="preserve">
+    <value>사전이 없습니다. 새로 만들거나 기존 사전을 다운로드하세요.</value>
+  </data>
   <data name="Dictionaries_NoDictionariesYet" xml:space="preserve">
     <value>아직 사전이 없습니다</value>
   </data>

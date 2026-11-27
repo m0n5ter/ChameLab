@@ -62,6 +62,8 @@
         </ItemsControl.DataTemplates>
       </ItemsControl>
     </ScrollViewer>
+    <TextBlock Text="{x:Static loc:Strings.Dictionaries_EmptySelectorHint}" Classes="caption"
+               TextWrapping="Wrap" IsVisible="{Binding #Root.NoDictionaries}" />
     <Separator Margin="0,2" />
     <TextBlock Text="{Binding #Root.CountText}" FontWeight="SemiBold" />
   </StackPanel>

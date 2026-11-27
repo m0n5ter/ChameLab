@@ -29,6 +29,8 @@ public partial class App : Application
 
     public override void Initialize()
     {
+        // Migrate saved key search defaults once, before any recovery panel reads them.
+        _ = MifareKeySearchSettingsViewModel.Shared;
         // Before any XAML loads, so every view reads its strings in the chosen language.
         LocalizationService.ApplySaved();
         AvaloniaXamlLoader.Load(this);
