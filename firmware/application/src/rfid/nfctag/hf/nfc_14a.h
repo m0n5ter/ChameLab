@@ -92,8 +92,8 @@ typedef void (*nfc_tag_14a_sniff_cb_t)(const uint8_t *data, uint16_t szBits);
 void nfc_tag_14a_set_sniff_cb(nfc_tag_14a_sniff_cb_t cb);
 void nfc_tag_14a_clear_sniff_cb(void);
 
-/* TX sniff callback — fires at TX_FRAMESTART with the frame the tag is about
- * to send (card→reader direction).  Same signature as the RX sniff callback.
+/* TX sniff callback — fires at TX_FRAMEEND with the completed frame, including
+ * bytes composed during streaming TX. Same signature as the RX sniff callback.
  * Install alongside nfc_tag_14a_set_sniff_cb() to capture both directions. */
 typedef void (*nfc_tag_14a_tx_sniff_cb_t)(const uint8_t *data, uint16_t szBits);
 
@@ -106,6 +106,13 @@ typedef void (*nfc_tag_14a_timed_sniff_cb_t)(const uint8_t *data, uint16_t szBit
                                            bool is_tx, uint32_t start, uint32_t duration);
 bool nfc_tag_14a_start_timed_sniff(nfc_tag_14a_timed_sniff_cb_t cb);
 void nfc_tag_14a_stop_timed_sniff(void);
+
+/* RX streaming decrypt callback — fires during RX airtime.
+ * Runs in ISR context — keep short. */
+typedef void (*nfc_tag_14a_rx_stream_cb_t)(const uint8_t *data, uint16_t ready_bits, bool is_final);
+
+void nfc_tag_14a_set_rx_stream_cb(nfc_tag_14a_rx_stream_cb_t cb);
+void nfc_tag_14a_clear_rx_stream_cb(void);
 
 /* Passive sniff mode: when true, suppresses all CU anticollision responses
  * (ATQA, UID, SAK) so the CU does not collide with real cards in the field.
@@ -137,10 +144,16 @@ uint16_t nfc_tag_14a_unwrap_frame(const uint8_t *pbtFrame, const size_t szFrameB
 void nfc_tag_14a_sense_switch(bool enable);
 void nfc_tag_14a_set_handler(nfc_tag_14a_handler_t *handler);
 void nfc_tag_14a_set_state(nfc_tag_14a_state_t state);
+nfc_tag_14a_state_t nfc_tag_14a_get_state(void);
 void nfc_tag_14a_tx_bytes(uint8_t *data, uint32_t bytes, bool appendCrc);
 void nfc_tag_14a_tx_bits(uint8_t *data, uint32_t bits);
 void nfc_tag_14a_tx_nbit(uint8_t data, uint32_t bits);
 void nfc_tag_14a_set_frame_delay_max(uint32_t max_ticks);
+
+// Direct access to the peripheral tx buffer
+uint8_t *nfc_tag_14a_tx_buffer();
+// Start TX of bits from the buffer returned by nfc_tag_14a_tx_buffer()
+void nfc_tag_14a_tx_bits_direct(uint32_t bits);
 
 // Determine whether it is an effective UID length
 bool is_valid_uid_size(uint8_t uid_length);

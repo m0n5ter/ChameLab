@@ -8,6 +8,7 @@ The firmware has its own version in `firmware/VERSION` (v2.3.2-cl on), bumped on
 Each release (v1.4.35 on) opens with `### Summary`, up to three of its most important changes, followed by `### Details`, the full list. The release announcements in Telegram and Discord and the download page show the summary with a link to this file.
 
 ## [unreleased][unreleased]
+ - Firmware: ported unkernet's faster MIFARE Classic emulation (32-bit Crypto1 state, RAM lookup tables, streaming RX decryption and TX encryption/CRC/parity); reserved TIMER1 for RX streaming so hardware-timed HF Sniff keeps TIMER3
  - ChameLab: mfkey32 now recovers all distinct reader keys for the same block and key type in nonce collection, the recovery wizard, and CLI instead of stopping at the first key
  - ChameLab: added Gen4 Ultimate (GTU) magic card configuration tool in Tools (read/write 30-byte configuration, permanent lock, UID write preserving manufacturer/lock bytes, memory-backed settings for OTP/NTAG password/PACK/version/signature, and raw block read/write)
  - ChameLab: added mobile touch text selection in Tools → Console (long press a token to select, drag to extend or adjust drop handles, and use the floating Copy / Select all bar without stealing focus or breaking scroll)

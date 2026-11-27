@@ -52,3 +52,11 @@ void calc_14a_crc_lut(uint8_t *data, int length, uint8_t *output) {
     //Then start checking the table of each byte
     while (length--) *crc = (*crc >> 8) ^ crc_table[(*crc & 0xFF) ^ *data++];
 }
+
+uint16_t crc_14a_init(void) {
+    return 0x6363;
+}
+
+uint16_t crc_14a_update(uint16_t crc, uint8_t data) {
+    return (crc >> 8) ^ crc_table[(crc & 0xFF) ^ data];
+}

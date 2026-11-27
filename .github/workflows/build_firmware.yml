@@ -44,6 +44,8 @@ jobs:
           "$RUNNER_TEMP/test-lf-cycle-record"
       - name: Test LF acquisition, T5577 and EM4305 writes
         run: python3 firmware/tests/test_lf_em410x_read.py
+      - name: Test Crypto1 streaming encryption, parity and CRC
+        run: make -C firmware/tests/crypto1 run
       - name: Test USB and Bluetooth ownership
         run: |
           cc -std=c99 -Wall -Wextra -Werror \

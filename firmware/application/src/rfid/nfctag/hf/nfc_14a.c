@@ -94,7 +94,8 @@ void nfc_tag_14a_clear_sniff_cb(void) {
 /* TX sniff: captures card→reader frames at TX_FRAMESTART */
 static nfc_tag_14a_tx_sniff_cb_t m_tx_sniff_cb = NULL;
 
-/* TIMER3 is free; TIMER4 belongs to the NFCT driver's field workarounds.
+/* TIMER3 belongs to timed sniffing; TIMER1 is reserved for MF1 RX streaming.
+ * TIMER4 belongs to the NFCT driver's field workarounds.
  * PPI captures the actual NFCT events, independent
  * of interrupt latency or the time spent answering a reader. At 16 MHz the
  * 32-bit counter covers the full 30-second capture without wrapping. */
@@ -174,6 +175,109 @@ void nfc_tag_14a_set_tx_sniff_cb(nfc_tag_14a_tx_sniff_cb_t cb) {
 
 void nfc_tag_14a_clear_tx_sniff_cb(void) {
     m_tx_sniff_cb = NULL;
+}
+
+// RX streaming decrypt callback
+static nfc_tag_14a_rx_stream_cb_t m_rx_stream_cb = NULL;
+/* TIMER1, PPI-armed off NFCT_EVENTS_RXFRAMESTART.
+ * TIMER3 remains available to hardware-timed sniffing.
+ * Stopped/reset in NRFX_NFCT_EVT_RX_FRAMEEND */
+#define NFC_RX_STREAM_TICK_US    95u  // 10 bits x 9.44us/bit
+static const nrfx_timer_t m_rx_stream_timer = NRFX_TIMER_INSTANCE(1);
+static nrf_ppi_channel_t m_rx_stream_ppi_channel;      // RXFRAMESTART -> CLEAR+START
+static nrf_ppi_channel_t m_rx_stream_ppi_stop_channel; // RXFRAMEEND   -> SHUTDOWN
+static bool              m_rx_stream_timer_initted = false;
+static bool              m_rx_stream_ppi_initted = false;
+static volatile uint16_t m_rx_stream_ticks = 0;
+
+static void nfc_tag_14a_rx_stream_timer_handler(nrf_timer_event_t event_type, void *p_ctx) {
+    (void)p_ctx;
+    if (event_type != NRF_TIMER_EVENT_COMPARE0) {
+        return;
+    }
+    m_rx_stream_ticks++;
+    if (m_rx_stream_cb != NULL) {
+        uint32_t ready_bits = (uint32_t)m_rx_stream_ticks * 8;
+        if (ready_bits > MAX_NFC_RX_BUFFER_SIZE * 8) ready_bits = MAX_NFC_RX_BUFFER_SIZE * 8;
+        m_rx_stream_cb(m_nfc_rx_buffer, ready_bits, false);
+    }
+}
+
+/* Lazily init the TIMER + PPI channel. Called only when a consumer
+ * registers the streaming cb, so non-MF1 tag types never pay for this. */
+static void nfc_tag_14a_rx_stream_arm(void) {
+    if (!m_rx_stream_timer_initted) {
+        nrfx_timer_config_t cfg = NRFX_TIMER_DEFAULT_CONFIG;
+        cfg.frequency = NRF_TIMER_FREQ_1MHz;
+        cfg.mode = NRF_TIMER_MODE_TIMER;
+        cfg.bit_width = NRF_TIMER_BIT_WIDTH_16;
+        if (nrfx_timer_init(&m_rx_stream_timer, &cfg, nfc_tag_14a_rx_stream_timer_handler) == NRFX_SUCCESS) {
+            nrfx_timer_extended_compare(&m_rx_stream_timer, NRF_TIMER_CC_CHANNEL0,
+                                         nrfx_timer_us_to_ticks(&m_rx_stream_timer, NFC_RX_STREAM_TICK_US),
+                                         NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
+            m_rx_stream_timer_initted = true;
+        }
+    }
+    if (m_rx_stream_timer_initted && !m_rx_stream_ppi_initted) {
+        if (nrfx_ppi_channel_alloc(&m_rx_stream_ppi_channel) != NRFX_SUCCESS) return;
+        if (nrfx_ppi_channel_alloc(&m_rx_stream_ppi_stop_channel) != NRFX_SUCCESS) {
+            nrfx_ppi_channel_free(m_rx_stream_ppi_channel);
+            return;
+        }
+        if (nrfx_ppi_channel_assign(m_rx_stream_ppi_channel,
+                                     nrf_nfct_event_address_get(NRF_NFCT_EVENT_RXFRAMESTART),
+                                     nrfx_timer_task_address_get(&m_rx_stream_timer, NRF_TIMER_TASK_CLEAR)) != NRFX_SUCCESS ||
+            nrfx_ppi_channel_fork_assign(m_rx_stream_ppi_channel,
+                                          nrfx_timer_task_address_get(&m_rx_stream_timer, NRF_TIMER_TASK_START)) != NRFX_SUCCESS ||
+            nrfx_ppi_channel_assign(m_rx_stream_ppi_stop_channel,
+                                     nrf_nfct_event_address_get(NRF_NFCT_EVENT_RXFRAMEEND),
+                                     nrfx_timer_task_address_get(&m_rx_stream_timer, NRF_TIMER_TASK_SHUTDOWN)) != NRFX_SUCCESS) {
+            nrfx_ppi_channel_free(m_rx_stream_ppi_channel);
+            nrfx_ppi_channel_free(m_rx_stream_ppi_stop_channel);
+            return;
+        }
+        m_rx_stream_ppi_initted = true;
+    }
+    if (m_rx_stream_ppi_initted) {
+        nrfx_ppi_channel_enable(m_rx_stream_ppi_channel);
+        nrfx_ppi_channel_enable(m_rx_stream_ppi_stop_channel);
+    }
+}
+
+static void nfc_tag_14a_rx_stream_disarm(void) {
+    if (m_rx_stream_ppi_initted) {
+        nrfx_ppi_channel_disable(m_rx_stream_ppi_channel);
+        nrfx_ppi_channel_disable(m_rx_stream_ppi_stop_channel);
+    }
+    if (m_rx_stream_timer_initted) {
+        nrfx_timer_disable(&m_rx_stream_timer);
+        nrf_timer_event_clear(m_rx_stream_timer.p_reg, NRF_TIMER_EVENT_COMPARE0);
+    }
+    m_rx_stream_ticks = 0;
+}
+
+void nfc_tag_14a_set_rx_stream_cb(nfc_tag_14a_rx_stream_cb_t cb) {
+    m_rx_stream_cb = cb;
+    if (cb != NULL) nfc_tag_14a_rx_stream_arm();
+    else nfc_tag_14a_rx_stream_disarm();
+}
+
+void nfc_tag_14a_clear_rx_stream_cb(void) {
+    m_rx_stream_cb = NULL;
+    nfc_tag_14a_rx_stream_disarm();
+}
+
+static void nfc_tag_14a_rx_stream_release(void) {
+    nfc_tag_14a_clear_rx_stream_cb();
+    if (m_rx_stream_ppi_initted) {
+        nrfx_ppi_channel_free(m_rx_stream_ppi_channel);
+        nrfx_ppi_channel_free(m_rx_stream_ppi_stop_channel);
+        m_rx_stream_ppi_initted = false;
+    }
+    if (m_rx_stream_timer_initted) {
+        nrfx_timer_uninit(&m_rx_stream_timer);
+        m_rx_stream_timer_initted = false;
+    }
 }
 
 /* Passive sniff mode: suppress all tag TX responses so the CU does not
@@ -312,49 +416,39 @@ uint8_t nfc_tag_14a_wrap_frame(const uint8_t *pbtTx, const size_t szTxBits, cons
  * (e.g. an ISO14443-4 APDU of 32+ bytes: a 44-byte frame -> 352 data bits
  * -> 352 & 0xFF = 96 bits = 12 bytes reached the caller). */
 uint16_t nfc_tag_14a_unwrap_frame(const uint8_t *pbtFrame, const size_t szFrameBits, uint8_t *pbtRx, uint8_t *pbtRxPar) {
-    uint8_t btFrame;
-    uint8_t btData;
-    uint8_t uiBitPos;
-    uint32_t uiDataPos = 0;
-    uint8_t *pbtFramePos = (uint8_t *)pbtFrame;
-    size_t szBitsLeft = szFrameBits;
-    size_t szRxBits = 0;
-
     // Make sure we should frame at least something
-    if (szBitsLeft == 0)
+    if (szFrameBits == 0)
         return 0;
 
     // Handle a short response (1byte) as a special case
-    if (szBitsLeft < 9) {
+    if (szFrameBits < 9) {
         *pbtRx = *pbtFrame;
-        szRxBits = szFrameBits;
-        return szRxBits;
+        return (uint16_t)szFrameBits;
     }
 
     // Calculate the data length in bits
-    szRxBits = szFrameBits - (szFrameBits / 9);
+    size_t szRxBits = szFrameBits - (szFrameBits / 9);
+    uint32_t byteCount = (uint32_t)((szRxBits + 7) / 8);
 
     // Parse the frame bytes, remove the parity bits and store them in the parity array
     // This process is the reverse of WrapFrame(), look there for more info
-    while (1) {
-        for (uiBitPos = 0; uiBitPos < 8; uiBitPos++) {
-            btFrame = byte_mirror[pbtFramePos[uiDataPos]];
-            btData = (btFrame << uiBitPos);
-            btFrame = byte_mirror[pbtFramePos[uiDataPos + 1]];
-            btData |= (btFrame >> (8 - uiBitPos));
-            pbtRx[uiDataPos] = byte_mirror[btData];
-            if (pbtRxPar != NULL)
-                pbtRxPar[uiDataPos] = ((btFrame >> (7 - uiBitPos)) & 0x01);
-            // Increase the data (without parity bit) position
-            uiDataPos++;
-            // Test if we are done
-            if (szBitsLeft < 9)
-                return szRxBits;
-            szBitsLeft -= 9;
-        }
+    const uint8_t *pbtFramePos = pbtFrame;
+    for (uint32_t uiDataPos = 0; uiDataPos < byteCount; uiDataPos++) {
+        uint8_t uiBitPos = (uint8_t)(uiDataPos & 7);
+        uint8_t btFrame = byte_mirror[pbtFramePos[uiDataPos]];
+        uint8_t btData = (btFrame << uiBitPos);
+        size_t nextFrameByte = uiDataPos + uiDataPos / 8 + 1;
+        btFrame = nextFrameByte * 8 < szFrameBits
+            ? byte_mirror[pbtFramePos[uiDataPos + 1]] : 0;
+        btData |= (btFrame >> (8 - uiBitPos));
+        pbtRx[uiDataPos] = byte_mirror[btData];
+        if (pbtRxPar != NULL)
+            pbtRxPar[uiDataPos] = (btFrame >> (7 - uiBitPos)) & 0x01;
         // Every 8 data bytes we lose one frame byte to the parities
-        pbtFramePos++;
+        if (uiBitPos == 7)
+            pbtFramePos++;
     }
+    return (uint16_t)szRxBits;
 }
 
 /**
@@ -412,15 +506,26 @@ void nfc_tag_14a_tx_bytes(uint8_t *data, uint32_t bytes, bool appendCrc) {
         NRF_NFCT->TASKS_STARTTX = 1;                                                            \
     } while(0);                                                                                 \
 
+// No-memcpy TX: caller has already populated m_nfc_tx_buffer.
+// Used by the streaming encryption path, continue writes after TASKS_STARTTX
+void nfc_tag_14a_tx_bits_direct(uint32_t bits) {
+    m_is_responded = true;
+    NFC_14A_TX_BITS_CORE(bits, NRF_NFCT_FRAME_DELAY_MODE_WINDOWGRID);
+}
+
+// Expose the peripheral tx buffer for in-place frame composition.
+uint8_t *nfc_tag_14a_tx_buffer() {
+    return m_nfc_tx_buffer;
+}
+
 /**@brief The function of sending the BIT stream, this implementation automatically sends SOF
  *
  * @param[in]   data   BIT stream data to be sent
  * @param[in]   bits   The length of the bit stream to be sent
  */
 void nfc_tag_14a_tx_bits(uint8_t *data, uint32_t bits) {
-    m_is_responded = true;
     memcpy(m_nfc_tx_buffer, data, (bits / 8) + (bits % 8 > 0 ? 1 : 0));
-    NFC_14A_TX_BITS_CORE(bits, NRF_NFCT_FRAME_DELAY_MODE_WINDOWGRID);
+    nfc_tag_14a_tx_bits_direct(bits);
 }
 
 /**@brief The function of sending n bits is implemented, and this implementation is automatically sent SOF
@@ -483,6 +588,7 @@ void nfc_tag_14a_data_process(uint8_t *p_data) {
         if ((szDataBits == 7) && ((isREQA && m_tag_state_14a != NFC_TAG_STATE_14A_HALTED) || isWUPA)) {
             // Received 7-bit command (REQA or WUPA) while the tag is active — reset state machine
             if (m_tag_state_14a != NFC_TAG_STATE_14A_IDLE && m_tag_state_14a != NFC_TAG_STATE_14A_HALTED) {
+                nfc_tag_14a_clear_rx_stream_cb();
                 m_tag_state_14a = NFC_TAG_STATE_14A_IDLE;
                 return;
             }
@@ -784,6 +890,7 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
             break;
         }
         case NRFX_NFCT_EVT_FIELD_LOST: {
+            nfc_tag_14a_clear_rx_stream_cb();
             g_is_tag_emulating = false;
             // call sleep_timer_start *after* unsetting g_is_tag_emulating
             sleep_timer_start(settings_get_sleep_timeout());
@@ -805,18 +912,19 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
         }
         case NRFX_NFCT_EVT_TX_FRAMESTART: {
             // NRF_LOG_INFO("TX start.\n");
+            break;
+        }
+        case NRFX_NFCT_EVT_TX_FRAMEEND: {
+            // NRF_LOG_INFO("TX end.\n");
+
             if (m_tx_sniff_cb != NULL) {
-                uint32_t amt  = NRF_NFCT->TXD.AMOUNT;
+                uint32_t amt = NRF_NFCT->TXD.AMOUNT & (NFCT_TXD_AMOUNT_TXDATABYTES_Msk | NFCT_TXD_AMOUNT_TXDATABITS_Msk);
                 uint16_t tx_bytes = (amt >> NFCT_TXD_AMOUNT_TXDATABYTES_Pos)
                                     & (NFCT_TXD_AMOUNT_TXDATABYTES_Msk >> NFCT_TXD_AMOUNT_TXDATABYTES_Pos);
                 if (amt > 0 && tx_bytes <= MAX_NFC_TX_BUFFER_SIZE) {
                     m_tx_sniff_cb(m_nfc_tx_buffer, amt);
                 }
             }
-            break;
-        }
-        case NRFX_NFCT_EVT_TX_FRAMEEND: {
-            // NRF_LOG_INFO("TX end.\n");
             m_is_responded = false;
             uint32_t bits = NRF_NFCT->TXD.AMOUNT;
             if (bits > 0 && bits <= MAX_NFC_TX_BUFFER_SIZE * 8) {
@@ -835,6 +943,17 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
             //   Otherwise, the nrfx_nfct_evt_tx_frameend conditions above will not be triggered, and nrfx_nfct_rx_bytes will not be called
             // All the next communication will have problems. How can I play if there is a problem? Play an egg.
             m_is_responded = false;
+            // Stop the streaming TIMER and fire the final raw-bit callback
+            if (m_rx_stream_cb != NULL) {
+                if (m_rx_stream_timer_initted) {
+                    nrfx_timer_disable(&m_rx_stream_timer);
+                    nrf_timer_event_clear(m_rx_stream_timer.p_reg, NRF_TIMER_EVENT_COMPARE0);
+                }
+                m_rx_stream_ticks = 0;
+                uint16_t final_raw_bits = (uint16_t)(NRF_NFCT->RXD.AMOUNT &
+                                           (NFCT_RXD_AMOUNT_RXDATABITS_Msk | NFCT_RXD_AMOUNT_RXDATABYTES_Msk));
+                m_rx_stream_cb(m_nfc_rx_buffer, final_raw_bits, true);
+            }
             // One more layer of pressure stack, but it seems to have little effect on performance
             // This function processes the data sent by the card reader, and then read that you don't need to reply to the card reader. If you need it, reply
             // Don't reply if you don't need it, it makes sense, right?This is science.
@@ -878,6 +997,9 @@ void nfc_tag_14a_event_callback(nrfx_nfct_evt_t const *p_event) {
 void nfc_tag_14a_set_state(nfc_tag_14a_state_t state) {
     m_tag_state_14a = state;
 }
+nfc_tag_14a_state_t nfc_tag_14a_get_state(void) {
+    return m_tag_state_14a;
+}
 
 /**
  * 14A processor registration function
@@ -885,6 +1007,7 @@ void nfc_tag_14a_set_state(nfc_tag_14a_state_t state) {
  */
 void nfc_tag_14a_set_handler(nfc_tag_14a_handler_t *handler) {
     if (handler != NULL) {
+        nfc_tag_14a_rx_stream_release();
         // Take it directly to the implementation of the introduction to our global object
         m_tag_handler.cb_reset = handler->cb_reset;
         m_tag_handler.cb_state = handler->cb_state;
@@ -920,6 +1043,7 @@ void nfc_tag_14a_sense_switch(bool enable) {
             //Directly anti -initialization NFC peripherals can turn off NFC field induction
             // SDK inside us to call us nrfx_nfct_disable
             nrfx_nfct_uninit();
+            nfc_tag_14a_rx_stream_release();
             m_is_responded = false;
             nfc_14a_hfclk_release();
         }

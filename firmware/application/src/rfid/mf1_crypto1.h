@@ -21,13 +21,9 @@ void Crypto1Auth(uint8_t EncryptedReaderNonce[4]);
 
 /* Encrypt/Decrypt array */
 void Crypto1ByteArray(uint8_t *Buffer, uint8_t Count);
-void Crypto1ByteArrayWithParity(uint8_t *Buffer, uint8_t *Parity, uint8_t Count);
-void Crypto1ByteArrayWithParityHasIn(uint8_t *Buffer, uint8_t *Parity, uint8_t Count);
 
 /* Generate 4 Bits of key stream */
 uint8_t Crypto1Nibble(void);
-/* Generate 8 Bits of key stream */
-uint8_t Crypto1Byte(void);
 
 /* Execute 'ClockCount' cycles on the PRNG state 'State' */
 void Crypto1PRNG(uint8_t State[4], uint8_t ClockCount);
@@ -38,5 +34,10 @@ void Crypto1EncryptWithParity(uint8_t *Buffer, uint8_t BitCount);
 
 /* Encrypts buffer with LFSR feedback within reader nonce and considers parity bits */
 void Crypto1ReaderAuthWithParity(uint8_t PlainReaderAnswerWithParityBits[9]);
+
+/* Fused encrypt + parity + wire-frame packer. */
+typedef void (*Crypto1StreamCb)(uint32_t bits);
+uint16_t Crypto1EncryptToFrame(uint8_t *Frame, uint8_t *Src, uint8_t Count, uint8_t CrcLen,
+                                       uint8_t TriggerBytes, Crypto1StreamCb Cb);
 
 #endif //CRYPTO1_H

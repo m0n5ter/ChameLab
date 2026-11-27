@@ -4,9 +4,15 @@
 #include "nfc_14a.h"
 #include "netdata.h"
 
-// Exchange space for time.
 // Fast simulate enable(Implement By ChameleonMini Repo)
-// #define NFC_MF1_FAST_SIM
+#define NFC_MF1_FAST_SIM
+// RX-streaming decrypt: overlap crypto1 work with RX airtime
+// Requires NFC_MF1_FAST_SIM
+#define NFC_MF1_FAST_RX
+// TX-streaming encrypt: overlap crypto1 work with TX airtime
+// Sets amount of encoded bytes need to be ready before call TASKS_STARTTX, 2 is enought
+// Requires NFC_MF1_FAST_SIM
+#define NFC_MF1_FAST_TX   2
 
 #define NFC_TAG_MF1_DATA_SIZE   16
 #define NFC_TAG_MF1_FRAME_SIZE  (NFC_TAG_MF1_DATA_SIZE + NFC_TAG_14A_CRC_LENGTH)
