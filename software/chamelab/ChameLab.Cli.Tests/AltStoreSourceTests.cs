@@ -33,7 +33,7 @@ public class AltStoreSourceTests
             Path.Combine(root, "software/chamelab/ChameLab.iOS/Entitlements.plist"));
 
         Assert.Equal("io.github.m0n5ter.chamelab", meta.BundleIdentifier);
-        Assert.Equal("13.0", meta.MinimumOsVersion);
+        Assert.Equal("15.0", meta.MinimumOsVersion);
         Assert.Empty(meta.Entitlements);
         Assert.Contains("NSBluetoothAlwaysUsageDescription", meta.Privacy.Keys);
         Assert.Contains("NSCameraUsageDescription", meta.Privacy.Keys);

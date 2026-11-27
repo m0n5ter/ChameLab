@@ -333,7 +333,7 @@ internal static partial class AltStoreSourceGenerator
         var bundleId = infoDict.TryGetValue("CFBundleIdentifier", out var id)
             ? id
             : throw new InvalidDataException("Info.plist is missing CFBundleIdentifier.");
-        var minOs = infoDict.TryGetValue("MinimumOSVersion", out var min) ? min : "13.0";
+        var minOs = infoDict.TryGetValue("MinimumOSVersion", out var min) ? min : "15.0";
 
         var privacy = infoDict
             .Where(kv => kv.Key.StartsWith("NS", StringComparison.Ordinal) && kv.Key.EndsWith("UsageDescription", StringComparison.Ordinal))
