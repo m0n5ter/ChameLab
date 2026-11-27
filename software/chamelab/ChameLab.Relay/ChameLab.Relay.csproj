@@ -12,6 +12,7 @@
     <!-- AOT analyzers on every build; the native compile itself happens only when publishing on
          Linux (build.sh passes PublishAot=true), so ordinary builds don't pull the ILCompiler. -->
     <IsAotCompatible>true</IsAotCompatible>
+    <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
     <!-- A handful of connections: the workstation GC keeps the footprint small. -->

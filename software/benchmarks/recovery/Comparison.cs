@@ -49,7 +49,7 @@ internal static class Comparison
             var sameAsGui = results["optimized"]["uniqueFingerprint"]!.GetValue<string>() == results["gui"]["uniqueFingerprint"]!.GetValue<string>() &&
                 results["optimized"]["uniqueCandidates"]!.GetValue<int>() == results["gui"]["uniqueCandidates"]!.GetValue<int>();
             if (!sameAsGui && !cases[c].StartsWith("nested-")) throw new InvalidDataException("GUI candidate set differs: " + cases[c]);
-            rows.Add(new JsonObject { ["case"] = cases[c], ["sameUniqueSetAsGui"] = sameAsGui,
+            rows.Add((JsonNode)new JsonObject { ["case"] = cases[c], ["sameUniqueSetAsGui"] = sameAsGui,
                 ["before"] = results["before"], ["optimized"] = results["optimized"], ["gui"] = results["gui"] });
             await File.WriteAllTextAsync(Path.Combine(output, "results.json"), new JsonObject
             {

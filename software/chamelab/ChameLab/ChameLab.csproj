@@ -8,6 +8,7 @@
     <Version Condition="'$(Version)' == ''">0.0.0-local</Version>
     <!-- UI strings are written in English; other languages come from satellite assemblies. -->
     <NeutralLanguage>en</NeutralLanguage>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

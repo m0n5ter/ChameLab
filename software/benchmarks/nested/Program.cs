@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChameLab.Services;
 using ChameLab.Crypto;
 
@@ -10,7 +11,7 @@ int warmups = args.Length > 1 ? int.Parse(args[1]) : 2;
 if (iterations < 1 || warmups < 1) throw new ArgumentException("Positive iterations and warmups required.");
 var vectorsPath = args.Length > 2 ? args[2] : "../../chamelab/ChameLab.Tests/Reference/crypto_vectors.json";
 using var document = JsonDocument.Parse(File.ReadAllText(vectorsPath));
-var rows = new List<object>();
+var rows = new JsonArray();
 Console.WriteLine($"{RuntimeInformation.FrameworkDescription}; {RuntimeInformation.OSDescription}; {RuntimeInformation.ProcessArchitecture}; logical CPUs={Environment.ProcessorCount}");
 Console.WriteLine($"Warmups={warmups}, measured iterations={iterations}; elapsed time excludes validation and process startup.");
 foreach (var v in document.RootElement.EnumerateArray().Where(v => v.GetProperty("kind").GetString() == "nested"))
@@ -71,10 +72,30 @@ foreach (var v in document.RootElement.EnumerateArray().Where(v => v.GetProperty
         var samples = timings[mode].Order().ToArray();
         double median = samples.Length % 2 == 1 ? samples[samples.Length / 2] : (samples[samples.Length / 2 - 1] + samples[samples.Length / 2]) / 2;
         Console.WriteLine($"{key} {mode,-3}: median {median:F2} ms; min {samples[0]:F2}; max {samples[^1]:F2}; candidates {results[mode].Length}");
-        rows.Add(new { key, mode, nonceCandidates, medianMs = median, minMs = samples[0], maxMs = samples[^1], samplesMs = timings[mode], candidates = results[mode].Select(k => k.ToString("X12")), sameCandidateSetAsC = results[mode].SequenceEqual(reference) });
+        rows.Add((JsonNode)new JsonObject
+        {
+            ["key"] = key,
+            ["mode"] = mode,
+            ["nonceCandidates"] = nonceCandidates,
+            ["medianMs"] = median,
+            ["minMs"] = samples[0],
+            ["maxMs"] = samples[^1],
+            ["samplesMs"] = new JsonArray(timings[mode].Select(t => (JsonNode?)JsonValue.Create(t)).ToArray()),
+            ["candidates"] = new JsonArray(results[mode].Select(k => (JsonNode?)JsonValue.Create(k.ToString("X12"))).ToArray()),
+            ["sameCandidateSetAsC"] = results[mode].SequenceEqual(reference)
+        });
     }
 }
-File.WriteAllText("results.json", JsonSerializer.Serialize(new { runtime = RuntimeInformation.FrameworkDescription, os = RuntimeInformation.OSDescription, architecture = RuntimeInformation.ProcessArchitecture.ToString(), logicalCpus = Environment.ProcessorCount, iterations, warmups, rows }, new JsonSerializerOptions { WriteIndented = true }));
+File.WriteAllText("results.json", new JsonObject
+{
+    ["runtime"] = RuntimeInformation.FrameworkDescription,
+    ["os"] = RuntimeInformation.OSDescription,
+    ["architecture"] = RuntimeInformation.ProcessArchitecture.ToString(),
+    ["logicalCpus"] = Environment.ProcessorCount,
+    ["iterations"] = iterations,
+    ["warmups"] = warmups,
+    ["rows"] = rows
+}.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 
 internal static class Native
 {

@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <PublishAot>true</PublishAot>
     <Product>ChameLab</Product>
     <AssemblyTitle>ChameLab</AssemblyTitle>
   </PropertyGroup>

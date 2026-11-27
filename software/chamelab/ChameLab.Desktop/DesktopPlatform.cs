@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -142,6 +143,8 @@ internal static class DesktopPlatform
         }
     });
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Best-effort reflection into Avalonia.Win32 tray internals; returns false if trimmed.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Best-effort reflection into Avalonia.Win32 tray internals; returns false if trimmed.")]
     private static bool TryGetWin32TrayIdentity(TrayIcon tray, out IntPtr hWnd, out int uId)
     {
         hWnd = IntPtr.Zero;

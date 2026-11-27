@@ -1,12 +1,17 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Transport;
 
 internal static class Runner
 {
+    private static readonly JsonSerializerOptions IndentedJson = new() { WriteIndented = true };
+
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Benchmark reflection against internal client/transport fields.")]
     public static async Task Run(ITransport transport, string output, int repetitions = 3, bool probe = false, string? caseFilter = null)
     {
         // Read-only RF benchmark. Restores the initial device mode; never writes card/slot memory.
@@ -17,15 +22,19 @@ internal static class Runner
         await connection.OpenAsync();
         var client = new ChameleonClient(connection);
         var previous = await client.GetDeviceModeAsync();
-        var rows = new List<object>();
-        var metadata = new Dictionary<string, object?>
+        var rows = new JsonArray();
+        var metadata = new JsonObject
         {
             ["endpoint"] = endpoint,
             ["utc"] = DateTimeOffset.UtcNow,
-            ["framework"] = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+            ["framework"] = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+            ["initial_mode"] = previous.ToString()
         };
-        metadata["initial_mode"] = previous.ToString();
-        async Task Save() => await File.WriteAllTextAsync(output, JsonSerializer.Serialize(new { metadata, rows }, new JsonSerializerOptions { WriteIndented = true }));
+        async Task Save() => await File.WriteAllTextAsync(output, new JsonObject
+        {
+            ["metadata"] = metadata.DeepClone(),
+            ["rows"] = rows.DeepClone()
+        }.ToJsonString(IndentedJson));
         try
         {
             metadata["firmware"] = await client.GetGitVersionAsync();
@@ -36,11 +45,11 @@ internal static class Runner
             var sectors = MifareClassic.SectorCount(type);
             metadata["sak"] = tag.Sak;
             metadata["sectors"] = sectors;
-            metadata["ble_att_payload_bytes"] = transport.GetType().GetField("_mtuPayload", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(transport);
+            metadata["ble_att_payload_bytes"] = JsonValue.Create(transport.GetType().GetField("_mtuPayload", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(transport) as int?);
             metadata["os"] = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
             var capabilities = (await client.GetCapabilitiesAsync()).ToArray();
             if (!capabilities.Contains((ushort)Command.Mf1CheckKeysOfSectors)) throw new InvalidOperationException("Firmware has no batch command.");
-            Console.WriteLine(JsonSerializer.Serialize(metadata));
+            Console.WriteLine(metadata.ToJsonString());
             if (probe) return;
 
             // The old dictionary workflow is still the unsupported-firmware fallback. Hide just 2012
@@ -100,27 +109,29 @@ internal static class Runner
                                     if (await client.Mf1AuthAsync(MifareClassic.SectorFirstBlock(s), kt, k)) { found++; break; }
                         }
                         watch.Stop();
-                        var row = new
+                        var statuses = new JsonObject();
+                        foreach (var kv in measured.Statuses) statuses[kv.Key.ToString()] = kv.Value;
+                        var row = new JsonObject
                         {
-                            @case = c.Name,
-                            batch,
-                            repetition,
-                            seconds = watch.Elapsed.TotalSeconds,
-                            found,
-                            sectors = c.Sectors,
-                            dictionary_keys = c.Keys.Length,
-                            miss_attempts = c.Sectors * (c.Name.Contains("onepair") ? 1 : 2) * c.Keys.Length,
-                            commands = measured.Commands,
-                            tx_bytes = measured.TxBytes,
-                            rx_bytes = measured.RxBytes,
-                            auth_commands = measured.AuthCommands,
-                            batch_commands = measured.BatchCommands,
-                            batch_sizes = measured.BatchSizes.ToArray(),
-                            statuses = measured.Statuses.ToDictionary()
+                            ["case"] = c.Name,
+                            ["batch"] = batch,
+                            ["repetition"] = repetition,
+                            ["seconds"] = watch.Elapsed.TotalSeconds,
+                            ["found"] = found,
+                            ["sectors"] = c.Sectors,
+                            ["dictionary_keys"] = c.Keys.Length,
+                            ["miss_attempts"] = c.Sectors * (c.Name.Contains("onepair") ? 1 : 2) * c.Keys.Length,
+                            ["commands"] = measured.Commands,
+                            ["tx_bytes"] = measured.TxBytes,
+                            ["rx_bytes"] = measured.RxBytes,
+                            ["auth_commands"] = measured.AuthCommands,
+                            ["batch_commands"] = measured.BatchCommands,
+                            ["batch_sizes"] = new JsonArray(measured.BatchSizes.Select(s => (JsonNode?)JsonValue.Create(s)).ToArray()),
+                            ["statuses"] = statuses
                         };
                         if (measured.Statuses.Keys.Any(s => s is not (Status.Success or Status.HfTagOk or Status.MfErrAuth)))
                             throw new IOException("Unexpected device status; refusing to benchmark RF failures.");
-                        rows.Add(row); Console.WriteLine(JsonSerializer.Serialize(row)); await Save();
+                        rows.Add((JsonNode)row); Console.WriteLine(row.ToJsonString()); await Save();
                     }
             }
         }

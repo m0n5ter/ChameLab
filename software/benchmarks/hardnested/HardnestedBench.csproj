@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Optimize>true</Optimize>
+    <PublishAot>true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <!-- Exercise the actual shared assembly, including localized progress and resources. -->

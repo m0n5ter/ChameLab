@@ -179,7 +179,7 @@ internal static partial class AltStoreSourceGenerator
         {
             var key = (item.Parsed.ShortVersion, item.Parsed.BuildVersion);
             if (!seen.Add(key)) continue;
-            result.Add(item.Entry);
+            result.Add((JsonNode)item.Entry);
         }
         return result;
     }

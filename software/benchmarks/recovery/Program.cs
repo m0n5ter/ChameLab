@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChameLab.Crypto;
 using ChameLab.Models;
 using ChameLab.Services;
@@ -77,14 +78,30 @@ for (var round = -warmups; round < iterations; round++)
     if (round >= 0) { timings.Add(elapsed); allocated.Add(bytes); }
 }
 var sorted = timings.Order().ToArray();
-var result = new { name = args[1], engine, runtime = RuntimeInformation.FrameworkDescription,
-    os = RuntimeInformation.OSDescription, cpus = Environment.ProcessorCount, iterations, warmups, coldMs,
-    medianMs = (sorted[(sorted.Length - 1) / 2] + sorted[sorted.Length / 2]) / 2, samplesMs = timings,
-    allocatedBytes = allocated, candidates = expectedSet!.Length, fingerprint = Fingerprint(expectedSet),
-    uniqueCandidates = expectedSet.Distinct().Count(), uniqueFingerprint = Fingerprint(expectedSet.Distinct()),
-    peakMiB = Process.GetCurrentProcess().PeakWorkingSet64 / 1048576.0 };
-File.WriteAllText(args[6], JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }) + "\n");
-Console.WriteLine($"{result.name} {engine}: {result.medianMs:F2} ms; cold {coldMs:F2} ms; {result.candidates} candidates");
+var medianMs = (sorted[(sorted.Length - 1) / 2] + sorted[sorted.Length / 2]) / 2;
+var candidates = expectedSet!.Length;
+var uniqueCandidates = expectedSet.Distinct().Count();
+var result = new JsonObject
+{
+    ["name"] = args[1],
+    ["engine"] = engine,
+    ["runtime"] = RuntimeInformation.FrameworkDescription,
+    ["os"] = RuntimeInformation.OSDescription,
+    ["cpus"] = Environment.ProcessorCount,
+    ["iterations"] = iterations,
+    ["warmups"] = warmups,
+    ["coldMs"] = coldMs,
+    ["medianMs"] = medianMs,
+    ["samplesMs"] = new JsonArray(timings.Select(t => (JsonNode?)JsonValue.Create(t)).ToArray()),
+    ["allocatedBytes"] = new JsonArray(allocated.Select(a => (JsonNode?)JsonValue.Create(a)).ToArray()),
+    ["candidates"] = candidates,
+    ["fingerprint"] = Fingerprint(expectedSet),
+    ["uniqueCandidates"] = uniqueCandidates,
+    ["uniqueFingerprint"] = Fingerprint(expectedSet.Distinct()),
+    ["peakMiB"] = Process.GetCurrentProcess().PeakWorkingSet64 / 1048576.0
+};
+File.WriteAllText(args[6], result.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n");
+Console.WriteLine($"{args[1]} {engine}: {medianMs:F2} ms; cold {coldMs:F2} ms; {candidates} candidates");
 
 static string Fingerprint(IEnumerable<ulong> keys)
 {

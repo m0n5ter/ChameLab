@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Reflection;
 
 namespace ChameLab.Cli;
 
@@ -13,7 +12,8 @@ internal static class WaveformPlot
             await File.WriteAllBytesAsync(file, samples, ct);
             var host = Environment.ProcessPath ?? throw new InvalidOperationException("Cannot locate CLI host.");
             var start = new ProcessStartInfo(host) { UseShellExecute = false };
-            if (Path.GetFileNameWithoutExtension(host).Equals("dotnet", StringComparison.OrdinalIgnoreCase)) start.ArgumentList.Add(Assembly.GetEntryAssembly()!.Location);
+            if (Path.GetFileNameWithoutExtension(host).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+                start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "chamelab.dll"));
             start.ArgumentList.Add("--plot-capture"); start.ArgumentList.Add(file); start.ArgumentList.Add(offset.ToString(System.Globalization.CultureInfo.InvariantCulture));
             using var process = Process.Start(start) ?? throw new IOException("Could not open waveform window.");
             try { await process.WaitForExitAsync(ct); }

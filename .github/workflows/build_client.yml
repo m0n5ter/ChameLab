@@ -36,12 +36,15 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '11.0.x'
+      - name: Install NativeAOT prerequisites (Linux)
+        if: matrix.name == 'linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq clang zlib1g-dev
       - name: Verify generated recovery circuits
         run: dotnet run --project software/chamelab/ChameLab.Tools -c Release -- generate-hardnested --check
       - name: Test CLI and protocol contracts
         run: dotnet test software/chamelab/ChameLab.Cli.Tests -c Release --nologo
       - name: Publish standalone client
-        run: dotnet publish software/chamelab/ChameLab.Cli -c Release -r ${{ matrix.rid }} --self-contained true -o software/dist --nologo
+        run: dotnet publish software/chamelab/ChameLab.Cli -c Release -r ${{ matrix.rid }} -o software/dist --nologo
       - name: Smoke test published client
         run: ./software/dist/chamelab -c "dump_help" -c "hf mf hardnested --help"
       - name: Upload built client

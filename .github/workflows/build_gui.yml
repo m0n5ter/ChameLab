@@ -72,13 +72,22 @@ jobs:
 
   build_desktop:
     name: Build GUI (${{ matrix.rid }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: [version, test_managed_hardnested]
     permissions:
       contents: read
     strategy:
+      fail-fast: false
       matrix:
-        rid: [win-x64, linux-x64, osx-arm64, osx-x64]
+        include:
+          - rid: win-x64
+            os: windows-latest
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: osx-arm64
+            os: macos-latest
+          - rid: osx-x64
+            os: macos-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v7
@@ -89,21 +98,25 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '11.0.x'
+      - name: Install NativeAOT prerequisites (Linux)
+        if: matrix.rid == 'linux-x64'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq clang zlib1g-dev
       - name: Publish
         run: >
           dotnet publish software/chamelab/ChameLab.Desktop/ChameLab.Desktop.csproj
-          -c Release -r ${{ matrix.rid }} --self-contained
-          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -c Release -r ${{ matrix.rid }}
           -p:Version=${{ needs.version.outputs.version }}
           -o publish
       - name: Zip up GUI for release
+        shell: bash
         # The assembly can't be called ChameLab (that's the shared library), so only the
-        # single-file executable is renamed
+        # executable is renamed
         run: |
           for f in publish/ChameLab.Desktop publish/ChameLab.Desktop.exe; do
             [[ -e $f ]] && mv "$f" "${f/ChameLab.Desktop/ChameLab}"
           done
-          (cd publish && zip -r "$OLDPWD/chamelab-${{ matrix.rid }}.zip" . -x '*.pdb')
+          rm -rf publish/*.pdb publish/*.dbg publish/*.dSYM
+          dotnet run --project software/chamelab/ChameLab.Tools -c Release -- zip publish "chamelab-${{ matrix.rid }}.zip"
       - name: Upload release artifacts
         uses: actions/upload-artifact@v7
         with:

@@ -78,7 +78,7 @@ internal static class BenchmarkTools
             else if (kind == "static" && !(await Invoke("--staticnested", Values(["uid", "knownType", "nonce", "enc0", "nonce", "enc1"]))).Contains(key, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("Static nested reference did not recover " + key);
         }
-        await File.WriteAllTextAsync(output, JsonSerializer.Serialize(vectors, JsonOptions) + "\n");
+        await File.WriteAllTextAsync(output, new JsonArray(vectors.Select(v => (JsonNode?)v.DeepClone()).ToArray()).ToJsonString(JsonOptions) + "\n");
         Console.WriteLine($"Wrote {vectors.Length} independent C reference vectors: {output}");
     }
 
@@ -198,7 +198,7 @@ internal static class BenchmarkTools
             }
             if (input is not null) bytes = input; // Preserve the upstream block/type header too.
             await File.WriteAllBytesAsync(binary, bytes);
-            var fixture = c.DeepClone().AsObject(); fixture["capture_sha256"] = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(); fixtures.Add(fixture);
+            var fixture = c.DeepClone().AsObject(); fixture["capture_sha256"] = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(); fixtures.Add((JsonNode)fixture);
         }
         await File.WriteAllTextAsync(Path.Combine(output, "captures.json"), fixtures.ToJsonString(JsonOptions) + "\n");
         RequireSuccess(await Run("/usr/bin/true", [])); // Warm the parent process machinery outside timing.
@@ -230,7 +230,7 @@ internal static class BenchmarkTools
                     row["seconds"] = wall.Elapsed.TotalSeconds; row["gnu_seconds"] = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
                     row["capture_sha256"] = fixtures[c]!["capture_sha256"]!.DeepClone(); row["peak_mib"] = int.Parse(match.Groups[2].Value) / 1024d;
                     rows.Add(row); Console.WriteLine(row.ToJsonString());
-                    await File.WriteAllTextAsync(Path.Combine(output, "results.json"), JsonSerializer.Serialize(rows, JsonOptions) + "\n");
+                    await File.WriteAllTextAsync(Path.Combine(output, "results.json"), new JsonArray(rows.Select(r => (JsonNode?)r.DeepClone()).ToArray()).ToJsonString(JsonOptions) + "\n");
                 }
             }
         }

@@ -5,6 +5,7 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>ChameLab</RootNamespace>
     <NeutralLanguage>en</NeutralLanguage>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" />

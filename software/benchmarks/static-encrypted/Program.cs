@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChameLab.Benchmarks;
 using ChameLab.Crypto;
 using ChameLab.Models;
@@ -9,7 +10,7 @@ using ChameLab.Services;
 int iterations = args.Length > 0 ? int.Parse(args[0]) : 7;
 int warmups = args.Length > 1 ? int.Parse(args[1]) : 2;
 if (iterations < 1 || warmups < 1) throw new ArgumentException("Positive iterations and warmups required.");
-var rows = new List<object>();
+var rows = new JsonArray();
 Console.WriteLine($"{RuntimeInformation.FrameworkDescription}; {RuntimeInformation.OSDescription}; {RuntimeInformation.ProcessArchitecture}");
 Console.WriteLine($"Warmups={warmups}, measured iterations={iterations}; timings include allocations, exclude validation and startup.");
 
@@ -45,14 +46,16 @@ foreach (var others in new[] { otherKeys, new[] { 0x112233445566UL } })
     Measure($"other keys {others.Length}", "filter", () => BaselineRecovery.Filter(nt, keys, 0x12345678, others),
         () => StaticEncryptedNestedRecovery.Filter(nt, keys, 0x12345678, others), expected, sort: false);
 }
-File.WriteAllText("results.json", JsonSerializer.Serialize(new
+File.WriteAllText("results.json", new JsonObject
 {
-    runtime = RuntimeInformation.FrameworkDescription,
-    os = RuntimeInformation.OSDescription,
-    architecture = RuntimeInformation.ProcessArchitecture.ToString(),
-    logicalCpus = Environment.ProcessorCount,
-    iterations, warmups, rows
-}, new JsonSerializerOptions { WriteIndented = true }));
+    ["runtime"] = RuntimeInformation.FrameworkDescription,
+    ["os"] = RuntimeInformation.OSDescription,
+    ["architecture"] = RuntimeInformation.ProcessArchitecture.ToString(),
+    ["logicalCpus"] = Environment.ProcessorCount,
+    ["iterations"] = iterations,
+    ["warmups"] = warmups,
+    ["rows"] = rows
+}.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 
 void Measure(string name, string operation, Func<IReadOnlyList<ulong>> baseline,
     Func<IReadOnlyList<ulong>> optimized, ulong[] expected, bool sort)
@@ -81,9 +84,17 @@ void Measure(string name, string operation, Func<IReadOnlyList<ulong>> baseline,
         var samples = timings[mode].Order().ToArray();
         var median = (samples[(samples.Length - 1) / 2] + samples[samples.Length / 2]) / 2;
         Console.WriteLine($"{operation} {name} {names[mode]}: {median:F2} ms; allocated {allocations[mode].Average() / 1024:F0} KiB; candidates {expected.Length}");
-        rows.Add(new { name, operation, mode = names[mode], medianMs = median,
-            samplesMs = timings[mode], allocatedBytes = allocations[mode],
-            candidates = expected.Length, fingerprint = Fingerprint(expected).ToString("X16") });
+        rows.Add((JsonNode)new JsonObject
+        {
+            ["name"] = name,
+            ["operation"] = operation,
+            ["mode"] = names[mode],
+            ["medianMs"] = median,
+            ["samplesMs"] = new JsonArray(timings[mode].Select(t => (JsonNode?)JsonValue.Create(t)).ToArray()),
+            ["allocatedBytes"] = new JsonArray(allocations[mode].Select(a => (JsonNode?)JsonValue.Create(a)).ToArray()),
+            ["candidates"] = expected.Length,
+            ["fingerprint"] = Fingerprint(expected).ToString("X16")
+        });
     }
 }
 

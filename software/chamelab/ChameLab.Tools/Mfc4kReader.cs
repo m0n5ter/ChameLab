@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChameLab.Models;
 using ChameLab.Protocol;
 using ChameLab.Services;
@@ -31,7 +32,7 @@ internal static class Mfc4kReader
         if (attempts is < 1 or > 10) throw new ArgumentException("Attempts must be between 1 and 10.");
         var directory = Path.Combine(Path.GetFullPath(options.GetValueOrDefault("--output", "mfc4k-results")), DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(directory);
-        var watch = Stopwatch.StartNew(); var report = new Dictionary<string, object?>();
+        var watch = Stopwatch.StartNew(); var report = new JsonObject();
         MifareDump? dump = null; double? readingStarted = null;
         var port = options.GetValueOrDefault("--port", "COM8"); report["port"] = port;
         async Task Save()
@@ -41,12 +42,14 @@ internal static class Mfc4kReader
             if (dump is not null)
             {
                 var missing = Enumerable.Range(0, dump.BlockCount).Where(i => dump.GetBlock(i) is null).ToArray();
-                report["uid"] = dump.UidHex; report["unreadable_blocks"] = missing; report["dump_complete"] = missing.Length == 0;
+                report["uid"] = dump.UidHex;
+                report["unreadable_blocks"] = new JsonArray(missing.Select(i => (JsonNode?)JsonValue.Create(i)).ToArray());
+                report["dump_complete"] = missing.Length == 0;
                 report["known_keys"] = dump.KeyA.Concat(dump.KeyB).Count(k => k is not null);
-                report["missing_keys"] = Enumerable.Range(0, 80).Where(i => (i % 2 == 0 ? dump.KeyA[i / 2] : dump.KeyB[i / 2]) is null).Select(i => $"{i / 2}{(i % 2 == 0 ? 'A' : 'B')}").ToArray();
+                report["missing_keys"] = new JsonArray(Enumerable.Range(0, 80).Where(i => (i % 2 == 0 ? dump.KeyA[i / 2] : dump.KeyB[i / 2]) is null).Select(i => (JsonNode?)JsonValue.Create($"{i / 2}{(i % 2 == 0 ? 'A' : 'B')}")).ToArray());
                 await File.WriteAllBytesAsync(Path.Combine(directory, missing.Length == 0 ? "card-raw.bin" : "card-raw.partial.bin"), dump.ToBin());
             }
-            await File.WriteAllTextAsync(Path.Combine(directory, "report.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+            await File.WriteAllTextAsync(Path.Combine(directory, "report.json"), report.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
         Console.WriteLine("Results: " + directory);
         using var cts = new CancellationTokenSource();
