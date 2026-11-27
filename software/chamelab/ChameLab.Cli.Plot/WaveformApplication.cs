@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Media;
+using ChameLab.Services;
 
 namespace ChameLab.Cli.Plot;
 
@@ -13,7 +14,10 @@ public sealed class WaveformApplication : Application
     public static void Run(string file, int offset)
     {
         _samples = File.ReadAllBytes(file); _offset = offset;
-        AppBuilder.Configure<WaveformApplication>().UsePlatformDetect().StartWithClassicDesktopLifetime([]);
+        var builder = AppBuilder.Configure<WaveformApplication>().UsePlatformDetect();
+        if (OperatingSystem.IsMacOS() && NativeLibraryBundle.TryGetLibraryPath("libAvaloniaNative.dylib") is { } avaloniaNative)
+            builder = builder.With(new AvaloniaNativePlatformOptions { AvaloniaNativeLibraryPath = avaloniaNative });
+        builder.StartWithClassicDesktopLifetime([]);
     }
     public override void OnFrameworkInitializationCompleted()
     {

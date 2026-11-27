@@ -22,6 +22,8 @@ sealed class Program
         DesktopHost.BringToFront = DesktopPlatform.BringToFront;
         DesktopHost.ShowTrayBalloon = DesktopPlatform.ShowTrayBalloon;
 
+        NativeLibraryBundle.EnsureExtracted(typeof(Program).Assembly);
+
         AppServices.Register(new ITransportScanner[] { new SerialScanner() }, dfu: new IDfuLocator[] { new SerialDfuLocator() },
             hardnested: new ManagedHardnestedEngine(), wakeLock: new WakeLockService(DesktopWakeLock.AcquireAsync));
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
@@ -29,7 +31,8 @@ sealed class Program
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
 #if DEBUG
             .WithDeveloperTools()
@@ -37,4 +40,8 @@ sealed class Program
             .WithInterFont()
             .UseReactiveUI(_ => { })
             .LogToTrace();
+        if (OperatingSystem.IsMacOS() && NativeLibraryBundle.TryGetLibraryPath("libAvaloniaNative.dylib") is { } avaloniaNative)
+            builder = builder.With(new AvaloniaNativePlatformOptions { AvaloniaNativeLibraryPath = avaloniaNative });
+        return builder;
+    }
 }

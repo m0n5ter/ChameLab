@@ -47,6 +47,9 @@ jobs:
         run: dotnet publish software/chamelab/ChameLab.Cli -c Release -r ${{ matrix.rid }} -o software/dist --nologo
       - name: Smoke test published client
         run: ./software/dist/chamelab -c "dump_help" -c "hf mf hardnested --help"
+      - name: Strip debug symbols
+        shell: bash
+        run: rm -rf software/dist/*.pdb software/dist/*.dbg software/dist/*.dSYM
       - name: Upload built client
         uses: actions/upload-artifact@v7
         with:

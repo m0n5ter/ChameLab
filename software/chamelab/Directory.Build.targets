@@ -1,0 +1,94 @@
+<Project>
+  <!-- Compress and embed NuGet native libraries (.dll/.so/.dylib) into NativeAOT binaries when
+       EmbedNativeLibraries=true, and omit those loose files from the publish directory. -->
+  <UsingTask TaskName="_CompressNativeLibrariesForAot"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <OutputDir ParameterType="System.String" Required="true" />
+      <CompressedFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <HashFile ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.IO.Compression" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Security.Cryptography" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="Microsoft.Build.Framework" />
+      <Using Namespace="Microsoft.Build.Utilities" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        Directory.CreateDirectory(OutputDir);
+        var ordered = Files
+            .OrderBy(f => Path.GetFileName(f.ItemSpec), StringComparer.Ordinal)
+            .ToArray();
+        var outputs = new List<ITaskItem>(ordered.Length);
+        using var sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+        foreach (var file in ordered)
+        {
+            var src = file.ItemSpec;
+            var name = Path.GetFileName(src);
+            var dst = Path.Combine(OutputDir, name + ".gz");
+            var srcBytes = File.ReadAllBytes(src);
+
+            sha.AppendData(Encoding.UTF8.GetBytes(name));
+            sha.AppendData(srcBytes);
+
+            if (!File.Exists(dst) || File.GetLastWriteTimeUtc(dst) < File.GetLastWriteTimeUtc(src))
+            {
+                using var outStream = File.Create(dst);
+                using var gzip = new GZipStream(outStream, CompressionLevel.Optimal);
+                gzip.Write(srcBytes, 0, srcBytes.Length);
+            }
+
+            var item = new TaskItem(dst);
+            item.SetMetadata("LogicalName", "ChameLab.NativeLibs." + name + ".gz");
+            outputs.Add(item);
+        }
+
+        var hash = BitConverter.ToString(sha.GetHashAndReset()).Replace("-", "").ToLowerInvariant().Substring(0, 16);
+        var hashPath = Path.Combine(OutputDir, "manifest.sha256");
+        if (!File.Exists(hashPath) || File.ReadAllText(hashPath) != hash)
+            File.WriteAllText(hashPath, hash);
+
+        CompressedFiles = outputs.ToArray();
+        HashFile = hashPath;
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="_BundleNativeLibrariesIntoAssembly"
+          AfterTargets="ResolvePackageAssets"
+          BeforeTargets="AssignTargetPaths;PrepareResourceNames"
+          Condition="'$(EmbedNativeLibraries)' == 'true' and '$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <_NativeLibsToEmbed Include="@(NativeCopyLocalItems)"
+                          Condition="'%(NativeCopyLocalItems.Extension)' == '.dll' or '%(NativeCopyLocalItems.Extension)' == '.so' or '%(NativeCopyLocalItems.Extension)' == '.dylib'" />
+    </ItemGroup>
+
+    <_CompressNativeLibrariesForAot
+        Condition="'@(_NativeLibsToEmbed)' != ''"
+        Files="@(_NativeLibsToEmbed)"
+        OutputDir="$(IntermediateOutputPath)native-bundle">
+      <Output TaskParameter="CompressedFiles" ItemName="_CompressedNativeLibs" />
+      <Output TaskParameter="HashFile" PropertyName="_NativeBundleHashFile" />
+    </_CompressNativeLibrariesForAot>
+
+    <ItemGroup Condition="'@(_NativeLibsToEmbed)' != ''">
+      <EmbeddedResource Include="@(_CompressedNativeLibs)" />
+      <EmbeddedResource Include="$(_NativeBundleHashFile)" LogicalName="ChameLab.NativeLibs.sha256" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_ExcludeEmbeddedNativeLibrariesFromPublish"
+          AfterTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(EmbedNativeLibraries)' == 'true' and '$(PublishAot)' == 'true' and '$(RuntimeIdentifier)' != ''">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(NativeCopyLocalItems)" />
+    </ItemGroup>
+  </Target>
+</Project>
